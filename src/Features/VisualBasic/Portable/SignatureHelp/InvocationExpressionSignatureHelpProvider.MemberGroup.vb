@@ -55,11 +55,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 member, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 member.IsParams(),
-                Function(c) member.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableDescription(member, semanticModel, position)),
+                Function(c) member.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableDescription(member, semanticModel, position).ToTaggedText()),
                 GetMemberGroupPreambleParts(member, semanticModel, position),
                 GetSeparatorParts(),
                 GetMemberGroupPostambleParts(member, semanticModel, position),
-                member.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)))
+                member.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList())
             Return item
         End Function
 
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return SpecializedCollections.EmptyList(Of SymbolDisplayPart)
         End Function
 
-        Private Function GetMemberGroupPreambleParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer) As IEnumerable(Of SymbolDisplayPart)
+        Private Function GetMemberGroupPreambleParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
 
             AddExtensionPreamble(symbol, result)
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Private Function GetMemberGroupPostambleParts(symbol As ISymbol,
                                                       semanticModel As SemanticModel,
-                                                      position As Integer) As IEnumerable(Of SymbolDisplayPart)
+                                                      position As Integer) As IList(Of SymbolDisplayPart)
             Dim parts = New List(Of SymbolDisplayPart)
             parts.Add(Punctuation(SyntaxKind.CloseParenToken))
 

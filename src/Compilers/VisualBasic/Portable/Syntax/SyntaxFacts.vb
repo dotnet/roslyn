@@ -107,6 +107,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Else
                             Return parentQualName.Right Is node
                         End If
+                    Case SyntaxKind.TypedTupleElement
+                        Return DirectCast(parent, TypedTupleElementSyntax).Type Is node
                 End Select
             End If
 

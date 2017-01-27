@@ -50,11 +50,19 @@ namespace Microsoft.CodeAnalysis.Emit
             DefinitionMap definitionMap,
             SymbolChanges changes,
             CancellationToken cancellationToken)
-            : base(MakeTablesBuilder(previousGeneration), null, context, messageProvider, false, false, cancellationToken)
+            : base(metadata: MakeTablesBuilder(previousGeneration), 
+                   debugMetadataOpt: (context.Module.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb) ? new MetadataBuilder() : null, 
+                   dynamicAnalysisDataWriterOpt: null,
+                   context: context,
+                   messageProvider: messageProvider,
+                   allowMissingMethodBodies: false, 
+                   deterministic: false,
+                   cancellationToken: cancellationToken)
         {
             Debug.Assert(previousGeneration != null);
             Debug.Assert(encId != default(Guid));
             Debug.Assert(encId != previousGeneration.EncId);
+            Debug.Assert(context.Module.EmitOptions.DebugInformationFormat != DebugInformationFormat.Embedded);
 
             _previousGeneration = previousGeneration;
             _encId = encId;
@@ -390,6 +398,8 @@ namespace Microsoft.CodeAnalysis.Emit
             return _methodSpecIndex.Rows;
         }
 
+        protected override int GreatestMethodDefIndex => _methodDefs.NextRowId;
+
         protected override bool TryGetTypeRefeferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
         {
             int index;
@@ -428,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _standAloneSignatureIndex.Rows;
         }
 
-        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(IModule module)
+        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(CommonPEModuleBuilder module)
         {
             return _changes.GetTopLevelTypes(this.Context);
         }
@@ -685,7 +695,7 @@ namespace Microsoft.CodeAnalysis.Emit
             ITypeSymbol typeSymbol = translatedType as ITypeSymbol;
             if (typeSymbol != null)
             {
-                translatedType = Context.ModuleBuilder.EncTranslateType(typeSymbol, Context.Diagnostics);
+                translatedType = Context.Module.EncTranslateType(typeSymbol, Context.Diagnostics);
             }
 
             return new EncLocalInfo(localDef.SlotInfo, translatedType, localDef.Constraints, signature);
@@ -879,6 +889,25 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             tokens.Free();
+
+            // Populate Portable PDB EncMap table with MethodDebugInformation mapping,
+            // which corresponds 1:1 to MethodDef mapping.
+            if (_debugMetadataOpt != null)
+            {
+                var debugTokens = ArrayBuilder<EntityHandle>.GetInstance();
+                AddDefinitionTokens(debugTokens, _methodDefs, TableIndex.MethodDebugInformation);
+                debugTokens.Sort(HandleComparer.Default);
+
+                // Should not be any duplicates.
+                Debug.Assert(debugTokens.Distinct().Count() == debugTokens.Count);
+
+                foreach (var token in debugTokens)
+                {
+                    _debugMetadataOpt.AddEncMapEntry(token);
+                }
+
+                debugTokens.Free();
+            }
 
 #if DEBUG
             // The following tables are either represented in the EncMap
@@ -1418,14 +1447,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 _changes = writer._changes;
             }
 
-            public override void Visit(IAssembly assembly)
+            public override void Visit(CommonPEModuleBuilder module)
             {
-                this.Visit((IModule)assembly);
-            }
-
-            public override void Visit(IModule module)
-            {
-                this.module = module;
                 this.Visit(((DeltaMetadataWriter)this.metadataWriter).GetTopLevelTypes(module));
             }
 

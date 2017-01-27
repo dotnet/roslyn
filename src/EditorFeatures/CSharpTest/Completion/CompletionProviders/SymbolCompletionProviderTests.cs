@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -2749,7 +2749,7 @@ class C
     {
         $$";
 
-            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 1 {FeaturesResources.Overload})");
+            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 1 {FeaturesResources.overload})");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2764,7 +2764,7 @@ class C
     {
         $$";
 
-            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 2 {FeaturesResources.Overloads})");
+            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 2 {FeaturesResources.overloads_})");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2778,7 +2778,7 @@ class C
     {
         $$";
 
-            await VerifyItemExistsAsync(markup, "M<>", expectedDescriptionOrNull: $"void C.M<T>(T i) (+ 1 {FeaturesResources.GenericOverload})");
+            await VerifyItemExistsAsync(markup, "M<>", expectedDescriptionOrNull: $"void C.M<T>(T i) (+ 1 {FeaturesResources.generic_overload})");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2793,7 +2793,7 @@ class C
     {
         $$";
 
-            await VerifyItemExistsAsync(markup, "M<>", expectedDescriptionOrNull: $"void C.M<T>(int i) (+ 2 {FeaturesResources.GenericOverloads})");
+            await VerifyItemExistsAsync(markup, "M<>", expectedDescriptionOrNull: $"void C.M<T>(int i) (+ 2 {FeaturesResources.generic_overloads})");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2819,7 +2819,7 @@ class C<T>
     {
         $$";
 
-            await VerifyItemExistsAsync(markup, "foo", expectedDescriptionOrNull: $"({FeaturesResources.Parameter}) T foo");
+            await VerifyItemExistsAsync(markup, "foo", expectedDescriptionOrNull: $"({FeaturesResources.parameter}) T foo");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2832,7 +2832,7 @@ class C<T>
     {
         $$";
 
-            await VerifyItemExistsAsync(markup, "T", expectedDescriptionOrNull: $"T {FeaturesResources.In} C<T>");
+            await VerifyItemExistsAsync(markup, "T", expectedDescriptionOrNull: $"T {FeaturesResources.in_} C<T>");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2848,10 +2848,10 @@ class C
 ";
 
             var expectedDescription =
-$@"({FeaturesResources.LocalVariable}) 'a a
+$@"({FeaturesResources.local_variable}) 'a a
 
-{FeaturesResources.AnonymousTypes}
-    'a {FeaturesResources.Is} new {{  }}";
+{FeaturesResources.Anonymous_Types_colon}
+    'a {FeaturesResources.is_} new {{  }}";
 
             await VerifyItemExistsAsync(markup, "a", expectedDescription);
         }
@@ -3394,7 +3394,7 @@ public class XAttribute : Attribute
 class Class3 { }
 ";
             await VerifyItemExistsAsync(code, "X");
-            await Assert.ThrowsAsync<Xunit.Sdk.TrueException>(async () => await VerifyItemExistsAsync(code, "XAttribute"));
+            await Assert.ThrowsAsync<Xunit.Sdk.TrueException>(() => VerifyItemExistsAsync(code, "XAttribute"));
         }
 
         [WorkItem(544928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544928")]
@@ -6497,6 +6497,19 @@ class Program
             await VerifyItemExistsAsync(markup, "CommandLine");
         }
 
+        [WorkItem(12781, "https://github.com/dotnet/roslyn/issues/12781")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestFieldDeclarationAmbiguity()
+        {
+            var markup = @"
+using System;
+Environment.$$
+var v;
+}";
+
+            await VerifyItemExistsAsync(markup, "CommandLine", sourceCodeKind: SourceCodeKind.Script);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCursorOnClassCloseBrace()
         {
@@ -6599,8 +6612,8 @@ class Program
     }
 }";
 
-            var description = $@"({CSharpFeaturesResources.Awaitable}) Task Program.foo()
-{WorkspacesResources.Usage}
+            var description = $@"({CSharpFeaturesResources.awaitable}) Task Program.foo()
+{WorkspacesResources.Usage_colon}
   {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} foo();";
 
             await VerifyItemWithMscorlib45Async(markup, "foo", description, "C#");
@@ -6620,8 +6633,8 @@ class Program
     }
 }";
 
-            var description = $@"({CSharpFeaturesResources.Awaitable}) Task<int> Program.foo()
-{WorkspacesResources.Usage}
+            var description = $@"({CSharpFeaturesResources.awaitable}) Task<int> Program.foo()
+{WorkspacesResources.Usage_colon}
   int x = {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} foo();";
 
             await VerifyItemWithMscorlib45Async(markup, "foo", description, "C#");
@@ -6641,7 +6654,7 @@ class Program
         $$
     }
 }";
-            await VerifyItemExistsAsync(markup, "foo", $"[{CSharpFeaturesResources.Deprecated}] void Program.foo()");
+            await VerifyItemExistsAsync(markup, "foo", $"[{CSharpFeaturesResources.deprecated}] void Program.foo()");
         }
 
         [WorkItem(568986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568986")]
@@ -6948,7 +6961,7 @@ class C
     </Project>
 </Workspace>";
 
-            await VerifyItemInLinkedFilesAsync(markup, "x", $"({FeaturesResources.Field}) int C.x");
+            await VerifyItemInLinkedFilesAsync(markup, "x", $"({FeaturesResources.field}) int C.x");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -6974,7 +6987,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.Field}) int C.x\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}";
+            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
 
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
@@ -7005,7 +7018,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.Field}) int C.x\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}";
+            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
 
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
@@ -7039,7 +7052,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.Field}) int C.x\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}";
+            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
 
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
@@ -7077,7 +7090,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"void G.DoGStuff()\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.NotAvailable)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}";
+            var expectedDescription = $"void G.DoGStuff()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
 
             await VerifyItemInLinkedFilesAsync(markup, "DoGStuff", expectedDescription);
         }
@@ -7104,7 +7117,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.LocalVariable}) int xyz";
+            var expectedDescription = $"({FeaturesResources.local_variable}) int xyz";
             await VerifyItemInLinkedFilesAsync(markup, "xyz", expectedDescription);
         }
 
@@ -7132,7 +7145,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.LocalVariable}) int xyz\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}";
+            var expectedDescription = $"({FeaturesResources.local_variable}) int xyz\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
             await VerifyItemInLinkedFilesAsync(markup, "xyz", expectedDescription);
         }
 
@@ -7158,7 +7171,7 @@ LABEL:  int xyz;
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.Label}) LABEL";
+            var expectedDescription = $"({FeaturesResources.label}) LABEL";
             await VerifyItemInLinkedFilesAsync(markup, "LABEL", expectedDescription);
         }
 
@@ -7184,7 +7197,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.RangeVariable}) ? y";
+            var expectedDescription = $"({FeaturesResources.range_variable}) ? y";
             await VerifyItemInLinkedFilesAsync(markup, "y", expectedDescription);
         }
 
@@ -7296,7 +7309,7 @@ public static class Extensions
     </Project>
 </Workspace>";
 
-            var expectedDescription = $"({CSharpFeaturesResources.Extension}) void C.Do(string x)";
+            var expectedDescription = $"({CSharpFeaturesResources.extension}) void C.Do(string x)";
             await VerifyItemInLinkedFilesAsync(markup, "Do", expectedDescription);
         }
 
@@ -8766,6 +8779,303 @@ class Class2
         {
             await VerifyNoItemsExistAsync("#!$$", sourceCodeKind: SourceCodeKind.Script);
             await VerifyNoItemsExistAsync("#! S$$", sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompoundNameTargetTypePreselection()
+        {
+            var markup = @"
+class Class1
+{
+    void foo()
+    {
+        int x = 3;
+        string y = x.$$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "ToString", matchPriority: SymbolMatchPriority.PreferEventOrMethod);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TargetTypeInCollectionInitializer1()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int z;
+        string q;
+        List<int> x = new List<int>() { $$  }
+    }
+}";
+            await VerifyItemExistsAsync(markup, "z", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TargetTypeInCollectionInitializer2()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int z;
+        string q;
+        List<int> x = new List<int>() { 1, $$  }
+    }
+}";
+            await VerifyItemExistsAsync(markup, "z", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TargeTypeInObjectInitializer1()
+        {
+            var markup = @"
+class C
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+
+    void foo()
+    {
+        int i;
+        var c = new C() { X = $$ }
+    }
+}";
+            await VerifyItemExistsAsync(markup, "i", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TargeTypeInObjectInitializer2()
+        {
+            var markup = @"
+class C
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+
+    void foo()
+    {
+        int i;
+        var c = new C() { X = 1, Y = $$ }
+    }
+}";
+            await VerifyItemExistsAsync(markup, "i", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElements()
+        {
+            var markup = @"
+class C
+{
+    void foo()
+    {
+        var t = (Alice: 1, Item2: 2, ITEM3: 3, 4, 5, 6, 7, 8, Bob: 9);
+        t.$$
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs;
+
+            await VerifyItemExistsAsync(markup, "Alice");
+            await VerifyItemExistsAsync(markup, "Bob");
+            await VerifyItemExistsAsync(markup, "CompareTo");
+            await VerifyItemExistsAsync(markup, "Equals");
+            await VerifyItemExistsAsync(markup, "GetHashCode");
+            await VerifyItemExistsAsync(markup, "GetType");
+            await VerifyItemExistsAsync(markup, "Item2");
+            await VerifyItemExistsAsync(markup, "ITEM3");
+            for (int i = 4; i <= 8; i++)
+            {
+                await VerifyItemExistsAsync(markup, "Item" + i);
+            }
+            await VerifyItemExistsAsync(markup, "ToString");
+
+            await VerifyItemIsAbsentAsync(markup, "Item1");
+            await VerifyItemIsAbsentAsync(markup, "Item9");
+            await VerifyItemIsAbsentAsync(markup, "Rest");
+            await VerifyItemIsAbsentAsync(markup, "Item3");
+        }
+
+        [WorkItem(14546, "https://github.com/dotnet/roslyn/issues/14546")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElementsCompletionOffMethodGroup()
+        {
+            var markup = @"
+class C
+{
+    void foo()
+    {
+        new object().ToString.$$
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs;
+
+            // should not crash
+            await VerifyItemExistsAsync(markup, "ToString");            
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
+        public async Task NoCompletionInLocalFuncGenericParamList()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        int Local<$$";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
+        public async Task CompletionForAwaitWithoutAsync()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        await Local<$$";
+
+            await VerifyAnyItemExistsAsync(markup);
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeAtMemberLevel1()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    ($$
+}", "C");
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeAtMemberLevel2()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    ($$)
+}", "C");
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeAtMemberLevel3()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    (C, $$
+}", "C");
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeAtMemberLevel4()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    (C, $$)
+}", "C");
+        }
+
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeInForeach()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    void M()
+    {
+        foreach ((C, $$
+    }
+}", "C");
+        }
+
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeInParameterList()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    void M((C, $$)
+    {
+    }
+}", "C");
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeInNameOf()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    void M()
+    {
+        var x = nameof((C, $$
+    }
+}", "C");
+        }
+
+        [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task LocalFunctionDescription()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    void M()
+    {
+        void Local() { }
+        
+        $$
+    }
+}", "Local", "void Local()");
+        }
+
+        [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task LocalFunctionDescription2()
+        {
+            await VerifyItemExistsAsync(@"
+using System;
+class C
+{
+    class var { }
+    void M()
+    {
+        Action<int> Local(string x, ref var @class, params Func<int, string> f)
+        {
+            return () => 0;
+        }
+
+        $$
+    }
+}", "Local", "Action<int> Local(string x, ref var @class, params Func<int, string> f)");
         }
     }
 }

@@ -233,5 +233,161 @@ Class C
 End Class",
 compareTokens:=False)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        Public Async Function TestRemoveAwaitFromCaller1() As Task
+            Await TestAsync(
+"Imports System.Threading.Tasks;
+
+Public Class Class1
+    Async Function [|FooAsync|]() As Task
+    End Function
+
+    Async Sub BarAsync()
+        Await FooAsync()
+    End Sub
+End Class",
+"Imports System.Threading.Tasks;
+
+Public Class Class1
+    Sub Foo()
+    End Sub
+
+    Async Sub BarAsync()
+        Foo()
+    End Sub
+End Class", compareTokens:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        Public Async Function TestRemoveAwaitFromCaller2() As Task
+            Await TestAsync(
+"Imports System.Threading.Tasks;
+
+Public Class Class1
+    Async Function [|FooAsync|]() As Task
+    End Function
+
+    Async Sub BarAsync()
+        Await FooAsync().ConfigureAwait(false)
+    End Sub
+End Class",
+"Imports System.Threading.Tasks;
+
+Public Class Class1
+    Sub Foo()
+    End Sub
+
+    Async Sub BarAsync()
+        Foo()
+    End Sub
+End Class", compareTokens:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        Public Async Function TestRemoveAwaitFromCaller3() As Task
+            Await TestAsync(
+"Imports System.Threading.Tasks;
+
+Public Class Class1
+    Async Function [|FooAsync|]() As Task
+    End Function
+
+    Async Sub BarAsync()
+        Await Me.FooAsync()
+    End Sub
+End Class",
+"Imports System.Threading.Tasks;
+
+Public Class Class1
+    Sub Foo()
+    End Sub
+
+    Async Sub BarAsync()
+        Me.Foo()
+    End Sub
+End Class", compareTokens:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        Public Async Function TestRemoveAwaitFromCaller4() As Task
+            Await TestAsync(
+"Imports System.Threading.Tasks;
+
+Public Class Class1
+    Async Function [|FooAsync|]() As Task
+    End Function
+
+    Async Sub BarAsync()
+        Await Me.FooAsync().ConfigureAwait(false)
+    End Sub
+End Class",
+"Imports System.Threading.Tasks;
+
+Public Class Class1
+    Sub Foo()
+    End Sub
+
+    Async Sub BarAsync()
+        Me.Foo()
+    End Sub
+End Class", compareTokens:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        Public Async Function TestRemoveAwaitFromCallerNested1() As Task
+            Await TestAsync(
+"Imports System.Threading.Tasks;
+
+Public Class Class1
+    Async Function [|FooAsync|](i As Integer) As Task(Of Integer)
+    End Function
+
+    Async Sub BarAsync()
+        Await FooAsync(Await FooAsync(0))
+    End Sub
+End Class",
+"Imports System.Threading.Tasks;
+
+Public Class Class1
+    Function Foo(i As Integer) As Integer
+    End Function
+
+    Async Sub BarAsync()
+        Foo(Foo(0))
+    End Sub
+End Class", compareTokens:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
+        <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
+        Public Async Function TestRemoveAwaitFromCallerNested2() As Task
+            Await TestAsync(
+"Imports System.Threading.Tasks;
+
+Public Class Class1
+    Async Function [|FooAsync|](i As Integer) As Task(Of Integer)
+    End Function
+
+    Async Sub BarAsync()
+        Await Me.FooAsync(Await Me.FooAsync(0).ConfigureAwait(false)).ConfigureAwait(false)
+    End Sub
+End Class",
+"Imports System.Threading.Tasks;
+
+Public Class Class1
+    Function Foo(i As Integer) As Integer
+    End Function
+
+    Async Sub BarAsync()
+        Me.Foo(Me.Foo(0))
+    End Sub
+End Class", compareTokens:=False)
+        End Function
     End Class
 End Namespace

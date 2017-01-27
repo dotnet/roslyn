@@ -1,6 +1,9 @@
-﻿Imports System.Composition
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -108,13 +111,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
 
             If TypeOf getAccessorDeclaration?.Parent Is AccessorBlockSyntax Then
                 Dim block = DirectCast(getAccessorDeclaration.Parent, AccessorBlockSyntax)
-                statements.AddRange(block.Statements)
+                statements.AddRange(block.Statements.Select(AddressOf WithFormattingAnnotation))
             ElseIf propertyBackingField IsNot Nothing Then
                 Dim fieldReference = GetFieldReference(generator, propertyBackingField)
                 statements.Add(generator.ReturnStatement(fieldReference))
             End If
 
             Return generator.MethodDeclaration(getMethod, desiredGetMethodName, statements)
+        End Function
+
+        Private Shared Function WithFormattingAnnotation(statement As StatementSyntax) As StatementSyntax
+            Return statement.WithAdditionalAnnotations(Formatter.Annotation)
         End Function
 
         Private Function GetSetMethod(
@@ -132,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
 
             If TypeOf setAccessorDeclaration?.Parent Is AccessorBlockSyntax Then
                 Dim block = DirectCast(setAccessorDeclaration.Parent, AccessorBlockSyntax)
-                statements.AddRange(block.Statements)
+                statements.AddRange(block.Statements.Select(AddressOf WithFormattingAnnotation))
             ElseIf propertyBackingField IsNot Nothing Then
                 Dim fieldReference = GetFieldReference(generator, propertyBackingField)
                 statements.Add(generator.AssignmentStatement(

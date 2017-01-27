@@ -969,8 +969,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var typeName = SyntaxFactory.ParseTypeName(name);
             if (typeName is PredefinedTypeSyntax)
             {
-                PredefinedType predefinedType;
-                if (SyntaxFactsService.TryGetPredefinedType(((PredefinedTypeSyntax)typeName).Keyword, out predefinedType))
+                if (SyntaxFactsService.TryGetPredefinedType(((PredefinedTypeSyntax)typeName).Keyword, out var predefinedType))
                 {
                     var specialType = predefinedType.ToSpecialType();
                     return semanticModel.Compilation.GetSpecialType(specialType).GetEscapedFullName();
@@ -1476,6 +1475,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
 
             return SpecializedCollections.EmptyEnumerable<ParameterSyntax>();
+        }
+
+        public override bool IsExpressionBodiedProperty(SyntaxNode node)
+            => (node as PropertyDeclarationSyntax)?.ExpressionBody != null;
+
+        public override bool TryGetAutoPropertyExpressionBody(SyntaxNode parentNode, out SyntaxNode accessorNode)
+        {
+            accessorNode = (parentNode as PropertyDeclarationSyntax)?.ExpressionBody;
+            return accessorNode != null;
         }
 
         public override bool IsAccessorNode(SyntaxNode node)

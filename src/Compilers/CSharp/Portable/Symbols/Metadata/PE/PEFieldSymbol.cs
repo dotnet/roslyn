@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(customModifiers);
                 type = DynamicTypeDecoder.TransformType(type, customModifiersArray.Length, _handle, moduleSymbol);
 
-                type = TupleTypeSymbol.TransformToTupleIfCompatible(type); // temporary shallow unification
+                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol);
                 _lazyIsVolatile = isVolatile;
 
                 TypeSymbol fixedElementType;

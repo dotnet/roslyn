@@ -62,6 +62,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
+            Dim instrument As Boolean = Me.Instrument(node)
+
             For symbolIndex = 0 To initializedSymbols.Length - 1
                 Dim symbol = initializedSymbols(symbolIndex)
                 Dim accessExpression As BoundExpression
@@ -106,52 +108,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                      accessExpression,
                                                                                      node.InitialValue,
                                                                                      suppressObjectClone:=False)).ToStatement
+                End If
 
-                    rewrittenStatement = MarkInitializerSequencePoint(rewrittenStatement, syntax, symbolIndex)
+                If instrument Then
+                    rewrittenStatement = _instrumenter.InstrumentFieldOrPropertyInitializer(node, rewrittenStatement, symbolIndex, createTemporary)
                 End If
 
                 rewrittenStatements.Add(rewrittenStatement)
             Next
 
             Return New BoundStatementList(node.Syntax, rewrittenStatements.ToImmutableAndFree())
-        End Function
-
-        Private Function MarkInitializerSequencePoint(rewrittenStatement As BoundStatement, syntax As VisualBasicSyntaxNode, nameIndex As Integer) As BoundStatement
-            If Not GenerateDebugInfo Then
-                Return rewrittenStatement
-            End If
-
-            If syntax.Parent.IsKind(SyntaxKind.PropertyStatement) Then
-                ' Property [|P As Integer = 1|] Implements I.P
-                ' Property [|P As New Integer|] Implements I.P
-                Dim propertyStatement = DirectCast(syntax.Parent, PropertyStatementSyntax)
-
-                Dim span = TextSpan.FromBounds(propertyStatement.Identifier.SpanStart,
-                                               If(propertyStatement.Initializer Is Nothing, propertyStatement.AsClause.Span.End, propertyStatement.Initializer.Span.End))
-
-                Return New BoundSequencePointWithSpan(syntax, rewrittenStatement, span)
-            End If
-
-            If syntax.IsKind(SyntaxKind.AsNewClause) Then
-                Dim declarator = DirectCast(syntax.Parent, VariableDeclaratorSyntax)
-                If declarator.Names.Count > 1 Then
-                    ' Dim [|a|], b As New C()
-                    Return New BoundSequencePoint(declarator.Names(nameIndex), rewrittenStatement)
-                Else
-                    ' Dim [|a As New C()|]
-                    Return New BoundSequencePoint(syntax.Parent, rewrittenStatement)
-                End If
-            End If
-
-            If syntax.IsKind(SyntaxKind.ModifiedIdentifier) Then
-                Debug.Assert(DirectCast(syntax, ModifiedIdentifierSyntax).ArrayBounds IsNot Nothing)
-                ' Dim [|a(1)|] As Integer
-                Return New BoundSequencePoint(syntax, rewrittenStatement)
-            End If
-
-            ' Dim [|a = 1|]
-            Debug.Assert(syntax.IsKind(SyntaxKind.EqualsValue))
-            Return New BoundSequencePoint(syntax.Parent, rewrittenStatement)
         End Function
     End Class
 End Namespace

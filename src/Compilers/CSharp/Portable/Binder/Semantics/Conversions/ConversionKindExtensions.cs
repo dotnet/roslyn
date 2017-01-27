@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitEnumeration:
+                case ConversionKind.ImplicitThrow:
                 case ConversionKind.ImplicitNullable:
                 case ConversionKind.NullLiteral:
                 case ConversionKind.ImplicitReference:
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitNumeric:
                 case ConversionKind.ExplicitTuple:
+                case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitEnumeration:
                 case ConversionKind.ExplicitNullable:
                 case ConversionKind.ExplicitReference:

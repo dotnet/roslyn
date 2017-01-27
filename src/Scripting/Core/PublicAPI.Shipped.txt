@@ -61,9 +61,17 @@ Microsoft.CodeAnalysis.Scripting.Script.GetCompilation() -> Microsoft.CodeAnalys
 Microsoft.CodeAnalysis.Scripting.Script.GlobalsType.get -> System.Type
 Microsoft.CodeAnalysis.Scripting.Script.Options.get -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.Script.Previous.get -> Microsoft.CodeAnalysis.Scripting.Script
+Microsoft.CodeAnalysis.Scripting.Script.RunAsync(object globals = null, System.Func<System.Exception, bool> catchException = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState>
+Microsoft.CodeAnalysis.Scripting.Script.RunAsync(object globals, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState>
+Microsoft.CodeAnalysis.Scripting.Script.RunFromAsync(Microsoft.CodeAnalysis.Scripting.ScriptState previousState, System.Func<System.Exception, bool> catchException = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState>
+Microsoft.CodeAnalysis.Scripting.Script.RunFromAsync(Microsoft.CodeAnalysis.Scripting.ScriptState previousState, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState>
 Microsoft.CodeAnalysis.Scripting.Script.WithOptions(Microsoft.CodeAnalysis.Scripting.ScriptOptions options) -> Microsoft.CodeAnalysis.Scripting.Script
 Microsoft.CodeAnalysis.Scripting.Script<T>
 Microsoft.CodeAnalysis.Scripting.Script<T>.CreateDelegate(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Scripting.ScriptRunner<T>
+Microsoft.CodeAnalysis.Scripting.Script<T>.RunAsync(object globals = null, System.Func<System.Exception, bool> catchException = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<T>>
+Microsoft.CodeAnalysis.Scripting.Script<T>.RunAsync(object globals, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<T>>
+Microsoft.CodeAnalysis.Scripting.Script<T>.RunFromAsync(Microsoft.CodeAnalysis.Scripting.ScriptState previousState, System.Func<System.Exception, bool> catchException = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<T>>
+Microsoft.CodeAnalysis.Scripting.Script<T>.RunFromAsync(Microsoft.CodeAnalysis.Scripting.ScriptState previousState, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<T>>
 Microsoft.CodeAnalysis.Scripting.Script<T>.WithOptions(Microsoft.CodeAnalysis.Scripting.ScriptOptions options) -> Microsoft.CodeAnalysis.Scripting.Script<T>
 Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver
 Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.BaseDirectory.get -> string
@@ -106,6 +114,11 @@ Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.WithSearchPaths(System.Col
 Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.WithSearchPaths(System.Collections.Immutable.ImmutableArray<string> searchPaths) -> Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver
 Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.WithSearchPaths(params string[] searchPaths) -> Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver
 Microsoft.CodeAnalysis.Scripting.ScriptState
+Microsoft.CodeAnalysis.Scripting.ScriptState.ContinueWithAsync(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Func<System.Exception, bool> catchException = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<object>>
+Microsoft.CodeAnalysis.Scripting.ScriptState.ContinueWithAsync(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<object>>
+Microsoft.CodeAnalysis.Scripting.ScriptState.ContinueWithAsync<TResult>(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Func<System.Exception, bool> catchException = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<TResult>>
+Microsoft.CodeAnalysis.Scripting.ScriptState.ContinueWithAsync<TResult>(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<TResult>>
+Microsoft.CodeAnalysis.Scripting.ScriptState.Exception.get -> System.Exception
 Microsoft.CodeAnalysis.Scripting.ScriptState.GetVariable(string name) -> Microsoft.CodeAnalysis.Scripting.ScriptVariable
 Microsoft.CodeAnalysis.Scripting.ScriptState.ReturnValue.get -> object
 Microsoft.CodeAnalysis.Scripting.ScriptState.Script.get -> Microsoft.CodeAnalysis.Scripting.Script

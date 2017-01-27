@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             if (Text != other.Text)
             {
-                throw new InvalidOperationException(EditorFeaturesResources.CantComparePositionsFromDiffSnapshots);
+                throw new InvalidOperationException(EditorFeaturesResources.Can_t_compare_positions_from_different_text_snapshots);
             }
 
             if (Position < other.Position)

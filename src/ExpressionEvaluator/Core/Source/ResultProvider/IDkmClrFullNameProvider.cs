@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
 namespace Microsoft.VisualStudio.Debugger.ComponentInterfaces
 {
-    public interface IDkmClrFullNameProvider
+    internal interface IDkmClrFullNameProvider
     {
         /// <summary>
         /// Return the type name in a form valid in the language (e.g.: escaping keywords)

@@ -66,11 +66,11 @@ public class DSSS
 
             Dim testState = Await CallHierarchyTestState.CreateAsync(input)
             Dim root = testState.GetRoot()
-            testState.VerifyResult(root, String.Format(EditorFeaturesResources.CallsTo, "GetFive"), {"DSSS.bar()", "D.bar()", "G.G.G()"}, CallHierarchySearchScope.EntireSolution)
+            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Calls_To_0, "GetFive"), {"DSSS.bar()", "D.bar()", "G.G.G()"}, CallHierarchySearchScope.EntireSolution)
             Dim documents = testState.GetDocuments({"Test3.cs", "Test4.cs"})
-            testState.VerifyResult(root, String.Format(EditorFeaturesResources.CallsTo, "GetFive"), {"DSSS.bar()", "D.bar()", "G.G.G()"}, CallHierarchySearchScope.CurrentProject)
+            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Calls_To_0, "GetFive"), {"DSSS.bar()", "D.bar()", "G.G.G()"}, CallHierarchySearchScope.CurrentProject)
             documents = testState.GetDocuments({"Test3.cs"})
-            testState.VerifyResult(root, String.Format(EditorFeaturesResources.CallsTo, "GetFive"), {"D.bar()"}, CallHierarchySearchScope.CurrentDocument, documents)
+            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Calls_To_0, "GetFive"), {"D.bar()"}, CallHierarchySearchScope.CurrentDocument, documents)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
@@ -90,7 +90,7 @@ End Class
 
             Dim testState = Await CallHierarchyTestState.CreateAsync(input)
             Dim root = testState.GetRoot()
-            testState.VerifyResult(root, String.Format(EditorFeaturesResources.CallsTo, "Foo"), {"C.Foo()"})
+            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Calls_To_0, "Foo"), {"C.Foo()"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
@@ -115,7 +115,7 @@ End Interface
 
             Dim testState = Await CallHierarchyTestState.CreateAsync(input)
             Dim root = testState.GetRoot()
-            testState.VerifyResult(root, String.Format(EditorFeaturesResources.ImplementsArg, "Foo"), {"C.Foo()"})
+            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "Foo"), {"C.Foo()"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
@@ -167,11 +167,11 @@ public class D : I
 
             Dim testState = Await CallHierarchyTestState.CreateAsync(input)
             Dim root = testState.GetRoot()
-            testState.VerifyResult(root, String.Format(EditorFeaturesResources.ImplementsArg, "foo"), {"D.foo()", "G.G.foo()", "C.C.foo()"}, CallHierarchySearchScope.EntireSolution)
+            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "foo"), {"D.foo()", "G.G.foo()", "C.C.foo()"}, CallHierarchySearchScope.EntireSolution)
             Dim documents = testState.GetDocuments({"Test1.cs", "Test2.cs"})
-            testState.VerifyResult(root, String.Format(EditorFeaturesResources.ImplementsArg, "foo"), {"G.G.foo()", "C.C.foo()"}, CallHierarchySearchScope.CurrentProject, documents)
+            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "foo"), {"G.G.foo()", "C.C.foo()"}, CallHierarchySearchScope.CurrentProject, documents)
             documents = testState.GetDocuments({"Test1.cs"})
-            testState.VerifyResult(root, String.Format(EditorFeaturesResources.ImplementsArg, "foo"), {"C.C.foo()"}, CallHierarchySearchScope.CurrentDocument, documents)
+            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "foo"), {"C.C.foo()"}, CallHierarchySearchScope.CurrentDocument, documents)
         End Function
 
         <WorkItem(981869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
@@ -206,7 +206,7 @@ class CSharpIt : IChangeSignatureOptionsService
             Dim testState = Await CallHierarchyTestState.CreateAsync(input)
             Dim root = testState.GetRoot()
             testState.SearchRoot(root,
-                                 String.Format(EditorFeaturesResources.ImplementsArg, "GetChangeSignatureOptions"),
+                                 String.Format(EditorFeaturesResources.Implements_0, "GetChangeSignatureOptions"),
                                  Sub(c)
                                      Assert.Equal("Assembly2", c.Project.Name)
                                  End Sub,
@@ -237,7 +237,7 @@ End Class
 
             Dim testState = Await CallHierarchyTestState.CreateAsync(input)
             Dim root = testState.GetRoot()
-            testState.VerifyResult(root, EditorFeaturesResources.Overrides, {"Derived.M()"})
+            testState.VerifyResult(root, EditorFeaturesResources.Overrides_, {"Derived.M()"})
         End Function
 
         <WorkItem(1022864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022864")>
@@ -266,7 +266,7 @@ class D : C
 
             Dim testState = Await CallHierarchyTestState.CreateAsync(input, GetType(MockSymbolNavigationServiceProvider))
             Dim root = testState.GetRoot()
-            testState.Navigate(root, EditorFeaturesResources.Overrides, "D.foo()")
+            testState.Navigate(root, EditorFeaturesResources.Overrides_, "D.foo()")
 
             Dim mockNavigationService = DirectCast(testState.Workspace.Services.GetService(Of ISymbolNavigationService)(), MockSymbolNavigationServiceProvider.MockSymbolNavigationService)
             Assert.NotNull(mockNavigationService.TryNavigateToSymbolProvidedSymbol)
@@ -304,8 +304,8 @@ namespace N
 
             Dim testState = Await CallHierarchyTestState.CreateAsync(input, GetType(MockDocumentNavigationServiceProvider))
             Dim root = testState.GetRoot()
-            testState.VerifyRoot(root, "N.C.Foo()", {String.Format(EditorFeaturesResources.CallsTo, "Foo")})
-            testState.Navigate(root, String.Format(EditorFeaturesResources.CallsTo, "Foo"), "N.G.Main()")
+            testState.VerifyRoot(root, "N.C.Foo()", {String.Format(EditorFeaturesResources.Calls_To_0, "Foo")})
+            testState.Navigate(root, String.Format(EditorFeaturesResources.Calls_To_0, "Foo"), "N.G.Main()")
 
             Dim navigationService = DirectCast(testState.Workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationServiceProvider.MockDocumentNavigationService)
             Assert.NotEqual(navigationService.ProvidedDocumentId, Nothing)

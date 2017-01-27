@@ -96,7 +96,7 @@ namespace Roslyn.Test.Performance.Utilities
         public static void ShellOutVital(
                 string file,
                 string args,
-                string workingDirectory,
+                string workingDirectory = null,
                 CancellationToken cancellationToken = default(CancellationToken))
         {
             var result = ShellOut(file, args, workingDirectory, cancellationToken);
@@ -113,9 +113,14 @@ namespace Roslyn.Test.Performance.Utilities
         public static ProcessResult ShellOut(
                 string file,
                 string args,
-                string workingDirectory,
+                string workingDirectory = null,
                 CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (workingDirectory == null)
+            {
+                workingDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            }
+
             var tcs = new TaskCompletionSource<ProcessResult>();
             var startInfo = new ProcessStartInfo(file, args);
             startInfo.RedirectStandardOutput = true;
@@ -181,11 +186,6 @@ namespace Roslyn.Test.Performance.Utilities
         /// </summary>
         public static string StdoutFrom(string program, string args = "", string workingDirectory = null)
         {
-            if (workingDirectory == null)
-            {
-                workingDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            }
-
             var result = ShellOut(program, args, workingDirectory);
             if (result.Failed)
             {

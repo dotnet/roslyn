@@ -24,36 +24,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
 
-            var declaration = _syntax.Declaration;
-            if (declaration != null)
+            // Declaration and Initializers are mutually exclusive.
+            if (_syntax.Declaration != null)
             {
-                var refKind = _syntax.RefKeyword.Kind().GetRefKind();
-
-                foreach (var variable in declaration.Variables)
+                foreach (var vdecl in _syntax.Declaration.Variables)
                 {
-                    var localSymbol = MakeLocal(refKind,
-                                                declaration,
-                                                variable,
-                                                LocalDeclarationKind.ForInitializerVariable);
+                    var localSymbol = MakeLocal(_syntax.Declaration, vdecl, LocalDeclarationKind.RegularVariable);
                     locals.Add(localSymbol);
 
-                    if (variable.Initializer != null)
-                    {
-                        PatternVariableFinder.FindPatternVariables(this, locals, variable.Initializer.Value);
-                    }
+                    // also gather expression-declared variables from the bracketed argument lists and the initializers
+                    ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl);
                 }
             }
             else
             {
-                PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Initializers);
+                ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Initializers);
             }
-
-            if (_syntax.Condition != null)
-            {
-                PatternVariableFinder.FindPatternVariables(this, locals, node: _syntax.Condition);
-            }
-
-            PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Incrementors);
 
             return locals.ToImmutableAndFree();
         }
@@ -67,25 +53,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundForStatement BindForParts(ForStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             BoundStatement initializer;
-            if (node.Declaration != null)
+            // Declaration and Initializers are mutually exclusive.
+            if (_syntax.Declaration != null)
             {
-                Debug.Assert(node.Initializers.Count == 0);
                 ImmutableArray<BoundLocalDeclaration> unused;
-                initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.ForInitializerVariable, diagnostics, out unused);
+                initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.RegularVariable, diagnostics, out unused);
             }
             else
             {
                 initializer = originalBinder.BindStatementExpressionList(node.Initializers, diagnostics);
             }
 
-            var condition = (node.Condition != null) ? originalBinder.BindBooleanExpression(node.Condition, diagnostics) : null;
-            var increment = originalBinder.BindStatementExpressionList(node.Incrementors, diagnostics);
+            BoundExpression condition = null;
+            var innerLocals = ImmutableArray<LocalSymbol>.Empty;
+            ExpressionSyntax conditionSyntax = node.Condition;
+            if (conditionSyntax != null)
+            {
+                originalBinder = originalBinder.GetBinder(conditionSyntax);
+                condition = originalBinder.BindBooleanExpression(conditionSyntax, diagnostics);
+                innerLocals = originalBinder.GetDeclaredLocalsForScope(conditionSyntax);
+            }
+
+            BoundStatement increment = null;
+            SeparatedSyntaxList<ExpressionSyntax> incrementors = node.Incrementors;
+            if (incrementors.Count > 0)
+            {
+                var scopeDesignator = incrementors.First();
+                var incrementBinder = originalBinder.GetBinder(scopeDesignator);
+                increment = incrementBinder.WrapWithVariablesIfAny(scopeDesignator, incrementBinder.BindStatementExpressionList(incrementors, diagnostics));
+            }
+
             var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
 
             Debug.Assert(this.Locals == this.GetDeclaredLocalsForScope(node));
             return new BoundForStatement(node,
                                          this.Locals,
                                          initializer,
+                                         innerLocals,
                                          condition,
                                          increment,
                                          body,
@@ -93,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          this.ContinueLabel);
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (_syntax == scopeDesignator)
             {

@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private CompletionDescription(ImmutableArray<TaggedText> taggedParts)
         {
-            this.TaggedParts = taggedParts.IsDefault ? ImmutableArray<TaggedText>.Empty : taggedParts;
+            this.TaggedParts = taggedParts.NullToEmpty();
         }
 
         /// <summary>

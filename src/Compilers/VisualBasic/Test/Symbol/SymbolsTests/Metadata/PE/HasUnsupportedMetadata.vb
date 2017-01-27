@@ -415,9 +415,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.False(vector.HasUnsupportedMetadata)
 
             'unsupported MD in the return type should propagate up to the method.
-            Dim front = vector.GetMember("front")
-            Assert.True(front.HasUnsupportedMetadata)
-
             Dim begin = vector.GetMember("begin")
             Assert.True(begin.HasUnsupportedMetadata)
 
@@ -426,19 +423,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim typeX = compilation1.GetTypeByMetadataName("X")
             'unsupported MD in members doesn't propagate up to the type.
             Assert.False(typeX.HasUnsupportedMetadata)
-
-            'unsupported MD in the return type should propagate up to the property.
-            Dim tok = typeX.GetMember("Token")
-            Assert.True(tok.HasUnsupportedMetadata)
         End Sub
 
         ''' <summary>
         ''' Throw a (handled) BadImageFormatException from MetadataDecoder
-        ''' for a TypeRef assembly resolution scope with Nil AssemblyRef.
+        ''' for a TypeRef resolution scope with Nil reference.
         ''' </summary>
         <Fact>
         <WorkItem(217689, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=217689")>
-        Public Sub ResolutionScopeNilAssembly()
+        <WorkItem(11795, "https://github.com/dotnet/roslyn/issues/11795")>
+        Public Sub ResolutionScopeNilRef()
             Dim options = TestOptions.ReleaseDll.WithDeterministic(True)
             Dim comp1 = CreateCompilationWithMscorlib(
 {"Public Class A
@@ -455,32 +449,58 @@ End Class"},
 End Class"},
                 options:=options,
                 assemblyName:="D4954046-BDDC-42C4-98F8-7E5573C16C33",
-                references:=New MetadataReference() {ref1})
+                references:={ref1})
             comp2.VerifyDiagnostics()
             Dim bytes2 = comp2.EmitToArray()
+
             ' Construct an unexpected assembly resolution scope from the valid compilation.
             ' Metadata contains a single TypeRef with assembly resolution scope where the
             ' scope is AssemblyRef 2: specifically the TypeRef to base class A. Replace that
-            ' assembly resolution scope with AssemblyRef 0 (the unexpected value). In the
-            ' TypeRef signatures below, 10 and 2 are the assembly scopes (AssemblyRef << 2 | 2).
-            ' (To verify, break in MetadataWriter.SerializeTypeRefTable when emitting comp2.)
-            bytes2 = ReplaceBytes(bytes2, {10, 0, 82, 0, 0, 0}, {2, 0, 82, 0, 0, 0})
-            Dim ref2 = AssemblyMetadata.CreateFromImage(bytes2).GetReference()
-
-            Dim comp3 = CreateCompilationWithMscorlib(
-{"Class C
+            ' assembly resolution scope with AssemblyRef 0 (the unexpected value).
+            Dim source3 =
+"Class C
     Shared Sub Main()
         Dim o As New B()
     End Sub
-End Class"},
-                options:=options,
-                references:=New MetadataReference() {ref2})
-            comp3.VerifyDiagnostics()
+End Class"
+            ' In the TypeRef signature below, 10 is the assembly scope where (AssemblyRef << 2 | 2).
+            ' (To verify, break in MetadataWriter.SerializeTypeRefTable when emitting comp2.)
+            Dim validAssemblyRefTypeRef As Byte() = {10, 0, 82, 0, 0, 0}
 
+            Dim invalidAssemblyRefTypeRef As Byte() = {2, 0, 82, 0, 0, 0} ' 2 is (AssemblyRef << 2 | 2)
+            Dim ref2 = AssemblyMetadata.CreateFromImage(ReplaceBytes(bytes2, validAssemblyRefTypeRef, invalidAssemblyRefTypeRef)).GetReference()
+            Dim comp3 = CreateCompilationWithMscorlib({source3}, options:=options, references:={ref2})
+            comp3.VerifyDiagnostics()
             Dim tree = comp3.SyntaxTrees(0)
-            Dim model = comp3.GetSemanticModel(tree)
+            Dim model = comp3.GetSemanticModel(comp3.SyntaxTrees(0))
             Dim decl = tree.GetRoot().DescendantNodes.OfType(Of ObjectCreationExpressionSyntax).Single()
             Dim type = DirectCast(model.GetTypeInfo(decl).Type, TypeSymbol)
+            Assert.Equal("B", type.ToTestDisplayString())
+            Assert.False(type.IsErrorType())
+            Assert.True(type.BaseType.IsErrorType()) ' Handled exception decoding base type TypeRef.
+
+            ' As above but with nil ModuleRef.
+            Dim invalidModuleRefTypeRef As Byte() = {1, 0, 82, 0, 0, 0} ' 1 is (ModuleRef << 2 | 1)
+            ref2 = AssemblyMetadata.CreateFromImage(ReplaceBytes(bytes2, validAssemblyRefTypeRef, invalidModuleRefTypeRef)).GetReference()
+            comp3 = CreateCompilationWithMscorlib({source3}, options:=options, references:={ref2})
+            comp3.VerifyDiagnostics()
+            tree = comp3.SyntaxTrees(0)
+            model = comp3.GetSemanticModel(tree)
+            decl = tree.GetRoot().DescendantNodes.OfType(Of ObjectCreationExpressionSyntax).Single()
+            type = DirectCast(model.GetTypeInfo(decl).Type, TypeSymbol)
+            Assert.Equal("B", type.ToTestDisplayString())
+            Assert.False(type.IsErrorType())
+            Assert.True(type.BaseType.IsErrorType()) ' Handled exception decoding base type TypeRef.
+
+            ' As above but with nil TypeRef.
+            Dim invalidTypeRefTypeRef As Byte() = {3, 0, 82, 0, 0, 0} ' 3 is (TypeRef << 2 | 3)
+            ref2 = AssemblyMetadata.CreateFromImage(ReplaceBytes(bytes2, validAssemblyRefTypeRef, invalidTypeRefTypeRef)).GetReference()
+            comp3 = CreateCompilationWithMscorlib({source3}, options:=options, references:={ref2})
+            comp3.VerifyDiagnostics()
+            tree = comp3.SyntaxTrees(0)
+            model = comp3.GetSemanticModel(tree)
+            decl = tree.GetRoot().DescendantNodes.OfType(Of ObjectCreationExpressionSyntax).Single()
+            type = DirectCast(model.GetTypeInfo(decl).Type, TypeSymbol)
             Assert.Equal("B", type.ToTestDisplayString())
             Assert.False(type.IsErrorType())
             Assert.True(type.BaseType.IsErrorType()) ' Handled exception decoding base type TypeRef.

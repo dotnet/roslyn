@@ -36,10 +36,16 @@ namespace Roslyn.Test.Performance.Utilities
         /// Constructs a new ConsoleAndFileLogger with a default log 
         /// file of 'log.txt'.
         /// </summary>
-        /// <param name="file"></param>
-        public ConsoleAndFileLogger(string file = "log.txt")
+        public ConsoleAndFileLogger()
         {
-            _file = file;
+            if (Directory.Exists(TestUtilities.GetCPCDirectoryPath()))
+            {
+                _file = Path.Combine(TestUtilities.GetCPCDirectoryPath(), "perf-log.txt");
+            }
+            else
+            {
+                _file = "./perf-log.txt";
+            }
         }
 
         void ILogger.Flush()

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -16,21 +17,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     {
         private static readonly string s_glyphCompletionWarning = "GlyphCompletionWarning";
         private readonly CompletionPresenterSession _completionPresenterSession;
-        internal readonly PresentationItem PresentationItem;
+        internal readonly CompletionItem CompletionItem;
         private readonly ImageMoniker _imageMoniker;
 
         public CustomCommitCompletion(
-            CompletionPresenterSession completionPresenterSession, 
-            PresentationItem presentationItem)
-            : base()
+            CompletionPresenterSession completionPresenterSession,
+            CompletionItem completionItem)
         {
             // PERF: Note that the base class contains a constructor taking the displayText string
             // but we're intentionally NOT using that here because it allocates a private CompletionState
             // object. By overriding the public property getters (DisplayText, InsertionText, etc.) the
             // extra allocation is avoided.
             _completionPresenterSession = completionPresenterSession;
-            this.PresentationItem = presentationItem;
-            _imageMoniker = ImageMonikers.GetImageMoniker(PresentationItem.Item.Tags, presentationItem.CompletionService.Language);
+            this.CompletionItem = completionItem;
+            _imageMoniker = ImageMonikers.GetImageMoniker(CompletionItem.Tags);
         }
 
         public void Commit()
@@ -38,24 +38,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             // If a commit happens through the UI then let the session know.  It will, in turn,
             // let the underlying controller know, and the controller can commit the completion
             // item.
-            _completionPresenterSession.OnCompletionItemCommitted(PresentationItem);
+            _completionPresenterSession.OnCompletionItemCommitted(CompletionItem);
         }
 
-        public override string DisplayText
-        {
-            get
-            {
-                return this.PresentationItem.Item.DisplayText;
-            }
-        }
+        public override string DisplayText { get; set; }
 
-        public override string InsertionText
-        {
-            get
-            {
-                return this.DisplayText; // [sic] Same as DisplayText
-            }
-        }
+        public override string InsertionText => DisplayText;
 
         public override string Description
         {
@@ -74,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public async Task<CompletionDescription> GetDescriptionAsync(CancellationToken cancellationToken)
         {
             var document = await GetDocumentAsync(cancellationToken).ConfigureAwait(false);
-            return await this.PresentationItem.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
+            var service = CompletionService.GetService(document);
+            return await service.GetDescriptionAsync(document, this.CompletionItem, cancellationToken).ConfigureAwait(false);
         }
 
         private Task<Document> GetDocumentAsync(CancellationToken cancellationToken)
@@ -87,13 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             return GetDescriptionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Text;
         }
 
-        public override ImageMoniker IconMoniker
-        {
-            get
-            {
-                return _imageMoniker;
-            }
-        }
+        public override ImageMoniker IconMoniker => _imageMoniker;
 
         public override string IconAutomationText
         {
@@ -103,11 +86,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             }
         }
 
-        public override System.Collections.Generic.IEnumerable<CompletionIcon> AttributeIcons
+        public override IEnumerable<CompletionIcon> AttributeIcons
         {
             get
             {
-                if (this.PresentationItem.Item.Tags.Contains(CompletionTags.Warning))
+                if (this.CompletionItem.Tags.Contains(CompletionTags.Warning))
                 {
                     return new[] { new CompletionIcon2(Glyph.CompletionWarning.GetImageMoniker(), s_glyphCompletionWarning, s_glyphCompletionWarning) };
                 }

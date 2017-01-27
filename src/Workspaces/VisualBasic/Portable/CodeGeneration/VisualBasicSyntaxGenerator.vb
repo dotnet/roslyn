@@ -12,6 +12,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Class VisualBasicSyntaxGenerator
         Inherits SyntaxGenerator
 
+        Public Shared ReadOnly Instance As SyntaxGenerator = New VisualBasicSyntaxGenerator()
+
+        Friend Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia
+            Get
+                Return SyntaxFactory.CarriageReturnLineFeed
+            End Get
+        End Property
+
 #Region "Expressions and Statements"
 
         Public Overrides Function AwaitExpression(expression As SyntaxNode) As SyntaxNode
@@ -82,6 +90,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function TypedConstantExpression(value As TypedConstant) As SyntaxNode
             Return ExpressionGenerator.GenerateExpression(value)
+        End Function
+
+        Friend Overrides Function InterpolatedStringExpression(startToken As SyntaxToken, content As IEnumerable(Of SyntaxNode), endToken As SyntaxToken) As SyntaxNode
+            Return SyntaxFactory.InterpolatedStringExpression(
+                startToken, SyntaxFactory.List(content.Cast(Of InterpolatedStringContentSyntax)), endToken)
+        End Function
+
+        Friend Overrides Function InterpolatedStringText(textToken As SyntaxToken) As SyntaxNode
+            Return SyntaxFactory.InterpolatedStringText(textToken)
+        End Function
+
+        Friend Overrides Function InterpolatedStringTextToken(content As String) As SyntaxToken
+            Return SyntaxFactory.InterpolatedStringTextToken(content, "")
+        End Function
+
+        Friend Overrides Function Interpolation(syntaxNode As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.Interpolation(DirectCast(syntaxNode, ExpressionSyntax))
         End Function
 
         Public Overrides Function DefaultExpression(type As ITypeSymbol) As SyntaxNode
@@ -206,6 +231,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 DirectCast(simpleName, SimpleNameSyntax))
         End Function
 
+        Friend Overrides Function ConditionalAccessExpression(expression As SyntaxNode, whenNotNull As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.ConditionalAccessExpression(
+                DirectCast(expression, ExpressionSyntax),
+                DirectCast(whenNotNull, ExpressionSyntax))
+        End Function
+
+        Friend Overrides Function MemberBindingExpression(name As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.SimpleMemberAccessExpression(DirectCast(name, SimpleNameSyntax))
+        End Function
+
+        Friend Overrides Function ElementBindingExpression(argumentList As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.InvocationExpression(expression:=Nothing,
+                                                      argumentList:=DirectCast(argumentList, ArgumentListSyntax))
+        End Function
+
         ' parenthesize the left-side of a dot or target of an invocation if not unnecessary
         Private Function ParenthesizeLeft(expression As SyntaxNode) As ExpressionSyntax
             Dim expressionSyntax = DirectCast(expression, ExpressionSyntax)
@@ -274,6 +314,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function ThrowStatement(Optional expressionOpt As SyntaxNode = Nothing) As SyntaxNode
             Return SyntaxFactory.ThrowStatement(DirectCast(expressionOpt, ExpressionSyntax))
+        End Function
+
+        Public Overrides Function ThrowExpression(expression As SyntaxNode) As SyntaxNode
+            Throw New NotSupportedException("ThrowExpressions are not supported in Visual Basic")
         End Function
 
         Public Overrides Function TypeExpression(typeSymbol As ITypeSymbol) As SyntaxNode
@@ -3874,6 +3918,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 DirectCast(expression, ExpressionSyntax))
 
         End Function
+
+        Friend Overrides Function IsRegularOrDocComment(trivia As SyntaxTrivia) As Boolean
+            Return trivia.IsRegularOrDocComment()
+        End Function
+
 #End Region
 
     End Class

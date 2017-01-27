@@ -38,5 +38,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // Note: GetMemberValue() may return special value when func-eval of properties is disabled.
             return value.GetMemberValue(member.Name, (int)member.MemberType, member.DeclaringType.FullName, inspectionContext);
         }
+
+        internal static string Parenthesize(this string expr)
+        {
+            return $"({expr})";
+        }
     }
 }

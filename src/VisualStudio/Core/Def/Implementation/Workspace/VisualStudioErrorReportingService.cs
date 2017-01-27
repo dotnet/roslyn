@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -14,10 +14,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal class VisualStudioErrorReportingService : IErrorReportingService
+    internal partial class VisualStudioErrorReportingService : IErrorReportingService
     {
         private readonly static InfoBarButton s_enableItem = new InfoBarButton(ServicesVSResources.Enable);
-        private readonly static InfoBarButton s_enableAndIgnoreItem = new InfoBarButton(ServicesVSResources.EnableAndIgnore);
+        private readonly static InfoBarButton s_enableAndIgnoreItem = new InfoBarButton(ServicesVSResources.Enable_and_ignore_future_errors);
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IForegroundNotificationService _foregroundNotificationService;
@@ -31,28 +31,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _listener = listener;
         }
 
-        public void ShowErrorInfoForCodeFix(string codefixName, Action OnEnable, Action OnEnableAndIgnore, Action OnClose)
-        {
-            // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
-            _foregroundNotificationService.RegisterNotification(() =>
-            {
-                IVsWindowFrame frame;
-                IVsInfoBarUIFactory factory;
-                if (_workspace.TryGetInfoBarData(out frame, out factory))
-                {
-                    CreateInfoBarForCodeFix(factory, frame, string.Format(ServicesVSResources.CodefixOrRefactoringEncounteredError, codefixName), OnClose, OnEnable, OnEnableAndIgnore);
-                }
-            }, _listener.BeginAsyncOperation("Show InfoBar"));
-        }
-
         public void ShowErrorInfo(string message, params ErrorReportingUI[] items)
         {
             // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
             _foregroundNotificationService.RegisterNotification(() =>
             {
-                IVsWindowFrame frame;
-                IVsInfoBarUIFactory factory;
-                if (_workspace.TryGetInfoBarData(out frame, out factory))
+                if (_workspace.TryGetInfoBarData(out var frame, out var factory))
                 {
                     CreateInfoBar(factory, frame, message, items);
                 }
@@ -61,8 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private void CreateInfoBar(IVsInfoBarUIFactory factory, IVsWindowFrame frame, string message, ErrorReportingUI[] items)
         {
-            object unknown;
-            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out unknown)))
+            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out var unknown)))
             {
                 return;
             }
@@ -97,9 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 actionItems.ToArray(),
                 KnownMonikers.StatusInformation,
                 isCloseButtonVisible: true);
-
-            IVsInfoBarUIElement infoBarUI;
-            if (!TryCreateInfoBarUI(factory, infoBarModel, out infoBarUI))
+            if (!TryCreateInfoBarUI(factory, infoBarModel, out var infoBarUI))
             {
                 return;
             }
@@ -115,9 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     infoBarUI.Unadvise(infoBarCookie.Value);
                 }
             });
-
-            uint cookie;
-            infoBarUI.Advise(eventSink, out cookie);
+            infoBarUI.Advise(eventSink, out var cookie);
             infoBarCookie = cookie;
 
             var host = (IVsInfoBarHost)unknown;
@@ -161,102 +140,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private void CreateInfoBarForCodeFix(IVsInfoBarUIFactory factory, IVsWindowFrame frame, string message, Action onClose, Action onEnable = null, Action onEnableAndIgnore = null)
-        {
-            object unknown;
-            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out unknown)))
-            {
-                return;
-            }
-
-            var textSpans = new List<IVsInfoBarTextSpan>()
-            {
-                new InfoBarTextSpan(message)
-            };
-
-            // create action item list
-            var actionItems = new List<IVsInfoBarActionItem>();
-            if (onEnable != null)
-            {
-                actionItems.Add(s_enableItem);
-            }
-
-            if (onEnableAndIgnore != null)
-            {
-                actionItems.Add(s_enableAndIgnoreItem);
-            }
-
-            var infoBarModel = new InfoBarModel(
-                textSpans,
-                actionItems.ToArray(),
-                KnownMonikers.StatusInformation,
-                isCloseButtonVisible: true);
-
-            IVsInfoBarUIElement infoBarUI;
-            if (!TryCreateInfoBarUI(factory, infoBarModel, out infoBarUI))
-            {
-                return;
-            }
-
-            uint? infoBarCookie = null;
-            var eventSink = new CodeFixInfoBarEvents(() =>
-            {
-                onClose();
-
-                if (infoBarCookie.HasValue)
-                {
-                    infoBarUI.Unadvise(infoBarCookie.Value);
-                }
-            }, onEnable, onEnableAndIgnore);
-
-            uint cookie;
-            infoBarUI.Advise(eventSink, out cookie);
-            infoBarCookie = cookie;
-
-            IVsInfoBarHost host = (IVsInfoBarHost)unknown;
-            host.AddInfoBar(infoBarUI);
-        }
-
-        private class CodeFixInfoBarEvents : IVsInfoBarUIEvents
-        {
-            private readonly Action _onClose;
-            private readonly Action _onEnable;
-            private readonly Action _onEnableAndIgnore;
-
-            public CodeFixInfoBarEvents(Action onClose, Action onEnable = null, Action onEnableAndIgnore = null)
-            {
-                Contract.ThrowIfNull(onClose);
-
-                _onClose = onClose;
-                _onEnable = onEnable;
-                _onEnableAndIgnore = onEnableAndIgnore;
-            }
-
-            public void OnActionItemClicked(IVsInfoBarUIElement infoBarUIElement, IVsInfoBarActionItem actionItem)
-            {
-                if (actionItem.Equals(s_enableItem))
-                {
-                    _onEnable?.Invoke();
-                }
-
-                if (actionItem.Equals(s_enableAndIgnoreItem))
-                {
-                    _onEnableAndIgnore?.Invoke();
-                }
-
-                infoBarUIElement.Close();
-            }
-
-            public void OnClosed(IVsInfoBarUIElement infoBarUIElement)
-            {
-                _onClose();
-            }
-        }
-
         private static bool TryCreateInfoBarUI(IVsInfoBarUIFactory infoBarUIFactory, IVsInfoBar infoBar, out IVsInfoBarUIElement uiElement)
         {
             uiElement = infoBarUIFactory.CreateInfoBar(infoBar);
             return uiElement != null;
+        }
+
+        public void ShowDetailedErrorInfo(Exception exception)
+        {
+            string errorInfo = GetFormattedExceptionStack(exception);
+            (new DetailedErrorInfoDialog(exception.Message, errorInfo)).ShowModal();
         }
     }
 }

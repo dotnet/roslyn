@@ -15,15 +15,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             AssertIsForeground();
 
-            var isEnabled = args.SubjectBuffer.GetOption(EditorCompletionOptions.UseSuggestionMode);
+            var isEnabled = args.SubjectBuffer.GetFeatureOnOffOption(EditorCompletionOptions.UseSuggestionMode);
             return new CommandState(isAvailable: true, isChecked: isEnabled);
         }
 
         void ICommandHandler<ToggleCompletionModeCommandArgs>.ExecuteCommand(ToggleCompletionModeCommandArgs args, Action nextHandler)
         {
-            Workspace workspace;
-
-            if (Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
+            if (Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
                 var newState = !workspace.Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
                 workspace.Options = workspace.Options.WithChangedOption(EditorCompletionOptions.UseSuggestionMode, newState);

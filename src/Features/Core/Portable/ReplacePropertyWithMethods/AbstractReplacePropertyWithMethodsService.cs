@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -26,11 +24,17 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         protected static SyntaxNode GetFieldReference(SyntaxGenerator generator, IFieldSymbol propertyBackingField)
         {
-            var through = propertyBackingField.IsStatic
-                ? generator.TypeExpression(propertyBackingField.ContainingType)
-                : generator.ThisExpression();
+            var memberName = generator.IdentifierName(propertyBackingField.Name);
+            if (propertyBackingField.IsStatic)
+            {
+                return propertyBackingField.ContainingType == null
+                    ? memberName
+                    : generator.MemberAccessExpression(
+                        generator.TypeExpression(propertyBackingField.ContainingType),
+                        memberName);
+            }
 
-            return generator.MemberAccessExpression(through, propertyBackingField.Name);
+            return generator.MemberAccessExpression(generator.ThisExpression(), memberName);
         }
 
         public async Task ReplaceReferenceAsync(
@@ -96,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
                 _identifierName = (TIdentifierNameSyntax)nameToken.Parent;
                 _expression = _identifierName;
-                if (_syntaxFacts.IsMemberAccessExpressionName(_expression))
+                if (_syntaxFacts.IsNameOfMemberAccessExpression(_expression))
                 {
                     _expression = _expression.Parent as TExpressionSyntax;
                 }

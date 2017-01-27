@@ -50,16 +50,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             Assert.Equal(expectedText, recommendedKeyword.DescriptionFactory(CancellationToken.None).GetFullText())
         End Function
 
+        Friend Async Function VerifyRecommendationsWithPriority(testSource As XElement, priority As Integer, ParamArray recommendations As String()) As Task
+            Assert.NotEmpty(recommendations)
+
+            Dim source = ConvertTestSourceTag(testSource)
+
+            Await VerifyRecommendationsContainNothingTypedAsync(source, priority, recommendations).ConfigureAwait(False)
+            Await VerifyRecommendationsContainPartiallyTypedAsync(source, priority, recommendations).ConfigureAwait(False)
+        End Function
+
         Friend Async Function VerifyRecommendationsContainAsync(testSource As XElement, ParamArray recommendations As String()) As Task
             Assert.NotEmpty(recommendations)
 
             Dim source = ConvertTestSourceTag(testSource)
 
-            Await VerifyRecommendationsContainNothingTypedAsync(source, recommendations)
-            Await VerifyRecommendationsContainPartiallyTypedAsync(source, recommendations)
+            Await VerifyRecommendationsContainNothingTypedAsync(source, Nothing, recommendations)
+            Await VerifyRecommendationsContainPartiallyTypedAsync(source, Nothing, recommendations)
         End Function
 
-        Private Async Function VerifyRecommendationsContainNothingTypedAsync(source As String, ParamArray recommendations As String()) As Task
+        Private Async Function VerifyRecommendationsContainNothingTypedAsync(source As String, priority As Integer?, ParamArray recommendations As String()) As Task
             ' Test with the | removed
             Dim recommendedKeywords = Await GetRecommendedKeywordsAsync(source.Replace("|", ""), source.IndexOf("|"c))
 
@@ -67,6 +76,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             For Each recommendation In recommendations
                 Assert.Contains(recommendation, recommendedKeywordStrings)
             Next
+
+            If priority.HasValue Then
+                Assert.All(recommendedKeywords.Where(Function(k) recommendations.Contains(k.Keyword)), Sub(k) Assert.Equal(k.MatchPriority, priority.Value))
+            End If
 
             VerifyRecommendationsHaveDescriptionText(recommendedKeywords.Where(Function(k) recommendations.Contains(k.Keyword)))
         End Function
@@ -77,14 +90,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             Next
         End Sub
 
-        Private Async Function VerifyRecommendationsContainPartiallyTypedAsync(source As String, ParamArray recommendations As String()) As Task
+        Private Async Function VerifyRecommendationsContainPartiallyTypedAsync(source As String, priority As Integer?, ParamArray recommendations As String()) As Task
             ' Test with the | replaced with the first character of the keywords we expect
             For Each partiallyTypedRecommendation In recommendations.Select(Function(recommendation) recommendation(0)).Distinct()
-                Dim recommendedKeywords = (Await GetRecommendedKeywordStringsAsync(source.Replace("|"c, partiallyTypedRecommendation), source.IndexOf("|"c) + 1)).ToArray()
+                Dim recommendedKeywords = (Await GetRecommendedKeywordsAsync(source.Replace("|"c, partiallyTypedRecommendation), source.IndexOf("|"c) + 1)).ToArray()
+                Dim recommendedKeywordStrings = recommendedKeywords.Select(Function(k) k.Keyword)
 
                 For Each recommendation In recommendations
-                    Assert.Contains(recommendation, recommendedKeywords)
+                    Assert.Contains(recommendation, recommendedKeywordStrings)
                 Next
+
+                If priority.HasValue Then
+                    Assert.All(recommendedKeywords.Where(Function(k) recommendations.Contains(k.Keyword)), Sub(k) Assert.Equal(k.MatchPriority, priority.Value))
+                End If
+
+                VerifyRecommendationsHaveDescriptionText(recommendedKeywords.Where(Function(k) recommendations.Contains(k.Keyword)))
             Next
         End Function
 

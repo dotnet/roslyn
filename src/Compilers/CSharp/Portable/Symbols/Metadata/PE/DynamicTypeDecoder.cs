@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -84,7 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableArray<bool> dynamicTransformFlags,
             bool checkLength = true)
         {
-            Debug.Assert(containingAssembly is SourceAssemblySymbol); // Doesn't happen during decoding.
             return TransformTypeInternal(
                 type,
                 containingAssembly,
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert(_index >= 0);
 
             if (!HasFlag ||
-                PeekFlag() && type.SpecialType != SpecialType.System_Object)
+                PeekFlag() && (type.SpecialType != SpecialType.System_Object && !type.IsDynamic()))
             {
                 // Bail, since flags are invalid.
                 return null;
@@ -206,6 +206,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol TransformNamedType(NamedTypeSymbol namedType, bool isContaining = false)
         {
+            if (namedType.IsTupleType)
+            {
+                return TransformTupleType(namedType, isContaining);
+            }
+
             // Native compiler encodes a bool for the given namedType, but none for its containing types.
             if (!isContaining)
             {
@@ -232,7 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // Native compiler encodes bools for each type argument, starting from type arguments for the outermost containing type to those for the given namedType.
             ImmutableArray<TypeSymbol> typeArguments = namedType.TypeArgumentsNoUseSiteDiagnostics;
-            var customModifiers = namedType.HasTypeArgumentsCustomModifiers ? namedType.TypeArgumentsCustomModifiers : default(ImmutableArray<ImmutableArray<CustomModifier>>);
 
             ImmutableArray<TypeSymbol> transformedTypeArguments = TransformTypeArguments(typeArguments); // Note, modifiers are not involved, this is behavior of the native compiler.
 
@@ -246,9 +250,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (containerIsChanged || transformedTypeArguments != typeArguments)
             {
-                var newTypeArguments = customModifiers.IsDefault ?
-                                       transformedTypeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers) :
-                                       transformedTypeArguments.Zip(customModifiers, (t, m) => new TypeWithModifiers(t, m)).AsImmutable();
+                var newTypeArguments = namedType.HasTypeArgumentsCustomModifiers ?
+                                           transformedTypeArguments.SelectAsArray((t, i, nt) => new TypeWithModifiers(t, nt.GetTypeArgumentCustomModifiers(i)), namedType) :
+                                           transformedTypeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers);
 
                 if (containerIsChanged)
                 {
@@ -262,6 +266,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return namedType;
             }
+        }
+
+        private NamedTypeSymbol TransformTupleType(NamedTypeSymbol tupleType, bool isContaining)
+        {
+            Debug.Assert(tupleType.IsTupleType);
+
+            var underlying = tupleType.TupleUnderlyingType;
+            var transformedUnderlying = TransformNamedType(underlying, isContaining);
+            
+            if (transformedUnderlying == null)
+            {
+                // Bail, something is wrong with the flags.
+                // the dynamic transformation should be ignored.
+                return null;
+            }
+
+            return TupleTypeSymbol.Create(transformedUnderlying, tupleType.TupleElementNames);
         }
 
         private ImmutableArray<TypeSymbol> TransformTypeArguments(ImmutableArray<TypeSymbol> typeArguments)

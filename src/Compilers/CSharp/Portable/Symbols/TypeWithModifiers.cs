@@ -37,12 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public bool Equals(TypeWithModifiers other)
         {
-            return Equals(other, ignoreDynamic: false);
+            return Equals(other, TypeCompareKind.ConsiderEverything);
         }
 
-        public bool Equals(TypeWithModifiers other, bool ignoreDynamic)
+        public bool Equals(TypeWithModifiers other, TypeCompareKind comparison)
         {
-            return ((object)this.Type == null ? (object)other.Type == null : this.Type.Equals(other.Type, ignoreDynamic: ignoreDynamic)) &&
+            Debug.Assert((comparison & ~TypeCompareKind.IgnoreDynamic & ~TypeCompareKind.IgnoreTupleNames) == 0);
+
+            return ((object)this.Type == null ? (object)other.Type == null : this.Type.Equals(other.Type, comparison)) &&
                    (this.CustomModifiers.IsDefault ?
                       other.CustomModifiers.IsDefault :
                       (!other.CustomModifiers.IsDefault && this.CustomModifiers.SequenceEqual(other.CustomModifiers)));

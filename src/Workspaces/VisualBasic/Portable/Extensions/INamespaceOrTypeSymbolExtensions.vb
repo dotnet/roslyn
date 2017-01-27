@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module INamespaceOrTypeSymbolExtensions
         <Extension>
         Public Function GenerateTypeSyntax(symbol As INamespaceOrTypeSymbol, Optional addGlobal As Boolean = True) As TypeSyntax
-            Return symbol.Accept(New TypeSyntaxGeneratorVisitor(addGlobal)).WithAdditionalAnnotations(Simplifier.Annotation)
+            Return symbol.Accept(TypeSyntaxGeneratorVisitor.Create(addGlobal)).WithAdditionalAnnotations(Simplifier.Annotation)
         End Function
 
         <Extension>

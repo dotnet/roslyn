@@ -3547,7 +3547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     keysAreGood = Not (outerKey.Type.IsErrorType() OrElse innerKey.Type.IsErrorType())
                 End If
 
-                If keysAreGood AndAlso Not outerKey.Type.IsSameTypeIgnoringCustomModifiers(innerKey.Type) Then
+                If keysAreGood AndAlso Not outerKey.Type.IsSameTypeIgnoringAll(innerKey.Type) Then
                     ' Apply conversion if available.
                     Dim targetType As TypeSymbol = Nothing
                     Dim intrinsicOperatorType As SpecialType = SpecialType.None
@@ -4258,7 +4258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
             ElseIf targetVariableType IsNot Nothing AndAlso
-                   Not targetVariableType.IsSameTypeIgnoringCustomModifiers(variableType) Then
+                   Not targetVariableType.IsSameTypeIgnoringAll(variableType) Then
                 Debug.Assert(Not sourceIsNotQueryable AndAlso syntax.AsClause IsNot Nothing)
                 ' Need to apply implicit Select that converts variableType to targetVariableType.
                 source = ApplyImplicitCollectionConversion(syntax, source, variableType, targetVariableType, diagnostics)
@@ -4578,7 +4578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If result Is Nothing Then
                         result = inferredType
-                    ElseIf Not result.IsSameTypeIgnoringCustomModifiers(inferredType) Then
+                    ElseIf Not result.IsSameTypeIgnoringAll(inferredType) Then
                         failedDueToAnAmbiguity = True
                         Return Nothing
                     End If
@@ -4646,7 +4646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Note, returned group might have ResultKind = "Inaccessible".
         ''' </summary>
         Private Function LookupQueryOperator(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             source As BoundExpression,
             operatorName As String,
             typeArgumentsOpt As BoundTypeArguments,
@@ -4684,7 +4684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         Private Function BindQueryOperatorCall(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             source As BoundExpression,
             operatorName As String,
             arguments As ImmutableArray(Of BoundExpression),
@@ -4701,7 +4701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindQueryOperatorCall(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             source As BoundExpression,
             operatorName As String,
             typeArgumentsOpt As BoundTypeArguments,
@@ -4722,7 +4722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' [methodGroup] can be Nothing if lookup didn't find anything.
         ''' </summary>
         Private Function BindQueryOperatorCall(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             source As BoundExpression,
             operatorName As String,
             methodGroup As BoundMethodGroup,

@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -33,8 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static CodeGenerationDestructorInfo GetInfo(IMethodSymbol method)
         {
-            CodeGenerationDestructorInfo info;
-            s_destructorToInfoMap.TryGetValue(method, out info);
+            s_destructorToInfoMap.TryGetValue(method, out var info);
             return info;
         }
 

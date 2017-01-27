@@ -3,7 +3,7 @@
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -42,44 +42,51 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         public readonly uint ProtocolVersion;
         public readonly RequestLanguage Language;
-        public readonly ImmutableArray<Argument> Arguments;
+        public readonly ReadOnlyCollection<Argument> Arguments;
 
         public BuildRequest(uint protocolVersion,
                             RequestLanguage language,
-                            ImmutableArray<Argument> arguments)
+                            IEnumerable<Argument> arguments)
         {
             ProtocolVersion = protocolVersion;
             Language = language;
+            Arguments = new ReadOnlyCollection<Argument>(arguments.ToList());
 
-            if (arguments.Length > ushort.MaxValue)
+            if (Arguments.Count > ushort.MaxValue)
             {
                 throw new ArgumentOutOfRangeException(nameof(arguments),
                     "Too many arguments: maximum of "
                     + ushort.MaxValue + " arguments allowed.");
             }
-            Arguments = arguments;
         }
 
         public static BuildRequest Create(RequestLanguage language,
                                           string workingDirectory,
+                                          string tempDirectory,
                                           IList<string> args,
                                           string keepAlive = null,
                                           string libDirectory = null)
         {
             Log("Creating BuildRequest");
             Log($"Working directory: {workingDirectory}");
+            Log($"Temp directory: {tempDirectory}");
             Log($"Lib directory: {libDirectory ?? "null"}");
 
             var requestLength = args.Count + 1 + (libDirectory == null ? 0 : 1);
-            var requestArgs = ImmutableArray.CreateBuilder<Argument>(requestLength);
+            var requestArgs = new List<Argument>(requestLength);
 
             requestArgs.Add(new Argument(ArgumentId.CurrentDirectory, 0, workingDirectory));
+            requestArgs.Add(new Argument(ArgumentId.TempDirectory, 0, tempDirectory));
 
             if (keepAlive != null)
+            {
                 requestArgs.Add(new Argument(ArgumentId.KeepAlive, 0, keepAlive));
+            }
 
             if (libDirectory != null)
+            {
                 requestArgs.Add(new Argument(ArgumentId.LibEnvVariable, 0, libDirectory));
+            }
 
             for (int i = 0; i < args.Count; ++i)
             {
@@ -88,12 +95,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 requestArgs.Add(new Argument(ArgumentId.CommandLineArgument, i, arg));
             }
 
-            return new BuildRequest(BuildProtocolConstants.ProtocolVersion, language, requestArgs.ToImmutable());
+            return new BuildRequest(BuildProtocolConstants.ProtocolVersion, language, requestArgs);
         }
 
         public static BuildRequest CreateShutdown()
         {
-            var requestArgs = ImmutableArray.Create(new Argument(ArgumentId.Shutdown, argumentIndex: 0, value: ""));
+            var requestArgs = new[] { new Argument(ArgumentId.Shutdown, argumentIndex: 0, value: "") };
             return new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, requestArgs);
         }
 
@@ -134,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 var language = (RequestLanguage)reader.ReadUInt32();
                 uint argumentCount = reader.ReadUInt32();
 
-                var argumentsBuilder = ImmutableArray.CreateBuilder<Argument>((int)argumentCount);
+                var argumentsBuilder = new List<Argument>((int)argumentCount);
 
                 for (int i = 0; i < argumentCount; i++)
                 {
@@ -144,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 return new BuildRequest(protocolVersion,
                                         language,
-                                        argumentsBuilder.ToImmutableArray());
+                                        argumentsBuilder);
             }
         }
 
@@ -160,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 Log("Formatting request");
                 writer.Write(ProtocolVersion);
                 writer.Write((uint)Language);
-                writer.Write(Arguments.Length);
+                writer.Write(Arguments.Count);
                 foreach (Argument arg in Arguments)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -507,6 +514,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // Request a server shutdown from the client
             Shutdown,
+
+            // The directory to use for temporary operations.
+            TempDirectory,
         }
 
         /// <summary>

@@ -331,5 +331,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             hasModifiers = typesWithModifiers.Any(a => !a.CustomModifiers.IsDefaultOrEmpty);
             return typesWithModifiers.SelectAsArray(a => a.Type);
         }
+
+        internal static TypeSymbol GetTypeOrReturnType(this Symbol symbol)
+        {
+            RefKind refKind;
+            TypeSymbol returnType;
+            ImmutableArray<CustomModifier> customModifiers_Ignored;
+            GetTypeOrReturnType(symbol, out refKind, out returnType, out customModifiers_Ignored, out customModifiers_Ignored);
+            return returnType;
+        }
+
+        internal static void GetTypeOrReturnType(this Symbol symbol, out RefKind refKind, out TypeSymbol returnType, 
+                                                 out ImmutableArray<CustomModifier> returnTypeCustomModifiers,
+                                                 out ImmutableArray<CustomModifier> refCustomModifiers)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Field:
+                    FieldSymbol field = (FieldSymbol)symbol;
+                    refKind = RefKind.None;
+                    returnType = field.Type;
+                    returnTypeCustomModifiers = field.CustomModifiers;
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    break;
+                case SymbolKind.Method:
+                    MethodSymbol method = (MethodSymbol)symbol;
+                    refKind = method.RefKind;
+                    returnType = method.ReturnType;
+                    returnTypeCustomModifiers = method.ReturnTypeCustomModifiers;
+                    refCustomModifiers = method.RefCustomModifiers;
+                    break;
+                case SymbolKind.Property:
+                    PropertySymbol property = (PropertySymbol)symbol;
+                    refKind = property.RefKind;
+                    returnType = property.Type;
+                    returnTypeCustomModifiers = property.TypeCustomModifiers;
+                    refCustomModifiers = property.RefCustomModifiers;
+                    break;
+                case SymbolKind.Event:
+                    EventSymbol @event = (EventSymbol)symbol;
+                    refKind = RefKind.None;
+                    returnType = @event.Type;
+                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    break;
+                case SymbolKind.Local:
+                    LocalSymbol local = (LocalSymbol)symbol;
+                    refKind = local.RefKind;
+                    returnType = local.Type;
+                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
+        }
     }
 }

@@ -20,8 +20,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Sub AppendEnumTypeAndName(builder As StringBuilder, typeToDisplayOpt As Type, name As String)
             If typeToDisplayOpt IsNot Nothing Then
-                Dim index As Integer = 0
-                AppendQualifiedTypeName(builder, typeToDisplayOpt, Nothing, index, escapeKeywordIdentifiers:=True, sawInvalidIdentifier:=Nothing)
+                Dim index1 As Integer = 0
+                Dim index2 As Integer = 0
+                AppendQualifiedTypeName(
+                    builder,
+                    typeToDisplayOpt,
+                    Nothing,
+                    index1,
+                    Nothing,
+                    index2,
+                    escapeKeywordIdentifiers:=True,
+                    sawInvalidIdentifier:=Nothing)
                 builder.Append("."c)
             End If
 
@@ -86,6 +95,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             builder.Append(argument)
             builder.Append(", ")
             builder.Append(type)
+            builder.Append(")"c)
+
+            Return pooled.ToStringAndFree()
+        End Function
+
+        Friend Overrides Function GetTupleExpression(values() As String) As String
+            Debug.Assert(values IsNot Nothing)
+
+            Dim pooled = PooledStringBuilder.GetInstance()
+            Dim builder = pooled.Builder
+
+            builder.Append("("c)
+            Dim any As Boolean = False
+            For Each value In values
+                If any Then
+                    builder.Append(", ")
+                End If
+                builder.Append(value)
+                any = True
+            Next
             builder.Append(")"c)
 
             Return pooled.ToStringAndFree()

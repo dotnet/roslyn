@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Windows.Media;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
@@ -11,27 +12,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
     /// </summary>
     internal abstract class GraphicsTag : ITag
     {
-        protected static SolidColorBrush VerticalRuleBrush;
-        protected static Color VerticalRuleColor;
+        private readonly IEditorFormatMap _editorFormatMap;
+        protected Brush _graphicsTagBrush;
+        protected Color _graphicsTagColor;
+
+        protected GraphicsTag(IEditorFormatMap editorFormatMap)
+        {
+            _editorFormatMap = editorFormatMap;
+        }
 
         protected virtual void Initialize(IWpfTextView view)
         {
-            if (VerticalRuleBrush != null)
+            if (_graphicsTagBrush != null)
             {
                 return;
             }
 
-            // TODO: Refresh this when the user changes fonts and colors
+            // If we can't get the color for some reason, fall back to a hardcoded value
+            // the editor has for outlining.
+            var lightGray = Color.FromRgb(0xA5, 0xA5, 0xA5);
 
-            // TODO: Get from resources
-            var lightGray = Color.FromRgb(0xE0, 0xE0, 0xE0);
+            var color = this.GetColor(view, _editorFormatMap) ?? lightGray;
 
-            var outliningForegroundBrush = view.VisualElement.TryFindResource("outlining.verticalrule.foreground") as SolidColorBrush;
-            var color = outliningForegroundBrush?.Color ?? lightGray;
-
-            VerticalRuleColor = color;
-            VerticalRuleBrush = new SolidColorBrush(VerticalRuleColor);
+            _graphicsTagColor = color;
+            _graphicsTagBrush = new SolidColorBrush(_graphicsTagColor);
         }
+
+        protected abstract Color? GetColor(IWpfTextView view, IEditorFormatMap editorFormatMap);
 
         /// <summary>
         /// This method allows corresponding adornment manager to ask for a graphical glyph.

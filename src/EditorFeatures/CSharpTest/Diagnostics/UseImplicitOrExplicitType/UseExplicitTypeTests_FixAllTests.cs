@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocumentScope_PreferExplicitTypeEverywhere()
         {
-            var fixAllActionId = CSharpFeaturesResources.UseExplicitType;
+            var fixAllActionId = CSharpFeaturesResources.Use_explicit_type_instead_of_var;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -131,7 +131,7 @@ class Program2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject_PreferExplicitTypeEverywhere()
         {
-            var fixAllActionId = CSharpFeaturesResources.UseExplicitType;
+            var fixAllActionId = CSharpFeaturesResources.Use_explicit_type_instead_of_var;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -246,7 +246,7 @@ class Program2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_PreferExplicitTypeEverywhere()
         {
-            var fixAllActionId = CSharpFeaturesResources.UseExplicitType;
+            var fixAllActionId = CSharpFeaturesResources.Use_explicit_type_instead_of_var;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -361,7 +361,7 @@ class Program2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocumentScope_PreferExplicitTypeExceptWhereApparent()
         {
-            var fixAllActionId = CSharpFeaturesResources.UseExplicitType;
+            var fixAllActionId = CSharpFeaturesResources.Use_explicit_type_instead_of_var;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">

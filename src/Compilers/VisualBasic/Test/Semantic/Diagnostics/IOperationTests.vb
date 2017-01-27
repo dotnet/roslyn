@@ -43,7 +43,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
             Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of AssignmentStatementSyntax).ToArray()
@@ -159,7 +159,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
             Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of AssignmentStatementSyntax).ToArray()
@@ -233,7 +233,7 @@ End Class
                              </file>
                          </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source) _
+            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature) _
                 .VerifyOperationTree("Foo", "
 Sub C.Foo(x As System.Int32)
   IIfStatement (OperationKind.IfStatement)
@@ -265,7 +265,7 @@ End Class
                              </file>
                          </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source) _
+            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature) _
                 .VerifyOperationTree("Foo", "
 Sub C.Foo()
   IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement)

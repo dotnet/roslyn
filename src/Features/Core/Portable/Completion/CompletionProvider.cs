@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using System.Collections.Immutable;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -52,17 +51,15 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="item">The item to be committed.</param>
         /// <param name="commitKey">The optional key character that caused the commit.</param>
         /// <param name="cancellationToken"></param>
-        public virtual Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+        public virtual Task<CompletionChange> GetChangeAsync(
+            Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
-            return Task.FromResult(CompletionChange.Create(ImmutableArray.Create(new TextChange(item.Span, item.DisplayText))));
+            return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
         }
 
         /// <summary>
         /// True if the provider produces snippet items.
         /// </summary>
-        internal virtual bool IsSnippetProvider
-        {
-            get { return false; }
-        }
+        internal virtual bool IsSnippetProvider => false;
     }
 }

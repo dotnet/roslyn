@@ -11,21 +11,13 @@ namespace Microsoft.CodeAnalysis.Simplification
     [ExportOptionProvider, Shared]
     internal class SimplificationOptionsProvider : IOptionProvider
     {
-        private readonly IEnumerable<IOption> _options = new List<IOption>
-            {
-                SimplificationOptions.PreferAliasToQualification,
+        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+            SimplificationOptions.PreferAliasToQualification,
                 SimplificationOptions.PreferOmittingModuleNamesInQualification,
                 SimplificationOptions.PreferImplicitTypeInference,
                 SimplificationOptions.PreferImplicitTypeInLocalDeclaration,
                 SimplificationOptions.AllowSimplificationToGenericType,
                 SimplificationOptions.AllowSimplificationToBaseType,
-                SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
-                SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess
-            }.ToImmutableArray();
-
-        public IEnumerable<IOption> GetOptions()
-        {
-            return _options;
-        }
+                SimplificationOptions.NamingPreferences);
     }
 }

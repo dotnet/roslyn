@@ -1,13 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -41,8 +39,7 @@ namespace Microsoft.CodeAnalysis
 
         private static void RemoveIfEmpty<TKey, TValue>(IDictionary<TKey, ISet<TValue>> dictionary, TKey key)
         {
-            ISet<TValue> values;
-            if (dictionary.TryGetValue(key, out values))
+            if (dictionary.TryGetValue(key, out var values))
             {
                 if (values.Count == 0)
                 {
@@ -75,7 +72,9 @@ namespace Microsoft.CodeAnalysis
 
             if (openDocs != null)
             {
-                foreach (var docId in openDocs)
+                // ClearOpenDocument will remove the document from the original set.
+                var copyOfOpenDocs = openDocs.ToList();
+                foreach (var docId in copyOfOpenDocs)
                 {
                     this.ClearOpenDocument(docId);
                 }
@@ -103,19 +102,14 @@ namespace Microsoft.CodeAnalysis
         private DocumentId ClearOpenDocument_NoLock(DocumentId documentId)
         {
             _stateLock.AssertHasLock();
-
-            ISet<DocumentId> openDocIds;
-
-            if (_projectToOpenDocumentsMap.TryGetValue(documentId.ProjectId, out openDocIds) && openDocIds != null)
+            if (_projectToOpenDocumentsMap.TryGetValue(documentId.ProjectId, out var openDocIds) && openDocIds != null)
             {
                 openDocIds.Remove(documentId);
             }
 
             RemoveIfEmpty(_projectToOpenDocumentsMap, documentId.ProjectId);
-
             // Stop tracking the buffer or update the documentId associated with the buffer.
-            TextTracker tracker;
-            if (_textTrackers.TryGetValue(documentId, out tracker))
+            if (_textTrackers.TryGetValue(documentId, out var tracker))
             {
                 tracker.Disconnect();
                 _textTrackers.Remove(documentId);
@@ -171,7 +165,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (!this.CanOpenDocuments)
             {
-                throw new NotSupportedException(WorkspacesResources.OpenDocumentNotSupported);
+                throw new NotSupportedException(WorkspacesResources.This_workspace_does_not_support_opening_and_closing_documents);
             }
         }
 
@@ -179,7 +173,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (ProjectHasOpenDocuments(projectId))
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.ProjectContainsOpenDocuments, this.GetProjectName(projectId)));
+                throw new ArgumentException(string.Format(WorkspacesResources._0_still_contains_open_documents, this.GetProjectName(projectId)));
             }
         }
 
@@ -217,8 +211,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (projectId != null)
                 {
-                    ISet<DocumentId> documentIds;
-                    if (_projectToOpenDocumentsMap.TryGetValue(projectId, out documentIds))
+                    if (_projectToOpenDocumentsMap.TryGetValue(projectId, out var documentIds))
                     {
                         return documentIds;
                     }
@@ -249,8 +242,7 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableArray<DocumentId> GetRelatedDocumentIds_NoLock(SourceTextContainer container)
         {
-            DocumentId documentId;
-            if (!_bufferToDocumentInCurrentContextMap.TryGetValue(container, out documentId))
+            if (!_bufferToDocumentInCurrentContextMap.TryGetValue(container, out var documentId))
             {
                 // it is not an opened file
                 return ImmutableArray<DocumentId>.Empty;
@@ -308,8 +300,7 @@ namespace Microsoft.CodeAnalysis
 
         private DocumentId GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
         {
-            DocumentId docId;
-            bool foundValue = _bufferToDocumentInCurrentContextMap.TryGetValue(container, out docId);
+            bool foundValue = _bufferToDocumentInCurrentContextMap.TryGetValue(container, out var docId);
 
             if (foundValue)
             {
@@ -355,13 +346,16 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
+                DocumentId oldActiveContextDocumentId;
+
                 using (_stateLock.DisposableWait())
                 {
+                    oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
                     _bufferToDocumentInCurrentContextMap[container] = documentId;
                 }
 
                 // fire and forget
-                this.RaiseDocumentActiveContextChangedEventAsync(this.CurrentSolution.GetDocument(documentId));
+                this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
             }
         }
 
@@ -370,7 +364,7 @@ namespace Microsoft.CodeAnalysis
             if (this.IsDocumentOpen(documentId))
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.DocumentIsOpen,
+                    string.Format(WorkspacesResources._0_is_still_open,
                     this.GetDocumentName(documentId)));
             }
         }
@@ -380,7 +374,7 @@ namespace Microsoft.CodeAnalysis
             if (!this.IsDocumentOpen(documentId))
             {
                 throw new ArgumentException(string.Format(
-                    WorkspacesResources.DocumentIsNotOpen,
+                    WorkspacesResources._0_is_not_open,
                     this.GetDocumentName(documentId)));
             }
         }
@@ -388,10 +382,7 @@ namespace Microsoft.CodeAnalysis
         private ISet<DocumentId> GetProjectOpenDocuments_NoLock(ProjectId project)
         {
             _stateLock.AssertHasLock();
-
-            ISet<DocumentId> openDocs;
-
-            _projectToOpenDocumentsMap.TryGetValue(project, out openDocs);
+            _projectToOpenDocumentsMap.TryGetValue(project, out var openDocs);
             return openDocs;
         }
 
@@ -412,11 +403,8 @@ namespace Microsoft.CodeAnalysis
 
                 var newText = textContainer.CurrentText;
                 Solution currentSolution;
-
-                SourceText oldText;
-                VersionStamp version;
-                if (oldDocument.TryGetText(out oldText) &&
-                    oldDocument.TryGetTextVersion(out version))
+                if (oldDocument.TryGetText(out var oldText) &&
+                    oldDocument.TryGetTextVersion(out var version))
                 {
                     // Optimize the case where we've already got the previous text and version.
                     var newTextAndVersion = GetProperTextAndVersion(oldText, newText, version, oldDocumentState.FilePath);
@@ -435,7 +423,7 @@ namespace Microsoft.CodeAnalysis
                     // Note: we pass along the newText here so that clients can easily get the text
                     // of an opened document just by calling TryGetText without any blocking.
                     currentSolution = oldSolution.WithDocumentTextLoader(documentId,
-                        new ReuseVersionLoader(oldDocument.State, newText), newText, PreservationMode.PreserveIdentity);
+                        new ReuseVersionLoader((DocumentState)oldDocument.State, newText), newText, PreservationMode.PreserveIdentity);
                 }
 
                 var newSolution = this.SetCurrentSolution(currentSolution);
@@ -469,6 +457,14 @@ namespace Microsoft.CodeAnalysis
             {
                 var oldText = await _oldDocumentState.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var version = await _oldDocumentState.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
+
+                return GetProperTextAndVersion(oldText, _newText, version, _oldDocumentState.FilePath);
+            }
+
+            internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                var oldText = _oldDocumentState.GetTextSynchronously(cancellationToken);
+                var version = _oldDocumentState.GetVersionSynchronously(cancellationToken);
 
                 return GetProperTextAndVersion(oldText, _newText, version, _oldDocumentState.FilePath);
             }
@@ -654,11 +650,9 @@ namespace Microsoft.CodeAnalysis
         private SourceText GetOpenDocumentText(Solution solution, DocumentId documentId)
         {
             CheckDocumentIsOpen(documentId);
-
-            // text should always be preserved, so TryGetText will succeed.
-            SourceText text;
             var doc = solution.GetDocument(documentId);
-            doc.TryGetText(out text);
+            // text should always be preserved, so TryGetText will succeed.
+            doc.TryGetText(out var text);
             return text;
         }
 

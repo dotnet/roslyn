@@ -25,15 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            // We are computing a model.  Commit it if we compute any selected item.
-            bool sendThrough, committed;
-            CommitOnEnter(out sendThrough, out committed);
+            CommitOnEnter(out var sendThrough, out var committed);
 
-            // We did not commit based on enter.  So our computation will still be running.  Stop it now.
-            if (!committed)
-            {
-                this.StopModelComputation();
-            }
+            // Always stop completion after enter has been typed.
+            DismissSessionIfActive();
 
             // Enter has different behavior amongst languages, so we need to actually defer to
             // the individual language item to determine what to do.  For example, in VB, enter
@@ -50,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             AssertIsForeground();
 
-            var model = sessionOpt.WaitForModel();
+            var model = WaitForModel();
 
             // If there's no model, then there's nothing to commit.
             if (model == null)
@@ -67,6 +62,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // more than one line of text.
             sendThrough = !_isDebugger || _isImmediateWindow;
 
+            // If the user used completion filters to empty the list, just dismiss
+            if (model.SelectedItemOpt == null)
+            {
+                committed = false;
+                return;
+            }
+
             if (model.IsSoftSelection)
             {
                 // If the completion list is soft selected, then don't commit on enter.
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             // If the selected item is the builder, dismiss
-            if (model.SelectedItem.IsSuggestionModeItem)
+            if (model.SelectedItemOpt == model.SuggestionModeItem)
             {
                 sendThrough = false;
                 committed = false;
@@ -86,16 +88,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (sendThrough)
             {
                 // Get the text that the user has currently entered into the buffer
-                var viewSpan = model.GetViewBufferSpan(model.SelectedItem.Item.Span);
+                var viewSpan = model.GetViewBufferSpan(model.SelectedItemOpt.Span);
                 var textTypedSoFar = model.GetCurrentTextInSnapshot(
                     viewSpan, this.TextView.TextSnapshot, this.GetCaretPointInViewBuffer());
 
                 var service = GetCompletionService();
                 sendThrough = SendEnterThroughToEditor(
-                     service.GetRules(), model.SelectedItem.Item, textTypedSoFar);
+                     service.GetRules(), model.SelectedItemOpt, textTypedSoFar);
             }
 
-            this.Commit(model.SelectedItem, model, commitChar: null);
+            this.CommitOnNonTypeChar(model.SelectedItemOpt, model);
             committed = true;
         }
 

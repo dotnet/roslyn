@@ -87,6 +87,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     var result = (await RecommendKeywordsAsync(position, context)).Single();
                     Assert.NotNull(result);
                     Assert.Equal(keywordText, result.Keyword);
+                    if (matchPriority != null)
+                    {
+                        Assert.Equal(matchPriority.Value, result.MatchPriority);
+                    }
                 }
             }
         }

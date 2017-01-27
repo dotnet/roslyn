@@ -1,14 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
-
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.GenerateFromMembers.AddConstructorParameters
-Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.AddConstructorParameters
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.GenerateConstructorFromMembers
     Public Class AddConstructorParameterTests
@@ -22,16 +15,42 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.G
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Async Function TestAdd1() As Task
             Await TestAsync(
-NewLines("Class Program \n [|Private i As Integer \n Private s As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
-NewLines("Class Program \n Private i As Integer \n Private s As String \n Public Sub New(i As Integer, s As String) \n Me.i = i \n Me.s = s \n End Sub \n End Class"))
+"Class Program
+    [|Private i As Integer
+    Private s As String|]
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private s As String
+    Public Sub New(i As Integer, s As String)
+        Me.i = i
+        Me.s = s
+    End Sub
+End Class")
         End Function
 
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Async Function TestAddOptional1() As Task
             Await TestAsync(
-NewLines("Class Program \n [|Private i As Integer \n Private s As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
-NewLines("Class Program \n Private i As Integer \n Private s As String \n Public Sub New(i As Integer, Optional s As String = Nothing) \n Me.i = i \n Me.s = s \n End Sub \n End Class"),
+"Class Program
+    [|Private i As Integer
+    Private s As String|]
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private s As String
+    Public Sub New(i As Integer, Optional s As String = Nothing)
+        Me.i = i
+        Me.s = s
+    End Sub
+End Class",
 index:=1)
         End Function
 
@@ -39,16 +58,62 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Async Function TestAddToConstructorWithMostMatchingParameters1() As Task
             Await TestAsync(
-NewLines("Class Program \n [|Private i As Integer \n Private s As String \n Private b As Boolean|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, s As String) \n Me.New(i) \n Me.s = s \n End Sub \n End Class"),
-NewLines("Class Program \n Private i As Integer \n Private s As String \n Private b As Boolean \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, s As String, b As Boolean) \n Me.New(i) \n Me.s = s \n Me.b = b \n End Sub \n End Class"))
+"Class Program
+    [|Private i As Integer
+    Private s As String
+    Private b As Boolean|]
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+    Public Sub New(i As Integer, s As String)
+        Me.New(i)
+        Me.s = s
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private s As String
+    Private b As Boolean
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+    Public Sub New(i As Integer, s As String, b As Boolean)
+        Me.New(i)
+        Me.s = s
+        Me.b = b
+    End Sub
+End Class")
         End Function
 
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Async Function TestAddOptionalToConstructorWithMostMatchingParameters1() As Task
             Await TestAsync(
-NewLines("Class Program \n [|Private i As Integer \n Private s As String \n Private b As Boolean|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, s As String) \n Me.New(i) \n Me.s = s \n End Sub \n End Class"),
-NewLines("Class Program \n Private i As Integer \n Private s As String \n Private b As Boolean \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, s As String, Optional b As Boolean = Nothing) \n Me.New(i) \n Me.s = s \n Me.b = b \n End Sub \n End Class"),
+"Class Program
+    [|Private i As Integer
+    Private s As String
+    Private b As Boolean|]
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+    Public Sub New(i As Integer, s As String)
+        Me.New(i)
+        Me.s = s
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private s As String
+    Private b As Boolean
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+    Public Sub New(i As Integer, s As String, Optional b As Boolean = Nothing)
+        Me.New(i)
+        Me.s = s
+        Me.b = b
+    End Sub
+End Class",
 index:=1)
         End Function
     End Class

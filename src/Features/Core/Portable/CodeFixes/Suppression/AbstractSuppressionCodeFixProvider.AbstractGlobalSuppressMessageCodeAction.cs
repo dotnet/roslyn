@@ -1,13 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
-using static Roslyn.Utilities.PortableShim;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private readonly Project _project;
 
             protected AbstractGlobalSuppressMessageCodeAction(AbstractSuppressionCodeFixProvider fixer, Project project)
-                : base(fixer, title: FeaturesResources.SuppressWithGlobalSuppressMessage)
+                : base(fixer, title: FeaturesResources.in_Suppression_File)
             {
                 _project = project;
             }
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     new ApplyChangesOperation(changedSuppressionDocument.Project.Solution),
                     new OpenDocumentOperation(changedSuppressionDocument.Id, activateIfAlreadyOpen: true),
-                    new NavigationOperation(changedSuppressionDocument.Id, position: 0)
+                    new DocumentNavigationOperation(changedSuppressionDocument.Id, position: 0)
                 };
             }
 

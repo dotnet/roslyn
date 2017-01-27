@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 Imports Microsoft.VisualStudio.Text.Tagging
@@ -37,17 +38,15 @@ class 123 { }
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
-                Dim optionsService = workspace.Services.GetService(Of IOptionService)()
-
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 WpfTestCase.RequireWpfFact("This test uses IForegroundNotificationService")
                 Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
-                Dim provider = New DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners)
+                Dim provider = New DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listeners)
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
                 Using disposable = TryCast(tagger, IDisposable)
                     Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                    Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None)
+                    Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), InvocationReasons.Empty, CancellationToken.None)
 
                     Await listener.CreateWaitTask()
 
@@ -87,8 +86,8 @@ class A
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                Await analyzer.AnalyzeSyntaxAsync(document, CancellationToken.None)
-                Await analyzer.AnalyzeDocumentAsync(document, Nothing, CancellationToken.None)
+                Await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None)
+                Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
                 Await listener.CreateWaitTask()
 
@@ -124,8 +123,8 @@ class A
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                Await analyzer.AnalyzeSyntaxAsync(document, CancellationToken.None)
-                Await analyzer.AnalyzeDocumentAsync(document, Nothing, CancellationToken.None)
+                Await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None)
+                Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
                 Await listener.CreateWaitTask()
 
@@ -161,8 +160,8 @@ class A
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                Await analyzer.AnalyzeSyntaxAsync(document, CancellationToken.None)
-                Await analyzer.AnalyzeDocumentAsync(document, Nothing, CancellationToken.None)
+                Await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None)
+                Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
                 Await listener.CreateWaitTask()
 
@@ -198,8 +197,8 @@ class A
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                Await analyzer.AnalyzeSyntaxAsync(document, CancellationToken.None)
-                Await analyzer.AnalyzeDocumentAsync(document, Nothing, CancellationToken.None)
+                Await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None)
+                Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
                 analyzer.RemoveDocument(document.Id)
                 Await listener.CreateWaitTask()
@@ -227,7 +226,7 @@ class 123 { }
                                                            End Sub
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None)
+                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), InvocationReasons.Empty, CancellationToken.None)
 
                 Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using
@@ -252,7 +251,7 @@ End Class
                                                            End Sub
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None)
+                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), InvocationReasons.Empty, CancellationToken.None)
 
                 Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using

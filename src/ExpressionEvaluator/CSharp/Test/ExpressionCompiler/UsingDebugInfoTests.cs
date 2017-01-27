@@ -19,6 +19,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
+    using System;
+    using Debugging;
     using static MethodDebugInfoValidation;
 
     public class UsingDebugInfoTests : ExpressionCompilerTestBase
@@ -329,29 +331,41 @@ namespace D
         [Fact]
         public void BadPdb_ForwardChain()
         {
-            const int methodVersion = 1;
             const int methodToken1 = 0x600057a; // Forwards to 2
             const int methodToken2 = 0x600055d; // Forwards to 3
             const int methodToken3 = 0x6000540; // Has a using
             const string importString = "USystem";
 
-            var symReader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
+            var getMethodCustomDebugInfo = new Func<int, int, byte[]>((token, _) =>
             {
-                { methodToken1, new MethodDebugInfoBytes.Builder().AddForward(methodToken2).Build() },
-                { methodToken2, new MethodDebugInfoBytes.Builder().AddForward(methodToken3).Build() },
-                { methodToken3, new MethodDebugInfoBytes.Builder(new [] { new [] { importString } }).Build() },
-            }.ToImmutableDictionary());
+                switch (token)
+                {
+                    case methodToken1: return new MethodDebugInfoBytes.Builder().AddForward(methodToken2).Build().Bytes.ToArray();
+                    case methodToken2: return new MethodDebugInfoBytes.Builder().AddForward(methodToken3).Build().Bytes.ToArray();
+                    case methodToken3: return new MethodDebugInfoBytes.Builder(new[] { new[] { importString } }).Build().Bytes.ToArray();
+                    default: throw null;
+                }
+            });
 
-            ImmutableArray<string> externAliasStrings;
-            var importStrings = symReader.GetCSharpGroupedImportStrings(methodToken1, methodVersion, out externAliasStrings);
+            var getMethodImportStrings = new Func<int, int, ImmutableArray<string>>((token, _) =>
+            {
+                switch (token)
+                {
+                    case methodToken3: return ImmutableArray.Create(importString);
+                    default: throw null;
+                }
+            });
+
+            ImmutableArray < string> externAliasStrings;
+            var importStrings = CustomDebugInfoReader.GetCSharpGroupedImportStrings(methodToken1, 0, getMethodCustomDebugInfo, getMethodImportStrings, out externAliasStrings);
             Assert.True(importStrings.IsDefault);
             Assert.True(externAliasStrings.IsDefault);
 
-            importStrings = symReader.GetCSharpGroupedImportStrings(methodToken2, methodVersion, out externAliasStrings);
+            importStrings = CustomDebugInfoReader.GetCSharpGroupedImportStrings(methodToken2, 0, getMethodCustomDebugInfo, getMethodImportStrings, out externAliasStrings);
             Assert.Equal(importString, importStrings.Single().Single());
             Assert.Equal(0, externAliasStrings.Length);
 
-            importStrings = symReader.GetCSharpGroupedImportStrings(methodToken2, methodVersion, out externAliasStrings);
+            importStrings = CustomDebugInfoReader.GetCSharpGroupedImportStrings(methodToken2, 0, getMethodCustomDebugInfo, getMethodImportStrings, out externAliasStrings);
             Assert.Equal(importString, importStrings.Single().Single());
             Assert.Equal(0, externAliasStrings.Length);
         }
@@ -359,16 +373,24 @@ namespace D
         [Fact]
         public void BadPdb_Cycle()
         {
-            const int methodVersion = 1;
             const int methodToken1 = 0x600057a; // Forwards to itself
 
-            var symReader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
+            var getMethodCustomDebugInfo = new Func<int, int, byte[]>((token, _) =>
             {
-                { methodToken1, new MethodDebugInfoBytes.Builder().AddForward(methodToken1).Build() },
-            }.ToImmutableDictionary());
+                switch (token)
+                {
+                    case methodToken1: return new MethodDebugInfoBytes.Builder().AddForward(methodToken1).Build().Bytes.ToArray();
+                    default: throw null;
+                }
+            });
+
+            var getMethodImportStrings = new Func<int, int, ImmutableArray<string>>((token, _) =>
+            {
+                return ImmutableArray<string>.Empty;
+            });
 
             ImmutableArray<string> externAliasStrings;
-            var importStrings = symReader.GetCSharpGroupedImportStrings(methodToken1, methodVersion, out externAliasStrings);
+            var importStrings = CustomDebugInfoReader.GetCSharpGroupedImportStrings(methodToken1, 0, getMethodCustomDebugInfo, getMethodImportStrings, out externAliasStrings);
             Assert.True(importStrings.IsDefault);
             Assert.True(externAliasStrings.IsDefault);
         }

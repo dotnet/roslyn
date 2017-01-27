@@ -1886,10 +1886,9 @@ $$
         internal override ICommandHandler CreateCommandHandler(
             IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            IAsyncCompletionService completionService)
+            IEditorOperationsFactoryService editorOperationsFactoryService)
         {
-            return new DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService, completionService);
+            return new DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService);
         }
 
         protected override Task<TestWorkspace> CreateTestWorkspaceAsync(string code)

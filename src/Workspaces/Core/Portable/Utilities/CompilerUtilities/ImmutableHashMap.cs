@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections;
@@ -344,8 +344,7 @@ namespace Roslyn.Collections.Immutable
         {
             get
             {
-                TValue value;
-                if (this.TryGetValue(key, out value))
+                if (this.TryGetValue(key, out var value))
                 {
                     return value;
                 }
@@ -552,8 +551,7 @@ namespace Roslyn.Collections.Immutable
             {
                 // If the items being added actually come from an ImmutableHashMap<TKey, TValue>
                 // then there is no value in reconstructing it.
-                ImmutableHashMap<TKey, TValue> other;
-                if (TryCastToImmutableMap(pairs, out other))
+                if (TryCastToImmutableMap(pairs, out var other))
                 {
                     return other.WithComparers(_keyComparer, _valueComparer);
                 }
@@ -1173,7 +1171,7 @@ namespace Roslyn.Collections.Immutable
             {
                 get
                 {
-                    return Microsoft.CodeAnalysis.WorkspacesResources.DuplicateKey;
+                    return Microsoft.CodeAnalysis.WorkspacesResources.An_element_with_the_same_key_but_a_different_value_already_exists;
                 }
             }
         }

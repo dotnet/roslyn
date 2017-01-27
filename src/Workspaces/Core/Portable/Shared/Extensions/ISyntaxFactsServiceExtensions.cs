@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsAnyMemberAccessExpression(
             this ISyntaxFactsService syntaxFacts, SyntaxNode node)
         {
-            return syntaxFacts.IsMemberAccessExpression(node) || syntaxFacts.IsPointerMemberAccessExpression(node);
+            return syntaxFacts.IsSimpleMemberAccessExpression(node) || syntaxFacts.IsPointerMemberAccessExpression(node);
         }
     }
 }

@@ -2,11 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,33 +14,31 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Feedback.Interop;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Packaging;
-using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using NuGet.VisualStudio;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.ProjectSystem;
 using VSLangProj;
 using VSLangProj140;
 using OLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using OleInterop = Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     /// <summary>
     /// The Workspace for running inside Visual Studio.
     /// </summary>
-    internal abstract class VisualStudioWorkspaceImpl : VisualStudioWorkspace
+    internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspace
     {
         private static readonly IntPtr s_docDataExisting_Unknown = new IntPtr(-1);
         private const string AppCodeFolderName = "App_Code";
@@ -71,15 +68,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Ensure the options factory services are initialized on the UI thread
             this.Services.GetService<IOptionService>();
-
-            var session = serviceProvider.GetService(typeof(SVsLog)) as IVsSqmMulti;
-            var profileService = serviceProvider.GetService(typeof(SVsFeedbackProfile)) as IVsFeedbackProfile;
-
-            // We have Watson hits where this came back null, so guard against it
-            if (profileService != null)
-            {
-                Sqm.LogSession(session, profileService.IsMicrosoftInternal);
-            }
         }
 
         internal static HostServices CreateHostServices(SVsServiceProvider serviceProvider)
@@ -90,15 +78,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void InitializeStandardVisualStudioWorkspace(SVsServiceProvider serviceProvider, SaveEventsService saveEventsService)
         {
-            var projectTracker = new VisualStudioProjectTracker(serviceProvider);
+            var projectTracker = new VisualStudioProjectTracker(serviceProvider, this.Services);
 
             // Ensure the document tracking service is initialized on the UI thread
-            var documentTrackingService = this.Services.GetService<IDocumentTrackingService>();
-            var documentProvider = new RoslynDocumentProvider(projectTracker, serviceProvider, documentTrackingService);
-            projectTracker.DocumentProvider = documentProvider;
-
-            projectTracker.MetadataReferenceProvider = this.Services.GetService<VisualStudioMetadataReferenceManager>();
-            projectTracker.RuleSetFileProvider = this.Services.GetService<VisualStudioRuleSetManager>();
+            var documentTrackingService = (VisualStudioDocumentTrackingService)this.Services.GetService<IDocumentTrackingService>();
+            var documentProvider = new DocumentProvider(projectTracker, serviceProvider, documentTrackingService);
+            var metadataReferenceProvider = this.Services.GetService<VisualStudioMetadataReferenceManager>();
+            var ruleSetFileProvider = this.Services.GetService<VisualStudioRuleSetManager>();
+            projectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider);
 
             this.SetProjectTracker(projectTracker);
 
@@ -157,8 +144,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Microsoft.CodeAnalysis.Solution newSolution,
             IProgressTracker progressTracker)
         {
+            var projectChanges = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().ToList();
+            var projectsToLoad = new HashSet<Guid>();
+            foreach (var pc in projectChanges)
+            {
+                if (pc.GetAddedAdditionalDocuments().Any() ||
+                    pc.GetAddedAnalyzerReferences().Any() ||
+                    pc.GetAddedDocuments().Any() ||
+                    pc.GetAddedMetadataReferences().Any() ||
+                    pc.GetAddedProjectReferences().Any() ||
+                    pc.GetRemovedAdditionalDocuments().Any() ||
+                    pc.GetRemovedAnalyzerReferences().Any() ||
+                    pc.GetRemovedDocuments().Any() ||
+                    pc.GetRemovedMetadataReferences().Any() ||
+                    pc.GetRemovedProjectReferences().Any())
+                {
+                    projectsToLoad.Add(GetHostProject(pc.ProjectId).Guid);
+                }
+            }
+
+            if (projectsToLoad.Any())
+            {
+                var vsSolution4 = GetVsService(typeof(SVsSolution)) as IVsSolution4;
+                vsSolution4.EnsureProjectsAreLoaded(
+                    (uint)projectsToLoad.Count,
+                    projectsToLoad.ToArray(),
+                    (uint)__VSBSLFLAGS.VSBSLFLAGS_None);
+            }
+
             // first make sure we can edit the document we will be updating (check them out from source control, etc)
-            var changedDocs = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().SelectMany(pd => pd.GetChangedDocuments()).ToList();
+            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments()).ToList();
             if (changedDocs.Count > 0)
             {
                 this.EnsureEditableDocuments(changedDocs);
@@ -181,6 +196,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 return true;
             }
+        }
+
+        internal override bool CanRenameFilesDuringCodeActions(CodeAnalysis.Project project)
+        {
+            if (this.TryGetHierarchy(project.Id, out var hierarchy))
+            {
+                // Currently renaming files in CPS projects (i.e. .Net Core) doesn't work proprey.
+                // This is because the remove/add of the documents in CPS is not synchronous
+                // (despite the DTE interfaces being synchronous).  So Roslyn calls the methods
+                // expecting the changes to happen immediately.  Because they are deferred in CPS
+                // this causes problems. 
+                return !hierarchy.IsCapabilityMatch("CPS");
+            }
+
+            return true;
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)
@@ -220,27 +250,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (!TryGetProjectData(projectId, out hostProject, out hierarchy, out project))
             {
-                throw new ArgumentException(string.Format(ServicesVSResources.CouldNotFindProject, projectId));
+                throw new ArgumentException(string.Format(ServicesVSResources.Could_not_find_project_0, projectId));
             }
         }
 
         internal EnvDTE.Project TryGetDTEProject(ProjectId projectId)
         {
-            IVisualStudioHostProject hostProject;
-            IVsHierarchy hierarchy;
-            EnvDTE.Project project;
-
-            return TryGetProjectData(projectId, out hostProject, out hierarchy, out project) ? project : null;
+            return TryGetProjectData(projectId, out var hostProject, out var hierarchy, out var project) ? project : null;
         }
 
         internal bool TryAddReferenceToProject(ProjectId projectId, string assemblyName)
         {
-            IVisualStudioHostProject hostProject;
-            IVsHierarchy hierarchy;
             EnvDTE.Project project;
             try
             {
-                GetProjectData(projectId, out hostProject, out hierarchy, out project);
+                GetProjectData(projectId, out var hostProject, out var hierarchy, out project);
             }
             catch (ArgumentException)
             {
@@ -277,10 +301,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(analyzerReference));
             }
 
-            IVisualStudioHostProject hostProject;
-            IVsHierarchy hierarchy;
-            EnvDTE.Project project;
-            GetProjectData(projectId, out hostProject, out hierarchy, out project);
+            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
 
             string filePath = GetAnalyzerPath(analyzerReference);
             if (filePath != null)
@@ -302,10 +323,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(analyzerReference));
             }
 
-            IVisualStudioHostProject hostProject;
-            IVsHierarchy hierarchy;
-            EnvDTE.Project project;
-            GetProjectData(projectId, out hostProject, out hierarchy, out project);
+            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
 
             string filePath = GetAnalyzerPath(analyzerReference);
             if (filePath != null)
@@ -326,7 +344,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return null;
         }
 
-        protected override void ApplyMetadataReferenceAdded(ProjectId projectId, MetadataReference metadataReference)
+        protected override void ApplyMetadataReferenceAdded(
+            ProjectId projectId, MetadataReference metadataReference)
         {
             if (projectId == null)
             {
@@ -338,20 +357,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(metadataReference));
             }
 
-            IVisualStudioHostProject hostProject;
-            IVsHierarchy hierarchy;
-            EnvDTE.Project project;
-            GetProjectData(projectId, out hostProject, out hierarchy, out project);
+            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
 
             string filePath = GetMetadataPath(metadataReference);
             if (filePath != null)
             {
                 VSProject vsProject = (VSProject)project.Object;
                 vsProject.References.Add(filePath);
+
+                var undoManager = TryGetUndoManager();
+                undoManager?.Add(new RemoveMetadataReferenceUndoUnit(this, projectId, filePath));
             }
         }
 
-        protected override void ApplyMetadataReferenceRemoved(ProjectId projectId, MetadataReference metadataReference)
+        protected override void ApplyMetadataReferenceRemoved(
+            ProjectId projectId, MetadataReference metadataReference)
         {
             if (projectId == null)
             {
@@ -363,24 +383,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(metadataReference));
             }
 
-            IVisualStudioHostProject hostProject;
-            IVsHierarchy hierarchy;
-            EnvDTE.Project project;
-            GetProjectData(projectId, out hostProject, out hierarchy, out project);
+            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
 
             string filePath = GetMetadataPath(metadataReference);
             if (filePath != null)
             {
                 VSProject vsProject = (VSProject)project.Object;
-                Reference reference = vsProject.References.Find(filePath);
-                if (reference != null)
+                foreach (Reference reference in vsProject.References)
                 {
-                    reference.Remove();
+                    if (StringComparer.OrdinalIgnoreCase.Equals(reference.Path, filePath))
+                    {
+                        reference.Remove();
+                        var undoManager = TryGetUndoManager();
+                        undoManager?.Add(new AddMetadataReferenceUndoUnit(this, projectId, filePath));
+                        break;
+                    }
                 }
             }
         }
 
-        protected override void ApplyProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
+        protected override void ApplyProjectReferenceAdded(
+            ProjectId projectId, ProjectReference projectReference)
         {
             if (projectId == null)
             {
@@ -392,21 +415,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(projectReference));
             }
 
-            IVisualStudioHostProject hostProject;
-            IVsHierarchy hierarchy;
-            EnvDTE.Project project;
-            GetProjectData(projectId, out hostProject, out hierarchy, out project);
-
-            IVisualStudioHostProject refHostProject;
-            IVsHierarchy refHierarchy;
-            EnvDTE.Project refProject;
-            GetProjectData(projectReference.ProjectId, out refHostProject, out refHierarchy, out refProject);
+            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
+            GetProjectData(projectReference.ProjectId, out var refHostProject, out var refHierarchy, out var refProject);
 
             var vsProject = (VSProject)project.Object;
             vsProject.References.AddProject(refProject);
+
+            var undoManager = TryGetUndoManager();
+            undoManager?.Add(new RemoveProjectReferenceUndoUnit(
+                this, projectId, projectReference.ProjectId));
         }
 
-        protected override void ApplyProjectReferenceRemoved(ProjectId projectId, ProjectReference projectReference)
+        private OleInterop.IOleUndoManager TryGetUndoManager()
+        {
+            var documentTrackingService = this.Services.GetService<IDocumentTrackingService>();
+            if (documentTrackingService != null)
+            {
+                var documentId = documentTrackingService.GetActiveDocument() ?? documentTrackingService.GetVisibleDocuments().FirstOrDefault();
+                if (documentId != null)
+                {
+                    var composition = (IComponentModel)ServiceProvider.GetService(typeof(SComponentModel));
+                    var exportProvider = composition.DefaultExportProvider;
+                    var editorAdaptersService = exportProvider.GetExportedValue<IVsEditorAdaptersFactoryService>();
+
+                    return editorAdaptersService.TryGetUndoManager(this, documentId, CancellationToken.None);
+                }
+            }
+
+            return null;
+        }
+
+        protected override void ApplyProjectReferenceRemoved(
+            ProjectId projectId, ProjectReference projectReference)
         {
             if (projectId == null)
             {
@@ -418,15 +458,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(projectReference));
             }
 
-            IVisualStudioHostProject hostProject;
-            IVsHierarchy hierarchy;
-            EnvDTE.Project project;
-            GetProjectData(projectId, out hostProject, out hierarchy, out project);
-
-            IVisualStudioHostProject refHostProject;
-            IVsHierarchy refHierarchy;
-            EnvDTE.Project refProject;
-            GetProjectData(projectReference.ProjectId, out refHostProject, out refHierarchy, out refProject);
+            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
+            GetProjectData(projectReference.ProjectId, out var refHostProject, out var refHierarchy, out var refProject);
 
             var vsProject = (VSProject)project.Object;
             foreach (Reference reference in vsProject.References)
@@ -434,6 +467,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (reference.SourceProject == refProject)
                 {
                     reference.Remove();
+                    var undoManager = TryGetUndoManager();
+                    undoManager?.Add(new AddProjectReferenceUndoUnit(this, projectId, projectReference.ProjectId));
                 }
             }
         }
@@ -450,10 +485,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void AddDocumentCore(DocumentInfo info, SourceText initialText, bool isAdditionalDocument)
         {
-            IVsHierarchy hierarchy;
-            EnvDTE.Project project;
-            IVisualStudioHostProject hostProject;
-            GetProjectData(info.Id.ProjectId, out hostProject, out hierarchy, out project);
+            GetProjectData(info.Id.ProjectId, out var hostProject, out var hierarchy, out var project);
 
             // If the first namespace name matches the name of the project, then we don't want to
             // generate a folder for that.  The project is implicitly a folder with that name.
@@ -476,6 +508,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             else
             {
                 AddDocumentToProject(hostProject, project, info.Id, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument);
+            }
+
+            var undoManager = TryGetUndoManager();
+
+            if (isAdditionalDocument)
+            {
+                undoManager?.Add(new RemoveAdditionalDocumentUndoUnit(this, info.Id));
+            }
+            else
+            {
+                undoManager?.Add(new RemoveDocumentUndoUnit(this, info.Id));
             }
         }
 
@@ -546,11 +589,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string filePath = null,
             bool isAdditionalDocument = false)
         {
-            string folderPath;
-            if (!project.TryGetFullPath(out folderPath))
+            if (!project.TryGetFullPath(out var folderPath))
             {
                 // TODO(cyrusn): Throw an appropriate exception here.
-                throw new Exception(ServicesVSResources.CouldNotFindLocationOfFol);
+                throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
             return AddDocumentToProjectItems(hostProject, project.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
@@ -568,12 +610,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             bool isAdditionalDocument = false)
         {
             var folder = project.FindOrCreateFolder(folders);
-
-            string folderPath;
-            if (!folder.TryGetFullPath(out folderPath))
+            if (!folder.TryGetFullPath(out var folderPath))
             {
                 // TODO(cyrusn): Throw an appropriate exception here.
-                throw new Exception(ServicesVSResources.CouldNotFindLocationOfFol);
+                throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
             return AddDocumentToProjectItems(hostProject, folder.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
@@ -612,38 +652,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected void RemoveDocumentCore(DocumentId documentId)
+        protected void RemoveDocumentCore(
+            DocumentId documentId, bool isAdditionalDocument)
         {
             if (documentId == null)
             {
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            var document = this.GetHostDocument(documentId);
-            if (document != null)
+            var hostDocument = this.GetHostDocument(documentId);
+            if (hostDocument != null)
             {
-                var project = document.Project.Hierarchy as IVsProject3;
+                var document = this.CurrentSolution.GetDocument(documentId);
+                var text = this.GetTextForced(document);
 
-                var itemId = document.GetItemId();
+                var project = hostDocument.Project.Hierarchy as IVsProject3;
+
+                var itemId = hostDocument.GetItemId();
                 if (itemId == (uint)VSConstants.VSITEMID.Nil)
                 {
                     // it is no longer part of the solution
                     return;
                 }
 
-                int result;
-                project.RemoveItem(0, itemId, out result);
+                project.RemoveItem(0, itemId, out var result);
+
+                var undoManager = TryGetUndoManager();
+                var docInfo = CreateDocumentInfoWithoutText(document);
+
+                if (isAdditionalDocument)
+                {
+                    undoManager?.Add(new AddAdditionalDocumentUndoUnit(this, docInfo, text));
+                }
+                else
+                {
+                    undoManager?.Add(new AddDocumentUndoUnit(this, docInfo, text));
+                }
             }
         }
 
         protected override void ApplyDocumentRemoved(DocumentId documentId)
         {
-            RemoveDocumentCore(documentId);
+            RemoveDocumentCore(documentId, isAdditionalDocument: false);
         }
 
         protected override void ApplyAdditionalDocumentRemoved(DocumentId documentId)
         {
-            RemoveDocumentCore(documentId);
+            RemoveDocumentCore(documentId, isAdditionalDocument: true);
         }
 
         public override void OpenDocument(DocumentId documentId, bool activate = true)
@@ -671,11 +726,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             frame = null;
             factory = null;
             var monitorSelectionService = ServiceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-            object value = null;
 
             // We want to get whichever window is currently in focus (including toolbars) as we could have had an exception thrown from the error list or interactive window
             if (monitorSelectionService != null &&
-               ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out value)))
+               ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out var value)))
             {
                 frame = value as IVsWindowFrame;
             }
@@ -697,14 +751,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (!_foregroundObject.IsForeground())
             {
-                throw new InvalidOperationException(ServicesVSResources.ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread);
+                throw new InvalidOperationException(ServicesVSResources.This_workspace_only_supports_opening_documents_on_the_UI_thread);
             }
 
             var document = this.GetHostDocument(documentId);
             if (document != null && document.Project != null)
             {
-                IVsWindowFrame frame;
-                if (TryGetFrame(document, out frame))
+                if (TryGetFrame(document, out var frame))
                 {
                     if (activate)
                     {
@@ -729,16 +782,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // document using its ItemId. Thus, we must use OpenDocumentViaProject, which only 
                 // depends on the file path.
 
-                uint itemid;
-                IVsUIHierarchy uiHierarchy;
-                OLEServiceProvider oleServiceProvider;
-
                 return ErrorHandler.Succeeded(_shellOpenDocument.OpenDocumentViaProject(
                     document.FilePath,
                     VSConstants.LOGVIEWID.TextView_guid,
-                    out oleServiceProvider,
-                    out uiHierarchy,
-                    out itemid,
+                    out var oleServiceProvider,
+                    out var uiHierarchy,
+                    out var itemid,
                     out frame));
             }
             else
@@ -772,10 +821,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var document = this.GetHostDocument(documentId);
                 if (document != null)
                 {
-                    IVsUIHierarchy uiHierarchy;
-                    IVsWindowFrame frame;
-                    int isOpen;
-                    if (ErrorHandler.Succeeded(_shellOpenDocument.IsDocumentOpen(null, 0, document.FilePath, Guid.Empty, 0, out uiHierarchy, null, out frame, out isOpen)))
+                    if (ErrorHandler.Succeeded(_shellOpenDocument.IsDocumentOpen(null, 0, document.FilePath, Guid.Empty, 0, out var uiHierarchy, null, out var frame, out var isOpen)))
                     {
                         // TODO: do we need save argument for CloseDocument?
                         frame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
@@ -831,6 +877,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal override void SetDocumentContext(DocumentId documentId)
         {
             var hostDocument = GetHostDocument(documentId);
+            if (hostDocument == null)
+            {
+                // the document or project is not being tracked
+                return;
+            }
+
             var itemId = hostDocument.GetItemId();
             if (itemId == (uint)VSConstants.VSITEMID.Nil)
             {
@@ -879,10 +931,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // find that one, we can map back to the open buffer and set its active context to
             // the appropriate project.
 
+            // Note that if there is a single head project and it's in the process of being unloaded
+            // there might not be a host project.
             var hostProject = LinkedFileUtilities.GetContextHostProject(sharedHierarchy, ProjectTracker);
-            if (hostProject.Hierarchy == sharedHierarchy)
+            if (hostProject?.Hierarchy == sharedHierarchy)
             {
-                // How?
                 return;
             }
 
@@ -1017,9 +1070,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var fileNames = documents.Select(GetFilePath).ToArray();
 
-            uint editVerdict;
-            uint editResultFlags;
-
             // TODO: meditate about the flags we can pass to this and decide what is most appropriate for Roslyn
             int result = queryEdit.QueryEditFiles(
                 rgfQueryEdit: 0,
@@ -1027,8 +1077,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 rgpszMkDocuments: fileNames,
                 rgrgf: new uint[fileNames.Length],
                 rgFileInfo: new VSQEQS_FILE_ATTRIBUTE_DATA[fileNames.Length],
-                pfEditVerdict: out editVerdict,
-                prgfMoreInfo: out editResultFlags);
+                pfEditVerdict: out var editVerdict,
+                prgfMoreInfo: out var editResultFlags);
 
             if (ErrorHandler.Failed(result) ||
                 editVerdict != (uint)tagVSQueryEditResult.QER_EditOK)
@@ -1079,11 +1129,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
             _foregroundObject.AssertIsForeground();
-
-            IVsHierarchy referencingHierarchy;
-            IVsHierarchy referencedHierarchy;
-            if (!TryGetHierarchy(referencingProject, out referencingHierarchy) ||
-                !TryGetHierarchy(referencedProject, out referencedHierarchy))
+            if (!TryGetHierarchy(referencingProject, out var referencingHierarchy) ||
+                !TryGetHierarchy(referencedProject, out var referencedHierarchy))
             {
                 // Couldn't even get a hierarchy for this project. So we have to assume
                 // that adding a reference is disallowed.
@@ -1099,8 +1146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var referencingProjectFlavor3 = referencingHierarchy as IVsProjectFlavorReferences3;
             if (referencingProjectFlavor3 != null)
             {
-                string unused;
-                if (ErrorHandler.Failed(referencingProjectFlavor3.QueryAddProjectReferenceEx(referencedHierarchy, ContextFlags, out canAddProjectReference, out unused)))
+                if (ErrorHandler.Failed(referencingProjectFlavor3.QueryAddProjectReferenceEx(referencedHierarchy, ContextFlags, out canAddProjectReference, out var unused)))
                 {
                     // Something went wrong even trying to see if the reference would be allowed.
                     // Assume it won't be allowed.
@@ -1117,8 +1163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var referencedProjectFlavor3 = referencedHierarchy as IVsProjectFlavorReferences3;
             if (referencedProjectFlavor3 != null)
             {
-                string unused;
-                if (ErrorHandler.Failed(referencedProjectFlavor3.QueryCanBeReferencedEx(referencingHierarchy, ContextFlags, out canBeReferenced, out unused)))
+                if (ErrorHandler.Failed(referencedProjectFlavor3.QueryCanBeReferencedEx(referencingHierarchy, ContextFlags, out canBeReferenced, out var unused)))
                 {
                     // Something went wrong even trying to see if the reference would be allowed.
                     // Assume it won't be allowed.
@@ -1222,9 +1267,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
                 if (sharedHierarchy != null)
                 {
-                    uint cookie;
                     var eventSink = new HierarchyEventsSink(_workspace, sharedHierarchy, documentId);
-                    var hr = sharedHierarchy.AdviseHierarchyEvents(eventSink, out cookie);
+                    var hr = sharedHierarchy.AdviseHierarchyEvents(eventSink, out var cookie);
 
                     if (hr == VSConstants.S_OK && !_documentIdToHierarchyEventsCookieMap.ContainsKey(documentId))
                     {
@@ -1246,8 +1290,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hostDocument.Project.Hierarchy, itemId);
                 if (sharedHierarchy != null)
                 {
-                    uint cookie;
-                    if (_documentIdToHierarchyEventsCookieMap.TryGetValue(documentId, out cookie))
+                    if (_documentIdToHierarchyEventsCookieMap.TryGetValue(documentId, out var cookie))
                     {
                         var hr = sharedHierarchy.UnadviseHierarchyEvents(cookie);
                         _documentIdToHierarchyEventsCookieMap.Remove(documentId);
@@ -1255,7 +1298,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            private void RegisterPrimarySolutionForPersistentStorage(SolutionId solutionId)
+            private void RegisterPrimarySolutionForPersistentStorage(
+                SolutionId solutionId)
             {
                 var service = _workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
                 if (service == null)
@@ -1266,7 +1310,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 service.RegisterPrimarySolution(solutionId);
             }
 
-            private void UnregisterPrimarySolutionForPersistentStorage(SolutionId solutionId, bool synchronousShutdown)
+            private void UnregisterPrimarySolutionForPersistentStorage(
+                SolutionId solutionId, bool synchronousShutdown)
             {
                 var service = _workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
                 if (service == null)

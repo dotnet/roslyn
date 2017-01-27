@@ -566,6 +566,52 @@ class foo
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_SimplifyParenthesesAroundThisInCastExpression() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+class C : IEquatable<C>
+{
+    bool IEquatable<C>.Equals(C other)
+    {
+        return true;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return ((IEquatable<C>){|Simplify:(this)|}).Equals(obj as C);
+    }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+
+class C : IEquatable<C>
+{
+    bool IEquatable<C>.Equals(C other)
+    {
+        return true;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return ((IEquatable<C>)this).Equals(obj as C);
+    }
+}
+]]></code>
+
+            Await TestAsync(input, expected)
+
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideExceptionFilter() As Task
             Dim input =
 <Workspace>

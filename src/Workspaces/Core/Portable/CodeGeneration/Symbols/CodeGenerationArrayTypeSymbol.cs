@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -13,6 +11,30 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ITypeSymbol ElementType { get; }
 
         public int Rank { get; }
+
+        public bool IsSZArray
+        {
+            get
+            {
+                return Rank == 1;
+            }
+        }
+
+        public ImmutableArray<int> Sizes
+        {
+            get
+            {
+                return ImmutableArray<int>.Empty;
+            }
+        }
+
+        public ImmutableArray<int> LowerBounds
+        {
+            get
+            {
+                return default(ImmutableArray<int>);
+            }
+        }
 
         public CodeGenerationArrayTypeSymbol(ITypeSymbol elementType, int rank)
             : base(null, null, Accessibility.NotApplicable, default(DeclarationModifiers), string.Empty, SpecialType.None)

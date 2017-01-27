@@ -1,12 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -20,6 +14,16 @@ namespace Microsoft.CodeAnalysis.Editing
         public static void SetModifiers(this SyntaxEditor editor, SyntaxNode declaration, DeclarationModifiers modifiers)
         {
             editor.ReplaceNode(declaration, (d, g) => g.WithModifiers(d, modifiers));
+        }
+
+        internal static void RemoveAllAttributes(this SyntaxEditor editor, SyntaxNode declaration)
+        {
+            editor.ReplaceNode(declaration, (d, g) => g.RemoveAllAttributes(d));
+        }
+
+        internal static void RemoveAllComments(this SyntaxEditor editor, SyntaxNode declaration)
+        {
+            editor.ReplaceNode(declaration, (d, g) => g.RemoveAllComments(d));
         }
 
         public static void SetName(this SyntaxEditor editor, SyntaxNode declaration, string name)

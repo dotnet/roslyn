@@ -29,17 +29,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
             return tuple.Item2;
         }
 
-        protected async Task<CodeAnalysis.Solution> GetCurrentSolutionAsync()
+        protected async Task<Microsoft.CodeAnalysis.Solution> GetCurrentSolutionAsync()
         {
             return (await GetWorkspaceAsync()).CurrentSolution;
         }
 
-        protected async Task<CodeAnalysis.Project> GetCurrentProjectAsync()
+        protected async Task<Microsoft.CodeAnalysis.Project> GetCurrentProjectAsync()
         {
             return (await GetCurrentSolutionAsync()).Projects.Single();
         }
 
-        protected async Task<CodeAnalysis.Document> GetCurrentDocumentAsync()
+        protected async Task<Microsoft.CodeAnalysis.Document> GetCurrentDocumentAsync()
         {
             return (await GetCurrentProjectAsync()).Documents.Single();
         }

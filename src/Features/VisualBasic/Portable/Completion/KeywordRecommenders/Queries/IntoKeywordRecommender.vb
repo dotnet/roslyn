@@ -16,13 +16,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
             ' "Into" for Group By is easy
             If context.SyntaxTree.IsFollowingCompleteExpression(Of GroupByClauseSyntax)(
                context.Position, context.TargetToken, Function(g) g.Keys.LastRangeExpression(), cancellationToken) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Into", VBFeaturesResources.IntoQueryKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Into", VBFeaturesResources.Specifies_an_identifier_that_can_serve_as_a_reference_to_the_results_of_a_join_or_grouping_subexpression))
             End If
 
             ' "Into" for Group Join is also easy
             If context.SyntaxTree.IsFollowingCompleteExpression(Of GroupJoinClauseSyntax)(
                context.Position, context.TargetToken, Function(g) g.JoinConditions.LastJoinKey(), cancellationToken) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Into", VBFeaturesResources.IntoQueryKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Into", VBFeaturesResources.Specifies_an_identifier_that_can_serve_as_a_reference_to_the_results_of_a_join_or_grouping_subexpression))
             End If
 
             ' "Into" for Aggregate is annoying, since it can be following after any number of arbitrary clauses
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
                 Dim aggregateQuery = token.GetAncestor(Of AggregateClauseSyntax)()
 
                 If aggregateQuery IsNot Nothing AndAlso (aggregateQuery.IntoKeyword.IsMissing OrElse aggregateQuery.IntoKeyword = token) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Into", VBFeaturesResources.IntoQueryKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Into", VBFeaturesResources.Specifies_an_identifier_that_can_serve_as_a_reference_to_the_results_of_a_join_or_grouping_subexpression))
                 End If
             End If
 

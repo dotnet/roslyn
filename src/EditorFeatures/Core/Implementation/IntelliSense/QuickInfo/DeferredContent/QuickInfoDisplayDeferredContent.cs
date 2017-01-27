@@ -38,20 +38,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         public FrameworkElement Create()
         {
-            // Workaround: Dev 12 spring update added the "GlyphCompletionWarning" group for the 
-            // linked files warning glyph. However, that code hasn't yet merged into VSPro_Platform 
-            // from VSClient_1. For now, we'll wrap the calls to IGlyphService in a try catch, 
-            // which will be removed when the relevant code has moved over.
             FrameworkElement warningGlyphElement = null;
             if (_warningGlyph != null)
             {
-                try
-                {
-                    warningGlyphElement = _warningGlyph.Create();
-                }
-                catch (ArgumentException)
-                {
-                }
+                warningGlyphElement = _warningGlyph.Create();
             }
 
             FrameworkElement symbolGlyphElement = null;

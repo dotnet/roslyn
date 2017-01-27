@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         End Function
 
         Public Function GetSpan(version As ITextVersion) As Span Implements ITrackingSpan.GetSpan
-            Throw New NotSupportedException(VBEditorResources.NotSupported)
+            Throw New NotSupportedException(VBEditorResources.not_supported)
         End Function
 
         Public Function GetStartPoint(snapshot As ITextSnapshot) As SnapshotPoint Implements ITrackingSpan.GetStartPoint

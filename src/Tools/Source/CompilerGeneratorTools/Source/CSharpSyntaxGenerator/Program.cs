@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Xml;
@@ -13,12 +11,12 @@ namespace CSharpSyntaxGenerator
 {
     internal static class Program
     {
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             if (args.Length < 2 || args.Length > 3)
             {
                 WriteUsage();
-                return;
+                return 1;
             }
 
             string inputFile = args[0];
@@ -26,7 +24,7 @@ namespace CSharpSyntaxGenerator
             if (!File.Exists(inputFile))
             {
                 Console.WriteLine(inputFile + " not found.");
-                return;
+                return 1;
             }
 
             bool writeSource = true;
@@ -46,7 +44,7 @@ namespace CSharpSyntaxGenerator
                 else
                 {
                     WriteUsage();
-                    return;
+                    return 1;
                 }
             }
             else if (args.Length == 2)
@@ -73,13 +71,23 @@ namespace CSharpSyntaxGenerator
             {
                 if (writeSource)
                 {
-                    WriteToFile(tree, SourceWriter.Write, outputFile);
+                    var outputPath = outputFile.Trim('"');
+                    var prefix = Path.GetFileName(inputFile);
+                    var outputMainFile = Path.Combine(outputPath, $"{prefix}.Main.Generated.cs");
+                    var outputInternalFile = Path.Combine(outputPath, $"{prefix}.Internal.Generated.cs");
+                    var outputSyntaxFile = Path.Combine(outputPath, $"{prefix}.Syntax.Generated.cs");
+
+                    WriteToFile(tree, SourceWriter.WriteMain, outputMainFile);
+                    WriteToFile(tree, SourceWriter.WriteInternal, outputInternalFile);
+                    WriteToFile(tree, SourceWriter.WriteSyntax, outputSyntaxFile);
                 }
                 if (writeTests)
                 {
                     WriteToFile(tree, TestWriter.Write, outputFile);
                 }
             }
+
+            return 0;
         }
 
         private static void WriteUsage()

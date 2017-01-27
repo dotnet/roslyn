@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
         internal const string DiagnosticId = "RemoveUnnecessaryCast";
         internal static readonly DiagnosticDescriptor DiagnosticMD = new DiagnosticDescriptor(DiagnosticId,
                                                                                               DiagnosticKind.Unnecessary,
-                                                                                              CSharpFeaturesResources.RemoveUnnecessaryCast,
-                                                                                              CSharpFeaturesResources.CastIsRedundant,
+                                                                                              CSharpFeaturesResources.Remove_Unnecessary_Cast,
+                                                                                              CSharpFeaturesResources.Cast_is_redundant,
                                                                                               "Internal",
                                                                                               DiagnosticSeverity.None);
 

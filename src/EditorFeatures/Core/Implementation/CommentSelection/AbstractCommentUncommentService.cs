@@ -3,11 +3,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         public Document Format(Document document, IEnumerable<TextSpan> changes, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var formattingSpans = changes.Select(s => CommonFormattingHelpers.GetFormattingSpan(root, s));
 
             return Formatter.FormatAsync(document, formattingSpans, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);

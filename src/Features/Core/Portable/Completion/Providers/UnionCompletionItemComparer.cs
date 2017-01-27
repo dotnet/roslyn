@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {

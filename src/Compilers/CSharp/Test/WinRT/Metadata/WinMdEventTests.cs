@@ -324,7 +324,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2")
             });
 
-            var verifier = CompileAndVerifyOnWin8Only(
+            var verifier = this.CompileAndVerifyOnWin8Only(
                 src,
                 additionalRefs: new[] {
                     MscorlibRef_v4_0_30316_17626,
@@ -2485,7 +2485,7 @@ public class abcdef{
     }
 } ";
 
-            var cv = CompileAndVerifyOnWin8Only(text);
+            var cv = this.CompileAndVerifyOnWin8Only(text);
 
             cv.VerifyIL("abcdef.foo()", @"
 {
@@ -2545,7 +2545,7 @@ public class abcdef{
                                 }
                             } ";
 
-            var cv = CompileAndVerifyOnWin8Only(text);
+            var cv = this.CompileAndVerifyOnWin8Only(text);
 
             var ExpectedIl =
 @"
@@ -2609,7 +2609,7 @@ public class abcdef{
     }
 }";
 
-            var cv = CompileAndVerifyOnWin8Only(text);
+            var cv = this.CompileAndVerifyOnWin8Only(text);
 
             cv.VerifyIL("abcdef.foo()", @"
 {

@@ -200,8 +200,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim targetForInference As UnboundLambda.TargetSignature = target
 
                     If Not targetForInference.ReturnType.IsVoidType() Then
-                        targetForInference = New UnboundLambda.TargetSignature(targetForInference.ParameterTypes, targetForInference.IsByRef,
-                                                                               Compilation.GetSpecialType(SpecialType.System_Void)) ' No need to report use-site error.
+                        targetForInference = New UnboundLambda.TargetSignature(targetForInference.ParameterTypes, targetForInference.ParameterIsByRef,
+                                                                               Compilation.GetSpecialType(SpecialType.System_Void), ' No need to report use-site error.
+                                                                               returnsByRef:=False)
                     End If
 
                     Dim typeInfo As KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic)) = source.InferReturnType(targetForInference)
@@ -426,7 +427,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
             Dim lambdaSyntax = lambdaSymbol.Syntax
             Dim bodyBinder = lambdaBinder.GetBinder(lambdaSyntax)
-            Dim endSyntax As VisualBasicSyntaxNode = lambdaSyntax
+            Dim endSyntax As SyntaxNode = lambdaSyntax
 
             Dim block As BoundBlock
 
@@ -783,11 +784,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim diagnostics = DiagnosticBag.GetInstance()
 
             ' Using Void as return type, because BuildBoundLambdaParameters doesn't use it and it is as good as any other value.
-            Dim targetSignature As New UnboundLambda.TargetSignature(ImmutableArray(Of ParameterSymbol).Empty, Compilation.GetSpecialType(SpecialType.System_Void))
+            Dim targetSignature As New UnboundLambda.TargetSignature(ImmutableArray(Of ParameterSymbol).Empty, Compilation.GetSpecialType(SpecialType.System_Void), returnsByRef:=False)
             Dim parameters As ImmutableArray(Of BoundLambdaParameterSymbol) = BuildBoundLambdaParameters(source, targetSignature, diagnostics)
 
             Dim returnTypeInfo As KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic))
-            returnTypeInfo = source.InferReturnType(New UnboundLambda.TargetSignature(StaticCast(Of ParameterSymbol).From(parameters), targetSignature.ReturnType))
+            returnTypeInfo = source.InferReturnType(New UnboundLambda.TargetSignature(StaticCast(Of ParameterSymbol).From(parameters), targetSignature.ReturnType, targetSignature.ReturnsByRef))
             Dim returnType As TypeSymbol = returnTypeInfo.Key
 
             If Not returnTypeInfo.Value.IsDefaultOrEmpty Then
@@ -873,11 +874,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If source.ReturnType IsNot Nothing Then
                     commonReturnType = If(source.IsFunctionLambda AndAlso source.ReturnType.IsVoidType(), LambdaSymbol.ReturnTypeVoidReplacement, source.ReturnType)
                 ElseIf commonReturnType Is Nothing OrElse commonReturnType Is LambdaSymbol.ErrorRecoveryInferenceError Then
-                    commonReturnType = source.InferReturnType(New UnboundLambda.TargetSignature(commonParameterTypes.AsImmutableOrNull(), isByRef, Compilation.GetSpecialType(SpecialType.System_Void))).Key
+                    commonReturnType = source.InferReturnType(New UnboundLambda.TargetSignature(commonParameterTypes.AsImmutableOrNull(),
+                                                                                                isByRef,
+                                                                                                Compilation.GetSpecialType(SpecialType.System_Void),
+                                                                                                returnsByRef:=False)).Key
                 End If
 
                 Interlocked.CompareExchange(source.BindingCache.ErrorRecoverySignature,
-                                            New UnboundLambda.TargetSignature(commonParameterTypes.AsImmutableOrNull(), isByRef, commonReturnType),
+                                            New UnboundLambda.TargetSignature(commonParameterTypes.AsImmutableOrNull(), isByRef, commonReturnType, returnsByRef:=False),
                                             Nothing)
             End If
 
@@ -888,7 +892,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If result Is Nothing Then
                 result = candidate
             ElseIf result IsNot LambdaSymbol.ErrorRecoveryInferenceError Then
-                If Not result.IsSameTypeIgnoringCustomModifiers(candidate) Then
+                If Not result.IsSameTypeIgnoringAll(candidate) Then
                     result = LambdaSymbol.ErrorRecoveryInferenceError
                 End If
             End If
@@ -1016,7 +1020,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic))(lambdaReturnType, diagnostics.ToReadOnlyAndFree())
         End Function
 
-        Private Shared Function LambdaHeaderErrorNode(source As UnboundLambda) As VisualBasicSyntaxNode
+        Private Shared Function LambdaHeaderErrorNode(source As UnboundLambda) As SyntaxNode
             Dim lambdaSyntax = TryCast(source.Syntax, LambdaExpressionSyntax)
 
             If lambdaSyntax IsNot Nothing Then

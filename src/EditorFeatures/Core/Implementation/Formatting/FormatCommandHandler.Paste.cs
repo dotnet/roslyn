@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         public void ExecuteCommand(PasteCommandArgs args, Action nextHandler)
         {
             _waitIndicator.Wait(
-                title: EditorFeaturesResources.FormatPaste,
-                message: EditorFeaturesResources.FormattingPastedText,
+                title: EditorFeaturesResources.Format_Paste,
+                message: EditorFeaturesResources.Formatting_pasted_text,
                 allowCancel: true,
                 action: c => ExecuteCommandWorker(args, nextHandler, c.CancellationToken));
         }
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            if (!args.SubjectBuffer.GetOption(FeatureOnOffOptions.FormatOnPaste) ||
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.FormatOnPaste) ||
                 !caretPosition.HasValue)
             {
                 return;

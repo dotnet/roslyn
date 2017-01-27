@@ -1561,7 +1561,7 @@ struct S
                 using (runtime.Load())
                 {
                     var type = runtime.GetType("S");
-                    var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                    var value = type.Instantiate();
                     var children = GetChildren(FormatResult("s", value));
                     Verify(children,
                         EvalResult(
@@ -1609,7 +1609,7 @@ class E : System.Exception
                 using (runtime.Load())
                 {
                     var type = runtime.GetType("S");
-                    var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                    var value = type.Instantiate();
                     var children = GetChildren(FormatResult("s", value));
                     Verify(children,
                         EvalResult("This", "'s.This' threw an exception of type 'E'", "S {E}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown),
@@ -1651,9 +1651,9 @@ class E : System.Exception
             {
                 var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib());
                 var type = runtime.GetType(typeof(NullReferenceException));
-                var value = CreateDkmClrValue(
-                    type.Instantiate(),
-                    type: type,
+                var value = type.Instantiate(
+                    new object[0],
+                    alias: null,
                     evalFlags: DkmEvaluationResultFlags.ExceptionThrown);
                 var evalResult = FormatResult("c?.str.Length", value, runtime.GetType(typeof(int?)));
                 Verify(evalResult,
@@ -1789,6 +1789,21 @@ class B : A { }
             Verify(children);
         }
 
+        [Fact]
+        public void DeclaredTypeAndRuntimeTypeDifferByCase()
+        {
+            var source =
+@"class Object { }";
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(GetAssembly(source)));
+            using (runtime.Load())
+            {
+                var value = runtime.GetType("Object").Instantiate();
+                var evalResult = FormatResult("o", value, declaredType: runtime.GetType("System.Object"));
+                Verify(evalResult,
+                    EvalResult("o", "{Object}", "object {Object}", "o", DkmEvaluationResultFlags.None));
+            }
+        }
+
         /// <summary>
         /// Full name should be null for members of thrown
         /// exception since there's no valid expression.
@@ -1813,7 +1828,7 @@ class C
                 using (runtime.Load())
                 {
                     var type = runtime.GetType("C");
-                    var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                    var value = type.Instantiate();
                     var evalResult = FormatResult("o", value);
                     Verify(evalResult,
                         EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
@@ -2204,7 +2219,7 @@ class D : C
             using (runtime.Load())
             {
                 var type = runtime.GetType("B");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var value = type.Instantiate();
                 // Format with "Just my code".
                 var inspectionContext = CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers, runtimeInstance: runtime);
                 var evalResult = FormatResult("o", value, inspectionContext: inspectionContext);
@@ -2256,7 +2271,7 @@ class D : C
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var value = type.Instantiate();
                 var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 var evalResult = FormatResult("o.P", memberValue);
                 Verify(evalResult,
@@ -2278,7 +2293,7 @@ class D : C
                 var typeC = runtime.GetType("C");
 
                 // var o = (object)new C(); var e = (C)o;
-                var value = CreateDkmClrValue(typeC.Instantiate());
+                var value = typeC.Instantiate();
                 var evalResult = FormatResult("(C)o", value);
                 Verify(evalResult,
                     EvalResult("(C)o", "{C}", "C", "(C)o", DkmEvaluationResultFlags.Expandable));
@@ -2287,7 +2302,7 @@ class D : C
                     EvalResult("F", "3", "object {int}", "((C)o).F"));
 
                 // var c = new C(); var e = (C)((object)c);
-                value = CreateDkmClrValue(typeC.Instantiate());
+                value = typeC.Instantiate();
                 evalResult = FormatResult("(C)((object)c)", value);
                 Verify(evalResult,
                     EvalResult("(C)((object)c)", "{C}", "C", "(C)((object)c)", DkmEvaluationResultFlags.Expandable));
@@ -2296,7 +2311,7 @@ class D : C
                     EvalResult("F", "3", "object {int}", "((C)((object)c)).F"));
 
                 // var a = (object)new[] { new C() }; var e = ((C[])o)[0];
-                value = CreateDkmClrValue(typeC.Instantiate());
+                value = typeC.Instantiate();
                 evalResult = FormatResult("((C[])o)[0]", value);
                 Verify(evalResult,
                     EvalResult("((C[])o)[0]", "{C}", "C", "((C[])o)[0]", DkmEvaluationResultFlags.Expandable));
@@ -2350,7 +2365,7 @@ class C
                 int n = 10;
                 var type = runtime.GetType("C");
                 // C[] with alternating null and non-null values.
-                var value = CreateDkmClrValue(Enumerable.Range(0, n).Select(i => (i % 2) == 0 ? type.Instantiate() : null).ToArray());
+                var value = CreateDkmClrValue(Enumerable.Range(0, n).Select(i => (i % 2) == 0 ? type.UnderlyingType.Instantiate() : null).ToArray());
                 var evalResult = FormatResult("a", value);
 
                 IDkmClrResultProvider resultProvider = new CSharpResultProvider();
@@ -2397,7 +2412,7 @@ class C
                 int n = 10;
                 int nFailures = 2;
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(Enumerable.Range(0, n).Select(i => type.Instantiate(i)).ToArray());
+                var value = CreateDkmClrValue(Enumerable.Range(0, n).Select(i => type.UnderlyingType.Instantiate(i)).ToArray());
                 var evalResult = FormatResult("a", value);
 
                 IDkmClrResultProvider resultProvider = new CSharpResultProvider();

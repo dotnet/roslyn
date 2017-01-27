@@ -1,8 +1,16 @@
-﻿{
-  "dependencies": { },
+{
+  "dependencies": {
+    "System.ValueTuple": "4.3.0",
+    "System.Dynamic.Runtime": "4.3.0",
+    "Microsoft.CSharp": "4.3.0"
+  },
   "frameworks": {
+    // We don't actually target netstandard1.6; this is to work around https://github.com/dotnet/roslyn/issues/12458
+    "netstandard1.6": {
+      "imports": "portable-net452"
+    },
     "NETCoreApp1.0": {
-      "imports": ["portable-net452", "dotnet"]
+      "imports": "portable-net452"
     }
   },
   "runtimes": {

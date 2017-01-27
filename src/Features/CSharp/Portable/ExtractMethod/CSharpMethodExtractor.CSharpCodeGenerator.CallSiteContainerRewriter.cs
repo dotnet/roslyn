@@ -3,9 +3,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
@@ -60,10 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 public override SyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
                 {
                     node = (LocalDeclarationStatementSyntax)base.VisitLocalDeclarationStatement(node);
-
                     var list = new List<VariableDeclaratorSyntax>();
                     var triviaList = new List<SyntaxTrivia>();
-
                     // go through each var decls in decl statement
                     foreach (var variable in node.Declaration.Variables)
                     {
@@ -119,7 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return
                         SyntaxFactory.LocalDeclarationStatement(
                             node.Modifiers,
-                            node.RefKeyword,
                                 SyntaxFactory.VariableDeclaration(
                                     node.Declaration.Type,
                                     SyntaxFactory.SeparatedList(list)),
@@ -221,6 +218,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     if (node != this.ContainerOfStatementsOrFieldToReplace)
                     {
                         return base.VisitForEachStatement(node);
+                    }
+
+                    return node.WithExpression(VisitNode(node.Expression))
+                               .WithStatement(ReplaceStatementIfNeeded(node.Statement));
+                }
+
+                public override SyntaxNode VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
+                {
+                    if (node != this.ContainerOfStatementsOrFieldToReplace)
+                    {
+                        return base.VisitForEachVariableStatement(node);
                     }
 
                     return node.WithExpression(VisitNode(node.Expression))

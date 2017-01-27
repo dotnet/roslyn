@@ -2,15 +2,15 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTypeSymbol, INamedTypeSymbol
     {
         public new INamedTypeSymbol OriginalDefinition { get; protected set; }
+
+        public ImmutableArray<IFieldSymbol> TupleElements { get; protected set; }
 
         internal readonly IList<CodeGenerationAbstractNamedTypeSymbol> TypeMembers;
 
@@ -32,13 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.NamedType;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.NamedType;
 
         public override void Accept(SymbolVisitor visitor)
         {
@@ -74,6 +68,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IMethodSymbol> StaticConstructors { get; }
         public abstract ImmutableArray<IMethodSymbol> Constructors { get; }
         public abstract ImmutableArray<ITypeSymbol> TypeArguments { get; }
+
+        public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
+        {
+            if (ordinal < 0 || ordinal >= Arity)
+            {
+                throw new System.IndexOutOfRangeException();
+            }
+
+            return ImmutableArray.Create<CustomModifier>();
+        }
+
         public abstract ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
 
         public override string MetadataName
@@ -86,17 +91,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public ISymbol AssociatedSymbol
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public ISymbol AssociatedSymbol { get; internal set; }
 
-        public bool MightContainExtensionMethods
-        {
-            get { return false; }
-        }
+        public bool MightContainExtensionMethods => false;
+
+        public bool IsComImport => false;
     }
 }

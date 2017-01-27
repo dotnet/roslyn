@@ -140,17 +140,48 @@ class Program
     {
         return ref P;
     }
+
+    public static void Main()
+    {
+        var local = 42;   // must be real local
+        P = local;
+        P = local;  // assign again, should not use stack local
+        System.Console.WriteLine(P);
+    }
 }
 ";
 
-            CompileAndVerifyRef(text).VerifyIL("Program.M()", @"
+            var v = CompileAndVerifyRef(text, expectedOutput: "42");
+
+            v.VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  call       ""ref int Program.P.get""
   IL_0005:  ret
 }");
+
+            v.VerifyIL("Program.Main()", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (int V_0) //local
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  call       ""ref int Program.P.get""
+  IL_0008:  ldloc.0
+  IL_0009:  stind.i4
+  IL_000a:  call       ""ref int Program.P.get""
+  IL_000f:  ldloc.0
+  IL_0010:  stind.i4
+  IL_0011:  call       ""ref int Program.P.get""
+  IL_0016:  ldind.i4
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}");
+
         }
+
 
         [Fact]
         public void RefReturnClassInstanceProperty()
@@ -2233,7 +2264,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (4,12): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //     static ref int M()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(4, 12),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(4, 12),
                 // (6,16): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         return ref (new int[1])[0];
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(6, 16)
@@ -2268,33 +2299,25 @@ class Program
             comp.VerifyDiagnostics(
                 // (4,12): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //     static ref int M()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(4, 12),
-                // (8,9): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
-                //         ref int N()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, @"ref int N()
-        {
-            ref int NN(ref int arg) => ref arg;
-
-            ref var r = ref NN(ref arr[0]);
-            r += 2;
-
-            return ref r;
-        }").WithArguments("local functions", "7").WithLocation(8, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(4, 12),
                 // (8,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         ref int N()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(8, 9),
-                // (10,13): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
-                //             ref int NN(ref int arg) => ref arg;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int NN(ref int arg) => ref arg;").WithArguments("local functions", "7").WithLocation(10, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(8, 9),
+                // (8,17): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                //         ref int N()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "N").WithArguments("local functions", "7").WithLocation(8, 17),
                 // (10,13): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //             ref int NN(ref int arg) => ref arg;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(10, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(10, 13),
+                // (10,21): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                //             ref int NN(ref int arg) => ref arg;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "NN").WithArguments("local functions", "7").WithLocation(10, 21),
                 // (10,40): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //             ref int NN(ref int arg) => ref arg;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(10, 40),
                 // (12,13): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //             ref var r = ref NN(ref arr[0]);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(12, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref var").WithArguments("byref locals and returns", "7").WithLocation(12, 13),
                 // (12,25): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //             ref var r = ref NN(ref arr[0]);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(12, 25),
@@ -2318,7 +2341,7 @@ delegate ref int D();
             comp.VerifyDiagnostics(
                 // (2,10): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 // delegate ref int D();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(2, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(2, 10)
                 );
         }
 
@@ -2339,7 +2362,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,14): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         for (ref int a = ref d; ;) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(6, 14),
                 // (6,26): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         for (ref int a = ref d; ;) { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(6, 26)
@@ -2369,13 +2392,447 @@ class C
             comp.VerifyDiagnostics(
                 // (2,10): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 // delegate ref int D(int x);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(2, 10),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(2, 10),
                 // (11,19): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         MD((x) => ref i);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(11, 19),
                 // (12,17): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         MD(x => ref i);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(12, 17)
+                );
+        }
+
+        [Fact]
+        public void Override_Metadata()
+        {
+            var ilSource =
+@".class public abstract A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  .method public virtual instance object F() { ldnull throw }
+  .method public virtual instance object& get_P() { ldnull throw }
+  .property instance object& P()
+  {
+    .get instance object& A::get_P()
+  }
+}
+.class public abstract B1 extends A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  .method public virtual instance object F() { ldnull throw }
+  .method public virtual instance object get_P() { ldnull throw }
+  .property instance object P()
+  {
+    .get instance object B1::get_P()
+  }
+}
+.class public abstract B2 extends A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  .method public virtual instance object& F() { ldnull throw }
+  .method public virtual instance object& get_P() { ldnull throw }
+  .property instance object& P()
+  {
+    .get instance object& B2::get_P()
+  }
+}";
+            var ref1 = CompileIL(ilSource);
+            var compilation = CreateCompilationWithMscorlib("", options: TestOptions.DebugDll, references: new[] { ref1 });
+
+            var method = compilation.GetMember<MethodSymbol>("B1.F");
+            Assert.Equal("System.Object B1.F()", method.ToTestDisplayString());
+            Assert.Equal("System.Object A.F()", method.OverriddenMethod.ToTestDisplayString());
+
+            var property = compilation.GetMember<PropertySymbol>("B1.P");
+            Assert.Equal("System.Object B1.P { get; }", property.ToTestDisplayString());
+            Assert.Null(property.OverriddenProperty);
+
+            method = compilation.GetMember<MethodSymbol>("B2.F");
+            Assert.Equal("ref System.Object B2.F()", method.ToTestDisplayString());
+            Assert.Null(method.OverriddenMethod);
+
+            property = compilation.GetMember<PropertySymbol>("B2.P");
+            Assert.Equal("ref System.Object B2.P { get; }", property.ToTestDisplayString());
+            Assert.Equal("ref System.Object A.P { get; }", property.OverriddenProperty.ToTestDisplayString());
+        }
+
+        [WorkItem(12763, "https://github.com/dotnet/roslyn/issues/12763")]
+        [Fact]
+        public void RefReturnFieldUse001()
+        {
+            var text = @"
+public class A<T>
+{
+    private T _f;
+    public ref T F()
+    {
+        return ref _f;
+    }
+
+    private T _p;
+    public ref T P
+    {
+        get { return ref _p; }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                 // no diagnostics expected
+                );
+        }
+
+        [WorkItem(12763, "https://github.com/dotnet/roslyn/issues/12763")]
+        [Fact]
+        public void RefAssignFieldUse001()
+        {
+            var text = @"
+public class A<T>
+{
+    private T _f;
+    public ref T F()
+    {
+        ref var r = ref _f;
+        return ref r;
+    }
+
+    private T _p;
+    public ref T P
+    {
+        get 
+        { 
+            ref var r = ref _p;
+            return ref r;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // no diagnostics expected
+                );
+        }
+
+        [Fact]
+        public void ThrowRefReturn()
+        {
+            var text = @"using System;
+class Program
+{
+    static ref int P1 { get => throw new E(1); }
+    static ref int P2 => throw new E(2);
+    static ref int M() => throw new E(3);
+
+    public static void Main()
+    {
+        ref int L() => throw new E(4);
+        D d = () => throw new E(5);
+
+        try { ref int x = ref P1; }  catch (E e) { Console.Write(e.Value); }
+        try { ref int x = ref P2; }  catch (E e) { Console.Write(e.Value); }
+        try { ref int x = ref M(); } catch (E e) { Console.Write(e.Value); }
+        try { ref int x = ref L(); } catch (E e) { Console.Write(e.Value); }
+        try { ref int x = ref d(); } catch (E e) { Console.Write(e.Value); }
+    }
+}
+delegate ref int D();
+class E : Exception
+{
+    public int Value;
+    public E(int value) { this.Value = value; }
+}
+";
+            var v = CompileAndVerify(text, expectedOutput: "12345");
+        }
+
+        [Fact]
+        public void NoRefThrow()
+        {
+            var text = @"using System;
+class Program
+{
+    static ref int P1 { get => ref throw new E(1); }
+    static ref int P2 => ref throw new E(2);
+    static ref int M() => ref throw new E(3);
+
+    public static void Main()
+    {
+        ref int L() => ref throw new E(4);
+        D d = () => ref throw new E(5);
+        L();
+        d();
+    }
+}
+delegate ref int D();
+class E : Exception
+{
+    public int Value;
+    public E(int value) { this.Value = value; }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (4,36): error CS8115: A throw expression is not allowed in this context.
+                //     static ref int P1 { get => ref throw new E(1); }
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(4, 36),
+                // (5,30): error CS8115: A throw expression is not allowed in this context.
+                //     static ref int P2 => ref throw new E(2);
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(5, 30),
+                // (6,31): error CS8115: A throw expression is not allowed in this context.
+                //     static ref int M() => ref throw new E(3);
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(6, 31),
+                // (10,28): error CS8115: A throw expression is not allowed in this context.
+                //         ref int L() => ref throw new E(4);
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(10, 28),
+                // (11,25): error CS8115: A throw expression is not allowed in this context.
+                //         D d = () => ref throw new E(5);
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(11, 25)
+                );
+        }
+
+        [Fact]
+        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        public void Lambda_01()
+        { 
+            var source =
+@"public delegate ref T D<T>();
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d() = t;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var o = new A<int>();
+        B.F(() => o.F(), 2);
+        System.Console.WriteLine(o.F());
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (24,19): error CS8150: By-value returns may only be used in methods that return by value
+                //         B.F(() => o.F(), 2);
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "o.F()").WithLocation(24, 19)
+                );
+        }
+
+        [Fact]
+        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        public void Lambda_02()
+        {
+            var source =
+@"public delegate ref T D<T>();
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d() = t;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var o = new A<int>();
+        B.F(() => ref o.F(), 2);
+        System.Console.WriteLine(o.F());
+    }
+}";
+
+            var v = CompileAndVerify(source, expectedOutput: "2");
+        }
+
+        [Fact]
+        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        public void Lambda_03()
+        {
+            var source =
+@"public delegate T D<T>();
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var o = new A<int>();
+        B.F(() => ref o.F(), 2);
+        System.Console.WriteLine(o.F());
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (24,23): error CS8149: By-reference returns may only be used in methods that return by reference
+                //         B.F(() => ref o.F(), 2);
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "o.F()").WithLocation(24, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        public void Delegate_01()
+        {
+            var source =
+@"public delegate ref T D<T>();
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d() = t;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var o = new A<int>();
+        B.F(o.F, 2);
+        System.Console.Write(o.F());
+        B.F(new D<int>(o.F), 3);
+        System.Console.Write(o.F());
+    }
+}";
+
+            var v = CompileAndVerify(source, expectedOutput: "23");
+        }
+
+        [Fact]
+        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        public void Delegate_02()
+        {
+            var source =
+@"public delegate T D<T>();
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var o = new A<int>();
+        B.F(o.F, 2);
+        System.Console.Write(o.F());
+        B.F(new D<int>(o.F), 3);
+        System.Console.Write(o.F());
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (24,13): error CS8189: Ref mismatch between 'A<int>.F()' and delegate 'D<int>'
+                //         B.F(o.F, 2);
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "o.F").WithArguments("A<int>.F()", "D<int>").WithLocation(24, 13),
+                // (26,24): error CS8189: Ref mismatch between 'A<int>.F()' and delegate 'D<int>'
+                //         B.F(new D<int>(o.F), 3);
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "o.F").WithArguments("A<int>.F()", "D<int>").WithLocation(26, 24)
+                );
+        }
+
+        [Fact]
+        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        public void Delegate_03()
+        {
+            var source =
+@"public delegate ref T D<T>();
+public class A<T>
+{
+    private T _t = default(T);
+    public T F()
+    {
+        return _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d() = t;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var o = new A<int>();
+        B.F(o.F, 2);
+        System.Console.Write(o.F());
+        B.F(new D<int>(o.F), 3);
+        System.Console.Write(o.F());
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (23,13): error CS8189: Ref mismatch between 'A<int>.F()' and delegate 'D<int>'
+                //         B.F(o.F, 2);
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "o.F").WithArguments("A<int>.F()", "D<int>").WithLocation(23, 13),
+                // (25,24): error CS8189: Ref mismatch between 'A<int>.F()' and delegate 'D<int>'
+                //         B.F(new D<int>(o.F), 3);
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "o.F").WithArguments("A<int>.F()", "D<int>").WithLocation(25, 24)
                 );
         }
     }

@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             // localize the comments individually.
             var code = $@"
     #region IDisposable Support
-    private bool disposedValue = false; // {FeaturesResources.ToDetectRedundantCalls}
+    private bool disposedValue = false; // {FeaturesResources.To_detect_redundant_calls}
 
     {(symbol.IsSealed ? "" : "protected virtual ")}void Dispose(bool disposing)
     {{
@@ -110,28 +110,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         {{
             if (disposing)
             {{
-                // {FeaturesResources.DisposeManagedStateTodo}
+                // {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             }}
 
-            // {CSharpFeaturesResources.FreeUnmanagedResourcesTodo}
-            // {FeaturesResources.SetLargeFieldsToNullTodo}
+            // {CSharpFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below}
+            // {FeaturesResources.TODO_colon_set_large_fields_to_null}
 
             disposedValue = true;
         }}
     }}
 
-    // {CSharpFeaturesResources.OverrideAFinalizerTodo}
+    // {CSharpFeaturesResources.TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources}
     // ~{classDecl.Identifier.Value}() {{
-    //   // {CSharpFeaturesResources.DoNotChangeThisCodeUseDispose}
+    //   // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
     //   Dispose(false);
     // }}
 
-    // {CSharpFeaturesResources.ThisCodeAddedToCorrectlyImplementDisposable}
+    // {CSharpFeaturesResources.This_code_added_to_correctly_implement_the_disposable_pattern}
     {(explicitly ? "void System.IDisposable." : "public void ")}Dispose()
     {{
-        // {CSharpFeaturesResources.DoNotChangeThisCodeUseDispose}
+        // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
         Dispose(true);
-        // {CSharpFeaturesResources.UncommentTheFollowingIfFinalizerOverriddenTodo}
+        // {CSharpFeaturesResources.TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above}
         // GC.SuppressFinalize(this);
     }}
     #endregion

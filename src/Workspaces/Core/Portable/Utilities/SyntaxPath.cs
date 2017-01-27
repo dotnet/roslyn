@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -139,8 +138,7 @@ namespace Roslyn.Utilities
         public bool TryResolve<TNode>(SyntaxNode root, out TNode node)
             where TNode : SyntaxNode
         {
-            SyntaxNodeOrToken nodeOrToken;
-            if (TryResolve(root, out nodeOrToken) &&
+            if (TryResolve(root, out var nodeOrToken) &&
                 nodeOrToken.IsNode &&
                 nodeOrToken.AsNode() is TNode)
             {

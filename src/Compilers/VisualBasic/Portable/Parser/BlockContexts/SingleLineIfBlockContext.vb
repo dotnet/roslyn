@@ -11,6 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Inherits SingleLineIfOrElseBlockContext
 
         Private _optionalElseClause As SingleLineElseClauseSyntax
+        Private _haveElseClause As Boolean
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)
             MyBase.New(SyntaxKind.SingleLineIfStatement, statement, prevContext)
@@ -36,6 +37,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return Me.EndBlock(Nothing)
 
                 Case SyntaxKind.ElseStatement
+                    If _haveElseClause Then
+                        Throw ExceptionUtilities.Unreachable
+                    End If
+
+                    _haveElseClause = True
                     Return New SingleLineElseContext(SyntaxKind.SingleLineElseClause, DirectCast(node, StatementSyntax), Me)
 
                 Case SyntaxKind.SingleLineElseClause
@@ -90,6 +96,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Parser.ConsumeColonInSingleLineExpression()
                     Return Me
 
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(token.Kind)
+            End Select
+        End Function
+
+        Friend Overrides Function ResyncAndProcessStatementTerminator(statement As StatementSyntax, lambdaContext As BlockContext) As BlockContext
+            Dim token = Parser.CurrentToken
+            Select Case token.Kind
+                Case SyntaxKind.StatementTerminatorToken, SyntaxKind.EndOfFileToken, SyntaxKind.ColonToken
+                    Return ProcessStatementTerminator(lambdaContext)
+
                 Case SyntaxKind.ElseKeyword
                     Parser.ConsumedStatementTerminator(allowLeadingMultilineTrivia:=False)
                     Return Me
@@ -97,17 +114,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Else
                     ' Terminated if we've already seen at least one statement.
                     If _statements.Count > 0 Then
-                        Return ProcessOtherAsStatementTerminator()
+                        If TreatOtherAsStatementTerminator Then
+                            Return ProcessOtherAsStatementTerminator()
+                        End If
+
+                        Return MyBase.ResyncAndProcessStatementTerminator(statement, lambdaContext)
                     End If
+
                     Parser.ConsumedStatementTerminator(allowLeadingMultilineTrivia:=False)
                     Return Me
-
             End Select
-        End Function
-
-        Friend Overrides Function ProcessOtherAsStatementTerminator() As BlockContext
-            Dim context = EndBlock(Nothing)
-            Return context.ProcessOtherAsStatementTerminator()
         End Function
 
     End Class

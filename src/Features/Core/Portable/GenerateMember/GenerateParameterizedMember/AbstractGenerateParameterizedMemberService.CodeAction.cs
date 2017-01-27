@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 {
                     case MethodGenerationKind.Member:
                         var text = generateProperty ?
-                            isAbstract ? FeaturesResources.GenerateAbstractProperty : FeaturesResources.GeneratePropertyIn :
-                            isAbstract ? FeaturesResources.GenerateAbstractMethod : FeaturesResources.GenerateMethodIn;
+                            isAbstract ? FeaturesResources.Generate_abstract_property_0_in_1 : FeaturesResources.Generate_property_1_0 :
+                            isAbstract ? FeaturesResources.Generate_abstract_method_0_in_1 : FeaturesResources.Generate_method_1_0;
 
                         var name = state.IdentifierToken.ValueText;
                         var destination = state.TypeToGenerateIn.Name;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         _document.Project.Solution,
                         _state.TypeToGenerateIn,
                         method,
-                        new CodeGenerationOptions(afterThisLocation: _state.Location),
+                        new CodeGenerationOptions(afterThisLocation: _state.Location, parseOptions: syntaxTree.Options),
                         cancellationToken)
                         .ConfigureAwait(false);
 

@@ -642,7 +642,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' that uses less memory than a HashSet.
             Dim result As String()
             If results.Count = 0 Then
-                result = SpecializedCollections.EmptyArray(Of String)
+                result = Array.Empty(Of String)
             Else
                 ReDim result(results.Count - 1)
                 results.CopyTo(result)

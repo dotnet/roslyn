@@ -368,7 +368,7 @@ expectedOutput:="VB$AnonymousType_0`1[T0]")
         Public Sub TestAnonymousType_ToString()
             ' test AnonymousType_ToString() itself
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
-            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US")
+            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
             Try
 
                 CompileAndVerify(
@@ -734,7 +734,7 @@ expectedOutput:=<![CDATA[
         Public Sub TestAnonymousType_LocalAsNewWith()
             ' AnonymousType ToString
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
-            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US")
+            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
             Try
 
                 CompileAndVerify(

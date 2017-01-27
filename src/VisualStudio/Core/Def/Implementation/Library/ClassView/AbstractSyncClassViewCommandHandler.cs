@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -49,8 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
 
             _waitIndicator.Wait(
-                title: string.Format(ServicesVSResources.SynchronizeClassView, ClassView),
-                message: string.Format(ServicesVSResources.SynchronizingWithClassView, ClassView),
+                title: string.Format(ServicesVSResources.Synchronize_0, ClassView),
+                message: string.Format(ServicesVSResources.Synchronizing_with_0, ClassView),
                 allowCancel: true,
                 action: context =>
                 {

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             using (var stream = new MemoryStream(buffer, 0, bytes.Length, writable: true, publiclyVisible: true))
             {
-                return EncodedStringText.Create(stream, getEncoding, readEncodingOpt, algorithm);
+                return EncodedStringText.Create(stream, new Lazy<Encoding>(getEncoding), readEncodingOpt, algorithm);
             }
         }
 

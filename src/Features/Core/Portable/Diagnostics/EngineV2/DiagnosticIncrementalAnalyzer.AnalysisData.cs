@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 this.Version = version;
                 this.Items = items;
+                this.OldItems = default(ImmutableArray<DiagnosticData>);
             }
 
             public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems) :
@@ -73,14 +75,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Current data that matches the version
             /// </summary>
-            public readonly ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> Result;
+            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result;
 
             /// <summary>
             /// When present, This hold onto last data we broadcast to outer world
             /// </summary>
-            public readonly ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> OldResult;
+            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> OldResult;
 
-            public ProjectAnalysisData(ProjectId projectId, VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> result)
+            public ProjectAnalysisData(ProjectId projectId, VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
             {
                 ProjectId = projectId;
                 Version = version;
@@ -92,14 +94,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ProjectAnalysisData(
                 ProjectId projectId,
                 VersionStamp version,
-                ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> oldResult,
-                ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> newResult) :
+                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> oldResult,
+                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult) :
                 this(projectId, version, newResult)
             {
                 this.OldResult = oldResult;
             }
 
-            public AnalysisResult GetResult(DiagnosticAnalyzer analyzer)
+            public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
             {
                 return GetResultOrEmpty(Result, analyzer, ProjectId, Version);
             }
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 VersionStamp? version = null;
 
-                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalysisResult>();
+                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
                 foreach (var stateSet in stateSets)
                 {
                     var state = stateSet.GetProjectState(project.Id);
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (!version.HasValue)
                 {
                     // there is no saved data to return.
-                    return new ProjectAnalysisData(project.Id, VersionStamp.Default, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty);
+                    return new ProjectAnalysisData(project.Id, VersionStamp.Default, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                 }
 
                 return new ProjectAnalysisData(project.Id, version.Value, builder.ToImmutable());

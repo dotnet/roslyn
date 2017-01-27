@@ -43,9 +43,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         internal SyntaxAnnotation[] GetAnnotations()
         {
-            SyntaxAnnotation[] annotations;
-            annotationsTable.TryGetValue(this, out annotations);
-            return annotations ?? SpecializedCollections.EmptyArray<SyntaxAnnotation>();
+            annotationsTable.TryGetValue(this, out var annotations);
+            return annotations ?? Array.Empty<SyntaxAnnotation>();
         }
 
         internal CodeGenerationSymbol WithAdditionalAnnotations(params SyntaxAnnotation[] annotations)
@@ -58,8 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private CodeGenerationSymbol AddAnnotationsTo(
             CodeGenerationSymbol originalDefinition, CodeGenerationSymbol newDefinition, SyntaxAnnotation[] annotations)
         {
-            SyntaxAnnotation[] originalAnnotations;
-            annotationsTable.TryGetValue(originalDefinition, out originalAnnotations);
+            annotationsTable.TryGetValue(originalDefinition, out var originalAnnotations);
 
             annotations = SyntaxAnnotationExtensions.CombineAnnotations(originalAnnotations, annotations);
             annotationsTable.Add(newDefinition, annotations);

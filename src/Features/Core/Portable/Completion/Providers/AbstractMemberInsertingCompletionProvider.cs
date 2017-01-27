@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -57,14 +58,42 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            return CompletionChange.Create(ImmutableArray.CreateRange(changes), newPosition, includesCommitCharacter: true);
+            var change = Collapse(newText, changes.ToList());
+
+            return CompletionChange.Create(change, newPosition, includesCommitCharacter: true);
+        }
+
+        private TextChange Collapse(SourceText newText, List<TextChange> changes)
+        {
+            if (changes.Count == 0)
+            {
+                return new TextChange(new TextSpan(0, 0), "");
+            }
+            else if (changes.Count == 1)
+            {
+                return changes[0];
+            }
+
+            // The span we want to replace goes from the start of the first span to the end of
+            // the  last span.
+            var totalOldSpan = TextSpan.FromBounds(changes.First().Span.Start, changes.Last().Span.End);
+
+            // We figure out the text we're replacing with by actually just figuring out the
+            // new span in the newText and grabbing the text out of that.  The newSpan will
+            // start from the same position as the oldSpan, but it's length will be the old
+            // span's length + all the deltas we accumulate through each text change.  i.e.
+            // if the first change adds 2 characters and the second change adds 4, then 
+            // the newSpan will be 2+4=6 characters longer than the old span.
+            var sumOfDeltas = changes.Sum(c => c.NewText.Length - c.Span.Length);
+            var totalNewSpan = new TextSpan(totalOldSpan.Start, totalOldSpan.Length + sumOfDeltas);
+
+            return new TextChange(totalOldSpan, newText.ToString(totalNewSpan));
         }
 
         private async Task<Document> DetermineNewDocumentAsync(CompletionItem completionItem, SourceText sourceText, CancellationToken cancellationToken)
         {
             // The span we're going to replace
             var line = sourceText.Lines[MemberInsertionCompletionItem.GetLine(completionItem)];
-            //var line = textSnapshot.GetLineFromLineNumber(MemberInsertionCompletionItem.GetLine(completionItem));
 
             //var sourceText = textSnapshot.AsText();
             var document = sourceText.GetOpenDocumentInCurrentContextWithChanges();
@@ -105,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Resolve member and type in our new, forked, solution
             var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(line.Start, cancellationToken);
-            var symbols = MemberInsertionCompletionItem.GetSymbolsAsync(completionItem, document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var symbols = await SymbolCompletionItem.GetSymbolsAsync(completionItem, document, cancellationToken).ConfigureAwait(false);
             var overriddenMember = symbols.First();
 
             // CodeGenerationOptions containing before and after
@@ -210,22 +239,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly ImmutableArray<CharacterSetModificationRule> s_commitRules = ImmutableArray.Create(
             CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '('));
 
+        private static readonly ImmutableArray<CharacterSetModificationRule> s_filterRules = ImmutableArray.Create(
+            CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '('));
+
         private static readonly CompletionItemRules s_defaultRules =
-            CompletionItemRules.Create(commitCharacterRules: s_commitRules, enterKeyRule: EnterKeyRule.Never);
+            CompletionItemRules.Create(
+                commitCharacterRules: s_commitRules, 
+                filterCharacterRules: s_filterRules,
+                enterKeyRule: EnterKeyRule.Never);
 
         internal virtual CompletionItemRules GetRules()
         {
             return s_defaultRules;
         }
 
-        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<TextChange?>(null);
-        }
-
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return MemberInsertionCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-        }
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => MemberInsertionCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
     }
 }

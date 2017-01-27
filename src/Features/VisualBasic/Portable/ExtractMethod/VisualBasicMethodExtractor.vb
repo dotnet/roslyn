@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
 
@@ -104,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 If currentType IsNot vbType Then
                     Return New OperationStatus(OperationStatusFlag.BestEffort,
-                        String.Format(FeaturesResources.TypeParameterIsHiddenByAnother,
+                        String.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
                             typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                             If(currentType Is Nothing, String.Empty, currentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))))
                 End If

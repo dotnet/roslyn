@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -28,6 +29,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var options = this.GetOptions(defines);
             var itext = SourceText.From(text);
             return SyntaxFactory.ParseSyntaxTree(itext, options);
+        }
+
+        [Fact]
+        public void DocCommentWriteException()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+/// <summary>
+/// Doc comment for <see href=""C"" />
+/// </summary>
+public class C
+{
+    /// <summary>
+    /// Doc comment for method M
+    /// </summary>
+    public void M() { }
+}");
+            var diags = new DiagnosticBag();
+            var badStream = new BrokenStream();
+            badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                comp,
+                null,
+                badStream,
+                diags,
+                default(CancellationToken));
+
+            diags.Verify(
+                // error CS1569: Error writing to XML documentation file: I/O error occurred.
+                Diagnostic(ErrorCode.ERR_DocFileGen).WithArguments("I/O error occurred.").WithLocation(1, 1));
         }
 
         [ClrOnlyFact]

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
             _filePath = filePath;
             _generalDiagnosticOption = generalOption;
             _specificDiagnosticOptions = specificOptions == null ? ImmutableDictionary<string, ReportDiagnostic>.Empty : specificOptions;
-            _includes = includes.IsDefault ? ImmutableArray<RuleSetInclude>.Empty : includes;
+            _includes = includes.NullToEmpty();
         }
 
         /// <summary>

@@ -3,10 +3,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
-using static System.Math;
+using Microsoft.CodeAnalysis.Utilities;
+using System;
 
 namespace Roslyn.Utilities
 {
@@ -25,7 +24,7 @@ namespace Roslyn.Utilities
     internal partial class BKTree
     {
         public static readonly BKTree Empty = new BKTree(
-            SpecializedCollections.EmptyArray<char>(),
+            Array.Empty<char>(),
             ImmutableArray<Node>.Empty,
             ImmutableArray<Edge>.Empty);
 
@@ -63,10 +62,10 @@ namespace Roslyn.Utilities
 
         public static BKTree Create(params string[] values)
         {
-            return Create((IEnumerable<string>)values);
+            return Create(values.Select(v => new StringSlice(v)));
         }
 
-        public static BKTree Create(IEnumerable<string> values)
+        public static BKTree Create(IEnumerable<StringSlice> values)
         {
             return new Builder(values).Create();
         }

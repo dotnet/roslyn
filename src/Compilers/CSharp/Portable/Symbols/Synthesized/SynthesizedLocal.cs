@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(type.SpecialType != SpecialType.System_Void);
             Debug.Assert(!kind.IsLongLived() || syntaxOpt != null);
+            Debug.Assert(refKind != RefKind.Out);
 
             _containingMethodOpt = containingMethodOpt;
             _type = type;
@@ -99,6 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override SynthesizedLocalKind SynthesizedKind
         {
             get { return _kind; }
+        }
+
+        internal override SyntaxNode ScopeDesignatorOpt
+        {
+            get { return null; }
         }
 
         internal override SyntaxToken IdentifierToken

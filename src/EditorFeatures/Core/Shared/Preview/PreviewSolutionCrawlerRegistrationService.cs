@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                         await Task.Delay(workerBackOffTimeSpanInMS, _source.Token).ConfigureAwait(false);
 
                         // do actual analysis
-                        await diagnosticAnalyzer.AnalyzeSyntaxAsync(document, _source.Token).ConfigureAwait(false);
-                        await diagnosticAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, cancellationToken: _source.Token).ConfigureAwait(false);
+                        await diagnosticAnalyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, _source.Token).ConfigureAwait(false);
+                        await diagnosticAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: _source.Token).ConfigureAwait(false);
 
                         // don't call project one.
                     }
@@ -107,6 +107,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
                 // ask it to reset its stages for the given workspace
                 _owner._analyzerService.ShutdownAnalyzerFrom(_workspace);
+            }
+
+            public void AddAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)
+            {
+                // preview solution crawler doesn't support adding and removing analyzer dynamically
+                throw new NotSupportedException();
             }
         }
     }

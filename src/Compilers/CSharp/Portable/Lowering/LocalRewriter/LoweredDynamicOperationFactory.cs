@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal LoweredDynamicOperation MakeDynamicConstructorInvocation(
-        CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             TypeSymbol type,
             ImmutableArray<BoundExpression> loweredArguments,
             ImmutableArray<string> argumentNames,
@@ -640,6 +640,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var containerDef = (SynthesizedContainer)_currentDynamicCallSiteContainer.OriginalDefinition;
             var methodToContainerTypeParametersMap = containerDef.TypeMap;
 
+            ImmutableArray<LocalSymbol> temps = MakeTempsForDiscardArguments(ref loweredArguments);
+             
             var callSiteType = callSiteTypeGeneric.Construct(new[] { delegateTypeOverMethodTypeParameters });
             var callSiteFactoryMethod = callSiteFactoryGeneric.AsMember(callSiteType);
             var callSiteTargetField = callSiteTargetFieldGeneric.AsMember(callSiteType);
@@ -660,7 +662,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 delegateInvoke,
                 callSiteArguments);
 
-            return new LoweredDynamicOperation(_factory, siteInitialization, siteInvocation, resultType);
+            return new LoweredDynamicOperation(_factory, siteInitialization, siteInvocation, resultType, temps);
+        }
+
+        /// <summary>
+        /// If there are any discards in the arguments, create locals for each, updates the arguments and
+        /// returns the symbols that were created.
+        /// Returns default if no discards found.
+        /// </summary>
+        private ImmutableArray<LocalSymbol> MakeTempsForDiscardArguments(ref ImmutableArray<BoundExpression> loweredArguments)
+        {
+            int discardCount = loweredArguments.Count(a => a.Kind == BoundKind.DiscardExpression);
+
+            if (discardCount == 0)
+            {
+                return ImmutableArray<LocalSymbol>.Empty;
+            }
+
+            ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance(discardCount);
+            loweredArguments = _factory.MakeTempsForDiscardArguments(loweredArguments, temporariesBuilder);
+            return temporariesBuilder.ToImmutableAndFree();
         }
 
         private static NamedTypeSymbol CreateCallSiteContainer(SyntheticBoundNodeFactory factory, int methodOrdinal)

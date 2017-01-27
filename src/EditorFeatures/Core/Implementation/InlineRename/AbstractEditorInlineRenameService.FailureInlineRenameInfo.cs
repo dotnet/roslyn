@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public string FullDisplayName { get { return null; } }
 
-            public Glyph Glyph { get { return default(Glyph); } }
+            public Glyph Glyph => Glyph.None;
 
             public string GetFinalSymbolName(string replacementText) { return null; }
 

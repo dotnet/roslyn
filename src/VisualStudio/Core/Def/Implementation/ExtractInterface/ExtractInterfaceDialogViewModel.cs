@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -58,31 +58,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
             if (!MemberContainers.Any(c => c.IsChecked))
             {
-                SendFailureNotification(ServicesVSResources.YouMustSelectAtLeastOneMember);
+                SendFailureNotification(ServicesVSResources.You_must_select_at_least_one_member);
                 return false;
             }
 
             if (_conflictingTypeNames.Contains(trimmedInterfaceName))
             {
-                SendFailureNotification(ServicesVSResources.InterfaceNameConflictsWithTypeName);
+                SendFailureNotification(ServicesVSResources.Interface_name_conflicts_with_an_existing_type_name);
                 return false;
             }
 
             if (!_syntaxFactsService.IsValidIdentifier(trimmedInterfaceName))
             {
-                SendFailureNotification(string.Format(ServicesVSResources.InterfaceNameIsNotAValidIdentifier, _languageName));
+                SendFailureNotification(string.Format(ServicesVSResources.Interface_name_is_not_a_valid_0_identifier, _languageName));
                 return false;
             }
 
             if (trimmedFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
             {
-                SendFailureNotification(ServicesVSResources.IllegalCharactersInPath);
+                SendFailureNotification(ServicesVSResources.Illegal_characters_in_path);
                 return false;
             }
 
             if (!System.IO.Path.GetExtension(trimmedFileName).Equals(_fileExtension, StringComparison.OrdinalIgnoreCase))
             {
-                SendFailureNotification(string.Format(ServicesVSResources.FileNameMustHaveTheExtension, _fileExtension));
+                SendFailureNotification(string.Format(ServicesVSResources.File_name_must_have_the_0_extension, _fileExtension));
                 return false;
             }
 

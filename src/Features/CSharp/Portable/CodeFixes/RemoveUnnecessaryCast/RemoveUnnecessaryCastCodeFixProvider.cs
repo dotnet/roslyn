@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
         {
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    CSharpFeaturesResources.RemoveUnnecessaryCast,
+                    CSharpFeaturesResources.Remove_Unnecessary_Cast,
                     c => RemoveUnnecessaryCastAsync(context.Document, context.Span, c)),
                 context.Diagnostics);
             return SpecializedTasks.EmptyTask;

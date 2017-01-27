@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             var analyzersWithLoadErrors = GetAnalyzersWithLoadErrors();
 
             // Filter out analyzer dependencies which have no diagnostic analyzers, but still retain the unresolved analyzers and analyzers with load errors.
-            var builder = ImmutableArray.CreateBuilder<AnalyzerReference>();
+            var builder = ArrayBuilder<AnalyzerReference>.GetInstance();
             foreach (var analyzerReference in analyzerReferences)
             {
                 // Analyzer dependency:
@@ -220,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 builder.Add(analyzerReference);
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
     }
 }

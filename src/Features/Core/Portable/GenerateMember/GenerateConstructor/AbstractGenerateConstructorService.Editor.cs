@@ -194,14 +194,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 {
                     return null;
                 }
-
                 // Try to map those parameters to fields.
-                Dictionary<string, ISymbol> parameterToExistingFieldMap;
-                Dictionary<string, string> parameterToNewFieldMap;
-                List<IParameterSymbol> remainingParameters;
-                this.GetParameters(remainingArguments, remainingAttributeArguments, 
+                this.GetParameters(remainingArguments, remainingAttributeArguments,
                     remainingParameterTypes, remainingParameterNames,
-                    out parameterToExistingFieldMap, out parameterToNewFieldMap, out remainingParameters);
+                    out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var remainingParameters);
 
                 var fields = syntaxFactory.CreateFieldsForParameters(remainingParameters, parameterToNewFieldMap);
                 var assignStatements = syntaxFactory.CreateAssignmentStatements(remainingParameters, parameterToExistingFieldMap, parameterToNewFieldMap);
@@ -242,12 +238,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var typeParametersNames = _state.TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToList();
                 var parameterNames = GetParameterNames(arguments, typeParametersNames);
-
-                Dictionary<string, ISymbol> parameterToExistingFieldMap;
-                Dictionary<string, string> parameterToNewFieldMap;
-                List<IParameterSymbol> parameters;
                 GetParameters(arguments, _state.AttributeArguments, parameterTypes, parameterNames,
-                    out parameterToExistingFieldMap, out parameterToNewFieldMap, out parameters);
+                    out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var parameters);
 
                 var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
                 var syntaxFactory = provider.GetService<SyntaxGenerator>();
@@ -413,7 +405,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         var property = (IPropertySymbol)symbol;
                         return
                             property.Parameters.Length == 0 &&
-                            property.SetMethod != null &&
+                            property.IsWritableInConstructor() &&
                             _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, property.Type);
                     }
                 }

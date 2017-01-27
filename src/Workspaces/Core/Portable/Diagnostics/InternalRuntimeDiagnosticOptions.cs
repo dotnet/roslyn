@@ -6,9 +6,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class InternalRuntimeDiagnosticOptions
     {
-        public const string OptionName = "RuntimeDiagnostic";
-
-        public static readonly Option<bool> Syntax = new Option<bool>(OptionName, "Syntax", defaultValue: false);
-        public static readonly Option<bool> Semantic = new Option<bool>(OptionName, "Semantic", defaultValue: false);
+        public static readonly Option<bool> Syntax = new Option<bool>(nameof(InternalRuntimeDiagnosticOptions), nameof(Syntax), defaultValue: false);
+        public static readonly Option<bool> Semantic = new Option<bool>(nameof(InternalRuntimeDiagnosticOptions), nameof(Semantic), defaultValue: false);
     }
 }

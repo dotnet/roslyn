@@ -9,8 +9,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitIfStatement(node As BoundIfStatement) As BoundNode
             Dim syntax = node.Syntax
 
-            Dim conditionSyntax As VisualBasicSyntaxNode = Nothing
-
             Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(node)
             Dim unstructuredExceptionHandlingResumeTarget As ImmutableArray(Of BoundStatement) = Nothing
 
@@ -34,33 +32,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' also add SP for End If after the consequence
             ' make sure SP is inside the block if the consequence is a block
             ' we must still have the block in scope when stopped on End If
-            If GenerateDebugInfo Then
-                Select Case syntax.Kind
-                    Case SyntaxKind.MultiLineIfBlock
-                        Dim asMultiline = DirectCast(syntax, MultiLineIfBlockSyntax)
-                        conditionSyntax = asMultiline.IfStatement
-                        newConsequence = InsertBlockEpilogue(newConsequence,
-                                                             If(generateUnstructuredExceptionHandlingResumeCode AndAlso (OptimizationLevelIsDebug OrElse finishConsequenceWithResumeTarget),
-                                                                RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(newConsequence.Syntax),
-                                                                Nothing),
-                                                             asMultiline.EndIfStatement)
-                        finishConsequenceWithResumeTarget = False
+            Dim instrument As Boolean = Me.Instrument(node)
 
-                    Case SyntaxKind.ElseIfBlock
-                        Dim asElseIfBlock = DirectCast(syntax, ElseIfBlockSyntax)
-                        conditionSyntax = asElseIfBlock.ElseIfStatement
-                        newConsequence = InsertBlockEpilogue(newConsequence,
-                                                             If(generateUnstructuredExceptionHandlingResumeCode AndAlso (OptimizationLevelIsDebug OrElse finishConsequenceWithResumeTarget),
-                                                                RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(newConsequence.Syntax),
-                                                                Nothing),
-                                                             DirectCast(syntax.Parent, MultiLineIfBlockSyntax).EndIfStatement)
+            If instrument Then
+                Dim resumeTarget As BoundStatement = Nothing
+
+                Select Case syntax.Kind
+                    Case SyntaxKind.MultiLineIfBlock,
+                         SyntaxKind.ElseIfBlock
+                        If generateUnstructuredExceptionHandlingResumeCode AndAlso (OptimizationLevelIsDebug OrElse finishConsequenceWithResumeTarget) Then
+                            resumeTarget = RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(newConsequence.Syntax)
+                        End If
+
                         finishConsequenceWithResumeTarget = False
 
                     Case SyntaxKind.SingleLineIfStatement
-                        Dim asSingleLine = DirectCast(syntax, SingleLineIfStatementSyntax)
-                        conditionSyntax = asSingleLine
                         ' single line if has no EndIf
+
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(syntax.Kind)
                 End Select
+
+                newConsequence = Concat(newConsequence, _instrumenter.InstrumentIfStatementConsequenceEpilogue(node, resumeTarget))
             End If
 
             If generateUnstructuredExceptionHandlingResumeCode AndAlso finishConsequenceWithResumeTarget Then
@@ -70,22 +63,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' == Rewrite Else
             Dim newAlternative As BoundStatement = DirectCast(Visit(node.AlternativeOpt), BoundStatement)
 
-            If GenerateDebugInfo AndAlso newAlternative IsNot Nothing Then
+            If instrument AndAlso newAlternative IsNot Nothing Then
                 If syntax.Kind <> SyntaxKind.SingleLineIfStatement Then
                     Dim asElse = TryCast(node.AlternativeOpt.Syntax, ElseBlockSyntax)
                     If asElse IsNot Nothing Then
                         ' Update the resume table to make sure that we are in the right scope when we Resume Next on [End If].
-                        newAlternative = InsertBlockEpilogue(newAlternative,
-                                                             If(generateUnstructuredExceptionHandlingResumeCode AndAlso OptimizationLevelIsDebug,
-                                                                RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(newAlternative.Syntax),
-                                                                Nothing),
-                                                             DirectCast(asElse.Parent, MultiLineIfBlockSyntax).EndIfStatement)
-                        newAlternative = PrependWithSequencePoint(newAlternative, asElse.ElseStatement)
+                        Dim resumeTarget As BoundStatement = Nothing
+                        If generateUnstructuredExceptionHandlingResumeCode AndAlso OptimizationLevelIsDebug Then
+                            resumeTarget = RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(newAlternative.Syntax)
+                        End If
+
+                        newAlternative = Concat(newAlternative,
+                                                _instrumenter.InstrumentIfStatementAlternativeEpilogue(node, resumeTarget))
+                        newAlternative = PrependWithPrologue(newAlternative, _instrumenter.CreateIfStatementAlternativePrologue(node))
                     End If
                 Else
                     Dim asElse = TryCast(node.AlternativeOpt.Syntax, SingleLineElseClauseSyntax)
                     If asElse IsNot Nothing Then
-                        newAlternative = PrependWithSequencePoint(newAlternative, asElse, asElse.ElseKeyword.Span)
+                        newAlternative = PrependWithPrologue(newAlternative, _instrumenter.CreateIfStatementAlternativePrologue(node))
                         ' single line if has no EndIf
                     End If
                 End If
@@ -95,28 +90,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
             ' the containing method is edited while methods invoked in the condition are being executed.
+            Debug.Assert(newCondition IsNot Nothing)
+            If instrument Then
+                newCondition = _instrumenter.InstrumentIfStatementCondition(node, newCondition, _currentMethodOrLambda)
+            End If
+
             Dim result As BoundStatement = RewriteIfStatement(
                 node.Syntax,
-                conditionSyntax,
-                AddConditionSequencePoint(newCondition, node),
+                newCondition,
                 newConsequence,
                 newAlternative,
-                generateDebugInfo:=True,
+                instrumentationTargetOpt:=If(instrument, node, Nothing),
                 unstructuredExceptionHandlingResumeTarget:=unstructuredExceptionHandlingResumeTarget)
 
             Return result
         End Function
 
         Private Function RewriteIfStatement(
-            syntaxNode As VisualBasicSyntaxNode,
-            conditionSyntax As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             rewrittenCondition As BoundExpression,
             rewrittenConsequence As BoundStatement,
             rewrittenAlternative As BoundStatement,
-            generateDebugInfo As Boolean,
+            instrumentationTargetOpt As BoundStatement,
             Optional unstructuredExceptionHandlingResumeTarget As ImmutableArray(Of BoundStatement) = Nothing
         ) As BoundStatement
-            Debug.Assert(unstructuredExceptionHandlingResumeTarget.IsDefaultOrEmpty OrElse generateDebugInfo)
+            Debug.Assert(unstructuredExceptionHandlingResumeTarget.IsDefaultOrEmpty OrElse instrumentationTargetOpt IsNot Nothing)
 
             ' Note that ElseIf clauses are transformed into a nested if inside an else at the bound tree generation, so 
             ' a BoundIfStatement does not contain ElseIf clauses.
@@ -141,29 +139,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     condGoto = New BoundStatementList(condGoto.Syntax, unstructuredExceptionHandlingResumeTarget.Add(condGoto))
                 End If
 
-                If Me.GenerateDebugInfo AndAlso generateDebugInfo Then
+                If instrumentationTargetOpt IsNot Nothing Then
 
-                    Select Case syntaxNode.Kind
-                        Case SyntaxKind.MultiLineIfBlock
-                            Dim asMultiline = DirectCast(syntaxNode, MultiLineIfBlockSyntax)
-
-                            condGoto = New BoundSequencePoint(conditionSyntax, condGoto)
-
-                            ' If it is a multiline If and there is no else, associate afterIf with EndIf
-                            afterIfStatement = New BoundSequencePoint(asMultiline.EndIfStatement, afterIfStatement)
-                        Case SyntaxKind.SingleLineIfStatement
-                            Dim asSingleLine = DirectCast(syntaxNode, SingleLineIfStatementSyntax)
-
-                            condGoto = New BoundSequencePointWithSpan(conditionSyntax, condGoto, TextSpan.FromBounds(asSingleLine.IfKeyword.SpanStart, asSingleLine.ThenKeyword.EndPosition - 1))
-
-                            ' otherwise hide afterif (so that it does not associate with if body).
-                            afterIfStatement = New BoundSequencePoint(Nothing, afterIfStatement)
+                    Select Case instrumentationTargetOpt.Syntax.Kind
+                        Case SyntaxKind.MultiLineIfBlock,
+                             SyntaxKind.ElseIfBlock,
+                             SyntaxKind.SingleLineIfStatement
+                            condGoto = _instrumenter.InstrumentIfStatementConditionalGoto(DirectCast(instrumentationTargetOpt, BoundIfStatement), condGoto)
+                        Case SyntaxKind.CaseBlock
+                            condGoto = _instrumenter.InstrumentCaseBlockConditionalGoto(DirectCast(instrumentationTargetOpt, BoundCaseBlock), condGoto)
                         Case Else
-                            condGoto = New BoundSequencePoint(conditionSyntax, condGoto)
-
-                            ' otherwise hide afterif (so that it does not associate with if body).
-                            afterIfStatement = New BoundSequencePoint(Nothing, afterIfStatement)
+                            Throw ExceptionUtilities.UnexpectedValue(instrumentationTargetOpt.Syntax.Kind)
                     End Select
+
+                    If instrumentationTargetOpt.Syntax.Kind = SyntaxKind.MultiLineIfBlock Then
+                        ' If it is a multiline If and there is no else, associate afterIf with EndIf
+                        afterIfStatement = _instrumenter.InstrumentIfStatementAfterIfStatement(DirectCast(instrumentationTargetOpt, BoundIfStatement), afterIfStatement)
+                    Else
+                        ' otherwise hide afterif (so that it does not associate with if body).
+                        afterIfStatement = SyntheticBoundNodeFactory.HiddenSequencePoint(afterIfStatement)
+                    End If
                 End If
 
                 Return New BoundStatementList(syntaxNode, ImmutableArray.Create(condGoto, rewrittenConsequence, afterIfStatement))
@@ -189,15 +184,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     condGoto = New BoundStatementList(condGoto.Syntax, unstructuredExceptionHandlingResumeTarget.Add(condGoto))
                 End If
 
-                If Me.GenerateDebugInfo AndAlso generateDebugInfo Then
-                    If syntaxNode.Kind = SyntaxKind.SingleLineIfStatement Then
-                        Dim asSingleLine = DirectCast(syntaxNode, SingleLineIfStatementSyntax)
-
-                        condGoto = New BoundSequencePointWithSpan(conditionSyntax, condGoto, TextSpan.FromBounds(asSingleLine.IfKeyword.SpanStart, asSingleLine.ThenKeyword.EndPosition - 1))
-                    Else
-
-                        condGoto = New BoundSequencePoint(conditionSyntax, condGoto)
-                    End If
+                If instrumentationTargetOpt IsNot Nothing Then
+                    Select Case instrumentationTargetOpt.Syntax.Kind
+                        Case SyntaxKind.MultiLineIfBlock,
+                             SyntaxKind.ElseIfBlock,
+                             SyntaxKind.SingleLineIfStatement
+                            condGoto = _instrumenter.InstrumentIfStatementConditionalGoto(DirectCast(instrumentationTargetOpt, BoundIfStatement), condGoto)
+                        Case SyntaxKind.CaseBlock
+                            condGoto = _instrumenter.InstrumentCaseBlockConditionalGoto(DirectCast(instrumentationTargetOpt, BoundCaseBlock), condGoto)
+                        Case Else
+                            Throw ExceptionUtilities.UnexpectedValue(instrumentationTargetOpt.Syntax.Kind)
+                    End Select
                 End If
 
                 Return New BoundStatementList(syntaxNode, ImmutableArray.Create(Of BoundStatement)(

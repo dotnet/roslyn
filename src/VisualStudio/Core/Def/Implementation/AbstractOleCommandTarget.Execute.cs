@@ -259,16 +259,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             switch (commandId)
             {
-                case ID.CSharpCommands.OrganizeSortUsings:
-                case ID.CSharpCommands.ContextOrganizeSortUsings:
-                    ExecuteSortUsings(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case ID.CSharpCommands.OrganizeRemoveUnusedUsings:
-                case ID.CSharpCommands.ContextOrganizeRemoveUnusedUsings:
-                    ExecuteRemoveUnusedUsings(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
                 case ID.CSharpCommands.OrganizeRemoveAndSort:
                 case ID.CSharpCommands.ContextOrganizeRemoveAndSort:
                     ExecuteSortAndRemoveUnusedUsings(subjectBuffer, contentType, executeNextCommandTarget);
@@ -941,20 +931,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             CurrentHandlers.Execute(contentType,
                 args: new PasteCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteSortUsings(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new SortImportsCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteRemoveUnusedUsings(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new RemoveUnnecessaryImportsCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 

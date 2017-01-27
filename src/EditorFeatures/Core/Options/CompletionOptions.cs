@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         public const string FeatureName = "EditorCompletion";
 
         [ExportOption]
-        public static readonly Option<bool> UseSuggestionMode = new Option<bool>(FeatureName, "UseSuggestionMode", defaultValue: false);
+        public static readonly Option<bool> UseSuggestionMode = new Option<bool>(FeatureName, nameof(UseSuggestionMode), defaultValue: false);
     }
 }

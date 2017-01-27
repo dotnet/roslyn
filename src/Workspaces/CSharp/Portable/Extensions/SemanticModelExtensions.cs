@@ -104,11 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             var expr = SyntaxFactory.GetStandaloneExpression(expression);
-
-            ExpressionSyntax qualifier;
-            string name;
-            int arity;
-            DecomposeName(expr, out qualifier, out name, out arity);
+            DecomposeName(expr, out var qualifier, out var name, out var arity);
 
             INamespaceOrTypeSymbol symbol = null;
             if (qualifier != null)
@@ -182,11 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return argument.NameColon.Name.Identifier.ValueText;
             }
 
-            if (argument.Declaration != null)
-            {
-                return argument.Declaration.Variables.First().Identifier.ValueText.ToCamelCase();
-            }
-
             return semanticModel.GenerateNameForExpression(argument.Expression);
         }
 
@@ -237,6 +228,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     current = ((CastExpressionSyntax)current).Expression;
                 }
+                else if (current is DeclarationExpressionSyntax)
+                {
+                    var decl = (DeclarationExpressionSyntax)current;
+                    var name = decl.Designation as SingleVariableDesignationSyntax;
+                    if (name == null)
+                    {
+                        break;
+                    }
+
+                    return name.Identifier.ValueText.ToCamelCase();
+                }
                 else
                 {
                     break;
@@ -278,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 arguments.Select(a => a.NameColon != null)).ToList();
 
             var parameterNames = reservedNames.Concat(
-                arguments.Select(a => semanticModel.GenerateNameForArgument(a))).ToList();
+                arguments.Select(semanticModel.GenerateNameForArgument)).ToList();
 
             return GenerateNames(reservedNames, isFixed, parameterNames);
         }
@@ -310,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static ISet<INamespaceSymbol> GetUsingNamespacesInScope(this SemanticModel semanticModel, SyntaxNode location)
         {
             // Avoiding linq here for perf reasons. This is used heavily in the AddImport service
-            HashSet<INamespaceSymbol> result = null;
+            var result = new HashSet<INamespaceSymbol>();
 
             foreach (var @using in location.GetEnclosingUsingDirectives())
             {
@@ -325,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            return result ?? SpecializedCollections.EmptySet<INamespaceSymbol>();
+            return result;
         }
 
         public static Accessibility DetermineAccessibilityConstraint(

@@ -1,20 +1,101 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
-Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
+Imports Microsoft.CodeAnalysis.Navigation
+Imports Microsoft.VisualStudio.Composition
+Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionTests
+        Friend Async Function TestAsync(workspaceDefinition As XElement,
+                                        expectedResult As Boolean,
+                                        executeOnDocument As Func(Of Document, Integer, IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)), Boolean)) As System.Threading.Tasks.Task
+            Using workspace = Await TestWorkspace.CreateAsync(
+                    workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProvider)
+                Dim solution = workspace.CurrentSolution
+                Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
+                Dim cursorPosition = cursorDocument.CursorPosition.Value
+
+                ' Set up mocks. The IDocumentNavigationService should be called if there is one,
+                ' location and the INavigableItemsPresenter should be called if there are 
+                ' multiple locations.
+
+                ' prepare a notification listener
+                Dim textView = cursorDocument.GetTextView()
+                Dim textBuffer = textView.TextBuffer
+                textView.Caret.MoveTo(New SnapshotPoint(textBuffer.CurrentSnapshot, cursorPosition))
+
+                Dim cursorBuffer = cursorDocument.TextBuffer
+                Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
+
+                Dim mockDocumentNavigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
+
+                Dim presenterCalled As Boolean = False
+                Dim presenter = New MockStreamingFindUsagesPresenter(Sub() presenterCalled = True)
+                Dim presenters = {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)}
+                Dim actualResult = executeOnDocument(document, cursorPosition, presenters)
+
+                Assert.Equal(expectedResult, actualResult)
+
+                Dim expectedLocations As New List(Of FilePathAndSpan)
+
+                For Each testDocument In workspace.Documents
+                    For Each selectedSpan In testDocument.SelectedSpans
+                        expectedLocations.Add(New FilePathAndSpan(testDocument.FilePath, selectedSpan))
+                    Next
+                Next
+
+                expectedLocations.Sort()
+
+                Dim context = presenter.Context
+                If expectedResult Then
+                    If mockDocumentNavigationService._triedNavigationToSpan Then
+                        Dim definitionDocument = workspace.GetTestDocument(mockDocumentNavigationService._documentId)
+                        Assert.Single(definitionDocument.SelectedSpans)
+                        Assert.Equal(definitionDocument.SelectedSpans.Single(), mockDocumentNavigationService._span)
+
+                        ' The INavigableItemsPresenter should not have been called
+                        Assert.False(presenterCalled)
+                    Else
+                        Assert.False(mockDocumentNavigationService._triedNavigationToPosition)
+                        Assert.False(mockDocumentNavigationService._triedNavigationToLineAndOffset)
+                        Assert.True(presenterCalled)
+
+                        Dim actualLocations As New List(Of FilePathAndSpan)
+
+                        Dim items = context.GetDefinitions()
+
+                        For Each location In items
+                            For Each docSpan In location.SourceSpans
+                                actualLocations.Add(New FilePathAndSpan(docSpan.Document.FilePath, docSpan.SourceSpan))
+                            Next
+                        Next
+
+                        actualLocations.Sort()
+                        Assert.Equal(expectedLocations, actualLocations)
+
+                        ' The IDocumentNavigationService should not have been called
+                        Assert.Null(mockDocumentNavigationService._documentId)
+                    End If
+                Else
+                    Assert.Null(mockDocumentNavigationService._documentId)
+                    Assert.False(presenterCalled)
+                End If
+            End Using
+        End Function
+
         Private Function TestAsync(workspaceDefinition As XElement, Optional expectedResult As Boolean = True) As Tasks.Task
-            Return GoToTestHelpers.TestAsync(workspaceDefinition, expectedResult,
-                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)), externalDefinitionProviders As IEnumerable(Of Lazy(Of INavigableDefinitionProvider)))
+            Return TestAsync(workspaceDefinition, expectedResult,
+                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)))
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(presenters, externalDefinitionProviders), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(presenters, externalDefinitionProviders))
+                        DirectCast(New CSharpGoToDefinitionService(presenters), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(presenters))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)
@@ -62,6 +143,59 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
         <Document>
             class [|SomeClass|] { }
             class OtherClass { Some$$Class obj; }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGoToDefinitionOnAnonymousMember() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public class MyClass
+{
+    public string [|Prop1|] { get; set; }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var instance = new MyClass();
+
+        var x = new
+        {
+            instance.$$Prop1
+        };
+    }
+}        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestVisualBasicGoToDefinitionOnAnonymousMember() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+public class MyClass1
+    public property [|Prop1|] as integer
+end class
+class Program
+    sub Main()
+        dim instance = new MyClass1()
+
+        dim x as new With { instance.$$Prop1 }
+    end sub
+end class
         </Document>
     </Project>
 </Workspace>
@@ -631,6 +765,245 @@ class C
 
             Await TestAsync(workspace)
         End Function
+#End Region
+
+#Region "CSharp TupleTests"
+        Dim tuple2Doc As XElement =
+            <Document>
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple&lt;T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+    }
+}
+            </Document>
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldEqualTuples01() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var x = ([|Alice|]: 1, Bob: 2);
+
+            var y = (Alice: 1, Bob: 2);
+
+            var z1 = x.$$Alice;
+            var z2 = y.Alice;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldEqualTuples02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <!-- intentionally not including tuple2, shoudl still work -->
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var x = (Alice: 1, Bob: 2);
+
+            var y = ([|Alice|]: 1, Bob: 2);
+
+            var z1 = x.Alice;
+            var z2 = y.$$Alice;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldMatchToOuter01() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var x = ([|Program|]: 1, Main: 2);
+
+            var z = x.$$Program;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldMatchToOuter02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var x = ([|Pro$$gram|]: 1, Main: 2);
+
+            var z = x.Program;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldMatchToOuter03() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var x = (1,2,3,4,5,6,7,8,9,10, [|Program|]: 1, Main: 2);
+
+            var z = x.$$Program;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldRedeclared01() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            (int [|Alice|], int Bob) x = (Alice: 1, Bob: 2);
+
+             var z1 = x.$$Alice;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldRedeclared02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            (string Alice, int Bob) x = ([|Al$$ice|]: null, Bob: 2);
+
+             var z1 = x.Alice;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldItem01() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var x = ([|1|], Bob: 2);
+
+             var z1 = x.$$Item1;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldItem02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var x = ([|Alice|]: 1, Bob: 2);
+
+             var z1 = x.$$Item1;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
 
 #End Region
 
@@ -935,7 +1308,7 @@ class C
 
         <WorkItem(989476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/989476")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Async Function TestCSharpPreferNongeneratedSourceLocations() As Task
+        Public Async Function TestCSharpDoNotFilterGeneratedSourceLocations() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -949,7 +1322,7 @@ partial class [|C|]
 }
         </Document>
         <Document FilePath="Generated.g.i.cs">
-partial class C
+partial class [|C|]
 {
 }
         </Document>

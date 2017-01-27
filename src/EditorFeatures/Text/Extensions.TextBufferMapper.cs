@@ -57,11 +57,8 @@ namespace Microsoft.CodeAnalysis.Text
             public static ITextSnapshot ToEditor(ITextSnapshot roslynSnapshot)
             {
                 Contract.ThrowIfNull(roslynSnapshot);
-
-                WeakReference<ITextSnapshot> weakReference;
-                ITextSnapshot editorSnapshot;
-                if (!s_roslynToEditorSnapshotMap.TryGetValue(roslynSnapshot, out weakReference) ||
-                    !weakReference.TryGetTarget(out editorSnapshot))
+                if (!s_roslynToEditorSnapshotMap.TryGetValue(roslynSnapshot, out var weakReference) ||
+                    !weakReference.TryGetTarget(out var editorSnapshot))
                 {
                     return null;
                 }

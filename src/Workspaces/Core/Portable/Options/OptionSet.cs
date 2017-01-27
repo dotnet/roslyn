@@ -14,12 +14,18 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets the value of the option.
         /// </summary>
-        public abstract T GetOption<T>(Option<T> option);
+        public T GetOption<T>(Option<T> option)
+        {
+            return (T)GetOption(new OptionKey(option, language: null));
+        }
 
         /// <summary>
         /// Gets the value of the option.
         /// </summary>
-        public abstract T GetOption<T>(PerLanguageOption<T> option, string language);
+        public T GetOption<T>(PerLanguageOption<T> option, string language)
+        {
+            return (T)GetOption(new OptionKey(option, language));
+        }
 
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.
@@ -29,12 +35,18 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.
         /// </summary>
-        public abstract OptionSet WithChangedOption<T>(Option<T> option, T value);
+        public OptionSet WithChangedOption<T>(Option<T> option, T value)
+        {
+            return WithChangedOption(new OptionKey(option, language: null), value);
+        }
 
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.
         /// </summary>
-        public abstract OptionSet WithChangedOption<T>(PerLanguageOption<T> option, string language, T value);
+        public OptionSet WithChangedOption<T>(PerLanguageOption<T> option, string language, T value)
+        {
+            return WithChangedOption(new OptionKey(option, language), value);
+        }
 
         internal abstract IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet);
     }

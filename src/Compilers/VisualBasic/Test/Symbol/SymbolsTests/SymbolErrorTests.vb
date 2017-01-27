@@ -7854,6 +7854,41 @@ Imports bb = ns1.Intfc2.intfc2foo    'BC40056
         End Sub
 
         <Fact>
+        <WorkItem(13926, "https://github.com/dotnet/roslyn/issues/13926")>
+        Public Sub BadAliasTarget()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports BadAlias = unknown
+
+Public Class Class1
+    Public Shared Sub Main()
+    End Sub
+
+    Function Test() As BadAlias 
+        Return Nothing
+    End Function
+End Class
+        ]]></file>
+    </compilation>)
+            Dim expectedErrors1 = <errors><![CDATA[
+BC40056: Namespace or type specified in the Imports 'unknown' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports BadAlias = unknown
+                   ~~~~~~~
+BC31208: Type or namespace 'unknown' is not defined.
+    Function Test() As BadAlias 
+                       ~~~~~~~~
+                 ]]></errors>
+
+            CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
+
+            Dim test = compilation1.GetTypeByMetadataName("Class1").GetMember(Of MethodSymbol)("Test")
+
+            Assert.True(test.ReturnType.IsErrorType())
+            Assert.Equal(DiagnosticSeverity.Error, DirectCast(test.ReturnType, ErrorTypeSymbol).ErrorInfo.Severity)
+        End Sub
+
+        <Fact>
         Public Sub BC30828ERR_ObsoleteAsAny()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="ObsoleteAsAny">
@@ -22240,9 +22275,7 @@ End Class
             Assert.Equal(ImmutableArray.Create(Of Location)(), errTypeSym.Locations)
             Assert.Equal(ImmutableArray.Create(Of SyntaxReference)(), errTypeSym.DeclaringSyntaxReferences)
             Assert.Equal(0, errTypeSym.Arity)
-            Assert.Throws(Of InvalidOperationException)(Sub()
-                                                            Dim tmp = errTypeSym.EnumUnderlyingType
-                                                        End Sub)
+            Assert.Null(errTypeSym.EnumUnderlyingType)
             Assert.Equal("B", errTypeSym.Name)
             Assert.Equal(0, errTypeSym.TypeArguments.Length)
             Assert.Equal(0, errTypeSym.TypeParameters.Length)

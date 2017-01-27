@@ -313,7 +313,10 @@ namespace Microsoft.CodeAnalysis
         /// this tree.</remarks>
         public abstract IList<TextChange> GetChanges(SyntaxTree oldTree);
 
-        internal ValueTuple<ImmutableArray<byte>, Guid> GetChecksumAndAlgorithm()
+        /// <summary>
+        /// Gets the checksum + algorithm id to use in the PDB.
+        /// </summary>
+        internal Cci.DebugSourceInfo GetDebugSourceInfo()
         {
             if (_lazyChecksum.IsDefault)
             {
@@ -323,13 +326,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             Debug.Assert(!_lazyChecksum.IsDefault);
-            Guid guid;
-            if (!Cci.DebugSourceDocument.TryGetAlgorithmGuid(_lazyHashAlgorithm, out guid))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
+            Debug.Assert(_lazyHashAlgorithm != default(SourceHashAlgorithm));
 
-            return ValueTuple.Create(_lazyChecksum, guid);
+            // NOTE: If this tree is to be embedded, it's debug source info should have
+            // been obtained via EmbeddedText.GetDebugSourceInfo() and not here.
+            return new Cci.DebugSourceInfo(_lazyChecksum, _lazyHashAlgorithm);
         }
 
         /// <summary>
@@ -348,6 +349,11 @@ namespace Microsoft.CodeAnalysis
         public override string ToString()
         {
             return this.GetText(CancellationToken.None).ToString();
+        }
+
+        internal virtual bool SupportsLocations
+        {
+            get { return this.HasCompilationUnitRoot; }
         }
     }
 }

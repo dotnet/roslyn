@@ -1,14 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Xml.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     /// <summary>
     /// Represents a code style option and an associated notification option.
     /// </summary>
-    public class CodeStyleOption<T>
+    public class CodeStyleOption<T> : IEquatable<CodeStyleOption<T>>
     {
         public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default(T), NotificationOption.None);
 
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public NotificationOption Notification { get; set; }
 
-        public XElement ToXElement() => 
+        public XElement ToXElement() =>
             new XElement(nameof(CodeStyleOption<T>), // `nameof()` returns just "CodeStyleOption"
                 new XAttribute(nameof(SerializationVersion), SerializationVersion),
                 new XAttribute("Type", typeof(T).Name),
@@ -84,6 +86,28 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 default:
                     throw new ArgumentException(nameof(type));
             }
+        }
+
+        public bool Equals(CodeStyleOption<T> other)
+        {
+            return EqualityComparer<T>.Default.Equals(Value, other.Value) &&
+                   Notification == other.Notification;
+        }
+
+        public override bool Equals(object obj)
+        {
+            var codeStyle = obj as CodeStyleOption<T>;
+            if (codeStyle == null)
+            {
+                return false;
+            }
+
+            return ((IEquatable<CodeStyleOption<T>>)this).Equals(codeStyle);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(Value.GetHashCode(), Notification.GetHashCode());
         }
     }
 }

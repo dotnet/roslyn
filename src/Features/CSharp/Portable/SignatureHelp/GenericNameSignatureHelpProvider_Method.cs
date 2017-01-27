@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class GenericNameSignatureHelpProvider
     {
-        private IEnumerable<SymbolDisplayPart> GetPreambleParts(
+        private IList<SymbolDisplayPart> GetPreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)
@@ -20,23 +20,23 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (awaitable && extension)
             {
                 result.Add(Punctuation(SyntaxKind.OpenParenToken));
-                result.Add(Text(CSharpFeaturesResources.Awaitable));
+                result.Add(Text(CSharpFeaturesResources.awaitable));
                 result.Add(Punctuation(SyntaxKind.CommaToken));
-                result.Add(Text(CSharpFeaturesResources.Extension));
+                result.Add(Text(CSharpFeaturesResources.extension));
                 result.Add(Punctuation(SyntaxKind.CloseParenToken));
                 result.Add(Space());
             }
             else if (awaitable)
             {
                 result.Add(Punctuation(SyntaxKind.OpenParenToken));
-                result.Add(Text(CSharpFeaturesResources.Awaitable));
+                result.Add(Text(CSharpFeaturesResources.awaitable));
                 result.Add(Punctuation(SyntaxKind.CloseParenToken));
                 result.Add(Space());
             }
             else if (extension)
             {
                 result.Add(Punctuation(SyntaxKind.OpenParenToken));
-                result.Add(Text(CSharpFeaturesResources.Extension));
+                result.Add(Text(CSharpFeaturesResources.extension));
                 result.Add(Punctuation(SyntaxKind.CloseParenToken));
                 result.Add(Space());
             }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
+        private IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
         {
             var result = new List<SymbolDisplayPart>();
 

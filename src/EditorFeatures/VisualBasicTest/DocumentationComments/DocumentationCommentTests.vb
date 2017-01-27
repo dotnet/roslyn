@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -1198,10 +1197,9 @@ End Class
         Friend Overrides Function CreateCommandHandler(
             waitIndicator As IWaitIndicator,
             undoHistoryRegistry As ITextUndoHistoryRegistry,
-            editorOperationsFactoryService As IEditorOperationsFactoryService,
-            completionService As IAsyncCompletionService) As ICommandHandler
+            editorOperationsFactoryService As IEditorOperationsFactoryService) As ICommandHandler
 
-            Return New DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService, completionService)
+            Return New DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
         End Function
 
         Protected Overrides Function CreateTestWorkspaceAsync(code As String) As Task(Of TestWorkspace)

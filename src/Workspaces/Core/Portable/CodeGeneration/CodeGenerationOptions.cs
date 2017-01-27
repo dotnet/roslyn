@@ -1,9 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -119,11 +117,19 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool AutoInsertionLocation { get; }
 
         /// <summary>
+        /// If <see cref="AutoInsertionLocation"/> is <code>false</code>, determines if members will be
+        /// sorted before being added to the end of the list of members.
+        /// </summary>
+        public bool SortMembers { get; }
+
+        /// <summary>
         /// True if the code generator should attempt to reuse the syntax of the constituent entities, such as members, access modifier tokens, etc. while attempting to generate code.
         /// If any of the member symbols have zero declaring syntax references (non-source symbols) OR two or more declaring syntax references (partial definitions), then syntax is not reused.
         /// If false, then the code generator will always synthesize a new syntax node and ignore the declaring syntax references.
         /// </summary>
         public bool ReuseSyntax { get; }
+
+        public ParseOptions ParseOptions { get; }
 
         public CodeGenerationOptions(
             Location contextLocation = null,
@@ -139,7 +145,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool generateMethodBodies = true,
             bool generateDocumentationComments = false,
             bool autoInsertionLocation = true,
-            bool reuseSyntax = false)
+            bool sortMembers = true,
+            bool reuseSyntax = false,
+            ParseOptions parseOptions = null)
         {
             CheckLocation(contextLocation, nameof(contextLocation));
             CheckLocation(afterThisLocation, nameof(afterThisLocation));
@@ -158,14 +166,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.GenerateMethodBodies = generateMethodBodies;
             this.GenerateDocumentationComments = generateDocumentationComments;
             this.AutoInsertionLocation = autoInsertionLocation;
+            this.SortMembers = sortMembers;
             this.ReuseSyntax = reuseSyntax;
+
+            this.ParseOptions = parseOptions ?? this.BestLocation?.SourceTree.Options;
         }
 
         private void CheckLocation(Location location, string name)
         {
             if (location != null && !location.IsInSource)
             {
-                throw new ArgumentException(WorkspacesResources.LocationMustBeNullOrFromSource, name);
+                throw new ArgumentException(WorkspacesResources.Location_must_be_null_or_from_source, name);
             }
         }
 
@@ -179,6 +190,60 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                         ? this.BeforeThisLocation
                         : this.ContextLocation;
             }
+        }
+
+        public CodeGenerationOptions With(
+            Optional<Location> contextLocation = default(Optional<Location>),
+            Optional<Location> afterThisLocation = default(Optional<Location>),
+            Optional<Location> beforeThisLocation = default(Optional<Location>),
+            Optional<bool> addImports = default(Optional<bool>),
+            Optional<bool> placeSystemNamespaceFirst = default(Optional<bool>),
+            Optional<IEnumerable<INamespaceSymbol>> additionalImports = default(Optional<IEnumerable<INamespaceSymbol>>),
+            Optional<bool> generateMembers = default(Optional<bool>),
+            Optional<bool> mergeNestedNamespaces = default(Optional<bool>),
+            Optional<bool> mergeAttributes = default(Optional<bool>),
+            Optional<bool> generateDefaultAccessibility = default(Optional<bool>),
+            Optional<bool> generateMethodBodies = default(Optional<bool>),
+            Optional<bool> generateDocumentationComments = default(Optional<bool>),
+            Optional<bool> autoInsertionLocation = default(Optional<bool>),
+            Optional<bool> sortMembers = default(Optional<bool>),
+            Optional<bool> reuseSyntax = default(Optional<bool>),
+            Optional<ParseOptions> parseOptions = default(Optional<ParseOptions>))
+        {
+            var newContextLocation = contextLocation.HasValue ? contextLocation.Value : this.ContextLocation;
+            var newAfterThisLocation = afterThisLocation.HasValue ? afterThisLocation.Value : this.AfterThisLocation;
+            var newBeforeThisLocation = beforeThisLocation.HasValue ? beforeThisLocation.Value : this.BeforeThisLocation;
+            var newAddImports = addImports.HasValue ? addImports.Value : this.AddImports;
+            var newPlaceSystemNamespaceFirst = placeSystemNamespaceFirst.HasValue ? placeSystemNamespaceFirst.Value : this.PlaceSystemNamespaceFirst;
+            var newAdditionalImports = additionalImports.HasValue ? additionalImports.Value : this.AdditionalImports;
+            var newGenerateMembers = generateMembers.HasValue ? generateMembers.Value : this.GenerateMembers;
+            var newMergeNestedNamespaces = mergeNestedNamespaces.HasValue ? mergeNestedNamespaces.Value : this.MergeNestedNamespaces;
+            var newMergeAttributes = mergeAttributes.HasValue ? mergeAttributes.Value : this.MergeAttributes;
+            var newGenerateDefaultAccessibility = generateDefaultAccessibility.HasValue ? generateDefaultAccessibility.Value : this.GenerateDefaultAccessibility;
+            var newGenerateMethodBodies = generateMethodBodies.HasValue ? generateMethodBodies.Value : this.GenerateMethodBodies;
+            var newGenerateDocumentationComments = generateDocumentationComments.HasValue ? generateDocumentationComments.Value : this.GenerateDocumentationComments;
+            var newAutoInsertionLocation = autoInsertionLocation.HasValue ? autoInsertionLocation.Value : this.AutoInsertionLocation;
+            var newSortMembers = sortMembers.HasValue ? sortMembers.Value : this.SortMembers;
+            var newReuseSyntax = reuseSyntax.HasValue ? reuseSyntax.Value : this.ReuseSyntax;
+            var newParseOptions = parseOptions.HasValue ? parseOptions.Value : this.ParseOptions;
+
+            return new CodeGenerationOptions(
+                newContextLocation,
+                newAfterThisLocation,
+                newBeforeThisLocation,
+                newAddImports,
+                newPlaceSystemNamespaceFirst,
+                newAdditionalImports,
+                newGenerateMembers,
+                newMergeNestedNamespaces,
+                newMergeAttributes,
+                newGenerateDefaultAccessibility,
+                newGenerateMethodBodies,
+                newGenerateDocumentationComments,
+                newAutoInsertionLocation,
+                newSortMembers,
+                newReuseSyntax,
+                newParseOptions);
         }
     }
 }

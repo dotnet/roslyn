@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             this.BackgroundColor = Color.FromRgb(219, 224, 204);
             this.Border = new Pen(new SolidColorBrush(Colors.Gray), 0.5);
             this.Border.Freeze();
-            this.DisplayName = EditorFeaturesResources.HighlightedDefinition;
+            this.DisplayName = EditorFeaturesResources.Highlighted_Definition;
         }
     }
 }

@@ -18,21 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 _token = token;
             }
 
+            // Don't split @"" strings.  They already support directly embedding newlines.
             protected override bool CheckToken()
-            {
-                if (CursorPosition <= _token.SpanStart || CursorPosition >= _token.Span.End)
-                {
-                    return false;
-                }
-
-                if (_token.IsVerbatimStringLiteral())
-                {
-                    // Don't split @"" strings.  They already support directly embedding newlines.
-                    return false;
-                }
-
-                return true;
-            }
+                => !_token.IsVerbatimStringLiteral();
 
             protected override SyntaxNode GetNodeToReplace() => _token.Parent;
 

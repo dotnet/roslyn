@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 rewrittenLimit As BoundExpression,
                                                 rewrittenStep As BoundExpression) As BoundBlock
 
-            Dim blockSyntax = DirectCast(forStatement.Syntax, ForOrForEachBlockSyntax)
+            Dim blockSyntax = DirectCast(forStatement.Syntax, ForBlockSyntax)
 
             Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(forStatement)
 
@@ -185,9 +185,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rewrittenInitializer = New BoundStatementList(rewrittenInitializer.Syntax, loopResumeTarget.Add(rewrittenInitializer))
             End If
 
-            If GenerateDebugInfo Then
+            Dim instrument As Boolean = Me.Instrument(forStatement)
+
+            If instrument Then
                 ' first sequence point to highlight the for statement
-                rewrittenInitializer = New BoundSequencePoint(blockSyntax.ForOrForEachStatement, rewrittenInitializer)
+                rewrittenInitializer = _instrumenter.InstrumentForLoopInitialization(forStatement, rewrittenInitializer)
             End If
 
             Dim rewrittenBody = DirectCast(Visit(forStatement.Body), BoundStatement)
@@ -202,10 +204,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rewrittenIncrement = RegisterUnstructuredExceptionHandlingResumeTarget(blockSyntax, rewrittenIncrement, canThrow:=True)
             End If
 
-            If GenerateDebugInfo Then
-                If blockSyntax.NextStatement IsNot Nothing Then
-                    rewrittenIncrement = New BoundSequencePoint(blockSyntax.NextStatement, rewrittenIncrement)
-                End If
+            If instrument Then
+                rewrittenIncrement = _instrumenter.InstrumentForLoopIncrement(forStatement, rewrittenIncrement)
             End If
 
             Dim rewrittenCondition = RewriteForLoopCondition(rewrittenControlVariable, rewrittenLimit, rewrittenStep,
@@ -255,9 +255,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 postIncrementLabel = New GeneratedLabelSymbol("PostIncrement")
                 Dim postIncrement As New BoundLabelStatement(blockSyntax, postIncrementLabel)
 
-                gotoPostIncrement = New BoundSequencePoint(
-                                                         Nothing,
-                                                         New BoundGotoStatement(blockSyntax, postIncrementLabel, Nothing))
+                gotoPostIncrement = New BoundGotoStatement(blockSyntax, postIncrementLabel, Nothing)
+
+                If instrument Then
+                    gotoPostIncrement = SyntheticBoundNodeFactory.HiddenSequencePoint(gotoPostIncrement)
+                End If
             End If
 
             Dim statements = ArrayBuilder(Of BoundStatement).GetInstance()
@@ -276,14 +278,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If postIncrementLabel IsNot Nothing Then
                 Dim label As BoundStatement = New BoundLabelStatement(blockSyntax, postIncrementLabel)
-                If GenerateDebugInfo Then
-                    gotoPostIncrement = New BoundSequencePoint(Nothing, label)
+                If instrument Then
+                    gotoPostIncrement = SyntheticBoundNodeFactory.HiddenSequencePoint(label)
                 End If
                 statements.Add(label)
             End If
 
-            If GenerateDebugInfo Then
-                ifConditionGotoStart = New BoundSequencePoint(Nothing, ifConditionGotoStart)
+            If instrument Then
+                ifConditionGotoStart = SyntheticBoundNodeFactory.HiddenSequencePoint(ifConditionGotoStart)
             End If
             statements.Add(ifConditionGotoStart)
 
@@ -384,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              rewrittenStep As BoundExpression) As BoundBlock
 
             Dim locals = ArrayBuilder(Of LocalSymbol).GetInstance()
-            Dim blockSyntax = DirectCast(forStatement.Syntax, ForOrForEachBlockSyntax)
+            Dim blockSyntax = DirectCast(forStatement.Syntax, ForBlockSyntax)
             Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(forStatement)
 
             ' For i as Object = 3 To 6 step 2
@@ -447,9 +449,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
             ' the containing method is edited while the invoked method is being executed.
+            Debug.Assert(rewrittenInitCondition IsNot Nothing)
+            Dim instrument = Me.Instrument(forStatement)
+
+            If instrument Then
+                rewrittenInitCondition = _instrumenter.InstrumentObjectForLoopInitCondition(forStatement, rewrittenInitCondition, _currentMethodOrLambda)
+            End If
+
             Dim ifNotInitObjExit As BoundStatement = New BoundConditionalGoto(
                 blockSyntax,
-                AddConditionSequencePoint(rewrittenInitCondition, forStatement),
+                rewrittenInitCondition,
                 False,
                 forStatement.ExitLabel)
 
@@ -457,9 +466,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ifNotInitObjExit = RegisterUnstructuredExceptionHandlingResumeTarget(blockSyntax, ifNotInitObjExit, canThrow:=True)
             End If
 
-            If GenerateDebugInfo Then
-                ' first sequence point to highlight the for each statement
-                ifNotInitObjExit = New BoundSequencePoint(blockSyntax.ForOrForEachStatement, ifNotInitObjExit)
+            If instrument Then
+                ' first sequence point to highlight the for statement
+                ifNotInitObjExit = _instrumenter.InstrumentForLoopInitialization(forStatement, ifNotInitObjExit)
             End If
 
             '### body
@@ -497,9 +506,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
             ' the containing method is edited while the invoked function is being executed.
+            Debug.Assert(rewrittenLoopCondition IsNot Nothing)
+            If instrument Then
+                rewrittenLoopCondition = _instrumenter.InstrumentObjectForLoopCondition(forStatement, rewrittenLoopCondition, _currentMethodOrLambda)
+            End If
+
             Dim ifConditionGotoStart As BoundStatement = New BoundConditionalGoto(
                 blockSyntax,
-                AddConditionSequencePoint(rewrittenLoopCondition, forStatement),
+                rewrittenLoopCondition,
                 True,
                 startLabel)
 
@@ -507,17 +521,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ifConditionGotoStart = RegisterUnstructuredExceptionHandlingResumeTarget(blockSyntax, ifConditionGotoStart, canThrow:=True)
             End If
 
-            If GenerateDebugInfo Then
-                If blockSyntax.NextStatement IsNot Nothing Then
-                    ifConditionGotoStart = New BoundSequencePoint(blockSyntax.NextStatement, ifConditionGotoStart)
-                End If
+            If instrument Then
+                ifConditionGotoStart = _instrumenter.InstrumentForLoopIncrement(forStatement, ifConditionGotoStart)
             End If
 
             Dim label As BoundStatement = New BoundLabelStatement(blockSyntax, forStatement.ContinueLabel)
 
-            If GenerateDebugInfo Then
-                label = New BoundSequencePoint(Nothing, label)
-                ifConditionGotoStart = New BoundSequencePoint(Nothing, ifConditionGotoStart)
+            If instrument Then
+                label = SyntheticBoundNodeFactory.HiddenSequencePoint(label)
+                ifConditionGotoStart = SyntheticBoundNodeFactory.HiddenSequencePoint(ifConditionGotoStart)
             End If
 
             'Build the rewritten loop

@@ -3,7 +3,6 @@
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
@@ -28,10 +27,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
                 definition,
                 parseOptions,
                 If(compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
-        End Function
-
-        Protected Shared Function NewLines(input As String) As String
-            Return input.Replace("\n", vbCrLf)
         End Function
 
         Friend Overloads Async Function TestAsync(

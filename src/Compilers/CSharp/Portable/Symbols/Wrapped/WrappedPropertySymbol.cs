@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -49,21 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override abstract TypeSymbol Type
-        {
-            get;
-        }
-
-        public override abstract ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get;
-        }
-
-        public override abstract ImmutableArray<ParameterSymbol> Parameters
-        {
-            get;
-        }
-
         public override bool IsIndexer
         {
             get
@@ -72,37 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override abstract MethodSymbol GetMethod
-        {
-            get;
-        }
-
-        public override abstract MethodSymbol SetMethod
-        {
-            get;
-        }
-
         internal override Microsoft.Cci.CallingConvention CallingConvention
         {
             get
             {
                 return _underlyingProperty.CallingConvention;
             }
-        }
-
-        internal override abstract bool IsExplicitInterfaceImplementation
-        {
-            get;
-        }
-
-        public override abstract ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations
-        {
-            get;
-        }
-
-        public override abstract Symbol ContainingSymbol
-        {
-            get;
         }
 
         public override string Name
@@ -204,13 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _underlyingProperty.ObsoleteAttributeData;
             }
-        }
-
-        public override abstract ImmutableArray<CSharpAttributeData> GetAttributes();
-
-        internal override abstract bool MustCallMethodsDirectly
-        {
-            get;
         }
 
         public override string MetadataName

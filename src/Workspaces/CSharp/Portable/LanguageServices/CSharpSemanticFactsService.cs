@@ -162,14 +162,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool SupportsParameterizedEvents
-        {
-            get
-            {
-                return true;
-            }
-        }
-
         public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
         {
             Contract.Requires(oldNode.Kind() == newNode.Kind());
@@ -185,8 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            SemanticModel csharpModel;
-            bool success = model.TryGetSpeculativeSemanticModelForMethodBody(oldMethod.Body.OpenBraceToken.Span.End, newMethod, out csharpModel);
+            bool success = model.TryGetSpeculativeSemanticModelForMethodBody(oldMethod.Body.OpenBraceToken.Span.End, newMethod, out var csharpModel);
             speculativeModel = csharpModel;
             return success;
         }
@@ -234,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement)
         {
-            var csforEachStatement = forEachStatement as ForEachStatementSyntax;
+            var csforEachStatement = forEachStatement as CommonForEachStatementSyntax;
             if (csforEachStatement != null)
             {
                 var info = semanticModel.GetForEachStatementInfo(csforEachStatement);
@@ -261,6 +252,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsNameOfContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             return semanticModel.SyntaxTree.IsNameOfContext(position, semanticModel, cancellationToken);
+        }
+
+        public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
+        {
+            var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
+            return syntaxRefs.Any(n => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword));
         }
     }
 }

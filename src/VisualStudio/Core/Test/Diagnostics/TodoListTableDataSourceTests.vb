@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoItem))
                 AssertEx.SetEqual(table.Columns, manager.GetColumnsForSources(SpecializedCollections.SingletonEnumerable(source)))
 
-                Assert.Equal(ServicesVSResources.TodoTableSourceName, source.DisplayName)
+                Assert.Equal(ServicesVSResources.CSharp_VB_Todo_List_Table_Data_Source, source.DisplayName)
                 Assert.Equal(StandardTableDataSources.CommentTableDataSource, source.SourceTypeIdentifier)
 
                 Assert.Equal(1, manager.Sinks_TestOnly.Count())

@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -555,7 +554,8 @@ End Interface
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_CodeGen_TypeParameters1() As Task
-            Dim markup = <text>Imports System.Collections.Generic
+            Dim markup =
+"Imports System.Collections.Generic
 Public Class TestClass(Of A, B, C, D, E As F, F, G, H, NO1)$$
     Public Sub Foo1(a As A)
     End Sub
@@ -582,8 +582,10 @@ Public Class TestClass(Of A, B, C, D, E As F, F, G, H, NO1)$$
     Public Sub Bar1()
         Dim x As NO1 = Nothing
     End Sub
-End Class</text>.NormalizedValue()
-            Dim expectedInterfaceCode = <text>Imports System.Collections.Generic
+End Class"
+
+            Dim expectedInterfaceCode =
+"Imports System.Collections.Generic
 
 Public Interface ITestClass(Of A, B, C, E As F, F, G, H)
     WriteOnly Property Prop As List(Of E)
@@ -591,10 +593,11 @@ Public Interface ITestClass(Of A, B, C, E As F, F, G, H)
     Event Foo4 As Action
     Sub Foo1(a As A)
     Sub Foo3(list As List(Of C))
-    Function Foo2() As B
     Sub Bar1()
+    Function Foo2() As B
 End Interface
-</text>.NormalizedValue()
+"
+
             Await TestExtractInterfaceCommandVisualBasicAsync(markup, expectedSuccess:=True, expectedInterfaceCode:=expectedInterfaceCode)
         End Function
 

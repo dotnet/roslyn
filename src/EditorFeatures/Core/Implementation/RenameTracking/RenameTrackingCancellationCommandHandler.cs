@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.RenameTrackingCancellation, ContentTypeNames.RoslynContentType)]
+    [ExportCommandHandler(PredefinedCommandHandlerNames.RenameTrackingCancellation, ContentTypeNames.RoslynContentType, ContentTypeNames.XamlContentType)]
     [Order(After = PredefinedCommandHandlerNames.SignatureHelp)]
     [Order(After = PredefinedCommandHandlerNames.IntelliSense)]
     [Order(After = PredefinedCommandHandlerNames.AutomaticCompletion)]

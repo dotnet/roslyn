@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' attached to a new parent, it is copied and its annotations are dropped.
                     Debug.Assert(builder Is Nothing OrElse builder.All(Function(node) node.Parent Is Nothing))
 
-                    Return If(builder Is Nothing, SpecializedCollections.EmptyArray(Of XNode)(), builder.ToArrayAndFree())
+                    Return If(builder Is Nothing, Array.Empty(Of XNode)(), builder.ToArrayAndFree())
                 End Function
 
                 Private Function Rewrite(node As XNode, currentXmlFilePath As String, originatingSyntax As XmlNodeSyntax) As XNode()

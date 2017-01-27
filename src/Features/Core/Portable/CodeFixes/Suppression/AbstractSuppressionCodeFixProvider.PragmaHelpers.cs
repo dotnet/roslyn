@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -105,8 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 bool isRemoveSuppression = false)
             {
                 var trivia = startToken.LeadingTrivia.ToImmutableArray();
-                SyntaxTrivia insertAfterTrivia;
-                var index = GetPositionForPragmaInsertion(trivia, currentDiagnosticSpan, fixer, isStartToken: true, triviaAtIndex: out insertAfterTrivia);
+                var index = GetPositionForPragmaInsertion(trivia, currentDiagnosticSpan, fixer, isStartToken: true, triviaAtIndex: out var insertAfterTrivia);
                 index++;
 
                 bool needsLeadingEOL;
@@ -167,8 +165,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     trivia = endToken.TrailingTrivia.ToImmutableArray();
                 }
 
-                SyntaxTrivia insertBeforeTrivia;
-                var index = GetPositionForPragmaInsertion(trivia, currentDiagnosticSpan, fixer, isStartToken: false, triviaAtIndex: out insertBeforeTrivia);
+                var index = GetPositionForPragmaInsertion(trivia, currentDiagnosticSpan, fixer, isStartToken: false, triviaAtIndex: out var insertBeforeTrivia);
 
                 bool needsTrailingEOL;
                 if (index < trivia.Length)

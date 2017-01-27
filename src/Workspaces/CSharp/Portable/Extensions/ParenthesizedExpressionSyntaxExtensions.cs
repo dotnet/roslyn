@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // Easy statement-level cases:
             //   var y = (x);           -> var y = x;
+            //   var (y, z) = (x);      -> var (y, z) = x;
             //   if ((x))               -> if (x)
             //   return (x);            -> return x;
             //   yield return (x);      -> yield return x;
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 (node.IsParentKind(SyntaxKind.WhileStatement) && ((WhileStatementSyntax)node.Parent).Condition == node) ||
                 (node.IsParentKind(SyntaxKind.DoStatement) && ((DoStatementSyntax)node.Parent).Condition == node) ||
                 (node.IsParentKind(SyntaxKind.ForStatement) && ((ForStatementSyntax)node.Parent).Condition == node) ||
-                (node.IsParentKind(SyntaxKind.ForEachStatement) && ((ForEachStatementSyntax)node.Parent).Expression == node) ||
+                (node.IsParentKind(SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement) && ((CommonForEachStatementSyntax)node.Parent).Expression == node) ||
                 (node.IsParentKind(SyntaxKind.LockStatement) && ((LockStatementSyntax)node.Parent).Expression == node) ||
                 (node.IsParentKind(SyntaxKind.UsingStatement) && ((UsingStatementSyntax)node.Parent).Expression == node) ||
                 (node.IsParentKind(SyntaxKind.CatchFilterClause) && ((CatchFilterClauseSyntax)node.Parent).FilterExpression == node))
@@ -71,6 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 RemovalMayIntroduceInterpolationAmbiguity(node))
             {
                 return false;
+            }
+
+            // Cases:
+            //   (C)(this) -> (C)this
+            if (node.IsParentKind(SyntaxKind.CastExpression) && expression.IsKind(SyntaxKind.ThisExpression))
+            {
+                return true;
             }
 
             // Cases:
@@ -130,6 +138,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //   (null)  -> null
             //   (1)     -> 1
             if (expression.IsAnyLiteralExpression())
+            {
+                return true;
+            }
+
+            // x ?? (throw ...) -> x ?? throw ...
+            if (expression.IsKind(SyntaxKind.ThrowExpression) &&
+                node.IsParentKind(SyntaxKind.CoalesceExpression) &&
+                ((BinaryExpressionSyntax)node.Parent).Right == node)
             {
                 return true;
             }

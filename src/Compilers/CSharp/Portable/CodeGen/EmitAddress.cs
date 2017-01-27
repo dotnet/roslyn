@@ -110,8 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         goto default;
                     }
 
-                    EmitAssignmentExpression(assignment, UseKind.UsedAsAddress);
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(assignment.RefKind);
 
                 default:
                     Debug.Assert(!HasHome(expression));
@@ -426,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitStaticFieldAddress(FieldSymbol field, CSharpSyntaxNode syntaxNode)
+        private void EmitStaticFieldAddress(FieldSymbol field, SyntaxNode syntaxNode)
         {
             _builder.EmitOpCode(ILOpCode.Ldsflda);
             EmitSymbolToken(field, syntaxNode);

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -74,8 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
 
-                ProjectState projectState;
-                if (!_projectStates.TryGetValue(projectId, out projectState))
+                if (!_projectStates.TryGetValue(projectId, out var projectState))
                 {
                     return false;
                 }
@@ -120,8 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     set.Add(state.DocumentId);
                 }
 
-                ProjectState projectState;
-                if (!_projectStates.TryGetValue(projectId, out projectState) || projectState.IsEmpty())
+                if (!_projectStates.TryGetValue(projectId, out var projectState) || projectState.IsEmpty())
                 {
                     return set ?? SpecializedCollections.EmptyEnumerable<DocumentId>();
                 }
@@ -144,8 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public bool FromBuild(ProjectId projectId)
             {
-                ProjectState projectState;
-                if (!_projectStates.TryGetValue(projectId, out projectState))
+                if (!_projectStates.TryGetValue(projectId, out var projectState))
                 {
                     return false;
                 }
@@ -176,8 +174,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public async Task<bool> OnDocumentOpenedAsync(Document document)
             {
                 // can not be cancelled
-                ProjectState projectState;
-                if (!TryGetProjectState(document.Project.Id, out projectState) ||
+                if (!TryGetProjectState(document.Project.Id, out var projectState) ||
                     projectState.IsEmpty(document.Id))
                 {
                     // nothing to do
@@ -201,8 +198,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // can not be cancelled
                 // remove active file state and put it in project state
-                ActiveFileState activeFileState;
-                if (!_activeFileStates.TryRemove(document.Id, out activeFileState))
+                if (!_activeFileStates.TryRemove(document.Id, out var activeFileState))
                 {
                     return false;
                 }
@@ -216,18 +212,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public bool OnDocumentReset(Document document)
             {
                 var changed = false;
-
                 // can not be cancelled
                 // remove active file state and put it in project state
-                ActiveFileState activeFileState;
-                if (TryGetActiveFileState(document.Id, out activeFileState))
+                if (TryGetActiveFileState(document.Id, out var activeFileState))
                 {
                     activeFileState.ResetVersion();
                     changed |= true;
                 }
 
-                ProjectState projectState;
-                if (TryGetProjectState(document.Project.Id, out projectState))
+                if (TryGetProjectState(document.Project.Id, out var projectState))
                 {
                     projectState.ResetVersion();
                     changed |= true;
@@ -240,15 +233,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // remove active file state for removed document
                 var removed = false;
-                ActiveFileState activeFileState;
-                if (_activeFileStates.TryRemove(id, out activeFileState))
+                if (_activeFileStates.TryRemove(id, out var activeFileState))
                 {
                     removed = true;
                 }
-
                 // remove state for the file that got removed.
-                ProjectState state;
-                if (_projectStates.TryGetValue(id.ProjectId, out state))
+                if (_projectStates.TryGetValue(id.ProjectId, out var state))
                 {
                     removed |= state.OnDocumentRemoved(id);
                 }
@@ -259,8 +249,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public bool OnProjectRemoved(ProjectId id)
             {
                 // remove state for project that got removed.
-                ProjectState state;
-                if (_projectStates.TryRemove(id, out state))
+                if (_projectStates.TryRemove(id, out var state))
                 {
                     return state.OnProjectRemoved(id);
                 }

@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _triggerDocument = triggerSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (_triggerDocument == null)
             {
-                throw new InvalidOperationException(EditorFeaturesResources.TheTriggerspanIsNotIncludedInWorkspace);
+                throw new InvalidOperationException(EditorFeaturesResources.The_triggerSpan_is_not_included_in_the_given_workspace);
             }
 
             _inlineRenameSessionDurationLogBlock = Logger.LogBlock(FunctionId.Rename_InlineSession, CancellationToken.None);
@@ -166,8 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 foreach (var d in _workspace.GetOpenDocumentIds())
                 {
                     var document = _baseSolution.GetDocument(d);
-                    SourceText text;
-                    Contract.ThrowIfFalse(document.TryGetText(out text));
+                    Contract.ThrowIfFalse(document.TryGetText(out var text));
                     Contract.ThrowIfNull(text);
 
                     var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var asyncToken = _asyncListener.BeginAsyncOperation("UpdateReferencesTask");
             _allRenameLocationsTask = allRenameLocationsTask;
             allRenameLocationsTask.SafeContinueWith(
-                t => RaiseSessionSpansUpdated(t.Result.Locations),
+                t => RaiseSessionSpansUpdated(t.Result.Locations.ToImmutableArray()),
                 _cancellationTokenSource.Token,
                 TaskContinuationOptions.OnlyOnRanToCompletion,
                 ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public IInlineRenameUndoManager UndoManager { get; }
 
-        public event EventHandler<IList<InlineRenameLocation>> ReferenceLocationsChanged;
+        public event EventHandler<ImmutableArray<InlineRenameLocation>> ReferenceLocationsChanged;
         public event EventHandler<IInlineRenameReplacementInfo> ReplacementsComputed;
         public event EventHandler ReplacementTextChanged;
 
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (_dismissed)
             {
-                throw new InvalidOperationException(EditorFeaturesResources.ThisSessionHasAlreadyBeenDismissed);
+                throw new InvalidOperationException(EditorFeaturesResources.This_session_has_already_been_dismissed);
             }
         }
 
@@ -341,14 +341,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        private void RaiseSessionSpansUpdated(IList<InlineRenameLocation> locations)
+        private void RaiseSessionSpansUpdated(ImmutableArray<InlineRenameLocation> locations)
         {
             AssertIsForeground();
             SetReferenceLocations(locations);
             ReferenceLocationsChanged?.Invoke(this, locations);
         }
 
-        private void SetReferenceLocations(IEnumerable<InlineRenameLocation> locations)
+        private void SetReferenceLocations(ImmutableArray<InlineRenameLocation> locations)
         {
             AssertIsForeground();
 
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var result = _waitIndicator.Wait(
                 title: EditorFeaturesResources.Rename,
-                message: EditorFeaturesResources.ComputingRenameInformation,
+                message: EditorFeaturesResources.Computing_Rename_information,
                 allowCancel: true,
                 action: waitContext => CommitCore(waitContext, previewChanges));
 
@@ -585,9 +585,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var previewService = _workspace.Services.GetService<IPreviewDialogService>();
 
                     newSolution = previewService.PreviewChanges(
-                        string.Format(EditorFeaturesResources.PreviewChangesOf, EditorFeaturesResources.Rename),
+                        string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
                         "vs.csharp.refactoring.rename",
-                        string.Format(EditorFeaturesResources.RenameToTitle, this.OriginalSymbolName, _renameInfo.GetFinalSymbolName(this.ReplacementText)),
+                        string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, _renameInfo.GetFinalSymbolName(this.ReplacementText)),
                         _renameInfo.FullDisplayName,
                         _renameInfo.Glyph,
                         _conflictResolutionTask.Result.NewSolution,
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 // The user hasn't cancelled by now, so we're done waiting for them. Off to
                 // rename!
-                waitContext.Message = EditorFeaturesResources.UpdatingFiles;
+                waitContext.Message = EditorFeaturesResources.Updating_files;
 
                 Dismiss(rollbackTemporaryEdits: true);
                 CancelAllOpenDocumentTrackingTasks();
@@ -624,13 +624,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var notificationService = _workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(
-                    EditorFeaturesResources.RenameOperationWasCancelled,
-                    EditorFeaturesResources.RenameSymbol,
+                    EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid,
+                    EditorFeaturesResources.Rename_Symbol,
                     NotificationSeverity.Error);
                 return;
             }
 
-            using (var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.FontAndColors_InlineRename))
+            using (var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename))
             {
                 var finalSolution = newSolution.Workspace.CurrentSolution;
                 foreach (var id in changedDocumentIDs)
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var newDocument = newSolution.GetDocument(id);
                     if (newDocument.SupportsSyntaxTree)
                     {
-                        var root = newDocument.GetSyntaxRootAsync(waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+                        var root = newDocument.GetSyntaxRootSynchronously(waitContext.CancellationToken);
                         finalSolution = finalSolution.WithDocumentSyntaxRoot(id, root);
                     }
                     else
@@ -659,8 +659,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     {
                         var notificationService = _workspace.Services.GetService<INotificationService>();
                         notificationService.SendNotification(
-                            EditorFeaturesResources.RenameOperationWasNotProperlyCompleted,
-                            EditorFeaturesResources.RenameSymbol,
+                            EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
+                            EditorFeaturesResources.Rename_Symbol,
                             NotificationSeverity.Information);
                     }
 
@@ -672,9 +672,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         internal bool TryGetContainingEditableSpan(SnapshotPoint point, out SnapshotSpan editableSpan)
         {
             editableSpan = default(SnapshotSpan);
-
-            OpenTextBufferManager bufferManager;
-            if (!_openTextBuffers.TryGetValue(point.Snapshot.TextBuffer, out bufferManager))
+            if (!_openTextBuffers.TryGetValue(point.Snapshot.TextBuffer, out var bufferManager))
             {
                 return false;
             }

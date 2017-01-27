@@ -20,24 +20,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(IErrorTag))]
     internal partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
-        private readonly bool _blueSquiggleForBuildDiagnostic;
-
         private static readonly IEnumerable<Option<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider);
+
         protected internal override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
+
+        private bool? _blueSquiggleForBuildDiagnostic;
 
         [ImportingConstructor]
         public DiagnosticsSquiggleTaggerProvider(
-            IOptionService optionService,
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
             : base(diagnosticService, notificationService, listeners)
         {
-            _blueSquiggleForBuildDiagnostic = optionService.GetOption(InternalDiagnosticsOptions.BlueSquiggleForBuildDiagnostic);
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
@@ -85,12 +85,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return null;
             }
 
-            if (diagnostic.IsBuildDiagnostic() && _blueSquiggleForBuildDiagnostic)
+            if (diagnostic.IsBuildDiagnostic() && UseBlueSquiggleForBuildDiagnostics(diagnostic))
             {
                 return PredefinedErrorTypeNames.CompilerError;
             }
 
             return null;
+        }
+
+        private bool UseBlueSquiggleForBuildDiagnostics(DiagnosticData data)
+        {
+            if (_blueSquiggleForBuildDiagnostic == null)
+            {
+                var optionService = data.Workspace.Services.GetService<IOptionService>();
+                _blueSquiggleForBuildDiagnostic = optionService.GetOption(InternalDiagnosticsOptions.BlueSquiggleForBuildDiagnostic);
+            }
+
+            return _blueSquiggleForBuildDiagnostic.Value;
         }
 
         private string GetErrorTypeFromDiagnosticTags(DiagnosticData diagnostic)

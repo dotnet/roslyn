@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Notification
                 // now it runs for all workspace, make sure we get rid of entry from the map
                 // as soon as it is not needed.
                 // this whole thing will go away when workspace disable itself from solution crawler.
-                VersionStamp unused;
-                _map.TryRemove(documentId, out unused);
+                _map.TryRemove(documentId, out var unused);
             }
 
             public void RemoveProject(ProjectId projectId)
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Notification
                 return false;
             }
 
-            public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+            public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 // method body change
                 if (bodyOpt != null || !document.IsOpen())
@@ -82,10 +81,8 @@ namespace Microsoft.CodeAnalysis.Notification
 
                 // get semantic version for the project this document belongs to
                 var newVersion = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
                 // check whether we already saw semantic version change
-                VersionStamp oldVersion;
-                if (_map.TryGetValue(document.Id, out oldVersion) && oldVersion == newVersion)
+                if (_map.TryGetValue(document.Id, out var oldVersion) && oldVersion == newVersion)
                 {
                     return;
                 }
@@ -106,12 +103,12 @@ namespace Microsoft.CodeAnalysis.Notification
                 return SpecializedTasks.EmptyTask;
             }
 
-            public Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+            public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
             }
 
-            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
             }

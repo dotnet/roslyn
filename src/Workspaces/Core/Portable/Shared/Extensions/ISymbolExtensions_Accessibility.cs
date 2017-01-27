@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -38,8 +37,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             IAssemblySymbol within,
             ITypeSymbol throughTypeOpt = null)
         {
-            bool failedThroughTypeCheck;
-            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck);
+            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out var failedThroughTypeCheck);
         }
 
         /// <summary>
@@ -51,8 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             INamedTypeSymbol within,
             ITypeSymbol throughTypeOpt = null)
         {
-            bool failedThroughTypeCheck;
-            return IsSymbolAccessible(symbol, within, throughTypeOpt, out failedThroughTypeCheck);
+            return IsSymbolAccessible(symbol, within, throughTypeOpt, out var failedThroughTypeCheck);
         }
 
         /// <summary>
@@ -107,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return IsNamedTypeAccessible((INamedTypeSymbol)symbol, within);
 
                 case SymbolKind.ErrorType:
+                case SymbolKind.Discard:
                     return true;
 
                 case SymbolKind.TypeParameter:

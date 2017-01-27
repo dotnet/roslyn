@@ -76,6 +76,141 @@ public class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ExpressionBody)]
+        public void ExpressionBodiedClassDestructor()
+        {
+            var text = @"
+using System;
+
+public class Base
+{
+    ~Base() => Console.WriteLine(""~Base"");
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        Base b = new Base();
+        b = null;
+        GC.Collect(GC.MaxGeneration);
+        GC.WaitForPendingFinalizers();
+    }
+}
+";
+            var validator = GetDestructorValidator("Base");
+            var compVerifier = CompileAndVerify(text,
+                sourceSymbolValidator: validator,
+                symbolValidator: validator,
+                expectedOutput: @"~Base",
+                expectedSignatures: new[]
+                {
+                    Signature("Base", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
+                });
+
+            compVerifier.VerifyIL("Base.Finalize", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  ldstr      ""~Base""
+    IL_0005:  call       ""void System.Console.WriteLine(string)""
+    IL_000a:  leave.s    IL_0013
+  }
+  finally
+  {
+    IL_000c:  ldarg.0
+    IL_000d:  call       ""void object.Finalize()""
+    IL_0012:  endfinally
+  }
+  IL_0013:  ret
+}
+");
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ExpressionBody)]
+        public void ExpressionBodiedSubClassDestructor()
+        {
+            var text = @"
+using System;
+
+public class Base
+{
+    ~Base() => Console.WriteLine(""~Base"");
+}
+
+public class Derived : Base
+{
+    ~Derived() => Console.WriteLine(""~Derived"");
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        Derived d = new Derived();
+        d = null;
+        GC.Collect(GC.MaxGeneration);
+        GC.WaitForPendingFinalizers();
+    }
+}
+";
+            var validator = GetDestructorValidator("Derived");
+            var compVerifier = CompileAndVerify(text,
+                sourceSymbolValidator: validator,
+                symbolValidator: validator,
+                expectedOutput: @"~Derived
+~Base",
+                expectedSignatures: new[]
+                {
+                    Signature("Base", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed"),
+                    Signature("Derived", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
+                });
+
+            compVerifier.VerifyIL("Base.Finalize", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  ldstr      ""~Base""
+    IL_0005:  call       ""void System.Console.WriteLine(string)""
+    IL_000a:  leave.s    IL_0013
+  }
+  finally
+  {
+    IL_000c:  ldarg.0
+    IL_000d:  call       ""void object.Finalize()""
+    IL_0012:  endfinally
+  }
+  IL_0013:  ret
+}
+");
+            compVerifier.VerifyIL("Derived.Finalize", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  ldstr      ""~Derived""
+    IL_0005:  call       ""void System.Console.WriteLine(string)""
+    IL_000a:  leave.s    IL_0013
+  }
+  finally
+  {
+    IL_000c:  ldarg.0
+    IL_000d:  call       ""void Base.Finalize()""
+    IL_0012:  endfinally
+  }
+  IL_0013:  ret
+}
+");
+            compVerifier.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void SubclassDestructor()
         {
             var text = @"
@@ -120,7 +255,7 @@ public class Program
                     Signature("Derived", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
                 });
 
-            compVerifier.VerifyIL("Base.Finalize", @"
+        compVerifier.VerifyIL("Base.Finalize", @"
 {
   // Code size       20 (0x14)
   .maxstack  1
@@ -139,7 +274,26 @@ public class Program
   IL_0013:  ret
 }
 ");
-            compVerifier.VerifyDiagnostics();
+        compVerifier.VerifyIL("Derived.Finalize", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  ldstr      ""~Derived""
+    IL_0005:  call       ""void System.Console.WriteLine(string)""
+    IL_000a:  leave.s    IL_0013
+  }
+  finally
+  {
+    IL_000c:  ldarg.0
+    IL_000d:  call       ""void Base.Finalize()""
+    IL_0012:  endfinally
+  }
+  IL_0013:  ret
+}
+");
+        compVerifier.VerifyDiagnostics();
         }
 
         [Fact]

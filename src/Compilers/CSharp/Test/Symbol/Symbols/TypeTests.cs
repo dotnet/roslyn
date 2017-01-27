@@ -1796,7 +1796,7 @@ class Foo {
             var Func_Dynamic = (Foo.GetMembers("Z")[0] as FieldSymbol).Type;
             var Func_Object = (Foo.GetMembers("W")[0] as FieldSymbol).Type;
 
-            var comparator = TypeSymbol.EqualsIgnoringDynamicComparer;
+            var comparator = TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer;
             Assert.NotEqual(Object, Dynamic);
             Assert.Equal(comparator.GetHashCode(Dynamic), comparator.GetHashCode(Object));
             Assert.True(comparator.Equals(Dynamic, Object));

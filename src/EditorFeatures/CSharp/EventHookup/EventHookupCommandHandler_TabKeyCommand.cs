@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
         {
             AssertIsForeground();
-            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.EventHookup))
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.EventHookup))
             {
                 nextHandler();
                 return;
@@ -129,13 +129,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 }
 
                 var position = textView.GetCaretPoint(subjectBuffer).Value.Position;
-                int plusEqualTokenEndPosition;
-
                 var solutionWithEventHandler = CreateSolutionWithEventHandler(
                     document,
                     eventHandlerMethodName,
                     position,
-                    out plusEqualTokenEndPosition,
+                    out var plusEqualTokenEndPosition,
                     cancellationToken);
 
                 if (solutionWithEventHandler == null)

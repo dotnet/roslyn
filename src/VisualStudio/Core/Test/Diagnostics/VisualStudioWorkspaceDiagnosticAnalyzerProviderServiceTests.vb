@@ -18,15 +18,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Assert.Equal(packages.Count(), 3)
 
             Assert.Equal(packages(0).Name, "Vsix")
-            Assert.Equal(packages(0).Assemblies.Length, 1)
+            Assert.Equal(packages(0).Assemblies.Length, 3)
             Assert.Equal(packages(0).Assemblies(0), "ResolvedRootFolder\test\test.dll")
 
             Assert.Equal(packages(1).Name, "Vsix")
-            Assert.Equal(packages(1).Assemblies.Length, 1)
+            Assert.Equal(packages(1).Assemblies.Length, 3)
             Assert.Equal(packages(1).Assemblies(0), "ResolvedShellFolder\test\test.dll")
 
             Assert.Equal(packages(2).Name, "Vsix")
-            Assert.Equal(packages(2).Assemblies.Length, 1)
+            Assert.Equal(packages(2).Assemblies.Length, 3)
             Assert.Equal(packages(2).Assemblies(0), "\InstallPath\test\test.dll")
         End Sub
 

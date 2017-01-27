@@ -62,6 +62,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return new UnifiedArgumentSyntax(_argument.WithAdditionalAnnotations(annotation));
         }
 
+        public SyntaxNode Expression
+        {
+            get
+            {
+                return _argument.IsKind(SyntaxKind.Argument)
+                    ? ((ArgumentSyntax)_argument).Expression
+                    : ((AttributeArgumentSyntax)_argument).Expression;
+            }
+        }
+
         public bool IsDefault
         {
             get

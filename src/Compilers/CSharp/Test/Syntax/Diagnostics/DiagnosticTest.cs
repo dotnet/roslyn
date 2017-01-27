@@ -5,15 +5,47 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class DiagnosticTest : CSharpTestBase
     {
+        /// <summary>
+        /// Ensure string resources are included.
+        /// </summary>
+        [Fact]
+        public void Resources()
+        {
+            var excludedErrorCodes = new[]
+            {
+                ErrorCode.Void,
+                ErrorCode.Unknown,
+                ErrorCode.WRN_ALinkWarn, // Not reported, but retained to allow configuring class of related warnings. See CSharpDiagnosticFilter.Filter.
+            };
+            foreach (ErrorCode code in Enum.GetValues(typeof(ErrorCode)))
+            {
+                if (Array.IndexOf(excludedErrorCodes, code) >= 0)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var message = ErrorFacts.GetMessage(code, CultureInfo.InvariantCulture);
+                    Assert.False(string.IsNullOrEmpty(message));
+                }
+                catch (Exception)
+                {
+                    System.Console.WriteLine($"Failed on {code}");
+                    throw;
+                }
+            }
+        }
+
         [Fact]
         public void TestDiagnostic()
         {
@@ -181,16 +213,8 @@ class X
                     Assert.True(ErrorFacts.IsWarning(errorCode));
                     switch (errorCode)
                     {
-                        case ErrorCode.WRN_MainIgnored:
-                            Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_DelaySignButNoKey:
                         case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
-                        case ErrorCode.WRN_InvalidVersionFormat:
-                            Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_UnimplementedCommandLineSwitch:
                         case ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName:
                         case ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName:
@@ -198,25 +222,26 @@ class X
                         case ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden:
                         case ErrorCode.WRN_RefCultureMismatch:
                         case ErrorCode.WRN_ConflictingMachineAssembly:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
-                        case ErrorCode.WRN_NubExprIsConstBool2:
-                        case ErrorCode.WRN_UnqualifiedNestedTypeInCref:
-                        case ErrorCode.WRN_NoRuntimeMetadataVersion:
-                            Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_FilterIsConstant:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
-                        case ErrorCode.WRN_PdbLocalNameTooLong:
-                            Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_AnalyzerCannotBeCreated:
                         case ErrorCode.WRN_NoAnalyzerInAssembly:
                         case ErrorCode.WRN_UnableToLoadAnalyzer:
                         case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                         case ErrorCode.WRN_AlignmentMagnitude:
+                        case ErrorCode.WRN_TupleLiteralNameMismatch:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_MainIgnored:
+                        case ErrorCode.WRN_NubExprIsConstBool2:
+                        case ErrorCode.WRN_UnqualifiedNestedTypeInCref:
+                        case ErrorCode.WRN_NoRuntimeMetadataVersion:
+                            Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_PdbLocalNameTooLong:
+                            Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_InvalidVersionFormat:
+                            Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail
@@ -2132,6 +2157,205 @@ public class A
                 // (26,36): error CS7003: Unexpected use of an unbound generic name
                 //         object a12 = typeof(Action<Action<>>);
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "Action<>").WithLocation(26, 36));
+        }
+
+        /// <summary>
+        ///    Tests if CS0075 - "To cast a negative value, you must enclose the value in parentheses" is correctly emitted.
+        /// </summary>
+        [Fact]
+        public void PossibleBadNegCast()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        var y = (ConsoleColor) - 1;
+        var z = (System.ConsoleColor) - 1;
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics(new[]
+            {
+                // (6,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = (ConsoleColor) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 18),
+                // (6,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
+                //         var y = (ConsoleColor) - 1;
+                Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(ConsoleColor) - 1").WithLocation(6, 17),
+                // (6,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = (ConsoleColor) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 18),
+                // (7,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var z = (System.ConsoleColor) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 18),
+                // (7,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
+                //         var z = (System.ConsoleColor) - 1;
+                Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(System.ConsoleColor) - 1").WithLocation(7, 17),
+                // (7,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var z = (System.ConsoleColor) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 18)
+            });
+        }
+
+        /// <summary>
+        ///    Tests if fixing CS0075 - "To cast a negative value, you must enclose the value in parentheses" works. (fixed version of <see cref="PossibleBadNegCast"/>).
+        /// </summary>
+        [Fact]
+        public void PossibleBadNegCastFixed()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        var y = (ConsoleColor) (- 1);
+        var z = (System.ConsoleColor) (- 1);
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics(new[]
+            {
+                // (6,13): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         var y = (ConsoleColor) (- 1);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
+                // (7,13): warning CS0219: The variable 'z' is assigned but its value is never used
+                //         var z = (System.ConsoleColor) (- 1);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z").WithArguments("z").WithLocation(7, 13)
+            });
+        }
+
+        /// <summary>
+        ///    Tests if CS0075 - "To cast a negative value, you must enclose the value in parentheses" is only emitted if the left side is (would be) a cast expression.
+        /// </summary>
+        [Fact]
+        public void PossibleBadNegCastNotEmitted()
+        {
+            var source = @"using System;
+
+class Program
+{
+    static void Main()
+    {
+        var w = ((ConsoleColor)) - 1;
+        var x = ConsoleColor - 1;
+        var y = ((System.ConsoleColor)) - 1;
+        var z = System.ConsoleColor - 1;
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics(new[]
+            {
+                // (7,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var w = ((ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 19),
+                // (7,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var w = ((ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 19),
+                // (7,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var w = ((ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 19),
+                // (8,17): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var x = ConsoleColor - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(8, 17),
+                // (9,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = ((System.ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(9, 19),
+                // (9,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = ((System.ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(9, 19),
+                // (9,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = ((System.ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(9, 19),
+                // (10,17): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var z = System.ConsoleColor - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(10, 17)
+            });
+        }
+
+        /// <summary>
+        ///    Tests if CS0075 - "To cast a negative value, you must enclose the value in parentheses" is also emitted for dynamic casts.
+        /// </summary>
+        [Fact]
+        public void PossibleBadNegCastDynamic()
+        {
+            var source = @"class Program
+{
+    static void Main()
+    {
+        var y = (dynamic) - 1;
+        var z = (@dynamic) - 1;
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics(new[]
+            {
+                // (5,18): error CS0103: The name 'dynamic' does not exist in the current context
+                //         var y = (dynamic) - 1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(5, 18),
+                // (5,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
+                //         var y = (dynamic) - 1;
+                Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(dynamic) - 1").WithLocation(5, 17),
+                // (6,18): error CS0103: The name 'dynamic' does not exist in the current context
+                //         var z = (@dynamic) - 1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@dynamic").WithArguments("dynamic").WithLocation(6, 18),
+                // (6,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
+                //         var z = (@dynamic) - 1;
+                Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(@dynamic) - 1").WithLocation(6, 17)
+            });
+        }
+
+        /// <summary>
+        ///    Tests if CS0075 - "To cast a negative value, you must enclose the value in parentheses" is also emitted for dynamic casts when a local variable called 'dynamic' is defined.
+        /// </summary>
+        [Fact]
+        public void PossibleBadNegCastDynamicWithLocal()
+        {
+            var source = @"class Program
+{
+    static void Main()
+    {
+        var dynamic = 1;
+        var y = (dynamic) - 1;
+        var z = (@dynamic) - 1;
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics();
+        }
+
+        /// <summary>
+        ///    Tests if CS0075 - "To cast a negative value, you must enclose the value in parentheses" is also emitted for dynamic casts when a method called 'dynamic' is defined.
+        /// </summary>
+        [Fact]
+        public void PossibleBadNegCastDynamicWithMethod()
+        {
+            var source = @"class Program
+{
+    static void Main()
+    {
+        var y = (dynamic) - 1;
+        var z = (@dynamic) - 1;
+    }
+
+    static void dynamic() {}
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics(new[]
+            {
+                // (5,17): error CS0019: Operator '-' cannot be applied to operands of type 'method group' and 'int'
+                //         var y = (dynamic) - 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(dynamic) - 1").WithArguments("-", "method group", "int").WithLocation(5, 17),
+                // (6,17): error CS0019: Operator '-' cannot be applied to operands of type 'method group' and 'int'
+                //         var z = (@dynamic) - 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(@dynamic) - 1").WithArguments("-", "method group", "int").WithLocation(6, 17)
+            });
         }
 
         #region Mocks

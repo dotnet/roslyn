@@ -25,12 +25,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (model != null && this.IsCaretOutsideAllItemBounds(model, this.GetCaretPointInViewBuffer()))
             {
                 // If the caret moved out of bounds of our items, then we want to dismiss the list. 
-                this.StopModelComputation();
+                this.DismissSessionIfActive();
             }
             else
             {
                 // Filter the model, recheck the caret position if we haven't computed the initial model yet
-                sessionOpt.FilterModel(CompletionFilterReason.TypeChar, recheckCaretPosition: model == null);
+                sessionOpt.FilterModel(
+                    CompletionFilterReason.TypeChar,
+                    recheckCaretPosition: model == null,
+                    dismissIfEmptyAllowed: true,
+                    filterState: null);
             }
         }
     }

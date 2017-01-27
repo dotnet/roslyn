@@ -245,45 +245,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)underlying != null);
             Debug.Assert(underlying.SpecialType != SpecialType.None);
 
-            NamedTypeSymbol nullableEnum = null;
-            NamedTypeSymbol nullableUnderlying = null;
-
-            // PERF: avoid instantiating nullable types in common simple cases.
-            var leftType = left.Type;
-            var rightType = right.Type;
-            var simpleCase = leftType?.IsValueType == true &&
-                             rightType?.IsValueType == true &&
-                             leftType.IsNullableType() == false &&
-                             rightType.IsNullableType() == false;
-
-            if (!simpleCase)
-            {
-                var nullable = Compilation.GetSpecialType(SpecialType.System_Nullable_T);
-                nullableEnum = nullable.Construct(enumType);
-                nullableUnderlying = nullable.Construct(underlying);
-            }
+            var nullable = Compilation.GetSpecialType(SpecialType.System_Nullable_T);
+            var nullableEnum = nullable.Construct(enumType);
+            var nullableUnderlying = nullable.Construct(underlying);
 
             switch (kind)
             {
                 case BinaryOperatorKind.Addition:
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumAndUnderlyingAddition, enumType, underlying, enumType));
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UnderlyingAndEnumAddition, underlying, enumType, enumType));
-                    if (!simpleCase)
-                    {
-                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingAddition, nullableEnum, nullableUnderlying, nullableEnum));
-                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumAddition, nullableUnderlying, nullableEnum, nullableEnum));
-                    }
+                    operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingAddition, nullableEnum, nullableUnderlying, nullableEnum));
+                    operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumAddition, nullableUnderlying, nullableEnum, nullableEnum));
                     break;
                 case BinaryOperatorKind.Subtraction:
                     if (Strict)
                     {
                         operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumSubtraction, enumType, enumType, underlying));
                         operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumAndUnderlyingSubtraction, enumType, underlying, enumType));
-                        if (!simpleCase)
-                        {
-                            operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumSubtraction, nullableEnum, nullableEnum, nullableUnderlying));
-                            operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingSubtraction, nullableEnum, nullableUnderlying, nullableEnum));
-                        }
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumSubtraction, nullableEnum, nullableEnum, nullableUnderlying));
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingSubtraction, nullableEnum, nullableUnderlying, nullableEnum));
                     }
                     else
                     {
@@ -297,22 +277,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         { Priority = 2 });
                         operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumAndUnderlyingSubtraction, enumType, underlying, enumType)
                         { Priority = isExactSubtraction ? 1 : 3 });
-                        if (!simpleCase)
-                        {
-                            operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumSubtraction, nullableEnum, nullableEnum, nullableUnderlying)
-                            { Priority = 12 });
-                            operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingSubtraction, nullableEnum, nullableUnderlying, nullableEnum)
-                            { Priority = isExactSubtraction ? 11 : 13 });
-                        }
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumSubtraction, nullableEnum, nullableEnum, nullableUnderlying)
+                        { Priority = 12 });
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingSubtraction, nullableEnum, nullableUnderlying, nullableEnum)
+                        { Priority = isExactSubtraction ? 11 : 13 });
 
                         // Due to a bug, the native compiler allows "underlying - enum", so Roslyn does as well.
                         operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UnderlyingAndEnumSubtraction, underlying, enumType, enumType)
                         { Priority = 4 });
-                        if (!simpleCase)
-                        {
-                            operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumSubtraction, nullableUnderlying, nullableEnum, nullableEnum)
-                            { Priority = 14 });
-                        }
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumSubtraction, nullableUnderlying, nullableEnum, nullableEnum)
+                        { Priority = 14 });
                     }
                     break;
                 case BinaryOperatorKind.Equal:
@@ -323,19 +297,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.LessThanOrEqual:
                     var boolean = Compilation.GetSpecialType(SpecialType.System_Boolean);
                     operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Enum, enumType, enumType, boolean));
-                    if (!simpleCase)
-                    {
-                        operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Lifted | BinaryOperatorKind.Enum, nullableEnum, nullableEnum, boolean));
-                    }
+                    operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Lifted | BinaryOperatorKind.Enum, nullableEnum, nullableEnum, boolean));
                     break;
                 case BinaryOperatorKind.And:
                 case BinaryOperatorKind.Or:
                 case BinaryOperatorKind.Xor:
                     operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Enum, enumType, enumType, enumType));
-                    if (!simpleCase)
-                    {
-                        operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Lifted | BinaryOperatorKind.Enum, nullableEnum, nullableEnum, nullableEnum));
-                    }
+                    operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Lifted | BinaryOperatorKind.Enum, nullableEnum, nullableEnum, nullableEnum));
                     break;
             }
         }
@@ -653,10 +621,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Return types must match exactly, parameters might match modulo identity conversion.
                     if (op.Signature.Kind == existingSignature.Kind && // Easy out
-                        op.Signature.ReturnType.Equals(existingSignature.ReturnType, ignoreDynamic: false) &&
-                        op.Signature.LeftType.Equals(existingSignature.LeftType, ignoreDynamic: true) &&
-                        op.Signature.RightType.Equals(existingSignature.RightType, ignoreDynamic: true) &&
-                        op.Signature.Method.ContainingType.Equals(existingSignature.Method.ContainingType, ignoreDynamic: true))
+                        op.Signature.ReturnType.Equals(existingSignature.ReturnType, TypeCompareKind.ConsiderEverything) &&
+                        op.Signature.LeftType.Equals(existingSignature.LeftType, TypeCompareKind.IgnoreDynamicAndTupleNames) &&
+                        op.Signature.RightType.Equals(existingSignature.RightType, TypeCompareKind.IgnoreDynamicAndTupleNames) &&
+                        op.Signature.Method.ContainingType.Equals(existingSignature.Method.ContainingType, TypeCompareKind.IgnoreDynamicAndTupleNames))
                     {
                         equivalentToExisting = true;
                         break;
@@ -843,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // UNDONE: This is a naive quadratic algorithm; there is a linear algorithm that works. Consider using it.
             var candidates = result.Results;
-            for (int i = 0; i < candidates.Count; ++i)
+            for (int i = 1; i < candidates.Count; ++i)
             {
                 if (candidates[i].Kind != OperatorAnalysisResultKind.Applicable)
                 {
@@ -851,12 +819,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Is this applicable operator better than every other applicable method?
-                for (int j = 0; j < candidates.Count; ++j)
+                for (int j = 0; j < i; ++j)
                 {
-                    if (i == j)
-                    {
-                        continue;
-                    }
                     if (candidates[j].Kind == OperatorAnalysisResultKind.Inapplicable)
                     {
                         continue;

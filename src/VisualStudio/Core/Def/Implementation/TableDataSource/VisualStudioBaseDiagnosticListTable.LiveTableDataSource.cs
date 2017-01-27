@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 PopulateInitialData(workspace, diagnosticService);
             }
 
-            public override string DisplayName => ServicesVSResources.DiagnosticsTableSourceName;
+            public override string DisplayName => ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => _identifier;
             public override object GetItemKey(object data) => ((UpdatedEventArgs)data).Id;
@@ -334,7 +334,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = item.ProjectGuids;
                             return ((Guid[])content).Length > 0;
                         case SuppressionStateColumnDefinition.ColumnName:
-                            content = data.IsSuppressed ? ServicesVSResources.SuppressionStateSuppressed : ServicesVSResources.SuppressionStateActive;
+                            content = data.IsSuppressed ? ServicesVSResources.Suppressed : ServicesVSResources.Active;
                             return true;
                         default:
                             content = null;
@@ -366,8 +366,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 private ErrorRank GetErrorRank(DiagnosticData item)
                 {
-                    string value;
-                    if (!item.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out value))
+                    if (!item.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out var value))
                     {
                         return ErrorRank.Other;
                     }

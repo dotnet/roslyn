@@ -7,9 +7,10 @@ Option Compare Binary
 Option Strict On
 
 Imports System.Collections.Immutable
+Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
-Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
@@ -71,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Private Sub ProcessDirective(directiveTrivia As DirectiveTriviaSyntax, tList As SyntaxListBuilder)
 
-            Dim disabledCode As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim disabledCode As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = Nothing
             Dim statement As DirectiveTriviaSyntax = directiveTrivia
 
             Dim newState = ApplyDirective(_scannerPreprocessorState,
@@ -121,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return preprocessorState
         End Function
 
-        Private Shared Function ApplyDirectivesRecursive(preprocessorState As PreprocessorState, node As VisualBasicSyntaxNode) As PreprocessorState
+        Private Shared Function ApplyDirectivesRecursive(preprocessorState As PreprocessorState, node As GreenNode) As PreprocessorState
             Debug.Assert(node.ContainsDirectives, "we should not be processing nodes without Directives")
 
             ' node is a directive
@@ -141,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 For i As Integer = 0 To sCount - 1
                     Dim child = node.GetSlot(i)
                     If child IsNot Nothing AndAlso child.ContainsDirectives Then
-                        preprocessorState = ApplyDirectivesRecursive(preprocessorState, DirectCast(child, VisualBasicSyntaxNode))
+                        preprocessorState = ApplyDirectivesRecursive(preprocessorState, child)
                     End If
                 Next
 
@@ -524,7 +525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '// 
         '//-------------------------------------------------------------------------------------------------
 
-        Private Function SkipConditionalCompilationSection() As SyntaxList(Of VisualBasicSyntaxNode)
+        Private Function SkipConditionalCompilationSection() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
             ' // If skipping encounters a nested #if, it is necessary to skip all of it through its
             ' // #end. NestedConditionalsToSkip keeps track of how many nested #if constructs
             ' // need skipping.
@@ -611,9 +612,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End While
 
             If lengthSkipped > 0 Then
-                Return New SyntaxList(Of VisualBasicSyntaxNode)(Me.GetDisabledTextAt(New TextSpan(startSkipped, lengthSkipped)))
+                Return New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(Me.GetDisabledTextAt(New TextSpan(startSkipped, lengthSkipped)))
             Else
-                Return New SyntaxList(Of VisualBasicSyntaxNode)(Nothing)
+                Return New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(Nothing)
             End If
         End Function
 

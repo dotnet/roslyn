@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,15 +22,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
-                private sealed class NormalPriorityProcessor : GlobalOperationAwareIdleProcessor
+                private sealed class NormalPriorityProcessor : AbstractPriorityProcessor
                 {
                     private const int MaxHighPriorityQueueCache = 29;
 
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
-
-                    private readonly Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
                     private readonly ConcurrentDictionary<DocumentId, IDisposable> _higherPriorityDocumentsNotProcessed;
-
                     private readonly HashSet<ProjectId> _currentSnapshotVersionTrackingSet;
 
                     private ProjectId _currentProjectProcessing;
@@ -48,10 +44,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IGlobalOperationNotificationService globalOperationNotificationService,
                         int backOffTimeSpanInMs,
                         CancellationToken shutdownToken) :
-                        base(listener, processor, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
+                        base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
                     {
-                        _lazyAnalyzers = lazyAnalyzers;
-
                         _running = SpecializedTasks.EmptyTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable>(concurrencyLevel: 2, capacity: 20);
@@ -62,14 +56,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _currentSnapshotVersionTrackingSet = new HashSet<ProjectId>();
 
                         Start();
-                    }
-
-                    internal ImmutableArray<IIncrementalAnalyzer> Analyzers
-                    {
-                        get
-                        {
-                            return _lazyAnalyzers.Value;
-                        }
                     }
 
                     public void Enqueue(WorkItem item)
@@ -170,13 +156,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 // successfully processed a high priority document.
                                 return;
                             }
-
                             // process one of documents remaining
-                            var documentCancellation = default(CancellationTokenSource);
-                            WorkItem workItem;
                             if (!_workItemQueue.TryTakeAnyWork(
                                 _currentProjectProcessing, this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService,
-                                out workItem, out documentCancellation))
+                                out var workItem, out var documentCancellation))
                             {
                                 return;
                             }
@@ -222,6 +205,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     protected override void PauseOnGlobalOperation()
                     {
+                        base.PauseOnGlobalOperation();
+
                         _workItemQueue.RequestCancellationOnRunningTasks();
                     }
 
@@ -287,22 +272,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         try
                         {
-                            // this is a best effort algorithm with some shortcomings.
-                            //
-                            // the most obvious issue is if there is a new work item (without a solution change - but very unlikely) 
-                            // for a opened document we already processed, the work item will be treated as a regular one rather than higher priority one
-                            // (opened document)
-                            CancellationTokenSource documentCancellation;
                             foreach (var documentId in this.GetPrioritizedPendingDocuments())
                             {
                                 if (this.CancellationToken.IsCancellationRequested)
                                 {
                                     return true;
                                 }
-
+                                // this is a best effort algorithm with some shortcomings.
+                                //
+                                // the most obvious issue is if there is a new work item (without a solution change - but very unlikely) 
+                                // for a opened document we already processed, the work item will be treated as a regular one rather than higher priority one
+                                // (opened document)
                                 // see whether we have work item for the document
-                                WorkItem workItem;
-                                if (!_workItemQueue.TryTake(documentId, out workItem, out documentCancellation))
+                                if (!_workItemQueue.TryTake(documentId, out var workItem, out var documentCancellation))
                                 {
                                     RemoveHigherPriorityDocument(documentId);
                                     continue;
@@ -326,8 +308,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private void RemoveHigherPriorityDocument(DocumentId documentId)
                     {
                         // remove opened document processed
-                        IDisposable projectCache;
-                        if (_higherPriorityDocumentsNotProcessed.TryRemove(documentId, out projectCache))
+                        if (_higherPriorityDocumentsNotProcessed.TryRemove(documentId, out var projectCache))
                         {
                             DisposeProjectCache(projectCache);
                         }
@@ -349,6 +330,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 var cancellationToken = source.Token;
                                 var document = _processingSolution.GetDocument(documentId);
+
                                 if (document != null)
                                 {
                                     await TrackSemanticVersionsAsync(document, workItem, cancellationToken).ConfigureAwait(false);
@@ -472,15 +454,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.DocumentResetAsync(d, c), cancellationToken).ConfigureAwait(false);
 
                             // no request to re-run syntax change analysis. run it here
-                            if (!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
+                            var reasons = workItem.InvocationReasons;
+                            if (!reasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
                             {
-                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeSyntaxAsync(d, c), cancellationToken).ConfigureAwait(false);
+                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeSyntaxAsync(d, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
 
                             // no request to re-run semantic change analysis. run it here
                             if (!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged))
                             {
-                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, c), cancellationToken).ConfigureAwait(false);
+                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -530,7 +513,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 _currentSnapshotVersionTrackingSet.Clear();
 
                                 _processingSolution = currentSolution;
-                                
+
                                 await RunAnalyzersAsync(this.Analyzers, currentSolution, (a, s, c) => a.NewSolutionSnapshotAsync(s, c), this.CancellationToken).ConfigureAwait(false);
 
                                 foreach (var id in this.Processor.GetOpenDocumentIds())

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -39,7 +38,20 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This is the most common value used for <see cref="CompletionItem.Span"/> and will
         /// be automatically assigned to any <see cref="CompletionItem"/> that has no <see cref="CompletionItem.Span"/> specified.
         /// </summary>
+        [Obsolete("Not used anymore. Use CompletionListSpan instead.", error: true)]
         public TextSpan DefaultItemSpan { get; }
+
+        /// <summary>
+        /// The span of the document the completion list corresponds to.  It will be set initially to
+        /// the result of <see cref="CompletionService.GetDefaultCompletionListSpan"/>, but it can
+        /// be overwritten bduring <see cref="CompletionService.GetCompletionsAsync"/>.  The purpose
+        /// of the span is to:
+        ///     1. Signify where the completions should be presented.
+        ///     2. Designate any existing text in the document that should be used for filtering.
+        ///     3. Specify, by default, what portion of the text should be replaced when a completion 
+        ///        item is committed.
+        /// </summary>
+        public TextSpan CompletionListSpan { get; set; }
 
         /// <summary>
         /// The triggering action that caused completion to be started.
@@ -73,27 +85,12 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            if (provider == null)
-            {
-                throw new ArgumentNullException(nameof(provider));
-            }
-
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            if (options == null)
-            {
-                throw new ArgumentException(nameof(options));
-            }
-
-            this.Provider = provider;
-            this.Document = document;
+            this.Provider = provider ?? throw new ArgumentNullException(nameof(provider));
+            this.Document = document ?? throw new ArgumentNullException(nameof(document));
             this.Position = position;
-            this.DefaultItemSpan = defaultSpan;
+            this.CompletionListSpan = defaultSpan;
             this.Trigger = trigger;
-            this.Options = options;
+            this.Options = options ?? throw new ArgumentException(nameof(options));
             this.CancellationToken = cancellationToken;
             _items = new List<CompletionItem>();
         }
@@ -157,11 +154,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // remember provider so we can find it again later
             item = item.AddProperty("Provider", this.Provider.Name);
 
-            // assign the default span if not set by provider
-            if (item.Span == default(TextSpan) && this.DefaultItemSpan != default(TextSpan))
-            {
-                item = item.WithSpan(this.DefaultItemSpan);
-            }
+            item.Span = this.CompletionListSpan;
 
             return item;
         }

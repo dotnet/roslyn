@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -1656,8 +1656,8 @@ class Program
             // ensure that the extraction doesn't result in trivia moving up a line:
             //        // a        //b
             //        NewMethod();
-            await TestExtractMethodAsync(@"
-class C
+            await TestExtractMethodAsync(
+@"class C
 {
     void M()
     {
@@ -1665,9 +1665,8 @@ class C
         // b
         [|System.Console.WriteLine();|]
     }
-}
-", @"
-class C
+}", 
+@"class C
 {
     void M()
     {
@@ -1680,8 +1679,7 @@ class C
     {
         System.Console.WriteLine();
     }
-}
-");
+}");
         }
 
         [WorkItem(632351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632351")]
@@ -7351,130 +7349,6 @@ class Program
         }
         System.Console.WriteLine();
         /*End*/
-    }
-}";
-
-            await TestExtractMethodAsync(code, expected);
-        }
-
-        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public async Task Bug3790()
-        {
-            var code = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                [|v = v + i;|]
-            }
-        }
-    }
-}";
-            var expected = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                v = NewMethod(v, i);
-            }
-        }
-    }
-
-    private static int NewMethod(int v, int i)
-    {
-        v = v + i;
-        return v;
-    }
-}";
-
-            await TestExtractMethodAsync(code, expected);
-        }
-
-        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public async Task Bug3790_1()
-        {
-            var code = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                [|v = v + i|];
-            }
-        }
-    }
-}";
-            var expected = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                v = NewMethod(v, i);
-            }
-        }
-    }
-
-    private static int NewMethod(int v, int i)
-    {
-        return v + i;
-    }
-}";
-
-            await TestExtractMethodAsync(code, expected);
-        }
-
-        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public async Task Bug3790_2()
-        {
-            var code = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                [|i = v = v + i|];
-            }
-        }
-    }
-}";
-            var expected = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                i = NewMethod(ref v, i);
-            }
-        }
-    }
-
-    private static int NewMethod(ref int v, int i)
-    {
-        return v = v + i;
     }
 }";
 

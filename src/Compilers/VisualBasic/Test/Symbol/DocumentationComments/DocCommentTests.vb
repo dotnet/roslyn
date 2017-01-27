@@ -9,12 +9,51 @@ Imports System.Xml.Linq
 Imports System.Text
 Imports System.IO
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class DocCommentTests
         Inherits BasicTestBase
 
         Private Shared ReadOnly s_optionsDiagnoseDocComments As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose)
+
+        <Fact>
+        Public Sub DocCommentWriteException()
+            Dim sources =
+<compilation name="DocCommentException">
+    <file name="a.vb">
+        <![CDATA[
+''' <summary>
+''' Doc comment for <see href="C" />
+''' </summary>
+Public Class C
+    ''' <summary>
+    ''' Doc comment for method M
+    ''' </summary>
+    Public Sub M()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib(sources)
+            Dim diags = New DiagnosticBag()
+            Dim badStream = New BrokenStream()
+            badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                comp,
+                assemblyName:=Nothing,
+                xmlDocStream:=badStream,
+                diagnostics:=diags,
+                cancellationToken:=Nothing)
+
+            AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                                   <errors><![CDATA[
+BC37258: Error writing to XML documentation file: I/O error occurred.
+                                   ]]></errors>)
+        End Sub
 
         <Fact>
         Public Sub NoXmlResolver()

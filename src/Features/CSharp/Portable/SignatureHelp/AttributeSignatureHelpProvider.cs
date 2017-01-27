@@ -60,9 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            AttributeSyntax attribute;
-            if (!TryGetAttributeExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out attribute))
+            if (!TryGetAttributeExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var attribute))
             {
                 return null;
             }
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
             var accessibleConstructors = attributeType.InstanceConstructors
-                                                      .Where(c => c.IsAccessibleWithin(within))
+                                                      .WhereAsArray(c => c.IsAccessibleWithin(within))
                                                       .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
                                                       .Sort(symbolDisplayService, semanticModel, attribute.SpanStart);
 
@@ -97,14 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return CreateSignatureHelpItems(accessibleConstructors.Select(c =>
-                Convert(c, within, attribute, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormatter, cancellationToken)),
+                Convert(c, within, attribute, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormatter, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 
         public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
-            AttributeSyntax expression;
-            if (TryGetAttributeExpression(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, out expression) &&
+            if (TryGetAttributeExpression(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, out var expression) &&
                 currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
             {
                 return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);
@@ -143,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return item;
         }
 
-        private IEnumerable<SignatureHelpParameter> GetParameters(
+        private IList<SignatureHelpSymbolParameter> GetParameters(
             IMethodSymbol constructor,
             SemanticModel semanticModel,
             int position,
@@ -151,9 +148,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IDocumentationCommentFormattingService documentationCommentFormatter,
             CancellationToken cancellationToken)
         {
+            var result = new List<SignatureHelpSymbolParameter>();
             foreach (var parameter in constructor.Parameters)
             {
-                yield return Convert(parameter, semanticModel, position, documentationCommentFormatter, cancellationToken);
+                result.Add(Convert(parameter, semanticModel, position, documentationCommentFormatter, cancellationToken));
             }
 
             for (int i = 0; i < namedParameters.Count; i++)
@@ -174,13 +172,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 displayParts.Add(Space());
                 displayParts.AddRange(type.ToMinimalDisplayParts(semanticModel, position));
 
-                yield return new SignatureHelpParameter(
+                result.Add(new SignatureHelpSymbolParameter(
                     namedParameter.Name,
                     isOptional: true,
                     documentationFactory: namedParameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
                     displayParts: displayParts,
-                    prefixDisplayParts: GetParameterPrefixDisplayParts(i));
+                    prefixDisplayParts: GetParameterPrefixDisplayParts(i)));
             }
+
+            return result;
         }
 
         private static List<SymbolDisplayPart> GetParameterPrefixDisplayParts(int i)
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return null;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPreambleParts(
+        private IList<SymbolDisplayPart> GetPreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)
@@ -211,9 +211,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method)
+        private IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method)
         {
-            yield return Punctuation(SyntaxKind.CloseParenToken);
+            return SpecializedCollections.SingletonList(
+                Punctuation(SyntaxKind.CloseParenToken));
         }
     }
 }

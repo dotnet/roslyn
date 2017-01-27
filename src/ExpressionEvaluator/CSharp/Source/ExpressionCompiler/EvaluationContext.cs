@@ -12,6 +12,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.DiaSymReader;
@@ -182,8 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var currentFrame = compilation.GetMethod(moduleVersionId, methodHandle);
             Debug.Assert((object)currentFrame != null);
-            var sourceAssembly = compilation.SourceAssembly;
-            var symbolProvider = new CSharpEESymbolProvider(sourceAssembly, (PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
+            var symbolProvider = new CSharpEESymbolProvider(compilation.SourceAssembly, (PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
 
             var metadataDecoder = new MetadataDecoder((PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
             var localInfo = metadataDecoder.GetLocalInfo(localSignatureHandle);
@@ -195,7 +195,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var reuseSpan = debugInfo.ReuseSpan;
             var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-            MethodDebugInfo<TypeSymbol, LocalSymbol>.GetLocals(localsBuilder, symbolProvider, debugInfo.LocalVariableNames, localInfo, debugInfo.DynamicLocalMap);
+            MethodDebugInfo<TypeSymbol, LocalSymbol>.GetLocals(
+                localsBuilder,
+                symbolProvider,
+                debugInfo.LocalVariableNames,
+                localInfo,
+                debugInfo.DynamicLocalMap,
+                debugInfo.TupleLocalMap);
             if (!debugInfo.HoistedLocalScopeRecords.IsDefaultOrEmpty)
             {
                 inScopeHoistedLocals = new CSharpInScopeHoistedLocals(debugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref reuseSpan));
@@ -251,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using (var stream = new MemoryStream())
             {
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
+                    new EmitContext(moduleBuilder, null, diagnostics),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
@@ -295,8 +301,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var statementSyntax = expr.ParseStatement(statementDiagnostics);
                 Debug.Assert((statementSyntax == null) || !statementDiagnostics.HasAnyErrors());
                 statementDiagnostics.Free();
-
-                if (statementSyntax != null && !statementSyntax.IsKind(SyntaxKind.ExpressionStatement)) // Prefer to parse expression statements as expressions.
+                var isExpressionStatement = statementSyntax.IsKind(SyntaxKind.ExpressionStatement);
+                if (statementSyntax != null && !isExpressionStatement)
                 {
                     formatSpecifiers = null;
 
@@ -340,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using (var stream = new MemoryStream())
             {
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
+                    new EmitContext(moduleBuilder, null, diagnostics),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
@@ -364,7 +370,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        private static readonly ReadOnlyCollection<byte> s_emptyBytes = new ReadOnlyCollection<byte>(new byte[0]);
+        private static readonly ReadOnlyCollection<byte> s_emptyBytes =
+            new ReadOnlyCollection<byte>(Array.Empty<byte>());
 
         internal override ReadOnlyCollection<byte> CompileGetLocals(
             ArrayBuilder<LocalAndMethod> locals,
@@ -383,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 using (var stream = new MemoryStream())
                 {
                     Cci.PeWriter.WritePeToStream(
-                        new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
+                        new EmitContext(moduleBuilder, null, diagnostics),
                         context.MessageProvider,
                         () => stream,
                         getPortablePdbStreamOpt: null,

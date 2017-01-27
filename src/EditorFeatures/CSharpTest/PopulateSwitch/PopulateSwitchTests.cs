@@ -1,4 +1,6 @@
-﻿using System;
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,22 +19,54 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-        public async Task AllMembersAndDefaultExist()
+        public async Task OnlyOnFirstToken()
         {
             await TestMissingAsync(
-            @"
-namespace ConsoleApplication1
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            switch ([||]e)
+            {
+                case MyEnum.Fizz:
+                case MyEnum.Buzz:
+                default:
+                    break;
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        public async Task AllMembersAndDefaultExist()
+        {
+            await TestMissingAsync(
+@"namespace ConsoleApplication1
+{
+    enum MyEnum
+    {
+        Fizz,
+        Buzz,
+        FizzBuzz
+    }
+
+    class MyClass
+    {
+        void Method()
+        {
+            var e = MyEnum.Fizz;
+            [||]switch (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -42,27 +76,28 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task AllMembersExist_NotDefault()
         {
             await TestAsync(
-            @"
-namespace ConsoleApplication1
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [||]switch (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -71,15 +106,16 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-",
-                        @"
-namespace ConsoleApplication1
+}",
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
@@ -96,27 +132,28 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_NotDefault()
         {
             await TestAsync(
-            @"
-namespace ConsoleApplication1
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [||]switch (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -124,15 +161,16 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-",
-                        @"
-namespace ConsoleApplication1
+}",
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
@@ -150,27 +188,28 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-", index: 2);
+}", index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_WithDefault()
         {
             await TestAsync(
-            @"
-namespace ConsoleApplication1
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [||]switch (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -180,15 +219,16 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-",
-                        @"
-namespace ConsoleApplication1
+}",
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
@@ -206,27 +246,28 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_NotDefault_EnumHasExplicitType()
         {
             await TestAsync(
-            @"
-namespace ConsoleApplication1
+@"namespace ConsoleApplication1
 {
     enum MyEnum : long
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [||]switch (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -234,15 +275,16 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-",
-                        @"
-namespace ConsoleApplication1
+}",
+@"namespace ConsoleApplication1
 {
     enum MyEnum : long
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
@@ -260,27 +302,28 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-", index: 2);
+}", index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_WithMembersAndDefaultInSection_NewValuesAboveDefaultSection()
         {
             await TestAsync(
-            @"
-namespace ConsoleApplication1
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [||]switch (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -289,15 +332,16 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-",
-                        @"
-namespace ConsoleApplication1
+}",
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
@@ -314,27 +358,28 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_WithMembersAndDefaultInSection_AssumesDefaultIsInLastSection()
         {
             await TestAsync(
-            @"
-namespace ConsoleApplication1
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [||]switch (e)
             {
                 default:
                     break;
@@ -344,15 +389,16 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-",
-                        @"
-namespace ConsoleApplication1
+}",
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
@@ -370,40 +416,42 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NoMembersExist0()
         {
             await TestAsync(
-            @"
-namespace ConsoleApplication1
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [||]switch (e)
             {
             }
         }
     }
-}
-",
-                        @"
-namespace ConsoleApplication1
+}",
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
@@ -420,40 +468,42 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-", index: 0);
+}", index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NoMembersExist1()
         {
             await TestAsync(
-            @"
-namespace ConsoleApplication1
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [||]switch (e)
             {
             }
         }
     }
-}
-",
-                        @"
-namespace ConsoleApplication1
+}",
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
@@ -466,40 +516,42 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-", index: 1);
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NoMembersExist2()
         {
             await TestAsync(
-            @"
-namespace ConsoleApplication1
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [||]switch (e)
             {
             }
         }
     }
-}
-",
-                        @"
-namespace ConsoleApplication1
+}",
+@"namespace ConsoleApplication1
 {
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
@@ -518,16 +570,15 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-", index: 2);
+}", index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task UsingStaticEnum_AllMembersExist()
         {
             await TestMissingAsync(
-            @"
-using static System.IO.FileMode;
+@"using static System.IO.FileMode;
+
 namespace ConsoleApplication1
 {
     class MyClass
@@ -535,7 +586,7 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            switch ([|e|])
+            [||]switch (e)
             {
                 case CreateNew:
                     break;
@@ -554,16 +605,15 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task UsingStaticEnum_AllMembersExist_OutOfDefaultOrder()
         {
             await TestMissingAsync(
-            @"
-using static System.IO.FileMode;
+@"using static System.IO.FileMode;
+
 namespace ConsoleApplication1
 {
     class MyClass
@@ -571,7 +621,7 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            switch ([|e|])
+            [||]switch (e)
             {
                 case CreateNew:
                     break;
@@ -590,16 +640,15 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task UsingStaticEnum_MembersExist()
         {
             await TestAsync(
-            @"
-using static System.IO.FileMode;
+@"using static System.IO.FileMode;
+
 namespace ConsoleApplication1
 {
     class MyClass
@@ -607,7 +656,7 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            switch ([|e|])
+            [||]switch (e)
             {
                 case CreateNew:
                     break;
@@ -622,10 +671,9 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-",
-                        @"
-using static System.IO.FileMode;
+}",
+@"using static System.IO.FileMode;
+
 namespace ConsoleApplication1
 {
     class MyClass
@@ -652,16 +700,15 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task UsingStaticEnum_NoMembersExist()
         {
             await TestAsync(
-            @"
-using static System.IO.FileMode;
+@"using static System.IO.FileMode;
+
 namespace ConsoleApplication1
 {
     class MyClass
@@ -669,15 +716,14 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            switch ([|e|])
+            [||]switch (e)
             {
             }
         }
     }
-}
-",
-                        @"
-using static System.IO.FileMode;
+}",
+@"using static System.IO.FileMode;
+
 namespace ConsoleApplication1
 {
     class MyClass
@@ -704,28 +750,29 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-", index: 2);
+}", index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_NotDefault_EnumHasNonFlagsAttribute()
         {
             await TestAsync(
-            @"
-namespace ConsoleApplication1
+@"namespace ConsoleApplication1
 {
     [System.Obsolete]
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [||]switch (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -733,16 +780,17 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-",
-                        @"
-namespace ConsoleApplication1
+}",
+@"namespace ConsoleApplication1
 {
     [System.Obsolete]
     enum MyEnum
     {
-        Fizz, Buzz, FizzBuzz
+        Fizz,
+        Buzz,
+        FizzBuzz
     }
+
     class MyClass
     {
         void Method()
@@ -760,28 +808,28 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-", index: 2);
+}", index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_NotDefault_EnumIsNested()
         {
             await TestAsync(
-            @"
-namespace ConsoleApplication1
+@"namespace ConsoleApplication1
 {
     class MyClass
     {
         enum MyEnum
         {
-            Fizz, Buzz, FizzBuzz
+            Fizz,
+            Buzz,
+            FizzBuzz
         }
 
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [||]switch (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -789,16 +837,16 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-",
-                        @"
-namespace ConsoleApplication1
+}",
+@"namespace ConsoleApplication1
 {
     class MyClass
     {
         enum MyEnum
         {
-            Fizz, Buzz, FizzBuzz
+            Fizz,
+            Buzz,
+            FizzBuzz
         }
 
         void Method()
@@ -816,16 +864,15 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-", index: 2);
+}", index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_SwitchIsNotEnum()
         {
             await TestMissingAsync(
-            @"
-using System;
+@"using System;
+
 namespace ConsoleApplication1
 {
     class MyClass
@@ -833,7 +880,7 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = ""test"";
-            switch ([|e|])
+            [||]switch (e)
             {
                 case ""test1"":
                 case ""test1"":
@@ -842,59 +889,61 @@ namespace ConsoleApplication1
             }
         }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task NotAllMembersExist_NotDefault_UsingConstants()
         {
             await TestAsync(
-            @"
-    enum MyEnum
+@"enum MyEnum
+{
+    Fizz,
+    Buzz,
+    FizzBuzz
+}
+
+class MyClass
+{
+    void Method()
     {
-        Fizz, Buzz, FizzBuzz
-    }
-    class MyClass
-    {
-        void Method()
+        var e = MyEnum.Fizz;
+        [||]switch (e)
         {
-            var e = MyEnum.Fizz;
-            switch ([|e|])
-            {
-                case (MyEnum)0:
-                case (MyEnum)1:
-                    break;
-            }
+            case (MyEnum)0:
+            case (MyEnum)1:
+                break;
         }
     }
-",
-                        @"
-    enum MyEnum
+}",
+@"enum MyEnum
+{
+    Fizz,
+    Buzz,
+    FizzBuzz
+}
+
+class MyClass
+{
+    void Method()
     {
-        Fizz, Buzz, FizzBuzz
-    }
-    class MyClass
-    {
-        void Method()
+        var e = MyEnum.Fizz;
+        switch (e)
         {
-            var e = MyEnum.Fizz;
-            switch (e)
-            {
-                case (MyEnum)0:
-                case (MyEnum)1:
-                    break;
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
+            case (MyEnum)0:
+            case (MyEnum)1:
+                break;
+            case MyEnum.FizzBuzz:
+                break;
+            default:
+                break;
         }
     }
-", index: 2);
+}", index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [WorkItem(13455, "https://github.com/dotnet/roslyn/issues/13455")]
         public async Task AllMissingTokens()
         {
             await TestAsync(
@@ -908,7 +957,7 @@ class MyClass
     void Method()
     {
         var e = MyEnum.Fizz;
-        switch ([|e|])
+        [||]switch (e)
     }
 }
 ",
@@ -928,7 +977,7 @@ class MyClass
                 break;
         }
     }
-");
+}", compareTokens: false);
         }
     }
 }

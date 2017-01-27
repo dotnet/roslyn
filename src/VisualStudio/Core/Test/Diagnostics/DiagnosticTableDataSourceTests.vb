@@ -37,7 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
                 AssertEx.SetEqual(table.Columns, manager.GetColumnsForSources(SpecializedCollections.SingletonEnumerable(source)))
 
-                Assert.Equal(ServicesVSResources.DiagnosticsTableSourceName, source.DisplayName)
+                Assert.Equal(ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source, source.DisplayName)
                 Assert.Equal(StandardTableDataSources.ErrorTableDataSource, source.SourceTypeIdentifier)
 
                 Assert.Equal(1, manager.Sinks_TestOnly.Count())

@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -41,8 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static CodeGenerationConstructorInfo GetInfo(IMethodSymbol method)
         {
-            CodeGenerationConstructorInfo info;
-            s_constructorToInfoMap.TryGetValue(method, out info);
+            s_constructorToInfoMap.TryGetValue(method, out var info);
             return info;
         }
 

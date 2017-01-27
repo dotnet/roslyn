@@ -49,18 +49,6 @@ namespace Roslyn.Utilities
                 }
             }
 
-            private static class _RuntimeEnvironment
-            {
-                internal static readonly Type TypeOpt = ReflectionUtilities.TryGetType("System.Runtime.InteropServices.RuntimeEnvironment, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-
-                internal static readonly Func<string> GetRuntimeDirectoryOpt = TypeOpt?
-                    .GetTypeInfo()
-                    .GetDeclaredMethod("GetRuntimeDirectory", SpecializedCollections.EmptyArray<Type>())?
-                    .CreateDelegate<Func<string>>();
-            }
-
-            internal static string TryGetRuntimeDirectory() => _RuntimeEnvironment.GetRuntimeDirectoryOpt?.Invoke();
-
             private static class _Assembly
             {
                 internal static readonly Type Type = typeof(Assembly);
@@ -184,8 +172,8 @@ namespace Roslyn.Utilities
 
                 private Assembly Stub(object sender, object resolveEventArgs)
                 {
-                    var name = (string)_ResolveEventArgs.get_Name.Invoke(resolveEventArgs, SpecializedCollections.EmptyArray<object>());
-                    var requestingAssembly = (Assembly)_ResolveEventArgs.get_RequestingAssembly.Invoke(resolveEventArgs, SpecializedCollections.EmptyArray<object>());
+                    var name = (string)_ResolveEventArgs.get_Name.Invoke(resolveEventArgs, Array.Empty<object>());
+                    var requestingAssembly = (Assembly)_ResolveEventArgs.get_RequestingAssembly.Invoke(resolveEventArgs, Array.Empty<object>());
 
                     return _handler(name, requestingAssembly);
                 }
@@ -206,7 +194,7 @@ namespace Roslyn.Utilities
                     throw new PlatformNotSupportedException();
                 }
 
-                return _AppDomain.get_CurrentDomain.Invoke(null, SpecializedCollections.EmptyArray<object>());
+                return _AppDomain.get_CurrentDomain.Invoke(null, Array.Empty<object>());
             }
 
             internal static void GetOrRemoveAssemblyResolveHandler(Func<string, Assembly, Assembly> handler, MethodInfo handlerOperation)

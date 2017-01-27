@@ -9,16 +9,17 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// <remarks>
     /// This also supports various properties for databinding.
     /// </remarks>
+    /// <completionlist cref="NotificationOption"/>
     public class NotificationOption
     {
         public string Name { get; set; }
 
         public DiagnosticSeverity Value { get; set; }
 
-        public static readonly NotificationOption None = new NotificationOption(nameof(None), DiagnosticSeverity.Hidden);
-        public static readonly NotificationOption Suggestion = new NotificationOption(nameof(Suggestion), DiagnosticSeverity.Info);
-        public static readonly NotificationOption Warning = new NotificationOption(nameof(Warning), DiagnosticSeverity.Warning);
-        public static readonly NotificationOption Error = new NotificationOption(nameof(Error), DiagnosticSeverity.Error);
+        public static readonly NotificationOption None = new NotificationOption(WorkspacesResources.None, DiagnosticSeverity.Hidden);
+        public static readonly NotificationOption Suggestion = new NotificationOption(WorkspacesResources.Suggestion, DiagnosticSeverity.Info);
+        public static readonly NotificationOption Warning = new NotificationOption(WorkspacesResources.Warning, DiagnosticSeverity.Warning);
+        public static readonly NotificationOption Error = new NotificationOption(WorkspacesResources.Error, DiagnosticSeverity.Error);
 
         private NotificationOption(string name, DiagnosticSeverity severity)
         {

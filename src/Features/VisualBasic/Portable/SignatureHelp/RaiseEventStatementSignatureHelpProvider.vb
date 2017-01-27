@@ -76,8 +76,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 semanticModel.LookupSymbols(raiseEventStatement.SpanStart, containingType, raiseEventStatement.Name.Identifier.ValueText))
 
             Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
-            Dim allowedEvents = events.Where(Function(s) s.Kind = SymbolKind.Event AndAlso s.ContainingType Is containingType).
-                                       Cast(Of IEventSymbol)().
+            Dim allowedEvents = events.WhereAsArray(Function(s) s.Kind = SymbolKind.Event AndAlso s.ContainingType Is containingType).
+                                       OfType(Of IEventSymbol)().
+                                       ToImmutableArrayOrEmpty().
                                        FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
                                        Sort(symbolDisplayService, semanticModel, raiseEventStatement.SpanStart)
 
@@ -87,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)),
+                allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
 
@@ -113,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 GetPreambleParts(eventSymbol, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(eventSymbol, semanticModel, position),
-                type.DelegateInvokeMethod.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)))
+                type.DelegateInvokeMethod.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList())
 
             Return item
         End Function
@@ -122,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             eventSymbol As IEventSymbol,
             semanticModel As SemanticModel,
             position As Integer
-        ) As IEnumerable(Of SymbolDisplayPart)
+        ) As IList(Of SymbolDisplayPart)
 
             Dim result = New List(Of SymbolDisplayPart)()
 
@@ -142,8 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private Function GetPostambleParts(
             eventSymbol As IEventSymbol,
             semanticModel As SemanticModel,
-            position As Integer
-        ) As IEnumerable(Of SymbolDisplayPart)
+            position As Integer) As IList(Of SymbolDisplayPart)
 
             Return {Punctuation(SyntaxKind.CloseParenToken)}
         End Function

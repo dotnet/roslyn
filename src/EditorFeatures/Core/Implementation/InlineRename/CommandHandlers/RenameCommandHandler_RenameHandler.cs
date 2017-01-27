@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -24,9 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return nextHandler();
             }
 
-            Workspace workspace;
             var textContainer = args.SubjectBuffer.AsTextContainer();
-            if (!Workspace.TryGetWorkspace(textContainer, out workspace))
+            if (!Workspace.TryGetWorkspace(textContainer, out var workspace))
             {
                 return nextHandler();
             }
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             _waitIndicator.Wait(
                 title: EditorFeaturesResources.Rename,
-                message: EditorFeaturesResources.FindingTokenToRename,
+                message: EditorFeaturesResources.Finding_token_to_rename,
                 allowCancel: true,
                 action: waitContext =>
             {
@@ -61,8 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void ExecuteRenameWorker(RenameCommandArgs args, CancellationToken cancellationToken)
         {
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
-            Workspace workspace;
-            if (!Workspace.TryGetWorkspace(snapshot.AsText().Container, out workspace))
+            if (!Workspace.TryGetWorkspace(snapshot.AsText().Container, out var workspace))
             {
                 return;
             }
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretPoint.HasValue)
             {
-                ShowErrorDialog(workspace, EditorFeaturesResources.YouMustRenameAnIdentifier);
+                ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);
                 return;
             }
 
@@ -79,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 // Is the caret within any of the rename fields in this buffer?
                 // If so, focus the dashboard
-                SnapshotSpan editableSpan;
-                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out editableSpan))
+                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var editableSpan))
                 {
                     var dashboard = GetDashboard(args.TextView);
                     dashboard.Focus();
@@ -97,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                ShowErrorDialog(workspace, EditorFeaturesResources.YouMustRenameAnIdentifier);
+                ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);
                 return;
             }
 
@@ -107,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // There can be zero selectedSpans in projection scenarios.
             if (selectedSpans.Count != 1)
             {
-                ShowErrorDialog(workspace, EditorFeaturesResources.YouMustRenameAnIdentifier);
+                ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);
                 return;
             }
 

@@ -13,12 +13,10 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Xml;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
-using CDI = Microsoft.CodeAnalysis.CustomDebugInfoReader;
-using CDIC = Microsoft.Cci.CustomDebugInfoConstants;
-using ImportScope = Microsoft.CodeAnalysis.ImportScope;
+
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
 
 namespace Roslyn.Test.PdbUtilities
@@ -160,6 +158,7 @@ namespace Roslyn.Test.PdbUtilities
 
             var documents = _symReader.GetDocuments();
             var documentIndex = BuildDocumentIndex(documents);
+            var methodTokenMap = BuildMethodTokenMap();
 
             if ((_options & PdbToXmlOptions.ExcludeDocuments) == 0)
             {
@@ -169,26 +168,26 @@ namespace Roslyn.Test.PdbUtilities
             if ((_options & PdbToXmlOptions.ExcludeMethods) == 0)
             {
                 WriteEntryPoint();
-                WriteAllMethods(methodHandles, documentIndex);
+                WriteAllMethods(methodHandles, methodTokenMap, documentIndex);
                 WriteAllMethodSpans();
             }
 
             _writer.WriteEndElement();
         }
 
-        private void WriteAllMethods(IEnumerable<MethodDefinitionHandle> methodHandles, IReadOnlyDictionary<string, int> documentIndex)
+        private void WriteAllMethods(IEnumerable<MethodDefinitionHandle> methodHandles, ImmutableArray<MethodDefinitionHandle> tokenMap, IReadOnlyDictionary<string, int> documentIndex)
         {
             _writer.WriteStartElement("methods");
 
             foreach (var methodHandle in methodHandles)
             {
-                WriteMethod(methodHandle, documentIndex);
+                WriteMethod(methodHandle, tokenMap, documentIndex);
             }
 
             _writer.WriteEndElement();
         }
 
-        private void WriteMethod(MethodDefinitionHandle methodHandle, IReadOnlyDictionary<string, int> documentIndex)
+        private void WriteMethod(MethodDefinitionHandle methodHandle, ImmutableArray<MethodDefinitionHandle> tokenMap, IReadOnlyDictionary<string, int> documentIndex)
         {
             int token = _metadataReader.GetToken(methodHandle);
             ISymUnmanagedMethod method = _symReader.GetMethod(token);
@@ -228,7 +227,11 @@ namespace Roslyn.Test.PdbUtilities
             }
 
             _writer.WriteStartElement("method");
-            WriteMethodAttributes(token, isReference: false);
+
+            int methodRowId = MetadataTokens.GetRowNumber(methodHandle);
+            int tokenToDisplay = (methodRowId <= tokenMap.Length) ? MetadataTokens.GetToken(tokenMap[methodRowId - 1]) : token;
+
+            WriteMethodAttributes(tokenToDisplay, isReference: false);
 
             if (cdi != null)
             {
@@ -265,7 +268,7 @@ namespace Roslyn.Test.PdbUtilities
 
             foreach (var record in records)
             {
-                if (record.Version != CDIC.CdiVersion)
+                if (record.Version != CustomDebugInfoConstants.Version)
                 {
                     WriteUnknownCustomDebugInfo(record);
                 }
@@ -296,6 +299,9 @@ namespace Roslyn.Test.PdbUtilities
                             break;
                         case CustomDebugInfoKind.EditAndContinueLambdaMap:
                             WriteEditAndContinueLambdaMap(record);
+                            break;
+                        case CustomDebugInfoKind.TupleElementNames:
+                            WriteTupleElementNamesCustomDebugInfo(record);
                             break;
                         default:
                             WriteUnknownCustomDebugInfo(record);
@@ -343,7 +349,7 @@ namespace Roslyn.Test.PdbUtilities
 
             _writer.WriteStartElement("using");
 
-            ImmutableArray<short> counts = CDI.DecodeUsingRecord(record.Data);
+            ImmutableArray<short> counts = CustomDebugInfoReader.DecodeUsingRecord(record.Data);
 
             foreach (short importCount in counts)
             {
@@ -368,7 +374,7 @@ namespace Roslyn.Test.PdbUtilities
 
             _writer.WriteStartElement("forward");
 
-            int token = CDI.DecodeForwardRecord(record.Data);
+            int token = CustomDebugInfoReader.DecodeForwardRecord(record.Data);
             WriteMethodAttributes(token, isReference: true);
 
             _writer.WriteEndElement(); //forward
@@ -388,7 +394,7 @@ namespace Roslyn.Test.PdbUtilities
 
             _writer.WriteStartElement("forwardToModule");
 
-            int token = CDI.DecodeForwardRecord(record.Data);
+            int token = CustomDebugInfoReader.DecodeForwardRecord(record.Data);
             WriteMethodAttributes(token, isReference: true);
 
             _writer.WriteEndElement(); //forwardToModule
@@ -408,7 +414,7 @@ namespace Roslyn.Test.PdbUtilities
 
             _writer.WriteStartElement("hoistedLocalScopes");
 
-            var scopes = CDI.DecodeStateMachineHoistedLocalScopesRecord(record.Data);
+            var scopes = CustomDebugInfoReader.DecodeStateMachineHoistedLocalScopesRecord(record.Data);
 
             foreach (StateMachineHoistedLocalScope scope in scopes)
             {
@@ -434,7 +440,7 @@ namespace Roslyn.Test.PdbUtilities
 
             _writer.WriteStartElement("forwardIterator");
 
-            string name = CDI.DecodeForwardIteratorRecord(record.Data);
+            string name = CustomDebugInfoReader.DecodeForwardIteratorRecord(record.Data);
 
             _writer.WriteAttributeString("name", name);
 
@@ -454,12 +460,12 @@ namespace Roslyn.Test.PdbUtilities
 
             _writer.WriteStartElement("dynamicLocals");
 
-            var buckets = CDI.DecodeDynamicLocalsRecord(record.Data);
+            var dynamicLocals = CustomDebugInfoReader.DecodeDynamicLocalsRecord(record.Data);
 
-            foreach (DynamicLocalBucket bucket in buckets)
+            foreach (DynamicLocalInfo dynamicLocal in dynamicLocals)
             {
-                ulong flags = bucket.Flags;
-                int flagCount = bucket.FlagCount;
+                ulong flags = dynamicLocal.Flags;
+                int flagCount = dynamicLocal.FlagCount;
 
                 PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
                 StringBuilder flagsBuilder = pooled.Builder;
@@ -471,12 +477,49 @@ namespace Roslyn.Test.PdbUtilities
                 _writer.WriteStartElement("bucket");
                 _writer.WriteAttributeString("flagCount", CultureInvariantToString(flagCount));
                 _writer.WriteAttributeString("flags", pooled.ToStringAndFree());
-                _writer.WriteAttributeString("slotId", CultureInvariantToString(bucket.SlotId));
-                _writer.WriteAttributeString("localName", bucket.Name);
+                _writer.WriteAttributeString("slotId", CultureInvariantToString(dynamicLocal.SlotId));
+                _writer.WriteAttributeString("localName", dynamicLocal.LocalName);
                 _writer.WriteEndElement(); //bucket
             }
 
             _writer.WriteEndElement(); //dynamicLocals
+        }
+
+        private void WriteTupleElementNamesCustomDebugInfo(CustomDebugInfoRecord record)
+        {
+            Debug.Assert(record.Kind == CustomDebugInfoKind.TupleElementNames);
+
+            _writer.WriteStartElement("tupleElementNames");
+
+            var tuples = CustomDebugInfoReader.DecodeTupleElementNamesRecord(record.Data);
+
+            foreach (var tuple in tuples)
+            {
+                _writer.WriteStartElement("local");
+                _writer.WriteAttributeString("elementNames", JoinNames(tuple.ElementNames));
+                _writer.WriteAttributeString("slotIndex", CultureInvariantToString(tuple.SlotIndex));
+                _writer.WriteAttributeString("localName", tuple.LocalName);
+                _writer.WriteAttributeString("scopeStart", AsILOffset(tuple.ScopeStart));
+                _writer.WriteAttributeString("scopeEnd", AsILOffset(tuple.ScopeEnd));
+                _writer.WriteEndElement();
+            }
+
+            _writer.WriteEndElement();
+        }
+
+        private static string JoinNames(ImmutableArray<string> names)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+            foreach (var name in names)
+            {
+                builder.Append('|');
+                if (name != null)
+                {
+                    builder.Append(name);
+                }
+            }
+            return pooledBuilder.ToStringAndFree();
         }
 
         private unsafe void WriteEditAndContinueLocalSlotMap(CustomDebugInfoRecord record)
@@ -707,14 +750,14 @@ namespace Roslyn.Test.PdbUtilities
             string externAlias;
             string target;
             ImportTargetKind kind;
-            ImportScope scope;
+            VBImportScopeKind scope;
 
             try
             {
                 if (rawName.Length == 0)
                 {
                     externAlias = null;
-                    var parsingSucceeded = CDI.TryParseVisualBasicImportString(rawName, out alias, out target, out kind, out scope);
+                    var parsingSucceeded = CustomDebugInfoReader.TryParseVisualBasicImportString(rawName, out alias, out target, out kind, out scope);
                     Debug.Assert(parsingSucceeded);
                 }
                 else
@@ -727,8 +770,8 @@ namespace Roslyn.Test.PdbUtilities
                         case 'Z':
                         case 'E':
                         case 'T':
-                            scope = ImportScope.Unspecified;
-                            if (!CDI.TryParseCSharpImportString(rawName, out alias, out externAlias, out target, out kind))
+                            scope = VBImportScopeKind.Unspecified;
+                            if (!CustomDebugInfoReader.TryParseCSharpImportString(rawName, out alias, out externAlias, out target, out kind))
                             {
                                 throw new InvalidOperationException($"Invalid import '{rawName}'");
                             }
@@ -736,7 +779,7 @@ namespace Roslyn.Test.PdbUtilities
 
                         default:
                             externAlias = null;
-                            if (!CDI.TryParseVisualBasicImportString(rawName, out alias, out target, out kind, out scope))
+                            if (!CustomDebugInfoReader.TryParseVisualBasicImportString(rawName, out alias, out target, out kind, out scope))
                             {
                                 throw new InvalidOperationException($"Invalid import '{rawName}'");
                             }
@@ -757,7 +800,7 @@ namespace Roslyn.Test.PdbUtilities
                 case ImportTargetKind.CurrentNamespace:
                     Debug.Assert(alias == null);
                     Debug.Assert(externAlias == null);
-                    Debug.Assert(scope == ImportScope.Unspecified);
+                    Debug.Assert(scope == VBImportScopeKind.Unspecified);
 
                     _writer.WriteStartElement("currentnamespace");
                     _writer.WriteAttributeString("name", target);
@@ -767,7 +810,7 @@ namespace Roslyn.Test.PdbUtilities
                 case ImportTargetKind.DefaultNamespace:
                     Debug.Assert(alias == null);
                     Debug.Assert(externAlias == null);
-                    Debug.Assert(scope == ImportScope.Unspecified);
+                    Debug.Assert(scope == VBImportScopeKind.Unspecified);
 
                     _writer.WriteStartElement("defaultnamespace");
                     _writer.WriteAttributeString("name", target);
@@ -777,7 +820,7 @@ namespace Roslyn.Test.PdbUtilities
                 case ImportTargetKind.MethodToken:
                     Debug.Assert(alias == null);
                     Debug.Assert(externAlias == null);
-                    Debug.Assert(scope == ImportScope.Unspecified);
+                    Debug.Assert(scope == VBImportScopeKind.Unspecified);
 
                     int token = Convert.ToInt32(target);
                     _writer.WriteStartElement("importsforward");
@@ -818,7 +861,7 @@ namespace Roslyn.Test.PdbUtilities
 
                         _writer.WriteAttributeString("target", target);
                         _writer.WriteAttributeString("kind", "namespace");
-                        Debug.Assert(scope == ImportScope.Unspecified); // Only C# hits this case.
+                        Debug.Assert(scope == VBImportScopeKind.Unspecified); // Only C# hits this case.
                         _writer.WriteEndElement();
                     }
                     else
@@ -840,7 +883,7 @@ namespace Roslyn.Test.PdbUtilities
                         _writer.WriteAttributeString("name", alias);
                         _writer.WriteAttributeString("target", target);
                         _writer.WriteAttributeString("kind", "type");
-                        Debug.Assert(scope == ImportScope.Unspecified); // Only C# hits this case.
+                        Debug.Assert(scope == VBImportScopeKind.Unspecified); // Only C# hits this case.
                         _writer.WriteEndElement();
                     }
                     else
@@ -856,7 +899,7 @@ namespace Roslyn.Test.PdbUtilities
                 case ImportTargetKind.Assembly:
                     Debug.Assert(alias != null);
                     Debug.Assert(externAlias == null);
-                    Debug.Assert(scope == ImportScope.Unspecified);
+                    Debug.Assert(scope == VBImportScopeKind.Unspecified);
                     if (target == null)
                     {
                         _writer.WriteStartElement("extern");
@@ -875,7 +918,7 @@ namespace Roslyn.Test.PdbUtilities
 
                 case ImportTargetKind.Defunct:
                     Debug.Assert(alias == null);
-                    Debug.Assert(scope == ImportScope.Unspecified);
+                    Debug.Assert(scope == VBImportScopeKind.Unspecified);
                     _writer.WriteStartElement("defunct");
                     _writer.WriteAttributeString("name", rawName);
                     _writer.WriteEndElement();
@@ -890,19 +933,19 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
-        private void WriteScopeAttribute(ImportScope scope)
+        private void WriteScopeAttribute(VBImportScopeKind scope)
         {
-            if (scope == ImportScope.File)
+            if (scope == VBImportScopeKind.File)
             {
                 _writer.WriteAttributeString("importlevel", "file");
             }
-            else if (scope == ImportScope.Project)
+            else if (scope == VBImportScopeKind.Project)
             {
                 _writer.WriteAttributeString("importlevel", "project");
             }
             else
             {
-                Debug.Assert(scope == ImportScope.Unspecified, "Unexpected scope '" + scope + "'");
+                Debug.Assert(scope == VBImportScopeKind.Unspecified, "Unexpected scope '" + scope + "'");
             }
         }
 
@@ -1048,12 +1091,12 @@ namespace Roslyn.Test.PdbUtilities
             fixed (byte* sigPtr = signature.ToArray())
             {
                 var sigReader = new BlobReader(sigPtr, signature.Length);
-                var decoder = new SignatureDecoder<string>(ConstantSignatureVisualizer.Instance, _metadataReader);
+                var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, _metadataReader, genericContext: null);
                 return decoder.DecodeType(ref sigReader, allowTypeSpecifications: true);
             }
         }
 
-        private sealed class ConstantSignatureVisualizer : ISignatureTypeProvider<string>
+        private sealed class ConstantSignatureVisualizer : ISignatureTypeProvider<string, object>
         {
             public static readonly ConstantSignatureVisualizer Instance = new ConstantSignatureVisualizer();
 
@@ -1073,23 +1116,23 @@ namespace Roslyn.Test.PdbUtilities
                 return "method-ptr";
             }
 
-            public string GetGenericInstance(string genericType, ImmutableArray<string> typeArguments)
+            public string GetGenericInstantiation(string genericType, ImmutableArray<string> typeArguments)
             {
                 // using {} since the result is embedded in XML
                 return genericType + "{" + string.Join(", ", typeArguments) + "}";
             }
 
-            public string GetGenericMethodParameter(int index)
+            public string GetGenericMethodParameter(object genericContext, int index)
             {
                 return "!!" + index;
             }
 
-            public string GetGenericTypeParameter(int index)
+            public string GetGenericTypeParameter(object genericContext, int index)
             {
                 return "!" + index;
             }
 
-            public string GetModifiedType(MetadataReader reader, bool isRequired, string modifier, string unmodifiedType)
+            public string GetModifiedType(string modifier, string unmodifiedType, bool isRequired)
             {
                 return (isRequired ? "modreq" : "modopt") + "(" + modifier + ") " + unmodifiedType;
             }
@@ -1128,10 +1171,10 @@ namespace Roslyn.Test.PdbUtilities
                 return typeRef.Namespace.IsNil ? name : reader.GetString(typeRef.Namespace) + "." + name;
             }
 
-            public string GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle, byte rawTypeKind)
+            public string GetTypeFromSpecification(MetadataReader reader, object genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
             {
                 var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
-                return new SignatureDecoder<string>(Instance, reader).DecodeType(ref sigReader);
+                return new SignatureDecoder<string, object>(Instance, reader, genericContext).DecodeType(ref sigReader);
             }
         }
 
@@ -1223,6 +1266,21 @@ namespace Roslyn.Test.PdbUtilities
             }
 
             _writer.WriteEndElement(); // sequencepoints
+        }
+
+        private unsafe ImmutableArray<MethodDefinitionHandle> BuildMethodTokenMap()
+        {
+            if (!(_symReader is ISymUnmanagedReader4 symReader4) ||
+                symReader4.GetPortableDebugMetadata(out byte* metadata, out int size) != 0)
+            {
+                return ImmutableArray<MethodDefinitionHandle>.Empty;
+            }
+
+            var reader = new MetadataReader(metadata, size);
+
+            return (from handle in reader.GetEditAndContinueMapEntries()
+                    where handle.Kind == HandleKind.MethodDebugInformation
+                    select MetadataTokens.MethodDefinitionHandle(MetadataTokens.GetRowNumber(handle))).ToImmutableArray();
         }
 
         private IReadOnlyDictionary<string, int> BuildDocumentIndex(IReadOnlyList<ISymUnmanagedDocument> documents)

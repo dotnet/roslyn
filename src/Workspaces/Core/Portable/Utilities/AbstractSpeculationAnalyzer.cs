@@ -372,10 +372,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 var methodSymbol = (IMethodSymbol)symbol;
                 var newMethodSymbol = (IMethodSymbol)newSymbol;
-
-                PredefinedOperator originalOp, newOp;
-                if (methodSymbol.TryGetPredefinedComparisonOperator(out originalOp) &&
-                    newMethodSymbol.TryGetPredefinedComparisonOperator(out newOp) &&
+                if (methodSymbol.TryGetPredefinedComparisonOperator(out var originalOp) &&
+                    newMethodSymbol.TryGetPredefinedComparisonOperator(out var newOp) &&
                     originalOp == newOp)
                 {
                     var type = methodSymbol.ContainingType;
@@ -565,13 +563,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
             }
 
-            IMethodSymbol originalGetEnumerator;
-            ITypeSymbol originalElementType;
-            GetForEachSymbols(this.OriginalSemanticModel, forEachStatement, out originalGetEnumerator, out originalElementType);
-
-            IMethodSymbol newGetEnumerator;
-            ITypeSymbol newElementType;
-            GetForEachSymbols(this.SpeculativeSemanticModel, newForEachStatement, out newGetEnumerator, out newElementType);
+            GetForEachSymbols(this.OriginalSemanticModel, forEachStatement, out var originalGetEnumerator, out var originalElementType);
+            GetForEachSymbols(this.SpeculativeSemanticModel, newForEachStatement, out var newGetEnumerator, out var newElementType);
 
             var newForEachExpression = GetForEachStatementExpression(newForEachStatement);
 

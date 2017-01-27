@@ -3,8 +3,6 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.OrganizeImports;
 
@@ -22,36 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
             return document.WithSyntaxRoot(newRoot);
         }
 
-        public string OrganizeImportsDisplayStringWithAccelerator
-        {
-            get
-            {
-                return CSharpFeaturesResources.OrganizeUsingsWithAccelerator;
-            }
-        }
-
-        public string SortImportsDisplayStringWithAccelerator
-        {
-            get
-            {
-                return CSharpFeaturesResources.SortUsingsWithAccelerator;
-            }
-        }
-
-        public string RemoveUnusedImportsDisplayStringWithAccelerator
-        {
-            get
-            {
-                return CSharpFeaturesResources.RemoveUnnecessaryUsingsWithAccelerator;
-            }
-        }
-
-        public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator
-        {
-            get
-            {
-                return CSharpFeaturesResources.RemoveAndSortUsingsWithAccelerator;
-            }
-        }
+        public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator =>
+            CSharpFeaturesResources.Remove_and_Sort_Usings;
     }
 }

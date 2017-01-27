@@ -159,9 +159,9 @@ struct S
     // (5,9): error CS0102: The type 'S' already contains a definition for 'a'
     //     int a { get { return 1; } set {} }
     Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "a").WithArguments("S", "a").WithLocation(5, 9),
-    // (4,9): warning CS0414: The field 'S.a' is assigned but its value is never used
+    // (4,9): warning CS0169: The field 'S.a' is never used
     //     int a = 2;
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("S.a").WithLocation(4, 9)
+    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("S.a").WithLocation(4, 9)
     );
         }
 

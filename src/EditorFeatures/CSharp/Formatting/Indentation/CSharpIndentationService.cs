@@ -3,12 +3,12 @@
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(root);
 
+            if (!optionSet.GetOption(FeatureOnOffOptions.AutoFormattingOnReturn, LanguageNames.CSharp))
+            {
+                return false;
+            }
+
             if (optionSet.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp) != FormattingOptions.IndentStyle.Smart)
             {
                 return false;
@@ -88,13 +93,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             }
 
             var lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, optionSet);
-            if (lineOperation != null && lineOperation.Option != AdjustNewLinesOption.ForceLinesIfOnSingleLine)
+            if (lineOperation == null || lineOperation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
             {
-                return true;
+                // no indentation operation, nothing to do for smart token formatter
+                return false;
             }
 
-            // no indentation operation, nothing to do for smart token formatter
-            return false;
+            // We're pressing enter between two tokens, have the formatter figure out hte appropriate
+            // indentation.
+            return true;
         }
 
         private class FormattingRule : AbstractFormattingRule

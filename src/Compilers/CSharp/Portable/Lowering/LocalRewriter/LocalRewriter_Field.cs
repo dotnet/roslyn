@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression MakeFieldAccess(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenReceiver,
             FieldSymbol fieldSymbol,
             ConstantValue constantValueOpt,
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // a reference to a fixed buffer is translated into its address
                 result = new BoundConversion(syntax,
                     new BoundAddressOfOperator(syntax, result, syntax != null && SyntaxFacts.IsFixedStatementExpression(syntax), type, false),
-                    new Conversion(ConversionKind.PointerToPointer), false, false, default(ConstantValue), type, false);
+                    Conversion.PointerToPointer, false, false, default(ConstantValue), type, false);
             }
 
             return result;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// produces fieldAccess(field=Item1, receiver=fieldAccess(field=Rest, receiver=ValueTuple for tuple))
         /// </summary>
         private BoundExpression MakeTupleFieldAccess(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             FieldSymbol tupleField, 
             BoundExpression rewrittenReceiver,
             ConstantValue constantValueOpt,

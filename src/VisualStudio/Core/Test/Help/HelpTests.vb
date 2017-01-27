@@ -2146,6 +2146,32 @@ End Module]]></a>.Value, "System.Linq.Enumerable")
     End Sub
 End Module]]></a>.Value, "vb.String")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function CaretAfterMemberAccessDot() As Task
+            Await TestAsync(<a><![CDATA[Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim x = (2).[||]ToString()
+    End Sub
+End Module]]></a>.Value, "System.Int32.ToString")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function CaretBeforeMemberAccessDot() As Task
+            Await TestAsync(<a><![CDATA[Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim x = (2)[||].ToString()
+    End Sub
+End Module]]></a>.Value, "System.Int32.ToString")
+        End Function
     End Class
 End Namespace
 

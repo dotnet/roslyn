@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters
@@ -44,14 +43,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         /// </summary>
         private void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans)
         {
-            node.TypeSwitch(
-                (BreakStatementSyntax breakStatement) =>
-                {
+            switch (node)
+            {
+                case BreakStatementSyntax breakStatement:
                     spans.Add(breakStatement.BreakKeyword.Span);
                     spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
-                },
-                (GotoStatementSyntax gotoStatement) =>
-                {
+                    break;
+
+                case GotoStatementSyntax gotoStatement:
                     var start = gotoStatement.GotoKeyword.SpanStart;
                     var end = !gotoStatement.CaseOrDefaultKeyword.IsKind(SyntaxKind.None)
                         ? gotoStatement.CaseOrDefaultKeyword.Span.End
@@ -59,9 +58,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
 
                     spans.Add(TextSpan.FromBounds(start, end));
                     spans.Add(EmptySpan(gotoStatement.SemicolonToken.Span.End));
-                },
-                _ =>
-                {
+                    break;
+
+                default:
                     foreach (var child in node.ChildNodes())
                     {
                         // Only recurse if we have anything to do
@@ -70,7 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                             HighlightRelatedKeywords(child, spans);
                         }
                     }
-                });
+                    break;
+            }
         }
     }
 }

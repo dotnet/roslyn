@@ -55,8 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     if (needsUndoDisabled)
                     {
                         Marshal.ThrowExceptionForHR(vsTextBuffer.GetUndoManager(out _manager));
-                        int isEnabled;
-                        Marshal.ThrowExceptionForHR((_manager as IVsUndoState).IsEnabled(out isEnabled));
+                        Marshal.ThrowExceptionForHR((_manager as IVsUndoState).IsEnabled(out var isEnabled));
                         _needsUndoRestored = isEnabled != 0;
                         if (_needsUndoRestored)
                         {

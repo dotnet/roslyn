@@ -3,14 +3,14 @@
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
+Imports Microsoft.CodeAnalysis.CSharp.AddImport
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.IncrementalCaches
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.UnitTests
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
+Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
 
@@ -265,6 +265,40 @@ namespace CSAssembly2
                 </text>.Value.Trim()
 
             Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="CSAssembly1", onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WorkItem(12169, "https://github.com/dotnet/roslyn/issues/12169")>
+        Public Async Function AddProjectReference_CSharpToCSharp_StaticField() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
+                        <Document FilePath='Test1.cs'>
+using System.Collections.Generic;
+namespace CSAssembly1
+{
+    public static class Class1
+    {
+        public static int StaticField;
+    }
+}
+                        </Document>
+                    </Project>
+                    <Project Language='C#' AssemblyName='CSAssembly2' CommonReferences='true'>
+                        <CompilationOptions></CompilationOptions>
+                        <Document FilePath="Test2.cs">
+namespace CSAssembly2
+{
+    public class Class2
+    {
+        $$StaticField c;
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Await TestMissing(input)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>

@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 /*
 SPEC:
@@ -210,8 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> formalParameterRefKinds, // Optional; assume all value if missing.
             ImmutableArray<BoundExpression> arguments,// Required; in scenarios like method group conversions where there are
                                                       // no arguments per se we cons up some fake arguments.
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics
-            )
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(!methodTypeParameters.IsDefault);
             Debug.Assert(methodTypeParameters.Length > 0);
@@ -439,40 +438,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private void AddLowerBound(TypeParameterSymbol methodTypeParameter, TypeSymbol lowerBound)
+        private void AddBound(TypeSymbol addedBound, HashSet<TypeSymbol>[] collectedBounds, TypeParameterSymbol methodTypeParameter)
         {
             Debug.Assert(IsUnfixedTypeParameter(methodTypeParameter));
             int methodTypeParameterIndex = methodTypeParameter.Ordinal;
-            if (_lowerBounds[methodTypeParameterIndex] == null)
+
+            if (collectedBounds[methodTypeParameterIndex] == null)
             {
-                _lowerBounds[methodTypeParameterIndex] = new HashSet<TypeSymbol>();
+                collectedBounds[methodTypeParameterIndex] = new HashSet<TypeSymbol>();
             }
 
-            _lowerBounds[methodTypeParameterIndex].Add(lowerBound);
+            collectedBounds[methodTypeParameterIndex].Add(addedBound);
+        }
+
+        private void AddLowerBound(TypeParameterSymbol methodTypeParameter, TypeSymbol lowerBound)
+        {
+            AddBound(lowerBound, _lowerBounds, methodTypeParameter);
         }
 
         private void AddUpperBound(TypeParameterSymbol methodTypeParameter, TypeSymbol upperBound)
         {
-            Debug.Assert(IsUnfixedTypeParameter(methodTypeParameter));
-            int methodTypeParameterIndex = methodTypeParameter.Ordinal;
-            if (_upperBounds[methodTypeParameterIndex] == null)
-            {
-                _upperBounds[methodTypeParameterIndex] = new HashSet<TypeSymbol>();
-            }
-
-            _upperBounds[methodTypeParameterIndex].Add(upperBound);
+            AddBound(upperBound, _upperBounds, methodTypeParameter);
         }
 
         private void AddExactBound(TypeParameterSymbol methodTypeParameter, TypeSymbol exactBound)
         {
-            Debug.Assert(IsUnfixedTypeParameter(methodTypeParameter));
-            int methodTypeParameterIndex = methodTypeParameter.Ordinal;
-            if (_exactBounds[methodTypeParameterIndex] == null)
-            {
-                _exactBounds[methodTypeParameterIndex] = new HashSet<TypeSymbol>();
-            }
-
-            _exactBounds[methodTypeParameterIndex].Add(exactBound);
+            AddBound(exactBound, _exactBounds, methodTypeParameter);
         }
 
         private bool HasBound(int methodTypeParameterIndex)
@@ -942,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var delegateParameters = delegateType.DelegateParameters();
-            if (delegateParameters.IsEmpty)
+            if (delegateParameters.IsDefaultOrEmpty)
             {
                 return false;
             }
@@ -2387,92 +2378,107 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lower = _lowerBounds[iParam];
             var upper = _upperBounds[iParam];
 
-            if (exact != null && exact.Count >= 2)
+            var candidates = new Dictionary<TypeSymbol, TypeSymbol>(EqualsIgnoringDynamicAndTupleNamesComparer.Instance);
+
+            // Optimization: if we have one exact bound then we need not add any
+            // inexact bounds; we're just going to remove them anyway.
+
+            if (exact == null)
+            {
+                if (lower != null)
+                {
+                    foreach (var lowerBound in lower)
+                    {
+                        AddOrMerge(candidates, lowerBound);
+                    }
+                }
+                if (upper != null)
+                {
+                    foreach (var upperBound in upper)
+                    {
+                        AddOrMerge(candidates, upperBound);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var exactBound in exact)
+                {
+                    AddOrMerge(candidates, exactBound);
+                }
+
+                if (candidates.Count >= 2)
+                {
+                    return false;
+                }
+            }
+
+            if (candidates.Count == 0)
             {
                 return false;
             }
 
-            var candidates = PooledHashSet<TypeSymbol>.GetInstance();
-            try
+            // Don't mutate the collection as we're iterating it.
+            var initialCandidates = candidates.Keys.ToList();
+
+            // SPEC:   For each lower bound U of Xi all types to which there is not an
+            // SPEC:   implicit conversion from U are removed from the candidate set.
+
+            if (lower != null)
             {
-
-                // Optimization: if we have one exact bound then we need not add any
-                // inexact bounds; we're just going to remove them anyway.
-
-                if (exact == null)
+                foreach (var bound in lower)
                 {
-                    if (lower != null)
+                    // Make a copy; don't modify the collection as we're iterating it.
+                    foreach (var candidate in initialCandidates)
                     {
-                        foreach (var lowerBound in lower)
+                        if (!bound.Equals(candidate))
                         {
-                            candidates.Add(lowerBound);
-                        }
-                    }
-                    if (upper != null)
-                    {
-                        foreach (var upperBound in upper)
-                        {
-                            candidates.Add(upperBound);
-                        }
-                    }
-                }
-                else
-                {
-                    candidates.Add(exact.First());
-                }
-
-                if (candidates.Count == 0)
-                {
-                    return false;
-                }
-
-                // Don't mutate the collection as we're iterating it.
-                var initialCandidates = candidates.ToList();
-
-                // SPEC:   For each lower bound U of Xi all types to which there is not an
-                // SPEC:   implicit conversion from U are removed from the candidate set.
-
-                if (lower != null)
-                {
-                    foreach (var bound in lower)
-                    {
-                        // Make a copy; don't modify the collection as we're iterating it.
-                        foreach (var candidate in initialCandidates)
-                        {
-                            if (bound != candidate && !ImplicitConversionExists(bound, candidate, ref useSiteDiagnostics))
+                            if (!ImplicitConversionExists(bound, candidate, ref useSiteDiagnostics))
                             {
                                 candidates.Remove(candidate);
+                            }
+                            else if (bound.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                            {
+                                MergeAndReplaceIfStillCandidate(candidates, candidate, bound);
                             }
                         }
                     }
                 }
+            }
 
-                // SPEC:   For each upper bound U of Xi all types from which there is not an
-                // SPEC:   implicit conversion to U are removed from the candidate set.
+            // SPEC:   For each upper bound U of Xi all types from which there is not an
+            // SPEC:   implicit conversion to U are removed from the candidate set.
 
-                if (upper != null)
+            if (upper != null)
+            {
+                foreach (var bound in upper)
                 {
-                    foreach (var bound in upper)
+                    foreach (var candidate in initialCandidates)
                     {
-                        foreach (var candidate in initialCandidates)
+                        if (!bound.Equals(candidate))
                         {
-                            if (bound != candidate && !ImplicitConversionExists(candidate, bound, ref useSiteDiagnostics))
+                            if (!ImplicitConversionExists(candidate, bound, ref useSiteDiagnostics))
                             {
                                 candidates.Remove(candidate);
+                            }
+                            else if (bound.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                            {
+                                MergeAndReplaceIfStillCandidate(candidates, candidate, bound);
                             }
                         }
                     }
                 }
+            }
 
             // SPEC: * If among the remaining candidate types there is a unique type V to
             // SPEC:   which there is an implicit conversion from all the other candidate
             // SPEC:   types, then the parameter is fixed to V.
             TypeSymbol best = null;
-            foreach (var candidate in candidates)
+            foreach (var candidate in candidates.Keys)
             {
-                foreach (var candidate2 in candidates)
+                foreach (var candidate2 in candidates.Keys)
                 {
-                    if (candidate != candidate2 && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
+                    if (!candidate.Equals(candidate2) && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
                     {
                         goto OuterBreak;
                     }
@@ -2482,14 +2488,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     best = candidate;
                 }
-                else if (best.Equals(candidate, ignoreDynamic: true))
+                else if (best.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
-                    if (candidate.IsTupleType)
-                    {
-                        best = candidate.TupleUnderlyingType;
-                        break;
-                    }
-
                     // SPEC: 4.7 The Dynamic Type
                     //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
                     //
@@ -2499,28 +2499,80 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
                     Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
 
-                        // best candidate is not unique
-                        return false;
-                    }
-
-                    OuterBreak:
-                    ;
+                    best = MergeTupleNames(MergeDynamic(best, candidate, _conversions.CorLibrary), candidate);
                 }
-
-                if ((object)best == null)
+                else
                 {
-                    // no best candidate
+                    // best candidate is not unique
                     return false;
                 }
 
-                _fixedResults[iParam] = best;
-                UpdateDependenciesAfterFix(iParam);
-                return true;
+                OuterBreak:
+                ;
             }
-            finally
+
+            if ((object)best == null)
             {
-                candidates.Free();
+                // no best candidate
+                return false;
             }
+
+            _fixedResults[iParam] = best;
+            UpdateDependenciesAfterFix(iParam);
+            return true;
+        }
+
+        /// <summary>
+        /// Returns first or a modified version of first with merged dynamic flags from both types.
+        /// </summary>
+        internal static TypeSymbol MergeDynamic(TypeSymbol first, TypeSymbol second, AssemblySymbol corLibrary)
+        {
+            // SPEC: 4.7 The Dynamic Type
+            //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
+            if (first.Equals(second, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreDynamic))
+            {
+                return first;
+            }
+            ImmutableArray<bool> flags1 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(first, RefKind.None);
+            ImmutableArray<bool> flags2 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(second, RefKind.None);
+            ImmutableArray<bool> mergedFlags = flags1.ZipAsArray(flags2, (f1, f2) => f1 | f2);
+
+            return DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(first, corLibrary, RefKind.None, mergedFlags);
+        }
+
+        /// <summary>
+        /// Returns first or a modified version of first with common tuple names from both types.
+        /// </summary>
+        internal static TypeSymbol MergeTupleNames(TypeSymbol first, TypeSymbol second)
+        {
+            if (first.Equals(second, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreTupleNames) ||
+                !first.ContainsTupleNames())
+            {
+                return first;
+            }
+
+            Debug.Assert(first.ContainsTuple());
+
+            ImmutableArray<string> names1 = CSharpCompilation.TupleNamesEncoder.Encode(first);
+            ImmutableArray<string> names2 = CSharpCompilation.TupleNamesEncoder.Encode(second);
+
+            ImmutableArray<string> mergedNames;
+            if (names1.IsDefault || names2.IsDefault)
+            {
+                mergedNames = default(ImmutableArray<string>);
+            }
+            else
+            {
+                Debug.Assert(names1.Length == names2.Length);
+                mergedNames = names1.ZipAsArray(names2, (n1, n2) => string.CompareOrdinal(n1, n2) == 0 ? n1 : null);
+
+                if (mergedNames.All(n => n == null))
+                {
+                    mergedNames = default(ImmutableArray<string>);
+                }
+            }
+
+            return TupleTypeDecoder.DecodeTupleTypesIfApplicable(first, mergedNames);
         }
 
         private bool ImplicitConversionExists(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2531,7 +2583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return _conversions.ClassifyImplicitConversion(source, destination, ref useSiteDiagnostics).Exists;
+            return _conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteDiagnostics).Exists;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -2571,36 +2623,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var anonymousFunction = (UnboundLambda)source;
-
-            // If the anonymous function is an anonymous method with no formal parameter
-            // list then infer the return type; there are no parameters to be typed, so
-            // we should be able to work out the return type regardless of the delegate type.
-
-            // Future optimization: we could return null if
-            // the delegate has any out parameters, since this will then not be applicable.
-
-            if (!anonymousFunction.HasSignature)
+            if (anonymousFunction.HasSignature)
             {
-                return anonymousFunction.InferReturnType(null, ref useSiteDiagnostics);
-            }
+                // Optimization: 
+                // We know that the anonymous function has a parameter list. If it does not
+                // have the same arity as the delegate, then it cannot possibly be applicable.
+                // Rather than have type inference fail, we will simply not make a return
+                // type inference and have type inference continue on.  Either inference
+                // will fail, or we will infer a nonapplicable method. Either way, there
+                // is no change to the semantics of overload resolution.
 
-            // Optimization: 
-            // We know that the anonymous function has a parameter list. If it does not
-            // have the same arity as the delegate, then it cannot possibly be applicable.
-            // Rather than have type inference fail, we will simply not make a return
-            // type inference and have type inference continue on.  Either inference
-            // will fail, or we will infer a nonapplicable method. Either way, there
-            // is no change to the semantics of overload resolution.
+                var originalDelegateParameters = target.DelegateParameters();
+                if (originalDelegateParameters.IsDefault)
+                {
+                    return null;
+                }
 
-            var originalDelegateParameters = target.DelegateParameters();
-            if (originalDelegateParameters.IsDefault)
-            {
-                return null;
-            }
-
-            if (originalDelegateParameters.Length != anonymousFunction.ParameterCount)
-            {
-                return null;
+                if (originalDelegateParameters.Length != anonymousFunction.ParameterCount)
+                {
+                    return null;
+                }
             }
 
             var fixedDelegate = GetFixedDelegate(target);
@@ -2687,7 +2729,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ImmutableArray<TypeSymbol> InferTypeArgumentsFromFirstArgument(
             ConversionsBase conversions,
             MethodSymbol method,
-            ImmutableArray<TypeSymbol> argumentTypes,
             ImmutableArray<BoundExpression> arguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -2768,6 +2809,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)type != null &&
                 !type.IsErrorType() &&
                 (type.SpecialType != SpecialType.System_Void);
+        }
+
+        private void AddOrMerge(Dictionary<TypeSymbol, TypeSymbol> candidates, TypeSymbol @new)
+        {
+            if (candidates.TryGetValue(@new, out TypeSymbol old))
+            {
+                MergeAndReplaceIfStillCandidate(candidates, old, @new);
+            }
+            else
+            {
+                candidates.Add(@new, @new);
+            }
+        }
+
+        private void MergeAndReplaceIfStillCandidate(Dictionary<TypeSymbol, TypeSymbol> dict, TypeSymbol old, TypeSymbol @new)
+        {
+            // We make an exception when @new is dynamic, for backwards compatibility 
+            if (@new.IsDynamic())
+            {
+                return;
+            }
+
+            if (dict.TryGetValue(old, out TypeSymbol latest))
+            {
+                dict.Remove(old);
+                TypeSymbol merged = MergeTupleNames(MergeDynamic(latest, @new, _conversions.CorLibrary), @new);
+                dict.Add(merged, merged);
+            }
+        }
+
+        /// <summary>
+        /// This is a comparer that ignores differences in dynamic-ness and tuple names.
+        /// But it has a special case for top-level object vs. dynamic for purpose of method type inference.
+        /// </summary>
+        private sealed class EqualsIgnoringDynamicAndTupleNamesComparer : EqualityComparer<TypeSymbol>
+        {
+            public static EqualsIgnoringDynamicAndTupleNamesComparer Instance { get; } = new EqualsIgnoringDynamicAndTupleNamesComparer();
+
+            public override int GetHashCode(TypeSymbol obj)
+            {
+                return (object)obj == null ? 0 : obj.GetHashCode();
+            }
+
+            public override bool Equals(TypeSymbol x, TypeSymbol y)
+            {
+                // We do a equality test ignoring dynamic and tuple names differences,
+                // but dynamic and object are not considered equal for backwards compatibility.
+                if (x.IsDynamic() ^ y.IsDynamic()) { return false; }
+
+                return
+                    (object)x == null ? (object)y == null :
+                    x.Equals(y, TypeCompareKind.IgnoreDynamicAndTupleNames);
+            }
         }
     }
 }

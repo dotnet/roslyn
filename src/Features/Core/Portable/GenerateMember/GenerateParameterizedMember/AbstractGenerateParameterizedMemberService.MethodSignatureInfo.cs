@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -26,14 +25,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             }
 
             protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
-            {
-                if (State.IsInConditionalAccessExpression)
-                {
-                    return _methodSymbol.ReturnType.RemoveNullableIfPresent();
-                }
-
-                return _methodSymbol.ReturnType;
-            }
+                => _methodSymbol.ReturnType;
 
             protected override IList<ITypeParameterSymbol> DetermineTypeParametersWorker(CancellationToken cancellationToken)
             {

@@ -1,17 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LambdaParameterParsingTests : ParsingTests
     {
+        public LambdaParameterParsingTests(ITestOutputHelper output) : base(output) { }
+
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
             return SyntaxFactory.ParseSyntaxTree(text, options: options);
+        }
+
+        protected override CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options)
+        {
+            return SyntaxFactory.ParseExpression(text, options: options);
         }
 
         [Fact]
@@ -532,5 +538,47 @@ class C {
                 N(SyntaxKind.EndOfFileToken);
             }
         }
+
+        [Fact, WorkItem(14167, "https://github.com/dotnet/roslyn/issues/14167")]
+        public void HangingLambdaParsing_Bug14167()
+        {
+            var tree = UsingNode(@"(int a, int b Main();");
+            N(SyntaxKind.TupleExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.DeclarationExpression);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.DeclarationExpression);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                }
+                M(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
     }
 }

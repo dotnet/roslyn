@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="allowUnexpandedForm">False to prevent selecting a params method in unexpanded form.</param>
         /// <returns>Synthesized method invocation expression.</returns>
         internal BoundExpression MakeInvocationExpression(
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             BoundExpression receiver,
             string methodName,
             ImmutableArray<BoundExpression> args,
@@ -114,7 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             boundExpression.WasCompilerGenerated = true;
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
-            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVarLocalPendingInference));
+            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVariablePendingInference ||
+                                        e.Kind == BoundKind.OutDeconstructVarPendingInference ||
+                                        e.Kind == BoundKind.DiscardExpression && !e.HasExpressionType()));
             analyzedArguments.Arguments.AddRange(args);
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
@@ -150,10 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // M(__arglist()) is legal, but M(__arglist(__arglist()) is not!
             bool isArglist = node.Expression.Kind() == SyntaxKind.ArgListExpression;
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
-            BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: !isArglist);
 
             if (isArglist)
             {
+                BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: false);
                 result = BindArgListOperator(node, diagnostics, analyzedArguments);
             }
             else
@@ -161,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression boundExpression = BindMethodGroup(node.Expression, invoked: true, indexed: false, diagnostics: diagnostics);
                 boundExpression = CheckValue(boundExpression, BindValueKind.RValueOrMethodGroup, diagnostics);
                 string name = boundExpression.Kind == BoundKind.MethodGroup ? GetName(node.Expression) : null;
+                BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
                 result = BindInvocationExpression(node, node.Expression, name, boundExpression, analyzedArguments, diagnostics);
             }
 
@@ -197,8 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bind an expression as a method invocation.
         /// </summary>
         private BoundExpression BindInvocationExpression(
-            CSharpSyntaxNode node,
-            CSharpSyntaxNode expression,
+            SyntaxNode node,
+            SyntaxNode expression,
             string methodName,
             BoundExpression boundExpression,
             AnalyzedArguments analyzedArguments,
@@ -245,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindDynamicInvocation(
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             BoundExpression expression,
             AnalyzedArguments arguments,
             ImmutableArray<MethodSymbol> applicableMethods,
@@ -333,7 +336,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = 0; i < arguments.Arguments.Count; i++)
             {
-                if (arguments.Arguments[i].Kind == BoundKind.OutVarLocalPendingInference)
+                Debug.Assert(arguments.Arguments[i].Kind != BoundKind.OutDeconstructVarPendingInference);
+
+                if (arguments.Arguments[i].Kind == BoundKind.OutVariablePendingInference ||
+                    arguments.Arguments[i].Kind == BoundKind.DiscardExpression && !arguments.Arguments[i].HasExpressionType())
                 {
                     var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Arguments.Count);
                     builder.AddRange(arguments.Arguments);
@@ -342,9 +348,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BoundExpression argument = builder[i];
 
-                        if (argument.Kind == BoundKind.OutVarLocalPendingInference)
+                        if (argument.Kind == BoundKind.OutVariablePendingInference)
                         {
-                            builder[i] = ((OutVarLocalPendingInference)argument).FailInference(this, diagnostics);
+                            builder[i] = ((OutVariablePendingInference)argument).FailInference(this, diagnostics);
+                        }
+                        else if (argument.Kind == BoundKind.DiscardExpression && !argument.HasExpressionType())
+                        {
+                            builder[i] = ((BoundDiscardExpression)argument).FailInference(this, diagnostics);
                         }
 
                         i++;
@@ -360,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Returns true if there were errors.
         private static bool ReportBadDynamicArguments(
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             ImmutableArray<BoundExpression> arguments,
             DiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause)
@@ -415,8 +425,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindDelegateInvocation(
-            CSharpSyntaxNode node,
-            CSharpSyntaxNode expression,
+            SyntaxNode node,
+            SyntaxNode expression,
             string methodName,
             BoundExpression boundExpression,
             AnalyzedArguments analyzedArguments,
@@ -463,8 +473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindMethodGroupInvocation(
-            CSharpSyntaxNode syntax,
-            CSharpSyntaxNode expression,
+            SyntaxNode syntax,
+            SyntaxNode expression,
             string methodName,
             BoundMethodGroup methodGroup,
             AnalyzedArguments analyzedArguments,
@@ -603,8 +613,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindLocalFunctionInvocationWithDynamicArgument(
-            CSharpSyntaxNode syntax,
-            CSharpSyntaxNode expression,
+            SyntaxNode syntax,
+            SyntaxNode expression,
             string methodName,
             BoundMethodGroup boundMethodGroup,
             DiagnosticBag diagnostics,
@@ -677,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private ImmutableArray<TMethodOrPropertySymbol> GetCandidatesPassingFinalValidation<TMethodOrPropertySymbol>(
-            CSharpSyntaxNode syntax, 
+            SyntaxNode syntax, 
             OverloadResolutionResult<TMethodOrPropertySymbol> overloadResolutionResult,
             BoundExpression receiverOpt,
             ImmutableArray<TypeSymbol> typeArgumentsOpt,
@@ -795,8 +805,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="queryClause">The syntax for the query clause generating this invocation expression, if any.</param>
         /// <returns>BoundCall or error expression representing the invocation.</returns>
         private BoundCall BindInvocationExpressionContinued(
-            CSharpSyntaxNode node,
-            CSharpSyntaxNode expression,
+            SyntaxNode node,
+            SyntaxNode expression,
             string methodName,
             OverloadResolutionResult<MethodSymbol> result,
             AnalyzedArguments analyzedArguments,
@@ -994,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <param name="node">Invocation syntax node.</param>
         /// <param name="expression">The syntax for the invoked method, including receiver.</param>
-        private static Location GetLocationForOverloadResolutionDiagnostic(CSharpSyntaxNode node, CSharpSyntaxNode expression)
+        private static Location GetLocationForOverloadResolutionDiagnostic(SyntaxNode node, SyntaxNode expression)
         {
             if (node != expression)
             {
@@ -1070,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundCall CreateBadCall(
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             string name,
             BoundExpression receiver,
             ImmutableArray<MethodSymbol> methods,
@@ -1145,8 +1155,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
         {
-            // Since the purpose is to bind any unbound lambdas, we return early if there are none.
-            if (!analyzedArguments.Arguments.Any(e => e.Kind == BoundKind.UnboundLambda || e.Kind == BoundKind.OutVarLocalPendingInference))
+            // Since the purpose is to bind any unbound arguments, we return early if there are none.
+            if (!analyzedArguments.Arguments.Any(e => (object)e.Type == null))
             {
                 return analyzedArguments.Arguments.ToImmutable();
             }
@@ -1157,52 +1167,88 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < argumentCount; i++)
             {
                 var argument = newArguments[i];
-                if (argument.Kind == BoundKind.UnboundLambda)
+                if ((object)argument.Type != null)
                 {
-                    // bind the argument against each applicable parameter
-                    var unboundArgument = (UnboundLambda)argument;
-                    foreach (var parameterList in parameterListList)
-                    {
-                        var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
-                        if (parameterType?.Kind == SymbolKind.NamedType)
-                        {
-                            var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType);
-                        }
-                    }
-
-                    // replace the unbound lambda with its best inferred bound version
-                    newArguments[i] = unboundArgument.BindForErrorRecovery();
+                    continue;
                 }
-                else if (argument.Kind == BoundKind.OutVarLocalPendingInference)
+
+                switch (argument.Kind)
                 {
-                    // See if all applicable applicable parameters have the same type
-                    TypeSymbol candidateType = null;
-                    foreach (var parameterList in parameterListList)
-                    {
-                        var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
-                        if ((object)parameterType != null)
+                    case BoundKind.UnboundLambda:
                         {
-                            if ((object)candidateType == null)
+                            // bind the argument against each applicable parameter
+                            var unboundArgument = (UnboundLambda)argument;
+                            foreach (var parameterList in parameterListList)
                             {
-                                candidateType = parameterType;
+                                var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
+                                if (parameterType?.Kind == SymbolKind.NamedType)
+                                {
+                                    var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType);
+                                }
                             }
-                            else if (!candidateType.Equals(parameterType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: false))
+
+                            // replace the unbound lambda with its best inferred bound version
+                            newArguments[i] = unboundArgument.BindForErrorRecovery();
+                            break;
+                        }
+                    case BoundKind.OutVariablePendingInference:
+                    case BoundKind.DiscardExpression:
+                        {
+                            if (argument.HasExpressionType())
                             {
-                                // type mismatch
-                                candidateType = null;
                                 break;
                             }
-                        }
-                    }
 
-                    if ((object)candidateType == null)
-                    {
-                        newArguments[i] = ((OutVarLocalPendingInference)argument).FailInference(this, null);
-                    }
-                    else
-                    {
-                        newArguments[i] = ((OutVarLocalPendingInference)argument).SetInferredType(candidateType, success: true);
-                    }
+                            // See if all applicable applicable parameters have the same type
+                            TypeSymbol candidateType = null;
+                            foreach (var parameterList in parameterListList)
+                            {
+                                var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
+                                if ((object)parameterType != null)
+                                {
+                                    if ((object)candidateType == null)
+                                    {
+                                        candidateType = parameterType;
+                                    }
+                                    else if (!candidateType.Equals(parameterType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+                                    {
+                                        // type mismatch
+                                        candidateType = null;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (argument.Kind == BoundKind.OutVariablePendingInference)
+                            {
+                                if ((object)candidateType == null)
+                                {
+                                    newArguments[i] = ((OutVariablePendingInference)argument).FailInference(this, null);
+                                }
+                                else
+                                {
+                                    newArguments[i] = ((OutVariablePendingInference)argument).SetInferredType(candidateType, null);
+                                }
+                            }
+                            else if (argument.Kind == BoundKind.DiscardExpression)
+                            {
+                                if ((object)candidateType == null)
+                                {
+                                    newArguments[i] = ((BoundDiscardExpression)argument).FailInference(this, null);
+                                }
+                                else
+                                {
+                                    newArguments[i] = ((BoundDiscardExpression)argument).SetInferredType(candidateType);
+                                }
+                            }
+
+                            break;
+                        }
+                    case BoundKind.OutDeconstructVarPendingInference:
+                        {
+                            newArguments[i] = ((OutDeconstructVarPendingInference)argument).FailInference(this);
+                            break;
+                        }
                 }
             }
 
@@ -1245,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundCall CreateBadCall(
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             BoundExpression expr,
             LookupResultKind resultKind,
             AnalyzedArguments analyzedArguments)

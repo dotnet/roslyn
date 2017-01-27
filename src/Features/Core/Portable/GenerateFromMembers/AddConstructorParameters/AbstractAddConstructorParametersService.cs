@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters
         {
         }
 
-        public async Task<IAddConstructorParametersResult> AddConstructorParametersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeAction>> AddConstructorParametersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_AddConstructorParameters, cancellationToken))
             {
@@ -30,12 +31,11 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters
                     var state = State.Generate((TService)this, document, textSpan, info.SelectedMembers, cancellationToken);
                     if (state != null)
                     {
-                        return new AddConstructorParametersResult(CreateCodeRefactoring(info.SelectedDeclarations,
-                            CreateCodeActions(document, state)));
+                        return CreateCodeActions(document, state).AsImmutableOrNull();
                     }
                 }
 
-                return AddConstructorParametersResult.Failure;
+                return default(ImmutableArray<CodeAction>);
             }
         }
 

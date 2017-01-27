@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var typeNode = await GetTypeDeclarationAsync(document, position, typeDiscoveryRule, cancellationToken).ConfigureAwait(false);
             if (typeNode == null)
             {
-                var errorMessage = FeaturesResources.CouldNotExtractInterfaceSelection;
+                var errorMessage = FeaturesResources.Could_not_extract_interface_colon_The_selection_is_not_inside_a_class_interface_struct;
                 return new ExtractInterfaceTypeAnalysisResult(errorMessage);
             }
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var type = semanticModel.GetDeclaredSymbol(typeNode, cancellationToken);
             if (type == null || type.Kind != SymbolKind.NamedType)
             {
-                var errorMessage = FeaturesResources.CouldNotExtractInterfaceSelection;
+                var errorMessage = FeaturesResources.Could_not_extract_interface_colon_The_selection_is_not_inside_a_class_interface_struct;
                 return new ExtractInterfaceTypeAnalysisResult(errorMessage);
             }
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var extractableMembers = typeToExtractFrom.GetMembers().Where(IsExtractableMember);
             if (!extractableMembers.Any())
             {
-                var errorMessage = FeaturesResources.CouldNotExtractInterfaceTypeMember;
+                var errorMessage = FeaturesResources.Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface;
                 return new ExtractInterfaceTypeAnalysisResult(errorMessage);
             }
 
@@ -126,17 +126,14 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public ExtractInterfaceResult ExtractInterfaceFromAnalyzedType(ExtractInterfaceTypeAnalysisResult refactoringResult, ExtractInterfaceOptionsResult extractInterfaceOptions, CancellationToken cancellationToken)
         {
             var solution = refactoringResult.DocumentToExtractFrom.Project.Solution;
-            List<DocumentId> documentIds;
-            SyntaxAnnotation typeNodeSyntaxAnnotation;
-
             var containingNamespaceDisplay = GetContainingNamespaceDisplay(refactoringResult.TypeToExtractFrom, refactoringResult.DocumentToExtractFrom.Project.CompilationOptions);
 
             var symbolToDeclarationAnnotationMap = CreateSymbolToDeclarationAnnotationMap(
                 extractInterfaceOptions.IncludedMembers,
                 ref solution,
-                out documentIds,
+                out var documentIds,
                 refactoringResult.TypeNode,
-                out typeNodeSyntaxAnnotation,
+                out var typeNodeSyntaxAnnotation,
                 cancellationToken);
 
             var extractedInterfaceSymbol = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
@@ -199,9 +196,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             {
                 var location = includedMember.Locations.Single();
                 var tree = location.SourceTree;
-
-                SyntaxNode root;
-                if (!currentRoots.TryGetValue(tree, out root))
+                if (!currentRoots.TryGetValue(tree, out var root))
                 {
                     root = tree.GetRoot(cancellationToken);
                     documentIds.Add(solution.GetDocument(tree).Id);
@@ -276,7 +271,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         private static Solution GetSolutionWithFormattedInterfaceDocument(Document unformattedInterfaceDocument, CancellationToken cancellationToken)
         {
             Solution solutionWithInterfaceDocument;
-            var formattedRoot = Formatter.Format(unformattedInterfaceDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken), unformattedInterfaceDocument.Project.Solution.Workspace, cancellationToken: cancellationToken);
+            var formattedRoot = Formatter.Format(unformattedInterfaceDocument.GetSyntaxRootSynchronously(cancellationToken),
+                unformattedInterfaceDocument.Project.Solution.Workspace, cancellationToken: cancellationToken);
             var rootToSimplify = formattedRoot.WithAdditionalAnnotations(Simplifier.Annotation);
             var finalInterfaceDocument = Simplifier.ReduceAsync(unformattedInterfaceDocument.WithSyntaxRoot(rootToSimplify), cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
 
@@ -371,7 +367,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             isIndexer: property.IsIndexer));
                         break;
                     default:
-                        Debug.Assert(false, string.Format(FeaturesResources.UnexpectedInterfaceMemberKind, member.Kind.ToString()));
+                        Debug.Assert(false, string.Format(FeaturesResources.Unexpected_interface_member_kind_colon_0, member.Kind.ToString()));
                         break;
                 }
             }
@@ -487,7 +483,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     return property.Parameters.Any(t => DoesTypeReferenceTypeParameter(t.Type, typeParameter, checkedTypes)) ||
                         DoesTypeReferenceTypeParameter(property.Type, typeParameter, checkedTypes);
                 default:
-                    Debug.Assert(false, string.Format(FeaturesResources.UnexpectedInterfaceMemberKind, member.Kind.ToString()));
+                    Debug.Assert(false, string.Format(FeaturesResources.Unexpected_interface_member_kind_colon_0, member.Kind.ToString()));
                     return false;
             }
         }

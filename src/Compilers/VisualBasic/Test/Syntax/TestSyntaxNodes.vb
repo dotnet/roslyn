@@ -3,6 +3,7 @@
 Imports System.Globalization
 Imports System.Text
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Syntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -2598,9 +2599,7 @@ End Class
 
         <Fact>
         Public Sub Test_SyntaxTree_ParseTextInvalid()
-            Assert.Throws(Of ArgumentNullException)(Sub()
-                                                        Dim treeFromSourceWithPath_Invalid1 = VisualBasicSyntaxTree.ParseText("", path:=Nothing)
-                                                    End Sub)
+            Dim treeFromSourceWithPath_valid1 = VisualBasicSyntaxTree.ParseText("", path:=Nothing)
 
             Assert.Throws(Of ArgumentNullException)(Sub()
                                                         Dim st As SourceText = Nothing

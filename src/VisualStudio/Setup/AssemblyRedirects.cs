@@ -23,12 +23,8 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.CSharp.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll")]
 
-[assembly: ProvideRoslynBindingRedirection("System.Reflection.Metadata.dll")]
-[assembly: ProvideRoslynBindingRedirection("System.Collections.Immutable.dll")]
 [assembly: ProvideRoslynBindingRedirection("Esent.Interop.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Elfie.dll")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.DiaSymReader.dll")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.DiaSymReader.PortablePdb.dll")]
 
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Convention.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Hosting.dll")]

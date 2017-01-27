@@ -2067,9 +2067,10 @@ static class C
 ";
 
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (4,12): error CS8088: Void-returning methods cannot return by reference
+                // (4,16): error CS1547: Keyword 'void' cannot be used in this context
                 //     static ref void M() { }
-                Diagnostic(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, "ref").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 16)
+                );
         }
 
         [Fact]
@@ -2087,12 +2088,13 @@ static class C
 
             var parseOptions = TestOptions.Regular;
             CreateCompilationWithMscorlib45(source, parseOptions: parseOptions).VerifyDiagnostics(
-    // (6,18): error CS8898: Void-returning methods cannot return by reference
-    //         ref void M() { }
-    Diagnostic(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, "M").WithLocation(6, 18),
-    // (6,18): warning CS0168: The variable 'M' is declared but never used
-    //         ref void M() { }
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "M").WithArguments("M").WithLocation(6, 18));
+                // (6,13): error CS1547: Keyword 'void' cannot be used in this context
+                //         ref void M() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 13),
+                // (6,18): warning CS0168: The variable 'M' is declared but never used
+                //         ref void M() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "M").WithArguments("M").WithLocation(6, 18)
+                );
         }
 
         [Fact]
@@ -2106,15 +2108,16 @@ static class C
 ";
 
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (4,18): error CS1519: Invalid token 'ref' in class, struct, or interface member declaration
+                // (4,18): error CS1073: Unexpected token 'ref'
                 //     static async ref int M() { }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "ref").WithArguments("ref").WithLocation(4, 18),
-                // (4,26): error CS0708: 'M': cannot declare instance members in a static class
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
+                // (4,26): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async ref int M() { }
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "M").WithArguments("M").WithLocation(4, 26),
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 26),
                 // (4,26): error CS0161: 'C.M()': not all code paths return a value
                 //     static async ref int M() { }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 26));
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 26)
+                );
         }
     }
 }

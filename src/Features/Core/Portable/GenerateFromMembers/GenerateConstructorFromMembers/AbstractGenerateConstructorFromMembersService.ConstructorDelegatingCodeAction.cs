@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructorFromMemb
                     var parameters = _state.Parameters.Select(p => symbolDisplayService.ToDisplayString(p, SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
 
-                    return string.Format(FeaturesResources.GenerateDelegatingConstructor,
+                    return string.Format(FeaturesResources.Generate_delegating_constructor_0_1,
                         _state.ContainingType.Name, parameterString);
                 }
             }

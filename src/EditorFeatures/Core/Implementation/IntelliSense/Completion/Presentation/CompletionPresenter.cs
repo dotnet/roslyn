@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
-            var completionSetFactory = document != null && NeedsDev15CompletionSetFactory(document.Options, document.Project.Language)
+            var completionSetFactory = document != null && NeedsDev15CompletionSetFactory(document.Project.Solution.Options, document.Project.Language)
                 ? VersionSelector.SelectHighest(_completionSetFactories)
                 : VersionSelector.SelectVersion(_completionSetFactories, VisualStudioVersion.Dev14);
 

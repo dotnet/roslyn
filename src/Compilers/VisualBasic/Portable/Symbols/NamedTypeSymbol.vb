@@ -49,23 +49,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Returns custom modifiers for the type arguments that have been substituted for the type parameters. 
+        ''' Returns custom modifiers for the type argument that has been substituted for the type parameter. 
+        ''' The modifiers correspond to the type argument at the same ordinal within the <see cref="TypeArgumentsNoUseSiteDiagnostics"/>
+        ''' array.
         ''' </summary>
-        Friend MustOverride ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+        Public MustOverride Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
 
-        Friend Function CreateEmptyTypeArgumentsCustomModifiers() As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-            Dim arity = Me.Arity
-
-            If arity > 0 Then
-                Return CreateEmptyTypeArgumentsCustomModifiers(arity)
-            Else
-                Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
+        Friend Function GetEmptyTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+            If ordinal < 0 OrElse ordinal >= Me.Arity Then
+                Throw New IndexOutOfRangeException()
             End If
-        End Function
 
-        Friend Shared Function CreateEmptyTypeArgumentsCustomModifiers(arity As Integer) As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-            Debug.Assert(arity > 0)
-            Return ArrayBuilder(Of ImmutableArray(Of CustomModifier)).GetInstance(arity, ImmutableArray(Of CustomModifier).Empty).ToImmutableAndFree()
+            Return ImmutableArray(Of CustomModifier).Empty
         End Function
 
         Friend MustOverride ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
@@ -167,6 +162,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Debug.Assert(Me.IsErrorType OrElse Not (TypeOf Me Is SourceNamedTypeSymbol) OrElse Not Name.Contains("."), "type name contains dots: " + Name)
 
                 Return If(MangleName, MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity), Name)
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' True if the type itself Is excluded from code covarage instrumentation.
+        ''' True for source types marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
+        ''' </summary>
+        Friend Overridable ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
+            Get
+                Return False
             End Get
         End Property
 
@@ -1016,8 +1021,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If Me.HasTypeArgumentsCustomModifiers Then
                 Dim modifiersErrorInfo As DiagnosticInfo = Nothing
 
-                For Each modifiers In Me.TypeArgumentsCustomModifiers
-                    modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(modifiers))
+                For i As Integer = 0 To Me.Arity - 1
+                    modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i)))
                 Next
 
                 Return MergeUseSiteErrorInfo(argsErrorInfo, modifiersErrorInfo)
@@ -1080,6 +1085,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns>True if this Is an interface type.</returns>
         Friend MustOverride ReadOnly Property IsInterface As Boolean
 
+        ''' <summary>
+        ''' Get synthesized WithEvents overrides that aren't returned by <see cref="GetMembers"/>
+        ''' </summary>
+        Friend MustOverride Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+
 #Region "INamedTypeSymbol"
 
         Private ReadOnly Property INamedTypeSymbol_Arity As Integer Implements INamedTypeSymbol.Arity
@@ -1123,6 +1133,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me.OriginalDefinition
             End Get
         End Property
+
+        Private Function INamedTypeSymbol_GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier) Implements INamedTypeSymbol.GetTypeArgumentCustomModifiers
+            Return GetTypeArgumentCustomModifiers(ordinal)
+        End Function
 
         Private ReadOnly Property INamedTypeSymbol_TypeArguments As ImmutableArray(Of ITypeSymbol) Implements INamedTypeSymbol.TypeArguments
             Get
@@ -1185,6 +1199,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property INamedTypeSymbol_IsComImport As Boolean Implements INamedTypeSymbol.IsComImport
+            Get
+                Return IsComImport
+            End Get
+        End Property
+
 #End Region
 
 #Region "ISymbol"
@@ -1201,21 +1221,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property TupleElementTypes As ImmutableArray(Of ITypeSymbol) Implements INamedTypeSymbol.TupleElementTypes
+        Private ReadOnly Property INamedTypeSymbol_TupleElements As ImmutableArray(Of IFieldSymbol) Implements INamedTypeSymbol.TupleElements
             Get
-                Return Nothing
+                Return StaticCast(Of IFieldSymbol).From(TupleElements)
             End Get
         End Property
 
-        Public ReadOnly Property TupleElementNames As ImmutableArray(Of String) Implements INamedTypeSymbol.TupleElementNames
+        Private ReadOnly Property INamedTypeSymbol_TupleUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.TupleUnderlyingType
             Get
-                Return Nothing
-            End Get
-        End Property
-
-        Public ReadOnly Property TupleUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.TupleUnderlyingType
-            Get
-                Return Nothing
+                Return TupleUnderlyingType
             End Get
         End Property
 
@@ -1236,6 +1250,67 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
 #End Region
+
+        ''' <summary>
+        ''' Verify if the given type can be used to back a tuple type 
+        ''' and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
+        ''' </summary>
+        ''' <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
+        ''' <returns></returns>
+        Public NotOverridable Overrides Function IsTupleCompatible(<Out> ByRef tupleCardinality As Integer) As Boolean
+            If IsTupleType Then
+                tupleCardinality = 0
+                Return False
+            End If
+
+            ' Should this be optimized for perf (caching for VT<0> to VT<7>, etc.)?
+            If Not IsUnboundGenericType AndAlso
+                ContainingSymbol?.Kind = SymbolKind.Namespace AndAlso
+                ContainingNamespace?.ContainingNamespace?.IsGlobalNamespace = True AndAlso
+                Name = TupleTypeSymbol.TupleTypeName AndAlso
+                ContainingNamespace.Name = MetadataHelpers.SystemString Then
+
+                Dim arity = Me.Arity
+
+                If arity > 0 AndAlso arity < TupleTypeSymbol.RestPosition Then
+                    tupleCardinality = arity
+                    Return True
+                ElseIf arity = TupleTypeSymbol.RestPosition AndAlso Not IsDefinition Then
+                    ' Skip through "Rest" extensions
+                    Dim typeToCheck As TypeSymbol = Me
+                    Dim levelsOfNesting As Integer = 0
+
+                    Do
+                        levelsOfNesting += 1
+                        typeToCheck = DirectCast(typeToCheck, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(TupleTypeSymbol.RestPosition - 1)
+                    Loop While typeToCheck.OriginalDefinition = Me.OriginalDefinition AndAlso Not typeToCheck.IsDefinition
+
+                    If typeToCheck.IsTupleType Then
+                        Dim underlying = typeToCheck.TupleUnderlyingType
+                        If underlying.Arity = TupleTypeSymbol.RestPosition AndAlso underlying.OriginalDefinition <> Me.OriginalDefinition Then
+                            tupleCardinality = 0
+                            Return False
+                        End If
+
+                        tupleCardinality = (TupleTypeSymbol.RestPosition - 1) * levelsOfNesting + typeToCheck.TupleElementTypes.Length
+                        Return True
+                    End If
+
+                    arity = If(TryCast(typeToCheck, NamedTypeSymbol)?.Arity, 0)
+
+                    If arity > 0 AndAlso
+                        arity < TupleTypeSymbol.RestPosition AndAlso
+                        typeToCheck.IsTupleCompatible(tupleCardinality) Then
+                        Debug.Assert(tupleCardinality < TupleTypeSymbol.RestPosition)
+                        tupleCardinality += (TupleTypeSymbol.RestPosition - 1) * levelsOfNesting
+                        Return True
+                    End If
+                End If
+            End If
+
+            tupleCardinality = 0
+            Return False
+        End Function
 
     End Class
 End Namespace

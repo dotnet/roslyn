@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsSingleLineStatementContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Call", VBFeaturesResources.CallKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Call", VBFeaturesResources.Transfers_execution_to_a_Function_Sub_or_dynamic_link_library_DLL_procedure_bracket_Call_bracket_procedureName_bracket_argumentList_bracket))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

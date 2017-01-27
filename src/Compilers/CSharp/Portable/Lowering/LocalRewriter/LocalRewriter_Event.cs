@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// TODO: use or delete isDynamic.
         /// </remarks>
-        private BoundExpression RewriteWindowsRuntimeEventAssignmentOperator(CSharpSyntaxNode syntax, EventSymbol eventSymbol, EventAssignmentKind kind, bool isDynamic, BoundExpression rewrittenReceiverOpt, BoundExpression rewrittenArgument)
+        private BoundExpression RewriteWindowsRuntimeEventAssignmentOperator(SyntaxNode syntax, EventSymbol eventSymbol, EventAssignmentKind kind, bool isDynamic, BoundExpression rewrittenReceiverOpt, BoundExpression rewrittenArgument)
         {
             BoundAssignmentOperator tempAssignment = null;
             BoundLocal boundTemp = null;
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequence(syntax, tempSymbols, sideEffects.ToImmutableAndFree(), marshalCall, marshalCall.Type);
         }
 
-        private BoundExpression VisitWindowsRuntimeEventFieldAssignmentOperator(CSharpSyntaxNode syntax, BoundEventAccess left, BoundExpression right)
+        private BoundExpression VisitWindowsRuntimeEventFieldAssignmentOperator(SyntaxNode syntax, BoundEventAccess left, BoundExpression right)
         {
             Debug.Assert(left.IsUsableAsField);
 
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression MakeEventAccess(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenReceiver,
             EventSymbol eventSymbol,
             ConstantValue constantValueOpt,
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = null;
 
-            CSharpSyntaxNode oldSyntax = _factory.Syntax;
+            SyntaxNode oldSyntax = _factory.Syntax;
             _factory.Syntax = node.Syntax;
 
 

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -84,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Completion
             int matchPriority,
             CompletionItemSelectionBehavior selectionBehavior)
         {
-            FilterCharacterRules = filterCharacterRules.IsDefault ? ImmutableArray<CharacterSetModificationRule>.Empty : filterCharacterRules;
-            CommitCharacterRules = commitCharacterRules.IsDefault ? ImmutableArray<CharacterSetModificationRule>.Empty : commitCharacterRules;
+            FilterCharacterRules = filterCharacterRules.NullToEmpty();
+            CommitCharacterRules = commitCharacterRules.NullToEmpty();
             EnterKeyRule = enterKeyRule;
             FormatOnCommit = formatOnCommit;
             MatchPriority = matchPriority;
@@ -208,6 +206,16 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionItemRules WithFilterCharacterRules(ImmutableArray<CharacterSetModificationRule> filterCharacterRules)
         {
             return this.With(filterRules: filterCharacterRules);
+        }
+
+        internal CompletionItemRules WithFilterCharacterRule(CharacterSetModificationRule rule)
+        {
+            return this.With(filterRules: ImmutableArray.Create(rule));
+        }
+
+        internal CompletionItemRules WithCommitCharacterRule(CharacterSetModificationRule rule)
+        {
+            return this.With(commitRules: ImmutableArray.Create(rule));
         }
 
         /// <summary>

@@ -117,10 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="PressTABToInsert" xml:space="preserve">
+  <data name="Press_TAB_to_insert" xml:space="preserve">
     <value>     (Press TAB to insert)</value>
   </data>
-  <data name="SmartIndenting" xml:space="preserve">
+  <data name="Smart_Indenting" xml:space="preserve">
     <value>Smart Indenting</value>
   </data>
 </root>

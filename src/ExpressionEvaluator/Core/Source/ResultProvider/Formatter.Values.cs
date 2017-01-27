@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         IncludeObjectId = 0x2,
     }
 
-    // This class provides implementation for the "displaying values as strings" aspect of the default (C#) Formatter component.
+    // This class provides implementation for the "displaying values as strings" aspect of the Formatter component.
     internal abstract partial class Formatter
     {
         private string GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ObjectDisplayOptions options, GetValueFlags flags)
@@ -99,6 +99,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return nullableValue == null
                     ? _nullString
                     : GetValueString(nullableValue, inspectionContext, ObjectDisplayOptions.None, GetValueFlags.IncludeTypeName);
+            }
+            else
+            {
+                int cardinality;
+                if (lmrType.IsTupleCompatible(out cardinality) && (cardinality > 1))
+                {
+                    var values = ArrayBuilder<string>.GetInstance();
+                    if (value.TryGetTupleFieldValues(cardinality, values, inspectionContext))
+                    {
+                        return IncludeObjectId(
+                            value,
+                            GetTupleExpression(values.ToArrayAndFree()),
+                            flags);
+                    }
+                    values.Free();
+                }
             }
 
             // "value.EvaluateToString()" will check "Call string-conversion function on objects in variables windows"
@@ -402,6 +418,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract string GetNameForEnumValue(ArrayBuilder<EnumField> fields, object value, ulong underlyingValue, ObjectDisplayOptions options, Type typeToDisplayOpt);
 
         internal abstract string GetObjectCreationExpression(string type, string arguments);
+
+        internal abstract string GetTupleExpression(string[] values);
 
         internal abstract string FormatLiteral(char c, ObjectDisplayOptions options);
 

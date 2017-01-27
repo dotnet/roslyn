@@ -43,7 +43,7 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", CodeAnalysis.Glyph.Assembly,
+                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     forkedDocument.Project.Solution,
                     workspace.CurrentSolution,
                     componentModel)
@@ -80,9 +80,9 @@ Class C
                     Tuple.Create("topLevelItemName", 0),
                     Tuple.Create("test1.cs", 1),
                     Tuple.Create("insertion!", 2),
-                    Tuple.Create(ServicesVSResources.PreviewChangesAddedPrefix + "test3.cs", 1),
+                    Tuple.Create(ServicesVSResources.bracket_plus_bracket + "test3.cs", 1),
                     Tuple.Create("// This file will be added!", 2),
-                    Tuple.Create(ServicesVSResources.PreviewChangesDeletedPrefix + "test2.cs", 1),
+                    Tuple.Create(ServicesVSResources.bracket_bracket + "test2.cs", 1),
                     Tuple.Create("// This file will be deleted!", 2)
                     }
 
@@ -103,7 +103,7 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", CodeAnalysis.Glyph.Assembly,
+                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     newSolution,
                     workspace.CurrentSolution,
                     componentModel)
@@ -138,7 +138,7 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", CodeAnalysis.Glyph.Assembly,
+                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     forkedDocument.Project.Solution,
                     workspace.CurrentSolution,
                     componentModel)
@@ -204,7 +204,7 @@ Class C
                 newSolution = newSolution.AddDocument(addedDocumentId2, "test5.cs", "// This file will be unchecked and not added!")
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", CodeAnalysis.Glyph.Assembly,
+                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     newSolution,
                     workspace.CurrentSolution,
                     componentModel)
@@ -221,8 +221,8 @@ Class C
                     Dim checkedItems = New List(Of String) From
                     {
                         "test1.cs",
-                        ServicesVSResources.PreviewChangesAddedPrefix + "test4.cs",
-                        ServicesVSResources.PreviewChangesDeletedPrefix + "test2.cs"
+                        ServicesVSResources.bracket_plus_bracket + "test4.cs",
+                        ServicesVSResources.bracket_bracket + "test2.cs"
                     }
 
                     SetCheckedChildren(checkedItems, topLevelList)
@@ -284,7 +284,7 @@ End Class
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", CodeAnalysis.Glyph.Assembly,
+                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     updatedSolution,
                     workspace.CurrentSolution,
                     componentModel)

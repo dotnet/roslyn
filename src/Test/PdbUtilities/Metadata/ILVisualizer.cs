@@ -379,19 +379,53 @@ namespace Roslyn.Test.MetadataUtilities
                         case OperandType.InlineMethod:
                         case OperandType.InlineTok:
                         case OperandType.InlineType:
-                            sb.Append(' ');
-                            sb.Append(VisualizeSymbol(ReadUInt32(ilBytes, ref curIndex)));
-                            break;
+                            {
+                                sb.Append(' ');
+                                uint pseudoToken = ReadUInt32(ilBytes, ref curIndex);
+                                if (opCode.OperandType == OperandType.InlineTok)
+                                {
+                                    // Check for an encoding of the maximum method token index value.
+                                    if ((pseudoToken & 0xff000000) == 0x40000000)
+                                    {
+                                        sb.Append("Max Method Token Index");
+                                        break;
+                                    }
 
+                                    // Check for an encoding of a source document index.
+                                    if ((pseudoToken & 0xff000000) == 0x20000000)
+                                    {
+                                        sb.Append("Source Document " + (pseudoToken & 0x00ffffff).ToString());
+                                        break;
+                                    }
+
+                                    // Check for a raw token value, encoded with a 1 high-order bit.
+                                    if ((pseudoToken & 0x80000000) != 0 && pseudoToken != 0xffffffff)
+                                    {
+                                        pseudoToken &= 0x7fffffff;
+                                    }
+                                }
+                               
+                                sb.Append(VisualizeSymbol(pseudoToken));
+                                break;
+                            }
                         case OperandType.InlineSig: // signature (calli), not emitted by C#/VB
                             sb.AppendFormat(" 0x{0:x}", ReadUInt32(ilBytes, ref curIndex));
                             break;
 
                         case OperandType.InlineString:
-                            sb.Append(' ');
-                            sb.Append(VisualizeUserString(ReadUInt32(ilBytes, ref curIndex)));
-                            break;
+                            {
+                                sb.Append(' ');
+                                uint pseudoToken = ReadUInt32(ilBytes, ref curIndex);
+                                // Check for an encoding of the spelling of the current module's module version ID.
+                                if (pseudoToken == 0x80000000)
+                                {
+                                    sb.Append("##MVID##");
+                                    break;
+                                }
 
+                                sb.Append(VisualizeUserString(pseudoToken));
+                                break;
+                            }
                         case OperandType.InlineNone:
                             break;
 

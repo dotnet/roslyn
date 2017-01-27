@@ -47,7 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 Thread.Sleep(TimeSpan.FromSeconds(1));
             }
 
-            return compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: new MemoryStream());
+            var pdbStream = (pdbFormat == DebugInformationFormat.Embedded) ? null : new MemoryStream();
+
+            return compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream);
         }
 
         [Fact, WorkItem(4578, "https://github.com/dotnet/roslyn/issues/4578")]
@@ -180,6 +182,77 @@ namespace N
                                                        new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithDeterministic(true));
             var output = new WriteOnlyStream();
             compilation.Emit(output);
+        }
+
+        [Fact, WorkItem(11990, "https://github.com/dotnet/roslyn/issues/11990")]
+        public void ForwardedTypesAreEmittedInADeterministicOrder()
+        {
+            var forwardedToCode = @"
+namespace Namespace2 {
+    public class GenericType1<T> {}
+    public class GenericType3<T> {}
+    public class GenericType2<T> {}
+}
+namespace Namespace1 {
+    public class Type3 {}
+    public class Type2 {}
+    public class Type1 {}
+}
+namespace Namespace4 {
+    namespace Embedded {
+        public class Type2 {}
+        public class Type1 {}
+    }
+}
+namespace Namespace3 {
+    public class GenericType {}
+    public class GenericType<T> {}
+    public class GenericType<T, U> {}
+}
+";
+            var forwardedToCompilation = CreateCompilation(forwardedToCode);
+            var forwardedToReference = new CSharpCompilationReference(forwardedToCompilation);
+
+            var forwardingCode = @"
+using System.Runtime.CompilerServices;
+[assembly: TypeForwardedTo(typeof(Namespace2.GenericType1<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace2.GenericType3<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace2.GenericType2<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace1.Type3))]
+[assembly: TypeForwardedTo(typeof(Namespace1.Type2))]
+[assembly: TypeForwardedTo(typeof(Namespace1.Type1))]
+[assembly: TypeForwardedTo(typeof(Namespace4.Embedded.Type2))]
+[assembly: TypeForwardedTo(typeof(Namespace4.Embedded.Type1))]
+[assembly: TypeForwardedTo(typeof(Namespace3.GenericType))]
+[assembly: TypeForwardedTo(typeof(Namespace3.GenericType<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace3.GenericType<int, int>))]
+";
+
+            var forwardingCompilation = CreateCompilationWithMscorlib(forwardingCode, new MetadataReference[] { forwardedToReference });
+
+            var sortedFullNames = new string[]
+            {
+                "Namespace1.Type1",
+                "Namespace1.Type2",
+                "Namespace1.Type3",
+                "Namespace2.GenericType1`1",
+                "Namespace2.GenericType2`1",
+                "Namespace2.GenericType3`1",
+                "Namespace3.GenericType",
+                "Namespace3.GenericType`1",
+                "Namespace3.GenericType`2",
+                "Namespace4.Embedded.Type1",
+                "Namespace4.Embedded.Type2"
+            };
+
+            using (var stream = forwardingCompilation.EmitToStream())
+            {
+                using (var block = ModuleMetadata.CreateFromStream(stream))
+                {
+                    var metadataFullNames = MetadataValidation.GetExportedTypesFullNames(block.MetadataReader);
+                    Assert.Equal(sortedFullNames, metadataFullNames);
+                }
+            }
         }
 
         [Fact]

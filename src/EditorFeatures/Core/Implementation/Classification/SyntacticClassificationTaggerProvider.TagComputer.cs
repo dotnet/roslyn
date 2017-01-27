@@ -300,8 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private void AddClassifiedSpansForCurrentTree(
                 IEditorClassificationService classificationService, SnapshotSpan span, Document document, List<ClassifiedSpan> classifiedSpans)
             {
-                List<ClassifiedSpan> tempList;
-                if (!_lastLineCache.TryUseCache(span, out tempList))
+                if (!_lastLineCache.TryUseCache(span, out var tempList))
                 {
                     tempList = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
@@ -389,11 +388,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     span.Snapshot.AsText(), span.Span.ToTextSpan(), classifiedSpans, CancellationToken.None);
             }
 
-            private void OnDocumentActiveContextChanged(object sender, DocumentEventArgs args)
+            private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs args)
             {
-                if (_workspace != null)
+                if (_workspace != null && _workspace == args.Solution.Workspace)
                 {
-                    ParseIfThisDocument(null, args.Document.Project.Solution, args.Document.Id);
+                    ParseIfThisDocument(null, args.Solution, args.NewActiveContextDocumentId);
                 }
             }
 

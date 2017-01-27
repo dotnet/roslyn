@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -41,18 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingField.IsImplicitlyDeclared; }
         }
 
-        internal override abstract TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
-
-        public override abstract ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get;
-        }
-
-        public override abstract Symbol ContainingSymbol
-        {
-            get;
-        }
-
         public override Accessibility DeclaredAccessibility
         {
             get
@@ -60,8 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingField.DeclaredAccessibility;
             }
         }
-
-        public override abstract ImmutableArray<CSharpAttributeData> GetAttributes();
 
         public override string Name
         {
@@ -130,11 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _underlyingField.TypeLayoutOffset;
             }
-        }
-
-        public override abstract Symbol AssociatedSymbol
-        {
-            get;
         }
 
         public override bool IsReadOnly

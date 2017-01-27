@@ -156,6 +156,70 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }
         }
 
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+        public void ModifyMethod_WithTuples()
+        {
+            var source0 =
+@"class C
+{
+    static void Main() { }
+    static (int, int) F() { return (1, 2); }
+}";
+            var source1 =
+@"class C
+{
+    static void Main() { }
+    static (int, int) F() { return (2, 3); }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation1 = compilation0.WithSource(source1);
+
+            var bytes0 = compilation0.EmitToArray();
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var reader0 = md0.MetadataReader;
+
+                var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+                var generation0 = EmitBaseline.CreateInitialBaseline(
+                    md0,
+                    EmptyLocalsProvider);
+                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
+
+                // Verify delta metadata contains expected rows.
+                using (var md1 = diff1.GetMetadata())
+                {
+                    var reader1 = md1.Reader;
+                    var readers = new[] { reader0, reader1 };
+                    EncValidation.VerifyModuleMvid(1, reader0, reader1);
+                    CheckNames(readers, reader1.GetTypeDefNames());
+                    CheckNames(readers, reader1.GetMethodDefNames(), "F");
+                    CheckNames(readers, reader1.GetMemberRefNames(), /*System.ValueTuple.*/".ctor");
+                    CheckEncLog(reader1,
+                        Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.TypeSpec, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)); // C.F
+                    CheckEncMap(reader1,
+                        Handle(7, TableIndex.TypeRef),
+                        Handle(8, TableIndex.TypeRef),
+                        Handle(2, TableIndex.MethodDef),
+                        Handle(6, TableIndex.MemberRef),
+                        Handle(2, TableIndex.StandAloneSig),
+                        Handle(2, TableIndex.TypeSpec),
+                        Handle(3, TableIndex.AssemblyRef),
+                        Handle(4, TableIndex.AssemblyRef));
+                }
+            }
+        }
+
         [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
         [Fact]
         public void PartialMethod()

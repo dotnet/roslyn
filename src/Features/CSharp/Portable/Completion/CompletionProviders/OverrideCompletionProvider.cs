@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -206,7 +205,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (propertyDeclaration.AccessorList != null && propertyDeclaration.AccessorList.Accessors.Any())
                 {
                     // move to the end of the last statement of the first accessor
-                    var firstAccessorStatement = propertyDeclaration.AccessorList.Accessors.First().Body.Statements.Last();
+                    var firstAccessor = propertyDeclaration.AccessorList.Accessors[0];
+                    var firstAccessorStatement = (SyntaxNode)firstAccessor.Body?.Statements.LastOrDefault() ??
+                        firstAccessor.ExpressionBody.Expression;
                     return firstAccessorStatement.GetLocation().SourceSpan.End;
                 }
                 else

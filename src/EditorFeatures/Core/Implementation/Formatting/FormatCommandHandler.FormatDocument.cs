@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             var result = false;
             _waitIndicator.Wait(
-                title: EditorFeaturesResources.FormatDocument,
-                message: EditorFeaturesResources.FormattingDocument,
+                title: EditorFeaturesResources.Format_Document,
+                message: EditorFeaturesResources.Formatting_document,
                 allowCancel: true,
                 action: waitContext =>
                 {

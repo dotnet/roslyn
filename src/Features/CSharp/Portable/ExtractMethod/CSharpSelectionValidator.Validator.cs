@@ -11,11 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         public bool Check(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         {
-            return node.TypeSwitch(
-                (ExpressionSyntax expression) => CheckExpression(semanticModel, expression, cancellationToken),
-                (BlockSyntax block) => CheckBlock(semanticModel, block, cancellationToken),
-                (StatementSyntax statement) => CheckStatement(semanticModel, statement, cancellationToken),
-                (GlobalStatementSyntax globalStatement) => CheckGlobalStatement(semanticModel, globalStatement, cancellationToken));
+            switch (node)
+            {
+                case ExpressionSyntax expression: return CheckExpression(semanticModel, expression, cancellationToken);
+                case BlockSyntax block: return CheckBlock(semanticModel, block, cancellationToken);
+                case StatementSyntax statement: return CheckStatement(semanticModel, statement, cancellationToken);
+                case GlobalStatementSyntax globalStatement: return CheckGlobalStatement(semanticModel, globalStatement, cancellationToken);
+                default: return false;
+            }
         }
 
         private bool CheckGlobalStatement(SemanticModel semanticModel, GlobalStatementSyntax globalStatement, CancellationToken cancellationToken)
@@ -29,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             if (block.Parent is BlockSyntax ||
                 block.Parent is DoStatementSyntax ||
                 block.Parent is ElseClauseSyntax ||
-                block.Parent is ForEachStatementSyntax ||
+                block.Parent is CommonForEachStatementSyntax ||
                 block.Parent is ForStatementSyntax ||
                 block.Parent is IfStatementSyntax ||
                 block.Parent is LockStatementSyntax ||
@@ -63,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 statement is EmptyStatementSyntax ||
                 statement is ExpressionStatementSyntax ||
                 statement is FixedStatementSyntax ||
-                statement is ForEachStatementSyntax ||
+                statement is CommonForEachStatementSyntax ||
                 statement is ForStatementSyntax ||
                 statement is IfStatementSyntax ||
                 statement is LocalDeclarationStatementSyntax ||

@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateType
 {
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     if (_intoNamespace)
                     {
-                        var namespaceToGenerateIn = string.IsNullOrEmpty(_state.NamespaceToGenerateInOpt) ? FeaturesResources.GlobalNamespace : _state.NamespaceToGenerateInOpt;
+                        var namespaceToGenerateIn = string.IsNullOrEmpty(_state.NamespaceToGenerateInOpt) ? FeaturesResources.Global_Namespace : _state.NamespaceToGenerateInOpt;
                         return FormatDisplayText(_state, _inNewFile, isNested: false);
                     }
                     else
@@ -109,7 +108,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 get
                 {
-                    return FeaturesResources.GenerateNewType;
+                    return FeaturesResources.Generate_new_type;
                 }
             }
 
@@ -145,9 +144,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private TypeKindOptions GetTypeKindOption(State state)
             {
-                TypeKindOptions typeKindValue;
-
-                var gotPreassignedTypeOptions = GetPredefinedTypeKindOption(state, out typeKindValue);
+                var gotPreassignedTypeOptions = GetPredefinedTypeKindOption(state, out var typeKindValue);
                 if (!gotPreassignedTypeOptions)
                 {
                     typeKindValue = state.IsSimpleNameGeneric ? TypeKindOptionsHelper.RemoveOptions(typeKindValue, TypeKindOptions.GenericInCompatibleTypes) : typeKindValue;

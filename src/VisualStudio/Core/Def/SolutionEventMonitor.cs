@@ -71,8 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void TryCancelPendingNotification(string operation)
         {
-            GlobalOperationRegistration globalOperation;
-            if (_operations.TryGetValue(operation, out globalOperation))
+            if (_operations.TryGetValue(operation, out var globalOperation))
             {
                 globalOperation.Done();
                 globalOperation.Dispose();

@@ -10,11 +10,11 @@ namespace Roslyn.Utilities
     {
         private static partial class Singleton
         {
-            internal sealed class Collection<T> : ICollection<T>, IReadOnlyCollection<T>
+            internal sealed class List<T> : IList<T>, IReadOnlyCollection<T>
             {
                 private readonly T _loneValue;
 
-                public Collection(T value)
+                public List(T value)
                 {
                     _loneValue = value;
                 }
@@ -62,6 +62,44 @@ namespace Roslyn.Utilities
                 IEnumerator IEnumerable.GetEnumerator()
                 {
                     return GetEnumerator();
+                }
+
+                public T this[int index]
+                {
+                    get
+                    {
+                        if (index != 0)
+                        {
+                            throw new IndexOutOfRangeException();
+                        }
+
+                        return _loneValue;
+                    }
+
+                    set
+                    {
+                        throw new NotSupportedException();
+                    }
+                }
+
+                public int IndexOf(T item)
+                {
+                    if (Equals(_loneValue, item))
+                    {
+                        return 0;
+                    }
+
+                    return -1;
+                }
+
+                public void Insert(int index, T item)
+                {
+                    throw new NotSupportedException();
+                }
+
+                public void RemoveAt(int index)
+                {
+                    throw new NotSupportedException();
                 }
             }
         }

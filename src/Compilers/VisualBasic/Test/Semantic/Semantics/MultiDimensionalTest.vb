@@ -868,6 +868,22 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
+
+            Dim m2 = compilation.GetTypeByMetadataName("Test").GetMember(Of MethodSymbol)("M2")
+            Dim szArray = DirectCast(m2.Parameters.First().Type, IArrayTypeSymbol)
+            Assert.Equal("T()", szArray.ToTestDisplayString())
+            Assert.True(szArray.IsSZArray)
+            Assert.Equal(1, szArray.Rank)
+            Assert.True(szArray.Sizes.IsEmpty)
+            Assert.True(szArray.LowerBounds.IsDefault)
+
+            Dim mdArray = DirectCast(m2.Parameters.Last().Type, IArrayTypeSymbol)
+            Assert.Equal("T(*)", mdArray.ToTestDisplayString())
+            Assert.False(mdArray.IsSZArray)
+            Assert.Equal(1, mdArray.Rank)
+            Assert.True(mdArray.Sizes.IsEmpty)
+            Assert.True(mdArray.LowerBounds.IsDefault)
+
             compilation.AssertTheseDiagnostics(
 <expected>
 BC36645: Data type(s) of the type parameter(s) in method 'Public Shared Sub M1(Of T)(a As T())' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
@@ -1975,6 +1991,17 @@ System.Int32
       IL_0007:  ldnull
       IL_000a:  ret
     } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...5] Test17() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      "Test17"
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
 } // end of class Test
 ]]>.Value
 
@@ -2093,6 +2120,127 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithCustomILSource(source, ilSource, options:=TestOptions.ReleaseExe)
+
+            Dim Test = compilation.GetTypeByMetadataName("Test")
+            Dim array = DirectCast(Test.GetMember(Of MethodSymbol)("Test1").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.True(array.Sizes.IsEmpty)
+            Assert.True(array.LowerBounds.IsEmpty)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test2").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.True(array.Sizes.IsEmpty)
+            Assert.True(array.LowerBounds.IsEmpty)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test3").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.True(array.Sizes.IsEmpty)
+            Assert.True(array.LowerBounds.IsEmpty)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test4").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.Equal({5}, array.Sizes)
+            Assert.Equal({0}, array.LowerBounds)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test5").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.Equal({5}, array.Sizes)
+            Assert.Equal({0}, array.LowerBounds)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test6").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.Equal({5, 5}, array.Sizes)
+            Assert.True(array.LowerBounds.IsDefault)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test7").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.Equal({5}, array.Sizes)
+            Assert.Equal({0, 2}, array.LowerBounds)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test8").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.Equal({5, 7}, array.Sizes)
+            Assert.Equal({0, 2}, array.LowerBounds)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test9").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.Equal({5}, array.Sizes)
+            Assert.Equal({1}, array.LowerBounds)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test10").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.Equal({5}, array.Sizes)
+            Assert.Equal({1}, array.LowerBounds)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test11").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.Equal({5, 5}, array.Sizes)
+            Assert.Equal({1, 0}, array.LowerBounds)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test12").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.Equal({5}, array.Sizes)
+            Assert.Equal({1, 2}, array.LowerBounds)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test13").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.Equal({5, 7}, array.Sizes)
+            Assert.Equal({1, 2}, array.LowerBounds)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test14").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.True(array.Sizes.IsEmpty)
+            Assert.Equal({1}, array.LowerBounds)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test15").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.True(array.Sizes.IsEmpty)
+            Assert.Equal({1}, array.LowerBounds)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test16").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(,)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(2, array.Rank)
+            Assert.True(array.Sizes.IsEmpty)
+            Assert.Equal({1, 2}, array.LowerBounds)
+
+            array = DirectCast(Test.GetMember(Of MethodSymbol)("Test17").ReturnType, IArrayTypeSymbol)
+            Assert.Equal("System.Double(*)", array.ToTestDisplayString())
+            Assert.False(array.IsSZArray)
+            Assert.Equal(1, array.Rank)
+            Assert.Equal({5}, array.Sizes)
+            Assert.Equal({1}, array.LowerBounds)
+
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[Test1
 Test2

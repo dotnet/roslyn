@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // error CS1750: A value of type '{0}' cannot be used as a default parameter because there are no standard conversions to type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NoConversionForDefaultParam, parameterSyntax.Identifier.GetLocation(),
-                    defaultExpression.Type ?? defaultExpression.Display, parameterType);
+                    defaultExpression.Display, parameterType);
 
                 hasErrors = true;
             }

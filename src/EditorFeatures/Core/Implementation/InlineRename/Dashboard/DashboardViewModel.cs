@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -49,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private void OnReferenceLocationsChanged(object sender, IList<InlineRenameLocation> renameLocations)
+        private void OnReferenceLocationsChanged(object sender, ImmutableArray<InlineRenameLocation> renameLocations)
         {
             int totalFilesCount = renameLocations.GroupBy(s => s.Document).Count();
-            int totalSpansCount = renameLocations.Count;
+            int totalSpansCount = renameLocations.Length;
 
             UpdateSearchText(totalSpansCount, totalFilesCount);
         }
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 _errorText = string.IsNullOrEmpty(session.ReplacementText)
                     ? null
-                    : EditorFeaturesResources.TheNewNameIsNotAValidIdentifier;
+                    : EditorFeaturesResources.The_new_name_is_not_a_valid_identifier;
             }
 
             UpdateSeverity();
@@ -115,15 +116,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (referenceCount == 1 && fileCount == 1)
             {
-                _searchText = EditorFeaturesResources.RenameWillUpdateReferenceInFile;
+                _searchText = EditorFeaturesResources.Rename_will_update_1_reference_in_1_file;
             }
             else if (fileCount == 1)
             {
-                _searchText = string.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, referenceCount);
+                _searchText = string.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, referenceCount);
             }
             else
             {
-                _searchText = string.Format(EditorFeaturesResources.RenameWillUpdateReferencesInMultipleFiles, referenceCount, fileCount);
+                _searchText = string.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_files, referenceCount, fileCount);
             }
 
             NotifyPropertyChanged("SearchText");
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             get
             {
-                return string.Format(EditorFeaturesResources.Rename1, Session.OriginalSymbolName);
+                return string.Format(EditorFeaturesResources.Rename_colon_0, Session.OriginalSymbolName);
             }
         }
 
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             get
             {
-                return string.Format(EditorFeaturesResources.NewName1, Session.ReplacementText);
+                return string.Format(EditorFeaturesResources.New_name_colon_0, Session.ReplacementText);
             }
         }
 
@@ -203,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get
             {
                 return _resolvableConflictCount >= 1
-                    ? string.Format(EditorFeaturesResources.ConflictsWillBeResolved, _resolvableConflictCount)
+                    ? string.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, _resolvableConflictCount)
                     : null;
             }
         }
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get
             {
                 return _unresolvableConflictCount >= 1
-                   ? string.Format(EditorFeaturesResources.UnresolvableConflicts, _unresolvableConflictCount)
+                   ? string.Format(EditorFeaturesResources._0_unresolvable_conflict_s, _unresolvableConflictCount)
                    : null;
             }
         }

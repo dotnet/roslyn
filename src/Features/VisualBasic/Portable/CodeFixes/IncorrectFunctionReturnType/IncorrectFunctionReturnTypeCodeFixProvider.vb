@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectFunctionReturnTy
                 Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
                 Dim newRoot = root.ReplaceNode(node, rewrittenNode)
                 Dim newDocument = document.WithSyntaxRoot(newRoot)
-                Return {New MyCodeAction(VBFeaturesResources.FixIncorrectFunctionReturnType, newDocument)}
+                Return {New MyCodeAction(VBFeaturesResources.Fix_Incorrect_Function_Return_Type, newDocument)}
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of CodeAction)()

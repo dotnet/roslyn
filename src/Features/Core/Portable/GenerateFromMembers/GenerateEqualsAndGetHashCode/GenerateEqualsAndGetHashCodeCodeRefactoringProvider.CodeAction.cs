@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateEqualsAndGetHashCode
 {
@@ -89,9 +88,9 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateEqualsAndGetHashCod
                 {
                     return _generateEquals
                         ? _generateGetHashCode
-                            ? FeaturesResources.GenerateBoth
-                            : FeaturesResources.GenerateEqualsObject
-                        : FeaturesResources.GenerateGetHashCode;
+                            ? FeaturesResources.Generate_Both
+                            : FeaturesResources.Generate_Equals_object
+                        : FeaturesResources.Generate_GetHashCode;
                 }
             }
         }

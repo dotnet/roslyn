@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -58,8 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public static string GetHelpLink(DiagnosticData item)
         {
-            Uri link;
-            if (BrowserHelper.TryGetUri(item.HelpLink, out link))
+            if (BrowserHelper.TryGetUri(item.HelpLink, out var link))
             {
                 return link.AbsoluteUri;
             }
@@ -75,8 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public static string GetHelpLinkToolTipText(DiagnosticData item)
         {
             var isBing = false;
-            Uri helpUri = null;
-            if (!BrowserHelper.TryGetUri(item.HelpLink, out helpUri) && !string.IsNullOrWhiteSpace(item.Id))
+            if (!BrowserHelper.TryGetUri(item.HelpLink, out var helpUri) && !string.IsNullOrWhiteSpace(item.Id))
             {
                 helpUri = BrowserHelper.CreateBingQueryUri(item);
                 isBing = true;
@@ -85,8 +83,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url displayed in the tooltip stays human readable.
             if (helpUri != null)
             {
-                return string.Format(ServicesVSResources.DiagnosticIdHyperlinkTooltipText, item.Id,
-                    isBing ? ServicesVSResources.FromBing : null, Environment.NewLine, helpUri);
+                var prefix = isBing
+                    ? string.Format(ServicesVSResources.Get_help_for_0_from_Bing, item.Id)
+                    : string.Format(ServicesVSResources.Get_help_for_0, item.Id);
+
+                return $"{prefix}\r\n{helpUri}";
             }
 
             return null;

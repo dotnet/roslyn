@@ -31,15 +31,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        private ObjectReference Create(string value)
+        private ObjectReference<C> Create(string value)
         {
-            return new ObjectReference(new C(value));
+            return new ObjectReference<C>(new C(value));
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        private void Add(WeakList<object> list, ObjectReference value)
+        private void Add(WeakList<object> list, ObjectReference<C> value)
         {
-            list.Add(value.Strong);
+            value.UseReference(r => list.Add(r));
         }
 
         [Fact]
@@ -71,19 +71,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
 
             Assert.Equal(5, list.WeakCount);
 
-            a.Strong = null;
-            c.Strong = null;
-            d.Strong = null;
-            e.Strong = null;
-
-            while (a.Weak.IsAlive || c.Weak.IsAlive || d.Weak.IsAlive || e.Weak.IsAlive)
-            {
-                GC.Collect(2, GCCollectionMode.Forced);
-            }
+            a.AssertReleased();
+            c.AssertReleased();
+            d.AssertReleased();
+            e.AssertReleased();
 
             Assert.Equal(5, list.WeakCount);
             Assert.Same(null, list.GetWeakReference(0).GetTarget());
-            Assert.Same(b.Strong, list.GetWeakReference(1).GetTarget());
+            Assert.Same(b.GetReference(), list.GetWeakReference(1).GetTarget());
             Assert.Same(null, list.GetWeakReference(2).GetTarget());
             Assert.Same(null, list.GetWeakReference(3).GetTarget());
             Assert.Same(null, list.GetWeakReference(4).GetTarget());
@@ -91,14 +86,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             var array = list.ToArray();
 
             Assert.Equal(1, array.Length);
-            Assert.Same(b.Strong, array[0]);
+            Assert.Same(b.GetReference(), array[0]);
 
             // list was compacted:
             Assert.Equal(1, list.WeakCount);
-            Assert.Same(b.Strong, list.GetWeakReference(0).GetTarget());
+            Assert.Same(b.GetReference(), list.GetWeakReference(0).GetTarget());
             Assert.Equal(4, list.TestOnly_UnderlyingArray.Length);
 
-            GC.KeepAlive(b.Strong);
+            GC.KeepAlive(b.GetReference());
         }
 
         [Fact]
@@ -114,15 +109,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
 
             Assert.Equal(list.WeakCount, list.TestOnly_UnderlyingArray.Length); // full
 
-            a.Strong = null;
-            while (a.Weak.IsAlive)
-            {
-                GC.Collect(2, GCCollectionMode.Forced);
-            }
+            a.AssertReleased();
 
-            Add(list, a); // shrinks, #alive < length/4
+            var b = Create("B");
+
+            Add(list, b); // shrinks, #alive < length/4
             Assert.Equal(4, list.TestOnly_UnderlyingArray.Length);
             Assert.Equal(1, list.WeakCount);
+
+            b.AssertReleased();
 
             list.ToArray(); // shrinks, #alive == 0
             Assert.Equal(0, list.TestOnly_UnderlyingArray.Length);
@@ -144,21 +139,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             Add(list, b);
             Assert.Equal(list.WeakCount, list.TestOnly_UnderlyingArray.Length); // full
 
-            a.Strong = null;
-            while (a.Weak.IsAlive)
-            {
-                GC.Collect(2, GCCollectionMode.Forced);
-            }
+            a.AssertReleased();
 
             Add(list, b); // shrinks, #alive < length/4
             Assert.Equal(4, list.TestOnly_UnderlyingArray.Length);
             Assert.Equal(2, list.WeakCount);
 
-            b.Strong = null;
-            while (b.Weak.IsAlive)
-            {
-                GC.Collect(2, GCCollectionMode.Forced);
-            }
+            b.AssertReleased();
 
             list.ToArray(); // shrinks, #alive == 0
             Assert.Equal(0, list.TestOnly_UnderlyingArray.Length);
@@ -184,11 +171,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
 
             Assert.Equal(list.WeakCount, list.TestOnly_UnderlyingArray.Length); // full
 
-            a.Strong = null;
-            while (a.Weak.IsAlive)
-            {
-                GC.Collect(2, GCCollectionMode.Forced);
-            }
+            a.AssertReleased();
 
             Add(list, b); // just compacts, length/4 < #alive < 3/4 length
             Assert.Equal(9, list.TestOnly_UnderlyingArray.Length);
@@ -198,7 +181,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             {
                 if (i < 4)
                 {
-                    Assert.Same(b.Strong, list.TestOnly_UnderlyingArray[i].GetTarget());
+                    Assert.Same(b.GetReference(), list.TestOnly_UnderlyingArray[i].GetTarget());
                 }
                 else
                 {
@@ -206,7 +189,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
                 }
             }
 
-            GC.KeepAlive(b.Strong);
+            GC.KeepAlive(b);
         }
 
         [Fact]
@@ -228,11 +211,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
 
             Assert.Equal(list.WeakCount, list.TestOnly_UnderlyingArray.Length); // full
 
-            a.Strong = null;
-            while (a.Weak.IsAlive)
-            {
-                GC.Collect(2, GCCollectionMode.Forced);
-            }
+            a.AssertReleased();
 
             Add(list, b); // compacts #alive < 3/4 length
             Assert.Equal(9, list.TestOnly_UnderlyingArray.Length);
@@ -242,7 +221,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             {
                 if (i < 6)
                 {
-                    Assert.Same(b.Strong, list.TestOnly_UnderlyingArray[i].GetTarget());
+                    Assert.Same(b.GetReference(), list.TestOnly_UnderlyingArray[i].GetTarget());
                 }
                 else
                 {
@@ -250,7 +229,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
                 }
             }
 
-            GC.KeepAlive(b.Strong);
+            GC.KeepAlive(b);
         }
 
         [Fact]
@@ -272,11 +251,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
 
             Assert.Equal(list.WeakCount, list.TestOnly_UnderlyingArray.Length); // full
 
-            a.Strong = null;
-            while (a.Weak.IsAlive)
-            {
-                GC.Collect(2, GCCollectionMode.Forced);
-            }
+            a.AssertReleased();
 
             Add(list, b); // expands #alive > 3/4 length
             Assert.Equal(9 * 2 + 1, list.TestOnly_UnderlyingArray.Length);
@@ -286,7 +261,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             {
                 if (i < 8)
                 {
-                    Assert.Same(b.Strong, list.TestOnly_UnderlyingArray[i].GetTarget());
+                    Assert.Same(b.GetReference(), list.TestOnly_UnderlyingArray[i].GetTarget());
                 }
                 else
                 {
@@ -294,7 +269,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
                 }
             }
 
-            GC.KeepAlive(b.Strong);
+            GC.KeepAlive(b);
         }
 
         [Fact]
@@ -318,7 +293,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             {
                 if (i < 10)
                 {
-                    Assert.Same(b.Strong, list.TestOnly_UnderlyingArray[i].GetTarget());
+                    Assert.Same(b.GetReference(), list.TestOnly_UnderlyingArray[i].GetTarget());
                 }
                 else
                 {
@@ -326,7 +301,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
                 }
             }
 
-            GC.KeepAlive(b.Strong);
+            GC.KeepAlive(b);
         }
 
         [Fact]

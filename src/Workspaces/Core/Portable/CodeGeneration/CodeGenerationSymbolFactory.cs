@@ -1,15 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -30,9 +26,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates an event symbol that can be used to describe an event declaration.
         /// </summary>
-        public static IEventSymbol CreateEventSymbol(IList<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers, ITypeSymbol type, IEventSymbol explicitInterfaceSymbol, string name, IMethodSymbol addMethod = null, IMethodSymbol removeMethod = null, IMethodSymbol raiseMethod = null, IList<IParameterSymbol> parameterList = null)
+        public static IEventSymbol CreateEventSymbol(
+            IList<AttributeData> attributes, Accessibility accessibility,
+            DeclarationModifiers modifiers, ITypeSymbol type,
+            IEventSymbol explicitInterfaceSymbol, string name,
+            IMethodSymbol addMethod = null, IMethodSymbol removeMethod = null, IMethodSymbol raiseMethod = null)
         {
-            var result = new CodeGenerationEventSymbol(null, attributes, accessibility, modifiers, type, explicitInterfaceSymbol, name, addMethod, removeMethod, raiseMethod, parameterList);
+            var result = new CodeGenerationEventSymbol(null, attributes, accessibility, modifiers, type, explicitInterfaceSymbol, name, addMethod, removeMethod, raiseMethod);
             CodeGenerationEventInfo.Attach(result, modifiers.IsUnsafe);
             return result;
         }
@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             if (parameters.Count != expectedParameterCount)
             {
                 var message = expectedParameterCount == 1 ?
-                    WorkspacesResources.InvalidParameterCountForUnaryOperator :
-                    WorkspacesResources.InvalidParameterCountForBinaryOperator;
+                    WorkspacesResources.Invalid_number_of_parameters_for_unary_operator :
+                    WorkspacesResources.Invalid_number_of_parameters_for_binary_operator;
                 throw new ArgumentException(message, nameof(parameters));
             }
 
@@ -278,7 +278,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates a method type symbol that can be used to describe a delegate type declaration.
         /// </summary>
-        public static INamedTypeSymbol CreateDelegateTypeSymbol(IList<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers, ITypeSymbol returnType, string name, IList<ITypeParameterSymbol> typeParameters = null, IList<IParameterSymbol> parameters = null)
+        public static CodeGenerationNamedTypeSymbol CreateDelegateTypeSymbol(
+            IList<AttributeData> attributes, 
+            Accessibility accessibility, 
+            DeclarationModifiers modifiers, 
+            ITypeSymbol returnType, 
+            string name, 
+            IList<ITypeParameterSymbol> typeParameters = null, 
+            IList<IParameterSymbol> parameters = null)
         {
             var invokeMethod = CreateMethodSymbol(
                 attributes: null,

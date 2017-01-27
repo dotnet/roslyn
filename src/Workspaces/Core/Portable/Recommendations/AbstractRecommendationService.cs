@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Recommendations
 {
     internal abstract class AbstractRecommendationService : IRecommendationService
     {
-        protected abstract Task<Tuple<IEnumerable<ISymbol>, AbstractSyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
+        protected abstract Task<Tuple<ImmutableArray<ISymbol>, SyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
             Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken);
 
-        public async Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
+        public async Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
             Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var result = await GetRecommendedSymbolsAtPositionWorkerAsync(workspace, semanticModel, position, options, cancellationToken).ConfigureAwait(false);
@@ -25,11 +26,11 @@ namespace Microsoft.CodeAnalysis.Recommendations
             var symbols = result.Item1;
             var context = new ShouldIncludeSymbolContext(result.Item2, cancellationToken);
 
-            symbols = symbols.Where(context.ShouldIncludeSymbol);
+            symbols = symbols.WhereAsArray(context.ShouldIncludeSymbol);
             return symbols;
         }
 
-        protected static IEnumerable<ISymbol> GetRecommendedNamespaceNameSymbols(
+        protected static ImmutableArray<ISymbol> GetRecommendedNamespaceNameSymbols(
             SemanticModel semanticModel, SyntaxNode declarationSyntax, CancellationToken cancellationToken)
         {
             if (declarationSyntax == null)
@@ -41,12 +42,13 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 semanticModel.GetEnclosingNamespace(declarationSyntax.SpanStart, cancellationToken));
 
             var symbols = semanticModel.LookupNamespacesAndTypes(declarationSyntax.SpanStart, containingNamespaceSymbol)
-                                       .Where(recommendationSymbol => IsNonIntersectingNamespace(recommendationSymbol, declarationSyntax));
+                                       .WhereAsArray(recommendationSymbol => IsNonIntersectingNamespace(recommendationSymbol, declarationSyntax));
 
             return symbols;
         }
 
-        protected static bool IsNonIntersectingNamespace(ISymbol recommendationSymbol, SyntaxNode declarationSyntax)
+        protected static bool IsNonIntersectingNamespace(
+            ISymbol recommendationSymbol, SyntaxNode declarationSyntax)
         {
             //
             // Apart from filtering out non-namespace symbols, this also filters out the symbol
@@ -71,14 +73,39 @@ namespace Microsoft.CodeAnalysis.Recommendations
                                               declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)));
         }
 
+        /// <summary>
+        /// If container is a tuple type, any of its tuple element which has a friendly name will cause
+        /// the suppression of the corresponding default name (ItemN).
+        /// In that case, Rest is also removed.
+        /// </summary>
+        protected static ImmutableArray<ISymbol> SuppressDefaultTupleElements(
+            INamespaceOrTypeSymbol container, ImmutableArray<ISymbol> symbols)
+        {
+            var namedType = container as INamedTypeSymbol;
+            if (namedType?.IsTupleType != true)
+            {
+                // container is not a tuple
+                return symbols;
+            }
+
+            //return tuple elements followed by other members that are not fields
+            return ImmutableArray<ISymbol>.CastUp(namedType.TupleElements).
+                Concat(symbols.WhereAsArray(s => s.Kind != SymbolKind.Field));
+        }
+
+        private static bool IsFriendlyName(int i, string elementName)
+        {
+            return elementName != null && string.Compare(elementName, "Item" + (i + 1), StringComparison.OrdinalIgnoreCase) != 0;
+        }
+
         private sealed class ShouldIncludeSymbolContext
         {
-            private readonly AbstractSyntaxContext _context;
+            private readonly SyntaxContext _context;
             private readonly CancellationToken _cancellationToken;
             private IEnumerable<INamedTypeSymbol> _lazyOuterTypesAndBases;
             private IEnumerable<INamedTypeSymbol> _lazyEnclosingTypeBases;
 
-            internal ShouldIncludeSymbolContext(AbstractSyntaxContext context, CancellationToken cancellationToken)
+            internal ShouldIncludeSymbolContext(SyntaxContext context, CancellationToken cancellationToken)
             {
                 _context = context;
                 _cancellationToken = cancellationToken;

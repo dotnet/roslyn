@@ -2345,5 +2345,44 @@ public class Cc{
 ";
             CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef }, expectedOutput: "Initialized");
         }
+
+        [WorkItem(12983, "https://github.com/dotnet/roslyn/issues/12983")]
+        [Fact]
+        public void GetCollectionInitializerSymbolInfo_06()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+ 
+class X
+{
+    public static void Main()
+    {
+        var list1 = new List<string>;
+        var list2 = new List<string>();
+
+        var list3 = new List<string> { Count = 3 };
+        var list4 = new List<string>() { Count = 3 };
+
+        var list5 = new List<string> { 1, 2, 3 };
+        var list6 = new List<string>() { 1, 2, 3 };
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var nodes = tree.GetRoot().DescendantNodes().OfType<GenericNameSyntax>().ToArray();
+            Assert.Equal(6, nodes.Length);
+
+            foreach (var name in nodes)
+            {
+                Assert.Equal("List<string>", name.ToString());
+                Assert.Equal("System.Collections.Generic.List<System.String>", semanticModel.GetSymbolInfo(name).Symbol.ToTestDisplayString());
+                Assert.Null(semanticModel.GetTypeInfo(name).Type);
+            }
+        }
     }
 }

@@ -79,9 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: error occurs.
 
             // UNDONE: This is a naive quadratic algorithm; there is a linear algorithm that works. Consider using it.
-
             var candidates = result.Results;
-            for (int i = 0; i < candidates.Count; ++i)
+            for (int i = 1; i < candidates.Count; ++i)
             {
                 if (candidates[i].Kind != OperatorAnalysisResultKind.Applicable)
                 {
@@ -89,12 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Is this applicable operator better than every other applicable method?
-                for (int j = 0; j < candidates.Count; ++j)
+                for (int j = 0; j < i; ++j)
                 {
-                    if (i == j)
-                    {
-                        continue;
-                    }
                     if (candidates[j].Kind == OperatorAnalysisResultKind.Inapplicable)
                     {
                         continue;

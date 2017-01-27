@@ -53,5 +53,10 @@ namespace Roslyn.Test.Performance.Utilities
         /// </summary>
         /// <returns></returns>
         public abstract string[] GetScenarios();
+
+        public virtual ITraceManager GetTraceManager()
+        {
+            return TraceManagerFactory.GetBestTraceManager();
+        }
     }
 }

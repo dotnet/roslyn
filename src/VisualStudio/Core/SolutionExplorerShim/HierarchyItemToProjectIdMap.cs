@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public bool TryGetProjectId(IVsHierarchyItem hierarchyItem, out ProjectId projectId)
         {
-            var project = _workspace.ProjectTracker.Projects
+            var project = _workspace.ProjectTracker.ImmutableProjects
                     .Where(p => p.Hierarchy == hierarchyItem.HierarchyIdentity.NestedHierarchy)
                     .Where(p => p.ProjectSystemName == hierarchyItem.CanonicalName)
                     .SingleOrDefault();

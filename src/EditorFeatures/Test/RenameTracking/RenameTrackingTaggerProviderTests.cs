@@ -1194,5 +1194,285 @@ class C
                 Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
             }
         }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameImplicitTupleField()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        (int, int) x = (1, 2);
+        var y = x.Item1$$;
+    }
+}";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+                await state.AssertNoTag();
+                Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameImplicitTupleFieldVB()
+        {
+            var code = @"
+class C
+    Sub M()
+        Dim x as (Integer, Integer) = (1, 2)
+        Dim y = x.Item1$$
+    End Sub
+End Class
+";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+                await state.AssertNoTag();
+                Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameImplicitTupleFieldExtended()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        (int, int, int, int, int, int, int, int, int, int) x = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        var y = x.Item9$$;
+    }
+}
+";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+                await state.AssertNoTag();
+                Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameImplicitTupleFieldExtendedVB()
+        {
+            var code = @"
+Class C
+    Sub M()
+        Dim x as (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        Dim y = x.Item9$$
+    End Sub
+End Class
+";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+                await state.AssertNoTag();
+                Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
+        public async Task RenameTrackingNotOnExplicitTupleReturnDeclaration_CSharp()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        (int abc$$, int) x = (1, 2);
+        var y = x.abc;
+    }
+}";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
+        public async Task RenameTrackingNotOnExplicitTupleReturnDeclaration_VB()
+        {
+            var code = @"
+class C
+    Sub M()
+        Dim x as (abc$$ as integer, int Item2 as integer) = (1, 2)
+        Dim y = x.abc
+    End Sub
+End Class";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
+        public async Task RenameTrackingNotOnExplicitTupleFieldReference_CSharp()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        (int abc, int) x = (1, 2);
+        var y = x.abc$$;
+    }
+}";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
+        public async Task RenameTrackingNotOnExplicitTupleFieldReference_VB()
+        {
+            var code = @"
+class C
+    Sub M()
+        Dim x as (abc as integer, int Item2 as integer) = (1, 2)
+        Dim y = x.abc$$
+    End Sub
+End Class";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
+        public async Task RenameTrackingNotOnExplicitTupleElementsInDeclarations_CSharp()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var t = (x$$: 1, y: 2);
+    }
+}";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("2");
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(371205, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=371205")]
+        public async Task RenameTrackingNotOnExplicitTupleElementsInDeclarations_VB()
+        {
+            var code = @"
+Class C
+    Sub M()
+        Dim t = (x$$:=1, y:=2)
+    End Sub
+End Class";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.InsertText("2");
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(14159, "https://github.com/dotnet/roslyn/issues/14159")]
+        public async Task RenameTrackingNotOnWellKnownValueTupleType()
+        {
+            var workspaceXml = @"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" LanguageVersion=""7"">
+        <Document>
+using System;
+
+class C
+{
+    void M()
+    {
+        var x = new ValueTuple$$&lt;int&gt;();
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple&lt;T1&gt;
+    {
+        public T1 Item1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            using (var state = await RenameTrackingTestState.CreateFromWorkspaceXmlAsync(workspaceXml, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("2");
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(14159, "https://github.com/dotnet/roslyn/issues/14159")]
+        public async Task RenameTrackingOnThingsCalledValueTupleThatAreNotTheWellKnownType()
+        {
+            var workspaceXml = @"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" LanguageVersion=""7"">
+        <Document>
+class C
+{
+    void M()
+    {
+        var x = new ValueTuple$$&lt;int&gt;();
+    }
+}
+
+public struct ValueTuple&lt;T1&gt;
+{
+    public T1 Item1;
+}
+        </Document>
+    </Project>
+</Workspace>";
+            using (var state = await RenameTrackingTestState.CreateFromWorkspaceXmlAsync(workspaceXml, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("2");
+                await state.AssertTag("ValueTuple", "ValueTuple2");
+            }
+        }
     }
 }
