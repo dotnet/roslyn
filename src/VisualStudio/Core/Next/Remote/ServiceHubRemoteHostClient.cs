@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // to UI thread to run. 
             await Task.Factory.SafeStartNew(() =>
             {
-                vsWorkspace.DeferredState.ProjectTracker.RegisterWorkspaceHost(host);
+                vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider).RegisterWorkspaceHost(host);
             }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
         }
 
