@@ -36,11 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
     [Export(typeof(ISuggestedActionsSourceProvider))]
     [Export(typeof(SuggestedActionsSourceProvider))]
-    [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
-    [VisualStudio.Utilities.ContentType(ContentTypeNames.VisualBasicContentType)]
-    [VisualStudio.Utilities.ContentType(ContentTypeNames.JavaScriptContentTypeName)]
-    [VisualStudio.Utilities.ContentType(ContentTypeNames.TypeScriptContentTypeName)]
-    [VisualStudio.Utilities.ContentType(ContentTypeNames.XamlContentType)]
+    [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.FSharpContentType)]
     [VisualStudio.Utilities.Name("Roslyn Code Fix")]
     [VisualStudio.Utilities.Order]
