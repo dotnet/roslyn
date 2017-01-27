@@ -16,11 +16,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [Fact]
         public void OverflowOnFluentCall()
         {
+
+            int numberFluentCalls = 0;
+
 #if DEBUG
-            int numberFluentCalls = 290;
+            bool isDebug = true;
 #else
-            int numberFluentCalls = 590;
+            bool isDebug = false;
 #endif
+
+            switch (IntPtr.Size * 8) {
+                case 32 when isDebug:
+                    numberFluentCalls = 290;
+                    break;
+                case 32 when !isDebug:
+                    numberFluentCalls = 590;
+                    break;
+                case 64 when isDebug:
+                    numberFluentCalls = 110;
+                    break;
+                case 64 when !isDebug:
+                    numberFluentCalls = 310;
+                    break;
+                default:
+                    throw new Exception($"unexpected pointer size {IntPtr.Size}");
+            }
+
+
             string MakeCode()
             {
                 var builder = new StringBuilder();
