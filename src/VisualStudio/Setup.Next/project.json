@@ -1,16 +1,16 @@
-﻿{
+{
   "dependencies": {
-    "Microsoft.VisualStudio.Shell.Framework": "15.0.26014-alpha",
-    "Microsoft.VisualStudio.Shell.15.0": "15.0.26014-alpha",
-    "Microsoft.VisualStudio.Shell.Immutable.10.0": "15.0.26014-alpha",
+    "Microsoft.VisualStudio.Shell.Framework": "15.0.26127-alpha",
+    "Microsoft.VisualStudio.Shell.15.0": "15.0.26127-alpha",
+    "Microsoft.VisualStudio.Shell.Immutable.10.0": "15.0.26127-alpha",
     "Microsoft.VisualStudio.Shell.Immutable.11.0": "15.0.25413-Preview5",
-    "Microsoft.VisualStudio.CallHierarchy.Package.Definitions": "15.0.26014-alpha",
-    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.26014-alpha",
+    "Microsoft.VisualStudio.CallHierarchy.Package.Definitions": "15.0.26127-alpha",
+    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.26127-alpha"
   },
   "frameworks": {
-    "net46": { }
+    "net46": {}
   },
   "runtimes": {
-    "win7": { }
+    "win7": {}
   }
 }
