@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [Export(typeof(ISuggestedActionsSourceProvider))]
     [Export(typeof(SuggestedActionsSourceProvider))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
-    [VisualStudio.Utilities.ContentType(ContentTypeNames.FSharpContentType)]
+    [VisualStudio.Utilities.ContentType(ContentTypeNames.XamlContentType)]
     [VisualStudio.Utilities.Name("Roslyn Code Fix")]
     [VisualStudio.Utilities.Order]
     internal class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
