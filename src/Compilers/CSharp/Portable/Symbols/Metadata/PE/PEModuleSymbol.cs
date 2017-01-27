@@ -653,9 +653,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             string matchedName;
             (int firstIndex, int secondIndex) = this.Module.GetAssemblyRefsForForwardedType(fullName.FullName, ignoreCase: false, matchedName: out matchedName);
 
-            var firstSymbol = firstIndex < 0 ? null : GetReferencedAssemblySymbol(firstIndex);
-            var secondSymbol = secondIndex < 0 ? null : GetReferencedAssemblySymbol(secondIndex);
+            if (firstIndex < 0)
+            {
+                return (null, null);
+            }
 
+            AssemblySymbol firstSymbol = GetReferencedAssemblySymbol(firstIndex);
+
+            if (secondIndex < 0)
+            {
+                return (firstSymbol, null);
+            }
+
+            AssemblySymbol secondSymbol = GetReferencedAssemblySymbol(secondIndex);
             return (firstSymbol, secondSymbol);
         }
 
@@ -663,13 +673,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             foreach (KeyValuePair<string, (int FirstIndex, int SecondIndex)> forwarder in Module.GetForwardedTypes())
             {
-                if (forwarder.Value.FirstIndex < 0)
-                {
-                    continue;
-                }
-
                 var name = MetadataTypeName.FromFullName(forwarder.Key);
 
+                Debug.Assert(forwarder.Value.FirstIndex >= 0, "First index should never be negative");
                 AssemblySymbol firstSymbol = this.GetReferencedAssemblySymbol(forwarder.Value.FirstIndex);
                 Debug.Assert((object)firstSymbol != null, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()");
 
@@ -678,8 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var secondSymbol = this.GetReferencedAssemblySymbol(forwarder.Value.SecondIndex);
                     Debug.Assert((object)secondSymbol != null, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()");
 
-                    var forwardingErrorInfo = new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies, forwarder.Key, firstSymbol.Name, secondSymbol.Name);
-                    yield return new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this, ref name, forwardingErrorInfo);
+                    yield return ContainingAssembly.CreateMultipleForwardingErrorTypeSymbol(ref name, this, firstSymbol, secondSymbol);
                 }
                 else
                 {

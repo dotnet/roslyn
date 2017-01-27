@@ -5462,6 +5462,6 @@
     <value>Invalid assembly name: {0}</value>
   </data>
   <data name="ERR_TypeForwardedToMultipleAssemblies" xml:space="preserve">
-    <value>Type '{0}' is forwarded to multiple assemblies: '{1}' and '{2}'</value>
+    <value>Module '{0}' in assembly '{1}' is forwarding the type '{2}' to multiple assemblies: '{3}' and '{4}'.</value>
   </data>
 </root>

@@ -10686,7 +10686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type &apos;{0}&apos; is forwarded to multiple assemblies: &apos;{1}&apos; and &apos;{2}&apos;.
+        '''  Looks up a localized string similar to Module &apos;{0}&apos; in assembly &apos;{1}&apos; is forwarding the type &apos;{2}&apos; to multiple assemblies: &apos;{3}&apos; and &apos;{4}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_TypeForwardedToMultipleAssemblies() As String
             Get

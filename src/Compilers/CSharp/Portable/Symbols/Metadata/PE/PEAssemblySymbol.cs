@@ -157,13 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if ((object)secondSymbol != null)
                 {
-                    var forwardingErrorInfo = new DiagnosticInfo(
-                        MessageProvider.Instance,
-                        (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies,
-                        emittedName.FullName,
-                        firstSymbol.Name,
-                        secondSymbol.Name);
-                    return new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(PrimaryModule, ref emittedName, forwardingErrorInfo);
+                    // Report the main module as that is the only one checked. clr does not honor type forwarders in non-primary modules.
+                    return CreateMultipleForwardingErrorTypeSymbol(ref emittedName, this.PrimaryModule, firstSymbol, secondSymbol);
                 }
                 
                 // Don't bother to check the forwarded-to assembly if we've already seen it.

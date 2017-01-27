@@ -511,9 +511,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 If forwardedType IsNot Nothing Then
-                    If Not reportedAnError And forwardedType.IsErrorType Then
+                    If Not reportedAnError AndAlso forwardedType.IsErrorType Then
                         Dim errorInfo = DirectCast(forwardedType, ErrorTypeSymbol).ErrorInfo
-                        
+
                         If errorInfo.Code = ERRID.ERR_TypeFwdCycle2 Then
                             Debug.Assert(forwardedType.ContainingAssembly IsNot Nothing, "How did we find a cycle if there is no forwarding?")
                             Binder.ReportDiagnostic(diagBag, typeSyntax, ERRID.ERR_TypeFwdCycle2, fullName, forwardedType.ContainingAssembly)

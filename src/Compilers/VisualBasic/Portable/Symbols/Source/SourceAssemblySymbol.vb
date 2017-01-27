@@ -1695,10 +1695,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim peModuleSymbol = DirectCast(_modules(i), PEModuleSymbol)
                     Dim forwardedToAssemblies = peModuleSymbol.GetAssembliesForForwardedType(emittedName, ignoreCase, matchedName)
 
-                    If DirectCast(forwardedToAssemblies.FirstSymbol, Object) IsNot Nothing Then
-                        If DirectCast(forwardedToAssemblies.SecondSymbol, Object) IsNot Nothing Then
-                            Dim forwardingErrorInfo = New DiagnosticInfo(MessageProvider.Instance, ERRID.ERR_TypeForwardedToMultipleAssemblies, emittedName.FullName, forwardedToAssemblies.FirstSymbol.Name, forwardedToAssemblies.SecondSymbol.Name)
-                            Return New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(SourceModule, emittedName, forwardingErrorInfo)
+                    If forwardedToAssemblies.FirstSymbol IsNot Nothing Then
+                        If forwardedToAssemblies.SecondSymbol IsNot Nothing Then
+                            Return CreateMultipleForwardingErrorTypeSymbol(emittedName, peModuleSymbol, forwardedToAssemblies.FirstSymbol, forwardedToAssemblies.SecondSymbol)
                         End If
 
                         ' Don't bother to check the forwarded-to assembly if we've already seen it.

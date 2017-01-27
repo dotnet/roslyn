@@ -2901,7 +2901,7 @@ namespace Microsoft.CodeAnalysis
                             continue;
                         }
 
-                        if (referencedAssemblyIndex >= this.ReferencedAssemblies.Length)
+                        if (referencedAssemblyIndex < 0 || referencedAssemblyIndex >= this.ReferencedAssemblies.Length)
                         {
                             continue;
                         }
@@ -2921,6 +2921,8 @@ namespace Microsoft.CodeAnalysis
 
                         if (typesToAssemblyIndexMap.TryGetValue(name, out indices))
                         {
+                            Debug.Assert(indices.FirstIndex >= 0, "Not allowed to store a negative (non-existent) index in typesToAssemblyIndexMap");
+
                             // Store it only if it was not a duplicate
                             if (indices.FirstIndex != referencedAssemblyIndex && indices.SecondIndex < 0)
                             {

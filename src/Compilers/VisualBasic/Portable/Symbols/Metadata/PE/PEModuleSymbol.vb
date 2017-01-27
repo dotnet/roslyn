@@ -434,30 +434,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </remarks>
         Friend Function GetAssembliesForForwardedType(ByRef fullName As MetadataTypeName, ignoreCase As Boolean, <Out> ByRef matchedName As String) As (FirstSymbol As AssemblySymbol, SecondSymbol As AssemblySymbol)
             Dim indices = Me.Module.GetAssemblyRefsForForwardedType(fullName.FullName, ignoreCase, matchedName)
-            
-            Dim firstSymbol = If(indices.FirstIndex < 0, Nothing, GetReferencedAssemblySymbol(indices.FirstIndex))
-            Dim secondSymbol = If(indices.SecondIndex < 0, Nothing, GetReferencedAssemblySymbol(indices.SecondIndex))
 
-            return (firstSymbol, secondSymbol)
+            If indices.FirstIndex < 0 Then
+                Return (Nothing, Nothing)
+            End If
+
+            Dim firstSymbol = GetReferencedAssemblySymbol(indices.FirstIndex)
+
+            If indices.SecondIndex < 0 Then
+                Return (firstSymbol, Nothing)
+            End If
+
+            Dim secondSymbol = GetReferencedAssemblySymbol(indices.SecondIndex)
+            Return (firstSymbol, secondSymbol)
         End Function
 
         Friend Iterator Function GetForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
             For Each forwarder As KeyValuePair(Of String, (FirstIndex As Integer, SecondIndex As Integer)) In Me.Module.GetForwardedTypes()
-                If forwarder.Value.FirstIndex < 0 Then
-                    Continue For
-                End If
-
                 Dim name = MetadataTypeName.FromFullName(forwarder.Key)
 
+                Debug.Assert(forwarder.Value.FirstIndex >= 0, "First index should never be negative")
                 Dim firstSymbol = GetReferencedAssemblySymbol(forwarder.Value.FirstIndex)
-                Debug.Assert(DirectCast(firstSymbol, Object) IsNot Nothing, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()")
+                Debug.Assert(firstSymbol IsNot Nothing, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()")
 
                 If forwarder.Value.SecondIndex >= 0 Then
                     Dim secondSymbol = GetReferencedAssemblySymbol(forwarder.Value.SecondIndex)
-                    Debug.Assert(DirectCast(secondSymbol, Object) IsNot Nothing, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()")
+                    Debug.Assert(secondSymbol IsNot Nothing, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()")
 
-                    Dim forwardingErrorInfo = New DiagnosticInfo(MessageProvider.Instance, ERRID.ERR_TypeForwardedToMultipleAssemblies, forwarder.Key, firstSymbol.Name, secondSymbol.Name)
-                    Yield New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Me, name, forwardingErrorInfo)
+                    Yield ContainingAssembly.CreateMultipleForwardingErrorTypeSymbol(name, Me, firstSymbol, secondSymbol)
                 Else
                     Yield firstSymbol.LookupTopLevelMetadataType(name, digThroughForwardedTypes:= true)
                 End If

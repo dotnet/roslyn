@@ -166,17 +166,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim matchedName As String = Nothing
             Dim forwardedToAssemblies = LookupAssembliesForForwardedMetadataType(emittedName, ignoreCase, matchedName)
 
-            If DirectCast(forwardedToAssemblies.FirstSymbol, Object) IsNot Nothing
-                If DirectCast(forwardedToAssemblies.SecondSymbol, Object) IsNot Nothing
-                    Dim forwardingErrorInfo = New DiagnosticInfo(
-                        MessageProvider.Instance,
-                        ERRID.ERR_TypeForwardedToMultipleAssemblies,
-                        emittedName.FullName,
-                        forwardedToAssemblies.FirstSymbol.Name,
-                        forwardedToAssemblies.SecondSymbol.Name)
-                    Return new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(PrimaryModule, emittedName, forwardingErrorInfo)
+            If forwardedToAssemblies.FirstSymbol IsNot Nothing Then
+                If forwardedToAssemblies.SecondSymbol IsNot Nothing Then
+                    ' Report the main module as that Is the only one checked. clr does Not honor type forwarders in non-primary modules.
+                    Return CreateMultipleForwardingErrorTypeSymbol(emittedName, PrimaryModule, forwardedToAssemblies.FirstSymbol, forwardedToAssemblies.SecondSymbol)
                 End If
-                
+
                 ' Don't bother to check the forwarded-to assembly if we've already seen it.
                 If visitedAssemblies IsNot Nothing AndAlso visitedAssemblies.Contains(forwardedToAssemblies.FirstSymbol) Then
                     Return CreateCycleInTypeForwarderErrorTypeSymbol(emittedName)

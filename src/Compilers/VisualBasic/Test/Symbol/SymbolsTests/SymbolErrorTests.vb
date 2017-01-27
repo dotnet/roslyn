@@ -23844,6 +23844,7 @@ End Namespace
 {
     .ver 1:0:0:0
 }
+.module ForwarderModule.dll
 .class extern forwarder Destination.TestClass
 {
 	.assembly extern Destination1
@@ -23853,12 +23854,12 @@ End Namespace
 	.assembly extern Destination2
 }"
             Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:= False)
-            
+
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
 BC30002: Type 'Destination.TestClass' is not defined.
             Dim obj = New Destination.TestClass()
                           ~~~~~~~~~~~~~~~~~~~~~
-BC37208: Type 'Destination.TestClass' is forwarded to multiple assemblies: 'Destination1' and 'Destination2'
+BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
             Dim obj = New Destination.TestClass()
                           ~~~~~~~~~~~~~~~~~~~~~
  ]]></errors>)
@@ -23885,6 +23886,7 @@ End Namespace
 .assembly Forwarder
 {
 }
+.module ForwarderModule.dll
 .assembly extern Destination1 { }
 .assembly extern Destination2 { }
 .assembly extern Destination3 { }
@@ -23912,12 +23914,12 @@ End Namespace
 }"
 
             Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:= False)
-            
+
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
 BC30002: Type 'Destination.TestClass' is not defined.
             Dim obj = New Destination.TestClass()
                           ~~~~~~~~~~~~~~~~~~~~~
-BC37208: Type 'Destination.TestClass' is forwarded to multiple assemblies: 'Destination1' and 'Destination2'
+BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             Dim obj = New Destination.TestClass()
                           ~~~~~~~~~~~~~~~~~~~~~
  ]]></errors>)
@@ -23984,6 +23986,7 @@ End Namespace"
 {
 	.ver 0:0:0:0
 }
+.module CModule.dll
 .assembly extern D1 { }
 .assembly extern D2 { }
 .class extern forwarder C.ClassC
@@ -24004,7 +24007,7 @@ End Namespace"
                 assemblyName:= "A")
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
-BC37208: Type 'C.ClassC' is forwarded to multiple assemblies: 'D1' and 'D2'
+BC37208: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             ClassB.MethodB(Nothing)
             ~~~~~~~~~~~~~~~~~~~~~~~
  ]]></errors>)
@@ -24092,8 +24095,9 @@ BC30652: Reference required to assembly 'D, Version=0.0.0.0, Culture=neutral, Pu
 
         <Fact>
         <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
-        Public Sub AddingReferenceToModuleWithMultipleForwardersToDifferentAssembliesShouldErrorOut()
+        Public Sub CompilingModuleWithMultipleForwardersToDifferentAssembliesShouldErrorOut()
             Dim ilSource = "
+.module ForwarderModule.dll
 .assembly extern D1 { }
 .assembly extern D2 { }
 .class extern forwarder Testspace.TestType
@@ -24105,22 +24109,21 @@ BC30652: Reference required to assembly 'D, Version=0.0.0.0, Culture=neutral, Pu
 	.assembly extern D2
 }"
 
-            Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(ilSource, appendDefaultHeader:=False, includePdb:=False, assemblyBytes:=ilBytes, pdbBytes:=pdbBytes)
-
-            Dim ilModule = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
-
-            Dim compilation = CreateCompilationWithMscorlib(String.Empty, references:={ilModule}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim ilModule = GetILModuleReference(ilSource, appendDefaultHeader:=False)
+            Dim compilation = CreateCompilationWithMscorlib(
+                source:=String.Empty,
+                references:={ilModule},
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="Forwarder")
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
-BC37208: Type 'Testspace.TestType' is forwarded to multiple assemblies: 'D1' and 'D2'
+BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
 ]]></errors>)
         End Sub
 
         <Fact>
-                                      <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
-        Public Sub AddingReferenceToModuleWithMultipleForwardersToTheSameAssemblyShouldNotProduceMultipleForwardingErrors()
+        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        Public Sub CompilingModuleWithMultipleForwardersToTheSameAssemblyShouldNotProduceMultipleForwardingErrors()
             Dim ilSource = "
 .assembly extern D1 { }
 .class extern forwarder Testspace.TestType
@@ -24132,12 +24135,7 @@ BC37208: Type 'Testspace.TestType' is forwarded to multiple assemblies: 'D1' and
 	.assembly extern D1
 }"
 
-            Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(ilSource, appendDefaultHeader:=False, includePdb:=False, assemblyBytes:=ilBytes, pdbBytes:=pdbBytes)
-
-            Dim ilModule = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
-
+            Dim ilModule = GetILModuleReference(ilSource, appendDefaultHeader:=False)
             Dim compilation = CreateCompilationWithMscorlib(String.Empty, references:={ilModule}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[

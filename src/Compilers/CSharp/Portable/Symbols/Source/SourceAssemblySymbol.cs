@@ -2589,13 +2589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if ((object)secondSymbol != null)
                         {
-                            var forwardingErrorInfo = new DiagnosticInfo(
-                                MessageProvider.Instance,
-                                (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies,
-                                emittedName.FullName,
-                                firstSymbol.Name,
-                                secondSymbol.Name);
-                            return new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(SourceModule, ref emittedName, forwardingErrorInfo);
+                            return CreateMultipleForwardingErrorTypeSymbol(ref emittedName, peModuleSymbol, firstSymbol, secondSymbol);
                         }
 
                         // Don't bother to check the forwarded-to assembly if we've already seen it.
