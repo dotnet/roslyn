@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal IVisualStudioHostProject GetHostProject(ProjectId projectId)
         {
-            return DeferredState.ProjectTracker.GetProject(projectId);
+            return DeferredState?.ProjectTracker.GetProject(projectId);
         }
 
         private bool TryGetHostProject(ProjectId projectId, out IVisualStudioHostProject project)
