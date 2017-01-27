@@ -1,13 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
@@ -15,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
     Public Class GenerateTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New GenerateTypeCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New GenerateTypeCodeFixProvider())
         End Function
 
         Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
@@ -1653,10 +1650,9 @@ index:=2)
         Public Class AddImportTestsWithAddImportDiagnosticProvider
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-                Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                    New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
-                    New GenerateTypeCodeFixProvider())
+            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+                Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
+                        New GenerateTypeCodeFixProvider())
             End Function
 
             Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)

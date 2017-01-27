@@ -634,14 +634,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RefType:
                     {
                         var firstToken = node.GetFirstToken();
-                        diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken);
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken.ValueText);
                         return new BoundTypeExpression(node, null, CreateErrorType("ref"));
                     }
 
                 case SyntaxKind.RefExpression:
                     {
                         var firstToken = node.GetFirstToken();
-                        diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken);
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken.ValueText);
                         return new BoundBadExpression(
                             node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty,
                             CreateErrorType("ref"));
@@ -2928,11 +2928,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (typeSyntax.Kind() != SyntaxKind.ArrayType)
             {
-                // If the syntax node comes from the parser, it should already have ERR_BadStackAllocExpr.
-                if (!typeSyntax.ContainsDiagnostics)
-                {
-                    Error(diagnostics, ErrorCode.ERR_BadStackAllocExpr, typeSyntax);
-                }
+                Error(diagnostics, ErrorCode.ERR_BadStackAllocExpr, typeSyntax);
+
                 return new BoundBadExpression(
                     node,
                     LookupResultKind.NotCreatable, //in this context, anyway

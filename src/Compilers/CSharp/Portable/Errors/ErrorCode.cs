@@ -1291,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_EnumsCantContainDefaultConstructor = 8054,
         ERR_EncodinglessSyntaxTree = 8055,
-        ERR_AccessorListAndExpressionBody = 8056,
+        // ERR_AccessorListAndExpressionBody = 8056, Deprecated in favor of ERR_BlockBodyAndExpressionBody
         ERR_BlockBodyAndExpressionBody = 8057,
         ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
@@ -1453,8 +1453,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionVariableInQueryClause = 8201,
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
-        ERR_AttributesInLocalFuncDecl = 8204,
-        ERR_TypeForwardedToMultipleAssemblies = 8205,
+        ERR_BadAsyncMethodBuilderTaskProperty = 8204,
+        ERR_AttributesInLocalFuncDecl = 8205,
+        ERR_TypeForwardedToMultipleAssemblies = 8206,
         #endregion more stragglers for C# 7
     }
 }

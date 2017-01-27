@@ -179,6 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private bool IsInVarContext(NameSyntax name)
         {
             return
+                name.CheckParent<RefTypeSyntax>(v => v.Type == name) ||
                 name.CheckParent<VariableDeclarationSyntax>(v => v.Type == name) ||
                 name.CheckParent<ForEachStatementSyntax>(f => f.Type == name) ||
                 name.CheckParent<DeclarationExpressionSyntax>(f => f.Type == name);

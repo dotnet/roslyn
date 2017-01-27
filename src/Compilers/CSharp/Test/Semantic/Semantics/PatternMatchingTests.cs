@@ -4178,6 +4178,77 @@ public class C
         }
 
         [Fact]
+        public void ShortDiscardInPattern()
+        {
+            var source =
+@"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int i = 3;
+        Write($""is _: {i is _}, "");
+        switch (3)
+        {
+            case _:
+                Write(""case _"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29),
+                // (11,18): error CS0103: The name '_' does not exist in the current context
+                //             case _:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 Write("case _");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(12, 17)
+                );
+        }
+
+        [Fact]
+        public void UnderscoreInPattern2()
+        {
+            var source =
+@"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int i = 3;
+        int _ = 4;
+        Write($""is _: {i is _}, "");
+        switch (3)
+        {
+            case _:
+                Write(""case _"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (9,29): error CS0150: A constant value is expected
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(9, 29),
+                // (12,18): error CS0150: A constant value is expected
+                //             case _:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 Write("case _");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(13, 17)
+                );
+        }
+
+        [Fact]
         public void UnderscoreInPattern()
         {
             var source =
@@ -4547,7 +4618,49 @@ public class Program1717
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16559")]
+        [Fact, WorkItem(16559, "https://github.com/dotnet/roslyn/issues/16559")]
+        public void CasePatternVariableUsedInCaseExpression()
+        {
+            var program = @"
+public class Program5815
+{
+    public static void Main(object o)
+    {
+        switch (o)
+        {
+            case Color Color:
+            case Color? Color2:
+                break;
+        }
+    }
+    private static object M() => null;
+}";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (9,32): error CS1525: Invalid expression term 'break'
+                //             case Color? Color2:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(9, 32),
+                // (9,32): error CS1003: Syntax error, ':' expected
+                //             case Color? Color2:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "break").WithLocation(9, 32),
+                // (8,18): error CS0118: 'Color' is a variable but is used like a type
+                //             case Color Color:
+                Diagnostic(ErrorCode.ERR_BadSKknown, "Color").WithArguments("Color", "variable", "type").WithLocation(8, 18),
+                // (9,25): error CS0103: The name 'Color2' does not exist in the current context
+                //             case Color? Color2:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Color2").WithArguments("Color2").WithLocation(9, 25)
+                );
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var colorDecl = GetPatternDeclarations(tree, "Color").ToArray();
+            var colorRef = GetReferences(tree, "Color").ToArray();
+            Assert.Equal(1, colorDecl.Length);
+            Assert.Equal(2, colorRef.Length);
+            Assert.Null(model.GetSymbolInfo(colorRef[0]).Symbol);
+            VerifyModelForDeclarationPattern(model, colorDecl[0], colorRef[1]);
+        }
+
+        [Fact, WorkItem(16559, "https://github.com/dotnet/roslyn/issues/16559")]
         public void Fuzz5815()
         {
             var program = @"
@@ -4564,21 +4677,33 @@ public class Program5815
     }
     private static object M() => null;
 }";
-            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (9,18): error CS0150: A constant value is expected
+                //             case true ? x3 : 4:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "true ? x3 : 4").WithLocation(9, 18)
                 );
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = GetPatternDeclarations(tree, "x3").ToArray();
+            var x3Ref = GetReferences(tree, "x3").ToArray();
+            Assert.Equal(1, x3Decl.Length);
+            Assert.Equal(1, x3Ref.Length);
+            VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
         }
 
-        [Fact(Skip = "This test generator is capable of producing crashes that are not yet fixed; see, for example, Fuzz5815")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16721")]
         public void Fuzz()
         {
-            int dt = Math.Abs(new DateTime().Ticks.GetHashCode() % 10000000);
-            for (int i = 1; i < 100000; i++)
+            const int numTests = 1000000;
+            int dt = (int)Math.Abs(DateTime.Now.Ticks % 1000000000);
+            for (int i = 1; i < numTests; i++)
             {
                 PatternMatchingFuzz(i + dt);
             }
         }
 
-        public void PatternMatchingFuzz(int dt)
+        private static void PatternMatchingFuzz(int dt)
         {
             Random r = new Random(dt);
 
@@ -4663,6 +4788,188 @@ public class Program{0}
             }
             var program = string.Format(body, dt, statement);
             CreateCompilationWithMscorlib45(program).GetDiagnostics();
+        }
+
+        [Fact, WorkItem(16671, "https://github.com/dotnet/roslyn/issues/16671")]
+        public void TypeParameterSubsumption01()
+        {
+            var program = @"
+using System;
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        PatternMatching<Base, Derived>(new Base());
+        PatternMatching<Base, Derived>(new Derived());
+        PatternMatching<Base, Derived>(null);
+        PatternMatching<object, int>(new object());
+        PatternMatching<object, int>(2);
+        PatternMatching<object, int>(null);
+        PatternMatching<object, int?>(new object());
+        PatternMatching<object, int?>(2);
+        PatternMatching<object, int?>(null);
+    }
+    static void PatternMatching<TBase, TDerived>(TBase o) where TDerived : TBase
+    {
+        switch (o)
+        {
+            case TDerived td:
+                Console.WriteLine(nameof(TDerived));
+                break;
+            case TBase tb:
+                Console.WriteLine(nameof(TBase));
+                break;
+            default:
+                Console.WriteLine(""Neither"");
+                break;
+        }
+    }
+}
+class Base
+{
+}
+class Derived : Base
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe).VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"TBase
+TDerived
+Neither
+TBase
+TDerived
+Neither
+TBase
+TDerived
+Neither");
+        }
+
+        [Fact, WorkItem(16671, "https://github.com/dotnet/roslyn/issues/16671")]
+        public void TypeParameterSubsumption02()
+        {
+            var program = @"
+using System;
+public class Program
+{
+    static void PatternMatching<TBase, TDerived>(TBase o) where TDerived : TBase
+    {
+        switch (o)
+        {
+            case TBase tb:
+                Console.WriteLine(nameof(TBase));
+                break;
+            case TDerived td:
+                Console.WriteLine(nameof(TDerived));
+                break;
+            default:
+                Console.WriteLine(""Neither"");
+                break;
+        }
+    }
+}
+class Base
+{
+}
+class Derived : Base
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case TDerived td:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "TDerived td").WithLocation(12, 18),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 Console.WriteLine(nameof(TDerived));
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 17)
+                );
+        }
+
+        [Fact, WorkItem(16688, "https://github.com/dotnet/roslyn/issues/16688")]
+        public void TypeParameterSubsumption03()
+        {
+            var program = @"
+using System.Collections.Generic;
+public class Program
+{
+    private static void Pattern<T>(T thing) where T : class
+    {
+        switch (thing)
+        {
+            case T tThing:
+                break;
+            case IEnumerable<object> s:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case IEnumerable<object> s:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<object> s").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16696")]
+        public void TypeParameterSubsumption04()
+        {
+            var program = @"
+using System.Collections.Generic;
+public class Program
+{
+    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
+    {
+        switch (thing)
+        {
+            case IEnumerable<TBase> sequence:
+                break;
+            case IEnumerable<TDerived> derivedSequence:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case IEnumerable<TDerived> derivedSequence:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<TDerived> derivedSequence").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16696")]
+        public void TypeParameterSubsumption05()
+        {
+            var program = @"
+using System.Collections.Generic;
+public class Program
+{
+    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
+    {
+        switch (thing)
+        {
+            case IEnumerable<object> s:
+                break;
+            case IEnumerable<TDerived> derivedSequence:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case IEnumerable<TDerived> derivedSequence:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<TDerived> derivedSequence").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                );
         }
     }
 }

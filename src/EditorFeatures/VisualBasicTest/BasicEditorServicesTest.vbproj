@@ -183,6 +183,7 @@
     <Compile Include="Classification\SemanticClassifierTests.vb" />
     <Compile Include="Classification\SyntacticClassifierTests.vb" />
     <Compile Include="CodeActions\AbstractVisualBasicCodeActionTest.vb" />
+    <Compile Include="CodeActions\UseNamedArguments\UseNamedArgumentsTests.vb" />
     <Compile Include="Structure\CollectionInitializerStructureProviderTests.vb" />
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.vb" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />

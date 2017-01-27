@@ -19519,7 +19519,7 @@ namespace ForwardingNamespace
             var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
-                // (8,29): error CS8205: Type 'Destination.TestClass' is forwarded to multiple assemblies: 'Destination1' and 'Destination2'
+                // (8,29): error CS8206: Type 'Destination.TestClass' is forwarded to multiple assemblies: 'Destination1' and 'Destination2'
                 //             new Destination.TestClass();
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestClass").WithArguments("Destination.TestClass", "Destination1", "Destination2").WithLocation(8, 29),
                 // (8,29): error CS0234: The type or namespace name 'TestClass' does not exist in the namespace 'Destination' (are you missing an assembly reference?)
@@ -19573,7 +19573,7 @@ namespace ForwardingNamespace
             var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
-                // (8,29): error CS8205: Type 'Destination.TestClass' is forwarded to multiple assemblies: 'Destination1' and 'Destination2'
+                // (8,29): error CS8206: Type 'Destination.TestClass' is forwarded to multiple assemblies: 'Destination1' and 'Destination2'
                 //             new Destination.TestClass();
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestClass").WithArguments("Destination.TestClass", "Destination1", "Destination2").WithLocation(8, 29),
                 // (8,29): error CS0234: The type or namespace name 'TestClass' does not exist in the namespace 'Destination' (are you missing an assembly reference?)
@@ -19645,7 +19645,7 @@ namespace A
             var referenceC2 = CompileIL(codeC2, appendDefaultHeader: false);
 
             CreateCompilationWithMscorlib(codeA, references: new MetadataReference[] { referenceB, referenceC2 }, assemblyName: "A").VerifyDiagnostics(
-                // (10,13): error CS8205: Type 'C.ClassC' is forwarded to multiple assemblies: 'D1' and 'D2'
+                // (10,13): error CS8206: Type 'C.ClassC' is forwarded to multiple assemblies: 'D1' and 'D2'
                 //             ClassB.MethodB(null);
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("C.ClassC", "D1", "D2").WithLocation(10, 13));
         }
@@ -19739,7 +19739,7 @@ namespace A
             var ilModule = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
 
             CreateCompilationWithMscorlib(string.Empty, references: new MetadataReference[] { ilModule }).VerifyDiagnostics(
-                // error CS8205: Type 'Testspace.TestType' is forwarded to multiple assemblies: 'D1' and 'D2'
+                // error CS8206: Type 'Testspace.TestType' is forwarded to multiple assemblies: 'D1' and 'D2'
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies).WithArguments("Testspace.TestType", "D1", "D2").WithLocation(1, 1));
         }
 

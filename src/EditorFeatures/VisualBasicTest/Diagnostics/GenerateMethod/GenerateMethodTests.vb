@@ -8,8 +8,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
     Public Class GenerateMethodTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New GenerateParameterizedMemberCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New GenerateParameterizedMemberCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -3972,8 +3972,8 @@ End Class")
         Public Class GenerateConversionTests
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-                Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New GenerateConversionCodeFixProvider())
+            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+                Return (Nothing, New GenerateConversionCodeFixProvider())
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4253,7 +4253,6 @@ Class Digit
 End Class
 </text>.Value.Replace(vbLf, vbCrLf), compareTokens:=False)
             End Function
-
         End Class
     End Class
 End Namespace

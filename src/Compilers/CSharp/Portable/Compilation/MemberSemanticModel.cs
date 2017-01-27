@@ -1743,6 +1743,7 @@ done:
                 {
                     case SyntaxKind.ParenthesizedExpression:
                     case SyntaxKind.RefExpression:
+                    case SyntaxKind.RefType:
                         var pp = parent.Parent;
                         if (pp == null) break;
                         parent = pp;
