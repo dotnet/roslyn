@@ -44,7 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private const string AppCodeFolderName = "App_Code";
 
         protected readonly IServiceProvider ServiceProvider;
+
         private readonly IVsUIShellOpenDocument _shellOpenDocument;
+        private readonly IVsRunningDocumentTable4 _runningDocumentTable;
         private readonly IVsTextManager _textManager;
 
         // Not readonly because it needs to be set in the derived class' constructor.
@@ -63,8 +65,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 backgroundWork)
         {
             this.ServiceProvider = serviceProvider;
+
             _textManager = serviceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager;
             _shellOpenDocument = serviceProvider.GetService(typeof(SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
+            _runningDocumentTable = serviceProvider.GetService(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable4;
 
             // Ensure the options factory services are initialized on the UI thread
             this.Services.GetService<IOptionService>();
@@ -721,6 +725,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             CloseDocumentCore(documentId);
         }
 
+        public bool TryOpenFile(string filePath, ProjectId projectId = null, bool preview = false)
+        {
+            // get IVsProject and itemId if available
+            IVsProject vsProject;
+            uint itemId;
+            TryGetIVsProjectAndItemId(projectId, filePath, out vsProject, out itemId);
+
+            IVsWindowFrame frame;
+            if (TryGetFrame(filePath, vsProject, itemId, out frame))
+            {
+                var fileAlreadyOpen = _runningDocumentTable.IsMonikerValid(filePath);
+                if (!fileAlreadyOpen)
+                {
+                    ErrorHandler.ThrowOnFailure(frame.SetProperty((int)__VSFPROPID5.VSFPROPID_IsProvisional, preview));
+                }
+
+                frame.Show();
+                return true;
+            }
+
+            return false;
+        }
+
         public bool TryGetInfoBarData(out IVsWindowFrame frame, out IVsInfoBarUIFactory factory)
         {
             frame = null;
@@ -771,19 +798,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        private bool TryGetIVsProjectAndItemId(ProjectId projectId, string filePath, out IVsProject vsProject, out uint itemId)
+        {
+            vsProject = null;
+            itemId = (uint)VSConstants.VSITEMID.Nil;
+
+            if (projectId == null)
+            {
+                return false;
+            }
+
+            var hostProject = GetHostProject(projectId);
+            if (hostProject == null)
+            {
+                return false;
+            }
+
+            var project = hostProject.Hierarchy as IVsProject;
+            if (project == null)
+            {
+                return false;
+            }
+
+            VSDOCUMENTPRIORITY[] priority = { VSDOCUMENTPRIORITY.DP_Standard };
+            if (ErrorHandler.Failed(project.IsDocumentInProject(filePath, out var found, priority, out var id)) || found == 0)
+            {
+                return false;
+            }
+
+            vsProject = project;
+            itemId = id;
+
+            return true;
+        }
+
         private bool TryGetFrame(IVisualStudioHostDocument document, out IVsWindowFrame frame)
         {
-            frame = null;
+            return TryGetFrame(document.FilePath, document.Project.Hierarchy as IVsProject, document.GetItemId(), out frame);
+        }
 
-            var itemId = document.GetItemId();
-            if (itemId == (uint)VSConstants.VSITEMID.Nil)
+        private bool TryGetFrame(string filePath, IVsProject vsProject, uint itemId, out IVsWindowFrame frame)
+        {
+            frame = null;
+            if (vsProject == null || itemId == (uint)VSConstants.VSITEMID.Nil)
             {
                 // If the ItemId is Nil, then IVsProject would not be able to open the 
                 // document using its ItemId. Thus, we must use OpenDocumentViaProject, which only 
                 // depends on the file path.
 
                 return ErrorHandler.Succeeded(_shellOpenDocument.OpenDocumentViaProject(
-                    document.FilePath,
+                    filePath,
                     VSConstants.LOGVIEWID.TextView_guid,
                     out var oleServiceProvider,
                     out var uiHierarchy,
@@ -802,10 +866,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // It's conceivable that IVsHierarchy might not implement IVsProject. However, 
                 // OpenDocumentViaProject itself relies upon this QI working, so it should be OK to 
                 // use here.
-
-                var vsProject = document.Project.Hierarchy as IVsProject;
-                return vsProject != null &&
-                    ErrorHandler.Succeeded(vsProject.OpenItem(itemId, VSConstants.LOGVIEWID.TextView_guid, s_docDataExisting_Unknown, out frame));
+                return ErrorHandler.Succeeded(vsProject.OpenItem(itemId, VSConstants.LOGVIEWID.TextView_guid, s_docDataExisting_Unknown, out frame));
             }
         }
 

@@ -401,20 +401,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return false;
                     }
 
-                    // this item is not navigatable
-                    if (item.DocumentId == null)
-                    {
-                        return false;
-                    }
-
                     var trackingLinePosition = GetTrackingLineColumn(item.Workspace, item.DocumentId, index);
                     if (trackingLinePosition != LinePosition.Zero)
                     {
-                        return TryNavigateTo(item.Workspace, item.DocumentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
+                        return TryNavigateTo(
+                            item.Workspace,
+                            item.ProjectId,
+                            item.DocumentId,
+                            item.DataLocation?.OriginalFilePath,
+                            trackingLinePosition.Line,
+                            trackingLinePosition.Character,
+                            previewTab);
                     }
 
-                    return TryNavigateTo(item.Workspace, item.DocumentId,
-                            item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
+                    return TryNavigateTo(item.Workspace, item.ProjectId, item.DocumentId,
+                            item.DataLocation?.OriginalFilePath, item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0,
+                            previewTab);
                 }
 
                 protected override bool IsEquivalent(DiagnosticData item1, DiagnosticData item2)

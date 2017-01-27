@@ -309,10 +309,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var trackingLinePosition = GetTrackingLineColumn(item.Workspace, item.DocumentId, index);
                     if (trackingLinePosition != LinePosition.Zero)
                     {
-                        return TryNavigateTo(item.Workspace, item.DocumentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
+                        return TryNavigateTo(item.Workspace, item.DocumentId.ProjectId, item.DocumentId,
+                            item.OriginalFilePath, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
                     }
 
-                    return TryNavigateTo(item.Workspace, item.DocumentId, item.OriginalLine, item.OriginalColumn, previewTab);
+                    return TryNavigateTo(item.Workspace, item.DocumentId.ProjectId, item.DocumentId,
+                        item.OriginalFilePath, item.OriginalLine, item.OriginalColumn, previewTab);
                 }
 
                 protected override bool IsEquivalent(TodoItem item1, TodoItem item2)

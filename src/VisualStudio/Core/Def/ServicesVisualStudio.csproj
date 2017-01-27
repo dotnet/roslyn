@@ -159,6 +159,7 @@
     <Compile Include="Implementation\Utilities\BrowserHelper.cs" />
     <Compile Include="Implementation\Utilities\AutomationDelegatingListView.cs" />
     <Compile Include="Implementation\Utilities\HyperlinkStyleHelper.cs" />
+    <Compile Include="Implementation\Utilities\NavigationHelper.cs" />
     <Compile Include="Implementation\Venus\VenusTaskExtensions.cs" />
     <Compile Include="Implementation\Versions\SemanticVersionTrackingService.cs" />
     <Compile Include="Implementation\ContainedLanguageRefactorNotifyService.cs" />

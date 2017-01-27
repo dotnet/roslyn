@@ -251,14 +251,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return false;
                     }
 
-                    // this item is not navigatable
-                    if (item.DocumentId == null)
-                    {
-                        return false;
-                    }
-
-                    return TryNavigateTo(item.Workspace, GetProperDocumentId(item),
-                                         item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
+                    return TryNavigateTo(item.Workspace, item.ProjectId, GetProperDocumentId(item),
+                                         item.DataLocation?.OriginalFilePath,
+                                         item.DataLocation?.OriginalStartLine ?? 0,
+                                         item.DataLocation?.OriginalStartColumn ?? 0,
+                                         previewTab);
                 }
 
                 private DocumentId GetProperDocumentId(DiagnosticData data)
