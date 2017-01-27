@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [VisualStudio.Utilities.ContentType(ContentTypeNames.JavaScriptContentTypeName)]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.TypeScriptContentTypeName)]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.XamlContentType)]
+    [VisualStudio.Utilities.ContentType(ContentTypeNames.FSharpContentType)]
     [VisualStudio.Utilities.Name("Roslyn Code Fix")]
     [VisualStudio.Utilities.Order]
     internal class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
