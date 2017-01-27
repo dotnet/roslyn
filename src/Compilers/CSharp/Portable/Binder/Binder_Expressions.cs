@@ -632,14 +632,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindThrowExpression((ThrowExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.RefType:
-                    {
-                        return BindRefType(node, diagnostics);
-                    }
+                    return BindRefType(node, diagnostics);
 
                 case SyntaxKind.RefExpression:
-                    {
-                        return BindRefExpression(node, diagnostics);
-                    }
+                    return BindRefExpression(node, diagnostics);
 
                 case SyntaxKind.DeclarationExpression:
                     return BindDeclarationExpression((DeclarationExpressionSyntax)node, diagnostics);
