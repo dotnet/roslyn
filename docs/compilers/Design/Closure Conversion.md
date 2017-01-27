@@ -78,3 +78,30 @@ Since the local variables are now fields in a class instance we can keep the sam
 This covers the transformations C# performs at a high level. The following section covers how these transformations are performed in detail.
 
 # Internals
+
+There are two phases at the top level of closure conversion. The first phase, Analysis, is responsible for building an AnalysisResult data structure which contains all information necessary to rewrite all closures. The second phase, Rewriting, actually performs the aforementioned rewriting by replacing and adding BoundNodes to the Bound Tree. The most important contract between these two phases is that the Analysis phase performs no modifications to the Bound Tree and the Rewriting phase performs no computation and contains no logic aside from a simple mechanical modification of the Bound Tree based on the AnalysisResult.
+
+## Analysis
+
+In this phase we build an AnalysisResult, which is a tree structure that exactly represents the state mapping from the original program to the closure-converted form.
+
+** TODO** Diagram of tree
+
+To create this AnalysisResult there are multiple passes. The first pass gathers information by constructing a naive tree of scopes, closures, and captured variables. The result is a tree of nested scopes, where each scope lists the captured variables declared in the scope and the closures in that scope. The first pass must first gather information since most rewriting decisions, like what Environment type to use for the closures or what the rewritten closure signature will be, are dependent on context from the entire method. The information is stored on rich objects, like `CapturedVariable` or `Closure`, that contain mappings that will later be filled in. For example, `CapturedVariable` contains a reference to the `SynthesizedLocal` that will replace it after rewriting.
+
+** TODO ** More detailed description of data structures
+
+
+The subsequent passes fill in rewriting information based on the initial tree. Important actions include:
+
+* Deciding what environment type is necessary for each closure
+    ** TODO ** Enumeration of rules when a closure is a struct or a class
+
+* Creating `SynthesizedLocal`s for hoisted captured variables and captured Environment references
+* Assigning rewritten names, signatures, and type parameters to each closure
+
+The final passes are optimization passes. They attempt to simplify the tree by removing intermediate scopes with no captured variables and otherwise correcting the tree to create the most efficient rewritten form.
+
+## Rewriting
+
+The rewriting phase simply walks the bound tree and, at each new scope, checks to see if the AnalysisResult contains a scope with rewriting information to process. If so, locals and closures are replaced with the substitutions provided by the tree.
