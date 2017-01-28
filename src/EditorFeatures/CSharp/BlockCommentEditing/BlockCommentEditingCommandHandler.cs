@@ -170,7 +170,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(caretPosition, CancellationToken.None);
 
             var isBlockComment = trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
-            return isBlockComment && trivia.FullSpan.Start < caretPosition;
+            var span = trivia.FullSpan;
+            return isBlockComment && span.Start < caretPosition && caretPosition < span.End;
         }
     }
 }

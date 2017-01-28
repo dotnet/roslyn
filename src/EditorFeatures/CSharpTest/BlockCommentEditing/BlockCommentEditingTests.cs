@@ -69,6 +69,18 @@ $$
             await VerifyAsync(code, expected);
         }
 
+        [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task EdgeCase4()
+        {
+            var code = @"
+/* */$$";
+            var expected = @"
+/* */
+$$";
+            await VerifyAsync(code, expected);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
         public async Task InsertOnStartLine0()
         {
