@@ -85,14 +85,46 @@ There are two phases at the top level of closure conversion. The first phase, An
 
 In this phase we build an AnalysisResult, which is a tree structure that exactly represents the state mapping from the original program to the closure-converted form.
 
-** TODO** Diagram of tree
+For example, the following program
 
-To create this AnalysisResult there are multiple passes. The first pass gathers information by constructing a naive tree of scopes, closures, and captured variables. The result is a tree of nested scopes, where each scope lists the captured variables declared in the scope and the closures in that scope. The first pass must first gather information since most rewriting decisions, like what Environment type to use for the closures or what the rewritten closure signature will be, are dependent on context from the entire method. The information is stored on rich objects, like `CapturedVariable` or `Closure`, that contain mappings that will later be filled in. For example, `CapturedVariable` contains a reference to the `SynthesizedLocal` that will replace it after rewriting.
+```csharp
+void M()
+{
+    int x = 0;
+    int Local() => x + 1;
+    {
+        int y = 0;
+        int z = 0;
+        int Local2() => Local() + y;
+        z++;
+        Local2();
+    }
+    Local();
+}
+```
 
-** TODO ** More detailed description of data structures
+Would produce a tree similar to
 
+```
+  +-------------------------------------+
+  |Captured:       Closures:            |
+  |int x           int Local()          |
+  |int Local()                          |
+  |                                     |
+  | +--------------------------------+  |
+  | | Captured:      Closures:       |  |
+  | | int y          int Local2()    |  |
+  | |                                |  |
+  | +--------------------------------+  |
+  +-------------------------------------+
 
-The subsequent passes fill in rewriting information based on the initial tree. Important actions include:
+```
+
+To create this AnalysisResult there are multiple passes. The first pass gathers information by constructing a naive tree of scopes, closures, and captured variables. The result is a tree of nested scopes, where each scope lists the captured variables declared in the scope and the closures in that scope. The first pass must first gather information since most rewriting decisions, like what Environment type to use for the closures or what the rewritten closure signature will be, are dependent on context from the entire method.
+
+Information about captured variables are stored on instances of the `CapturedVariable` class, which holds information about the Symbol that was captured and rewriting information like the `SynthesizedLocal` that will replace the variable post-rewriting. Similarly, closures will be stored in instances of the `Closure` class, which contain both the original Symbol and the synthesized type or method created for the closure. All of these classes are mutable since it's expected that later passes will fill in more rewriting information using the structure gathered from the earlier passes.
+
+Some of the important calculations done in subbsequent passes include:
 
 * Deciding what environment type is necessary for each closure
     ** TODO ** Enumeration of rules when a closure is a struct or a class
@@ -104,4 +136,10 @@ The final passes are optimization passes. They attempt to simplify the tree by r
 
 ## Rewriting
 
-The rewriting phase simply walks the bound tree and, at each new scope, checks to see if the AnalysisResult contains a scope with rewriting information to process. If so, locals and closures are replaced with the substitutions provided by the tree.
+The rewriting phase simply walks the bound tree and, at each new scope, checks to see if the AnalysisResult contains a scope with rewriting information to process. If so, locals and closures are replaced with the substitutions provided by the tree. Practically, this means that each scope contains:
+
+1. A list of synthesized locals to add to the frame.
+
+2. A mapping from original to replacement bound node.
+
+3. A list of synthesized methods and types to add to the enclosing type.
