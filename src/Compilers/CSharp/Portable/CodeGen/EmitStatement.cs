@@ -1387,6 +1387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitSwitchSection(section);
             }
 
+            _builder.DefineHiddenSequencePoint();
             _builder.MarkLabel(breakLabel);
 
             if (hasLocals)

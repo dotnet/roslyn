@@ -426,11 +426,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static Dictionary<int, string> GetMarkers(string pdbXml, string source = null)
         {
-            var markersList = EnumerateMarkers(pdbXml);
-            if (source != null)
-            {
-                markersList = EnumerateSourceSpans(pdbXml, source).Concat(markersList);
-            }
+            var markersList = source == null ? EnumerateMarkers(pdbXml) : EnumerateSourceSpans(pdbXml, source);
 
             return ToDictionary<int, string, string>(markersList, (markers, marker) => markers + marker);
         }
@@ -464,13 +460,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 foreach (XmlElement item in entry.ChildNodes)
                 {
+                    string snippet;
                     if (item.GetAttribute("hidden") != "true")
                     {
                         var startLine = Convert.ToInt32(item.GetAttribute("startLine"));
                         var startColumn = Convert.ToInt32(item.GetAttribute("startColumn"));
                         var endLine = Convert.ToInt32(item.GetAttribute("endLine"));
                         var endColumn = Convert.ToInt32(item.GetAttribute("endColumn"));
-                        string snippet;
                         if (startLine == endLine)
                         {
                             snippet = lines[startLine - 1].Substring(startColumn - 1, endColumn - startColumn);
@@ -479,14 +475,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         {
                             var start = lines[startLine - 1].Substring(startColumn - 1);
                             var end = lines[endLine - 1].Substring(0, endColumn - 1);
-                            const string ellipsis = " \u2026 ";
-                            snippet = TruncateStart(start, 12) + ellipsis + TruncateEnd(end, 12);
+                            snippet = TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
                         }
-
-                        yield return KeyValuePair.Create(
-                            Convert.ToInt32(item.GetAttribute("offset"), 16),
-                            snippet + " ║  ");
                     }
+                    else
+                    {
+                        snippet = "<hidden>";
+                    }
+
+                    yield return KeyValuePair.Create(
+                        Convert.ToInt32(item.GetAttribute("offset"), 16),
+                        $"// sequence point: " + snippet);
                 }
             }
 

@@ -285,25 +285,9 @@ namespace Roslyn.Test.MetadataUtilities
             }
 
             int spanIndex = 0;
-            string markerPadding = GetMarkerPadding(markers.Values);
-            int curIndex = DumpILBlock(ilBytes, length, sb, spans, blockOffset, 0, spanIndex, markerPadding, markers, out spanIndex);
+            int curIndex = DumpILBlock(ilBytes, length, sb, spans, blockOffset, 0, spanIndex, IndentString, markers, out spanIndex);
             Debug.Assert(curIndex == length);
             Debug.Assert(spans == null || spanIndex == spans.Count);
-        }
-
-        private string GetMarkerPadding(IEnumerable<string> values)
-        {
-            int max = 0;
-            foreach (var v in values)
-            {
-                max = Math.Max(max, v.Length);
-            }
-            string pad = " ";
-            for (int i = 0; i < max; i++)
-            {
-                pad += " ";
-            }
-            return pad;
         }
 
         private int DumpILBlock(
@@ -354,8 +338,17 @@ namespace Roslyn.Test.MetadataUtilities
                     string marker;
                     if (markers != null && markers.TryGetValue(ilOffset, out marker))
                     {
-                        sb.Append(indent.Substring(0, indent.Length - marker.Length));
-                        sb.Append(marker);
+                        if (marker.StartsWith("//"))
+                        {
+                            sb.Append(indent);
+                            sb.AppendLine(marker);
+                            sb.Append(indent);
+                        }
+                        else
+                        {
+                            sb.Append(indent.Substring(0, indent.Length - marker.Length));
+                            sb.Append(marker);
+                        }
                     }
                     else
                     {
