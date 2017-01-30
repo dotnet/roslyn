@@ -2717,12 +2717,13 @@ class C
         }
 
         [Fact]
+        [WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")]
         public void LocalFunctionParameterDefaultUsingConst()
         {
             var source = @"
 class C
 {
-    public static void Main(string[] args)
+    public static void Main()
     {
         const int N = 2;
         void Local1(int n = N) { System.Console.Write(n); }
@@ -2744,14 +2745,18 @@ class C
                 var model = compilation.GetSemanticModel(tree);
                 var descendents = tree.GetRoot().DescendantNodes();
 
+                var parameter = descendents.OfType<ParameterSyntax>().Single();
+                Assert.Equal("int n = N", parameter.ToString());
+                Assert.Equal("[System.Int32 n = 2]", model.GetDeclaredSymbol(parameter).ToTestDisplayString());
+
                 var name = "N";
                 var declarator = descendents.OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == name).Single();
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(declarator);
                 Assert.NotNull(symbol);
-                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+                Assert.Equal("System.Int32 N", symbol.ToTestDisplayString());
                 var refs = descendents.OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == name).ToArray();
                 Assert.Equal(1, refs.Length);
-                Assert.Equal(symbol, model.GetSymbolInfo(refs[0]).Symbol);
+                Assert.Same(symbol, model.GetSymbolInfo(refs[0]).Symbol);
             });
         }
 
