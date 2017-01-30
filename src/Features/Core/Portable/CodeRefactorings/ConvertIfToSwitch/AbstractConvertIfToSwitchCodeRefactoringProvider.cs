@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                     return;
                 }
 
-                if (!ifStatement.GetFirstToken().GetLocation().SourceSpan.IntersectsWith(context.Span))
+                var token = ifStatement.GetFirstToken();
+                if (!token.Span.Contains(context.Span))
                 {
                     return;
                 }
