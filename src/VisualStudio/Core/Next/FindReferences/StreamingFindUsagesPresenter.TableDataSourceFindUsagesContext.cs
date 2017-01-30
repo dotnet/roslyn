@@ -200,24 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             #region FindUsagesContext overrides.
 
             public override void SetSearchTitle(string title)
-            {
-                try
-                {
-                    // Editor renamed their property from Label to Title, and made it public.
-                    // However, we don't have access to that property yet until they publish
-                    // their next SDK.  In the meantime, use reflection to get at the right
-                    // property.
-                    var titleProperty = _findReferencesWindow.GetType().GetProperty(
-                        "Title", BindingFlags.Public | BindingFlags.Instance);
-                    if (titleProperty != null)
-                    {
-                        titleProperty.SetValue(_findReferencesWindow, title);
-                    }
-                }
-                catch (Exception)
-                {
-                }
-            }
+                => _findReferencesWindow.Title = title;
 
             public override async Task OnCompletedAsync()
             {
