@@ -145,6 +145,7 @@
     <Compile Include="Emit\EmitMetadata.cs" />
     <Compile Include="Emit\EmitMetadataTestBase.cs" />
     <Compile Include="Attributes\EmitTestStrongNameProvider.cs" />
+    <Compile Include="Emit\EndToEndTests.cs" />
     <Compile Include="Emit\EntryPointTests.cs" />
     <Compile Include="Emit\NoPiaEmbedTypes.cs" />
     <Compile Include="Emit\OptionalArgumentsTests.cs" />
