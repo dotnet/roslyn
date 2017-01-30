@@ -1082,7 +1082,7 @@ End Module
 
         <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
         <Fact>
-        Public Sub NotDeclaredTupleDeconstructionsAreConsideredObjects()
+        Public Sub NotDeclaredTupleDeconstructionsAreConsideredObjects_ExplicitOff()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
             <compilation><file name="a.vb">
 Option Explicit Off
@@ -1119,6 +1119,34 @@ BC42104: Variable 'member2' is used before it has been assigned a value. A null 
             Assert.Equal(2, tupleSymbol.Type.TupleElementTypes.Length)
             Assert.Equal("Object", tupleSymbol.Type.TupleElementTypes(0).Name)
             Assert.Equal("Object", tupleSymbol.Type.TupleElementTypes(1).Name)
+        End Sub
+
+        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <Fact>
+        Public Sub NotDeclaredTupleDeconstructionsProduceErrors_ExplicitOn()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            <compilation><file name="a.vb">
+Option Explicit On
+Module TestModule
+    Sub Main()
+        Dim tuple = (member1, member2)
+        System.Console.WriteLine(tuple)
+    End Sub
+End Module
+            </file></compilation>,
+            additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+            options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+    <![CDATA[
+BC30451: 'member1' is not declared. It may be inaccessible due to its protection level.
+        Dim tuple = (member1, member2)
+                     ~~~~~~~
+BC30451: 'member2' is not declared. It may be inaccessible due to its protection level.
+        Dim tuple = (member1, member2)
+                              ~~~~~~~
+]]></expected>)
         End Sub
 
         <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
