@@ -28853,6 +28853,51 @@ public class C
         }
 
         [Fact]
+        public void DuplicateDeclarationInSwitchBlock()
+        {
+            var text = @"
+public class C
+{
+    public static void Main(string[] args)
+    {
+        switch (args.Length)
+        {
+            case 0:
+                M(M(out var x1), x1);
+                M(M(out int x1), x1);
+                break;
+            case 1:
+                M(M(out int x1), x1);
+                break;
+        }
+    }
+    static int M(out int z) => z = 1;
+    static int M(int a, int b) => a+b;
+}";
+            var comp = CreateCompilationWithMscorlib45(text);
+            comp.VerifyDiagnostics(
+                // (10,29): error CS0128: A local variable or function named 'x1' is already defined in this scope
+                //                 M(M(out int x1), x1);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(10, 29),
+                // (13,29): error CS0128: A local variable or function named 'x1' is already defined in this scope
+                //                 M(M(out int x1), x1);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(13, 29),
+                // (13,34): error CS0165: Use of unassigned local variable 'x1'
+                //                 M(M(out int x1), x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 34)
+                );
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var x6Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x6Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(3, x6Decl.Length);
+            Assert.Equal(3, x6Ref.Length);
+            VerifyModelForOutVar(model, x6Decl[0], x6Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
+            VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[2]);
+        }
+
+        [Fact]
         public void DeclarationInLocalFunctionParameterDefault()
         {
             var text = @"

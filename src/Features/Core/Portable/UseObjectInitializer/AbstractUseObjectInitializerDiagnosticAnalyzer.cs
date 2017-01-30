@@ -133,8 +133,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
+            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
     }
 }

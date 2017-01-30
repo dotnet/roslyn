@@ -180,6 +180,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        internal override bool CanRenameFilesDuringCodeActions(CodeAnalysis.Project project)
+        {
+            if (this.TryGetHierarchy(project.Id, out var hierarchy))
+            {
+                // Currently renaming files in CPS projects (i.e. .Net Core) doesn't work proprey.
+                // This is because the remove/add of the documents in CPS is not synchronous
+                // (despite the DTE interfaces being synchronous).  So Roslyn calls the methods
+                // expecting the changes to happen immediately.  Because they are deferred in CPS
+                // this causes problems. 
+                return !hierarchy.IsCapabilityMatch("CPS");
+            }
+
+            return true;
+        }
+
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
             switch (feature)

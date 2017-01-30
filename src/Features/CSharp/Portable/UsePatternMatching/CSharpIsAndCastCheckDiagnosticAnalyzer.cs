@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             {
                 return;
             }
-            
+
             var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
             if (!styleOption.Value)
             {
@@ -164,8 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
+            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
     }
 }

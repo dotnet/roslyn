@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task SynchronizeProjectAssetsAsync(Checksum projectChecksum, CancellationToken cancellationToken)
+        public async Task SynchronizeProjectAssetsAsync(IEnumerable<Checksum> projectChecksums, CancellationToken cancellationToken)
         {
             // this will pull in assets that belong to the given project checksum to this remote host.
             // this one is not supposed to be used for functionality but only for perf. that is why it doesn't return anything.
@@ -96,10 +96,10 @@ namespace Microsoft.CodeAnalysis.Remote
             // one can call this method to make cache hot for all assets that belong to the project checksum so that GetAssetAsync call will most likely cache hit.
             // it is most likely since we might change cache hueristic in future which make data to live a lot shorter in the cache, and the data might get expired
             // before one actually consume the data. 
-            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeProjectAssetsAsync, Checksum.GetChecksumLogInfo, projectChecksum, cancellationToken))
+            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeProjectAssetsAsync, Checksum.GetChecksumsLogInfo, projectChecksums, cancellationToken))
             {
                 var syncer = new ChecksumSynchronizer(this);
-                await syncer.SynchronizeProjectAssetsAsync(projectChecksum, cancellationToken).ConfigureAwait(false);
+                await syncer.SynchronizeProjectAssetsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
             }
         }
 
