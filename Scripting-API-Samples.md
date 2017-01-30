@@ -2,7 +2,7 @@ The scripting APIs enable .NET applications to instatiate a C# engine and execut
 
 ## Supported Platforms
 
-Scripting APIs require desktop .NET Framework 4.6+. 
+Scripting APIs require desktop .NET Framework 4.6+, or .NET Core 1.1 (supported since Roslyn v2.0.0-rc3, Visual Studio 2017 RC3).
 
 Scripting APIs can't be used within Universal Windows Applications and .NET Native since the application model doesn't support loading code generated at runtime. 
 
