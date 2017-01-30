@@ -5321,8 +5321,9 @@ tryAgain:
             InExpression = 1 << 0, // Used to influence parser ambiguity around "<" and generics vs. expressions. Used in ParseSimpleName.
             InTypeList = 1 << 1, // Allows attributes to appear within the generic type argument list. Used during ParseInstantiation.
             PossiblePattern = 1 << 2, // Used to influence parser ambiguity around "<" and generics vs. expressions on the right of 'is'
-            AfterIsOrCaseOrOutOrTupleComma = 1 << 3,
-            FirstElementOfPossibleTupleLiteral = 1 << 4,
+            AfterIsOrCaseOrOut = 1 << 3,
+            AfterTupleComma = 1 << 4,
+            FirstElementOfPossibleTupleLiteral = 1 << 5,
         }
 
         /// <summary>
@@ -5590,10 +5591,13 @@ tryAgain:
                     // contexts are where the sequence of tokens being disambiguated is immediately preceded by one
                     // of the keywords is, case, or out, or arises while parsing the first element of a tuple literal
                     // (in which case the tokens are preceded by `(` and the identifier is followed by a `,`) or a
-                    // subsequent element of a tuple literal.
+                    // subsequent element of a tuple literal (in which case the tokens are preceded by `,` and the
+                    // identifier is followed by a `,` or `)`).
                     // Note that we treat query contextual keywords (which appear here as identifiers) as disambiguating tokens as well.
-                    if ((options & NameOptions.AfterIsOrCaseOrOutOrTupleComma) != 0 ||
-                        (options & NameOptions.FirstElementOfPossibleTupleLiteral) != 0 && this.PeekToken(1).Kind == SyntaxKind.CommaToken)
+                    if ((options & NameOptions.AfterIsOrCaseOrOut) != 0 ||
+                        (options & NameOptions.AfterTupleComma) != 0 && (this.PeekToken(1).Kind == SyntaxKind.CommaToken || this.PeekToken(1).Kind == SyntaxKind.CloseParenToken) ||
+                        (options & NameOptions.FirstElementOfPossibleTupleLiteral) != 0 && this.PeekToken(1).Kind == SyntaxKind.CommaToken
+                        )
                     {
                         // we allow 'G<T,U> x' as a pattern-matching operation and a declaration expression in a tuple.
                         return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
@@ -6484,11 +6488,13 @@ tryAgain:
             switch (mode)
             {
                 case ParseTypeMode.AfterIsOrCase:
-                    nameOptions = NameOptions.InExpression | NameOptions.AfterIsOrCaseOrOutOrTupleComma | NameOptions.PossiblePattern;
+                    nameOptions = NameOptions.InExpression | NameOptions.AfterIsOrCaseOrOut | NameOptions.PossiblePattern;
                     break;
                 case ParseTypeMode.AfterOut:
+                    nameOptions = NameOptions.InExpression | NameOptions.AfterIsOrCaseOrOut;
+                    break;
                 case ParseTypeMode.AfterTupleComma:
-                    nameOptions = NameOptions.InExpression | NameOptions.AfterIsOrCaseOrOutOrTupleComma;
+                    nameOptions = NameOptions.InExpression | NameOptions.AfterTupleComma;
                     break;
                 case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
                     nameOptions = NameOptions.InExpression | NameOptions.FirstElementOfPossibleTupleLiteral;

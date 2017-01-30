@@ -138,7 +138,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return false;
                 }
 
-                return mode != ParseTypeMode.FirstElementOfPossibleTupleLiteral || this.CurrentToken.Kind == SyntaxKind.CommaToken;
+                switch (mode)
+                {
+                    case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
+                        return this.CurrentToken.Kind == SyntaxKind.CommaToken;
+                    case ParseTypeMode.AfterTupleComma:
+                        return this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.CloseParenToken;
+                    default:
+                        // The other case where we disambiguate between a declaration and expression is before the `in` of a foreach loop.
+                        // There we err on the side of accepting a declaration.
+                        return true;
+                }
             }
             finally
             {
