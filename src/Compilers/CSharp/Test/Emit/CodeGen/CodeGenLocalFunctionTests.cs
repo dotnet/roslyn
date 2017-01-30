@@ -30,6 +30,80 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16783")]
+        [WorkItem(16783, "https://github.com/dotnet/roslyn/issues/16783")]
+        public void GenericDefaultParams()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    public void M()
+    {
+        void Local<T>(T t = default(T))
+        {
+            Console.WriteLine(t);
+        }
+        Local<int>();
+    }
+}
+
+class C2
+{
+    public static void Main()
+    {
+        new C().M();
+    }
+}", expectedOutput: "0");
+        }
+
+        [Fact]
+        public void GenericCaptureDefaultParams()
+        {
+            CompileAndVerify(@"
+using System;
+class C<T>
+{
+    public void M()
+    {
+        void Local(T t = default(T))
+        {
+            Console.WriteLine(t);
+        }
+        Local();
+    }
+}
+
+class C2
+{
+    public static void Main()
+    {
+        new C<int>().M();
+    }
+}", expectedOutput: "0");
+        }
+
+        [Fact]
+        public void NameofRecursiveDefaultParameter()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        void Local(string s = nameof(Local))
+        {
+            Console.WriteLine(s);
+        }
+        Local();
+    }
+}", options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            comp.DeclarationDiagnostics.Verify();
+            CompileAndVerify(comp, expectedOutput: "Local");
+        }
+
         [Fact]
         [WorkItem(16399, "https://github.com/dotnet/roslyn/issues/16399")]
         public void RecursiveGenericLocalFunctionIterator()

@@ -768,12 +768,12 @@ class C
 #End Region
 
 #Region "CSharp TupleTests"
-        Dim tuple2Doc As XElement =
-            <Document>
+        Dim tuple2 As XCData =
+        <![CDATA[
 namespace System
 {
     // struct with two values
-    public struct ValueTuple&lt;T1, T2>
+    public struct ValueTuple<T1, T2>
     {
         public T1 Item1;
         public T2 Item2;
@@ -790,14 +790,13 @@ namespace System
         }
     }
 }
-            </Document>
+]]>
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpGotoDefinitionTupleFieldEqualTuples01() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
-        <%= tuple2Doc %>
         <Document>
     class Program
     {
@@ -811,6 +810,8 @@ namespace System
             var z2 = y.Alice;
         }
     }
+
+        <%= tuple2 %>
         </Document>
     </Project>
 </Workspace>
@@ -849,7 +850,6 @@ namespace System
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
-        <%= tuple2Doc %>
         <Document>
     class Program
     {
@@ -860,6 +860,8 @@ namespace System
             var z = x.$$Program;
         }
     }
+
+        <%= tuple2 %>
         </Document>
     </Project>
 </Workspace>
@@ -872,7 +874,6 @@ namespace System
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
-        <%= tuple2Doc %>
         <Document>
     class Program
     {
@@ -883,6 +884,8 @@ namespace System
             var z = x.Program;
         }
     }
+
+        <%= tuple2 %>
         </Document>
     </Project>
 </Workspace>
@@ -895,7 +898,6 @@ namespace System
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
-        <%= tuple2Doc %>
         <Document>
     class Program
     {
@@ -906,6 +908,8 @@ namespace System
             var z = x.$$Program;
         }
     }
+
+        <%= tuple2 %>
         </Document>
     </Project>
 </Workspace>
@@ -918,7 +922,6 @@ namespace System
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
-        <%= tuple2Doc %>
         <Document>
     class Program
     {
@@ -929,6 +932,8 @@ namespace System
              var z1 = x.$$Alice;
         }
     }
+
+        <%= tuple2 %>
         </Document>
     </Project>
 </Workspace>
@@ -941,7 +946,6 @@ namespace System
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
-        <%= tuple2Doc %>
         <Document>
     class Program
     {
@@ -952,6 +956,8 @@ namespace System
              var z1 = x.Alice;
         }
     }
+
+        <%= tuple2 %>
         </Document>
     </Project>
 </Workspace>
@@ -964,7 +970,6 @@ namespace System
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
-        <%= tuple2Doc %>
         <Document>
     class Program
     {
@@ -975,6 +980,8 @@ namespace System
              var z1 = x.$$Item1;
         }
     }
+
+        <%= tuple2 %>
         </Document>
     </Project>
 </Workspace>
@@ -987,7 +994,6 @@ namespace System
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
-        <%= tuple2Doc %>
         <Document>
     class Program
     {
@@ -998,6 +1004,8 @@ namespace System
              var z1 = x.$$Item1;
         }
     }
+
+        <%= tuple2 %>
         </Document>
     </Project>
 </Workspace>
@@ -1005,6 +1013,29 @@ namespace System
             Await TestAsync(workspace)
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldItem03() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            System.ValueTuple&lt;short, short&gt; x = (1, Bob: 2);
+
+            var z1 = x.$$Item1;
+        }
+    }
+
+        <%= tuple2 %>
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, expectedResult:=False)
+        End Function
 #End Region
 
 #Region "CSharp Venus Tests"
