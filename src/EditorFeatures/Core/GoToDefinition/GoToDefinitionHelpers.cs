@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             return presenter.TryNavigateToOrPresentItemsAsync(
                 title, definitions.ToImmutableAndFree(),
-                alwaysShowDeclarations: true).WaitAndGetResult(cancellationToken);
+                allowGroupingByDefinition: false).WaitAndGetResult(cancellationToken);
         }
 
         private static IStreamingFindUsagesPresenter GetFindUsagesPresenter(

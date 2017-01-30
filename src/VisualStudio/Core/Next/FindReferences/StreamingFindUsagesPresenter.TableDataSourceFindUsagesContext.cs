@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public readonly StreamingFindUsagesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
             private readonly IWpfTableControl2 _tableControl;
-            private readonly bool _alwaysIncludeDeclarations;
+            private readonly bool _allowGroupingByDefinition;
 
             private readonly object _gate = new object();
 
@@ -81,12 +81,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public TableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
-                 bool alwaysIncludeDeclarations)
+                 bool allowGroupingByDefinition)
             {
                 presenter.AssertIsForeground();
 
                 Presenter = presenter;
-                _alwaysIncludeDeclarations = alwaysIncludeDeclarations;
+                _allowGroupingByDefinition = allowGroupingByDefinition;
                 _findReferencesWindow = findReferencesWindow;
                 _tableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
                 _tableControl.GroupingsChanged += OnTableControlGroupingsChanged;
@@ -94,6 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // If the window is closed, cancel any work we're doing.
                 _findReferencesWindow.Closed += OnFindReferencesWindowClosed;
 
+                RemoveDefinitionGroupIfNecessary();
                 DetermineCurrentGroupingByDefinitionState();
 
                 Debug.Assert(_findReferencesWindow.Manager.Sources.Count == 0);
@@ -138,6 +139,38 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // Let all our subscriptions know that we've updated.  That way they'll refresh
                     // and we'll show/hide declarations as appropriate.
                     _tableDataSink.FactorySnapshotChanged(this);
+                }
+            }
+
+            private void RemoveDefinitionGroupIfNecessary()
+            {
+                Presenter.AssertIsForeground();
+
+                if (!_allowGroupingByDefinition)
+                {
+                    var newColumns = ArrayBuilder<ColumnState>.GetInstance();
+
+                    foreach (var columnState in _tableControl.ColumnStates)
+                    {
+                        var columnState2 = columnState as ColumnState2;
+                        if (columnState?.Name == StandardTableColumnDefinitions2.Definition)
+                        {
+                            newColumns.Add(new ColumnState2(
+                                columnState2.Name,
+                                isVisible: false,
+                                width: columnState2.Width,
+                                sortPriority: columnState2.SortPriority,
+                                descendingSort: columnState2.DescendingSort,
+                                groupingPriority: 0));
+                        }
+                        else
+                        {
+                            newColumns.Add(columnState);
+                        }
+                    }
+
+                    _tableControl.SetColumnStates(newColumns);
+                    newColumns.Free();
                 }
             }
 
@@ -730,7 +763,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // our version.
                     if (_lastSnapshot?.VersionNumber != CurrentVersionNumber)
                     {
-                        var entries = _currentlyGroupingByDefinition && !_alwaysIncludeDeclarations
+                        var entries = _currentlyGroupingByDefinition && _allowGroupingByDefinition
                             ? _entriesWithoutDeclarations
                             : _entriesWithDeclarations;
 

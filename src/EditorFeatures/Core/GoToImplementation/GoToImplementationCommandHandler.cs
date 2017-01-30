@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
             streamingPresenter.TryNavigateToOrPresentItemsAsync(
                 goToImplContext.SearchTitle, definitionItems,
-                alwaysShowDeclarations: true).Wait(cancellationToken);
+                allowGroupingByDefinition: false).Wait(cancellationToken);
         }
 
         private IStreamingFindUsagesPresenter GetStreamingPresenter()
