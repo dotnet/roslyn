@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertNumericLiteral
                 return;
             }
 
-            if (!numericToken.GetLocation().SourceSpan.IntersectsWith(context.Span))
+            if (!numericToken.Span.Contains(context.Span))
             {
                 return;
             }
