@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
@@ -135,7 +136,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             Assert.NotNull(result);
             Assert.Equal(succeed, result.Succeeded || result.SucceededWithSuggestion);
 
-            return await result.Document.GetSyntaxRootAsync();
+            var doc = result.Document;
+            return doc == null
+                ? null
+                : await doc.GetSyntaxRootAsync();
         }
 
         protected async Task TestSelectionAsync(string codeWithMarker, bool expectedFail = false, CSharpParseOptions parseOptions = null)

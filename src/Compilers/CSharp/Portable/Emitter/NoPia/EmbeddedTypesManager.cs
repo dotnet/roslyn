@@ -572,15 +572,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             var compilation = ModuleBeingBuilt.Compilation;
             return compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor);
         }
-
-        protected override CSharpAttributeData CreateComVisibleAttribute()
-        {
-            var compilation = ModuleBeingBuilt.Compilation;
-            return compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_InteropServices_ComVisibleAttribute__ctor,
-                                                      ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean),
-                                                                                              TypedConstantKind.Primitive,
-                                                                                              value:true)), 
-                                                      isOptionalUse:true);
-        }
     }
 }

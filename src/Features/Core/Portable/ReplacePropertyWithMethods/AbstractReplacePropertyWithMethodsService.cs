@@ -24,11 +24,17 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         protected static SyntaxNode GetFieldReference(SyntaxGenerator generator, IFieldSymbol propertyBackingField)
         {
-            var through = propertyBackingField.IsStatic
-                ? generator.TypeExpression(propertyBackingField.ContainingType)
-                : generator.ThisExpression();
+            var memberName = generator.IdentifierName(propertyBackingField.Name);
+            if (propertyBackingField.IsStatic)
+            {
+                return propertyBackingField.ContainingType == null
+                    ? memberName
+                    : generator.MemberAccessExpression(
+                        generator.TypeExpression(propertyBackingField.ContainingType),
+                        memberName);
+            }
 
-            return generator.MemberAccessExpression(through, propertyBackingField.Name);
+            return generator.MemberAccessExpression(generator.ThisExpression(), memberName);
         }
 
         public async Task ReplaceReferenceAsync(

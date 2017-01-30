@@ -55,6 +55,77 @@ public class Cls
         }
 
         [Fact]
+        [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
+        [WorkItem(16348, "https://github.com/dotnet/roslyn/issues/16348")]
+        public void DiagnosticsDifferenceBetweenLanguageVersions_01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Test1()
+    {
+        Test(out int x1);
+    }
+
+    public static void Test2()
+    {
+        var x = new Cls(out int x2);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            compilation.VerifyDiagnostics(
+                // (6,22): error CS8059: Feature 'out variable declaration' is not available in C# 6.  Please use language version 7 or greater.
+                //         Test(out int x1);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7").WithLocation(6, 22),
+                // (11,33): error CS8059: Feature 'out variable declaration' is not available in C# 6.  Please use language version 7 or greater.
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x2").WithArguments("out variable declaration", "7").WithLocation(11, 33),
+                // (6,9): error CS0103: The name 'Test' does not exist in the current context
+                //         Test(out int x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Test").WithArguments("Test").WithLocation(6, 9),
+                // (11,21): error CS1729: 'Cls' does not contain a constructor that takes 1 arguments
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Cls").WithArguments("Cls", "1").WithLocation(11, 21),
+                // (11,29): error CS0165: Use of unassigned local variable 'x2'
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x2").WithArguments("x2").WithLocation(11, 29)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl);
+
+            var x2Decl = GetOutVarDeclaration(tree, "x2");
+            //VerifyModelForOutVar(model, x2Decl); Probably fails due to https://github.com/dotnet/roslyn/issues/16348
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl);
+
+            compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (6,9): error CS0103: The name 'Test' does not exist in the current context
+                //         Test(out int x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Test").WithArguments("Test").WithLocation(6, 9),
+                // (11,21): error CS1729: 'Cls' does not contain a constructor that takes 1 arguments
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Cls").WithArguments("Cls", "1").WithLocation(11, 21),
+                // (11,29): error CS0165: Use of unassigned local variable 'x2'
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x2").WithArguments("x2").WithLocation(11, 29)
+                );
+
+            tree = compilation.SyntaxTrees.Single();
+            model = compilation.GetSemanticModel(tree);
+
+            x1Decl = GetOutVarDeclaration(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl);
+
+            x2Decl = GetOutVarDeclaration(tree, "x2");
+            //VerifyModelForOutVar(model, x2Decl); Probably fails due to https://github.com/dotnet/roslyn/issues/16348
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl);
+        }
+
+        [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_01()
@@ -866,6 +937,16 @@ public class Cls
             VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: false, isShadowed: false, verifyDataFlow: true, references: references);
         }
 
+        private static void VerifyModelForOutVarInNotExecutableCode(
+            SemanticModel model,
+            DeclarationExpressionSyntax decl,
+            IdentifierNameSyntax reference)
+        {
+            VerifyModelForOutVar(
+                model, decl, isDelegateCreation: false, isExecutableCode: false, isShadowed: false,
+                verifyDataFlow: true, references: reference);
+        }
+
         private static void VerifyModelForOutVar(
             SemanticModel model,
             DeclarationExpressionSyntax decl,
@@ -926,7 +1007,12 @@ public class Cls
             }
         }
 
-        private static void AssertInfoForDeclarationExpressionSyntax(SemanticModel model, DeclarationExpressionSyntax decl, Symbol expectedSymbol = null, TypeSymbol expectedType = null)
+        private static void AssertInfoForDeclarationExpressionSyntax(
+            SemanticModel model,
+            DeclarationExpressionSyntax decl,
+            Symbol expectedSymbol = null,
+            TypeSymbol expectedType = null
+            )
         {
             var symbolInfo = model.GetSymbolInfo(decl);
             Assert.Equal(expectedSymbol, symbolInfo.Symbol);
@@ -2296,9 +2382,15 @@ class Test : System.Attribute
                 // (4,19): error CS0103: The name 'x3' does not exist in the current context
                 //     [Test(out var x3)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(4, 19),
+                // (4,6): error CS1729: 'Test' does not contain a constructor that takes 2 arguments
+                //     [Test(out var x3)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(out var x3)").WithArguments("Test", "2").WithLocation(4, 6),
                 // (5,19): error CS0103: The name 'x4' does not exist in the current context
                 //     [Test(out int x4)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(5, 19),
+                // (5,6): error CS1729: 'Test' does not contain a constructor that takes 2 arguments
+                //     [Test(out int x4)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(out int x4)").WithArguments("Test", "2").WithLocation(5, 6),
                 // (6,18): error CS0103: The name 'var' does not exist in the current context
                 //     [Test(p: out var x5)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 18),
@@ -2308,12 +2400,18 @@ class Test : System.Attribute
                 // (6,22): error CS0103: The name 'x5' does not exist in the current context
                 //     [Test(p: out var x5)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(6, 22),
+                // (6,6): error CS1729: 'Test' does not contain a constructor that takes 3 arguments
+                //     [Test(p: out var x5)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(p: out var x5)").WithArguments("Test", "3").WithLocation(6, 6),
                 // (7,18): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
                 //     [Test(p: out int x6)]
                 Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "int").WithLocation(7, 18),
                 // (7,22): error CS0103: The name 'x6' does not exist in the current context
                 //     [Test(p: out int x6)]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(7, 22)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(7, 22),
+                // (7,6): error CS1729: 'Test' does not contain a constructor that takes 3 arguments
+                //     [Test(p: out int x6)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(p: out int x6)").WithArguments("Test", "3").WithLocation(7, 6)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -3997,6 +4095,7 @@ True");
         }
 
         [Fact]
+        [WorkItem(14214, "https://github.com/dotnet/roslyn/issues/14214")]
         public void Scope_ExpressionBodiedLocalFunctions_01()
         {
             var source =
@@ -4105,49 +4204,52 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
+            // Data flow for the following disabled due to https://github.com/dotnet/roslyn/issues/14214
+
             var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
             var x3Ref = GetReferences(tree, "x3").Single();
-            VerifyModelForOutVar(model, x3Decl, x3Ref);
+
+            VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref);
 
             var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
             var x4Ref = GetReferences(tree, "x4").Single();
-            VerifyModelForOutVar(model, x4Decl, x4Ref);
+            VerifyModelForOutVarWithoutDataFlow(model, x4Decl, x4Ref);
 
             var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
-            VerifyModelForOutVar(model, x5Decl[0], x5Ref);
+            VerifyModelForOutVarWithoutDataFlow(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
-            VerifyModelForOutVar(model, x6Decl[0], x6Ref[0]);
-            VerifyModelForOutVar(model, x6Decl[1], x6Ref[1]);
+            VerifyModelForOutVarWithoutDataFlow(model, x6Decl[0], x6Ref[0]);
+            VerifyModelForOutVarWithoutDataFlow(model, x6Decl[1], x6Ref[1]);
 
             var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
             var x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyNotInScope(model, x7Ref[0]);
-            VerifyModelForOutVar(model, x7Decl, x7Ref[1]);
+            VerifyModelForOutVarWithoutDataFlow(model, x7Decl, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
 
             var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
             var x11Ref = GetReferences(tree, "x11").ToArray();
             Assert.Equal(2, x11Ref.Length);
             VerifyNotAnOutLocal(model, x11Ref[0]);
-            VerifyModelForOutVar(model, x11Decl, x11Ref[1]);
+            VerifyModelForOutVarWithoutDataFlow(model, x11Decl, x11Ref[1]);
 
             var x12Decl = GetOutVarDeclarations(tree, "x12").Single();
             var x12Ref = GetReferences(tree, "x12").ToArray();
             Assert.Equal(2, x12Ref.Length);
-            VerifyModelForOutVar(model, x12Decl, x12Ref[0]);
+            VerifyModelForOutVarWithoutDataFlow(model, x12Decl, x12Ref[0]);
             VerifyNotAnOutLocal(model, x12Ref[1]);
 
             var x13Decl = GetOutVarDeclarations(tree, "x13").Single();
             var x13Ref = GetReferences(tree, "x13").Single();
-            VerifyModelForOutVar(model, x13Decl, x13Ref);
+            VerifyModelForOutVarWithoutDataFlow(model, x13Decl, x13Ref);
         }
 
         [Fact]
@@ -28710,6 +28812,269 @@ public static class S
                 //         a.M2(out A _);
                 Diagnostic(ErrorCode.ERR_BadArgType, "A _").WithArguments("2", "out A", "out B").WithLocation(8, 18)
                 );
+        }
+
+        [Fact]
+        [WorkItem(363727, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/363727")]
+        public void FindCorrectBinderOnEmbeddedStatementWithMissingIdentifier()
+        {
+            var source =
+    @"
+public class C
+{
+    static void M(string x)
+    {
+        if(true)
+            && int.TryParse(x, out int y)) id(iVal);
+        // Note that the embedded statement is parsed as a missing identifier, followed by && with many spaces attached as leading trivia
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "x").Single();
+            Assert.Equal("x", x.ToString());
+            Assert.Equal("System.String x", model.GetSymbolInfo(x).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DeclarationInLocalFunctionParameterDefault()
+        {
+            var text = @"
+class C
+{
+    public static void Main(int arg)
+    {
+        void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
+        void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
+
+        int x = z1 + z2;
+    }
+    static int M(out int z) => z = 1;
+    static int M(int a, int b) => a+b;
+}
+";
+            // the scope of an expression variable introduced in the default expression
+            // of a local function parameter is that default expression.
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (6,75): error CS0103: The name 'z1' does not exist in the current context
+                //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 75),
+                // (6,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out int z1), z1)").WithArguments("b").WithLocation(6, 30),
+                // (6,61): error CS0103: The name 'z1' does not exist in the current context
+                //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 61),
+                // (6,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(6, 56),
+                // (7,75): error CS0103: The name 'z2' does not exist in the current context
+                //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 75),
+                // (7,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out var z2), z2)").WithArguments("b").WithLocation(7, 30),
+                // (7,61): error CS0103: The name 'z2' does not exist in the current context
+                //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 61),
+                // (7,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 56),
+                // (9,17): error CS0103: The name 'z1' does not exist in the current context
+                //         int x = z1 + z2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 17),
+                // (9,22): error CS0103: The name 'z2' does not exist in the current context
+                //         int x = z1 + z2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(9, 22),
+                // (6,14): warning CS0168: The variable 'Local2' is declared but never used
+                //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local2").WithArguments("Local2").WithLocation(6, 14),
+                // (7,14): warning CS0168: The variable 'Local5' is declared but never used
+                //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local5").WithArguments("Local5").WithLocation(7, 14)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(4, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, refs[0]);
+                VerifyNotInScope(model, refs[1]);
+                VerifyNotInScope(model, refs[2]);
+                VerifyNotInScope(model, refs[3]);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void DeclarationInAnonymousMethodParameterDefault()
+        {
+            var text = @"
+class C
+{
+    public static void Main(int arg)
+    {
+        System.Action<bool, int> d1 = delegate (
+                                                bool b = M(M(out int z1), z1), 
+                                                int s2 = z1) 
+                                            { var t = z1; };
+        System.Action<bool, int> d2 = delegate (
+                                                bool b = M(M(out var z2), z2), 
+                                                int s2 = z2)  
+                                            { var t = z2; };
+
+        int x = z1 + z2;
+        d1 = d2 = null;
+    }
+    static int M(out int z) => z = 1;
+    static int M(int a, int b) => a+b;
+}
+";
+            // the scope of an expression variable introduced in the default expression
+            // of a lambda parameter is that default expression.
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_DefaultValueNotAllowed).Verify(
+                // (9,55): error CS0103: The name 'z1' does not exist in the current context
+                //                                             { var t = z1; };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 55),
+                // (13,55): error CS0103: The name 'z2' does not exist in the current context
+                //                                             { var t = z2; };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(13, 55),
+                // (15,17): error CS0103: The name 'z1' does not exist in the current context
+                //         int x = z1 + z2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(15, 17),
+                // (15,22): error CS0103: The name 'z2' does not exist in the current context
+                //         int x = z1 + z2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(15, 22)
+                );
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var z1 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z1").First();
+            Assert.Equal("System.Int32", model.GetTypeInfo(z1).Type.ToTestDisplayString());
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(4, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, refs[0]);
+                VerifyNotInScope(model, refs[1]);
+                VerifyNotInScope(model, refs[2]);
+                VerifyNotInScope(model, refs[3]);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void Scope_LocalFunction_Attribute_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        void Local1(
+            [Test(p = TakeOutParam(out int x3) && x3 > 0)]
+            [Test(p = x4 && TakeOutParam(out int x4))]
+            [Test(p = TakeOutParam(51, out int x5) && 
+                      TakeOutParam(52, out int x5) && 
+                      x5 > 0)]
+            [Test(p1 = TakeOutParam(out int x6) && x6 > 0, 
+                  p2 = TakeOutParam(out int x6) && x6 > 0)]
+            [Test(p = TakeOutParam(out int x7) && x7 > 0)]
+            [Test(p = x7 > 2)]
+            int p1)
+        {
+            Dummy(x7, p1);
+        }
+
+        Local1(1);
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    static bool TakeOutParam(out int x) 
+    {
+        x = 123;
+        return true;
+    }
+    static bool TakeOutParam(object y, out int x)
+    {
+        x = 123;
+        return true;
+    }
+}
+
+class Test : System.Attribute
+{
+    public bool p {get; set;}
+    public bool p1 {get; set;}
+    public bool p2 {get; set;}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
+                                                    d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
+                // (18,19): error CS0103: The name 'x7' does not exist in the current context
+                //             Dummy(x7, p1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(18, 19),
+                // (8,23): error CS0841: Cannot use local variable 'x4' before it is declared
+                //             [Test(p = x4 && TakeOutParam(out int x4))]
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(8, 23),
+                // (10,48): error CS0128: A local variable or function named 'x5' is already defined in this scope
+                //                       TakeOutParam(52, out int x5) && 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(10, 48),
+                // (13,45): error CS0128: A local variable or function named 'x6' is already defined in this scope
+                //                   p2 = TakeOutParam(out int x6) && x6 > 0)]
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(13, 45),
+                // (15,23): error CS0103: The name 'x7' does not exist in the current context
+                //             [Test(p = x7 > 2)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(15, 23)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = GetOutVarDeclaration(tree, "x3");
+            var x3Ref = GetReference(tree, "x3");
+            VerifyModelForOutVarInNotExecutableCode(model, x3Decl, x3Ref);
+
+            var x4Decl = GetOutVarDeclaration(tree, "x4");
+            var x4Ref = GetReference(tree, "x4");
+            VerifyModelForOutVarInNotExecutableCode(model, x4Decl, x4Ref);
+
+            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            var x5Ref = GetReference(tree, "x5");
+            Assert.Equal(2, x5Decl.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x5Decl[0], x5Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
+
+            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            var x6Ref = GetReferences(tree, "x6").ToArray();
+            Assert.Equal(2, x6Decl.Length);
+            Assert.Equal(2, x6Ref.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x6Decl[0], x6Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
+
+            var x7Decl = GetOutVarDeclaration(tree, "x7");
+            var x7Ref = GetReferences(tree, "x7").ToArray();
+            Assert.Equal(3, x7Ref.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x7Decl, x7Ref[0]);
+            VerifyNotInScope(model, x7Ref[1]);
+            VerifyNotInScope(model, x7Ref[2]);
         }
     }
 

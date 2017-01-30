@@ -1332,7 +1332,7 @@ class P
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task DontCrash()
         {
-            await IterateAllAsync(TestResource.AllInOneCSharpCodeVersion6);
+            await IterateAllAsync(TestResource.AllInOneCSharpCode);
         }
 
         [WorkItem(9931, "DevDiv_Projects/Roslyn")]

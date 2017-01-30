@@ -138,6 +138,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
+            var firstProjectChecksum = await solution.GetProject(solution.ProjectIds[0]).State.GetChecksumAsync(CancellationToken.None);
+            var secondProjectChecksum = await solution.GetProject(solution.ProjectIds[1]).State.GetChecksumAsync(CancellationToken.None);
+
             var snapshotService = (new SolutionSynchronizationServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSynchronizationService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
@@ -151,8 +154,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal(solutionObject.Projects.Count, 2);
 
                 var projects = solutionObject.Projects.ToProjectObjects(snapshotService);
-                VerifySnapshotInService(snapshotService, projects[0], 1, 1, 1, 1, 1);
-                VerifySnapshotInService(snapshotService, projects[1], 1, 0, 0, 0, 0);
+                VerifySnapshotInService(snapshotService, projects.Where(p => p.Checksum == firstProjectChecksum).First(), 1, 1, 1, 1, 1);
+                VerifySnapshotInService(snapshotService, projects.Where(p => p.Checksum == secondProjectChecksum).First(), 1, 0, 0, 0, 0);
             }
         }
 

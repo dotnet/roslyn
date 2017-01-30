@@ -232,7 +232,6 @@ namespace Runner
                 catch (Exception)
                 {
                     traceManager.Stop();
-                    throw;
                 }
                 finally
                 {
