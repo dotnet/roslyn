@@ -1,5 +1,20 @@
 ﻿{
-  "dependencies": { },
+  "dependencies": {
+    "System.AppContext": "4.3.0",
+    "System.Console": "4.3.0",
+    "System.Diagnostics.Debug": "4.3.0",
+    "System.Diagnostics.FileVersionInfo": "4.3.0",
+    "System.Diagnostics.Process": "4.3.0",
+    "System.Diagnostics.StackTrace": "4.3.0",
+    "System.Diagnostics.Tools": "4.3.0",
+    "System.Net.NameResolution": "4.3.0",
+    "System.Net.Sockets": "4.3.0",
+    "System.Runtime.Loader": "4.3.0",
+    "System.Threading": "4.3.0",
+    "System.Threading.Tasks": "4.3.0",
+    "System.Threading.Tasks.Parallel": "4.3.0",
+    "System.Threading.Thread": "4.3.0",
+  },
   "frameworks": {
     // We don't actually target netstandard1.6; this is to work around https://github.com/dotnet/roslyn/issues/12458
     "netstandard1.6": {
