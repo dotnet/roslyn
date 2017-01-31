@@ -57,6 +57,7 @@
     <SystemLinqExpressionsVersion>4.3.0</SystemLinqExpressionsVersion>
     <SystemLinqParallelVersion>4.3.0</SystemLinqParallelVersion>
     <SystemNetNameResolutionVersion>4.3.0</SystemNetNameResolutionVersion>
+    <SystemNetPrimitivesVersion>4.3.0</SystemNetPrimitivesVersion>
     <SystemNetSecurityVersion>4.3.0</SystemNetSecurityVersion>
     <SystemNetSocketsVersion>4.3.0</SystemNetSocketsVersion>
     <SystemObjectModelVersion>4.3.0</SystemObjectModelVersion>
