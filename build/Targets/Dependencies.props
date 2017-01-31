@@ -27,6 +27,7 @@
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioVsInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioVsInteractiveWindowVersion>
+    <MicrosoftVSSDKBuildToolsVersion>15.0.26124-RC3</MicrosoftVSSDKBuildToolsVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsMicrosoftSignToolVersion>0.3.0-beta</RoslynToolsMicrosoftSignToolVersion>
     <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.2.4-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
