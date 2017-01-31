@@ -27,16 +27,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
             switch (IntPtr.Size * 8) {
                 case 32 when isDebug:
-                    numberFluentCalls = 290;
+                    numberFluentCalls = 510;
                     break;
                 case 32 when !isDebug:
-                    numberFluentCalls = 590;
+                    numberFluentCalls = 1600;
                     break;
                 case 64 when isDebug:
-                    numberFluentCalls = 110;
+                    numberFluentCalls = 225;
                     break;
                 case 64 when !isDebug:
-                    numberFluentCalls = 310;
+                    numberFluentCalls = 710;
                     break;
                 default:
                     throw new Exception($"unexpected pointer size {IntPtr.Size}");
