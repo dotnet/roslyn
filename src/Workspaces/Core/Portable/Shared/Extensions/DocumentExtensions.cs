@@ -59,6 +59,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 var node = token.Parent.AncestorsAndSelf().FirstOrDefault(a => a.FullSpan.Contains(span));
+                if (node == null)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(span));
+                }
+
                 return await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
