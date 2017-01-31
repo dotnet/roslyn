@@ -37,18 +37,15 @@ End Class")
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestInterfaceWithTuple() As Task
-            Dim code = <text>
-Imports System
-
+            Await TestAsync(
+"Imports System
 Class Foo
-    Implements IFoo$$
+    Implements [|IFoo|]
 End Class
 Interface IFoo
     Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String)
-End Interface</text>
-
-            Dim expectedText = <text>
-Imports System
+End Interface",
+"Imports System
 Class Foo
     Implements IFoo
     Public Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String) Implements IFoo.Method
@@ -57,12 +54,7 @@ Class Foo
 End Class
 Interface IFoo
     Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String)
-End Interface</text>
-
-            Await TestAsync(code,
-             expectedText,
-             Sub() Throw New Exception("The operation should have been handled."),
-             Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
+End Interface")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
