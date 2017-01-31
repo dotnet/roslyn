@@ -5748,6 +5748,7 @@ class C
         <entry offset=""0x7"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
         <entry offset=""0x8"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""35"" />
         <entry offset=""0x1f"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""26"" />
+        <entry offset=""0x4a"" hidden=""true"" />
         <entry offset=""0x4c"" hidden=""true"" />
         <entry offset=""0x64"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
         <entry offset=""0x6c"" hidden=""true"" />
@@ -5810,6 +5811,7 @@ class C
         <entry offset=""0x7"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" />
         <entry offset=""0x8"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""39"" />
         <entry offset=""0x1f"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""30"" />
+        <entry offset=""0x4a"" hidden=""true"" />
         <entry offset=""0x4c"" hidden=""true"" />
         <entry offset=""0x64"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
         <entry offset=""0x6c"" hidden=""true"" />
@@ -5869,6 +5871,7 @@ public class C
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x8"" hidden=""true"" document=""1"" />
         <entry offset=""0xa"" hidden=""true"" document=""1"" />
         <entry offset=""0x22"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
         <entry offset=""0x2a"" hidden=""true"" document=""1"" />
@@ -6223,6 +6226,7 @@ class Program
     // sequence point: <hidden>
     IL_0021:  ldloc.1
     IL_0022:  brtrue.s   IL_0011
+    // sequence point: <hidden>
     IL_0024:  leave.s    IL_003e
   }
   catch System.Exception
@@ -6252,7 +6256,8 @@ class Program
 }
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
 
-            v.VerifyPdb(@"<symbols>
+            v.VerifyPdb(@"
+<symbols>
   <methods>
     <method containingType=""Program"" name=""Test"">
       <customDebugInfo>
@@ -6284,6 +6289,7 @@ class Program
         <entry offset=""0x11"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""33"" />
         <entry offset=""0x17"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""23"" />
         <entry offset=""0x21"" hidden=""true"" />
+        <entry offset=""0x24"" hidden=""true"" />
         <entry offset=""0x26"" hidden=""true"" />
         <entry offset=""0x3e"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
         <entry offset=""0x46"" hidden=""true"" />
@@ -6361,6 +6367,7 @@ class Program
     // sequence point: <hidden>
     IL_0031:  ldloc.2
     IL_0032:  brtrue.s   IL_0011
+    // sequence point: <hidden>
     IL_0034:  leave.s    IL_004e
   }
   catch System.Exception
@@ -6424,6 +6431,7 @@ class Program
         <entry offset=""0x17"" startLine=""8"" startColumn=""32"" endLine=""8"" endColumn=""35"" />
         <entry offset=""0x27"" startLine=""8"" startColumn=""25"" endLine=""8"" endColumn=""30"" />
         <entry offset=""0x31"" hidden=""true"" />
+        <entry offset=""0x34"" hidden=""true"" />
         <entry offset=""0x36"" hidden=""true"" />
         <entry offset=""0x4e"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
         <entry offset=""0x56"" hidden=""true"" />
@@ -6504,6 +6512,7 @@ class Program
     // sequence point: <hidden>
     IL_003b:  ldloc.2
     IL_003c:  brtrue.s   IL_001b
+    // sequence point: <hidden>
     IL_003e:  leave.s    IL_0058
   }
   catch System.Exception
@@ -6533,7 +6542,8 @@ class Program
 }
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
 
-            v.VerifyPdb(@"<symbols>
+            v.VerifyPdb(
+@"<symbols>
   <methods>
     <method containingType=""Program"" name=""Test"">
       <customDebugInfo>
@@ -6586,6 +6596,7 @@ class Program
         <entry offset=""0x21"" startLine=""8"" startColumn=""43"" endLine=""8"" endColumn=""46"" />
         <entry offset=""0x31"" startLine=""8"" startColumn=""36"" endLine=""8"" endColumn=""41"" />
         <entry offset=""0x3b"" hidden=""true"" />
+        <entry offset=""0x3e"" hidden=""true"" />
         <entry offset=""0x40"" hidden=""true"" />
         <entry offset=""0x58"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
         <entry offset=""0x60"" hidden=""true"" />

@@ -121,9 +121,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // If format is not specified, we share expected output between portable and non-portable.
                 // The output is then non-portable since it contains more information (such as cdi).
                 AdjustToPdbFormat(
-                    actualPdb: actualPortablePdb, 
-                    actualIsPortable: true, 
-                    expectedPdb: expectedPdb, 
+                    actualPdb: actualPortablePdb,
+                    actualIsPortable: true,
+                    expectedPdb: expectedPdb,
                     expectedIsPortable: format == DebugInformationFormat.PortablePdb);
 
                 AssertXml.Equal(expectedPdb, actualPortablePdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
@@ -426,8 +426,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static Dictionary<int, string> GetMarkers(string pdbXml, string source = null)
         {
-            var markersList = source == null ? EnumerateMarkers(pdbXml) : EnumerateSourceSpans(pdbXml, source);
-
+            var markersList = EnumerateMarkers(pdbXml, source);
             return ToDictionary<int, string, string>(markersList, (markers, marker) => markers + marker);
         }
 
@@ -450,9 +449,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return result;
         }
 
-        public static IEnumerable<KeyValuePair<int, string>> EnumerateSourceSpans(string pdbXml, string source)
+        public static IEnumerable<KeyValuePair<int, string>> EnumerateMarkers(string pdbXml, string source = null)
         {
-            string[] lines = source.Split(new[] { "\r\n" }, StringSplitOptions.None);
+            string[] lines = source?.Split(new[] { "\r\n" }, StringSplitOptions.None);
             var doc = new XmlDocument();
             doc.LoadXml(pdbXml);
 
@@ -460,60 +459,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 foreach (XmlElement item in entry.ChildNodes)
                 {
-                    string snippet;
-                    if (item.GetAttribute("hidden") != "true")
+                    if (source == null)
                     {
-                        var startLine = Convert.ToInt32(item.GetAttribute("startLine"));
-                        var startColumn = Convert.ToInt32(item.GetAttribute("startColumn"));
-                        var endLine = Convert.ToInt32(item.GetAttribute("endLine"));
-                        var endColumn = Convert.ToInt32(item.GetAttribute("endColumn"));
-                        if (startLine == endLine)
-                        {
-                            snippet = lines[startLine - 1].Substring(startColumn - 1, endColumn - startColumn);
-                        }
-                        else
-                        {
-                            var start = lines[startLine - 1].Substring(startColumn - 1);
-                            var end = lines[endLine - 1].Substring(0, endColumn - 1);
-                            snippet = TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
-                        }
+                        yield return KeyValuePair.Create(
+                            Convert.ToInt32(item.GetAttribute("offset"), 16),
+                            (item.GetAttribute("hidden") == "true") ? "~" : "-");
                     }
                     else
                     {
-                        snippet = "<hidden>";
+                        yield return MarkerFromSource(lines, item);
                     }
-
-                    yield return KeyValuePair.Create(
-                        Convert.ToInt32(item.GetAttribute("offset"), 16),
-                        $"// sequence point: " + snippet);
-                }
-            }
-
-            string TruncateStart(string text, int maxLength)
-            {
-                if (text.Length < maxLength) { return text; }
-                return text.Substring(0, maxLength);
-            }
-
-            string TruncateEnd(string text, int maxLength)
-            {
-                if (text.Length < maxLength) { return text; }
-                return text.Substring(text.Length - maxLength - 1, maxLength);
-            }
-        }
-
-        public static IEnumerable<KeyValuePair<int, string>> EnumerateMarkers(string pdbXml)
-        {
-            var doc = new XmlDocument();
-            doc.LoadXml(pdbXml);
-
-            foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
-            {
-                foreach (XmlElement item in entry.ChildNodes)
-                {
-                    yield return KeyValuePair.Create(
-                        Convert.ToInt32(item.GetAttribute("offset"), 16),
-                        (item.GetAttribute("hidden") == "true") ? "~" : "-");
                 }
             }
 
@@ -531,6 +486,48 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         yield return KeyValuePair.Create(Convert.ToInt32(item.GetAttribute("offset"), 16), "$");
                     }
                 }
+            }
+        }
+
+        private static KeyValuePair<int, string> MarkerFromSource(string[] lines, XmlElement item)
+        {
+            string snippet;
+            if (item.GetAttribute("hidden") != "true")
+            {
+                var startLine = Convert.ToInt32(item.GetAttribute("startLine"));
+                var startColumn = Convert.ToInt32(item.GetAttribute("startColumn"));
+                var endLine = Convert.ToInt32(item.GetAttribute("endLine"));
+                var endColumn = Convert.ToInt32(item.GetAttribute("endColumn"));
+                if (startLine == endLine)
+                {
+                    snippet = lines[startLine - 1].Substring(startColumn - 1, endColumn - startColumn);
+                }
+                else
+                {
+                    var start = lines[startLine - 1].Substring(startColumn - 1);
+                    var end = lines[endLine - 1].Substring(0, endColumn - 1);
+                    snippet = TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
+                }
+            }
+            else
+            {
+                snippet = "<hidden>";
+            }
+
+            return KeyValuePair.Create(
+                Convert.ToInt32(item.GetAttribute("offset"), 16),
+                $"// sequence point: " + snippet);
+
+            string TruncateStart(string text, int maxLength)
+            {
+                if (text.Length < maxLength) { return text; }
+                return text.Substring(0, maxLength);
+            }
+
+            string TruncateEnd(string text, int maxLength)
+            {
+                if (text.Length < maxLength) { return text; }
+                return text.Substring(text.Length - maxLength - 1, maxLength);
             }
         }
     }
