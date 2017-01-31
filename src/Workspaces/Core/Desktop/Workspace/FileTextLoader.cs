@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis
         /// Load a text and a version of the document in the workspace.
         /// </summary>
         /// <exception cref="IOException"></exception>
+        /// <exception cref="InvalidDataException"></exception>
         public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
             ValidateFileLength(workspace, _path);
@@ -185,6 +186,11 @@ namespace Microsoft.CodeAnalysis
             return textAndVersion;
         }
 
+        /// <summary>
+        /// Load a text and a version of the document in the workspace.
+        /// </summary>
+        /// <exception cref="IOException"></exception>
+        /// <exception cref="InvalidDataException"></exception>
         internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
             ValidateFileLength(workspace, _path);
