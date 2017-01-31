@@ -16905,6 +16905,8 @@ public class C
         var x7 = nab ?? (a: 1, c: 3); // (a, b)
         var x8 = new C() ?? (a: 1, c: 3); // C
         var x9 = new D() ?? (a: 1, c: 3); // (a, c)
+
+        var x6double = nab ?? (d: 1.1, c: 3); // (a, c)
     }
     public static implicit operator C((int, int) x) { throw null; }
 }
@@ -16959,6 +16961,9 @@ public class D
 
             var x9 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(10));
             Assert.Equal("(System.Int32 a, System.Int32 c) x9", x9.ToTestDisplayString());
+
+            var x6double = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(11));
+            Assert.Equal("(System.Double d, System.Int32 c) x6double", x6double.ToTestDisplayString());
         }
 
         [Fact]
