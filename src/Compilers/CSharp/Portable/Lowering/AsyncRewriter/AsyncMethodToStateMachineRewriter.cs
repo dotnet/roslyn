@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.Goto(_exprReturnLabel));
             }
 
-            return F.SequencePoint(null, F.Goto(_exprReturnLabel));
+            return F.Goto(_exprReturnLabel);
         }
 
         #endregion Visitors

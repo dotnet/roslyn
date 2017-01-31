@@ -1914,7 +1914,7 @@ class Program
   }
   catch System.Exception
   {
-    // sequence point: <hidden>
+   $// sequence point: <hidden>
     IL_0024:  stloc.2
     IL_0025:  ldarg.0
     IL_0026:  ldc.i4.s   -2
@@ -1989,6 +1989,139 @@ class Program
 
         [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
+        public void ConditionalInAsyncMethodWithExplicitReturn()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    public static async void Test()
+    {
+        int i = 0;
+
+        if (i != 0)
+            Console
+                .WriteLine();
+
+        return;
+    }
+}
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+
+            v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size       81 (0x51)
+  .maxstack  2
+  .locals init (int V_0,
+                bool V_1,
+                System.Exception V_2)
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Test>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: {
+    IL_0007:  nop
+    // sequence point: int i = 0;
+    IL_0008:  ldarg.0
+    IL_0009:  ldc.i4.0
+    IL_000a:  stfld      ""int Program.<Test>d__0.<i>5__1""
+    // sequence point: if (i != 0)
+    IL_000f:  ldarg.0
+    IL_0010:  ldfld      ""int Program.<Test>d__0.<i>5__1""
+    IL_0015:  ldc.i4.0
+    IL_0016:  cgt.un
+    IL_0018:  stloc.1
+    // sequence point: <hidden>
+    IL_0019:  ldloc.1
+    IL_001a:  brfalse.s  IL_0022
+    // sequence point: Console ... .WriteLine()
+    IL_001c:  call       ""void System.Console.WriteLine()""
+    IL_0021:  nop
+    // sequence point: return;
+    IL_0022:  leave.s    IL_003c
+  }
+  catch System.Exception
+  {
+   $// sequence point: <hidden>
+    IL_0024:  stloc.2
+    IL_0025:  ldarg.0
+    IL_0026:  ldc.i4.s   -2
+    IL_0028:  stfld      ""int Program.<Test>d__0.<>1__state""
+    IL_002d:  ldarg.0
+    IL_002e:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<Test>d__0.<>t__builder""
+    IL_0033:  ldloc.2
+    IL_0034:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
+    IL_0039:  nop
+    IL_003a:  leave.s    IL_0050
+  }
+  // sequence point: }
+  IL_003c:  ldarg.0
+  IL_003d:  ldc.i4.s   -2
+  IL_003f:  stfld      ""int Program.<Test>d__0.<>1__state""
+  // sequence point: <hidden>
+  IL_0044:  ldarg.0
+  IL_0045:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<Test>d__0.<>t__builder""
+  IL_004a:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
+  IL_004f:  nop
+  IL_0050:  ret
+}
+", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
+        }
+
+        [Fact]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
+        public void ConditionalInSimpleMethod()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    public static void Test()
+    {
+        int i = 0;
+
+        if (i != 0)
+            Console.WriteLine();
+    }
+}
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+
+            v.VerifyIL("Program.Test()", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init (int V_0, //i
+                bool V_1)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: int i = 0;
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  // sequence point: if (i != 0)
+  IL_0003:  ldloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  cgt.un
+  IL_0007:  stloc.1
+  // sequence point: <hidden>
+  IL_0008:  ldloc.1
+  IL_0009:  brfalse.s  IL_0011
+  // sequence point: Console.WriteLine();
+  IL_000b:  call       ""void System.Console.WriteLine()""
+  IL_0010:  nop
+  // sequence point: }
+  IL_0011:  ret
+}
+", sequencePoints: "Program.Test", source: source);
+        }
+
+        [Fact]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ElseConditionalInAsyncMethod()
         {
             var source = @"
@@ -2051,7 +2184,7 @@ class Program
   }
   catch System.Exception
   {
-    // sequence point: <hidden>
+   $// sequence point: <hidden>
     IL_0036:  stloc.2
     IL_0037:  ldarg.0
     IL_0038:  ldc.i4.s   -2
@@ -6148,7 +6281,7 @@ class Program
   }
   catch System.Exception
   {
-    // sequence point: <hidden>
+   $// sequence point: <hidden>
     IL_0020:  stloc.2
     IL_0021:  ldarg.0
     IL_0022:  ldc.i4.s   -2
@@ -6231,7 +6364,7 @@ class Program
   }
   catch System.Exception
   {
-    // sequence point: <hidden>
+   $// sequence point: <hidden>
     IL_0026:  stloc.2
     IL_0027:  ldarg.0
     IL_0028:  ldc.i4.s   -2
@@ -6372,7 +6505,7 @@ class Program
   }
   catch System.Exception
   {
-    // sequence point: <hidden>
+   $// sequence point: <hidden>
     IL_0036:  stloc.3
     IL_0037:  ldarg.0
     IL_0038:  ldc.i4.s   -2
@@ -6517,7 +6650,7 @@ class Program
   }
   catch System.Exception
   {
-    // sequence point: <hidden>
+   $// sequence point: <hidden>
     IL_0040:  stloc.3
     IL_0041:  ldarg.0
     IL_0042:  ldc.i4.s   -2

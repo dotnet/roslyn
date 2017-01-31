@@ -465,10 +465,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             Convert.ToInt32(item.GetAttribute("offset"), 16),
                             (item.GetAttribute("hidden") == "true") ? "~" : "-");
                     }
-                    else
-                    {
-                        yield return MarkerFromSource(lines, item);
-                    }
                 }
             }
 
@@ -484,6 +480,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     else if (item.Name == "catchHandler")
                     {
                         yield return KeyValuePair.Create(Convert.ToInt32(item.GetAttribute("offset"), 16), "$");
+                    }
+                }
+            }
+
+            foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
+            {
+                foreach (XmlElement item in entry.ChildNodes)
+                {
+                    if (source != null)
+                    {
+                        yield return MarkerFromSource(lines, item);
                     }
                 }
             }
@@ -516,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             return KeyValuePair.Create(
                 Convert.ToInt32(item.GetAttribute("offset"), 16),
-                $"// sequence point: " + snippet);
+                "// sequence point: " + snippet);
 
             string TruncateStart(string text, int maxLength)
             {
