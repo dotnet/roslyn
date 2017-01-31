@@ -8,6 +8,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Execution;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -87,19 +89,70 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // connect the host "callback" object with the host services, so we get called back with the exact inputs to the compiler task.
             hostServices.RegisterHostObject(_loadedProject.FullPath, "CoreCompile", taskName, taskHost);
 
-            var buildParameters = new MSB.Execution.BuildParameters(_loadedProject.ProjectCollection);
-
-            var buildRequestData = new MSB.Execution.BuildRequestData(executedProject, new string[] { "Compile" }, hostServices);
+            var buildParameters = new BuildParameters(_loadedProject.ProjectCollection);
+            var buildRequestData = new BuildRequestData(executedProject, new string[] { "Compile" }, hostServices);
 
             BuildResult result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
 
             if (result.OverallResult == BuildResultCode.Failure)
             {
-                return new BuildInfo(executedProject, result.Exception?.Message ?? "");
+                if (result.Exception != null)
+                {
+                    return new BuildInfo(executedProject, result.Exception.Message);
+                }
+                else
+                {
+                    // try again with logging to pick up any logged errors from msbuild
+
+                    executedProject = _loadedProject.CreateProjectInstance();
+                    buildParameters = new BuildParameters(_loadedProject.ProjectCollection);
+
+                    var errorBuilder = new StringWriter();
+                    var errorLogger = new ErrorLogger(e => errorBuilder.WriteLine(e)) { Verbosity = LoggerVerbosity.Normal };
+                    buildParameters.Loggers = new ILogger[] { errorLogger };
+
+                    buildRequestData = new BuildRequestData(executedProject, new string[] { "Compile" }, hostServices);
+
+                    result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                    return new BuildInfo(executedProject, errorBuilder.ToString());
+                }
             }
             else
             {
                 return new BuildInfo(executedProject, null);
+            }
+        }
+
+        private class ErrorLogger : ILogger
+        {
+            private readonly Action<string> _errorCallback;
+            private IEventSource _eventSource;
+
+            public string Parameters { get; set; }
+            public LoggerVerbosity Verbosity { get; set; }
+
+            public ErrorLogger(Action<string> errorCallback)
+            {
+                _errorCallback = errorCallback;
+            }
+
+            public void Initialize(IEventSource eventSource)
+            {
+                _eventSource = eventSource;
+                _eventSource.ErrorRaised += OnErrorRaised;
+            }
+
+            private void OnErrorRaised(object sender, BuildErrorEventArgs e)
+            {
+                _errorCallback($"{e.File}: ({e.LineNumber}, {e.ColumnNumber}): {e.Message}");
+            }
+
+            public void Shutdown()
+            {
+                if (_eventSource != null)
+                {
+                    _eventSource.ErrorRaised -= OnErrorRaised;
+                }
             }
         }
 
