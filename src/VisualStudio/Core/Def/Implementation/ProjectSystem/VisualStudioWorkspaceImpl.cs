@@ -86,7 +86,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// A compatibility shim to ensure that F# and TypeScript continue to work after the deferred work goes in. This will be
         /// removed once they move to calling <see cref="GetProjectTrackerAndInitializeIfNecessary"/>.
         /// </summary>
-        [Obsolete("You should use " + nameof(GetProjectTrackerAndInitializeIfNecessary) + " or check through " + nameof(DeferredState))]
         internal VisualStudioProjectTracker ProjectTracker
         {
             get
