@@ -11482,7 +11482,6 @@ True").VerifyDiagnostics();
             Assert.Equal("System.Boolean", compilation.GetSemanticModel(tree).GetTypeInfo(zRef).Type.ToTestDisplayString());
         }
 
-
         [Fact]
         public void DeclarationInsideNameof()
         {
@@ -11512,13 +11511,12 @@ class Program
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
-            var designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
-            Assert.Equal(1, designations.Count());
+            var designation = GetPatternDeclarations(tree).Single();
             var refs = GetReferences(tree, "x1").ToArray();
 
-            VerifyModelForDeclarationPattern(model, designations[0], refs);
+            VerifyModelForDeclarationPattern(model, designation, refs);
 
-            var x1 = (LocalSymbol)model.GetDeclaredSymbol(designations[0]);
+            var x1 = (LocalSymbol)model.GetDeclaredSymbol(designation);
             Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
         }
     }
