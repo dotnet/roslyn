@@ -1,5 +1,8 @@
 ﻿{
   "dependencies": {
+    "Microsoft.NETCore.Runtime.CoreCLR": "1.1.0",
+    "Microsoft.NETCore.TestHost": "1.1.0",
+    "System.Runtime": "4.3.0",
     "xunit.console.netcore": "1.0.2-prerelease-00104"
   },
   "frameworks": {
