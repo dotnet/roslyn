@@ -49,9 +49,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// A <see cref="ForegroundThreadAffinitizedObject"/> to make assertions that stuff is on the right thread.
+        /// This is Lazy because it might be created on a background thread when nothing is initialized yet.
         /// </summary>
-        private readonly ForegroundThreadAffinitizedObject _foregroundObject
-            = new ForegroundThreadAffinitizedObject(assertIsForeground: false);
+        private readonly Lazy<ForegroundThreadAffinitizedObject> _foregroundObject
+            = new Lazy<ForegroundThreadAffinitizedObject>(() => new ForegroundThreadAffinitizedObject());
 
         /// <summary>
         /// The <see cref="DeferredInitializationState"/> that consists of the <see cref="VisualStudioProjectTracker" />
@@ -75,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (DeferredState == null)
             {
-                _foregroundObject.AssertIsForeground();
+                _foregroundObject.Value.AssertIsForeground();
                 DeferredState = new DeferredInitializationState(this, serviceProvider);
             }
 
@@ -709,7 +710,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            if (!_foregroundObject.IsForeground())
+            if (!_foregroundObject.Value.IsForeground())
             {
                 throw new InvalidOperationException(ServicesVSResources.This_workspace_only_supports_opening_documents_on_the_UI_thread);
             }
@@ -1071,7 +1072,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
-            _foregroundObject.AssertIsForeground();
+            _foregroundObject.Value.AssertIsForeground();
             if (!TryGetHierarchy(referencingProject, out var referencingHierarchy) ||
                 !TryGetHierarchy(referencedProject, out var referencedHierarchy))
             {
