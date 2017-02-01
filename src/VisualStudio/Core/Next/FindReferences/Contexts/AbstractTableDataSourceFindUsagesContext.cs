@@ -85,13 +85,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _findReferencesWindow = findReferencesWindow;
                 TableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
 
-                // Determine the current grouping state 
-                DetermineCurrentGroupingByDefinitionState();
-
                 TableControl.GroupingsChanged += OnTableControlGroupingsChanged;
 
                 // If the window is closed, cancel any work we're doing.
                 _findReferencesWindow.Closed += OnFindReferencesWindowClosed;
+
+                DetermineCurrentGroupingByDefinitionState();
 
                 // Remove any existing sources in the window.  
                 foreach (var source in findReferencesWindow.Manager.Sources.ToArray())
