@@ -26,10 +26,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             _optionService = workspace.Services.GetService<IOptionService>();
 
-            _taskList = (ITaskList)serviceProvider.GetService(typeof(SVsTaskList));
+            // The SVsTaskList may not be available or doesn't actually implement ITaskList
+            // in the "devenv /build" scenario
+            _taskList = serviceProvider.GetService(typeof(SVsTaskList)) as ITaskList;
+
+            // GetTaskTokenList is safe in the face of nulls
             _lastCommentTokenCache = GetTaskTokenList(_taskList);
 
-            // The SVsTaskList may not be available (e.g. during "devenv /build")
             if (_taskList != null)
             {
                 _taskList.PropertyChanged += OnPropertyChanged;
