@@ -426,104 +426,116 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static Dictionary<int, string> GetMarkers(string pdbXml, string source = null)
         {
-            var markersList = EnumerateMarkers(pdbXml, source);
-            return ToDictionary<int, string, string>(markersList, (markers, marker) => markers + marker);
-        }
-
-        private static Dictionary<K, V> ToDictionary<K, V, I>(IEnumerable<KeyValuePair<K, I>> pairs, Func<V, I, V> aggregator)
-        {
-            var result = new Dictionary<K, V>();
-            foreach (var pair in pairs)
-            {
-                V existing;
-                if (result.TryGetValue(pair.Key, out existing))
-                {
-                    result[pair.Key] = aggregator(existing, pair.Value);
-                }
-                else
-                {
-                    result.Add(pair.Key, aggregator(default(V), pair.Value));
-                }
-            }
-
-            return result;
-        }
-
-        public static IEnumerable<KeyValuePair<int, string>> EnumerateMarkers(string pdbXml, string source = null)
-        {
             string[] lines = source?.Split(new[] { "\r\n" }, StringSplitOptions.None);
             var doc = new XmlDocument();
             doc.LoadXml(pdbXml);
+            var result = new Dictionary<int, string>();
 
-            foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
+            if (source == null)
             {
-                foreach (XmlElement item in entry.ChildNodes)
+                foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
                 {
-                    if (source == null)
+                    foreach (XmlElement item in entry.ChildNodes)
                     {
-                        yield return KeyValuePair.Create(
+                        Add(result,
                             Convert.ToInt32(item.GetAttribute("offset"), 16),
                             (item.GetAttribute("hidden") == "true") ? "~" : "-");
                     }
                 }
-            }
 
-            foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
-            {
-                foreach (XmlElement item in entry.ChildNodes)
+                foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
                 {
-                    if (item.Name == "await")
+                    foreach (XmlElement item in entry.ChildNodes)
                     {
-                        yield return KeyValuePair.Create(Convert.ToInt32(item.GetAttribute("yield"), 16), "<");
-                        yield return KeyValuePair.Create(Convert.ToInt32(item.GetAttribute("resume"), 16), ">");
+                        if (item.Name == "await")
+                        {
+                            Add(result, Convert.ToInt32(item.GetAttribute("yield"), 16), "<");
+                            Add(result, Convert.ToInt32(item.GetAttribute("resume"), 16), ">");
+                        }
+                        else if (item.Name == "catchHandler")
+                        {
+                            Add(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "$");
+                        }
                     }
-                    else if (item.Name == "catchHandler")
+                }
+            }
+            else
+            {
+                foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
+                {
+                    foreach (XmlElement item in entry.ChildNodes)
                     {
-                        yield return KeyValuePair.Create(Convert.ToInt32(item.GetAttribute("offset"), 16), "$");
+                        if (item.Name == "await")
+                        {
+                            AddTextual(result, Convert.ToInt32(item.GetAttribute("yield"), 16), "async: yield");
+                            AddTextual(result, Convert.ToInt32(item.GetAttribute("resume"), 16), "async: resume");
+                        }
+                        else if (item.Name == "catchHandler")
+                        {
+                            AddTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "async: catch handler");
+                        }
+                    }
+                }
+
+                foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
+                {
+                    foreach (XmlElement item in entry.ChildNodes)
+                    {
+                        AddTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "sequence point: " + SnippetFromSpan(lines, item));
                     }
                 }
             }
 
-            foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
+            return result;
+
+            void Add(Dictionary<int, string> dict, int key, string value)
             {
-                foreach (XmlElement item in entry.ChildNodes)
+                if (dict.TryGetValue(key, out string found))
                 {
-                    if (source != null)
-                    {
-                        yield return MarkerFromSource(lines, item);
-                    }
+                    dict[key] = found + value;
+                }
+                else
+                {
+                    dict[key] = value;
+                }
+            }
+
+            void AddTextual(Dictionary<int, string> dict, int key, string value)
+            {
+                if (dict.TryGetValue(key, out string found))
+                {
+                    dict[key] = found + ", " + value;
+                }
+                else
+                {
+                    dict[key] = "// " + value;
                 }
             }
         }
 
-        private static KeyValuePair<int, string> MarkerFromSource(string[] lines, XmlElement item)
+        private static string SnippetFromSpan(string[] lines, XmlElement span)
         {
-            string snippet;
-            if (item.GetAttribute("hidden") != "true")
+            if (span.GetAttribute("hidden") != "true")
             {
-                var startLine = Convert.ToInt32(item.GetAttribute("startLine"));
-                var startColumn = Convert.ToInt32(item.GetAttribute("startColumn"));
-                var endLine = Convert.ToInt32(item.GetAttribute("endLine"));
-                var endColumn = Convert.ToInt32(item.GetAttribute("endColumn"));
+                var startLine = Convert.ToInt32(span.GetAttribute("startLine"));
+                var startColumn = Convert.ToInt32(span.GetAttribute("startColumn"));
+                var endLine = Convert.ToInt32(span.GetAttribute("endLine"));
+                var endColumn = Convert.ToInt32(span.GetAttribute("endColumn"));
                 if (startLine == endLine)
                 {
-                    snippet = lines[startLine - 1].Substring(startColumn - 1, endColumn - startColumn);
+                    return lines[startLine - 1].Substring(startColumn - 1, endColumn - startColumn);
                 }
                 else
                 {
                     var start = lines[startLine - 1].Substring(startColumn - 1);
                     var end = lines[endLine - 1].Substring(0, endColumn - 1);
-                    snippet = TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
+                    return TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
                 }
             }
             else
             {
-                snippet = "<hidden>";
+                return "<hidden>";
             }
-
-            return KeyValuePair.Create(
-                Convert.ToInt32(item.GetAttribute("offset"), 16),
-                "// sequence point: " + snippet);
 
             string TruncateStart(string text, int maxLength)
             {

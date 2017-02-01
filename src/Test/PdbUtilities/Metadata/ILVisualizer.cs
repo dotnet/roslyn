@@ -338,10 +338,9 @@ namespace Roslyn.Test.MetadataUtilities
                     string marker;
                     if (markers != null && markers.TryGetValue(ilOffset, out marker))
                     {
-                        int commentPos = marker.IndexOf("//");
-                        if (commentPos >= 0)
+                        if (marker.StartsWith("//"))
                         {
-                            sb.Append(indent.Substring(0, indent.Length - commentPos));
+                            sb.Append(indent);
                             sb.AppendLine(marker);
                             sb.Append(indent);
                         }

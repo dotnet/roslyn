@@ -1914,7 +1914,7 @@ class Program
   }
   catch System.Exception
   {
-   $// sequence point: <hidden>
+    // async: catch handler, sequence point: <hidden>
     IL_0024:  stloc.2
     IL_0025:  ldarg.0
     IL_0026:  ldc.i4.s   -2
@@ -2046,7 +2046,7 @@ class Program
   }
   catch System.Exception
   {
-   $// sequence point: <hidden>
+    // async: catch handler, sequence point: <hidden>
     IL_0024:  stloc.2
     IL_0025:  ldarg.0
     IL_0026:  ldc.i4.s   -2
@@ -2184,7 +2184,7 @@ class Program
   }
   catch System.Exception
   {
-   $// sequence point: <hidden>
+    // async: catch handler, sequence point: <hidden>
     IL_0036:  stloc.2
     IL_0037:  ldarg.0
     IL_0038:  ldc.i4.s   -2
@@ -6281,7 +6281,7 @@ class Program
   }
   catch System.Exception
   {
-   $// sequence point: <hidden>
+    // async: catch handler, sequence point: <hidden>
     IL_0020:  stloc.2
     IL_0021:  ldarg.0
     IL_0022:  ldc.i4.s   -2
@@ -6364,7 +6364,7 @@ class Program
   }
   catch System.Exception
   {
-   $// sequence point: <hidden>
+    // async: catch handler, sequence point: <hidden>
     IL_0026:  stloc.2
     IL_0027:  ldarg.0
     IL_0028:  ldc.i4.s   -2
@@ -6505,7 +6505,7 @@ class Program
   }
   catch System.Exception
   {
-   $// sequence point: <hidden>
+    // async: catch handler, sequence point: <hidden>
     IL_0036:  stloc.3
     IL_0037:  ldarg.0
     IL_0038:  ldc.i4.s   -2
@@ -6650,7 +6650,7 @@ class Program
   }
   catch System.Exception
   {
-   $// sequence point: <hidden>
+    // async: catch handler, sequence point: <hidden>
     IL_0040:  stloc.3
     IL_0041:  ldarg.0
     IL_0042:  ldc.i4.s   -2
