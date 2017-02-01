@@ -24,6 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     internal partial class StreamingFindUsagesPresenter
     {
+        /// <summary>
+        /// Entry to show for a particular source location.  The row will show the classified
+        /// contents of that line, and hovering will reveal a tooltip showing that line along
+        /// with a few lines above/below it.
+        /// </summary>
         private class DocumentSpanEntry : AbstractDocumentSpanEntry
         {
             private readonly bool _isDefinitionLocation;
