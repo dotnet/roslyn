@@ -1,6 +1,8 @@
 ﻿using System;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -45,6 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
                 var saveEventsService = componentModel.GetService<SaveEventsService>();
                 saveEventsService.StartSendingSaveEvents();
+
+                VisualStudioProjectCacheHostServiceFactory.ConnectProjectCacheServiceToDocumentTracking(workspace.Services, (ProjectCacheService)workspace.CurrentSolution.Services.CacheService);
 
                 // Ensure the options factory services are initialized on the UI thread
                 workspace.Services.GetService<IOptionService>();
