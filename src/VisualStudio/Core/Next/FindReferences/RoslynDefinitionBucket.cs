@@ -12,9 +12,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    internal partial class StreamingFindUsagesPresenter
-    {
-        private class RoslynDefinitionBucket : DefinitionBucket, ISupportsNavigation
+        internal class RoslynDefinitionBucket : DefinitionBucket, ISupportsNavigation
         {
             private readonly StreamingFindUsagesPresenter _presenter;
             private readonly AbstractTableDataSourceFindUsagesContext _context;
@@ -49,25 +47,24 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 switch (key)
                 {
-                case StandardTableKeyNames.Text:
-                case StandardTableKeyNames.FullText:
-                    return DefinitionItem.DisplayParts.JoinText();
+                    case StandardTableKeyNames.Text:
+                    case StandardTableKeyNames.FullText:
+                        return DefinitionItem.DisplayParts.JoinText();
 
-                case StandardTableKeyNames2.TextInlines:
-                    var inlines = new List<Inline> { new Run(" ") };
-                    inlines.AddRange(DefinitionItem.DisplayParts.ToInlines(_presenter._typeMap));
-                    foreach (var inline in inlines)
-                    {
-                        inline.SetValue(TextElement.FontWeightProperty, FontWeights.Bold);
-                    }
-                    return inlines;
+                    case StandardTableKeyNames2.TextInlines:
+                        var inlines = new List<Inline> { new Run(" ") };
+                        inlines.AddRange(DefinitionItem.DisplayParts.ToInlines(_presenter.TypeMap));
+                        foreach (var inline in inlines)
+                        {
+                            inline.SetValue(TextElement.FontWeightProperty, FontWeights.Bold);
+                        }
+                        return inlines;
 
-                case StandardTableKeyNames2.DefinitionIcon:
-                    return DefinitionItem.Tags.GetGlyph().GetImageMoniker();
+                    case StandardTableKeyNames2.DefinitionIcon:
+                        return DefinitionItem.Tags.GetGlyph().GetImageMoniker();
                 }
 
                 return null;
             }
         }
-    }
 }

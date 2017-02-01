@@ -80,18 +80,24 @@
       <Link>Shared\ServerDirectStream.cs</Link>
     </Compile>
     <Compile Include="CodeLens\RemoteCodeLensReferencesService.cs" />
+    <Compile Include="FindReferences\Contexts\AbstractTableDataSourceFindUsagesContext.cs" />
+    <Compile Include="FindReferences\Contexts\WithoutReferencesFindUsagesContext.cs" />
+    <Compile Include="FindReferences\Contexts\WithReferencesFindUsagesContext.cs" />
+    <Compile Include="FindReferences\Entries\AbstractDocumentSpanEntry.cs" />
+    <Compile Include="FindReferences\Entries\DefinitionItemEntry.cs" />
+    <Compile Include="FindReferences\Entries\DocumentSpanEntry.cs" />
+    <Compile Include="FindReferences\Entries\Entry.cs" />
+    <Compile Include="FindReferences\Entries\SimpleMessageEntry.cs" />
     <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
+    <Compile Include="FindReferences\FindUsagesOptions.cs" />
+    <Compile Include="FindReferences\IFindAllReferencesWindowExtensions.cs" />
     <Compile Include="FindReferences\ISupportsNavigation.cs" />
+    <Compile Include="FindReferences\RoslynDefinitionBucket.cs" />
     <Compile Include="FindReferences\StreamingFindUsagesPresenter.cs" />
-    <Compile Include="FindReferences\StreamingFindUsagesPresenter.DisposableToolTip.cs" />
-    <Compile Include="FindReferences\StreamingFindUsagesPresenter.DocumentLocationEntry.cs" />
-    <Compile Include="FindReferences\StreamingFindUsagesPresenter.Entry.cs" />
-    <Compile Include="FindReferences\StreamingFindUsagesPresenter.LazyToolTip.cs" />
-    <Compile Include="FindReferences\StreamingFindUsagesPresenter.RoslynDefinitionBucket.cs" />
-    <Compile Include="FindReferences\StreamingFindUsagesPresenter.SimpleMessageEntry.cs" />
-    <Compile Include="FindReferences\StreamingFindUsagesPresenter.TableDataSourceFindUsagesContext.cs" />
-    <Compile Include="FindReferences\StreamingFindUsagesPresenter.TableEntriesSnapshot.cs" />
+    <Compile Include="FindReferences\ToolTips\DisposableToolTip.cs" />
+    <Compile Include="FindReferences\TableEntriesSnapshot.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
+    <Compile Include="FindReferences\ToolTips\LazyToolTip.cs" />
     <Compile Include="ProjectSystem\DeferredProjectWorkspaceService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\JsonRpcSession.cs" />

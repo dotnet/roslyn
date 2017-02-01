@@ -7,9 +7,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    internal partial class StreamingFindUsagesPresenter
-    {
-        private class SimpleMessageEntry : Entry
+        internal class SimpleMessageEntry : Entry
         {
             private readonly string _message;
 
@@ -43,11 +41,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     case StandardTableKeyNames.ProjectName:
                         return this.TryGetDocument()?.Project.Name;
                     case StandardTableKeyNames.Text:
-                        return _message; 
+                        return _message;
                 }
 
                 return null;
             }
         }
-    }
 }

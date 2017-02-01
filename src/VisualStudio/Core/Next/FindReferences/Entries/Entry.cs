@@ -7,12 +7,10 @@ using Microsoft.VisualStudio.Shell.TableControl;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    internal partial class StreamingFindUsagesPresenter
-    {
         /// <summary>
         /// Represents a single entry (i.e. row) in the ungrouped FAR table.
         /// </summary>
-        private abstract class Entry
+        internal abstract class Entry
         {
             public readonly RoslynDefinitionBucket DefinitionBucket;
 
@@ -31,11 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 switch (keyName)
                 {
-                case StandardTableKeyNames2.Definition:
-                    return DefinitionBucket;
+                    case StandardTableKeyNames2.Definition:
+                        return DefinitionBucket;
 
-                case StandardTableKeyNames2.DefinitionIcon:
-                    return DefinitionBucket.DefinitionItem.Tags.GetGlyph().GetImageMoniker();
+                    case StandardTableKeyNames2.DefinitionIcon:
+                        return DefinitionBucket.DefinitionItem.Tags.GetGlyph().GetImageMoniker();
                 }
 
                 return GetValueWorker(keyName);
@@ -49,5 +47,4 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return false;
             }
         }
-    }
 }
