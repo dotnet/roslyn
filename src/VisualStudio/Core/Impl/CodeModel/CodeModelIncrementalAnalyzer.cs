@@ -88,13 +88,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     return;
                 }
 
-                if (!codeModelProvider.ProjectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
-                {
-                    return;
-                }
+                FileCodeModel codeModel = null;
+                _notificationService.RegisterNotification(
+                    () =>
+                    {
+                        // The notification service may call this several times (depending on what FireEvents() returns),
+                        // but we only want to retrieve the FileCodeModel the first time. And if we can't, then we're done
+                        // and don't need to be called again.
+                        if (codeModel == null)
+                        {
+                            if (!codeModelProvider.ProjectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
+                            {
+                                return false;
+                            }
 
-                var codeModel = fileCodeModelHandle.Object;
-                _notificationService.RegisterNotification(() => codeModel.FireEvents(), _listener.BeginAsyncOperation("CodeModelEvent"), cancellationToken);
+                            codeModel = fileCodeModelHandle.Object;
+                        }
+
+                        return codeModel.FireEvents();
+                    },
+                    _listener.BeginAsyncOperation("CodeModelEvent"),
+                    cancellationToken);
             }
 
             #region unused
