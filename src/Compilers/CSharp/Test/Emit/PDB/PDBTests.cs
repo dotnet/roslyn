@@ -6388,55 +6388,6 @@ class Program
   IL_0052:  ret
 }
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
-
-            v.VerifyPdb(@"
-<symbols>
-  <methods>
-    <method containingType=""Program"" name=""Test"">
-      <customDebugInfo>
-        <forwardIterator name=""&lt;Test&gt;d__0"" />
-        <encLocalSlotMap>
-          <slot kind=""0"" offset=""15"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-    </method>
-    <method containingType=""Program+&lt;Test&gt;d__0"" name=""MoveNext"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
-        <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x52"" />
-        </hoistedLocalScopes>
-        <encLocalSlotMap>
-          <slot kind=""27"" offset=""0"" />
-          <slot kind=""1"" offset=""31"" />
-          <slot kind=""temp"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x8"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""19"" />
-        <entry offset=""0xf"" hidden=""true"" />
-        <entry offset=""0x11"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""33"" />
-        <entry offset=""0x17"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""23"" />
-        <entry offset=""0x21"" hidden=""true"" />
-        <entry offset=""0x24"" hidden=""true"" />
-        <entry offset=""0x26"" hidden=""true"" />
-        <entry offset=""0x3e"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
-        <entry offset=""0x46"" hidden=""true"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x53"">
-        <namespace name=""System"" />
-      </scope>
-      <asyncInfo>
-        <catchHandler offset=""0x26"" />
-        <kickoffMethod declaringType=""Program"" methodName=""Test"" />
-      </asyncInfo>
-    </method>
-  </methods>
-</symbols>");
         }
 
         [Fact]
@@ -6529,56 +6480,6 @@ class Program
   IL_0062:  ret
 }
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
-
-            v.VerifyPdb(@"<symbols>
-  <methods>
-    <method containingType=""Program"" name=""Test"">
-      <customDebugInfo>
-        <forwardIterator name=""&lt;Test&gt;d__0"" />
-        <encLocalSlotMap>
-          <slot kind=""0"" offset=""20"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-    </method>
-    <method containingType=""Program+&lt;Test&gt;d__0"" name=""MoveNext"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
-        <hoistedLocalScopes>
-          <slot startOffset=""0x8"" endOffset=""0x33"" />
-        </hoistedLocalScopes>
-        <encLocalSlotMap>
-          <slot kind=""27"" offset=""0"" />
-          <slot kind=""temp"" />
-          <slot kind=""1"" offset=""11"" />
-          <slot kind=""temp"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x8"" startLine=""8"" startColumn=""14"" endLine=""8"" endColumn=""23"" />
-        <entry offset=""0xf"" hidden=""true"" />
-        <entry offset=""0x11"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""33"" />
-        <entry offset=""0x17"" startLine=""8"" startColumn=""32"" endLine=""8"" endColumn=""35"" />
-        <entry offset=""0x27"" startLine=""8"" startColumn=""25"" endLine=""8"" endColumn=""30"" />
-        <entry offset=""0x31"" hidden=""true"" />
-        <entry offset=""0x34"" hidden=""true"" />
-        <entry offset=""0x36"" hidden=""true"" />
-        <entry offset=""0x4e"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
-        <entry offset=""0x56"" hidden=""true"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x63"">
-        <namespace name=""System"" />
-      </scope>
-      <asyncInfo>
-        <catchHandler offset=""0x36"" />
-        <kickoffMethod declaringType=""Program"" methodName=""Test"" />
-      </asyncInfo>
-    </method>
-  </methods>
-</symbols>");
         }
 
         [Fact]
@@ -6674,73 +6575,6 @@ class Program
   IL_006c:  ret
 }
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
-
-            v.VerifyPdb(
-@"<symbols>
-  <methods>
-    <method containingType=""Program"" name=""Test"">
-      <customDebugInfo>
-        <forwardIterator name=""&lt;Test&gt;d__0"" />
-        <encLocalSlotMap>
-          <slot kind=""0"" offset=""20"" />
-          <slot kind=""0"" offset=""34"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-    </method>
-    <method containingType=""Program"" name=""M"" parameterNames=""x"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
-        <encLocalSlotMap>
-          <slot kind=""21"" offset=""0"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""11"" startColumn=""36"" endLine=""11"" endColumn=""37"" />
-        <entry offset=""0x1"" startLine=""11"" startColumn=""38"" endLine=""11"" endColumn=""44"" />
-        <entry offset=""0x4"" startLine=""11"" startColumn=""45"" endLine=""11"" endColumn=""54"" />
-        <entry offset=""0x8"" startLine=""11"" startColumn=""55"" endLine=""11"" endColumn=""56"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xa"">
-        <namespace name=""System"" />
-      </scope>
-    </method>
-    <method containingType=""Program+&lt;Test&gt;d__0"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""M"" parameterNames=""x"" />
-        <hoistedLocalScopes>
-          <slot startOffset=""0x8"" endOffset=""0x3d"" />
-          <slot startOffset=""0x8"" endOffset=""0x3d"" />
-        </hoistedLocalScopes>
-        <encLocalSlotMap>
-          <slot kind=""27"" offset=""0"" />
-          <slot kind=""temp"" />
-          <slot kind=""1"" offset=""11"" />
-          <slot kind=""temp"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x8"" startLine=""8"" startColumn=""14"" endLine=""8"" endColumn=""34"" />
-        <entry offset=""0x19"" hidden=""true"" />
-        <entry offset=""0x1b"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""33"" />
-        <entry offset=""0x21"" startLine=""8"" startColumn=""43"" endLine=""8"" endColumn=""46"" />
-        <entry offset=""0x31"" startLine=""8"" startColumn=""36"" endLine=""8"" endColumn=""41"" />
-        <entry offset=""0x3b"" hidden=""true"" />
-        <entry offset=""0x3e"" hidden=""true"" />
-        <entry offset=""0x40"" hidden=""true"" />
-        <entry offset=""0x58"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
-        <entry offset=""0x60"" hidden=""true"" />
-      </sequencePoints>
-      <asyncInfo>
-        <catchHandler offset=""0x40"" />
-        <kickoffMethod declaringType=""Program"" methodName=""Test"" />
-      </asyncInfo>
-    </method>
-  </methods>
-</symbols>");
         }
     }
 }

@@ -289,6 +289,7 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
         <entry offset=""0xd9"" startLine=""18"" startColumn=""24"" endLine=""18"" endColumn=""32"" />
         <entry offset=""0xe5"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""44"" />
         <entry offset=""0xf1"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""38"" />
+        <entry offset=""0xfc"" hidden=""true"" />
         <entry offset=""0xfe"" hidden=""true"" />
         <entry offset=""0x118"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" />
         <entry offset=""0x120"" hidden=""true"" />
