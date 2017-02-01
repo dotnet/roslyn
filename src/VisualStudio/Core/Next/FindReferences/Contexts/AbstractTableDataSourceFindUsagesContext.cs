@@ -467,15 +467,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // when thousands of SetProgress calls are made.  So, for now, we're removing
                 // the progress update until the FindRefs window fixes that perf issue.
 #if false
-                    try
-                    {
-                        // The original FAR window exposed a SetProgress(double). Ensure that we 
-                        // don't crash if this code is running on a machine without the new API.
-                        _findReferencesWindow.SetProgress(current, maximum);
-                    }
-                    catch
-                    {
-                    }
+                try
+                {
+                    // The original FAR window exposed a SetProgress(double). Ensure that we 
+                    // don't crash if this code is running on a machine without the new API.
+                    _findReferencesWindow.SetProgress(current, maximum);
+                }
+                catch
+                {
+                }
 #endif
 
                 return SpecializedTasks.EmptyTask;
