@@ -33,9 +33,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public readonly StreamingFindUsagesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
-            protected readonly IWpfTableControl2 _tableControl;
+            protected readonly IWpfTableControl2 TableControl;
 
-            protected readonly object _gate = new object();
+            protected readonly object Gate = new object();
 
             #region Fields that should be locked by _gate
 
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// us to not display it if it has no references, and we don't run into any 
             /// references for it (common with implicitly declared symbols).
             /// </summary>
-            protected readonly List<DefinitionItem> _definitions = new List<DefinitionItem>();
+            protected readonly List<DefinitionItem> Definitions = new List<DefinitionItem>();
 
             /// <summary>
             /// We will hear about the same definition over and over again.  i.e. for each reference 
@@ -67,8 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// </summary>
             private bool _currentlyGroupingByDefinition;
 
-            protected ImmutableList<Entry> _entriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
-            protected ImmutableList<Entry> _entriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
+            protected ImmutableList<Entry> EntriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
+            protected ImmutableList<Entry> EntriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
 
             private TableEntriesSnapshot _lastSnapshot;
             public int CurrentVersionNumber { get; protected set; }
@@ -83,12 +83,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
-                _tableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
+                TableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
 
                 // Determine the current grouping state 
                 DetermineCurrentGroupingByDefinitionState();
 
-                _tableControl.GroupingsChanged += OnTableControlGroupingsChanged;
+                TableControl.GroupingsChanged += OnTableControlGroupingsChanged;
 
                 // If the window is closed, cancel any work we're doing.
                 _findReferencesWindow.Closed += OnFindReferencesWindowClosed;
@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 CancelSearch();
 
                 _findReferencesWindow.Closed -= OnFindReferencesWindowClosed;
-                _tableControl.GroupingsChanged -= OnTableControlGroupingsChanged;
+                TableControl.GroupingsChanged -= OnTableControlGroupingsChanged;
             }
 
             private void OnTableControlGroupingsChanged(object sender, EventArgs e)
@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     // We changed from grouping-by-definition to not (or vice versa).
                     // Change which list we show the user.
-                    lock (_gate)
+                    lock (Gate)
                     {
                         CurrentVersionNumber++;
                     }
@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 var definitionColumn = _findReferencesWindow.GetDefinitionColumn();
 
-                lock (_gate)
+                lock (Gate)
                 {
                     var oldGroupingByDefinition = _currentlyGroupingByDefinition;
                     _currentlyGroupingByDefinition = definitionColumn?.GroupingPriority > 0;
@@ -209,9 +209,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public sealed override Task OnDefinitionFoundAsync(DefinitionItem definition)
             {
-                lock (_gate)
+                lock (Gate)
                 {
-                    _definitions.Add(definition);
+                    Definitions.Add(definition);
                 }
 
                 return OnDefinitionFoundWorkerAsync(definition);
@@ -449,7 +449,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
             {
-                lock (_gate)
+                lock (Gate)
                 {
                     if (!_definitionToBucket.TryGetValue(definition, out var bucket))
                     {
@@ -489,7 +489,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public ITableEntriesSnapshot GetCurrentSnapshot()
             {
-                lock (_gate)
+                lock (Gate)
                 {
                     // If our last cached snapshot matches our current version number, then we
                     // can just return it.  Otherwise, we need to make a snapshot that matches
@@ -497,8 +497,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     if (_lastSnapshot?.VersionNumber != CurrentVersionNumber)
                     {
                         var entries = _currentlyGroupingByDefinition
-                            ? _entriesWhenGroupingByDefinition
-                            : _entriesWhenNotGroupingByDefinition;
+                            ? EntriesWhenGroupingByDefinition
+                            : EntriesWhenNotGroupingByDefinition;
 
                         _lastSnapshot = new TableEntriesSnapshot(entries, CurrentVersionNumber);
                     }
@@ -509,7 +509,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public ITableEntriesSnapshot GetSnapshot(int versionNumber)
             {
-                lock (_gate)
+                lock (Gate)
                 {
                     if (_lastSnapshot?.VersionNumber == versionNumber)
                     {

@@ -65,10 +65,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                     if (entries.Count > 0)
                     {
-                        lock (_gate)
+                        lock (Gate)
                         {
-                            _entriesWhenGroupingByDefinition = _entriesWhenGroupingByDefinition.AddRange(entries);
-                            _entriesWhenNotGroupingByDefinition = _entriesWhenNotGroupingByDefinition.AddRange(entries);
+                            EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.AddRange(entries);
+                            EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.AddRange(entries);
                         }
 
                         this.NotifyChange();

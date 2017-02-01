@@ -70,14 +70,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
 
                 var changed = false;
-                lock (_gate)
+                lock (Gate)
                 {
                     // Do one final check to ensure that no other thread beat us here.
                     if (!HasDeclarationEntries(definition))
                     {
                         // We only include declaration entries in the entries we show when 
                         // not grouping by definition.
-                        _entriesWhenNotGroupingByDefinition = _entriesWhenNotGroupingByDefinition.AddRange(declarations);
+                        EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.AddRange(declarations);
                         CurrentVersionNumber++;
                         changed = true;
                     }
@@ -94,9 +94,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             private bool HasDeclarationEntries(DefinitionItem definition)
             {
-                lock (_gate)
+                lock (Gate)
                 {
-                    return _entriesWhenNotGroupingByDefinition.Any(
+                    return EntriesWhenNotGroupingByDefinition.Any(
                         e => e.DefinitionBucket.DefinitionItem == definition);
                 }
             }
@@ -132,17 +132,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var definitionBucket = GetOrCreateDefinitionBucket(definition);
                 var entry = await createEntryAsync(definitionBucket).ConfigureAwait(false);
 
-                lock (_gate)
+                lock (Gate)
                 {
                     // Once we can make the new entry, add it to the appropriate list.
                     if (addToEntriesWhenGroupingByDefinition)
                     {
-                        _entriesWhenGroupingByDefinition = _entriesWhenGroupingByDefinition.Add(entry);
+                        EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.Add(entry);
                     }
 
                     if (addToEntriesWhenNotGroupingByDefinition)
                     {
-                        _entriesWhenNotGroupingByDefinition = _entriesWhenNotGroupingByDefinition.Add(entry);
+                        EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.Add(entry);
                     }
 
                     CurrentVersionNumber++;
@@ -200,18 +200,18 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private ImmutableArray<DefinitionItem> GetDefinitionsToCreateMissingReferenceItemsFor(
                 bool whenGroupingByDefinition)
             {
-                lock (_gate)
+                lock (Gate)
                 {
                     var entries = whenGroupingByDefinition
-                        ? _entriesWhenGroupingByDefinition
-                        : _entriesWhenNotGroupingByDefinition;
+                        ? EntriesWhenGroupingByDefinition
+                        : EntriesWhenNotGroupingByDefinition;
 
                     // Find any definitions that we didn't have any references to. But only show 
                     // them if they want to be displayed without any references.  This will 
                     // ensure that we still see things like overrides and whatnot, but we
                     // won't show property-accessors.
                     var seenDefinitions = entries.Select(r => r.DefinitionBucket.DefinitionItem).ToSet();
-                    var q = from definition in _definitions
+                    var q = from definition in Definitions
                             where !seenDefinitions.Contains(definition) &&
                                   definition.DisplayIfNoReferences
                             select definition;
@@ -226,9 +226,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // We found no definitions that *want* to be displayed.  However, we still 
                     // want to show something.  So, if necessary, show at lest the first definition
                     // even if we found no references and even if it would prefer to not be seen.
-                    if (entries.Count == 0 && _definitions.Count > 0)
+                    if (entries.Count == 0 && Definitions.Count > 0)
                     {
-                        return ImmutableArray.Create(_definitions.First());
+                        return ImmutableArray.Create(Definitions.First());
                     }
 
                     return ImmutableArray<DefinitionItem>.Empty;
@@ -238,9 +238,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private async Task CreateNoResultsFoundEntryIfNecessaryAsync()
             {
                 bool noDefinitions;
-                lock (_gate)
+                lock (Gate)
                 {
-                    noDefinitions = this._definitions.Count == 0;
+                    noDefinitions = this.Definitions.Count == 0;
                 }
 
                 if (noDefinitions)
