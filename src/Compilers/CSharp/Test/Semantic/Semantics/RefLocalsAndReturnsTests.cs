@@ -1112,10 +1112,20 @@ class TestClass
     ref int TestFunction()
     {
         yield return x;
+
+        ref int localFunction()
+        {
+            yield return x;
+        }
+
+        yield return localFunction();
     }
 }";
 
             CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (9,17): error CS8154: The body of 'localFunction()' cannot be an iterator block because 'localFunction()' returns by reference
+                //         ref int localFunction()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "localFunction").WithArguments("localFunction()").WithLocation(9, 17),
                 // (5,13): error CS8154: The body of 'TestClass.TestFunction()' cannot be an iterator block because 'TestClass.TestFunction()' returns by reference
                 //     ref int TestFunction()
                 Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "TestFunction").WithArguments("TestClass.TestFunction()").WithLocation(5, 13));
@@ -1284,14 +1294,28 @@ using System.Collections.Generic;
 class TestClass
 {
     int x = 0;
-    IEnumerator<int> TestMethod()
+    IEnumerable<int> TestMethod()
     {
         ref int y = ref x;
-        yield return 0;
+        yield return y;
+
+        IEnumerable<int> localFunction()
+        {
+            ref int z = ref x;
+            yield return z;
+        }
+
+        foreach(var item in localFunction())
+        {
+            yield return item;
+        }
     }
 }";
 
             CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (13,21): error CS8176: Iterators cannot have by reference locals
+                //             ref int z = ref x;
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "z").WithLocation(13, 21),
                 // (8,17): error CS8176: Iterators cannot have by reference locals
                 //         ref int y = ref x;
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "y").WithLocation(8, 17));
