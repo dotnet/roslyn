@@ -217,6 +217,21 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract Task OnDefinitionFoundWorkerAsync(DefinitionItem definition);
 
+            protected async Task<(Guid, SourceText)> GetGuidAndSourceTextAsync(Document document)
+            {
+                // The FAR system needs to know the guid for the project that a def/reference is 
+                // from (to support features like filtering).  Normally that would mean we could
+                // only support this from a VisualStudioWorkspace.  However, we want till work 
+                // in cases lke Any-Code (which does not use a VSWorkspace).  So we are tolerant
+                // when we have another type of workspace.  This means we will show results, but
+                // certain features (like filtering) may not work in that context.
+                var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
+                var guid = workspace?.GetHostProject(document.Project.Id)?.Guid ?? Guid.Empty;
+
+                var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
+                return (guid, sourceText);
+            }
+
             protected async Task<Entry> CreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
@@ -529,21 +544,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             void IDisposable.Dispose()
             {
                 CancelSearch();
-            }
-
-            protected async Task<(Guid, SourceText)> GetGuidAndSourceTextAsync(Document document)
-            {
-                // The FAR system needs to know the guid for the project that a def/reference is 
-                // from (to support features like filtering).  Normally that would mean we could
-                // only support this from a VisualStudioWorkspace.  However, we want till work 
-                // in cases lke Any-Code (which does not use a VSWorkspace).  So we are tolerant
-                // when we have another type of workspace.  This means we will show results, but
-                // certain features (like filtering) may not work in that context.
-                var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                var guid = workspace?.GetHostProject(document.Project.Id)?.Guid ?? Guid.Empty;
-
-                var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
-                return (guid, sourceText);
             }
 
             #endregion
