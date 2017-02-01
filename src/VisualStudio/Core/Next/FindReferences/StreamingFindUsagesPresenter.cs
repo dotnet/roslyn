@@ -28,16 +28,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         private readonly IServiceProvider _serviceProvider;
 
-        private readonly IFindAllReferencesService _vsFindAllReferencesService;
-        private readonly VisualStudioWorkspace _workspace;
-
         public readonly ITextBufferFactoryService TextBufferFactoryService;
         public readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
         public readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
         public readonly ITextEditorFactoryService TextEditorFactoryService;
         public readonly IContentTypeRegistryService ContentTypeRegistryService;
-        public readonly IEditorFormatMapService FormatMapService;
         public readonly ClassificationTypeMap TypeMap;
+        public readonly IEditorFormatMapService FormatMapService;
+
+        private readonly IFindAllReferencesService _vsFindAllReferencesService;
+        private readonly VisualStudioWorkspace _workspace;
 
         [ImportingConstructor]
         public StreamingFindUsagesPresenter(

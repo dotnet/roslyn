@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     internal class DocumentSpanEntry : AbstractDocumentSpanEntry
     {
         private readonly bool _isDefinitionLocation;
-        private readonly ClassifiedSpansAndHighlightSpan _classifiedSpans;
+        private readonly ClassifiedSpansAndHighlightSpan _classifiedSpansAndHighlights;
 
         public DocumentSpanEntry(
             AbstractTableDataSourceFindUsagesContext context,
@@ -38,52 +38,31 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             : base(context, definitionBucket, documentSpan, projectGuid, sourceText)
         {
             _isDefinitionLocation = isDefinitionLocation;
-            _classifiedSpans = classifiedSpans;
+            _classifiedSpansAndHighlights = classifiedSpans;
         }
 
-        public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
-        {
-            if (columnName == StandardTableColumnDefinitions2.LineText)
-            {
-                var inlines = GetHighlightedInlines(Presenter, _sourceText, _classifiedSpans, _isDefinitionLocation);
-                var textBlock = inlines.ToTextBlock(Presenter.TypeMap, wrap: false);
-
-                LazyToolTip.AttachTo(textBlock, CreateDisposableToolTip);
-
-                content = textBlock;
-                return true;
-            }
-
-            content = null;
-            return false;
-        }
-
-        private static IList<System.Windows.Documents.Inline> GetHighlightedInlines(
-            StreamingFindUsagesPresenter presenter,
-            SourceText sourceText,
-            ClassifiedSpansAndHighlightSpan classifiedSpansAndHighlight,
-            bool isDefinition)
-        {
-            var propertyId = isDefinition
+        protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()
+        { 
+            var propertyId = _isDefinitionLocation
                 ? DefinitionHighlightTag.TagId
                 : ReferenceHighlightTag.TagId;
 
-            var properties = presenter.FormatMapService
+            var properties = Presenter.FormatMapService
                                       .GetEditorFormatMap("text")
                                       .GetProperties(propertyId);
             var highlightBrush = properties["Background"] as Brush;
 
-            var classifiedSpans = classifiedSpansAndHighlight.ClassifiedSpans;
+            var classifiedSpans = _classifiedSpansAndHighlights.ClassifiedSpans;
             var classifiedTexts = classifiedSpans.SelectAsArray(
-                cs => new ClassifiedText(cs.ClassificationType, sourceText.ToString(cs.TextSpan)));
+                cs => new ClassifiedText(cs.ClassificationType, _sourceText.ToString(cs.TextSpan)));
 
             var inlines = classifiedTexts.ToInlines(
-                presenter.TypeMap,
+                Presenter.TypeMap,
                 runCallback: (run, classifiedText, position) =>
                 {
                     if (highlightBrush != null)
                     {
-                        if (position == classifiedSpansAndHighlight.HighlightSpan.Start)
+                        if (position == _classifiedSpansAndHighlights.HighlightSpan.Start)
                         {
                             run.SetValue(
                                 System.Windows.Documents.TextElement.BackgroundProperty,

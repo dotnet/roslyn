@@ -21,7 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// search completes <see cref="FindUsagesContext.OnCompletedAsync"/> should be called. 
         /// etc. etc.
         /// </summary>
-        FindUsagesContext StartSearch(string title, bool canShowReferences);
+        /// <param name="title">A title to display to the user in the presentation of the results.</param>
+        /// <param name="supportsReferences">Whether or not showing references is supported.
+        /// If true, then the presenter can group by definition, showing references underneath.
+        /// It can also show messages about no references being found at the end of the search.
+        /// If false, the presenter will not group by definitions, and will show the definition
+        /// items in isolation.</param>
+        FindUsagesContext StartSearch(string title, bool supportsReferences);
     }
 
     internal static class IStreamingFindUsagesPresenterExtensions
@@ -65,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             {
                 // We have multiple definitions, or we have definitions with multiple locations.
                 // Present this to the user so they can decide where they want to go to.
-
-                var context = presenter.StartSearch(title, canShowReferences: false);
+                var context = presenter.StartSearch(title, supportsReferences: false);
                 foreach (var definition in nonExternalItems)
                 {
                     await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
