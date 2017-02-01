@@ -236,6 +236,27 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     guid, sourceText, taggedLineParts);
             }
 
+            private TextSpan GetLineSpanForReference(SourceText sourceText, TextSpan referenceSpan)
+            {
+                var sourceLine = sourceText.Lines.GetLineFromPosition(referenceSpan.Start);
+                var firstNonWhitespacePosition = sourceLine.GetFirstNonWhitespacePosition().Value;
+
+                return TextSpan.FromBounds(firstNonWhitespacePosition, sourceLine.End);
+            }
+
+            private TextSpan GetRegionSpanForReference(SourceText sourceText, TextSpan referenceSpan)
+            {
+                const int AdditionalLineCountPerSide = 3;
+
+                var lineNumber = sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
+                var firstLineNumber = Math.Max(0, lineNumber - AdditionalLineCountPerSide);
+                var lastLineNumber = Math.Min(sourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);
+
+                return TextSpan.FromBounds(
+                    sourceText.Lines[firstLineNumber].Start,
+                    sourceText.Lines[lastLineNumber].End);
+            }
+
             private async Task<ClassifiedSpansAndHighlightSpan> GetTaggedTextForDocumentRegionAsync(
                 Document document, TextSpan narrowSpan, TextSpan widenedSpan)
             {
@@ -277,27 +298,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     ListPool<ClassifiedSpan>.Free(syntaxSpans);
                     ListPool<ClassifiedSpan>.Free(semanticSpans);
                 }
-            }
-
-            private TextSpan GetLineSpanForReference(SourceText sourceText, TextSpan referenceSpan)
-            {
-                var sourceLine = sourceText.Lines.GetLineFromPosition(referenceSpan.Start);
-                var firstNonWhitespacePosition = sourceLine.GetFirstNonWhitespacePosition().Value;
-
-                return TextSpan.FromBounds(firstNonWhitespacePosition, sourceLine.End);
-            }
-
-            private TextSpan GetRegionSpanForReference(SourceText sourceText, TextSpan referenceSpan)
-            {
-                const int AdditionalLineCountPerSide = 3;
-
-                var lineNumber = sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
-                var firstLineNumber = Math.Max(0, lineNumber - AdditionalLineCountPerSide);
-                var lastLineNumber = Math.Min(sourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);
-
-                return TextSpan.FromBounds(
-                    sourceText.Lines[firstLineNumber].Start,
-                    sourceText.Lines[lastLineNumber].End);
             }
 
             private ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(
