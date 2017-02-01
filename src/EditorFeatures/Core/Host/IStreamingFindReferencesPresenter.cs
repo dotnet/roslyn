@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// search completes <see cref="FindUsagesContext.OnCompletedAsync"/> should be called. 
         /// etc. etc.
         /// </summary>
-        FindUsagesContext StartSearch(string title, bool alwaysShowDeclarations);
+        FindUsagesContext StartSearch(string title, bool canShowReferences);
     }
 
     internal static class IStreamingFindUsagesPresenterExtensions
@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// items to the user.
         /// </summary>
         public static async Task<bool> TryNavigateToOrPresentItemsAsync(
-            this IStreamingFindUsagesPresenter presenter, string title, 
-            ImmutableArray<DefinitionItem> items, bool alwaysShowDeclarations)
+            this IStreamingFindUsagesPresenter presenter,
+            string title, ImmutableArray<DefinitionItem> items)
         {
             // Ignore any definitions that we can't navigate to.
             var definitions = items.WhereAsArray(d => d.CanNavigateTo());
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // We have multiple definitions, or we have definitions with multiple locations.
                 // Present this to the user so they can decide where they want to go to.
 
-                var context = presenter.StartSearch(title, alwaysShowDeclarations);
+                var context = presenter.StartSearch(title, canShowReferences: false);
                 foreach (var definition in nonExternalItems)
                 {
                     await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);

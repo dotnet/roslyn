@@ -17,13 +17,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private class RoslynDefinitionBucket : DefinitionBucket, ISupportsNavigation
         {
             private readonly StreamingFindUsagesPresenter _presenter;
-            private readonly TableDataSourceFindUsagesContext _context;
+            private readonly AbstractTableDataSourceFindUsagesContext _context;
 
             public readonly DefinitionItem DefinitionItem;
 
             public RoslynDefinitionBucket(
                 StreamingFindUsagesPresenter presenter,
-                TableDataSourceFindUsagesContext context,
+                AbstractTableDataSourceFindUsagesContext context,
                 DefinitionItem definitionItem)
                 : base(name: definitionItem.DisplayParts.JoinText() + " " + definitionItem.GetHashCode(),
                        sourceTypeIdentifier: context.SourceTypeIdentifier,

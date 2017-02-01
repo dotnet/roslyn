@@ -27,59 +27,101 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     internal partial class StreamingFindUsagesPresenter
     {
-        private class DocumentSpanEntry : Entry
+        private abstract class AbstractDocumentSpanEntry : Entry
         {
-            private readonly TableDataSourceFindUsagesContext _context;
+            private readonly AbstractTableDataSourceFindUsagesContext _context;
 
             private readonly DocumentSpan _documentSpan;
-            private readonly bool _isDefinitionLocation;
             private readonly object _boxedProjectGuid;
-            private readonly SourceText _sourceText;
+            protected readonly SourceText _sourceText;
+
+            protected AbstractDocumentSpanEntry(
+                AbstractTableDataSourceFindUsagesContext context,
+                RoslynDefinitionBucket definitionBucket,
+                DocumentSpan documentSpan,
+                Guid projectGuid,
+                SourceText sourceText)
+                : base(definitionBucket)
+            {
+                _context = context;
+
+                _documentSpan = documentSpan;
+                _boxedProjectGuid = projectGuid;
+                _sourceText = sourceText;
+            }
+
+            protected StreamingFindUsagesPresenter Presenter => _context.Presenter;
+
+            protected Document Document => _documentSpan.Document;
+            protected TextSpan SourceSpan => _documentSpan.SourceSpan;
+
+            protected override object GetValueWorker(string keyName)
+            {
+                switch (keyName)
+                {
+                    case StandardTableKeyNames.DocumentName:
+                        return Document.FilePath;
+                    case StandardTableKeyNames.Line:
+                        return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Line;
+                    case StandardTableKeyNames.Column:
+                        return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Character;
+                    case StandardTableKeyNames.ProjectName:
+                        return Document.Project.Name;
+                    case StandardTableKeyNames.ProjectGuid:
+                        return _boxedProjectGuid;
+                    case StandardTableKeyNames.Text:
+                        return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
+                }
+
+                return null;
+            }
+        }
+
+        private class DefinitionItemEntry : AbstractDocumentSpanEntry
+        {
+            public DefinitionItemEntry(
+                AbstractTableDataSourceFindUsagesContext context, 
+                RoslynDefinitionBucket definitionBucket, 
+                DocumentSpan documentSpan, 
+                Guid projectGuid, 
+                SourceText sourceText) 
+                : base(context, definitionBucket, documentSpan, projectGuid, sourceText)
+            {
+            }
+
+            public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
+            {
+                if (columnName == StandardTableColumnDefinitions2.LineText)
+                {
+                    var inlines = DefinitionBucket.DefinitionItem.DisplayParts.ToInlines(Presenter._typeMap);
+                    var textBlock = inlines.ToTextBlock(Presenter._typeMap, wrap: false);
+
+                    content = textBlock;
+                    return true;
+                }
+
+                content = null;
+                return false;
+            }
+        }
+
+        private class DocumentSpanEntry : AbstractDocumentSpanEntry
+        {
+            private readonly bool _isDefinitionLocation;
             private readonly ClassifiedSpansAndHighlightSpan _classifiedSpans;
 
             public DocumentSpanEntry(
-                TableDataSourceFindUsagesContext context,
+                AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 bool isDefinitionLocation,
                 Guid projectGuid,
                 SourceText sourceText,
                 ClassifiedSpansAndHighlightSpan classifiedSpans)
-                : base(definitionBucket)
+                : base(context, definitionBucket, documentSpan, projectGuid, sourceText)
             {
-                _context = context;
-
-                _documentSpan = documentSpan;
                 _isDefinitionLocation = isDefinitionLocation;
-                _boxedProjectGuid = projectGuid;
-                _sourceText = sourceText;
                 _classifiedSpans = classifiedSpans;
-            }
-
-            private StreamingFindUsagesPresenter Presenter => _context.Presenter;
-
-            private Document Document => _documentSpan.Document;
-            private TextSpan SourceSpan => _documentSpan.SourceSpan;
-
-            protected override object GetValueWorker(string keyName)
-            {
-                switch (keyName)
-                {
-                case StandardTableKeyNames.DocumentName:
-                    return Document.FilePath;
-                case StandardTableKeyNames.Line:
-                    return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Line;
-                case StandardTableKeyNames.Column:
-                    return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Character;
-                case StandardTableKeyNames.ProjectName:
-                    return Document.Project.Name;
-                case StandardTableKeyNames.ProjectGuid:
-                    return _boxedProjectGuid;
-                case StandardTableKeyNames.Text:
-                    return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
-                }
-
-                return null;
             }
 
             public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)

@@ -3,15 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.FindReferences;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
@@ -75,8 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 FindUsagesHelpers.GetDisplayName(symbol));
 
             return presenter.TryNavigateToOrPresentItemsAsync(
-                title, definitions.ToImmutableAndFree(),
-                alwaysShowDeclarations: true).WaitAndGetResult(cancellationToken);
+                title, definitions.ToImmutableAndFree()).WaitAndGetResult(cancellationToken);
         }
 
         private static IStreamingFindUsagesPresenter GetFindUsagesPresenter(
