@@ -1011,10 +1011,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.GlobalStatement:
                     {
-                        Debug.Assert(!this.IsRegularCSharp);
                         var parent = node.Parent;
                         // TODO (tomat): handle misplaced global statements
-                        if (parent.Kind() == SyntaxKind.CompilationUnit)
+                        if (parent.Kind() == SyntaxKind.CompilationUnit &&
+                            !this.IsRegularCSharp &&
+                            (object)_compilation.ScriptClass != null)
                         {
                             var scriptInitializer = _compilation.ScriptClass.GetScriptInitializer();
                             Debug.Assert((object)scriptInitializer != null);
