@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.AddRange(entries);
                     }
 
-                    this.NotifyChange();
+                    NotifyChange();
                 }
 
                 entries.Free();

@@ -83,13 +83,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     }
                 }
 
-                declarations.Free();
-
                 if (changed)
                 {
                     // Let all our subscriptions know that we've updated.
                     NotifyChange();
                 }
+
+                declarations.Free();
             }
 
             private bool HasDeclarationEntries(DefinitionItem definition)
