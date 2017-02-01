@@ -22,145 +22,148 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    internal class DocumentSpanEntry : AbstractDocumentSpanEntry
+    internal partial class StreamingFindUsagesPresenter
     {
-        private readonly bool _isDefinitionLocation;
-        private readonly ClassifiedSpansAndHighlightSpan _classifiedSpansAndHighlights;
-
-        public DocumentSpanEntry(
-            AbstractTableDataSourceFindUsagesContext context,
-            RoslynDefinitionBucket definitionBucket,
-            DocumentSpan documentSpan,
-            bool isDefinitionLocation,
-            Guid projectGuid,
-            SourceText sourceText,
-            ClassifiedSpansAndHighlightSpan classifiedSpans)
-            : base(context, definitionBucket, documentSpan, projectGuid, sourceText)
+        private class DocumentSpanEntry : AbstractDocumentSpanEntry
         {
-            _isDefinitionLocation = isDefinitionLocation;
-            _classifiedSpansAndHighlights = classifiedSpans;
-        }
+            private readonly bool _isDefinitionLocation;
+            private readonly ClassifiedSpansAndHighlightSpan _classifiedSpansAndHighlights;
 
-        protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()
-        { 
-            var propertyId = _isDefinitionLocation
-                ? DefinitionHighlightTag.TagId
-                : ReferenceHighlightTag.TagId;
-
-            var properties = Presenter.FormatMapService
-                                      .GetEditorFormatMap("text")
-                                      .GetProperties(propertyId);
-            var highlightBrush = properties["Background"] as Brush;
-
-            var classifiedSpans = _classifiedSpansAndHighlights.ClassifiedSpans;
-            var classifiedTexts = classifiedSpans.SelectAsArray(
-                cs => new ClassifiedText(cs.ClassificationType, _sourceText.ToString(cs.TextSpan)));
-
-            var inlines = classifiedTexts.ToInlines(
-                Presenter.TypeMap,
-                runCallback: (run, classifiedText, position) =>
-                {
-                    if (highlightBrush != null)
-                    {
-                        if (position == _classifiedSpansAndHighlights.HighlightSpan.Start)
-                        {
-                            run.SetValue(
-                                System.Windows.Documents.TextElement.BackgroundProperty,
-                                highlightBrush);
-                        }
-                    }
-                });
-
-            return inlines;
-        }
-
-        private DisposableToolTip CreateDisposableToolTip()
-        {
-            Presenter.AssertIsForeground();
-
-            // Create a new buffer that we'll show a preview for.  We can't search for an 
-            // existing buffer because:
-            //   1. the file may not be open.
-            //   2. our results may not be in sync with what's actually in the editor.
-            var textBuffer = CreateNewBuffer();
-
-            // Create the actual tooltip around the region of that text buffer we want to show.
-            var toolTip = new ToolTip
+            public DocumentSpanEntry(
+                AbstractTableDataSourceFindUsagesContext context,
+                RoslynDefinitionBucket definitionBucket,
+                DocumentSpan documentSpan,
+                bool isDefinitionLocation,
+                Guid projectGuid,
+                SourceText sourceText,
+                ClassifiedSpansAndHighlightSpan classifiedSpans)
+                : base(context, definitionBucket, documentSpan, projectGuid, sourceText)
             {
-                Content = CreateToolTipContent(textBuffer),
-                Background = (Brush)Application.Current.Resources[EnvironmentColors.ToolWindowBackgroundBrushKey]
-            };
+                _isDefinitionLocation = isDefinitionLocation;
+                _classifiedSpansAndHighlights = classifiedSpans;
+            }
 
-            // Create a preview workspace for this text buffer and open it's corresponding 
-            // document.  That way we'll get nice things like classification as well as the
-            // reference highlight span.
-            var newDocument = Document.WithText(textBuffer.AsTextContainer().CurrentText);
-            var workspace = new PreviewWorkspace(newDocument.Project.Solution);
-            workspace.OpenDocument(newDocument.Id);
+            protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()
+            {
+                var propertyId = _isDefinitionLocation
+                    ? DefinitionHighlightTag.TagId
+                    : ReferenceHighlightTag.TagId;
 
-            return new DisposableToolTip(toolTip, workspace);
-        }
+                var properties = Presenter.FormatMapService
+                                          .GetEditorFormatMap("text")
+                                          .GetProperties(propertyId);
+                var highlightBrush = properties["Background"] as Brush;
 
-        private ContentControl CreateToolTipContent(ITextBuffer textBuffer)
-        {
-            var regionSpan = this.GetRegionSpanForReference();
-            var snapshotSpan = textBuffer.CurrentSnapshot.GetSpan(regionSpan);
+                var classifiedSpans = _classifiedSpansAndHighlights.ClassifiedSpans;
+                var classifiedTexts = classifiedSpans.SelectAsArray(
+                    cs => new ClassifiedText(cs.ClassificationType, _sourceText.ToString(cs.TextSpan)));
 
-            var contentType = Presenter.ContentTypeRegistryService.GetContentType(
-                IProjectionBufferFactoryServiceExtensions.RoslynPreviewContentType);
+                var inlines = classifiedTexts.ToInlines(
+                    Presenter.TypeMap,
+                    runCallback: (run, classifiedText, position) =>
+                    {
+                        if (highlightBrush != null)
+                        {
+                            if (position == _classifiedSpansAndHighlights.HighlightSpan.Start)
+                            {
+                                run.SetValue(
+                                    System.Windows.Documents.TextElement.BackgroundProperty,
+                                    highlightBrush);
+                            }
+                        }
+                    });
 
-            var roleSet = Presenter.TextEditorFactoryService.CreateTextViewRoleSet(
-                TextViewRoles.PreviewRole,
-                PredefinedTextViewRoles.Analyzable,
-                PredefinedTextViewRoles.Document,
-                PredefinedTextViewRoles.Editable);
+                return inlines;
+            }
 
-            var content = new ElisionBufferDeferredContent(
-                snapshotSpan,
-                Presenter.ProjectionBufferFactoryService,
-                Presenter.EditorOptionsFactoryService,
-                Presenter.TextEditorFactoryService,
-                contentType,
-                roleSet);
+            private DisposableToolTip CreateDisposableToolTip()
+            {
+                Presenter.AssertIsForeground();
 
-            var element = content.Create();
-            return element;
-        }
+                // Create a new buffer that we'll show a preview for.  We can't search for an 
+                // existing buffer because:
+                //   1. the file may not be open.
+                //   2. our results may not be in sync with what's actually in the editor.
+                var textBuffer = CreateNewBuffer();
 
-        private ITextBuffer CreateNewBuffer()
-        {
-            Presenter.AssertIsForeground();
+                // Create the actual tooltip around the region of that text buffer we want to show.
+                var toolTip = new ToolTip
+                {
+                    Content = CreateToolTipContent(textBuffer),
+                    Background = (Brush)Application.Current.Resources[EnvironmentColors.ToolWindowBackgroundBrushKey]
+                };
 
-            // is it okay to create buffer from threads other than UI thread?
-            var contentTypeService = Document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
-            var contentType = contentTypeService.GetDefaultContentType();
+                // Create a preview workspace for this text buffer and open it's corresponding 
+                // document.  That way we'll get nice things like classification as well as the
+                // reference highlight span.
+                var newDocument = Document.WithText(textBuffer.AsTextContainer().CurrentText);
+                var workspace = new PreviewWorkspace(newDocument.Project.Solution);
+                workspace.OpenDocument(newDocument.Id);
 
-            var textBuffer = Presenter.TextBufferFactoryService.CreateTextBuffer(
-                _sourceText.ToString(), contentType);
+                return new DisposableToolTip(toolTip, workspace);
+            }
 
-            // Create an appropriate highlight span on that buffer for the reference.
-            var key = _isDefinitionLocation
-                ? PredefinedPreviewTaggerKeys.DefinitionHighlightingSpansKey
-                : PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
-            textBuffer.Properties.RemoveProperty(key);
-            textBuffer.Properties.AddProperty(key, new NormalizedSnapshotSpanCollection(
-                SourceSpan.ToSnapshotSpan(textBuffer.CurrentSnapshot)));
+            private ContentControl CreateToolTipContent(ITextBuffer textBuffer)
+            {
+                var regionSpan = this.GetRegionSpanForReference();
+                var snapshotSpan = textBuffer.CurrentSnapshot.GetSpan(regionSpan);
 
-            return textBuffer;
-        }
+                var contentType = Presenter.ContentTypeRegistryService.GetContentType(
+                    IProjectionBufferFactoryServiceExtensions.RoslynPreviewContentType);
 
-        private Span GetRegionSpanForReference()
-        {
-            const int AdditionalLineCountPerSide = 3;
+                var roleSet = Presenter.TextEditorFactoryService.CreateTextViewRoleSet(
+                    TextViewRoles.PreviewRole,
+                    PredefinedTextViewRoles.Analyzable,
+                    PredefinedTextViewRoles.Document,
+                    PredefinedTextViewRoles.Editable);
 
-            var referenceSpan = this.SourceSpan;
-            var lineNumber = _sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
-            var firstLineNumber = Math.Max(0, lineNumber - AdditionalLineCountPerSide);
-            var lastLineNumber = Math.Min(_sourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);
+                var content = new ElisionBufferDeferredContent(
+                    snapshotSpan,
+                    Presenter.ProjectionBufferFactoryService,
+                    Presenter.EditorOptionsFactoryService,
+                    Presenter.TextEditorFactoryService,
+                    contentType,
+                    roleSet);
 
-            return Span.FromBounds(
-                _sourceText.Lines[firstLineNumber].Start,
-                _sourceText.Lines[lastLineNumber].End);
+                var element = content.Create();
+                return element;
+            }
+
+            private ITextBuffer CreateNewBuffer()
+            {
+                Presenter.AssertIsForeground();
+
+                // is it okay to create buffer from threads other than UI thread?
+                var contentTypeService = Document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
+                var contentType = contentTypeService.GetDefaultContentType();
+
+                var textBuffer = Presenter.TextBufferFactoryService.CreateTextBuffer(
+                    _sourceText.ToString(), contentType);
+
+                // Create an appropriate highlight span on that buffer for the reference.
+                var key = _isDefinitionLocation
+                    ? PredefinedPreviewTaggerKeys.DefinitionHighlightingSpansKey
+                    : PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
+                textBuffer.Properties.RemoveProperty(key);
+                textBuffer.Properties.AddProperty(key, new NormalizedSnapshotSpanCollection(
+                    SourceSpan.ToSnapshotSpan(textBuffer.CurrentSnapshot)));
+
+                return textBuffer;
+            }
+
+            private Span GetRegionSpanForReference()
+            {
+                const int AdditionalLineCountPerSide = 3;
+
+                var referenceSpan = this.SourceSpan;
+                var lineNumber = _sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
+                var firstLineNumber = Math.Max(0, lineNumber - AdditionalLineCountPerSide);
+                var lastLineNumber = Math.Min(_sourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);
+
+                return Span.FromBounds(
+                    _sourceText.Lines[firstLineNumber].Start,
+                    _sourceText.Lines[lastLineNumber].End);
+            }
         }
     }
 }

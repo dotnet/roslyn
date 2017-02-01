@@ -7,7 +7,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-        internal class DisposableToolTip : IDisposable
+    internal partial class StreamingFindUsagesPresenter
+    {
+        private class DisposableToolTip : IDisposable
         {
             public readonly ToolTip ToolTip;
             private PreviewWorkspace _workspace;
@@ -28,4 +30,5 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _workspace = null;
             }
         }
+    }
 }

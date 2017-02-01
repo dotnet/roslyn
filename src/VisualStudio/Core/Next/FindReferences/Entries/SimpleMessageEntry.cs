@@ -7,7 +7,9 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-        internal class SimpleMessageEntry : Entry
+    internal partial class StreamingFindUsagesPresenter
+    {
+        private class SimpleMessageEntry : Entry
         {
             private readonly string _message;
 
@@ -47,4 +49,5 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return null;
             }
         }
+    }
 }

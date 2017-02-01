@@ -7,10 +7,12 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
+    internal partial class StreamingFindUsagesPresenter
+    {
         /// <summary>
         /// Class which allows us to provide a delay-created tooltip for our reference entries.
         /// </summary>
-        internal class LazyToolTip
+        private class LazyToolTip
         {
             private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
             private readonly Func<DisposableToolTip> _createToolTip;
@@ -68,4 +70,5 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _disposableToolTip = null;
             }
         }
+    }
 }

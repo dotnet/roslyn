@@ -12,7 +12,9 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-        internal class RoslynDefinitionBucket : DefinitionBucket, ISupportsNavigation
+    internal partial class StreamingFindUsagesPresenter
+    {
+        private class RoslynDefinitionBucket : DefinitionBucket, ISupportsNavigation
         {
             private readonly StreamingFindUsagesPresenter _presenter;
             private readonly AbstractTableDataSourceFindUsagesContext _context;
@@ -67,4 +69,5 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return null;
             }
         }
+    }
 }

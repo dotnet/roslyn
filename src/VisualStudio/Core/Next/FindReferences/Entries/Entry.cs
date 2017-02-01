@@ -7,10 +7,12 @@ using Microsoft.VisualStudio.Shell.TableControl;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
+    internal partial class StreamingFindUsagesPresenter
+    {
         /// <summary>
         /// Represents a single entry (i.e. row) in the ungrouped FAR table.
         /// </summary>
-        internal abstract class Entry
+        private abstract class Entry
         {
             public readonly RoslynDefinitionBucket DefinitionBucket;
 
@@ -47,4 +49,5 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return false;
             }
         }
+    }
 }

@@ -22,7 +22,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-        internal abstract class AbstractTableDataSourceFindUsagesContext :
+    internal partial class StreamingFindUsagesPresenter
+    {
+        private abstract class AbstractTableDataSourceFindUsagesContext :
             FindUsagesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
@@ -170,10 +172,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public string DisplayName => "Roslyn Data Source";
 
-            public string Identifier 
+            public string Identifier
                 => StreamingFindUsagesPresenter.RoslynFindUsagesTableDataSourceIdentifier;
 
-            public string SourceTypeIdentifier 
+            public string SourceTypeIdentifier
                 => StreamingFindUsagesPresenter.RoslynFindUsagesTableDataSourceSourceTypeIdentifier;
 
             public IDisposable Subscribe(ITableDataSink sink)
@@ -466,7 +468,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // to do the progress bar update.  This can made FindReferences feel extremely slow
                 // when thousands of SetProgress calls are made.  So, for now, we're removing
                 // the progress update until the FindRefs window fixes that perf issue.
-    #if false
+#if false
                     try
                     {
                         // The original FAR window exposed a SetProgress(double). Ensure that we 
@@ -476,7 +478,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     catch
                     {
                     }
-    #endif
+#endif
 
                 return SpecializedTasks.EmptyTask;
             }
@@ -548,4 +550,5 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             #endregion
         }
+    }
 }

@@ -12,75 +12,78 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    /// <summary>
-    /// Base type of all <see cref="Entry"/>s that represent some source location in 
-    /// a <see cref="Document"/>.  Navigation to that location is provided by this type.
-    /// Subclasses can be used to provide customized line text to display in the entry.
-    /// </summary>
-    internal abstract class AbstractDocumentSpanEntry : Entry
+    internal partial class StreamingFindUsagesPresenter
     {
-        private readonly AbstractTableDataSourceFindUsagesContext _context;
-
-        private readonly DocumentSpan _documentSpan;
-        private readonly object _boxedProjectGuid;
-        protected readonly SourceText _sourceText;
-
-        protected AbstractDocumentSpanEntry(
-            AbstractTableDataSourceFindUsagesContext context,
-            RoslynDefinitionBucket definitionBucket,
-            DocumentSpan documentSpan,
-            Guid projectGuid,
-            SourceText sourceText)
-            : base(definitionBucket)
+        /// <summary>
+        /// Base type of all <see cref="Entry"/>s that represent some source location in 
+        /// a <see cref="Document"/>.  Navigation to that location is provided by this type.
+        /// Subclasses can be used to provide customized line text to display in the entry.
+        /// </summary>
+        private abstract class AbstractDocumentSpanEntry : Entry
         {
-            _context = context;
+            private readonly AbstractTableDataSourceFindUsagesContext _context;
 
-            _documentSpan = documentSpan;
-            _boxedProjectGuid = projectGuid;
-            _sourceText = sourceText;
-        }
+            private readonly DocumentSpan _documentSpan;
+            private readonly object _boxedProjectGuid;
+            protected readonly SourceText _sourceText;
 
-        protected StreamingFindUsagesPresenter Presenter => _context.Presenter;
-
-        protected Document Document => _documentSpan.Document;
-        protected TextSpan SourceSpan => _documentSpan.SourceSpan;
-
-        protected override object GetValueWorker(string keyName)
-        {
-            switch (keyName)
+            protected AbstractDocumentSpanEntry(
+                AbstractTableDataSourceFindUsagesContext context,
+                RoslynDefinitionBucket definitionBucket,
+                DocumentSpan documentSpan,
+                Guid projectGuid,
+                SourceText sourceText)
+                : base(definitionBucket)
             {
-                case StandardTableKeyNames.DocumentName:
-                    return Document.FilePath;
-                case StandardTableKeyNames.Line:
-                    return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Line;
-                case StandardTableKeyNames.Column:
-                    return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Character;
-                case StandardTableKeyNames.ProjectName:
-                    return Document.Project.Name;
-                case StandardTableKeyNames.ProjectGuid:
-                    return _boxedProjectGuid;
-                case StandardTableKeyNames.Text:
-                    return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
+                _context = context;
+
+                _documentSpan = documentSpan;
+                _boxedProjectGuid = projectGuid;
+                _sourceText = sourceText;
             }
 
-            return null;
-        }
+            protected StreamingFindUsagesPresenter Presenter => _context.Presenter;
 
-        public sealed override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
-        {
-            if (columnName == StandardTableColumnDefinitions2.LineText)
+            protected Document Document => _documentSpan.Document;
+            protected TextSpan SourceSpan => _documentSpan.SourceSpan;
+
+            protected override object GetValueWorker(string keyName)
             {
-                var inlines = CreateLineTextInlines();
-                var textBlock = inlines.ToTextBlock(Presenter.TypeMap, wrap: false);
+                switch (keyName)
+                {
+                    case StandardTableKeyNames.DocumentName:
+                        return Document.FilePath;
+                    case StandardTableKeyNames.Line:
+                        return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Line;
+                    case StandardTableKeyNames.Column:
+                        return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Character;
+                    case StandardTableKeyNames.ProjectName:
+                        return Document.Project.Name;
+                    case StandardTableKeyNames.ProjectGuid:
+                        return _boxedProjectGuid;
+                    case StandardTableKeyNames.Text:
+                        return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
+                }
 
-                content = textBlock;
-                return true;
+                return null;
             }
 
-            content = null;
-            return false;
-        }
+            public sealed override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
+            {
+                if (columnName == StandardTableColumnDefinitions2.LineText)
+                {
+                    var inlines = CreateLineTextInlines();
+                    var textBlock = inlines.ToTextBlock(Presenter.TypeMap, wrap: false);
 
-        protected abstract IList<Inline> CreateLineTextInlines();
+                    content = textBlock;
+                    return true;
+                }
+
+                content = null;
+                return false;
+            }
+
+            protected abstract IList<Inline> CreateLineTextInlines();
+        }
     }
 }

@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
         }
 
-        public FindUsagesContext StartSearch(string title, bool canShowReferences)
+        public FindUsagesContext StartSearch(string title, bool supportsReferences)
         {
             this.AssertIsForeground();
 
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 StoreCurrentGroupingPriority(window);
             }
 
-            return canShowReferences
+            return supportsReferences
                 ? StartSearchWithReferences(window, desiredGroupingPriority)
                 : StartSearchWithoutReferences(window);
         }

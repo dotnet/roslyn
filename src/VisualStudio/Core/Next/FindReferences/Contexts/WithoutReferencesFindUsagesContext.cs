@@ -9,82 +9,85 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    /// <summary>
-    /// Context to be used for FindImplementations/GoToDef (as opposed to FindReferences).
-    /// This context will not group entries by definition, and will instead just create
-    /// entries for the definitions themselves.
-    /// </summary>
-    internal class WithoutReferencesFindUsagesContext : AbstractTableDataSourceFindUsagesContext
+    internal partial class StreamingFindUsagesPresenter
     {
-        public WithoutReferencesFindUsagesContext(
-            StreamingFindUsagesPresenter presenter,
-            IFindAllReferencesWindow findReferencesWindow)
-            : base(presenter, findReferencesWindow)
+        /// <summary>
+        /// Context to be used for FindImplementations/GoToDef (as opposed to FindReferences).
+        /// This context will not group entries by definition, and will instead just create
+        /// entries for the definitions themselves.
+        /// </summary>
+        private class WithoutReferencesFindUsagesContext : AbstractTableDataSourceFindUsagesContext
         {
-        }
-
-        // We should never be called in a context where we get references.
-        protected override Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
-            => throw new InvalidOperationException();
-
-        // Nothing to do on completion.
-        protected override Task OnCompletedAsyncWorkerAsync()
-            => SpecializedTasks.EmptyTask;
-
-        protected override async Task OnDefinitionFoundWorkerAsync(DefinitionItem definition)
-        {
-            var definitionBucket = GetOrCreateDefinitionBucket(definition);
-
-            var entries = ArrayBuilder<Entry>.GetInstance();
-            try
+            public WithoutReferencesFindUsagesContext(
+                StreamingFindUsagesPresenter presenter,
+                IFindAllReferencesWindow findReferencesWindow)
+                : base(presenter, findReferencesWindow)
             {
-                if (definition.SourceSpans.Length == 1)
+            }
+
+            // We should never be called in a context where we get references.
+            protected override Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
+                => throw new InvalidOperationException();
+
+            // Nothing to do on completion.
+            protected override Task OnCompletedAsyncWorkerAsync()
+                => SpecializedTasks.EmptyTask;
+
+            protected override async Task OnDefinitionFoundWorkerAsync(DefinitionItem definition)
+            {
+                var definitionBucket = GetOrCreateDefinitionBucket(definition);
+
+                var entries = ArrayBuilder<Entry>.GetInstance();
+                try
                 {
-                    // If we only have a single location, then use the DisplayParts of the
-                    // definition as what to show.  That way we show enough information for things
-                    // methods.  i.e. we'll show "void TypeName.MethodName(args...)" allowing
-                    // the user to see the type the method was created in.
-                    var entry = await CreateEntryAsync(definitionBucket, definition).ConfigureAwait(false);
-                    entries.Add(entry);
-                }
-                else
-                {
-                    // If we have multiple spans (i.e. for partial types), then create a 
-                    // DocumentSpanEntry for each.  That way we can easily see the source
-                    // code where each location is to help the user decide which they want
-                    // to navigate to.
-                    foreach (var sourceSpan in definition.SourceSpans)
+                    if (definition.SourceSpans.Length == 1)
                     {
-                        var entry = await CreateDocumentSpanEntryAsync(
-                            definitionBucket, sourceSpan, isDefinitionLocation: true).ConfigureAwait(false);
+                        // If we only have a single location, then use the DisplayParts of the
+                        // definition as what to show.  That way we show enough information for things
+                        // methods.  i.e. we'll show "void TypeName.MethodName(args...)" allowing
+                        // the user to see the type the method was created in.
+                        var entry = await CreateEntryAsync(definitionBucket, definition).ConfigureAwait(false);
                         entries.Add(entry);
                     }
-                }
-
-                if (entries.Count > 0)
-                {
-                    lock (_gate)
+                    else
                     {
-                        _entriesWhenGroupingByDefinition = _entriesWhenGroupingByDefinition.AddRange(entries);
-                        _entriesWhenNotGroupingByDefinition = _entriesWhenNotGroupingByDefinition.AddRange(entries);
+                        // If we have multiple spans (i.e. for partial types), then create a 
+                        // DocumentSpanEntry for each.  That way we can easily see the source
+                        // code where each location is to help the user decide which they want
+                        // to navigate to.
+                        foreach (var sourceSpan in definition.SourceSpans)
+                        {
+                            var entry = await CreateDocumentSpanEntryAsync(
+                                definitionBucket, sourceSpan, isDefinitionLocation: true).ConfigureAwait(false);
+                            entries.Add(entry);
+                        }
                     }
 
-                    this.NotifyChange();
+                    if (entries.Count > 0)
+                    {
+                        lock (_gate)
+                        {
+                            _entriesWhenGroupingByDefinition = _entriesWhenGroupingByDefinition.AddRange(entries);
+                            _entriesWhenNotGroupingByDefinition = _entriesWhenNotGroupingByDefinition.AddRange(entries);
+                        }
+
+                        this.NotifyChange();
+                    }
+                }
+                finally
+                {
+                    entries.Free();
                 }
             }
-            finally
+
+            private async Task<Entry> CreateEntryAsync(
+                RoslynDefinitionBucket definitionBucket, DefinitionItem definition)
             {
-                entries.Free();
+                var documentSpan = definition.SourceSpans[0];
+                var (guid, sourceText) = await GetGuidAndSourceTextAsync(documentSpan.Document).ConfigureAwait(false);
+
+                return new DefinitionItemEntry(this, definitionBucket, documentSpan, guid, sourceText);
             }
-        }
-
-        private async Task<Entry> CreateEntryAsync(
-            RoslynDefinitionBucket definitionBucket, DefinitionItem definition)
-        {
-            var documentSpan = definition.SourceSpans[0];
-            var (guid, sourceText) = await GetGuidAndSourceTextAsync(documentSpan.Document).ConfigureAwait(false);
-
-            return new DefinitionItemEntry(this, definitionBucket, documentSpan, guid, sourceText);
         }
     }
 }

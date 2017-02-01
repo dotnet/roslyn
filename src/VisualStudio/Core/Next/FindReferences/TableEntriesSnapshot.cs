@@ -7,7 +7,9 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-        internal class TableEntriesSnapshot : WpfTableEntriesSnapshotBase
+    internal partial class StreamingFindUsagesPresenter
+    {
+        private class TableEntriesSnapshot : WpfTableEntriesSnapshotBase
         {
             private readonly int _versionNumber;
 
@@ -41,4 +43,5 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return this._entries[index].TryCreateColumnContent(columnName, out content);
             }
         }
+    }
 }
