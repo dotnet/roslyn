@@ -38,46 +38,42 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var definitionBucket = GetOrCreateDefinitionBucket(definition);
 
                 var entries = ArrayBuilder<Entry>.GetInstance();
-                try
+
+                if (definition.SourceSpans.Length == 1)
                 {
-                    if (definition.SourceSpans.Length == 1)
+                    // If we only have a single location, then use the DisplayParts of the
+                    // definition as what to show.  That way we show enough information for things
+                    // methods.  i.e. we'll show "void TypeName.MethodName(args...)" allowing
+                    // the user to see the type the method was created in.
+                    var entry = await CreateEntryAsync(definitionBucket, definition).ConfigureAwait(false);
+                    entries.Add(entry);
+                }
+                else
+                {
+                    // If we have multiple spans (i.e. for partial types), then create a 
+                    // DocumentSpanEntry for each.  That way we can easily see the source
+                    // code where each location is to help the user decide which they want
+                    // to navigate to.
+                    foreach (var sourceSpan in definition.SourceSpans)
                     {
-                        // If we only have a single location, then use the DisplayParts of the
-                        // definition as what to show.  That way we show enough information for things
-                        // methods.  i.e. we'll show "void TypeName.MethodName(args...)" allowing
-                        // the user to see the type the method was created in.
-                        var entry = await CreateEntryAsync(definitionBucket, definition).ConfigureAwait(false);
+                        var entry = await CreateDocumentSpanEntryAsync(
+                            definitionBucket, sourceSpan, isDefinitionLocation: true).ConfigureAwait(false);
                         entries.Add(entry);
                     }
-                    else
-                    {
-                        // If we have multiple spans (i.e. for partial types), then create a 
-                        // DocumentSpanEntry for each.  That way we can easily see the source
-                        // code where each location is to help the user decide which they want
-                        // to navigate to.
-                        foreach (var sourceSpan in definition.SourceSpans)
-                        {
-                            var entry = await CreateDocumentSpanEntryAsync(
-                                definitionBucket, sourceSpan, isDefinitionLocation: true).ConfigureAwait(false);
-                            entries.Add(entry);
-                        }
-                    }
-
-                    if (entries.Count > 0)
-                    {
-                        lock (Gate)
-                        {
-                            EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.AddRange(entries);
-                            EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.AddRange(entries);
-                        }
-
-                        this.NotifyChange();
-                    }
                 }
-                finally
+
+                if (entries.Count > 0)
                 {
-                    entries.Free();
+                    lock (Gate)
+                    {
+                        EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.AddRange(entries);
+                        EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.AddRange(entries);
+                    }
+
+                    this.NotifyChange();
                 }
+
+                entries.Free();
             }
 
             private async Task<Entry> CreateEntryAsync(
