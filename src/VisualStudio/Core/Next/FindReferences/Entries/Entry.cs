@@ -31,11 +31,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 switch (keyName)
                 {
-                    case StandardTableKeyNames2.Definition:
-                        return DefinitionBucket;
+                case StandardTableKeyNames2.Definition:
+                    return DefinitionBucket;
 
-                    case StandardTableKeyNames2.DefinitionIcon:
-                        return DefinitionBucket.DefinitionItem.Tags.GetGlyph().GetImageMoniker();
+                case StandardTableKeyNames2.DefinitionIcon:
+                    return DefinitionBucket.DefinitionItem.Tags.GetGlyph().GetImageMoniker();
                 }
 
                 return GetValueWorker(keyName);
