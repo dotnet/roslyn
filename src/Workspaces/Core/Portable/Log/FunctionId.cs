@@ -361,5 +361,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         JsonRpcSession_RequestAssetAsync,
         SolutionSynchronizationService_GetRemotableData,
         AssetService_SynchronizeProjectAssetsAsync,
+        FileTextLoader_FileLengthThresholdExceeded,
     }
 }
