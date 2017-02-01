@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                     // Let all our subscriptions know that we've updated.  That way they'll refresh
                     // and we'll show/hide declarations as appropriate.
-                    _tableDataSink.FactorySnapshotChanged(this);
+                    NotifyChange();
                 }
             }
 
@@ -524,7 +524,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 // We didn't have this version.  Notify the sinks that something must have changed
                 // so that they call back into us with the latest version.
-                _tableDataSink.FactorySnapshotChanged(this);
+                NotifyChange();
                 return null;
             }
 
