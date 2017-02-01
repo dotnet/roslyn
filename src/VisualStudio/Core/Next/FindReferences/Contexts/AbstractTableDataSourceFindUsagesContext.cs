@@ -84,7 +84,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
                 TableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
-
                 TableControl.GroupingsChanged += OnTableControlGroupingsChanged;
 
                 // If the window is closed, cancel any work we're doing.
