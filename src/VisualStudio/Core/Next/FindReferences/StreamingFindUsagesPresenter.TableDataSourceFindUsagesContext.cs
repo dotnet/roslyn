@@ -96,14 +96,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 DetermineCurrentGroupingByDefinitionState();
 
-                // Remove any existing sources in the window.  
-                foreach (var source in findReferencesWindow.Manager.Sources.ToArray())
-                {
-                    findReferencesWindow.Manager.RemoveSource(source);
-                }
+                Debug.Assert(_findReferencesWindow.Manager.Sources.Count == 0);
 
                 // And add ourselves as the source of results for the window.
-                findReferencesWindow.Manager.AddSource(this);
+                _findReferencesWindow.Manager.AddSource(this);
 
                 // After adding us as the source, the manager should immediately call into us to
                 // tell us what the data sink is.
@@ -751,6 +747,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             void IDisposable.Dispose()
             {
+                // VS is letting go of us.  i.e. because a new FAR call is happening, or because
+                // of some other event (like the solution being closed).  Remove us from the set
+                // of sources for the window so that the existing data is cleared out.
+                Debug.Assert(_findReferencesWindow.Manager.Sources.Count == 1);
+                Debug.Assert(_findReferencesWindow.Manager.Sources[0] == this);
+
+                _findReferencesWindow.Manager.RemoveSource(this);
+
                 CancelSearch();
             }
 
