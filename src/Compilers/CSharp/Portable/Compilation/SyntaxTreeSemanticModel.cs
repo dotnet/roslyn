@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetOrAddModel(memberDecl);
 
                     case SyntaxKind.Attribute:
-                        return GetOrAddModel(memberDecl);
+                        return GetOrAddModelForAttribute((AttributeSyntax)memberDecl);
 
                     case SyntaxKind.Parameter:
                         return GetOrAddModelForParameter((ParameterSyntax)memberDecl, span);
@@ -839,6 +839,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        private MemberSemanticModel GetOrAddModelForAttribute(AttributeSyntax attribute)
+        {
+            MemberSemanticModel containing = attribute.Parent != null ? GetMemberModel(attribute.Parent) : null;
+
+            if (containing == null)
+            {
+                return GetOrAddModel(attribute);
+            }
+
+            return ImmutableInterlocked.GetOrAdd(ref _memberModels, attribute,
+                                                 (node, binder) => CreateModelForAttribute(binder, (AttributeSyntax) node),
+                                                 containing.GetEnclosingBinder(attribute.SpanStart));
         }
 
         private static bool IsInDocumentationComment(SyntaxNode node)
@@ -1102,23 +1116,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case SyntaxKind.Attribute:
-                    {
-                        var attribute = (AttributeSyntax)node;
-                        AliasSymbol aliasOpt;
-                        DiagnosticBag discarded = DiagnosticBag.GetInstance();
-                        var attributeType = (NamedTypeSymbol)outer.BindType(attribute.Name, discarded, out aliasOpt);
-                        discarded.Free();
-
-                        return AttributeSemanticModel.Create(
-                            _compilation,
-                            attribute,
-                            attributeType,
-                            aliasOpt,
-                            outer.WithAdditionalFlags(BinderFlags.AttributeArgument));
-                    }
+                    return CreateModelForAttribute(outer, (AttributeSyntax)node);
             }
 
             return null;
+        }
+
+        private static AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute)
+        {
+            AliasSymbol aliasOpt;
+            DiagnosticBag discarded = DiagnosticBag.GetInstance();
+            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, discarded, out aliasOpt);
+            discarded.Free();
+
+            return AttributeSemanticModel.Create(
+                enclosingBinder.Compilation,
+                attribute,
+                attributeType,
+                aliasOpt,
+                enclosingBinder.WithAdditionalFlags(BinderFlags.AttributeArgument));
         }
 
         private SourceMemberFieldSymbol GetDeclaredFieldSymbol(VariableDeclaratorSyntax variableDecl)

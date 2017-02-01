@@ -2994,5 +2994,57 @@ class Program
 @"a
 5");
         }
+
+        [Fact]
+        [WorkItem(16751, "https://github.com/dotnet/roslyn/issues/16751")]
+        public void SemanticModelInAttribute_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        const bool b1 = true;
+
+        void Local1(
+            [Test(p = b1)]
+            [Test(p = b2)]
+            int p1)
+        {
+        }
+
+        Local1(1);
+    }
+}
+
+class b1 {}
+
+class Test : System.Attribute
+{
+    public bool p {get; set;}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl).Verify(
+                // (10,23): error CS0103: The name 'b2' does not exist in the current context
+                //             [Test(p = b2)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(10, 23),
+                // (6,20): warning CS0219: The variable 'b1' is assigned but its value is never used
+                //         const bool b1 = true;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1").WithLocation(6, 20)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var b2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b2").Single();
+            Assert.Null(model.GetSymbolInfo(b2).Symbol);
+
+            var b1 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b1").Single();
+            var b1Symbol = model.GetSymbolInfo(b1).Symbol;
+            Assert.Equal("System.Boolean b1", b1Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, b1Symbol.Kind);
+        }
     }
 }
