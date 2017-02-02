@@ -26,14 +26,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         public async Task AfterOpenParen()
         {
             await VerifyItemExistsAsync(@"
-namespace ConsoleApp36
+class Program
 {
-    class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            (int word, int zword) t = ($$
-        }
+        (int word, int zword) t = ($$
     }
 }", "word:");
         }
@@ -42,14 +39,11 @@ namespace ConsoleApp36
         public async Task AfterOpenParenWithBraceCompletion()
         {
             await VerifyItemExistsAsync(@"
-namespace ConsoleApp36
+class Program
 {
-    class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            (int word, int zword) t = ($$)
-        }
+        (int word, int zword) t = ($$)
     }
 }", "word:");
         }
@@ -58,14 +52,11 @@ namespace ConsoleApp36
         public async Task AfterOpenParenInTupleExpression()
         {
             await VerifyItemExistsAsync(@"
-namespace ConsoleApp36
+class Program
 {
-    class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            (int word, int zword) t = ($$, zword: 2
-        }
+        (int word, int zword) t = ($$, zword: 2
     }
 }", "word:");
         }
@@ -74,14 +65,11 @@ namespace ConsoleApp36
         public async Task AfterOpenParenInTupleExpressionWithBraceCompletion()
         {
             await VerifyItemExistsAsync(@"
-namespace ConsoleApp36
+class Program
 {
-    class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            (int word, int zword) t = ($$, zword: 2
-        }
+        (int word, int zword) t = ($$, zword: 2
     }
 }", "word:");
         }
@@ -90,14 +78,11 @@ namespace ConsoleApp36
         public async Task AfterComma()
         {
             await VerifyItemExistsAsync(@"
-namespace ConsoleApp36
+class Program
 {
-    class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            (int word, int zword) t = (1, $$
-        }
+        (int word, int zword) t = (1, $$
     }
 }", "zword:");
         }
@@ -106,14 +91,11 @@ namespace ConsoleApp36
         public async Task AfterCommaWithBraceCompletion()
         {
             await VerifyItemExistsAsync(@"
-namespace ConsoleApp36
+class Program
 {
-    class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            (int word, int zword) t = (1, $$)
-        }
+        (int word, int zword) t = (1, $$)
     }
 }", "zword:");
         }
@@ -122,14 +104,11 @@ namespace ConsoleApp36
         public async Task InTupleAsArgument()
         {
             await VerifyItemExistsAsync(@"
-namespace ConsoleApp36
+class Program
 {
-    class Program
+    static void Main((int word, int zword) args)
     {
-        static void Main((int word, int zword) args)
-        {
-             Main(($$))
-        }
+         Main(($$))
     }
 }", "word:");
         }
@@ -138,14 +117,11 @@ namespace ConsoleApp36
         public async Task MultiplePossibleTuples()
         {
             var markup = @"
-namespace ConsoleApp36
+class Program
 {
-    class Program
-    {
-        static void Main((int number, int znumber) args) { }
-        static void Main((string word, int zword) args) {
-            Main(($$
-        }
+    static void Main((int number, int znumber) args) { }
+    static void Main((string word, int zword) args) {
+        Main(($$
     }
 }";
             await VerifyItemExistsAsync(markup, "word:");
@@ -156,14 +132,11 @@ namespace ConsoleApp36
         public async Task MultiplePossibleTuplesAfterComma()
         {
             var markup = @"
-namespace ConsoleApp36
+class Program
 {
-    class Program
-    {
-        static void Main((int number, int znumber) args) { }
-        static void Main((string word, int zword) args) {
-            Main(($$
-        }
+    static void Main((int number, int znumber) args) { }
+    static void Main((string word, int zword) args) {
+        Main(($$
     }
 }";
             await VerifyItemExistsAsync(markup, "zword:");
@@ -174,13 +147,13 @@ namespace ConsoleApp36
         public async Task AtIndexGreaterThanNumberOfTupleElements()
         {
             var markup = @"
-    class Program
+class Program
+{
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            (int word, int zword) t = (1, 2, 3, 4, $$ 
-        }
-    }";
+        (int word, int zword) t = (1, 2, 3, 4, $$ 
+    }
+}";
             await VerifyNoItemsExistAsync(markup);
         }
     }

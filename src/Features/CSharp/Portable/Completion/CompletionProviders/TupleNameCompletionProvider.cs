@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 if (index > type.TupleElements.Length)
                 {
-                    index = type.TupleElements.Length - 1;
+                    return;
                 }
 
                 var field = type.TupleElements[index];
