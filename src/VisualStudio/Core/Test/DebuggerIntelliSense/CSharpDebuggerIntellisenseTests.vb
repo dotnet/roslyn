@@ -687,13 +687,13 @@ $$</Document>
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("args", state.GetCurrentViewLineText())
                 Await state.AssertCompletionSession()
-                Assert.NotNull(state.CurrentCompletionPresenterSession.SuggestionModeItem)
+                Assert.True(state.CurrentCompletionPresenterSession.SuggestionMode)
                 state.SendToggleCompletionMode()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.Null(state.CurrentCompletionPresenterSession.SuggestionModeItem)
+                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
                 state.SendTypeChars(".")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.Null(state.CurrentCompletionPresenterSession.SuggestionModeItem)
+                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
             End Using
         End Function
 
@@ -717,13 +717,13 @@ $$</Document>
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("args", state.GetCurrentViewLineText())
                 Await state.AssertCompletionSession()
-                Assert.NotNull(state.CurrentCompletionPresenterSession.SuggestionModeItem)
+                Assert.True(state.CurrentCompletionPresenterSession.SuggestionMode)
                 state.SendToggleCompletionMode()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.Null(state.CurrentCompletionPresenterSession.SuggestionModeItem)
+                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
                 state.SendTypeChars(".")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.Null(state.CurrentCompletionPresenterSession.SuggestionModeItem)
+                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
             End Using
         End Function
 
