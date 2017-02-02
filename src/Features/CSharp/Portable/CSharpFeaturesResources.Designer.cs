@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert if to switch.
+        ///   Looks up a localized string similar to Convert &apos;if&apos; to &apos;switch&apos;.
         /// </summary>
         internal static string Convert_if_to_switch {
             get {

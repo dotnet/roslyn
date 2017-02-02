@@ -504,7 +504,7 @@
     <value>Add 'this.'</value>
   </data>
   <data name="Convert_if_to_switch" xml:space="preserve">
-    <value>Convert if to switch</value>
+    <value>Convert 'if' to 'switch'</value>
   </data>
   <data name="Warning_Extracting_a_local_function_reference_may_produce_invalid_code" xml:space="preserve">
     <value>Warning: Extracting a local function reference may produce invalid code</value>

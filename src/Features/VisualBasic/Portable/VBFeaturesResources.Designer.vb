@@ -477,7 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Convert If to Select Case.
+        '''  Looks up a localized string similar to Convert &apos;If&apos; to &apos;Select Case&apos;.
         '''</summary>
         Friend ReadOnly Property Convert_If_to_Select_Case() As String
             Get
