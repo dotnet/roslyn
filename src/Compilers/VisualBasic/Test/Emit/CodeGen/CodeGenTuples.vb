@@ -17281,6 +17281,149 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
         End Sub
 
         <Fact>
+        Public Sub ValueTupleBaseError_NoSystemRuntime()
+            Dim comp = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Interface I
+    Function F() As ((Integer, Integer), (Integer, Integer))
+End Interface
+    </file>
+</compilation>,
+                references:={ValueTupleRef})
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+    Function F() As ((Integer, Integer), (Integer, Integer))
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+    Function F() As ((Integer, Integer), (Integer, Integer))
+                     ~~~~~~~~~~~~~~~~~~
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+    Function F() As ((Integer, Integer), (Integer, Integer))
+                                         ~~~~~~~~~~~~~~~~~~
+</errors>)
+        End Sub
+
+        <WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")>
+        <Fact>
+        Public Sub ValueTupleBaseError_MissingReference()
+            Dim comp0 = CreateCompilationWithMscorlib(
+<compilation name="5a03232e-1a0f-4d1b-99ba-5d7b40ea931e">
+    <file name="a.vb">
+Public Class A
+End Class
+Public Class B
+End Class
+    </file>
+</compilation>)
+            comp0.AssertNoDiagnostics()
+            Dim ref0 = comp0.EmitToImageReference()
+            Dim comp1 = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Public Class C(Of T)
+End Class
+Namespace System
+    Public Class ValueTuple(Of T1, T2)
+        Inherits A
+        Public Sub New(_1 As T1, _2 As T2)
+        End Sub
+    End Class
+    Public Class ValueTuple(Of T1, T2, T3)
+        Inherits C(Of B)
+        Public Sub New(_1 As T1, _2 As T2, _3 As T3)
+        End Sub
+    End Class
+End Namespace
+    </file>
+</compilation>,
+                references:={ref0})
+            Dim ref1 = comp1.EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Interface I
+    Function F() As (Integer, (Integer, Integer), (Integer, Integer))
+End Interface
+    </file>
+</compilation>,
+                references:={ref1})
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC30652: Reference required to assembly '5a03232e-1a0f-4d1b-99ba-5d7b40ea931e, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A'. Add one to your project.
+BC30652: Reference required to assembly '5a03232e-1a0f-4d1b-99ba-5d7b40ea931e, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'B'. Add one to your project.
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub ValueTupleBase_AssemblyUnification()
+            Dim signedDllOptions = TestOptions.ReleaseDll.
+                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
+                WithStrongNameProvider(New SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray(Of String).Empty))
+            Dim comp0v1 = CreateCompilationWithMscorlib(
+<compilation name="A">
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyVersion("1.0.0.0")>
+Public Class A
+End Class
+    ]]></file>
+</compilation>,
+                options:=signedDllOptions)
+            comp0v1.AssertNoDiagnostics()
+            Dim ref0v1 = comp0v1.EmitToImageReference()
+            Dim comp0v2 = CreateCompilationWithMscorlib(
+<compilation name="A">
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyVersion("2.0.0.0")>
+Public Class A
+End Class
+    ]]></file>
+</compilation>,
+                options:=signedDllOptions)
+            comp0v2.AssertNoDiagnostics()
+            Dim ref0v2 = comp0v2.EmitToImageReference()
+            Dim comp1 = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Public Class B
+    Inherits A
+End Class
+    </file>
+</compilation>,
+                references:={ref0v1})
+            comp1.AssertNoDiagnostics()
+            Dim ref1 = comp1.EmitToImageReference()
+            Dim comp2 = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Namespace System
+    Public Class ValueTuple(Of T1, T2)
+        Inherits B
+        Public Sub New(_1 As T1, _2 As T2)
+        End Sub
+    End Class
+End Namespace
+    </file>
+</compilation>,
+                references:={ref0v1, ref1})
+            Dim ref2 = comp2.EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Interface I
+    Function F() As (Integer, Integer)
+End Interface
+    </file>
+</compilation>,
+                references:={ref0v2, ref1, ref2})
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
+</errors>)
+        End Sub
+
+        <Fact>
         Public Sub TernaryTypeInferenceWithDynamicAndTupleNames()
             ' No dynamic in VB
 

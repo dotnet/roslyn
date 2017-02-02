@@ -16,7 +16,6 @@ using Roslyn.Test.Utilities;
 using Xunit;
 
 using static TestResources.NetFX.ValueTuple;
-using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -19896,9 +19895,7 @@ namespace System
                 //         (int a, int b) x;
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, "x").WithArguments("ValueTuple`2").WithLocation(6, 24)
             );
-
         }
-
 
         [Fact]
         [WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")]
@@ -19971,7 +19968,6 @@ namespace System
                 //         var x = (1,2,3,4,5,6,7,8,9);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, "x = (1,2,3,4,5,6,7,8,9)").WithArguments("ValueTuple`2").WithLocation(6, 13)
             );
-
         }
 
         [Fact]
@@ -20013,7 +20009,6 @@ namespace System
                 // error CS8180: Predefined type 'ValueTuple`2' must be a struct.
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct).WithArguments("ValueTuple`2").WithLocation(1, 1)
             );
-
         }
 
         [Fact]
@@ -20047,7 +20042,6 @@ namespace System
                 // error CS8180: Predefined type 'ValueTuple`2' must be a struct.
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct).WithArguments("ValueTuple`2").WithLocation(1, 1)
             );
-
         }
 
         [Fact]
@@ -20093,7 +20087,6 @@ namespace System
                 //         (int, int)[] x = null;
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, "x = null").WithArguments("ValueTuple`2").WithLocation(10, 22)
             );
-
         }
 
         [Fact]
@@ -20139,7 +20132,123 @@ namespace System
         return (1, 1);
     }").WithArguments("ValueTuple`2").WithLocation(9, 5)
             );
+        }
 
+        [Fact]
+        public void ValueTupleBaseError_NoSystemRuntime()
+        {
+            var source =
+@"interface I
+{
+    ((int, int), (int, int)) F();
+}";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef });
+            comp.VerifyEmitDiagnostics(
+                // (3,6): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //     ((int, int), (int, int)) F();
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int, int)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(3, 6),
+                // (3,18): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //     ((int, int), (int, int)) F();
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int, int)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(3, 18),
+                // (3,5): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //     ((int, int), (int, int)) F();
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "((int, int), (int, int))").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(3, 5));
+        }
+
+        [WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")]
+        [Fact]
+        public void ValueTupleBaseError_MissingReference()
+        {
+            var source0 =
+@"public class A
+{
+}
+public class B
+{
+}";
+            var comp0 = CreateCompilationWithMscorlib(source0, assemblyName: "92872377-08d1-4723-8906-a43b03e56ed3");
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+            var source1 =
+@"public class C<T>
+{
+}
+namespace System
+{
+    public class ValueTuple<T1, T2> : A
+    {
+        public ValueTuple(T1 _1, T2 _2) { }
+    }
+    public class ValueTuple<T1, T2, T3> : C<B>
+    {
+        public ValueTuple(T1 _1, T2 _2, T3 _3) { }
+    }
+}";
+            var comp1 = CreateCompilationWithMscorlib(source1, references: new[] { ref0 });
+            comp1.VerifyDiagnostics();
+            var ref1 = comp1.EmitToImageReference();
+            var source =
+@"interface I
+{
+    (int, (int, int), (int, int)) F();
+}";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ref1 });
+            comp.VerifyEmitDiagnostics(
+                // error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly '92872377-08d1-4723-8906-a43b03e56ed3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("B", "92872377-08d1-4723-8906-a43b03e56ed3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '92872377-08d1-4723-8906-a43b03e56ed3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "92872377-08d1-4723-8906-a43b03e56ed3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+        }
+
+        [Fact]
+        public void ValueTupleBase_AssemblyUnification()
+        {
+            var source0v1 =
+@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+public class A
+{
+}";
+            var signedDllOptions = TestOptions.ReleaseDll.
+                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
+                WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray<string>.Empty));
+            var comp0v1 = CreateCompilationWithMscorlib(source0v1, assemblyName: "A", options: signedDllOptions);
+            comp0v1.VerifyDiagnostics();
+            var ref0v1 = comp0v1.EmitToImageReference();
+            var source0v2 =
+@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
+public class A
+{
+}";
+            var comp0v2 = CreateCompilationWithMscorlib(source0v2, assemblyName: "A", options: signedDllOptions);
+            comp0v2.VerifyDiagnostics();
+            var ref0v2 = comp0v2.EmitToImageReference();
+            var source1 =
+@"public class B : A
+{
+}";
+            var comp1 = CreateCompilationWithMscorlib(source1, references: new[] { ref0v1 });
+            comp1.VerifyDiagnostics();
+            var ref1 = comp1.EmitToImageReference();
+            var source2 =
+@"namespace System
+{
+    public class ValueTuple<T1, T2> : B
+    {
+        public ValueTuple(T1 _1, T2 _2) { }
+    }
+}";
+            var comp2 = CreateCompilationWithMscorlib(source2, references: new[] { ref1, ref0v1 });
+            comp2.VerifyDiagnostics();
+            var ref2 = comp2.EmitToImageReference();
+            var source =
+@"interface I
+{
+    (int, int) F();
+}";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ref0v2, ref1, ref2 });
+            comp.VerifyEmitDiagnostics(
+                // error CS8182: Predefined type 'ValueTuple`2' must be a struct.
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct).WithArguments("ValueTuple`2").WithLocation(1, 1));
         }
 
         [Fact]
