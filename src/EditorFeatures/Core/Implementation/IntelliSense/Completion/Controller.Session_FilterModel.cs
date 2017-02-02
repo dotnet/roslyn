@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // ourselves.
                 if (model.Trigger.Kind == CompletionTriggerKind.Deletion)
                 {
-                    return HandleDeletionTrigger(model, filterResults);
+                    return HandleDeletionTrigger(model, filterReason, filterResults);
                 }
 
                 return HandleNormalFiltering(
@@ -322,8 +322,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return bestItem;
             }
 
-            private Model HandleDeletionTrigger(Model model, List<FilterResult> filterResults)
+            private Model HandleDeletionTrigger(
+                Model model, CompletionFilterReason filterReason, List<FilterResult> filterResults)
             {
+                if (filterReason == CompletionFilterReason.Insertion &&
+                    !filterResults.Any(r => r.MatchedFilterText))
+                {
+                    // The user has typed something, but nothing in the actual list matched what
+                    // they were typing.  In this case, we want to dismiss completion entirely.
+                    // The thought process is as follows: we aggressively brough up completion
+                    // to help them when they typed delete (in case they wanted to pick another
+                    // item).  However, they're typing something that doesn't seem to match at all
+                    // The completion list is just distracting at this point.
+                    return null;
+                }
+
                 FilterResult? bestFilterResult = null;
                 int matchCount = 0;
                 foreach (var currentFilterResult in filterResults.Where(r => r.MatchedFilterText))
@@ -388,20 +401,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
                 }
                 return false;
-            }
-
-            private struct FilterResult
-            {
-                public readonly CompletionItem CompletionItem;
-                public readonly bool MatchedFilterText;
-                public readonly string FilterText;
-
-                public FilterResult(CompletionItem completionItem, string filterText, bool matchedFilterText)
-                {
-                    CompletionItem = completionItem;
-                    MatchedFilterText = matchedFilterText;
-                    FilterText = filterText;
-                }
             }
 
             private static Model HandleAllItemsFilteredOut(
