@@ -276,9 +276,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     ? null
                     : applicableFixes.Length == collection.Fixes.Length
                         ? collection
-                        : new CodeFixCollection(collection.Provider, collection.TextSpan, applicableFixes,
-                            collection.FixAllState,
-                            collection.SupportedScopes, collection.FirstDiagnostic);
+                        : new CodeFixCollection(
+                            collection.Provider, collection.TextSpan, applicableFixes,
+                            collection.FixAllState, collection.SupportedScopes, collection.FirstDiagnostic);
             }
 
             private bool IsApplicable(CodeAction action, Workspace workspace)
@@ -616,12 +616,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (provider._codeFixService != null &&
                     supportsFeatureService.SupportsCodeFixes(document))
                 {
-                    // We only consider suppressions if lightbulb is asking for everything.
-                    // If the light bulb is only asking for code fixes, then we don't consider suppressions.
                     var result = await Task.Run(
                         () => provider._codeFixService.GetFirstDiagnosticWithFixAsync(
                             document, range.Span.ToTextSpan(), cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
 
                     if (result.HasFix)
                     {
