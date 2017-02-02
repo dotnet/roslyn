@@ -105,6 +105,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                    name.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is name) OrElse
                    name.CheckParent(Of CastExpressionSyntax)(Function(p) p.Type Is name) OrElse
                    name.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.Expression Is name) OrElse
+                   name.CheckParent(Of NameColonEqualsSyntax)(Function(p) p.Name Is name) OrElse
                    name.CheckParent(Of NameOfExpressionSyntax)(Function(p) p.Argument Is name) Then
                     Return False
                 End If

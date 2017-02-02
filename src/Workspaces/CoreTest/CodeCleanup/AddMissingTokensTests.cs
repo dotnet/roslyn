@@ -2595,6 +2595,43 @@ End Class";
         }
 
         [Fact]
+        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        public async Task TestTupleLiteralUndeclared()
+        {
+            var code = @"[|
+Option Explicit Off
+
+Module Module1
+
+    Sub Main()
+         x = (first:=1,  second:=2)
+
+    End Sub
+
+    Sub Second
+    End Sub
+End Module
+|]";
+
+            var expected = @"
+Option Explicit Off
+
+Module Module1
+
+    Sub Main()
+        x = (first:=1, second:=2)
+
+    End Sub
+
+    Sub Second()
+    End Sub
+End Module
+";
+
+            await VerifyAsync(code, expected);
+        }
+
+        [Fact]
         [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task TestAsyncLambdaFunction()
