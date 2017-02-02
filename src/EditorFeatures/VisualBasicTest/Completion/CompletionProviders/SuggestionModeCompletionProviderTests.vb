@@ -289,19 +289,6 @@ End Class
             Await VerifyBuilderAsync(markup)
         End Function
 
-        <WorkItem(1044441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044441")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function BuilderInDebugger() As Task
-            Dim markup = <a> 
-Class C1
-    Sub Foo()
-        Dim __o = $$
-    End Sub
-End Class
-</a>
-            Await VerifyBuilderAsync(markup, New CompletionTrigger(CompletionTriggerKind.Invoke), useDebuggerOptions:=True)
-        End Function
-
         <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function NamespaceDeclarationName_Unqualified() As Task
