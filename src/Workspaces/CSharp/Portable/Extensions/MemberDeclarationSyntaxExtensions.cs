@@ -331,10 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             switch (memberDeclaration?.Kind())
             {
                 case SyntaxKind.PropertyDeclaration:
-                    var propertyDeclaration = (PropertyDeclarationSyntax)memberDeclaration;
-                    return propertyDeclaration.ExpressionBody ??
-                        propertyDeclaration.AccessorList.Accessors.FirstOrDefault(a => a.ExpressionBody != null)
-                            ?.ExpressionBody;
+                    return ((PropertyDeclarationSyntax)memberDeclaration).ExpressionBody;
                 case SyntaxKind.MethodDeclaration:
                     return ((MethodDeclarationSyntax)memberDeclaration).ExpressionBody;
                 case SyntaxKind.IndexerDeclaration:
