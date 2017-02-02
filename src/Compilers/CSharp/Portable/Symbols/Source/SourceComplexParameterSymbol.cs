@@ -238,11 +238,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder = binderFactory.GetBinder(defaultSyntax);
             }
 
-            Binder binderForDefault = binder.GetBinder(defaultSyntax);
-            if (binderForDefault == null)
-            {
-                binderForDefault = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
-            }
+            Debug.Assert(binder.GetBinder(defaultSyntax) == null);
+
+            Binder binderForDefault = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
             Debug.Assert(binderForDefault.InParameterDefaultValue);
             Debug.Assert(binderForDefault.ContainingMemberOrLambda == ContainingSymbol);
 

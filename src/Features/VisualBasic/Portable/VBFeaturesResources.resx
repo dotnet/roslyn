@@ -301,7 +301,7 @@
     <value>&lt;new variable&gt;</value>
   </data>
   <data name="Remove_and_Sort_Imports" xml:space="preserve">
-    <value>Remove &amp;and Sort Imports</value>
+    <value>R&amp;emove and Sort Imports</value>
   </data>
   <data name="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName" xml:space="preserve">
     <value>Creates a delegate procedure instance that references the specified procedure.

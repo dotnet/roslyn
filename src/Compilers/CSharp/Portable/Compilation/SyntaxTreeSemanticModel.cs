@@ -21,6 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly CSharpCompilation _compilation;
         private readonly SyntaxTree _syntaxTree;
+
+        /// <summary>
+        /// Note, the name of this field could be somewhat confusing because it is also 
+        /// used to store models for attributes and default parameter values, which are
+        /// not members.
+        /// </summary>
         private ImmutableDictionary<CSharpSyntaxNode, MemberSemanticModel> _memberModels = ImmutableDictionary<CSharpSyntaxNode, MemberSemanticModel>.Empty;
 
         private readonly BinderFactory _binderFactory;
@@ -437,6 +443,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (model == null) ? null : model.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
         }
 
+        public override INamedTypeSymbol GetDeclaredSymbol(TupleExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declaratorSyntax);
+            var model = this.GetMemberModel(declaratorSyntax);
+            return (model == null) ? null : model.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
+        }
+
+        public override ISymbol GetDeclaredSymbol(ArgumentSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declaratorSyntax);
+            var model = this.GetMemberModel(declaratorSyntax);
+            return (model == null) ? null : model.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
+        }
+
         public override IRangeVariableSymbol GetDeclaredSymbol(QueryClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(node);
@@ -736,19 +756,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (memberDecl.Kind())
                 {
-                    case SyntaxKind.DelegateDeclaration:
-                        {
-                            DelegateDeclarationSyntax delegateDecl = (DelegateDeclarationSyntax)memberDecl;
-                            return GetOrAddModelForParameterDefaultValue(delegateDecl.ParameterList.Parameters, span);
-                        }
                     case SyntaxKind.MethodDeclaration:
                     case SyntaxKind.ConversionOperatorDeclaration:
                     case SyntaxKind.OperatorDeclaration:
                         {
                             var methodDecl = (BaseMethodDeclarationSyntax)memberDecl;
                             var expressionBody = methodDecl.GetExpressionBodySyntax();
-                            return GetOrAddModelForParameterDefaultValue(methodDecl.ParameterList.Parameters, span) ??
-                                   GetOrAddModelIfContains(expressionBody, span) ??
+                            return GetOrAddModelIfContains(expressionBody, span) ??
                                    GetOrAddModelIfContains(methodDecl.Body, span);
                         }
 
@@ -756,8 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             ConstructorDeclarationSyntax constructorDecl = (ConstructorDeclarationSyntax)memberDecl;
                             var expressionBody = constructorDecl.GetExpressionBodySyntax();
-                            return GetOrAddModelForParameterDefaultValue(constructorDecl.ParameterList.Parameters, span) ??
-                                   GetOrAddModelIfContains(constructorDecl.Initializer, span) ??
+                            return GetOrAddModelIfContains(constructorDecl.Initializer, span) ??
                                    GetOrAddModelIfContains(expressionBody, span) ??
                                    GetOrAddModelIfContains(constructorDecl.Body, span);
                         }
@@ -773,9 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.IndexerDeclaration:
                         {
                             var indexerDecl = (IndexerDeclarationSyntax)memberDecl;
-                            return GetOrAddModelForParameterDefaultValue(
-                                indexerDecl.ParameterList.Parameters, span) ??
-                                GetOrAddModelIfContains(indexerDecl.ExpressionBody, span);
+                            return GetOrAddModelIfContains(indexerDecl.ExpressionBody, span);
                         }
 
                     case SyntaxKind.FieldDeclaration:
@@ -820,11 +831,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetOrAddModel(memberDecl);
 
                     case SyntaxKind.Attribute:
-                        return GetOrAddModel(memberDecl);
+                        return GetOrAddModelForAttribute((AttributeSyntax)memberDecl);
+
+                    case SyntaxKind.Parameter:
+                        return GetOrAddModelForParameter((ParameterSyntax)memberDecl, span);
                 }
             }
 
             return null;
+        }
+
+        private MemberSemanticModel GetOrAddModelForAttribute(AttributeSyntax attribute)
+        {
+            MemberSemanticModel containing = attribute.Parent != null ? GetMemberModel(attribute.Parent) : null;
+
+            if (containing == null)
+            {
+                return GetOrAddModel(attribute);
+            }
+
+            return ImmutableInterlocked.GetOrAdd(ref _memberModels, attribute,
+                                                 (node, binder) => CreateModelForAttribute(binder, (AttributeSyntax) node),
+                                                 containing.GetEnclosingBinder(attribute.SpanStart));
         }
 
         private static bool IsInDocumentationComment(SyntaxNode node)
@@ -840,18 +868,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        // Check each parameter for a default value containing span, and create an InitializerSemanticModel for binding the default value if so.
-        // Otherwise, return null.
-        private MemberSemanticModel GetOrAddModelForParameterDefaultValue(SeparatedSyntaxList<ParameterSyntax> parameterList, TextSpan span)
+        // Check parameter for a default value containing span, and create an InitializerSemanticModel for binding the default value if so.
+        // Otherwise, return model for enclosing context.
+        private MemberSemanticModel GetOrAddModelForParameter(ParameterSyntax paramDecl, TextSpan span)
         {
-            foreach (ParameterSyntax paramDecl in parameterList)
+            EqualsValueClauseSyntax defaultValueSyntax = paramDecl.Default;
+            MemberSemanticModel containing = paramDecl.Parent != null ? GetMemberModel(paramDecl.Parent) : null;
+
+            if (containing == null)
             {
-                MemberSemanticModel model = GetOrAddModelIfContains(paramDecl.Default, span);
-                if (model != null)
-                    return model;
+                return GetOrAddModelIfContains(defaultValueSyntax, span);
             }
 
-            return null;
+            if (defaultValueSyntax != null && defaultValueSyntax.FullSpan.Contains(span))
+            {
+                var parameterSymbol = (ParameterSymbol)containing.GetDeclaredSymbol(paramDecl);
+                if ((object)parameterSymbol != null)
+                {
+                    return ImmutableInterlocked.GetOrAdd(ref _memberModels, defaultValueSyntax, 
+                                                         (equalsValue, tuple) =>
+                                                            InitializerSemanticModel.Create(
+                                                                tuple.compilation,
+                                                                tuple.paramDecl,
+                                                                tuple.parameterSymbol,
+                                                                tuple.containing.GetEnclosingBinder(tuple.paramDecl.SpanStart).
+                                                                    CreateBinderForParameterDefaultValue(tuple.parameterSymbol, 
+                                                                                            (EqualsValueClauseSyntax)equalsValue)),
+                                                         (compilation: this.Compilation,
+                                                          paramDecl: paramDecl,
+                                                          parameterSymbol: parameterSymbol,
+                                                          containing: containing)
+                                                         );
+                }
+            }
+
+
+            return containing;
         }
 
         private static CSharpSyntaxNode GetMemberDeclaration(SyntaxNode node)
@@ -1064,23 +1116,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case SyntaxKind.Attribute:
-                    {
-                        var attribute = (AttributeSyntax)node;
-                        AliasSymbol aliasOpt;
-                        DiagnosticBag discarded = DiagnosticBag.GetInstance();
-                        var attributeType = (NamedTypeSymbol)outer.BindType(attribute.Name, discarded, out aliasOpt);
-                        discarded.Free();
-
-                        return AttributeSemanticModel.Create(
-                            _compilation,
-                            attribute,
-                            attributeType,
-                            aliasOpt,
-                            outer.WithAdditionalFlags(BinderFlags.AttributeArgument));
-                    }
+                    return CreateModelForAttribute(outer, (AttributeSyntax)node);
             }
 
             return null;
+        }
+
+        private static AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute)
+        {
+            AliasSymbol aliasOpt;
+            DiagnosticBag discarded = DiagnosticBag.GetInstance();
+            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, discarded, out aliasOpt);
+            discarded.Free();
+
+            return AttributeSemanticModel.Create(
+                enclosingBinder.Compilation,
+                attribute,
+                attributeType,
+                aliasOpt,
+                enclosingBinder.WithAdditionalFlags(BinderFlags.AttributeArgument));
         }
 
         private SourceMemberFieldSymbol GetDeclaredFieldSymbol(VariableDeclaratorSyntax variableDecl)
@@ -1124,7 +1178,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsMemberDeclaration(CSharpSyntaxNode node)
         {
-            return (node is MemberDeclarationSyntax) || (node is AccessorDeclarationSyntax) || (node is AttributeSyntax);
+            return (node is MemberDeclarationSyntax) || (node is AccessorDeclarationSyntax) || 
+                   (node.Kind() == SyntaxKind.Attribute) || (node.Kind() == SyntaxKind.Parameter);
         }
 
         private bool IsRegularCSharp

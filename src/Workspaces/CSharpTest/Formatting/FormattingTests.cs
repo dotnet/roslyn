@@ -1538,17 +1538,18 @@ public class foo : System.Object
         }
 
         [WorkItem(751789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751789")]
+        [WorkItem(8808, "https://developercommunity.visualstudio.com/content/problem/8808/c-structure-guide-lines-for-unsafe-fixed.html")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NewLineForOpenBracesNonDefault()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInTypes, false);
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInMethods, false);
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, false);
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false);
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes, false);
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false);
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, false);
+            changingOptions.Add(NewLinesForBracesInTypes, false);
+            changingOptions.Add(NewLinesForBracesInMethods, false);
+            changingOptions.Add(NewLinesForBracesInAnonymousMethods, false);
+            changingOptions.Add(NewLinesForBracesInControlBlocks, false);
+            changingOptions.Add(NewLinesForBracesInAnonymousTypes, false);
+            changingOptions.Add(NewLinesForBracesInObjectCollectionArrayInitializers, false);
+            changingOptions.Add(NewLinesForBracesInLambdaExpressionBody, false);
             await AssertFormatAsync(@"class f00 {
     void br() {
         Func<int, int> ret = x => {
@@ -1581,6 +1582,12 @@ public class foo : System.Object
         switch (switchVar) {
             default:
                 break;
+        }
+
+        unsafe {
+        }
+
+        fixed (int* p = &i) {
         }
     }
 }
@@ -1634,6 +1641,14 @@ var obj1 = new foo
  {
             default: 
                 break;
+        }
+
+        unsafe
+{
+        }
+
+        fixed (int* p = &i)
+{
         }
 }
 }

@@ -125,6 +125,46 @@ index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function TestGenerateClassWithCtorFromObjectCreationWithTuple() As Task
+            Await TestAsync(
+"Class C
+    Dim f = New [|Generated|]((1, 2))
+End Class",
+"Class C
+    Dim f = New Generated((1, 2))
+
+    Private Class Generated
+        Private p As (Integer, Integer)
+
+        Public Sub New(p As (Integer, Integer))
+            Me.p = p
+        End Sub
+    End Class
+End Class",
+index:=2)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function TestGenerateClassWithCtorFromObjectCreationWithTupleWithNames() As Task
+            Await TestAsync(
+"Class C
+    Dim f = New [|Generated|]((a:=1, b:=2, 3))
+End Class",
+"Class C
+    Dim f = New Generated((a:=1, b:=2, 3))
+
+    Private Class Generated
+        Private p As (a As Integer, b As Integer, Integer)
+
+        Public Sub New(p As (a As Integer, b As Integer, Integer))
+            Me.p = p
+        End Sub
+    End Class
+End Class",
+index:=2)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestCreateException() As Task
             Await TestAsync(
 "Imports System

@@ -11,19 +11,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         private bool IsControlBlock(SyntaxNode node)
         {
-            var parent = node != null ? node.Parent : null;
+            if (node.Kind() == SyntaxKind.SwitchStatement)
+            {
+                return true;
+            }
 
-            return (node != null && node.Kind() == SyntaxKind.SwitchStatement) ||
-                   (parent != null &&
-                   (parent.Kind() == SyntaxKind.IfStatement || parent.Kind() == SyntaxKind.ElseClause ||
-                    parent.Kind() == SyntaxKind.WhileStatement || parent.Kind() == SyntaxKind.DoStatement ||
-                    parent.Kind() == SyntaxKind.ForEachStatement || parent.Kind() == SyntaxKind.ForEachVariableStatement ||
-                    parent.Kind() == SyntaxKind.UsingStatement ||
-                    parent.Kind() == SyntaxKind.ForStatement || parent.Kind() == SyntaxKind.TryStatement ||
-                    parent.Kind() == SyntaxKind.CatchClause || parent.Kind() == SyntaxKind.FinallyClause ||
-                    parent.Kind() == SyntaxKind.LockStatement || parent.Kind() == SyntaxKind.CheckedStatement ||
-                    parent.Kind() == SyntaxKind.UncheckedStatement || parent.Kind() == SyntaxKind.SwitchSection ||
-                    parent.Kind() == SyntaxKind.FixedStatement));
+            var parentKind = node?.Parent.Kind();
+            switch (parentKind.GetValueOrDefault())
+            {
+                case SyntaxKind.IfStatement:
+                case SyntaxKind.ElseClause:
+                case SyntaxKind.WhileStatement:
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
+                case SyntaxKind.UsingStatement:
+                case SyntaxKind.ForStatement:
+                case SyntaxKind.TryStatement:
+                case SyntaxKind.CatchClause:
+                case SyntaxKind.FinallyClause:
+                case SyntaxKind.LockStatement:
+                case SyntaxKind.CheckedStatement:
+                case SyntaxKind.UncheckedStatement:
+                case SyntaxKind.SwitchSection:
+                case SyntaxKind.FixedStatement:
+                case SyntaxKind.UnsafeStatement:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
