@@ -132,7 +132,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         return model;
                     }
 
-                    if (currentItem.ShouldBeFilteredOutOfCompletionList(effectiveFilterItemState))
+                    if (CompletionItemFilter.ShouldBeFilteredOutOfCompletionList(
+                            currentItem, effectiveFilterItemState))
                     {
                         continue;
                     }

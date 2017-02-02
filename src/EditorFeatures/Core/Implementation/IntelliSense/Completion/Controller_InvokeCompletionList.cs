@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            var trigger = new CompletionTrigger(CompletionTriggerKind.Invoke);
+            var trigger = CompletionTrigger.Invoke;
             StartNewModelComputation(completionService, trigger);
         }
     }

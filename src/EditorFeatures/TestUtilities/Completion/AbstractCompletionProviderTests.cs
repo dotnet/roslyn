@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             var code = (await document.GetTextAsync()).ToString();
 
-            var trigger = new CompletionTrigger(CompletionTriggerKind.Invoke);
+            var trigger = CompletionTrigger.Invoke;
 
             if (usePreviousCharAsTrigger)
             {
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var textBuffer = workspace.Documents.Single().TextBuffer;
 
             var service = GetCompletionService(workspace);
-            var items = (await GetCompletionListAsync(service, document, position, new CompletionTrigger(CompletionTriggerKind.Invoke))).Items;
+            var items = (await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
             var customCommitCompletionProvider = service.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var textSnapshot = textBuffer.CurrentSnapshot.AsText();
 
             var service = GetCompletionService(workspace);
-            var items = (await GetCompletionListAsync(service, document, position, new CompletionTrigger(CompletionTriggerKind.Invoke))).Items;
+            var items = (await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
             var completionRules = GetCompletionHelper(document);
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
                 testWorkspace.Options = testWorkspace.Options.WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers);
 
-                var triggerInfo = new CompletionTrigger(CompletionTriggerKind.Invoke);
+                var triggerInfo = CompletionTrigger.Invoke;
 
                 var completionService = GetCompletionService(testWorkspace);
                 var completionList = await GetCompletionListAsync(completionService, document, position, triggerInfo);
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").Id;
                 var document = solution.GetDocument(documentId);
 
-                var triggerInfo = new CompletionTrigger(CompletionTriggerKind.Invoke);
+                var triggerInfo = CompletionTrigger.Invoke;
                 var completionService = GetCompletionService(testWorkspace);
                 var completionList = await GetCompletionListAsync(completionService, document, position, triggerInfo);
 
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var currentContextDocumentId = testWorkspace.GetDocumentIdInCurrentContext(textContainer);
                 var document = solution.GetDocument(currentContextDocumentId);
 
-                var triggerInfo = new CompletionTrigger(CompletionTriggerKind.Invoke);
+                var triggerInfo = CompletionTrigger.Invoke;
                 var completionService = GetCompletionService(testWorkspace);
                 var completionList = await GetCompletionListAsync(completionService, document, position, triggerInfo);
 
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var position = hostDocument.CursorPosition.Value;
 
                 var service = GetCompletionService(workspace);
-                var completionList = await GetCompletionListAsync(service, document, position, new CompletionTrigger(CompletionTriggerKind.Invoke));
+                var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
                 foreach (var ch in validChars)

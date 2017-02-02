@@ -27,10 +27,17 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         /// <summary>
+        /// Do not use.  Use <see cref="Invoke"/> instead.
+        /// </summary>
+        [Obsolete("Use 'Invoke' instead.")]
+        public static readonly CompletionTrigger Default = 
+            new CompletionTrigger(CompletionTriggerKind.Other);
+
+        /// <summary>
         /// The default <see cref="CompletionTrigger"/> when none is specified.
         /// </summary>
-        [Obsolete("Do not use.", error: true)]
-        public static readonly CompletionTrigger Default = new CompletionTrigger(CompletionTriggerKind.Other);
+        public static readonly CompletionTrigger Invoke = 
+            new CompletionTrigger(CompletionTriggerKind.Invoke);
 
         /// <summary>
         /// Creates a new instance of a <see cref="CompletionTrigger"/> association with the insertion of a typed character into the document.

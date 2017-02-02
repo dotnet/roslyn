@@ -438,7 +438,7 @@ class C
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                 var service = CreateCompletionService(workspace,
                     ImmutableArray.Create<CompletionProvider>(provider));
-                var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, new CompletionTrigger(CompletionTriggerKind.Invoke));
+                var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Invoke);
 
                 Assert.True(called);
             }
