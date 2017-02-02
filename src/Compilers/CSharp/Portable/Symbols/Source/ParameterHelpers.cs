@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out SyntaxToken arglistToken,
             DiagnosticBag diagnostics,
             bool allowRefOrOut,
-            bool allowThis,
-            bool beStrict)
+            bool allowThis)
         {
             arglistToken = default(SyntaxToken);
 
@@ -85,8 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     parameterIndex,
                     (paramsKeyword.Kind() != SyntaxKind.None),
                     parameterIndex == 0 && thisKeyword.Kind() != SyntaxKind.None,
-                    diagnostics,
-                    beStrict);
+                    diagnostics);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter, firstDefault, diagnostics);
 
@@ -257,6 +255,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS1601: Cannot make reference to variable of type 'System.TypedReference'
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);
             }
+        }
+
+        public static void ReportAttributesDisallowed(this LocalFunctionSymbol localFunc, SyntaxList<AttributeListSyntax> attributes)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            foreach (var attrList in attributes)
+            {
+                diagnostics.Add(ErrorCode.ERR_AttributesInLocalFuncDecl, attrList.Location);
+            }
+            localFunc.AddDeclarationDiagnostics(diagnostics);
+            diagnostics.Free();
         }
 
         internal static bool ReportDefaultParameterErrors(
