@@ -2103,9 +2103,18 @@ End Class
             ]]></Document>)
                 state.SendBackspace()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("ReadOnly")
+                Await state.AssertSelectedCompletionItem("ReadOnly", isHardSelected:=True)
                 state.SendTypeChars("a")
-                Await state.AssertNoCompletionSession()
+
+                ' item doesn't match a prefix, so we should switch to soft selection so that
+                ' completion doesn't interfere with typeing.
+                Await state.AssertSelectedCompletionItem(isHardSelected:=False)
+
+                state.SendTypeChars(" ")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("As", isHardSelected:=False)
+                Assert.Equal(state.CurrentCompletionPresenterSession.CompletionItems.Count, 1)
+                state.GetLineTextFromCaretPosition().Equals("    Public Ra ")
             End Using
         End Function
 
