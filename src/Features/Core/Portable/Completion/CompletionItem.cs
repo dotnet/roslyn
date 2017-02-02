@@ -257,9 +257,33 @@ namespace Microsoft.CodeAnalysis.Completion
             return result;
         }
 
-        public override string ToString()
+        public override string ToString() => DisplayText;
+
+        internal bool ShouldBeFilteredOutOfCompletionList(
+            ImmutableDictionary<CompletionItemFilter, bool> filterState)
         {
-            return DisplayText;
+            if (filterState == null)
+            {
+                // No filtering.  The item is not filtered out.
+                return false;
+            }
+
+            foreach (var filter in CompletionItemFilter.AllFilters)
+            {
+                // only consider filters that match the item
+                var matches = filter.Matches(this);
+                if (matches)
+                {
+                    // if the specific filter is enabled then it is not filtered out
+                    if (filterState.TryGetValue(filter, out var enabled) && enabled)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            // The item was filtered out.
+            return true;
         }
     }
 }

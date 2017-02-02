@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             public void FilterModel(
                 CompletionFilterReason filterReason,
-                bool dismissIfEmptyAllowed,
                 bool recheckCaretPosition,
                 ImmutableDictionary<CompletionItemFilter, bool> filterState)
             {
@@ -44,29 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         }
 
                         return FilterModelInBackground(
-                            model, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
-                    });
-            }
-
-            public void IdentifyBestMatchAndFilterToAllItems(
-                CompletionFilterReason filterReason, bool recheckCaretPosition, bool dismissIfEmptyAllowed)
-            {
-                AssertIsForeground();
-
-                var caretPosition = GetCaretPointInViewBuffer();
-
-                // Use an interlocked increment so that reads by existing filter tasks will see the
-                // change.
-                Interlocked.Increment(ref _filterId);
-                var localId = _filterId;
-                Computation.ChainTaskAndNotifyControllerWhenFinished(model =>
-                    {
-                        var filteredModel = FilterModelInBackground(
-                            model, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
-
-                        return filteredModel != null
-                            ? filteredModel.WithFilteredItems(filteredModel.TotalItems).WithSelectedItem(filteredModel.SelectedItemOpt)
-                            : null;
+                            model, localId, caretPosition, recheckCaretPosition, filterReason);
                     });
             }
 
@@ -75,13 +52,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 int id,
                 SnapshotPoint caretPosition,
                 bool recheckCaretPosition,
-                bool dismissIfEmptyAllowed,
                 CompletionFilterReason filterReason)
             {
                 using (Logger.LogBlock(FunctionId.Completion_ModelComputation_FilterModelInBackground, CancellationToken.None))
                 {
                     return FilterModelInBackgroundWorker(
-                        model, id, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
+                        model, id, caretPosition, recheckCaretPosition, filterReason);
                 }
             }
 
@@ -90,7 +66,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 int id,
                 SnapshotPoint caretPosition,
                 bool recheckCaretPosition,
-                bool dismissIfEmptyAllowed,
                 CompletionFilterReason filterReason)
             {
                 if (model == null)
@@ -155,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         return model;
                     }
 
-                    if (ItemIsFilteredOut(currentItem, effectiveFilterItemState))
+                    if (currentItem.ShouldBeFilteredOutOfCompletionList(effectiveFilterItemState))
                     {
                         continue;
                     }
@@ -170,11 +145,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
                     else
                     {
-                        if (filterText.Length <= 1)
+                        // The item didn't match the filter text.  We'll still keep it in the list
+                        // if one of two things is true:
+                        //
+                        //  1. The user has only typed a single character.  In this case they might
+                        //     have just typed the character to get completion.  Filtering out items
+                        //     here is not desirable.
+                        //
+                        //  2. They brough up completion with ctrl-j or through deletion.  In these
+                        //     cases we just always keep all the items in the list.
+
+                        var wasTriggeredByDeleteOrSimpleInvoke =
+                            model.Trigger.Kind == CompletionTriggerKind.Deletion ||
+                            model.Trigger.Kind == CompletionTriggerKind.Invoke;
+                        var shouldKeepItem = filterText.Length <= 1 || wasTriggeredByDeleteOrSimpleInvoke;
+
+                        if (shouldKeepItem)
                         {
-                            // Even though the rule provider didn't match this, we'll still include it
-                            // since we want to allow a user typing a single character and seeing all
-                            // possibly completions.
                             filterResults.Add(new FilterResult(
                                 currentItem, filterText, matchedFilterText: false));
                         }
@@ -186,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // If no items matched the filter text then determine what we should do.
                 if (filterResults.Count == 0)
                 {
-                    return HandleAllItemsFilteredOut(model, filterReason, dismissIfEmptyAllowed);
+                    return HandleAllItemsFilteredOut(model, filterReason);
                 }
 
                 // If this was deletion, then we control the entire behavior of deletion
@@ -219,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return filterState;
             }
 
-            private Boolean IsAfterDot(Model model, ITextSnapshot textSnapshot, Dictionary<TextSpan, string> textSpanToText)
+            private bool IsAfterDot(Model model, ITextSnapshot textSnapshot, Dictionary<TextSpan, string> textSpanToText)
             {
                 var span = model.OriginalList.Span;
 
@@ -419,12 +406,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             private static Model HandleAllItemsFilteredOut(
                 Model model,
-                CompletionFilterReason filterReason,
-                bool dismissIfEmptyAllowed)
+                CompletionFilterReason filterReason)
             {
-                if (dismissIfEmptyAllowed &&
-                    model.DismissIfEmpty &&
-                    filterReason == CompletionFilterReason.TypeChar)
+                if (model.DismissIfEmpty &&
+                    filterReason == CompletionFilterReason.Insertion)
                 {
                     // If the user was just typing, and the list went to empty *and* this is a 
                     // language that wants to dismiss on empty, then just return a null model
@@ -464,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // Specifically, to avoid being too aggressive when matching an item during 
                 // completion, we require that the current filter text be a prefix of the 
                 // item in the list.
-                if (filterReason == CompletionFilterReason.BackspaceOrDelete &&
+                if (filterReason == CompletionFilterReason.Deletion &&
                     trigger.Kind == CompletionTriggerKind.Deletion)
                 {
                     return item.FilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
@@ -504,34 +489,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
                 }
 
-                return true;
-            }
-
-            private bool ItemIsFilteredOut(
-                CompletionItem item,
-                ImmutableDictionary<CompletionItemFilter, bool> filterState)
-            {
-                if (filterState == null)
-                {
-                    // No filtering.  The item is not filtered out.
-                    return false;
-                }
-
-                foreach (var filter in CompletionItemFilter.AllFilters)
-                {
-                    // only consider filters that match the item
-                    var matches = filter.Matches(item);
-                    if (matches)
-                    {
-                        // if the specific filter is enabled then it is not filtered out
-                        if (filterState.TryGetValue(filter, out var enabled) && enabled)
-                        {
-                            return false;
-                        }
-                    }
-                }
-
-                // The item was filtered out.
                 return true;
             }
 

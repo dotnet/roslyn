@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim list = Await completionService.GetCompletionsAsync(
                     document:=document,
                     caretPosition:=0,
-                    trigger:=CompletionTrigger.Default,
+                    trigger:=New CompletionTrigger(CompletionTriggerKind.Invoke),
                     options:=Nothing,
                     cancellationToken:=Nothing)
 

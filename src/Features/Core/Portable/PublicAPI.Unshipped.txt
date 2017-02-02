@@ -15,6 +15,8 @@ Microsoft.CodeAnalysis.Completion.CompletionList.Span.get -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.Completion.CompletionList.WithSpan(Microsoft.CodeAnalysis.Text.TextSpan span) -> Microsoft.CodeAnalysis.Completion.CompletionList
 Microsoft.CodeAnalysis.Completion.CompletionRules.SnippetsRule.get -> Microsoft.CodeAnalysis.Completion.SnippetsRule
 Microsoft.CodeAnalysis.Completion.CompletionRules.WithSnippetsRule(Microsoft.CodeAnalysis.Completion.SnippetsRule snippetsRule) -> Microsoft.CodeAnalysis.Completion.CompletionRules
+Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.Invoke = 4 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
+Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.InvokeAndCommitIfUnique = 5 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
 Microsoft.CodeAnalysis.Completion.SnippetsRule
 Microsoft.CodeAnalysis.Completion.SnippetsRule.AlwaysInclude = 2 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
 Microsoft.CodeAnalysis.Completion.SnippetsRule.Default = 0 -> Microsoft.CodeAnalysis.Completion.SnippetsRule

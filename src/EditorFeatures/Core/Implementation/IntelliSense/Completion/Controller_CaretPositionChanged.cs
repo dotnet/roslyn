@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // bounds.
             sessionOpt.FilterModel(
                 CompletionFilterReason.CaretPositionChanged,
-                dismissIfEmptyAllowed: false,
                 recheckCaretPosition: true,
                 filterState: null);
         }

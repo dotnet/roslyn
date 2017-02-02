@@ -67,8 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 if (completionService != null)
                 {
-                    this.StartNewModelComputation(
-                        completionService, trigger, filterItems: false, dismissIfEmptyAllowed: true);
+                    this.StartNewModelComputation(completionService, trigger);
                 }
 
                 return;
@@ -103,14 +102,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
                 else if (model != null)
                 {
-                    // If we were triggered on backspace/delete, and we're still deleting,
-                    // then we don't want to filter out items (i.e. we still want all items).
-                    // However, we do still want to run the code to figure out what the best 
-                    // item is to select from all those items.
-                    FilterToSomeOrAllItems(
-                        filterItems: model.Trigger.Kind != CompletionTriggerKind.Deletion,
-                        dismissIfEmptyAllowed: true,
-                        filterReason: CompletionFilterReason.BackspaceOrDelete);
+                    sessionOpt.FilterModel(
+                        CompletionFilterReason.Deletion,
+                        recheckCaretPosition: false,
+                        filterState: null);
                 }
             }
         }
