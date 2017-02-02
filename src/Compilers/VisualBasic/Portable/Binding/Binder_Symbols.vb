@@ -342,7 +342,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim diagInfo As DiagnosticInfo = Nothing
                     If Not lookupResult.HasSymbol Then
                         Dim diagName = GetBaseNamesForDiagnostic(typeSyntax)
-                        diagInfo = NotFound(typeSyntax, diagName, binder, diagBag, reportedAnError)
+                        ' Don't report more errors if one is already reported
+                        diagInfo = NotFound(typeSyntax, diagName, binder, If(reportedAnError, Nothing, diagBag))
 
                         Return binder.GetErrorSymbol(diagName, diagInfo)
                     Else
@@ -399,13 +400,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Try
             End Function
 
-            Private Shared Function NotFound(typeSyntax As TypeSyntax, diagName As String, binder As Binder, diagBag As DiagnosticBag, reportedAnError As Boolean) As DiagnosticInfo
+            Private Shared Function NotFound(typeSyntax As TypeSyntax, diagName As String, binder As Binder, diagBag As DiagnosticBag) As DiagnosticInfo
                 Dim diagInfo As DiagnosticInfo
 
                 If diagName = "Any" AndAlso IsParameterTypeOfDeclareMethod(typeSyntax) Then
                     diagInfo = ErrorFactory.ErrorInfo(ERRID.ERR_ObsoleteAsAny, diagName)
 
-                    If Not reportedAnError Then
+                    If diagBag IsNot Nothing Then
                         Binder.ReportDiagnostic(diagBag, typeSyntax, diagInfo)
                     End If
 
@@ -415,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim forwardedToAssembly As AssemblySymbol = Nothing
 
                 If diagName.Length > 0 Then
-                    CheckForForwardedType(binder.Compilation.Assembly, typeSyntax, diagName, forwardedToAssembly, diagBag, reportedAnError)
+                    CheckForForwardedType(binder.Compilation.Assembly, typeSyntax, diagName, forwardedToAssembly, diagBag)
                 Else
                     Debug.Assert(typeSyntax.IsMissing OrElse typeSyntax.HasErrors)
                     Return Nothing
@@ -427,7 +428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     diagInfo = ErrorFactory.ErrorInfo(ERRID.ERR_ForwardedTypeUnavailable3, diagName, binder.Compilation.Assembly, forwardedToAssembly)
                 End If
 
-                If Not reportedAnError Then
+                If diagBag IsNot Nothing Then
                     Binder.ReportDiagnostic(diagBag, typeSyntax, diagInfo)
                 End If
 
@@ -442,9 +443,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <param name="typeSyntax">Full name of type that failed lookup.  Shortened as different prefixes are checked.</param>
             ''' <param name="diagName">GetBaseNamesForDiagnostic(typeSyntax) (basically dot-delimited list of names).  Shortened as different prefixes are checked.</param>
             ''' <param name="forwardedToAssembly">Set if some prefix matches a forwarded type.</param>
-            ''' <param name="diagBag">Diagnostics bag.</param>
-            ''' <param name="reportedAnError">True if an error was reported during this look up.</param>
-            Private Shared Sub CheckForForwardedType(containingAssembly As AssemblySymbol, ByRef typeSyntax As TypeSyntax, ByRef diagName As String, ByRef forwardedToAssembly As AssemblySymbol, diagBag As DiagnosticBag, reportedAnError As Boolean)
+            ''' <param name="diagBag">Diagnostics bag (Nothing if errors should not be reported).</param>
+            Private Shared Sub CheckForForwardedType(containingAssembly As AssemblySymbol, ByRef typeSyntax As TypeSyntax, ByRef diagName As String, ByRef forwardedToAssembly As AssemblySymbol, diagBag As DiagnosticBag)
                 Dim currTypeSyntax As TypeSyntax = typeSyntax
                 Dim currDiagName As String = diagName
 
@@ -462,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(currDiagName, arity)
                     End If
 
-                    forwardedToAssembly = GetForwardedToAssembly(containingAssembly, fullName, arity, typeSyntax, diagBag, reportedAnError)
+                    forwardedToAssembly = GetForwardedToAssembly(containingAssembly, fullName, arity, typeSyntax, diagBag)
 
                     If forwardedToAssembly IsNot Nothing Then
                         typeSyntax = currTypeSyntax
@@ -485,8 +485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <param name="fullName">The metadata name of the (potentially) forwarded type, including the arity (if non-zero).</param>
             ''' <param name="arity">The arity of the forwarded type.</param>
             ''' <param name="typeSyntax">The syntax to report types on (if any).</param>
-            ''' <param name="diagBag">The diagnostics bag.</param>
-            ''' <param name="reportedAnError">True if an error was reported during this look up.</param>
+            ''' <param name="diagBag">The diagnostics bag (Nothing if errors should not be reported).</param>
             ''' <returns></returns>
             ''' <remarks>
             ''' Since this method is intended to be used for error reporting, it stops as soon as it finds
@@ -494,7 +493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' 
             ''' NOTE: unlike in C#, this method searches for type forwarders case-insensitively.
             ''' </remarks>
-            Private Shared Function GetForwardedToAssembly(containingAssembly As AssemblySymbol, fullName As String, arity As Integer, typeSyntax As TypeSyntax, diagBag As DiagnosticBag, reportedAnError As Boolean) As AssemblySymbol
+            Private Shared Function GetForwardedToAssembly(containingAssembly As AssemblySymbol, fullName As String, arity As Integer, typeSyntax As TypeSyntax, diagBag As DiagnosticBag) As AssemblySymbol
                 Debug.Assert(arity = 0 OrElse fullName.EndsWith("`" & arity, StringComparison.Ordinal))
 
                 ' NOTE: This won't work if the type isn't using CLS-style generic naming (i.e. `arity), but this code is
@@ -511,7 +510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 If forwardedType IsNot Nothing Then
-                    If Not reportedAnError AndAlso forwardedType.IsErrorType Then
+                    If diagBag IsNot Nothing AndAlso forwardedType.IsErrorType Then
                         Dim errorInfo = DirectCast(forwardedType, ErrorTypeSymbol).ErrorInfo
 
                         If errorInfo.Code = ERRID.ERR_TypeFwdCycle2 Then

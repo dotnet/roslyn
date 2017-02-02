@@ -19412,7 +19412,7 @@ internal abstract event System.EventHandler E;";
                 // internal abstract event System.EventHandler E;
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
         }
-        
+
         [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
         public void MultipleForwardsOfATypeToDifferentAssembliesWithoutUsingItShouldNotReportAnError()
         {
@@ -19527,7 +19527,7 @@ namespace ForwardingNamespace
                 //             new Destination.TestClass();
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestClass").WithArguments("TestClass", "Destination").WithLocation(8, 29));
         }
-        
+
         [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
         public void MultipleForwardsToManyAssembliesShouldJustReportTheFirstTwo()
         {
@@ -19542,6 +19542,7 @@ namespace ForwardingNamespace
         }
     }
 }";
+
             var forwardingIL = @"
 .assembly Forwarder { }
 .module ForwarderModule.dll
@@ -19569,7 +19570,16 @@ namespace ForwardingNamespace
 .class extern forwarder Destination.TestClass
 {
 	.assembly extern Destination5
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination1
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination2
 }";
+
             var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
@@ -19593,7 +19603,7 @@ namespace C
 {
     public class ClassC {}
 }";
-            var referenceC = CreateCompilationWithMscorlib(codeC, assemblyName: "C") .EmitToImageReference();
+            var referenceC = CreateCompilationWithMscorlib(codeC, assemblyName: "C").EmitToImageReference();
 
             var codeB = @"
 using C;
@@ -19625,12 +19635,9 @@ namespace A
 }";
 
             CreateCompilationWithMscorlib(codeA, references: new MetadataReference[] { referenceB, referenceC }, assemblyName: "A").VerifyDiagnostics(); // No Errors
-            
+
             var codeC2 = @"
-.assembly C
-{
-	.ver 0:0:0:0
-}
+.assembly C { }
 .module CModule.dll
 .assembly extern D1 { }
 .assembly extern D2 { }
@@ -19716,6 +19723,18 @@ namespace A
                 // (10,38): error CS0012: The type 'ClassC' is defined in an assembly that is not referenced. You must add a reference to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             System.Console.WriteLine(ClassB.MethodB(null));
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "ClassB.MethodB").WithArguments("C.ClassC", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 38));
+
+            var codeD = @"
+namespace C
+{
+    public class ClassC { }
+}";
+            var referenceD = CreateCompilationWithMscorlib(codeD, assemblyName: "D").EmitToImageReference();
+
+            CompileAndVerify(
+                source: codeA,
+                additionalRefs: new MetadataReference[] { referenceB, referenceC2, referenceD },
+                expectedOutput: "obj is null");
         }
 
         [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
@@ -19744,21 +19763,223 @@ namespace A
         public void CompilingModuleWithMultipleForwardersToTheSameAssemblyShouldNotProduceMultipleForwardingErrors()
         {
             var ilSource = @"
-.assembly extern D1 { }
+.assembly extern D { }
 .class extern forwarder Testspace.TestType
 {
-	.assembly extern D1
+	.assembly extern D
 }
 .class extern forwarder Testspace.TestType
 {
-	.assembly extern D1
+	.assembly extern D
 }";
 
             var ilModule = GetILModuleReference(ilSource, appendDefaultHeader: false);
             CreateCompilationWithMscorlib(string.Empty, references: new MetadataReference[] { ilModule }).VerifyDiagnostics(
-                // error CS0012: The type 'TestType' is defined in an assembly that is not referenced. You must add a reference to assembly 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("Testspace.TestType", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+                // error CS0012: The type 'TestType' is defined in an assembly that is not referenced. You must add a reference to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("Testspace.TestType", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+
+            var dCode = @"
+namespace Testspace
+{
+    public class TestType { }
+}";
+            var dReference = CreateCompilationWithMscorlib(dCode, assemblyName: "D").EmitToImageReference();
+
+            // Now compilation succeeds
+            CreateCompilationWithMscorlib(string.Empty, references: new MetadataReference[] { ilModule, dReference }).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void LookingUpATypeForwardedTwiceInASourceCompilationReferenceShouldFail()
+        {
+            // This test specifically tests that SourceAssembly symbols also produce this error (by using a CompilationReference instead of the usual PEAssembly symbol)
+
+            var ilSource = @"
+.module ForwarderModule.dll
+.assembly extern D1 { }
+.assembly extern D2 { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D1
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D2
+}";
+
+            var ilModuleReference = GetILModuleReference(ilSource, appendDefaultHeader: false);
+            var forwarderCompilation = CreateCompilation(
+                source: string.Empty,
+                references: new MetadataReference[] { ilModuleReference },
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName: "Forwarder");
+
+            var csSource = @"
+namespace UserSpace
+{
+    public class UserClass
+    {
+        public static void Main()
+        {
+            var obj = new Testspace.TestType();
+        }
+    }
+}";
+
+            var userCompilation = CreateCompilationWithMscorlib(
+                text: csSource,
+                references: new MetadataReference[] { forwarderCompilation.ToMetadataReference() },
+                assemblyName: "UserAssembly");
+
+            userCompilation.VerifyDiagnostics(
+                // (8,37): error CS8206: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             var obj = new Testspace.TestType();
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestType").WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 37),
+                // (8,37): error CS0234: The type or namespace name 'TestType' does not exist in the namespace 'Testspace' (are you missing an assembly reference?)
+                //             var obj = new Testspace.TestType();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType").WithArguments("TestType", "Testspace").WithLocation(8, 37));
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void ForwardingErrorsInLaterModulesAlwaysOverwriteOnesInEarlierModules()
+        {
+            var module1IL = @"
+.module module1IL.dll
+.assembly extern D1 { }
+.assembly extern D2 { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D1
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D2
+}";
+
+            var module1Reference = GetILModuleReference(module1IL, appendDefaultHeader: false);
+
+            var module2IL = @"
+.module module12L.dll
+.assembly extern D3 { }
+.assembly extern D4 { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D3
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D4
+}";
+
+            var module2Reference = GetILModuleReference(module2IL, appendDefaultHeader: false);
+
+            var forwarderCompilation = CreateCompilation(
+                source: string.Empty,
+                references: new MetadataReference[] { module1Reference, module2Reference },
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName: "Forwarder");
+
+            var csSource = @"
+namespace UserSpace
+{
+    public class UserClass
+    {
+        public static void Main()
+        {
+            var obj = new Testspace.TestType();
+        }
+    }
+}";
+
+            var userCompilation = CreateCompilationWithMscorlib(
+                text: csSource,
+                references: new MetadataReference[] { forwarderCompilation.ToMetadataReference() },
+                assemblyName: "UserAssembly");
+
+            userCompilation.VerifyDiagnostics(
+                // (8,37): error CS8206: Module 'module12L.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             var obj = new Testspace.TestType();
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestType").WithArguments("module12L.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (8,37): error CS0234: The type or namespace name 'TestType' does not exist in the namespace 'Testspace' (are you missing an assembly reference?)
+                //             var obj = new Testspace.TestType();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType").WithArguments("TestType", "Testspace"));
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void MultipleForwardsThatChainResultinTheSameAssemblyShouldStillProduceAnError()
+        {
+            // The scenario is that assembly A is calling a method from assembly B. This method has a parameter of a type that lives
+            // in assembly C. Now if assembly C is replaced with assembly C2, that forwards the type to both D and E, and D fowards it to E,
+            // it should fail with the appropriate error.
+
+            var codeC = @"
+namespace C
+{
+    public class ClassC {}
+}";
+            var referenceC = CreateCompilationWithMscorlib(codeC, assemblyName: "C").EmitToImageReference();
+
+            var codeB = @"
+using C;
+
+namespace B
+{
+    public static class ClassB
+    {
+        public static void MethodB(ClassC obj)
+        {
+            System.Console.WriteLine(obj.GetHashCode());
+        }
+    }
+}";
+            var referenceB = CreateCompilationWithMscorlib(codeB, references: new MetadataReference[] { referenceC }, assemblyName: "B").EmitToImageReference();
+            
+            var codeC2 = @"
+.assembly C { }
+.module C.dll
+.assembly extern D { }
+.assembly extern E { }
+.class extern forwarder C.ClassC
+{
+	.assembly extern D
+}
+.class extern forwarder C.ClassC
+{
+	.assembly extern E
+}";
+
+            var referenceC2 = CompileIL(codeC2, appendDefaultHeader: false);
+
+            var codeD = @"
+.assembly D { }
+.assembly extern E { }
+.class extern forwarder C.ClassC
+{
+	.assembly extern E
+}";
+
+            var referenceD = CompileIL(codeD, appendDefaultHeader: false);
+            var referenceE = CreateCompilationWithMscorlib(codeC, assemblyName: "E").EmitToImageReference();
+
+            var codeA = @"
+using B;
+using C;
+
+namespace A
+{
+    public class ClassA
+    {
+        public void MethodA(ClassC obj)
+        {
+            ClassB.MethodB(obj);
+        }
+    }
+}";
+
+            CreateCompilationWithMscorlib(codeA, references: new MetadataReference[] { referenceB, referenceC2, referenceD, referenceE }, assemblyName: "A").VerifyDiagnostics(
+                // (11,13): error CS8206: Module 'C.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             ClassB.MethodB(obj);
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("C.dll", "C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C.ClassC", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(11, 13));
         }
     }
 }
-

@@ -23911,6 +23911,14 @@ End Namespace
 .class extern forwarder Destination.TestClass
 {
 	.assembly extern Destination5
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination1
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination2
 }"
 
             Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:= False)
@@ -23982,10 +23990,7 @@ End Namespace"
             compilation.VerifyDiagnostics() ' No Errors
             
             Dim codeC2 = "
-.assembly C
-{
-	.ver 0:0:0:0
-}
+.assembly C { }
 .module CModule.dll
 .assembly extern D1 { }
 .assembly extern D2 { }
@@ -24012,7 +24017,7 @@ BC37208: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, 
             ~~~~~~~~~~~~~~~~~~~~~~~
  ]]></errors>)
         End Sub
-        
+
         <Fact>
         <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub MultipleTypeForwardersToTheSameAssemblyShouldNotResultInMultipleForwardError()
@@ -24022,9 +24027,9 @@ Namespace C
     End Class
 End Namespace"
             Dim compilationC = CreateCompilationWithMscorlib(
-                source:= codeC,
-                options:= New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:= "C")
+                source:=codeC,
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="C")
 
             Dim referenceC = compilationC.EmitToImageReference()
 
@@ -24039,14 +24044,14 @@ Namespace B
     End Class
 End Namespace"
             Dim compilationB = CreateCompilationWithMscorlib(
-                source:= codeB,
-                references:= { referenceC },
-                options:= New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:= "B")
+                source:=codeB,
+                references:={referenceC},
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="B")
 
             Dim referenceB = compilationB.EmitToImageReference()
 
-            Dim codeA = 
+            Dim codeA =
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports B
@@ -24062,9 +24067,9 @@ End Namespace
     </compilation>
 
             CompileAndVerify(
-                source:= codeA,
-                additionalRefs:= { referenceB, referenceC },
-                expectedOutput:= "obj is nothing")
+                source:=codeA,
+                additionalRefs:={referenceB, referenceC},
+                expectedOutput:="obj is nothing")
 
             Dim codeC2 = "
 .assembly C
@@ -24082,15 +24087,30 @@ End Namespace
 	.assembly extern D
 }"
 
-            Dim referenceC2 = CompileIL(codeC2, appendDefaultHeader:= False)
+            Dim referenceC2 = CompileIL(codeC2, appendDefaultHeader:=False)
 
-            Dim compilation = CreateCompilationWithMscorlib(codeA, references:= { referenceB, referenceC2 })
-            
+            Dim compilation = CreateCompilationWithMscorlib(codeA, references:={referenceB, referenceC2})
+
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
 BC30652: Reference required to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ClassC'. Add one to your project.
             System.Console.WriteLine(ClassB.MethodB(Nothing))
                                      ~~~~~~~~~~~~~~~~~~~~~~~
  ]]></errors>)
+
+            Dim codeD = "
+Namespace C
+    Public Class ClassC
+    End Class
+End Namespace"
+            Dim referenceD = CreateCompilationWithMscorlib(
+                source:=codeD,
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="D").EmitToImageReference()
+
+            CompileAndVerify(
+                source:=codeA,
+                additionalRefs:={referenceB, referenceC2, referenceD},
+                expectedOutput:="obj is nothing")
         End Sub
 
         <Fact>
@@ -24125,21 +24145,237 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
         <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub CompilingModuleWithMultipleForwardersToTheSameAssemblyShouldNotProduceMultipleForwardingErrors()
             Dim ilSource = "
-.assembly extern D1 { }
+.assembly extern D { }
 .class extern forwarder Testspace.TestType
 {
-	.assembly extern D1
+	.assembly extern D
 }
 .class extern forwarder Testspace.TestType
 {
-	.assembly extern D1
+	.assembly extern D
 }"
 
             Dim ilModule = GetILModuleReference(ilSource, appendDefaultHeader:=False)
             Dim compilation = CreateCompilationWithMscorlib(String.Empty, references:={ilModule}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
-BC30652: Reference required to assembly 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'TestType'. Add one to your project.
+BC30652: Reference required to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'TestType'. Add one to your project.
+]]></errors>)
+
+            Dim dCode = "
+Namespace Testspace
+    Public Class TestType
+    End Class
+End Namespace"
+            Dim dReference = CreateCompilationWithMscorlib(
+                source:=dCode,
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="D").EmitToImageReference()
+
+            ' Now compilation succeeds
+            CreateCompilationWithMscorlib(
+                source:=String.Empty,
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                references:={ilModule, dReference}).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        Public Sub LookingUpATypeForwardedTwiceInASourceCompilationReferenceShouldFail()
+            ' This test specifically tests that SourceAssembly symbols also produce this error (by using a CompilationReference instead of the usual PEAssembly symbol)
+
+            Dim ilSource = "
+.module ForwarderModule.dll
+.assembly extern D1 { }
+.assembly extern D2 { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D1
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D2
+}"
+
+            Dim ilModuleReference = GetILModuleReference(ilSource, appendDefaultHeader:=False)
+            Dim forwarderCompilation = CreateCompilation(
+                source:=String.Empty,
+                references:={ilModuleReference},
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="Forwarder")
+
+            Dim vbSource = "
+Namespace UserSpace
+    Public Class UserClass
+        Public Shared Sub Main()
+            Dim obj = new Testspace.TestType()
+        End Sub
+    End Class
+End Namespace"
+
+            Dim userCompilation = CreateCompilationWithMscorlib(
+                source:=vbSource,
+                references:={forwarderCompilation.ToMetadataReference()},
+                assemblyName:="UserAssembly")
+
+            CompilationUtils.AssertTheseDiagnostics(userCompilation, <errors><![CDATA[
+BC30002: Type 'Testspace.TestType' is not defined.
+            Dim obj = new Testspace.TestType()
+                          ~~~~~~~~~~~~~~~~~~
+BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Dim obj = new Testspace.TestType()
+                          ~~~~~~~~~~~~~~~~~~
+]]></errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        Public Sub ForwardingErrorsInLaterModulesAlwaysOverwriteOnesInEarlierModules()
+            Dim module1IL = "
+.module module1IL.dll
+.assembly extern D1 { }
+.assembly extern D2 { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D1
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D2
+}"
+
+            Dim module1Reference = GetILModuleReference(module1IL, appendDefaultHeader:=False)
+
+            Dim module2IL = "
+.module module12L.dll
+.assembly extern D3 { }
+.assembly extern D4 { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D3
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D4
+}"
+
+            Dim module2Reference = GetILModuleReference(module2IL, appendDefaultHeader:=False)
+
+            Dim forwarderCompilation = CreateCompilation(
+                source:=String.Empty,
+                references:={module1Reference, module2Reference},
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="Forwarder")
+
+            Dim vbSource = "
+Namespace UserSpace
+    Public Class UserClass
+        Public Shared Sub Main()
+            Dim obj = new Testspace.TestType()
+        End Sub
+    End Class
+End Namespace"
+
+            Dim userCompilation = CreateCompilationWithMscorlib(
+                source:=vbSource,
+                references:={forwarderCompilation.ToMetadataReference()},
+                assemblyName:="UserAssembly")
+
+            CompilationUtils.AssertTheseDiagnostics(userCompilation, <errors><![CDATA[
+BC30002: Type 'Testspace.TestType' is not defined.
+            Dim obj = new Testspace.TestType()
+                          ~~~~~~~~~~~~~~~~~~
+BC37208: Module 'module12L.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Dim obj = new Testspace.TestType()
+                          ~~~~~~~~~~~~~~~~~~
+]]></errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        Public Sub MultipleForwardsThatChainResultinTheSameAssemblyShouldStillProduceAnError()
+            ' The scenario Is that assembly A Is calling a method from assembly B. This method has a parameter of a type that lives
+            ' in assembly C. Now if assembly C Is replaced with assembly C2, that forwards the type to both D And E, And D fowards it to E,
+            ' it should fail with the appropriate error.
+
+            Dim codeC = "
+Namespace C
+    Public Class ClassC
+    End Class
+End Namespace"
+            Dim referenceC = CreateCompilationWithMscorlib(
+                source:=codeC,
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="C").EmitToImageReference()
+
+            Dim codeB = "
+Imports C
+
+Namespace B
+    Public Class ClassB
+        Public Shared Sub MethodB(obj As ClassC)
+            System.Console.WriteLine(obj.GetHashCode())
+        End Sub
+    End Class
+End Namespace"
+            Dim referenceB = CreateCompilationWithMscorlib(
+                source:=codeB,
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                references:={referenceC},
+                assemblyName:="B").EmitToImageReference()
+
+            Dim codeC2 = "
+.assembly C { }
+.module C.dll
+.assembly extern D { }
+.assembly extern E { }
+.class extern forwarder C.ClassC
+{
+	.assembly extern D
+}
+.class extern forwarder C.ClassC
+{
+	.assembly extern E
+}"
+
+            Dim referenceC2 = CompileIL(codeC2, appendDefaultHeader:=False)
+
+            Dim codeD = "
+.assembly D { }
+.assembly extern E { }
+.class extern forwarder C.ClassC
+{
+	.assembly extern E
+}"
+
+            Dim referenceD = CompileIL(codeD, appendDefaultHeader:=False)
+            Dim referenceE = CreateCompilationWithMscorlib(
+                source:=codeC,
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="E").EmitToImageReference()
+
+            Dim codeA = "
+Imports B
+Imports C
+
+Namespace A
+    Public Class ClassA
+        Public Sub MethodA(obj As ClassC)
+            ClassB.MethodB(obj)
+        End Sub
+    End Class
+End Namespace"
+
+            Dim userCompilation = CreateCompilationWithMscorlib(
+                source:=codeA,
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                references:={referenceB, referenceC2, referenceD, referenceE},
+                assemblyName:="A")
+
+            CompilationUtils.AssertTheseDiagnostics(userCompilation, <errors><![CDATA[
+BC37208: Module 'C.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            ClassB.MethodB(obj)
+            ~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
         End Sub
 
