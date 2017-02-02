@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim position = hostDocument.CursorPosition.Value
 
                 Dim service = GetCompletionService(workspace)
-                Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
+                Dim completionList = Await GetCompletionListAsync(service, document, position, New CompletionTrigger(CompletionTriggerKind.Invoke))
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
                 Assert.Equal(expected, Controller.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar))

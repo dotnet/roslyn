@@ -299,7 +299,7 @@ Class C1
     End Sub
 End Class
 </a>
-            Await VerifyBuilderAsync(markup, CompletionTrigger.Default, useDebuggerOptions:=True)
+            Await VerifyBuilderAsync(markup, New CompletionTrigger(CompletionTriggerKind.Invoke), useDebuggerOptions:=True)
         End Function
 
         <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
@@ -309,7 +309,7 @@ End Class
 Namespace $$
 End Namespace
 </a>
-            Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
+            Await VerifyBuilderAsync(markup, New CompletionTrigger(CompletionTriggerKind.Invoke))
         End Function
 
         <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
@@ -319,35 +319,35 @@ End Namespace
 Namespace A.$$
 End Namespace
 </a>
-            Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
+            Await VerifyBuilderAsync(markup, New CompletionTrigger(CompletionTriggerKind.Invoke))
         End Function
 
         <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function PartialClassName() As Task
             Dim markup = <a>Partial Class $$</a>
-            Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
+            Await VerifyBuilderAsync(markup, New CompletionTrigger(CompletionTriggerKind.Invoke))
         End Function
 
         <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function PartialStructureName() As Task
             Dim markup = <a>Partial Structure $$</a>
-            Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
+            Await VerifyBuilderAsync(markup, New CompletionTrigger(CompletionTriggerKind.Invoke))
         End Function
 
         <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function PartialInterfaceName() As Task
             Dim markup = <a>Partial Interface $$</a>
-            Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
+            Await VerifyBuilderAsync(markup, New CompletionTrigger(CompletionTriggerKind.Invoke))
         End Function
 
         <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function PartialModuleName() As Task
             Dim markup = <a>Partial Module $$</a>
-            Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
+            Await VerifyBuilderAsync(markup, New CompletionTrigger(CompletionTriggerKind.Invoke))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
