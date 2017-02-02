@@ -415,6 +415,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             commandHandler(new SelectAllCommandArgs(TextView, SubjectBuffer), nextHandler);
         }
+
+        public void SendToggleCompletionMode(Action<ToggleCompletionModeCommandArgs, Action> commandHandler, Action nextHandler)
+        {
+            commandHandler(new ToggleCompletionModeCommandArgs(TextView, SubjectBuffer), nextHandler);
+        }
         #endregion
     }
 }
