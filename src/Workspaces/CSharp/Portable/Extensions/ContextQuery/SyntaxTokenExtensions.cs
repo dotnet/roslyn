@@ -687,35 +687,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             return false;
         }
-
-        public static bool IsPossibleTupleOpenParenOrComma(this SyntaxToken possibleCommaOrParen)
-        {
-            if (!possibleCommaOrParen.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
-            {
-                return false;
-            }
-
-            if (possibleCommaOrParen.Parent.IsKind(
-                    SyntaxKind.ParenthesizedExpression,
-                    SyntaxKind.TupleExpression,
-                    SyntaxKind.TupleType,
-                    SyntaxKind.CastExpression))
-            {
-                return true;
-            }
-
-            // in script
-            if (possibleCommaOrParen.Parent.IsKind(SyntaxKind.ParameterList) &&
-                possibleCommaOrParen.Parent.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression))
-            {
-                var parenthesizedLambda = (ParenthesizedLambdaExpressionSyntax)possibleCommaOrParen.Parent.Parent;
-                if (parenthesizedLambda.ArrowToken.IsMissing)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
     }
 }

@@ -1189,7 +1189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // ($$
             // (a, $$
-            if (leftToken.IsPossibleTupleOpenParenOrComma())
+            if (IsPossibleTupleOpenParenOrComma(leftToken))
             {
                 return true;
             }
@@ -1204,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                         SyntaxKind.TupleType))
                 {
                     var possibleCommaOrParen = FindTokenOnLeftOfNode(leftToken.Parent);
-                    if (possibleCommaOrParen.IsPossibleTupleOpenParenOrComma())
+                    if (IsPossibleTupleOpenParenOrComma(possibleCommaOrParen))
                     {
                         return true;
                     }
@@ -1216,7 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (leftToken.IsKind(SyntaxKind.IdentifierToken))
             {
                 var possibleCommaOrParen = FindTokenOnLeftOfNode(leftToken.Parent);
-                if (possibleCommaOrParen.IsPossibleTupleOpenParenOrComma())
+                if (IsPossibleTupleOpenParenOrComma(possibleCommaOrParen))
                 {
                     return true;
                 }
@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 leftToken.Parent.IsParentKind(SyntaxKind.QualifiedName, SyntaxKind.SimpleMemberAccessExpression))
             {
                 var possibleCommaOrParen = FindTokenOnLeftOfNode(leftToken.Parent.Parent);
-                if (possibleCommaOrParen.IsPossibleTupleOpenParenOrComma())
+                if (IsPossibleTupleOpenParenOrComma(possibleCommaOrParen))
                 {
                     return true;
                 }
@@ -1241,6 +1241,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         private static SyntaxToken FindTokenOnLeftOfNode(SyntaxNode node)
         {
             return node.FindTokenOnLeftOfPosition(node.SpanStart);
+        }
+
+
+        public static bool IsPossibleTupleOpenParenOrComma(SyntaxToken possibleCommaOrParen)
+        {
+            if (!possibleCommaOrParen.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
+            {
+                return false;
+            }
+
+            if (possibleCommaOrParen.Parent.IsKind(
+                    SyntaxKind.ParenthesizedExpression,
+                    SyntaxKind.TupleExpression,
+                    SyntaxKind.TupleType,
+                    SyntaxKind.CastExpression))
+            {
+                return true;
+            }
+
+            // in script
+            if (possibleCommaOrParen.Parent.IsKind(SyntaxKind.ParameterList) &&
+                possibleCommaOrParen.Parent.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression))
+            {
+                var parenthesizedLambda = (ParenthesizedLambdaExpressionSyntax)possibleCommaOrParen.Parent.Parent;
+                if (parenthesizedLambda.ArrowToken.IsMissing)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -1263,7 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // (var $$, var y)
             // (var x, var y)
-            if (syntaxTree.IsPossibleTupleContext(leftToken, position) && !leftToken.IsPossibleTupleOpenParenOrComma())
+            if (syntaxTree.IsPossibleTupleContext(leftToken, position) && !IsPossibleTupleOpenParenOrComma(leftToken))
             {
                 return true;
             }

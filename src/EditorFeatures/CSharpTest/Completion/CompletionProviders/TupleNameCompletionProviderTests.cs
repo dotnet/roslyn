@@ -136,7 +136,7 @@ class Program
 {
     static void Main((int number, int znumber) args) { }
     static void Main((string word, int zword) args) {
-        Main(($$
+        Main((1, $$
     }
 }";
             await VerifyItemExistsAsync(markup, "zword:");
@@ -155,6 +155,20 @@ class Program
     }
 }";
             await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ConvertCastToTupleExpression()
+        {
+            var markup = @"
+class C
+{
+    void foo()
+    {
+        (int goat, int moat) x = (g$$)1;
+    }
+}";
+            await VerifyItemExistsAsync(markup, "goat:");
         }
     }
 }

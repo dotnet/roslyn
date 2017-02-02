@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -53,14 +54,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private int? GetElementIndex(CSharpSyntaxContext context)
         {
             var token = context.TargetToken;
-            if (token.IsPossibleTupleOpenParenOrComma())
+            if (token.IsKind(SyntaxKind.OpenParenToken))
             {
-                if (token.IsKind(SyntaxKind.OpenParenToken))
+                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression,
+                    SyntaxKind.TupleExpression,
+                    SyntaxKind.CastExpression))
                 {
                     return 0;
                 }
+            }
 
-                var tupleExpr = (TupleExpressionSyntax)context.TargetToken.Parent;
+            if (token.IsKind(SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.TupleExpression))
+            {
+                var tupleExpr = (TupleExpressionSyntax)context.TargetToken.Parent as TupleExpressionSyntax;
                 return (tupleExpr.Arguments.GetWithSeparators().IndexOf(context.TargetToken) + 1) / 2;
             }
 
@@ -71,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             foreach (var type in inferredTypes)
             {
-                if (index > type.TupleElements.Length)
+                if (index >= type.TupleElements.Length)
                 {
                     return;
                 }
