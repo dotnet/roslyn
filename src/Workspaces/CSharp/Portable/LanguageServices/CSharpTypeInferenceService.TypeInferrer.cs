@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (parent)
                 {
-                    case AnonymousObjectCreationExpressionSyntax anonymousObjectCreation: return InferTypeInAnonymousObjectCreation(anonymousObjectCreation);
+                    case AnonymousObjectCreationExpressionSyntax anonymousObjectCreation: return InferTypeInAnonymousObjectCreation(anonymousObjectCreation, token);
                     case AnonymousObjectMemberDeclaratorSyntax memberDeclarator: return InferTypeInMemberDeclarator(memberDeclarator, token);
                     case ArgumentListSyntax argument: return InferTypeInArgumentList(argument, token);
                     case ArgumentSyntax argument: return InferTypeInArgument(argument, token);
@@ -241,7 +241,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInAnonymousObjectCreation(AnonymousObjectCreationExpressionSyntax expression) => InferTypes(expression.SpanStart);
+            private IEnumerable<TypeInferenceInfo> InferTypeInAnonymousObjectCreation(AnonymousObjectCreationExpressionSyntax expression, SyntaxToken previousToken)
+            {
+                if (previousToken == expression.NewKeyword)
+                {
+                    return InferTypes(expression.SpanStart);
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArgument(
                 ArgumentSyntax argument, SyntaxToken? previousToken = null)
@@ -1787,8 +1795,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (memberSymbol)
                 {
-                    case IMethodSymbol method: return method.ReturnType; 
-                    case IPropertySymbol property: return property.Type; 
+                    case IMethodSymbol method: return method.ReturnType;
+                    case IPropertySymbol property: return property.Type;
                 }
 
                 return null;
