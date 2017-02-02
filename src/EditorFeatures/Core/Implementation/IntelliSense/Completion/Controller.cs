@@ -191,25 +191,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return true;
         }
 
-        //private void FilterToSomeOrAllItems(bool filterItems, bool dismissIfEmptyAllowed, CompletionFilterReason filterReason)
-        //{
-        //    if (filterItems)
-        //    {
-        //        sessionOpt.FilterModel(
-        //            filterReason,
-        //            recheckCaretPosition: false,
-        //            dismissIfEmptyAllowed: dismissIfEmptyAllowed,
-        //            filterState: null);
-        //    }
-        //    else
-        //    {
-        //        sessionOpt.IdentifyBestMatchAndFilterToAllItems(
-        //            filterReason,
-        //            recheckCaretPosition: false,
-        //            dismissIfEmptyAllowed: dismissIfEmptyAllowed);
-        //    }
-        //}
-
         private CompletionService GetCompletionService()
         {
             if (!Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out var workspace))
