@@ -2,6 +2,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.MakeMethodStatic
@@ -9,5 +10,6 @@ namespace Microsoft.CodeAnalysis.MakeMethodStatic
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal sealed class CSharpMakeMethodStaticCodeFixProvider : AbstractMakeMethodStaticCodeFixProvider<MemberAccessExpressionSyntax>
     {
+        public override string Title => CSharpFeaturesResources.Make_method_static;
     }
 }

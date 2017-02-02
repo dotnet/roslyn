@@ -21,9 +21,11 @@ namespace Microsoft.CodeAnalysis.MakeMethodStatic
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.MakeMethodStaticDiagnosticId);
 
+        public abstract string Title { get; }
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
+            context.RegisterCodeFix(new MyCodeAction(Title,
                 c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
             return SpecializedTasks.EmptyTask;
@@ -58,12 +60,10 @@ namespace Microsoft.CodeAnalysis.MakeMethodStatic
             }
         }
 
-        // TODO: should be solution?
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedSolution)
-                // TODO: use localized string
-                : base(title: "", createChangedDocument: createChangedSolution)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedSolution)
+                : base(title, createChangedDocument: createChangedSolution)
             {
             }
         }
