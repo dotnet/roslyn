@@ -185,8 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             this.sessionOpt = new Session(this, computation, Presenter.CreateSession(TextView, SubjectBuffer, null));
 
             sessionOpt.ComputeModel(completionService, trigger, _roles, GetOptions());
-            sessionOpt.FilterModel(
-                trigger.GetFilterReason(), recheckCaretPosition: false, filterState: null);
+            sessionOpt.FilterModel(trigger.GetFilterReason(), filterState: null);
 
             return true;
         }

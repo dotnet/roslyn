@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             public void FilterModel(
                 CompletionFilterReason filterReason,
-                bool recheckCaretPosition,
                 ImmutableDictionary<CompletionItemFilter, bool> filterState)
             {
                 AssertIsForeground();
@@ -33,31 +32,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 Interlocked.Increment(ref _filterId);
                 var localId = _filterId;
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
-                    model =>
-                    {
-                        if (model != null && filterState != null)
-                        {
-                            // If the UI specified an updated filter state, then incorporate that 
-                            // into our model.
-                            model = model.WithFilterState(filterState);
-                        }
-
-                        return FilterModelInBackground(
-                            model, localId, caretPosition, recheckCaretPosition, filterReason);
-                    });
+                    model => FilterModelInBackground(
+                        model, localId, caretPosition, filterReason, filterState));
             }
 
             private Model FilterModelInBackground(
                 Model model,
                 int id,
                 SnapshotPoint caretPosition,
-                bool recheckCaretPosition,
-                CompletionFilterReason filterReason)
+                CompletionFilterReason filterReason,
+                ImmutableDictionary<CompletionItemFilter, bool> filterState)
             {
                 using (Logger.LogBlock(FunctionId.Completion_ModelComputation_FilterModelInBackground, CancellationToken.None))
                 {
                     return FilterModelInBackgroundWorker(
-                        model, id, caretPosition, recheckCaretPosition, filterReason);
+                        model, id, caretPosition, filterReason, filterState);
                 }
             }
 
@@ -65,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 Model model,
                 int id,
                 SnapshotPoint caretPosition,
-                bool recheckCaretPosition,
-                CompletionFilterReason filterReason)
+                CompletionFilterReason filterReason,
+                ImmutableDictionary<CompletionItemFilter, bool> filterState)
             {
                 if (model == null)
                 {
@@ -76,11 +65,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // We want to dismiss the session if the caret ever moved outside our bounds.
                 // Do this before we check the _filterId.  We don't want this work to not happen
                 // just because the user typed more text and added more filter items.
-                if (recheckCaretPosition && Controller.IsCaretOutsideAllItemBounds(model, caretPosition))
+                if (filterReason == CompletionFilterReason.CaretPositionChanged &&
+                    Controller.IsCaretOutsideAllItemBounds(model, caretPosition))
                 {
                     return null;
                 }
 
+                // If the UI specified an updated filter state, then incorporate that 
+                // into our model. Do this before we check the _filterId.  We don't 
+                // want this work to not happen just because the user typed more text 
+                // and added more filter items.
+                if (filterState != null)
+                {
+                    model = model.WithFilterState(filterState);
+                }
+
+                // If there's another request in the queue to filter items, then just
+                // bail out immediately.  No point in doing extra work that's just
+                // going to be overridden by the next filter task.
                 if (id != _filterId)
                 {
                     return model;

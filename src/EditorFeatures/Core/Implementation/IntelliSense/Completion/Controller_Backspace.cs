@@ -102,10 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
                 else if (model != null)
                 {
-                    sessionOpt.FilterModel(
-                        CompletionFilterReason.Deletion,
-                        recheckCaretPosition: false,
-                        filterState: null);
+                    sessionOpt.FilterModel(CompletionFilterReason.Deletion, filterState: null);
                 }
             }
         }
