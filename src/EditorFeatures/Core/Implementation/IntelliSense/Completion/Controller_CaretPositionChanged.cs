@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // Just refilter the list, asking it to make sure that the caret is still within
             // bounds.
             sessionOpt.FilterModel(
-                CompletionFilterReason.CaretPositionChanged,
+                CompletionFilterReason.NonInsertionOrDeletion,
                 recheckCaretPosition: true,
                 filterState: null);
         }
