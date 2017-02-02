@@ -124,6 +124,8 @@
     <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
     <Compile Include="ImplementType\ImplementTypeOptions.cs" />
     <Compile Include="ImplementType\ImplementTypeOptionsProvider.cs" />
+    <Compile Include="MakeMethodStatic\AbstractMakeMethodStaticCodeFixProvider.cs" />
+    <Compile Include="MakeMethodStatic\AbstractMakeMethodStaticDiagnosticAnalyzer.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\IUnnecessaryImportsService.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />

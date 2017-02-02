@@ -69,6 +69,8 @@
     </Compile>
     <Compile Include="ImplementAbstractClass\CSharpImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="ImplementInterface\CSharpImplementInterfaceCodeFixProvider.cs" />
+    <Compile Include="MakeMethodStatic\CSharpMakeMethodStaticCodeFixProvider.cs" />
+    <Compile Include="MakeMethodStatic\CSharpMakeMethodStaticDiagnosticAnalyzer.cs" />
     <Compile Include="Structure\Providers\ArrowExpressionClauseStructureProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\CSharpConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />

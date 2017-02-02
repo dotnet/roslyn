@@ -232,6 +232,7 @@
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.cs" />
     <Compile Include="Extensions\ContextQuery\IsPossibleDeconstructionDesignationTests.cs" />
     <Compile Include="Extensions\ContextQuery\PossibleTupleContextTests.cs" />
+    <Compile Include="MakeMethodStatic\MakeMethodStaticTests.cs" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.cs" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
