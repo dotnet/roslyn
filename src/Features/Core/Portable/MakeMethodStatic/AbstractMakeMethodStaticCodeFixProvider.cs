@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodStatic
             var root = editor.OriginalRoot;
             var generator = editor.Generator;
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -45,7 +46,6 @@ namespace Microsoft.CodeAnalysis.MakeMethodStatic
                 editor.ReplaceNode(declaration, (d, g) => g.WithModifiers(d, DeclarationModifiers.Static));
 
                 var methodSymbol = semanticModel.GetDeclaredSymbol(declaration);
-                var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var references = await SymbolFinder.FindReferencesAsync(
                     methodSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                 var locations = references.Single(r => r.Definition == methodSymbol).Locations;
