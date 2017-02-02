@@ -3587,7 +3587,7 @@ Module Program
 End Module
                 </file>
                 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.DebugExe, additionalRefs:={LinqAssemblyRef})
             CompileAndVerify(comp, expectedOutput:="xxx").VerifyDiagnostics()
         End Sub
     End Class
