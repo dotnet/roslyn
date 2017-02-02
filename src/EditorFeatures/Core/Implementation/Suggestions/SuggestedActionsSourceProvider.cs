@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [VisualStudio.Utilities.ContentType(ContentTypeNames.XamlContentType)]
     [VisualStudio.Utilities.Name("Roslyn Code Fix")]
     [VisualStudio.Utilities.Order]
-    internal partial class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
+    internal class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
         private static readonly Guid s_CSharpSourceGuid = new Guid("b967fea8-e2c3-4984-87d4-71a38f49e16a");
         private static readonly Guid s_visualBasicSourceGuid = new Guid("4de30e93-3e0c-40c2-a4ba-1124da4539f6");
