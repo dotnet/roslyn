@@ -144,15 +144,12 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             var additionalFiles = compilationContext.Options.AdditionalFiles;
 
-            ApiData shippedData;
-            ApiData unshippedData;
-            if (!TryGetApiData(additionalFiles, compilationContext.CancellationToken, out shippedData, out unshippedData))
+            if (!TryGetApiData(additionalFiles, compilationContext.CancellationToken, out ApiData shippedData, out ApiData unshippedData))
             {
                 return;
             }
 
-            List<Diagnostic> errors;
-            if (!ValidateApiFiles(shippedData, unshippedData, out errors))
+            if (!ValidateApiFiles(shippedData, unshippedData, out List<Diagnostic> errors))
             {
                 compilationContext.RegisterCompilationEndAction(context =>
                 {
@@ -240,9 +237,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static bool TryGetApiData(ImmutableArray<AdditionalText> additionalTexts, CancellationToken cancellationToken, out ApiData shippedData, out ApiData unshippedData)
         {
-            AdditionalText shippedText;
-            AdditionalText unshippedText;
-            if (!TryGetApiText(additionalTexts, cancellationToken, out shippedText, out unshippedText))
+            if (!TryGetApiText(additionalTexts, cancellationToken, out AdditionalText shippedText, out AdditionalText unshippedText))
             {
                 shippedData = default(ApiData);
                 unshippedData = default(ApiData);
@@ -300,8 +295,7 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             foreach (ApiLine cur in apiList)
             {
-                ApiLine existingLine;
-                if (publicApiMap.TryGetValue(cur.Text, out existingLine))
+                if (publicApiMap.TryGetValue(cur.Text, out ApiLine existingLine))
                 {
                     LinePositionSpan existingLinePositionSpan = existingLine.SourceText.Lines.GetLinePositionSpan(existingLine.Span);
                     Location existingLocation = Location.Create(existingLine.Path, existingLine.Span, existingLinePositionSpan);

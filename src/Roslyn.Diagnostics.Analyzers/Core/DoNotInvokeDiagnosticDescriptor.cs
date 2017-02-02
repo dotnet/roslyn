@@ -57,8 +57,7 @@ namespace Roslyn.Diagnostics.Analyzers
             if (leftType != null && leftType.ToDisplayString() == DiagnosticTypeFullName && !IsThisOrBaseOrMeOrMyBaseExpression(left))
             {
                 string nameOfMember = string.Empty;
-                var parentMemberAccess = memberAccess.Parent as TMemberAccessExpressionSyntax;
-                if (parentMemberAccess != null)
+                if (memberAccess.Parent is TMemberAccessExpressionSyntax parentMemberAccess)
                 {
                     SyntaxNode member = GetRightOfMemberAccess(parentMemberAccess);
                     nameOfMember = " '" + member.ToString() + "'";

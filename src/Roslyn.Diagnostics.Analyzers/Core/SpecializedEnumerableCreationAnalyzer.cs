@@ -105,9 +105,8 @@ namespace Roslyn.Diagnostics.Analyzers
 
             public void Initialize(CodeBlockStartAnalysisContext<TLanguageKindEnum> context)
             {
-                var methodSymbol = context.OwningSymbol as IMethodSymbol;
-                if (methodSymbol != null &&
-                    methodSymbol.ReturnType.OriginalDefinition == _genericEnumerableSymbol)
+                if (context.OwningSymbol is IMethodSymbol methodSymbol &&
+    methodSymbol.ReturnType.OriginalDefinition == _genericEnumerableSymbol)
                 {
                     GetSyntaxAnalyzer(context, _genericEnumerableSymbol, _genericEmptyEnumerableSymbol);
                 }
@@ -133,15 +132,14 @@ namespace Roslyn.Diagnostics.Analyzers
                 var arrayType = typeInfo.Type as IArrayTypeSymbol;
 
                 return typeInfo.ConvertedType != null &&
-                    typeInfo.ConvertedType.OriginalDefinition == this.genericEnumerableSymbol &&
+                    typeInfo.ConvertedType.OriginalDefinition == genericEnumerableSymbol &&
                     arrayType != null &&
                     arrayType.Rank == 1;
             }
 
             protected void AnalyzeMemberAccessName(SyntaxNode name, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic)
             {
-                var methodSymbol = semanticModel.GetSymbolInfo(name).Symbol as IMethodSymbol;
-                if (methodSymbol != null &&
+                if (semanticModel.GetSymbolInfo(name).Symbol is IMethodSymbol methodSymbol &&
                     methodSymbol.OriginalDefinition == _genericEmptyEnumerableSymbol)
                 {
                     addDiagnostic(Diagnostic.Create(UseEmptyEnumerableRule, name.Parent.GetLocation()));

@@ -221,8 +221,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
                 context.RegisterSyntaxNodeAction(invocationContext =>
                 {
-                    var invocationSym = invocationContext.SemanticModel.GetSymbolInfo(invocationContext.Node).Symbol as IMethodSymbol;
-                    if (invocationSym != null && _createMethods.Contains(invocationSym))
+                    if (invocationContext.SemanticModel.GetSymbolInfo(invocationContext.Node).Symbol is IMethodSymbol invocationSym && _createMethods.Contains(invocationSym))
                     {
                         _codeActionCreateInvocations = _codeActionCreateInvocations ?? new Dictionary<INamedTypeSymbol, HashSet<NodeAndSymbol>>();
                         AddNodeAndSymbol(namedType, invocationContext.Node, invocationSym, _codeActionCreateInvocations);
@@ -232,8 +231,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
                 context.RegisterSyntaxNodeAction(objectCreationContext =>
                 {
-                    var constructor = objectCreationContext.SemanticModel.GetSymbolInfo(objectCreationContext.Node).Symbol as IMethodSymbol;
-                    if (constructor != null && constructor.ContainingType.DerivesFrom(_codeActionSymbol))
+                    if (objectCreationContext.SemanticModel.GetSymbolInfo(objectCreationContext.Node).Symbol is IMethodSymbol constructor && constructor.ContainingType.DerivesFrom(_codeActionSymbol))
                     {
                         _codeActionObjectCreations = _codeActionObjectCreations ?? new Dictionary<INamedTypeSymbol, HashSet<NodeAndSymbol>>();
                         AddNodeAndSymbol(namedType, objectCreationContext.Node, constructor, _codeActionObjectCreations);
@@ -244,8 +242,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
             private static void AddNodeAndSymbol(INamedTypeSymbol namedType, SyntaxNode node, IMethodSymbol symbol, Dictionary<INamedTypeSymbol, HashSet<NodeAndSymbol>> map)
             {
-                HashSet<NodeAndSymbol> value;
-                if (!map.TryGetValue(namedType, out value))
+                if (!map.TryGetValue(namedType, out HashSet<NodeAndSymbol> value))
                 {
                     value = new HashSet<NodeAndSymbol>();
                     map[namedType] = value;
@@ -299,8 +296,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             {
                 if (_codeActionCreateInvocations != null)
                 {
-                    HashSet<NodeAndSymbol> nodeAndSymbolSet;
-                    if (_codeActionCreateInvocations.TryGetValue(fixer, out nodeAndSymbolSet))
+                    if (_codeActionCreateInvocations.TryGetValue(fixer, out HashSet<NodeAndSymbol> nodeAndSymbolSet))
                     {
                         foreach (NodeAndSymbol nodeAndSymbol in nodeAndSymbolSet)
                         {
@@ -316,8 +312,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
                 if (_codeActionObjectCreations != null)
                 {
-                    HashSet<NodeAndSymbol> nodeAndSymbolSet;
-                    if (_codeActionObjectCreations.TryGetValue(fixer, out nodeAndSymbolSet))
+                    if (_codeActionObjectCreations.TryGetValue(fixer, out HashSet<NodeAndSymbol> nodeAndSymbolSet))
                     {
                         foreach (NodeAndSymbol nodeAndSymbol in nodeAndSymbolSet)
                         {
