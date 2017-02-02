@@ -47,8 +47,5 @@ namespace Microsoft.CodeAnalysis.Completion
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
-
-        public static bool ShouldFilterAgainstUserText(this CompletionTriggerKind kind)
-            => kind != CompletionTriggerKind.Invoke && kind != CompletionTriggerKind.Deletion;
     }
 }
