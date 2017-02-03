@@ -789,14 +789,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (var scope = this; scope != null; scope = scope.Next)
             {
-                var (description, snippet) = Print(scope);
-                current = new TreeDumperNode(description, snippet, current == null ? null : new[] { current });
+                var (description, snippet, locals) = Print(scope);
+                var sub = new List<TreeDumperNode>();
+                if (!locals.IsEmpty())
+                {
+                    sub.Add(new TreeDumperNode("locals", locals, null));
+                }
+                var currentContainer = scope.ContainingMemberOrLambda;
+                if (currentContainer != null && currentContainer != scope.Next?.ContainingMemberOrLambda)
+                {
+                    sub.Add(new TreeDumperNode("containing member or lambda", currentContainer.ToDisplayString(), null));
+                }
+                if (snippet != null)
+                {
+                    sub.Add(new TreeDumperNode("source", snippet, null));
+                }
+                if (current != null)
+                {
+                    sub.Add(current);
+                }
+                current = new TreeDumperNode(description, null, sub);
             }
 
             return current;
         }
 
-        private static (string description, string snippet) Print(Binder scope)
+        private static (string description, string snippet, string locals) Print(Binder scope)
         {
             var locals = string.Join(", ", scope.Locals.SelectAsArray(s => s.Name));
             string snippet;
@@ -822,12 +840,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             snippet = snippet.IsEmpty() ? null : snippet;
 
-            var description = $"{scope.GetType().Name}";
-            if (!locals.IsEmpty())
-            {
-                description = description + $" (declaring locals: {locals})";
-            }
-            return (description, snippet);
+            var description = scope.GetType().Name;
+            return (description, snippet, locals);
         }
 #endif
     }
