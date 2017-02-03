@@ -168,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             If forwardedToAssemblies.FirstSymbol IsNot Nothing Then
                 If forwardedToAssemblies.SecondSymbol IsNot Nothing Then
-                    ' Report the main module as that Is the only one checked. clr does Not honor type forwarders in non-primary modules.
+                    ' Report the main module as that is the only one checked. clr does not honor type forwarders in non-primary modules.
                     Return CreateMultipleForwardingErrorTypeSymbol(emittedName, PrimaryModule, forwardedToAssemblies.FirstSymbol, forwardedToAssemblies.SecondSymbol)
                 End If
 
