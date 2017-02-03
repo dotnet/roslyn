@@ -45,5 +45,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return _lazyActualObsoleteDiagnostic
         End Function
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            If obj.GetType() Is GetType(LazyObsoleteDiagnosticInfo) Then
+                Dim asd = CType(obj, LazyObsoleteDiagnosticInfo)
+                Return Me._symbol.Equals(asd._symbol) AndAlso
+                    Me._containingSymbol.Equals(asd._containingSymbol) AndAlso
+                    Me._lazyActualObsoleteDiagnostic.Equals(asd._lazyActualObsoleteDiagnostic) AndAlso
+                    MyBase.Equals(obj)
+            End If
+            Return False
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Return Hash.Combine(Me._symbol,
+                Hash.Combine(Me._containingSymbol,
+                Hash.Combine(Me._lazyActualObsoleteDiagnostic,
+                MyBase.GetHashCode())))
+        End Function
     End Class
 End Namespace

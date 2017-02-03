@@ -44,6 +44,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SyntaxDiagnosticInfo(offset, this.Width, (ErrorCode)this.Code, this.Arguments);
         }
 
+        public override bool Equals(object obj)
+        {
+            return obj is SyntaxDiagnosticInfo sdi &&
+                this.Offset.Equals(sdi.Offset) &&
+                this.Width.Equals(sdi.Width) &&
+                base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(this.Offset, 
+                   Hash.Combine(this.Width, 
+                   base.GetHashCode()));
+        }
+
         #region Serialization
 
         protected override void WriteTo(ObjectWriter writer)

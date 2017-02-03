@@ -52,6 +52,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _startIndex = startIndex
                 _length = length
             End Sub
+
+            Public Overrides Function Equals(obj As Object) As Boolean
+                If obj.GetType() Is GetType(ImportDiagnosticInfo) Then
+                    Dim idi = CType(obj, ImportDiagnosticInfo)
+                    Return Me._importText.Equals(idi._importText) AndAlso
+                        Me._startIndex = idi._startIndex AndAlso
+                        Me._length = idi._length AndAlso
+                        Me._wrappedDiagnostic.Equals(idi._wrappedDiagnostic) AndAlso
+                        MyBase.Equals(obj)
+                End If
+                Return False
+            End Function
+
+            Public Overrides Function GetHashCode() As Integer
+                Return Hash.Combine(Me._importText,
+                       Hash.Combine(Me._startIndex,
+                       Hash.Combine(Me._length,
+                       Hash.Combine(Me._wrappedDiagnostic,
+                       MyBase.GetHashCode()))))
+            End Function
         End Class
     End Class
 End Namespace

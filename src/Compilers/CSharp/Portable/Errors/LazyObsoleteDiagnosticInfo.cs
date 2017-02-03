@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -53,6 +54,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return _lazyActualObsoleteDiagnostic;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is LazyObsoleteDiagnosticInfo lod &&
+                this._lazyActualObsoleteDiagnostic.Equals(lod._lazyActualObsoleteDiagnostic) &&
+                this._symbol.Equals(lod._symbol) &&
+                this._containingSymbol.Equals(lod._containingSymbol) &&
+                this._binderFlags.Equals(lod._binderFlags) &&
+                base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(
+                this._lazyActualObsoleteDiagnostic,
+                Hash.Combine(this._symbol,
+                Hash.Combine(this._containingSymbol,
+                Hash.Combine(_binderFlags.GetHashCode(),
+                base.GetHashCode()))));
         }
     }
 }
