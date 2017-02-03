@@ -168,9 +168,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 
             var syntaxTree = document.GetSyntaxTreeSynchronously(CancellationToken.None);
             var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(caretPosition, CancellationToken.None);
-
+            
             var isBlockComment = trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
-            return isBlockComment && trivia.FullSpan.Start < caretPosition;
+
+            if (!isBlockComment)
+            {
+                return false;
+            }
+            return trivia.FullSpan.Start < caretPosition && caretPosition < trivia.FullSpan.End;
         }
     }
 }
