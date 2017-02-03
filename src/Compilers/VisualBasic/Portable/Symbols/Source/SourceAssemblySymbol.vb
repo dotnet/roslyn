@@ -1693,11 +1693,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Similar to attributes, type forwarders from the second added module should override type forwarders from the first added module, etc. 
                 For i As Integer = _modules.Length - 1 To 1 Step -1
                     Dim peModuleSymbol = DirectCast(_modules(i), PEModuleSymbol)
+                    Dim forwardedToAssemblies = peModuleSymbol.GetAssembliesForForwardedType(emittedName, ignoreCase, matchedName)
 
-                    Dim forwardedToAssembly = peModuleSymbol.GetAssemblyForForwardedType(emittedName, ignoreCase, matchedName)
-                    If forwardedToAssembly IsNot Nothing Then
+                    If forwardedToAssemblies.FirstSymbol IsNot Nothing Then
+                        If forwardedToAssemblies.SecondSymbol IsNot Nothing Then
+                            Return CreateMultipleForwardingErrorTypeSymbol(emittedName, peModuleSymbol, forwardedToAssemblies.FirstSymbol, forwardedToAssemblies.SecondSymbol)
+                        End If
+
                         ' Don't bother to check the forwarded-to assembly if we've already seen it.
-                        If visitedAssemblies IsNot Nothing AndAlso visitedAssemblies.Contains(forwardedToAssembly) Then
+                        If visitedAssemblies IsNot Nothing AndAlso visitedAssemblies.Contains(forwardedToAssemblies.FirstSymbol) Then
                             Return CreateCycleInTypeForwarderErrorTypeSymbol(emittedName)
                         Else
                             visitedAssemblies = New ConsList(Of AssemblySymbol)(Me, If(visitedAssemblies, ConsList(Of AssemblySymbol).Empty))
@@ -1706,7 +1710,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 emittedName = MetadataTypeName.FromFullName(matchedName, emittedName.UseCLSCompliantNameArityEncoding, emittedName.ForcedArity)
                             End If
 
-                            Return forwardedToAssembly.LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, digThroughForwardedTypes:=True)
+                            Return forwardedToAssemblies.FirstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, digThroughForwardedTypes:=True)
                         End If
                     End If
                 Next

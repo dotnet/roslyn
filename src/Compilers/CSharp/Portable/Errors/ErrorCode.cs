@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1454,7 +1454,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
         ERR_BadAsyncMethodBuilderTaskProperty = 8204,
-        ERR_AttributesInLocalFuncDecl = 8205
+        ERR_AttributesInLocalFuncDecl = 8205,
+        ERR_TypeForwardedToMultipleAssemblies = 8206,
         #endregion more stragglers for C# 7
     }
 }

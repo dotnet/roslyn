@@ -5008,4 +5008,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AttributesInLocalFuncDecl" xml:space="preserve">
     <value>Attributes are not allowed on local function parameters or type parameters</value>
   </data>
+  <data name="ERR_TypeForwardedToMultipleAssemblies" xml:space="preserve">
+    <value>Module '{0}' in assembly '{1}' is forwarding the type '{2}' to multiple assemblies: '{3}' and '{4}'.</value>
+  </data>
 </root>

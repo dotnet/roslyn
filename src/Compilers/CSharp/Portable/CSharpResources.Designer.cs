@@ -8999,6 +8999,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Module &apos;{0}&apos; in assembly &apos;{1}&apos; is forwarding the type &apos;{2}&apos; to multiple assemblies: &apos;{3}&apos; and &apos;{4}&apos;..
+        /// </summary>
+        internal static string ERR_TypeForwardedToMultipleAssemblies {
+            get {
+                return ResourceManager.GetString("ERR_TypeForwardedToMultipleAssemblies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed deconstruction variable &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable {
