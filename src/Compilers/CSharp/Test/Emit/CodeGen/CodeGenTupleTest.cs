@@ -22022,5 +22022,67 @@ static class C
                 );
 
         }
+
+        [Fact]
+        public void Serialization()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        VerifySerialization(new ValueTuple(),
+@""<?xml version=""""1.0"""" encoding=""""utf-16""""?>
+<ValueTuple xmlns:xsi=""""http://www.w3.org/2001/XMLSchema-instance"""" xmlns:xsd=""""http://www.w3.org/2001/XMLSchema"""" />"");
+
+   VerifySerialization(ValueTuple.Create(1),
+@""<?xml version=""""1.0"""" encoding=""""utf-16""""?>
+<ValueTupleOfInt32 xmlns:xsi=""""http://www.w3.org/2001/XMLSchema-instance"""" xmlns:xsd=""""http://www.w3.org/2001/XMLSchema"""">
+  <Item1>1</Item1>
+</ValueTupleOfInt32>"");
+
+   VerifySerialization((1, 2, 3, 4, 5, 6, 7, 8),
+@""<?xml version=""""1.0"""" encoding=""""utf-16""""?>
+<ValueTupleOfInt32Int32Int32Int32Int32Int32Int32ValueTupleOfInt32 xmlns:xsi=""""http://www.w3.org/2001/XMLSchema-instance"""" xmlns:xsd=""""http://www.w3.org/2001/XMLSchema"""">
+  <Item1>1</Item1>
+  <Item2>2</Item2>
+  <Item3>3</Item3>
+  <Item4>4</Item4>
+  <Item5>5</Item5>
+  <Item6>6</Item6>
+  <Item7>7</Item7>
+  <Rest>
+    <Item1>8</Item1>
+  </Rest>
+</ValueTupleOfInt32Int32Int32Int32Int32Int32Int32ValueTupleOfInt32>"");
+
+        Console.WriteLine(""DONE"");
+    }
+
+    public static void VerifySerialization<T>(T tuple, string expected)
+    {
+        var serializer = new System.Xml.Serialization.XmlSerializer(typeof(T));
+        var writer = new System.IO.StringWriter();
+        serializer.Serialize(writer, tuple);
+        string xml = writer.ToString();
+        if (!expected.Equals(xml))
+        {
+            throw new Exception($""ACTUAL: {xml} \r\n EXPECTED: {expected}"");
+        }
+
+        object output = serializer.Deserialize(new System.IO.StringReader(xml));
+        if (!tuple.Equals(output))
+        {
+            throw new Exception(""Deserialization output didn't match"");
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(new[] { source, tuplelib_cs }, 
+                references: new[] { SystemXmlRef }, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "DONE");
+        }
     }
 }
