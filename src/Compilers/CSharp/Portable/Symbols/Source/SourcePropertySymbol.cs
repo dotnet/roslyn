@@ -1231,71 +1231,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.StartPropertyParameters:
+                    case CompletionPart.FinishPropertyParameters:
                         {
-                            var parameters = this.Parameters;
-                            if (parameters.Length > 0)
+                            if (_state.NotePartComplete(CompletionPart.StartPropertyParameters))
+                            {
+                                var parameters = this.Parameters;
+                                if (parameters.Length > 0)
+                                {
+                                    var diagnostics = DiagnosticBag.GetInstance();
+                                    var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
+                                    foreach (var parameter in this.Parameters)
+                                    {
+                                        parameter.ForceComplete(locationOpt, cancellationToken);
+                                        parameter.Type.CheckAllConstraints(conversions, parameter.Locations[0], diagnostics);
+                                    }
+
+                                    this.AddDeclarationDiagnostics(diagnostics);
+                                    diagnostics.Free();
+                                }
+
+                                DeclaringCompilation.SymbolDeclaredEvent(this);
+                                var completedOnThisThread = _state.NotePartComplete(CompletionPart.FinishPropertyParameters);
+                                Debug.Assert(completedOnThisThread);
+                            }
+                            else
+                            {
+                                // StartPropertyParameters was completed by another thread. Wait for it to finish the parameters.
+                                _state.SpinWaitComplete(CompletionPart.FinishPropertyParameters, cancellationToken);
+                            }
+                        }
+                        break;
+
+                    case CompletionPart.StartPropertyType:
+                    case CompletionPart.FinishPropertyType:
+                        {
+                            if (_state.NotePartComplete(CompletionPart.StartPropertyType))
                             {
                                 var diagnostics = DiagnosticBag.GetInstance();
                                 var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
-                                foreach (var parameter in this.Parameters)
+                                this.Type.CheckAllConstraints(conversions, _location, diagnostics);
+
+                                if (this.Type.IsRestrictedType())
                                 {
-                                    parameter.ForceComplete(locationOpt, cancellationToken);
-                                    parameter.Type.CheckAllConstraints(conversions, parameter.Locations[0], diagnostics);
+                                    diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, this.Type);
                                 }
 
-                                if (_state.NotePartComplete(CompletionPart.StartPropertyParameters))
-                                {
-                                    this.AddDeclarationDiagnostics(diagnostics);
-                                    DeclaringCompilation.SymbolDeclaredEvent(this);
-                                    var completedOnThisThread = _state.NotePartComplete(CompletionPart.FinishPropertyParameters);
-                                    Debug.Assert(completedOnThisThread);
-                                }
-
+                                this.AddDeclarationDiagnostics(diagnostics);
+                                var completedOnThisThread = _state.NotePartComplete(CompletionPart.FinishPropertyType);
+                                Debug.Assert(completedOnThisThread);
                                 diagnostics.Free();
                             }
                             else
                             {
-                                if (_state.NotePartComplete(CompletionPart.StartPropertyParameters))
-                                {
-                                    DeclaringCompilation.SymbolDeclaredEvent(this);
-                                    var completedOnThisThread = _state.NotePartComplete(CompletionPart.FinishPropertyParameters);
-                                    Debug.Assert(completedOnThisThread);
-                                }
+                                // StartPropertyType was completed by another thread. Wait for it to finish the type.
+                                _state.SpinWaitComplete(CompletionPart.FinishPropertyType, cancellationToken);
                             }
                         }
-                        break;
-
-                    case CompletionPart.FinishPropertyParameters:
-                        // since StartPropertyParameters was not the next incomplete part, it must have
-                        // been completed by another thread. Wait for it to finish the parameters.
-                        _state.SpinWaitComplete(CompletionPart.FinishPropertyParameters, cancellationToken);
-                        break;
-
-                    case CompletionPart.StartPropertyType:
-                        {
-                            var diagnostics = DiagnosticBag.GetInstance();
-                            var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
-                            this.Type.CheckAllConstraints(conversions, _location, diagnostics);
-
-                            if (this.Type.IsRestrictedType())
-                            {
-                                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, this.Type);
-                            }
-
-                            if (_state.NotePartComplete(CompletionPart.StartPropertyType))
-                            {
-                                this.AddDeclarationDiagnostics(diagnostics);
-                                _state.NotePartComplete(CompletionPart.FinishPropertyType);
-                            }
-
-                            diagnostics.Free();
-                        }
-                        break;
-
-                    case CompletionPart.FinishPropertyType:
-                        // since StartPropertyType was not the next incomplete part, it must have
-                        // been completed by another thread. Wait for it to finish the type.
-                        _state.SpinWaitComplete(CompletionPart.FinishPropertyType, cancellationToken);
                         break;
 
                     case CompletionPart.None:
