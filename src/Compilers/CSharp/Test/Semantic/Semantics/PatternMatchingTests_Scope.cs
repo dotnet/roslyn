@@ -11481,5 +11481,289 @@ True").VerifyDiagnostics();
             var zRef = GetReferences(tree, "z1").Single();
             Assert.Equal("System.Boolean", compilation.GetSemanticModel(tree).GetTypeInfo(zRef).Type.ToTestDisplayString());
         }
+
+        [Fact]
+        public void Scope_SwitchLabelGuard_10()
+        {
+            var source =
+@"
+public class X
+{
+    public static int Data = 2;
+
+    public static void Main()
+    {
+        Test(1);
+    }
+
+    static void Test(int val)
+    {
+        switch (val)
+        {
+            case 1 when Dummy(123, Data is var x1):
+                var z1 = Dummy(123, x1 is var y1);
+                System.Console.WriteLine(y1);
+                System.Console.WriteLine(z1);
+                break;
+        }
+    }
+
+    static bool Dummy(params object[] data)
+    {
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: @"2
+True").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+
+            var xRef = GetReferences(tree, "x1").Single();
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(xRef).Type.ToTestDisplayString());
+
+            var yRef = GetReferences(tree, "y1").Single();
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(yRef).Type.ToTestDisplayString());
+
+            var zRef = GetReferences(tree, "z1").Single();
+            Assert.Equal("System.Boolean", compilation.GetSemanticModel(tree).GetTypeInfo(zRef).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Scope_SwitchLabelGuard_11()
+        {
+            var source =
+@"
+public class X
+{
+    public static int Data = 2;
+
+    public static void Main()
+    {
+        System.Console.WriteLine(Test(1));
+    }
+
+    static bool Test(int val)
+    {
+        switch (val)
+        {
+            case 1 when Dummy(123, Data is var x1):
+                return Dummy(123, x1 is var y1) && Dummy(y1);
+                System.Console.WriteLine(y1);
+                break;
+        }
+
+        return false;
+    }
+
+    static bool Dummy(params object[] data)
+    {
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: "True").VerifyDiagnostics(
+                // (17,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine(y1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(17, 17));
+
+            var tree = compilation.SyntaxTrees.Single();
+
+            var xRef = GetReferences(tree, "x1").Single();
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(xRef).Type.ToTestDisplayString());
+
+            var yRefs = GetReferences(tree, "y1");
+            Assert.Equal(2, yRefs.Count());
+
+            foreach (var yRef in yRefs)
+            {
+                Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(yRef).Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void Scope_SwitchLabelGuard_12()
+        {
+            var source =
+@"
+public class X
+{
+    public static int Data = 2;
+
+    public static void Main()
+    {
+        Test(1);
+    }
+
+    static bool Test(int val)
+    {
+        try
+        {
+            switch (val)
+            {
+                case 1 when Data is var x1:
+                    throw Dummy(123, x1 is var y1);
+                    System.Console.WriteLine(y1);
+                    break;
+            }
+        }
+        catch { }
+
+        return false;
+    }
+
+    static System.Exception Dummy(params object[] data)
+    {
+        foreach(var obj in data)
+        {
+            System.Console.WriteLine(obj);
+        }
+        return new System.Exception();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: @"123
+True").VerifyDiagnostics(
+                // (19,21): warning CS0162: Unreachable code detected
+                //                     System.Console.WriteLine(y1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(19, 21));
+
+            var tree = compilation.SyntaxTrees.Single();
+
+            var xRef = GetReferences(tree, "x1").Single();
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(xRef).Type.ToTestDisplayString());
+
+            var yRef = GetReferences(tree, "y1").Single();
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(yRef).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void Scope_SwitchLabelGuard_13()
+        {
+            var source =
+@"
+public class X
+{
+    public static int Data = 2;
+
+    public static void Main()
+    {
+        System.Console.WriteLine(Test(1));
+    }
+
+    static bool Test(int val)
+    {
+        switch (val)
+        {
+            case 1 when Dummy(123, Data is var x1):
+                var (z0, z1)  = (x1, Dummy(x1, x1 is var y1));
+                System.Console.WriteLine(y1);
+                System.Console.WriteLine(z0);
+                System.Console.WriteLine(z1 ? 1 : 0);
+                break;
+        }
+
+        return false;
+    }
+
+    static bool Dummy(params object[] data)
+    {
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(
+                source: source,
+                options: TestOptions.DebugExe,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: @"2
+2
+1
+False").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+
+            var y1Ref = GetReferences(tree, "y1").Single();
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(y1Ref).Type.ToTestDisplayString());
+
+            var z0Ref = GetReferences(tree, "z0").Single();
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(z0Ref).Type.ToTestDisplayString());
+
+            var z1Ref = GetReferences(tree, "z1").Single();
+            Assert.Equal("System.Boolean", compilation.GetSemanticModel(tree).GetTypeInfo(z1Ref).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void Scope_SwitchLabelGuard_14()
+        {
+            var source =
+@"
+public class X
+{
+    public static int Data = 2;
+
+    public static void Main()
+    {
+        System.Console.WriteLine(Test(1));
+    }
+
+    static bool Test(int val)
+    {
+        switch (val)
+        {
+            case 1 when Dummy(123, Data is var x1):
+                var (z0, (z1, z2))  = (x1, (Data, Dummy(x1, x1 is var y1)));
+                System.Console.WriteLine(y1);
+                System.Console.WriteLine(z0);
+                System.Console.WriteLine(z1);
+                System.Console.WriteLine(z2);
+                break;
+        }
+
+        return false;
+    }
+
+    static bool Dummy(params object[] data)
+    {
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(
+                source: source,
+                options: TestOptions.DebugExe,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: @"2
+2
+2
+True
+False").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+
+            var y1Ref = GetReferences(tree, "y1").Single();
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(y1Ref).Type.ToTestDisplayString());
+
+            var z0Ref = GetReferences(tree, "z0").Single();
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(z0Ref).Type.ToTestDisplayString());
+
+            var z1Ref = GetReferences(tree, "z1").Single();
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(z1Ref).Type.ToTestDisplayString());
+
+            var z2Ref = GetReferences(tree, "z2").Single();
+            Assert.Equal("System.Boolean", compilation.GetSemanticModel(tree).GetTypeInfo(z2Ref).Type.ToTestDisplayString());
+        }
     }
 }
