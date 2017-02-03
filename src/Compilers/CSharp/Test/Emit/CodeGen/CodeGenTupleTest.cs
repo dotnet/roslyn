@@ -22068,7 +22068,7 @@ class C
         string xml = writer.ToString();
         if (!expected.Equals(xml))
         {
-            throw new Exception($""ACTUAL: {xml} \r\n EXPECTED: {expected}"");
+            throw new Exception($""ACTUAL: {xml} - EXPECTED: {expected}"");
         }
 
         object output = serializer.Deserialize(new System.IO.StringReader(xml));
