@@ -63,13 +63,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     initialTemp = _factory.SynthesizedLocal(expression.Type, expression.Syntax);
                     result.Add(_factory.Assignment(_factory.Local(initialTemp), expression));
                     expression = _factory.Local(initialTemp);
-                }
 
-                // EnC: We need to insert a hidden sequence point to handle function remapping in case 
-                // the containing method is edited while methods invoked in the expression are being executed.
-                if (!node.WasCompilerGenerated && _localRewriter.Instrument)
-                {
-                    expression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, expression, _factory);
+                    // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+                    // the containing method is edited while methods invoked in the expression are being executed.
+                    if (!node.WasCompilerGenerated && _localRewriter.Instrument)
+                    {
+                        expression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, expression, _factory);
+                    }
                 }
 
                 // output the decision tree part
@@ -333,6 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // invariant: the input has already been tested, to ensure it is not null
                 if (input == temp)
                 {
+                    // this may not be reachable due to https://github.com/dotnet/roslyn/issues/16878
                     return _factory.Literal(true);
                 }
 
@@ -368,15 +369,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var value = byValue.Expression.ConstantValue.Value;
                 Debug.Assert(value != null);
-                DecisionTree onValue;
-                if (byValue.ValueAndDecision.TryGetValue(value, out onValue))
-                {
-                    LowerDecisionTree(byValue.Expression, onValue);
-                    if (onValue.MatchIsComplete)
-                    {
-                        return;
-                    }
-                }
+
+                // because we are switching on a constant, the decision tree builder does not produce a (nonempty) ByValue
+                Debug.Assert(byValue.ValueAndDecision.Count == 0);
 
                 LowerDecisionTree(byValue.Expression, byValue.Default);
             }
@@ -605,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     builder.Add(_factory.Block(section.Statements));
-                    // this location should not be reachable.
+                    // this location in the generated code in builder should not be reachable.
                 }
 
                 Debug.Assert(nextLabel != null);

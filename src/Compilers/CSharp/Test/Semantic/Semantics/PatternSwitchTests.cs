@@ -2007,7 +2007,7 @@ null");
 class Program
 {
     static void Main(string[] args)
-    {                           
+    {
         switch((object)new A())
         {
             case A a:
@@ -2036,9 +2036,9 @@ class Program
 {
     static void Main(string[] args)
     {
-        int val = 3; 
+        int val = 3;
         var l = new System.Collections.Generic.List<System.Action>();
-        int i = 1;                          
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2098,9 +2098,9 @@ class Program
 
     static System.Collections.Generic.IEnumerable<string> Test()
     {
-        int val = 3; 
+        int val = 3;
         var l = new System.Collections.Generic.List<System.Action>();
-        int i = 1;                          
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2160,8 +2160,8 @@ class Program
 
     static System.Collections.Generic.IEnumerable<string> Test()
     {
-        int val = 3; 
-        int i = 1;                          
+        int val = 3;
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2216,8 +2216,8 @@ class Program
 
     static System.Collections.Generic.IEnumerable<int> Test()
     {
-        int val = 3; 
-        int i = 1;                          
+        int val = 3;
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2275,7 +2275,7 @@ class Program
 
     static System.Collections.Generic.IEnumerable<string> Test()
     {
-        int val = 3; 
+        int val = 3;
         switch(val)
         {
             case int a when TakeOutVar(out var b) && a == b:
@@ -2316,9 +2316,9 @@ class Program
 
     static async Task<int> Test()
     {
-        int val = 3; 
+        int val = 3;
         var l = new System.Collections.Generic.List<System.Action>();
-        int i = 1;                          
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2386,8 +2386,8 @@ class Program
 
     static async Task<int> Test()
     {
-        int val = 3; 
-        int i = 1;                          
+        int val = 3;
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2450,8 +2450,8 @@ class Program
 
     static async Task<int> Test()
     {
-        int val = 3; 
-        int i = 1;                          
+        int val = 3;
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2509,7 +2509,7 @@ class Program
 
     static async Task<int> Test()
     {
-        int val = 3; 
+        int val = 3;
         switch(val)
         {
             case int a when TakeOutVar(out var b) && a == b:

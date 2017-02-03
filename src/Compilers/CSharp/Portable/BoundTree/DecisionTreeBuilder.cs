@@ -78,16 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected delegate DecisionTree DecisionMaker(
+        protected delegate DecisionTree.Guarded DecisionMaker(
             BoundExpression expression,
             TypeSymbol type);
 
         private DecisionTree AddByValue(DecisionTree decision, BoundConstantPattern value, DecisionMaker makeDecision)
         {
-            if (decision.MatchIsComplete)
-            {
-                return null;
-            }
+            Debug.Assert(!decision.MatchIsComplete); // otherwise we would have given a subsumption error
 
             // Even if value.ConstantValue == null, we proceed here for error recovery, so that the case label isn't
             // dropped on the floor. That is useful, for example to suppress unreachable code warnings on bad case labels.
@@ -108,14 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (guarded.Default != null)
             {
-                if (guarded.Default.MatchIsComplete)
-                {
-                    return null;
-                }
+                Debug.Assert(!guarded.Default.MatchIsComplete); // otherwise we would have given a subsumption error
             }
             else
             {
-                guarded.Default = new DecisionTree.ByValue(guarded.Expression, guarded.Type, null);
+                guarded.Default = new DecisionTree.ByType(guarded.Expression, guarded.Type, null);
             }
 
             return AddByValue(guarded.Default, value, makeDecision);
@@ -165,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (byType.Default.MatchIsComplete)
                     {
+                        // This code may be unreachable due to https://github.com/dotnet/roslyn/issues/16878
                         byType.MatchIsComplete = true;
                     }
                 }
@@ -172,8 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (value.ConstantValue == ConstantValue.Null)
             {
-                return byType.Expression.ConstantValue?.IsNull == false
-                    ? null : AddByNull((DecisionTree)byType, makeDecision);
+                // This should not occur, as the caller will have invoked AddByNull instead.
+                throw ExceptionUtilities.Unreachable;
             }
 
             if ((object)value.Value.Type == null)
@@ -303,33 +298,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            foreach (var kvp in byType.TypeAndDecision)
-            {
-                var MatchedType = kvp.Key;
-                var Decision = kvp.Value;
-                // See if matching Type matches this value
-                switch (ExpressionOfTypeMatchesPatternType(type, MatchedType, ref _useSiteDiagnostics))
-                {
-                    case true:
-                        if (Decision.MatchIsComplete)
-                        {
-                            return null;
-                        }
 
-                        continue;
-                    case false:
-                        continue;
-                    case null:
-                        continue;
+            // if the last type is the type we need, add to it
+            DecisionTree result = null;
+            if (byType.TypeAndDecision.Count != 0)
+            {
+                var lastTypeAndDecision = byType.TypeAndDecision.Last();
+                if (lastTypeAndDecision.Key.TupleUnderlyingTypeOrSelf() == type.TupleUnderlyingTypeOrSelf())
+                {
+                    result = Add(lastTypeAndDecision.Value, makeDecision);
                 }
             }
 
-            var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, Syntax, false, RefKind.None);
-            var expression = new BoundLocal(Syntax, localSymbol, null, type);
-            var result = makeDecision(expression, type);
-            Debug.Assert(result.Temp == null);
-            result.Temp = localSymbol;
-            byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(type, result));
+            if (result == null)
+            {
+                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, Syntax, false, RefKind.None);
+                var expression = new BoundLocal(Syntax, localSymbol, null, type);
+                result = makeDecision(expression, type);
+                Debug.Assert(result.Temp == null);
+                result.Temp = localSymbol;
+                byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(type, result));
+            }
+
             if (ExpressionOfTypeMatchesPatternType(byType.Type, type, ref _useSiteDiagnostics) == true &&
                 result.MatchIsComplete &&
                 byType.WhenNull?.MatchIsComplete == true)
@@ -342,25 +332,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DecisionTree AddByNull(DecisionTree decision, DecisionMaker makeDecision)
         {
-            if (decision.MatchIsComplete)
-            {
-                return null;
-            }
+            // the decision tree cannot be complete, as if that were so we would have considered this decision subsumed.
+            Debug.Assert(!decision.MatchIsComplete);
 
             switch (decision.Kind)
             {
                 case DecisionTree.DecisionKind.ByType:
                     return AddByNull((DecisionTree.ByType)decision, makeDecision);
                 case DecisionTree.DecisionKind.ByValue:
-                    {
-                        var byValue = (DecisionTree.ByValue)decision;
-                        if (byValue.MatchIsComplete)
-                        {
-                            return null;
-                        }
-
-                        throw ExceptionUtilities.Unreachable;
-                    }
+                    throw ExceptionUtilities.Unreachable;
                 case DecisionTree.DecisionKind.Guarded:
                     return AddByNull((DecisionTree.Guarded)decision, makeDecision);
                 default:
@@ -370,10 +350,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DecisionTree AddByNull(DecisionTree.ByType byType, DecisionMaker makeDecision)
         {
-            if (byType.WhenNull?.MatchIsComplete == true || byType.Default?.MatchIsComplete == true)
-            {
-                return null;
-            }
+            // these tree cannot be complete, as if that were so we would have considered this decision subsumed.
+            Debug.Assert(byType.WhenNull?.MatchIsComplete != true);
+            Debug.Assert(byType.Default?.MatchIsComplete != true);
 
             if (byType.Default != null)
             {
@@ -442,10 +421,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected DecisionTree Add(DecisionTree decision, DecisionMaker makeDecision)
         {
-            if (decision.MatchIsComplete)
-            {
-                return null;
-            }
+            // the decision tree cannot be complete, otherwise we would have given a subsumption error for this case.
+            Debug.Assert(!decision.MatchIsComplete);
 
             switch (decision.Kind)
             {
@@ -464,11 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (guarded.Default != null)
             {
-                if (guarded.Default.MatchIsComplete)
-                {
-                    return null;
-                }
-
+                Debug.Assert(!guarded.Default.MatchIsComplete); // otherwise we would have given a subsumption error
                 var result = Add(guarded.Default, makeDecision);
                 if (guarded.Default.MatchIsComplete)
                 {
