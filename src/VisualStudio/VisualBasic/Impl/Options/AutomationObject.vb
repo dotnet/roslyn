@@ -197,6 +197,70 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+
+        Public Property Style_PreferThrowExpression As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferThrowExpression)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferThrowExpression, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferObjectInitializer As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferObjectInitializer)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferObjectInitializer, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferCollectionInitializer As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferCollectionInitializer)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferCollectionInitializer, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferCoalesceExpression As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferCoalesceExpression)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferCoalesceExpression, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferNullPropagation As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferNullPropagation)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferNullPropagation, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferInlinedVariableDeclaration As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferInlinedVariableDeclaration)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferInlinedVariableDeclaration, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferExplicitTupleNames As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferExplicitTupleNames)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferExplicitTupleNames, value)
+            End Set
+        End Property
+
         Public Property Option_PlaceSystemNamespaceFirst As Boolean
             Get
                 Return GetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst)

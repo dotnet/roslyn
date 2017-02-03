@@ -572,6 +572,48 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CodeStyleOptions.QualifyEventAccess, value); }
         }
 
+        public string Style_PreferThrowExpression
+        {
+            get { return GetXmlOption(CodeStyleOptions.PreferThrowExpression); }
+            set { SetXmlOption(CodeStyleOptions.PreferThrowExpression, value); }
+        }
+
+        public string Style_PreferObjectInitializer
+        {
+            get { return GetXmlOption(CodeStyleOptions.PreferObjectInitializer); }
+            set { SetXmlOption(CodeStyleOptions.PreferObjectInitializer, value); }
+        }
+
+        public string Style_PreferCollectionInitializer
+        {
+            get { return GetXmlOption(CodeStyleOptions.PreferCollectionInitializer); }
+            set { SetXmlOption(CodeStyleOptions.PreferCollectionInitializer, value); }
+        }
+
+        public string Style_PreferCoalesceExpression
+        {
+            get { return GetXmlOption(CodeStyleOptions.PreferCoalesceExpression); }
+            set { SetXmlOption(CodeStyleOptions.PreferCoalesceExpression, value); }
+        }
+
+        public string Style_PreferNullPropagation
+        {
+            get { return GetXmlOption(CodeStyleOptions.PreferNullPropagation); }
+            set { SetXmlOption(CodeStyleOptions.PreferNullPropagation, value); }
+        }
+
+        public string Style_PreferInlinedVariableDeclaration
+        {
+            get { return GetXmlOption(CodeStyleOptions.PreferInlinedVariableDeclaration); }
+            set { SetXmlOption(CodeStyleOptions.PreferInlinedVariableDeclaration, value); }
+        }
+
+        public string Style_PreferExplicitTupleNames
+        {
+            get { return GetXmlOption(CodeStyleOptions.PreferExplicitTupleNames); }
+            set { SetXmlOption(CodeStyleOptions.PreferExplicitTupleNames, value); }
+        }
+
         [Obsolete("Use Style_UseImplicitTypeWherePossible, Style_UseImplicitTypeWhereApparent or Style_UseImplicitTypeForIntrinsicTypes", error: true)]
         public int Style_UseVarWhenDeclaringLocals
         {
@@ -595,6 +637,66 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes); }
             set { SetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, value); }
+        }
+
+        public string Style_PreferConditionalDelegateCall
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall, value); }
+        }
+
+        public string Style_PreferPatternMatchingOverAsWithNullCheck
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, value); }
+        }
+
+        public string Style_PreferPatternMatchingOverIsWithCastCheck
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, value); }
+        }
+
+        public string Style_PreferExpressionBodiedConstructors
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, value); }
+        }
+
+        public string Style_PreferExpressionBodiedMethods
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, value); }
+        }
+
+        public string Style_PreferExpressionBodiedOperators
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, value); }
+        }
+
+        public string Style_PreferExpressionBodiedProperties
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, value); }
+        }
+
+        public string Style_PreferExpressionBodiedIndexers
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, value); }
+        }
+
+        public string Style_PreferExpressionBodiedAccessors
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, value); }
+        }
+
+        public string Style_PreferBraces
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferBraces); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferBraces, value); }
         }
 
         public int Wrapping_IgnoreSpacesAroundBinaryOperators
