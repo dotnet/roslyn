@@ -8844,24 +8844,44 @@ class C {
         [Fact]
         public void CompilingCodeWithInvalidPreProcessorSymbolsShouldErrorOut_Single()
         {
-            var parsedArgs = DefaultParse(new[] { "/define:valid1,2invalid", "a.cs" }, _baseDirectory);
+            var parsedArgs = DefaultParse(new[] { "/define:\"\"", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
-                // warning CS2029: Invalid value for '/define'; '2invalid' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("2invalid"));
+                // warning CS2029: Invalid value for '/define'; '' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments(""));
+
+            parsedArgs = DefaultParse(new[] { "/define:\" \"", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2029: Invalid value for '/define'; '' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments(""));
+
+            parsedArgs = DefaultParse(new[] { "/define:Good,Bad.Symbol", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2029: Invalid value for '/define'; 'Bad.Symbol' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("Bad.Symbol"));
+
+            parsedArgs = DefaultParse(new[] { "/define:123,Good", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2029: Invalid value for '/define'; '123' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("123"));
+
+            parsedArgs = DefaultParse(new[] { "/define:Good,Bad\\Symbol", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2029: Invalid value for '/define'; 'Bad\Symbol' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("Bad\\Symbol"));
         }
 
         [WorkItem(16913, "https://github.com/dotnet/roslyn/issues/16913")]
         [Fact]
         public void CompilingCodeWithInvalidPreProcessorSymbolsShouldErrorOut_Multiple()
         {
-            var parsedArgs = DefaultParse(new[] { "/define:valid1,2invalid,valid3", "/define:4invalid,5invalid,valid6", "a.cs" }, _baseDirectory);
+            var parsedArgs = DefaultParse(new[] { "/define:valid1,2invalid,valid3", "/define:4,5_*,valid6", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // warning CS2029: Invalid value for '/define'; '2invalid' is not a valid identifier
                 Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("2invalid"),
-                // warning CS2029: Invalid value for '/define'; '4invalid' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("4invalid"),
-                // warning CS2029: Invalid value for '/define'; '5invalid' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("5invalid"));
+                // warning CS2029: Invalid value for '/define'; '4' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("4"),
+                // warning CS2029: Invalid value for '/define'; '5_*' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("5_*"));
         }
 
         public class QuotedArgumentTests

@@ -8104,9 +8104,26 @@ End Module
         <WorkItem(15900, "https://github.com/dotnet/roslyn/issues/15900")>
         <Fact>
         Public Sub CompilingCodeWithInvalidPreProcessorSymbolsShouldErrorOut()
-            Dim parsedArgs = DefaultParse({"/define:valid1,2", "a.cs"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/define:valid,2", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "2 ^^ ^^ "))
+                Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments(VBResources.ERR_ExpectedIdentifier, "2 ^^ ^^ "))
+
+            parsedArgs = DefaultParse({"/define:=1", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments(VBResources.ERR_ExpectedIdentifier, "= ^^ ^^ 1"))
+
+            parsedArgs = DefaultParse({"/define:"" ""=1", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments(VBResources.ERR_ExpectedIdentifier, """ "" ^^ ^^ =1"))
+
+            parsedArgs = DefaultParse({"/define:Good=1", "/define:Bad.Symbol=2", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments(VBResources.ERR_ExpectedEOS, "Bad ^^ ^^ Symbol=2"))
+
+            parsedArgs = DefaultParse({"/define:123=1", "/define:Bad/Symbol=2", "/define:Good=3", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments(VBResources.ERR_ExpectedIdentifier, "123 ^^ ^^ =1"),
+                Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments(VBResources.ERR_ExpectedEOS, "Bad ^^ ^^ Symbol=2"))
         End Sub
 
         Private Function MakeTrivialExe(Optional directory As String = Nothing) As String
