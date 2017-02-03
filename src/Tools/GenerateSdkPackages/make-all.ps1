@@ -24,38 +24,41 @@ function package-normal() {
     & $nuget pack $baseNuspecPath -OutputDirectory $packagePath -Properties name=$simpleName`;version=$packageVersion`;filePath=$filePath
 }
 
-# Used to package Microsoft.VisualStudio.Debugger.Engine
-function package-engine() {
+# The debugger DLLs have a more complex structure and it's easier to special case
+# copying them over.
+function copy-debugger() { 
     $refRootPath = [IO.Path]::GetFullPath((join-path $dropPath "..\..\Debugger\ReferenceDLL"))
-    $engineDllPath = join-path $dllPath "engine"
-    $engineNespecPath = join-path $PSScriptRoot "engine.nuspec"
-    mkdir $engineDllPath -ErrorAction SilentlyContinue | out-null
-    cp -fo -re $refRootPath $engineDllPath
-    pushd $engineDllPath
+    $debuggerDllPath = join-path $dllPath "debugger"
+    $net20Path = join-path $debuggerDllPath "net20"
+    $net45Path = join-path $debuggerDllPath "net45"
+    $portablePath = join-path $debuggerDllPath "portable"
+
+    mkdir $debuggerDllPath -ErrorAction SilentlyContinue | out-null
+    mkdir $net20Path -ErrorAction SilentlyContinue | out-null
+    mkdir $net45Path -ErrorAction SilentlyContinue | out-null
+    mkdir $portablePath -ErrorAction SilentlyContinue | out-null
+
+    pushd $debuggerDllPath
     try {
+        $d = join-path $dropPath "..\..\Debugger"
+        cp (join-path $d "RemoteDebugger\Microsoft.VisualStudio.Debugger.Engine.dll") $net20Path
+        cp (join-path $d "IDE\Microsoft.VisualStudio.Debugger.Engine.dll") $net45Path
+        cp (join-path $d "x-plat\coreclr.windows\mcg\Microsoft.VisualStudio.Debugger.Engine.dll") $portablePath
+        cp (join-path $dropPath "Microsoft.VisualStudio.Debugger.Metadata.dll") $net20Path
+        cp (join-path $dropPath "Microsoft.VisualStudio.Debugger.Metadata.dll") $portablePath
         gci -re -in *.dll | %{ & $fakeSign -f $_ }
-        & $nuget pack $engineNespecPath -OutputDirectory $packagePath -Properties version=$packageVersion`;enginePath=$engineDllPath
     }
     finally {
         popd
     }
 }
 
-# Used to package Microsoft.VisualStudio.Debugger.Metadata
-function package-metadata() {
-    $refRootPath = [IO.Path]::GetFullPath((join-path $dropPath "..\..\Debugger\ReferenceDLL"))
-    $metadataDllPath = join-path $dllPath "metadata"
-    $metadataNespecPath = join-path $PSScriptRoot "metadata.nuspec"
-    mkdir $metadataDllPath -ErrorAction SilentlyContinue | out-null
-    cp -fo -re $refRootPath $metadataDllPath
-    pushd $metadataDllPath
-    try {
-        gci -re -in *.dll | %{ & $fakeSign -f $_ }
-        & $nuget pack $metadataNespecPath -OutputDirectory $packagePath -Properties version=$packageVersion`;metadataPath=$metadataDllPath
-    }
-    finally {
-        popd
-    }
+# Used to package debugger nugets
+function package-debugger() {
+    param( [string]$kind )
+    $debuggerPath = join-path $dllPath "debugger"
+    $nuspecPath = join-path $PSScriptRoot "$kind.nuspec"
+    & $nuget pack $nuspecPath -OutputDirectory $packagePath -Properties version=$packageVersion`;debuggerPath=$debuggerPath
 }
 
 try {
@@ -87,13 +90,15 @@ try {
     mkdir $packagePath -ErrorAction SilentlyContinue | out-null
     pushd $outPath
     try {
+        copy-debugger
+
         foreach ($item in $list) {
             $name = split-path -leaf $item
             $simpleName = [IO.Path]::GetFileNameWithoutExtension($name) 
             write-host "Packing $simpleName"
             switch ($simpleName) {
-                "Microsoft.VisualStudio.Debugger.Engine" { package-engine }
-                "Microsoft.VisualStudio.Debugger.Metadata" { package-metadata }
+                "Microsoft.VisualStudio.Debugger.Engine" { package-debugger "engine" }
+                "Microsoft.VisualStudio.Debugger.Metadata" { package-debugger "metadata" }
                 default { package-normal }
             }
         }
