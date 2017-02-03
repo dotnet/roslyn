@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 if (ThroughMember == null)
                 {
                     var factory = this.Document.GetLanguageService<SyntaxGenerator>();
-                    return factory.CreateThrowNotImplementedStatement(compilation, addImport: false);
+                    return factory.CreateThrowNotImplementedStatement(compilation);
                 }
                 else
                 {
