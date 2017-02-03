@@ -81,6 +81,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End If
 
                 ' can't/don't try to transform member access to invocation
+                '
+                ' can't/don't try to transform a name parented to a NameColonEqualsSyntax reference.
+                ' typical example is a tuple literal (Alice:=1, Bob:=2) 
+                '           that will turn 'Alice:=1' into 'Alice():=1' , which will not fit the syntax model.
                 If TypeOf name.Parent Is MemberAccessExpressionSyntax OrElse
                    TypeOf name.Parent Is TupleElementSyntax OrElse
                    name.CheckParent(Of AttributeSyntax)(Function(p) p.Name Is name) OrElse
