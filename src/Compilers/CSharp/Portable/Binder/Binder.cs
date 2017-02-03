@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Expression is assigned by reference.
             /// </summary>
             RefAssign,
-            
+
             /// <summary>
             /// Expression is returned by reference.
             /// </summary>
@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return binders.ToArrayAndFree();
         }
 #endif
-        
+
         internal BoundExpression WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundExpression expression)
         {
             var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundBlock(statement.Syntax, locals, ImmutableArray.Create(statement))
-                        { WasCompilerGenerated = true };
+            { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -778,8 +778,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #if DEBUG
-        private IEnumerable<string> PrintBinders()
+        internal string Dump()
         {
+            return TreeDumper.DumpCompact(this.DumpAncestors());
+        }
+
+        private TreeDumperNode DumpAncestors()
+        {
+            TreeDumperNode current = null;
+
             for (var scope = this; scope != null; scope = scope.Next)
             {
                 switch (scope)
@@ -791,18 +798,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     default:
                         var locals = string.Join(", ", scope.Locals.SelectAsArray(s => s.Name));
+                        locals = locals.IsEmpty() ? "" : $" (declaring locals: {locals})";
+
                         var snippet = scope.ScopeDesignator?.ToString() ?? "";
+
                         var shortSnippet = snippet.Substring(0, Math.Min(30, Math.Min(snippet.Length, Math.Max(0, snippet.IndexOf('\r')))));
-                        yield return $"{scope.GetType().Name} -- {locals} -- {shortSnippet}".Trim();
+                        shortSnippet = shortSnippet.IsEmpty() ? null : shortSnippet;
+
+                        string currentDescription = $"{scope.GetType().Name}{locals}".Trim();
+
+                        current = new TreeDumperNode(currentDescription, shortSnippet, current == null ? null : new[] { current });
                         break;
                 }
             }
+
+            return current;
         }
 
-        internal string Dump()
-        {
-            return string.Join("\r\n", System.Linq.Enumerable.Reverse(PrintBinders()));
-        }
 #endif
     }
 }
