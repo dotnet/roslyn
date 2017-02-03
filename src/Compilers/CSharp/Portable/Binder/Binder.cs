@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundBlock(statement.Syntax, locals, ImmutableArray.Create(statement))
-            { WasCompilerGenerated = true };
+                { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -789,32 +789,46 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (var scope = this; scope != null; scope = scope.Next)
             {
-                switch (scope)
-                {
-                    case BuckStopsHereBinder _1:
-                    case InContainerBinder _2:
-                    case InMethodBinder _3:
-                    case ExecutableCodeBinder _4:
-                        break;
-                    default:
-                        var locals = string.Join(", ", scope.Locals.SelectAsArray(s => s.Name));
-                        locals = locals.IsEmpty() ? "" : $" (declaring locals: {locals})";
-
-                        var snippet = scope.ScopeDesignator?.ToString() ?? "";
-
-                        var shortSnippet = snippet.Substring(0, Math.Min(30, Math.Min(snippet.Length, Math.Max(0, snippet.IndexOf('\r')))));
-                        shortSnippet = shortSnippet.IsEmpty() ? null : shortSnippet;
-
-                        string currentDescription = $"{scope.GetType().Name}{locals}".Trim();
-
-                        current = new TreeDumperNode(currentDescription, shortSnippet, current == null ? null : new[] { current });
-                        break;
-                }
+                var (description, snippet) = Print(scope);
+                current = new TreeDumperNode(description, snippet, current == null ? null : new[] { current });
             }
 
             return current;
         }
 
+        private static (string description, string snippet) Print(Binder scope)
+        {
+            var locals = string.Join(", ", scope.Locals.SelectAsArray(s => s.Name));
+            string snippet;
+            if (scope.ScopeDesignator != null)
+            {
+                var lines = scope.ScopeDesignator.ToString().Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                if (lines.Length == 1)
+                {
+                    snippet = lines[0];
+                }
+                else
+                {
+                    var first = lines[0];
+                    var last = lines[lines.Length - 1];
+                    var lastSize = Math.Min(last.Length, 12);
+                    snippet = first.Substring(0, Math.Min(first.Length, 12)) + " ... " + last.Substring(last.Length - lastSize, lastSize);
+                }
+            }
+            else
+            {
+                snippet = "";
+            }
+
+            snippet = snippet.IsEmpty() ? null : snippet;
+
+            var description = $"{scope.GetType().Name}";
+            if (!locals.IsEmpty())
+            {
+                description = description + $" (declaring locals: {locals})";
+            }
+            return (description, snippet);
+        }
 #endif
     }
 }
