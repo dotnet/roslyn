@@ -264,4 +264,48 @@ Public Class VisualBasicParseOptionsTests
                 "PreprocessorSymbols",
                 "SpecifiedLanguageVersion")
     End Sub
+
+    <WorkItem(15900, "https://github.com/dotnet/roslyn/issues/15900")>
+    <Fact>
+    Public Sub ConstructingCSharpParseOptionstWithInvalidPreProcessorSymbolsShouldNotProduceErrors()
+        Dim dict = New Dictionary(Of String, Object)
+        dict.Add("valid1", Nothing)
+        dict.Add("2", Nothing)
+
+        Dim options = New VisualBasicParseOptions(preprocessorSymbols:=dict)
+
+        Assert.Equal(2, options.PreprocessorSymbolNames.Count())
+        Assert.Equal("valid1", options.PreprocessorSymbolNames.ElementAt(0))
+        Assert.Equal("2", options.PreprocessorSymbolNames.ElementAt(1))
+    End Sub
+
+    <WorkItem(15900, "https://github.com/dotnet/roslyn/issues/15900")>
+    <Fact>
+    Public Sub ConstructingCSharpParseOptionstWithInvalidPreProcessorSymbolsShouldNotProduceErrors_Full()
+        Dim symbols = New Dictionary(Of String, Object)
+        symbols.Add("valid1", Nothing)
+        symbols.Add("2", Nothing)
+
+        Dim features = ImmutableDictionary(Of String, String).Empty
+        Dim options = New VisualBasicParseOptions(LanguageVersion.Latest, DocumentationMode.None, SourceCodeKind.Regular, symbols, features)
+
+        Assert.Equal(2, options.PreprocessorSymbolNames.Count())
+        Assert.Equal("valid1", options.PreprocessorSymbolNames.ElementAt(0))
+        Assert.Equal("2", options.PreprocessorSymbolNames.ElementAt(1))
+    End Sub
+
+    <WorkItem(15900, "https://github.com/dotnet/roslyn/issues/15900")>
+    <Fact>
+    Public Sub ConstructingCSharpParseOptionstWithInvalidPreProcessorSymbolsHelperShouldNotProduceErrors()
+        Dim dict = New Dictionary(Of String, Object)
+        dict.Add("valid1", Nothing)
+        dict.Add("2", Nothing)
+
+        Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(dict)
+
+        Assert.Equal(2, options.PreprocessorSymbolNames.Count())
+        Assert.Equal("valid1", options.PreprocessorSymbolNames.ElementAt(0))
+        Assert.Equal("2", options.PreprocessorSymbolNames.ElementAt(1))
+    End Sub
+
 End Class

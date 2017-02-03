@@ -1349,30 +1349,30 @@ d.cs
             Assert.Equal((int)ErrorCode.WRN_DefineIdentifierRequired, parsedArgs.Errors.First().Code);
             Assert.Equal("4X", parsedArgs.Errors.First().Arguments[0]);
 
-            IEnumerable<Diagnostic> diagnostics;
+            List<Diagnostic> diagnostics = new List<Diagnostic>();
 
             // The docs say /d:def1[;def2]
             string compliant = "def1;def2;def3";
             var expected = new[] { "def1", "def2", "def3" };
-            var parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(compliant, out diagnostics);
+            var parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(compliant, diagnostics);
             diagnostics.Verify();
             Assert.Equal<string>(expected, parsed);
 
             // Bug 17360: Dev11 allows for a terminating semicolon
             var dev11Compliant = "def1;def2;def3;";
-            parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(dev11Compliant, out diagnostics);
+            parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(dev11Compliant, diagnostics);
             diagnostics.Verify();
             Assert.Equal<string>(expected, parsed);
 
             // And comma
             dev11Compliant = "def1,def2,def3,";
-            parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(dev11Compliant, out diagnostics);
+            parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(dev11Compliant, diagnostics);
             diagnostics.Verify();
             Assert.Equal<string>(expected, parsed);
 
             // This breaks everything
             var nonCompliant = "def1;;def2;";
-            parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(nonCompliant, out diagnostics);
+            parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(nonCompliant, diagnostics);
             diagnostics.Verify(
                 // warning CS2029: Invalid value for '/define'; '' is not a valid identifier
                 Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments(""));
@@ -6342,7 +6342,9 @@ namespace System
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", src.ToString(), "/define:a;;b@" }).Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal("warning CS2029: Invalid value for '/define'; '' is not a valid identifier", outWriter.ToString().Trim());
+            var errorLines = outWriter.ToString().Trim().Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            Assert.Equal("warning CS2029: Invalid value for '/define'; '' is not a valid identifier", errorLines[0]);
+            Assert.Equal("warning CS2029: Invalid value for '/define'; 'b@' is not a valid identifier", errorLines[1]);
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", src.ToString(), "/define:a,b@;" }).Run(outWriter);
@@ -6353,8 +6355,9 @@ namespace System
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", src.ToString(), @"/define:OE_WIN32=-1:LANG_HOST_EN=-1:LANG_OE_EN=-1:LANG_PRJ_EN=-1:HOST_COM20SDKEVERETT=-1:EXEMODE=-1:OE_NT5=-1:Win32=-1", @"/d:TRACE=TRUE,DEBUG=TRUE" }).Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal(@"warning CS2029: Invalid value for '/define'; 'OE_WIN32=-1:LANG_HOST_EN=-1:LANG_OE_EN=-1:LANG_PRJ_EN=-1:HOST_COM20SDKEVERETT=-1:EXEMODE=-1:OE_NT5=-1:Win32=-1' is not a valid identifier
-warning CS2029: Invalid value for '/define'; 'TRACE=TRUE' is not a valid identifier", outWriter.ToString().Trim());
+            errorLines = outWriter.ToString().Trim().Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            Assert.Equal("warning CS2029: Invalid value for '/define'; 'OE_WIN32=-1:LANG_HOST_EN=-1:LANG_OE_EN=-1:LANG_PRJ_EN=-1:HOST_COM20SDKEVERETT=-1:EXEMODE=-1:OE_NT5=-1:Win32=-1' is not a valid identifier", errorLines[0]);
+            Assert.Equal("warning CS2029: Invalid value for '/define'; 'TRACE=TRUE' is not a valid identifier", errorLines[1]);
 
             CleanupAllGeneratedFiles(src.Path);
         }
@@ -8835,6 +8838,30 @@ class C {
                 var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, args, startFolder: folderName);
                 Assert.Equal(expected, output.Trim());
             }
+        }
+
+        [WorkItem(16913, "https://github.com/dotnet/roslyn/issues/16913")]
+        [Fact]
+        public void CompilingCodeWithInvalidPreProcessorSymbolsShouldErrorOut_Single()
+        {
+            var parsedArgs = DefaultParse(new[] { "/define:valid1,2invalid", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2029: Invalid value for '/define'; '2invalid' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("2invalid"));
+        }
+
+        [WorkItem(16913, "https://github.com/dotnet/roslyn/issues/16913")]
+        [Fact]
+        public void CompilingCodeWithInvalidPreProcessorSymbolsShouldErrorOut_Multiple()
+        {
+            var parsedArgs = DefaultParse(new[] { "/define:valid1,2invalid,valid3", "/define:4invalid,5invalid,valid6", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2029: Invalid value for '/define'; '2invalid' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("2invalid"),
+                // warning CS2029: Invalid value for '/define'; '4invalid' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("4invalid"),
+                // warning CS2029: Invalid value for '/define'; '5invalid' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("5invalid"));
         }
 
         public class QuotedArgumentTests

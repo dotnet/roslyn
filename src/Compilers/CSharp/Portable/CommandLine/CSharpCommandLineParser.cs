@@ -254,9 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            IEnumerable<Diagnostic> defineDiagnostics;
-                            defines.AddRange(ParseConditionalCompilationSymbols(RemoveQuotesAndSlashes(value), out defineDiagnostics));
-                            diagnostics.AddRange(defineDiagnostics);
+                            defines.AddRange(ParseConditionalCompilationSymbols(RemoveQuotesAndSlashes(value), diagnostics));
                             continue;
 
                         case "codepage":
@@ -1468,10 +1466,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        public static IEnumerable<string> ParseConditionalCompilationSymbols(string value, out IEnumerable<Diagnostic> diagnostics)
+        public static IEnumerable<string> ParseConditionalCompilationSymbols(string value, List<Diagnostic> diagnostics)
         {
-            Diagnostic myDiagnostic = null;
-
             value = value.TrimEnd(null);
             // Allow a trailing semicolon or comma in the options
             if (!value.IsEmpty() &&
@@ -1490,14 +1486,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     defines.Add(trimmedId);
                 }
-                else if (myDiagnostic == null)
+                else
                 {
-                    myDiagnostic = Diagnostic.Create(CSharp.MessageProvider.Instance, (int)ErrorCode.WRN_DefineIdentifierRequired, trimmedId);
+                    AddDiagnostic(diagnostics, ErrorCode.WRN_DefineIdentifierRequired, trimmedId);
                 }
             }
-
-            diagnostics = myDiagnostic == null ? SpecializedCollections.EmptyEnumerable<Diagnostic>()
-                                                : SpecializedCollections.SingletonEnumerable(myDiagnostic);
 
             return defines.AsEnumerable();
         }
