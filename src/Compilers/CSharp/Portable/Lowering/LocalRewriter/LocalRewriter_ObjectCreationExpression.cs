@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // replace "new S()" with a default struct ctor with "default(S)"
             if (node.Constructor.IsDefaultValueTypeConstructor())
             {
-                rewrittenObjectCreation = new BoundDefaultOperator(rewrittenObjectCreation.Syntax, rewrittenObjectCreation.Type);
+                rewrittenObjectCreation = new BoundDefaultLiteral(rewrittenObjectCreation.Syntax, rewrittenObjectCreation.Type);
             }
 
             if (!temps.IsDefaultOrEmpty)
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!this.TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Activator__CreateInstance_T, out method))
             {
-                return new BoundDefaultOperator(syntax, null, type: typeParameter, hasErrors: true);
+                return new BoundDefaultLiteral(syntax, null, type: typeParameter, hasErrors: true);
             }
 
             Debug.Assert((object)method != null);

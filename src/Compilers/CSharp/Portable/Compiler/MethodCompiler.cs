@@ -1173,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new BoundAssignmentOperator(
                     syntax,
                     new BoundThisReference(syntax, containingType),
-                    new BoundDefaultOperator(syntax, containingType),
+                    new BoundDefaultLiteral(syntax, containingType),
                     RefKind.None,
                     containingType));
         }

@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         return WriteConsideredUse(null, boundConversion.Operand);
                     }
-                case BoundKind.DefaultOperator:
+                case BoundKind.DefaultLiteral:
                     return false;
                 case BoundKind.ObjectCreationExpression:
                     var init = (BoundObjectCreationExpression)value;

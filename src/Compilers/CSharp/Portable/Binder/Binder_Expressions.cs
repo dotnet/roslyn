@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindDefaultExpression((DefaultExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.DefaultLiteral:
-                    return new BoundDefaultOperator((DefaultLiteralSyntax)node, ConstantValue.DefaultLiteral, type: null);
+                    return BindDefaultLiteral((DefaultLiteralSyntax)node);
 
                 case SyntaxKind.TypeOfExpression:
                     return BindTypeOf((TypeOfExpressionSyntax)node, diagnostics);
@@ -654,6 +654,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(false, "Unexpected SyntaxKind " + node.Kind());
                     return BadExpression(node);
             }
+        }
+
+        private static BoundExpression BindDefaultLiteral(DefaultLiteralSyntax node)
+        {
+            return new BoundDefaultLiteral(node, ConstantValue.DefaultLiteral, type: null);
         }
 
         private BoundExpression BindTupleExpression(TupleExpressionSyntax node, DiagnosticBag diagnostics)
@@ -970,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindDefaultExpression(DefaultExpressionSyntax node, DiagnosticBag diagnostics)
         {
             TypeSymbol type = this.BindType(node.Type, diagnostics);
-            return new BoundDefaultOperator(node, type);
+            return new BoundDefaultLiteral(node, type);
         }
 
         /// <summary>
@@ -5008,7 +5013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void WarnOnAccessOfOffDefault(SyntaxNode node, BoundExpression boundLeft, DiagnosticBag diagnostics)
         {
-            if (boundLeft != null && boundLeft.Kind == BoundKind.DefaultOperator && boundLeft.ConstantValue == ConstantValue.Null)
+            if (boundLeft != null && boundLeft.Kind == BoundKind.DefaultLiteral && boundLeft.ConstantValue == ConstantValue.Null)
             {
                 Error(diagnostics, ErrorCode.WRN_DotOnDefault, node, boundLeft.Type);
             }

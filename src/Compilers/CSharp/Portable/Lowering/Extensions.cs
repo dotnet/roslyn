@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // "default(int?)" never has a value.
-            if (expr.Kind == BoundKind.DefaultOperator)
+            if (expr.Kind == BoundKind.DefaultLiteral)
             {
                 return true;
             }

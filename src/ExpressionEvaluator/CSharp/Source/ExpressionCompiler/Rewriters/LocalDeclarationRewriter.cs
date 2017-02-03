@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (!hasCustomTypeInfoPayload)
             {
-                return new BoundDefaultOperator(syntax, guidConstructor.ContainingType);
+                return new BoundDefaultLiteral(syntax, guidConstructor.ContainingType);
             }
 
             var value = ConstantValue.Create(DynamicFlagsCustomTypeInfo.PayloadTypeId.ToString());
