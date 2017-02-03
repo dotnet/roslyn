@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -775,5 +776,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                                   ImmutableArray.Create(statement))
             { WasCompilerGenerated = true };
         }
+
+#if DEBUG
+        private IEnumerable<string> PrintBinders()
+        {
+            for (var scope = this; scope != null; scope = scope.Next)
+            {
+                switch (scope)
+                {
+                    case BuckStopsHereBinder _1:
+                    case InContainerBinder _2:
+                    case InMethodBinder _3:
+                    case ExecutableCodeBinder _4:
+                        break;
+                    default:
+                        var locals = string.Join(", ", scope.Locals.SelectAsArray(s => s.Name));
+                        var snippet = scope.ScopeDesignator?.ToString() ?? "";
+                        var shortSnippet = snippet.Substring(0, Math.Min(30, Math.Min(snippet.Length, Math.Max(0, snippet.IndexOf('\r')))));
+                        yield return $"{scope.GetType().Name} -- {locals} -- {shortSnippet}".Trim();
+                        break;
+                }
+            }
+        }
+
+        internal string Dump()
+        {
+            return string.Join("\r\n", System.Linq.Enumerable.Reverse(PrintBinders()));
+        }
+#endif
     }
 }
