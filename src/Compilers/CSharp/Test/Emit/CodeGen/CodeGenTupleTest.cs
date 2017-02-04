@@ -22022,5 +22022,41 @@ static class C
                 );
 
         }
+
+        [Fact]
+        public void Serialization()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        VerifySerialization(new ValueTuple());
+        VerifySerialization(ValueTuple.Create(1));
+        VerifySerialization((1, 2, 3, 4, 5, 6, 7, 8));
+
+        Console.WriteLine(""DONE"");
+    }
+
+    public static void VerifySerialization<T>(T tuple)
+    {
+        var serializer = new System.Xml.Serialization.XmlSerializer(typeof(T));
+        var writer = new System.IO.StringWriter();
+        serializer.Serialize(writer, tuple);
+        string xml = writer.ToString();
+        object output = serializer.Deserialize(new System.IO.StringReader(xml));
+        if (!tuple.Equals(output))
+        {
+            throw new Exception(""Deserialization output didn't match"");
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(new[] { source, tuplelib_cs }, 
+                references: new[] { SystemXmlRef }, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "DONE");
+        }
     }
 }
