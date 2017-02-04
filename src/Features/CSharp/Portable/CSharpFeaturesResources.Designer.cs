@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove &amp;and Sort Usings.
+        ///   Looks up a localized string similar to R&amp;emove and Sort Usings.
         /// </summary>
         internal static string Remove_and_Sort_Usings {
             get {

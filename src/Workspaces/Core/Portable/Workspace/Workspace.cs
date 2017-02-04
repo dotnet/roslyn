@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
 
             // queue used for sending events
             var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
-            _taskQueue = workspaceTaskSchedulerFactory.CreateTaskQueue();
+            _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
 
             // initialize with empty solution
             _latestSolution = CreateSolution(SolutionId.CreateNewId());

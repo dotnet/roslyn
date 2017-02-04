@@ -109,6 +109,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.Interpolation(DirectCast(syntaxNode, ExpressionSyntax))
         End Function
 
+        Friend Overrides Function NumericLiteralToken(text As String, value As ULong) As SyntaxToken
+            Return SyntaxFactory.Literal(text, value)
+        End Function
+
         Public Overrides Function DefaultExpression(type As ITypeSymbol) As SyntaxNode
             Return SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))
         End Function

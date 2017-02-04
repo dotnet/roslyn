@@ -37,6 +37,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsChangeToAsync = "CodeActions.ChangeToAsync";
             public const string CodeActionsChangeToIEnumerable = "CodeActions.ChangeToIEnumerable";
             public const string CodeActionsChangeToYield = "CodeActions.ChangeToYield";
+            public const string CodeActionsConvertNumericLiteral = "CodeActions.ConvertNumericLiteral";
             public const string CodeActionsConvertToInterpolatedString = "CodeActions.ConvertToInterpolatedString";
             public const string CodeActionsConvertToIterator = "CodeActions.ConvertToIterator";
             public const string CodeActionsConvertIfToSwitch = "CodeActions.ConvertIfToSwitch";

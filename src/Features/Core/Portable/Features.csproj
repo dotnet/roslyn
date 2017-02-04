@@ -106,6 +106,7 @@
     <Compile Include="AddPackage\InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageParentCodeAction.cs" />
     <Compile Include="CodeRefactorings\ConvertIfToSwitch\AbstractConvertIfToSwitchCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\ConvertNumericLiteral\AbstractConvertNumericLiteralCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\UseNamedArguments\AbstractUseNamedArgumentsCodeRefactoringProvider.cs" />
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
@@ -274,7 +275,6 @@
     <Compile Include="Completion\CommonCompletionService.cs" />
     <Compile Include="Completion\CommonCompletionUtilities.cs" />
     <Compile Include="Completion\CompletionDescription.cs" />
-    <Compile Include="Completion\CompletionFilterReason.cs" />
     <Compile Include="Completion\CompletionHelper.cs" />
     <Compile Include="Completion\CompletionItem.cs" />
     <Compile Include="Completion\CompletionItemFilter.cs" />

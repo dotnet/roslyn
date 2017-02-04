@@ -3,6 +3,8 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Microsoft.VisualStudio.Debugger.Clr
+Imports Microsoft.VisualStudio.Debugger.ComponentInterfaces
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -10,6 +12,60 @@ Imports Xunit
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
     Public Class FullNameTests : Inherits VisualBasicResultProviderTestBase
+
+        <Fact>
+        Public Sub Null()
+            Dim fullNameProvider As IDkmClrFullNameProvider = New VisualBasicFormatter()
+            Dim inspectionContext = CreateDkmInspectionContext()
+            Assert.Equal("Nothing", fullNameProvider.GetClrExpressionForNull(inspectionContext))
+        End Sub
+
+        <Fact>
+        Public Sub This()
+            Dim fullNameProvider As IDkmClrFullNameProvider = New VisualBasicFormatter()
+            Dim inspectionContext = CreateDkmInspectionContext()
+            Assert.Equal("Me", fullNameProvider.GetClrExpressionForThis(inspectionContext))
+        End Sub
+
+        <Fact>
+        Public Sub ArrayIndex()
+            Dim fullNameProvider As IDkmClrFullNameProvider = New VisualBasicFormatter()
+            Dim inspectionContext = CreateDkmInspectionContext()
+            Assert.Equal("()", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, {}))
+            Assert.Equal("()", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, {""}))
+            Assert.Equal("( )", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, {" "}))
+            Assert.Equal("(1)", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, {"1"}))
+            Assert.Equal("((), 2, 3)", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, {"()", "2", "3"}))
+            Assert.Equal("(, , )", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, {"", "", ""}))
+        End Sub
+
+        <Fact>
+        Public Sub Cast()
+            Const source =
+"Class C
+End Class"
+            Dim runtime = New DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)))
+            Using runtime.Load()
+                Dim fullNameProvider As IDkmClrFullNameProvider = New VisualBasicFormatter()
+                Dim inspectionContext = CreateDkmInspectionContext()
+                Dim type = runtime.GetType("C")
+
+                Assert.Equal("DirectCast(o, C)", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, Nothing, DkmClrCastExpressionOptions.None))
+                Assert.Equal("TryCast(o, C)", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, Nothing, DkmClrCastExpressionOptions.ConditionalCast))
+                Assert.Equal("DirectCast((o), C)", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, Nothing, DkmClrCastExpressionOptions.ParenthesizeArgument))
+                Assert.Equal("TryCast((o), C)", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, Nothing, DkmClrCastExpressionOptions.ParenthesizeArgument Or DkmClrCastExpressionOptions.ConditionalCast))
+                Assert.Equal("DirectCast(o, C)", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, Nothing, DkmClrCastExpressionOptions.ParenthesizeEntireExpression))
+                Assert.Equal("TryCast(o, C)", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, Nothing, DkmClrCastExpressionOptions.ParenthesizeEntireExpression Or DkmClrCastExpressionOptions.ConditionalCast))
+                Assert.Equal("DirectCast((o), C)", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, Nothing, DkmClrCastExpressionOptions.ParenthesizeEntireExpression Or DkmClrCastExpressionOptions.ParenthesizeArgument))
+                Assert.Equal("TryCast((o), C)", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, Nothing, DkmClrCastExpressionOptions.ParenthesizeEntireExpression Or DkmClrCastExpressionOptions.ParenthesizeArgument Or DkmClrCastExpressionOptions.ConditionalCast))
+
+                ' Some of the same tests with "..." as the expression ("..." is used
+                ' by the debugger when the expression cannot be determined).
+                Assert.Equal("DirectCast(..., C)", fullNameProvider.GetClrCastExpression(inspectionContext, "...", type, Nothing, DkmClrCastExpressionOptions.None))
+                Assert.Equal("TryCast(..., C)", fullNameProvider.GetClrCastExpression(inspectionContext, "...", type, Nothing, DkmClrCastExpressionOptions.ConditionalCast))
+                Assert.Equal("TryCast(..., C)", fullNameProvider.GetClrCastExpression(inspectionContext, "...", type, Nothing, DkmClrCastExpressionOptions.ParenthesizeEntireExpression Or DkmClrCastExpressionOptions.ConditionalCast))
+            End Using
+        End Sub
 
         <Fact>
         Public Sub RootComment()

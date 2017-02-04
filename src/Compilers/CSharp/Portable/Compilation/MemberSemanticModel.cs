@@ -1783,8 +1783,8 @@ done:
                 {
                     return null;
                 }
-
-                throw new ArgumentException();
+                
+                throw new ArgumentException($"The parent of {nameof(node)} must not be null unless this is a speculative semantic model.", nameof(node));
             }
 
             // skip up past parens and ref expressions, as we have no bound nodes for them.

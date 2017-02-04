@@ -40,6 +40,27 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        Public Async Function TestMethodWithTupleNames() As Task
+            Await TestAsync(
+"Public MustInherit Class Base
+    Protected MustOverride Function Bar(x As (a As Integer, Integer)) As (c As Integer, Integer)
+End Class
+Public Class [|Derived|]
+    Inherits Base
+End Class",
+"Imports System
+Public MustInherit Class Base
+    Protected MustOverride Function Bar(x As (a As Integer, Integer)) As (c As Integer, Integer)
+End Class
+Public Class Derived
+    Inherits Base
+    Protected Overrides Function Bar(x As (a As Integer, Integer)) As (c As Integer, Integer)
+        Throw New NotImplementedException()
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalIntParameter() As Task
             Await TestAsync(
 "MustInherit Class b

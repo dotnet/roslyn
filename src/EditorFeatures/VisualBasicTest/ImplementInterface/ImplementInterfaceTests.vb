@@ -35,6 +35,28 @@ Class C
 End Class")
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Async Function TestInterfaceWithTuple() As Task
+            Await TestAsync(
+"Imports System
+Class Foo
+    Implements [|IFoo|]
+End Class
+Interface IFoo
+    Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String)
+End Interface",
+"Imports System
+Class Foo
+    Implements IFoo
+    Public Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String) Implements IFoo.Method
+        Throw New NotImplementedException()
+    End Function
+End Class
+Interface IFoo
+    Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String)
+End Interface")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMethodConflict1() As Task
             Await TestAsync(

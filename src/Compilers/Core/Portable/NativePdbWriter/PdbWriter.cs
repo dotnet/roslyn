@@ -591,7 +591,6 @@ namespace Microsoft.Cci
         {
             Debug.Assert(!(typeReference is IArrayTypeReference));
             Debug.Assert(!(typeReference is IPointerTypeReference));
-            Debug.Assert(!(typeReference is IManagedPointerTypeReference));
             Debug.Assert(!typeReference.IsTypeSpecification());
 
             var result = PooledStringBuilder.GetInstance();

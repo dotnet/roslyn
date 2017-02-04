@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_UpdateSolutionIdStorageLocation,
                         solutionId.Id.ToByteArray(),
                         solutionId.DebugName,
-                        _workspace.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
+                        _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
                 }
             }
 

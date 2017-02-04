@@ -139,7 +139,7 @@ $$";
 ";
             var expected = @"
     /*
-     *$$ */
+     *$$*/
 ";
             await VerifyAsync(code, expected);
         }
@@ -153,7 +153,7 @@ $$";
 ";
             var expected = @"
     /* 
-     * $$ 1.
+     * $$1.
      */
 ";
             await VerifyAsync(code, expected);
@@ -268,7 +268,7 @@ $$*
             var expected = @"
     /*
      *
-     *$$ */
+     *$$*/
 ";
             await VerifyAsync(code, expected);
         }
@@ -284,7 +284,7 @@ $$*
             var expected = @"
     /*
      * 
-     * $$ 1.
+     * $$1.
      */
 ";
             await VerifyAsync(code, expected);
@@ -337,7 +337,7 @@ $$*
             var expected = @"
     /*
   
-     * $$   *
+     * $$*
      */
 ";
             await VerifyAsync(code, expected);
@@ -449,7 +449,7 @@ $$*
             var expected = @"
     /*
   
-     * $$   */
+     * $$*/
 ";
             await VerifyAsync(code, expected);
         }
@@ -523,7 +523,7 @@ $$*";
     /*$$ ";
             var expected = @"
     /*
-     *$$ ";
+     *$$";
             await VerifyAsync(code, expected);
         }
 
@@ -536,7 +536,7 @@ $$*";
             var expected = @"
     /*
      *
-     *$$ ";
+     *$$";
             await VerifyAsync(code, expected);
         }
 
@@ -561,7 +561,7 @@ $$*";
 ";
             var expected = @"
     /*
-     *$$<tab>*/
+     *$$*/
 ";
             await VerifyTabsAsync(code, expected);
         }
@@ -575,7 +575,7 @@ $$*";
 ";
             var expected = @"
     /*<tab>
-     *<tab>$$<tab>1.
+     *<tab>$$1.
      */
 ";
             await VerifyTabsAsync(code, expected);
@@ -619,7 +619,7 @@ $$*";
             var expected = @"
     /*
      *
-     *$$<tab>*/
+     *$$*/
 ";
             await VerifyTabsAsync(code, expected);
         }
@@ -635,7 +635,7 @@ $$*";
             var expected = @"
     /*
      * 
-     * $$<tab>1.
+     * $$1.
      */
 ";
             await VerifyTabsAsync(code, expected);
