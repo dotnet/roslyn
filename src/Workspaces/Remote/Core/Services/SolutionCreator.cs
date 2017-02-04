@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -24,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public SolutionCreator(AssetService assetService, Solution baseSolution, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(baseSolution);
+
             _assetService = assetService;
             _baseSolution = baseSolution;
             _cancellationToken = cancellationToken;
@@ -76,8 +79,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 solution = await UpdateProjectsAsync(solution, oldSolutionChecksums.Projects, newSolutionChecksums.Projects).ConfigureAwait(false);
             }
 
+#if DEBUG
             // make sure created solution has same checksum as given one
-            Contract.ThrowIfFalse(newSolutionChecksum == await solution.State.GetChecksumAsync(_cancellationToken).ConfigureAwait(false));
+            Contract.Requires(newSolutionChecksum == await solution.State.GetChecksumAsync(_cancellationToken).ConfigureAwait(false));
+#endif
 
             return solution;
         }
@@ -103,14 +108,14 @@ namespace Microsoft.CodeAnalysis.Remote
             var oldMap = await GetProjectMapAsync(solution, oldChecksums).ConfigureAwait(false);
             var newMap = await GetProjectMapAsync(_assetService, newChecksums).ConfigureAwait(false);
 
+            // bulk sync assets
+            await SynchronizeAssetsAsync(solution, oldMap, newMap).ConfigureAwait(false);
+
             // added project
             foreach (var kv in newMap)
             {
                 if (!oldMap.ContainsKey(kv.Key))
                 {
-                    // bulk sync project assets
-                    await _assetService.SynchronizeProjectAssetsAsync(kv.Value.Checksum, _cancellationToken).ConfigureAwait(false);
-
                     var projectInfo = await CreateProjectInfoAsync(kv.Value.Checksum).ConfigureAwait(false);
                     if (projectInfo == null)
                     {
@@ -149,6 +154,25 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             return solution;
+        }
+
+        private async Task SynchronizeAssetsAsync(Solution solution, Dictionary<ProjectId, ProjectStateChecksums> oldMap, Dictionary<ProjectId, ProjectStateChecksums> newMap)
+        {
+            using (var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
+            {
+                // added project
+                foreach (var kv in newMap)
+                {
+                    if (oldMap.ContainsKey(kv.Key))
+                    {
+                        continue;
+                    }
+
+                    pooledObject.Object.Add(kv.Value.Checksum);
+                }
+
+                await _assetService.SynchronizeProjectAssetsAsync(pooledObject.Object, _cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private async Task<Solution> UpdateProjectAsync(Project project, ProjectStateChecksums oldProjectChecksums, ProjectStateChecksums newProjectChecksums)
@@ -266,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var oldMap = await GetDocumentMapAsync(project, oldChecksums, additionalText).ConfigureAwait(false);
             var newMap = await GetDocumentMapAsync(_assetService, newChecksums).ConfigureAwait(false);
 
-            // added project
+            // added document
             foreach (var kv in newMap)
             {
                 if (!oldMap.ContainsKey(kv.Key))
@@ -276,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            // changed project
+            // changed document
             foreach (var kv in newMap)
             {
                 DocumentStateChecksums oldDocumentChecksums;
@@ -292,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 project = await UpdateDocumentAsync(document, oldDocumentChecksums, newDocumentChecksums, additionalText).ConfigureAwait(false);
             }
 
-            // removed project
+            // removed document
             foreach (var kv in oldMap)
             {
                 if (!newMap.ContainsKey(kv.Key))
@@ -370,6 +394,8 @@ namespace Microsoft.CodeAnalysis.Remote
             var map = new Dictionary<DocumentId, DocumentStateChecksums>();
 
             var documentChecksums = await assetService.GetAssetsAsync<DocumentStateChecksums>(documents, _cancellationToken).ConfigureAwait(false);
+            var infos = await assetService.GetAssetsAsync<DocumentInfo.DocumentAttributes>(documentChecksums.Select(p => p.Item2.Info), _cancellationToken).ConfigureAwait(false);
+
             foreach (var kv in documentChecksums)
             {
                 var info = await assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(kv.Item2.Info, _cancellationToken).ConfigureAwait(false);
@@ -411,6 +437,8 @@ namespace Microsoft.CodeAnalysis.Remote
             var map = new Dictionary<ProjectId, ProjectStateChecksums>();
 
             var projectChecksums = await assetService.GetAssetsAsync<ProjectStateChecksums>(projects, _cancellationToken).ConfigureAwait(false);
+            var infos = await assetService.GetAssetsAsync<ProjectInfo.ProjectAttributes>(projectChecksums.Select(p => p.Item2.Info), _cancellationToken).ConfigureAwait(false);
+
             foreach (var kv in projectChecksums)
             {
                 var info = await assetService.GetAssetAsync<ProjectInfo.ProjectAttributes>(kv.Item2.Info, _cancellationToken).ConfigureAwait(false);
