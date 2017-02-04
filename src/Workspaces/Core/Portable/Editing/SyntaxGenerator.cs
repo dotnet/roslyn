@@ -1637,8 +1637,8 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             var expression = TypeExpression(typeSymbol);
             return addImport
-                ? expression.WithAdditionalAnnotations(DoNotAddImportsAnnotation.Annotation)
-                : expression;
+                ? expression
+                : expression.WithAdditionalAnnotations(DoNotAddImportsAnnotation.Annotation);
         }
 
         /// <summary>
