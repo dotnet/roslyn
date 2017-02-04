@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="OutDir">
 
   <Import Project="Versions.props" />
 
@@ -10,9 +10,9 @@
     <DeveloperBuild>false</DeveloperBuild>
     <DeveloperBuild Condition="'$(OfficialBuild)' != 'true' AND '$(JenkinsBuild)' != 'true'">true</DeveloperBuild>
 
-    <ProjectDir>$(MSBuildThisFileDirectory)..\..\</ProjectDir>
-    <NuGetToolPath>$(ProjectDir)nuget.exe</NuGetToolPath>
-    <ToolsetPackagesDir>$(ProjectDir)build\ToolsetPackages\</ToolsetPackagesDir>
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
+    <NuGetToolPath>$(RepoRoot)nuget.exe</NuGetToolPath>
+    <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
     <ToolsetPackagesSemaphore>$(ToolsetPackagesDir)toolsetpackages.semaphore</ToolsetPackagesSemaphore>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
     <ToolsetCompilerPackageVersion>2.0.0-rc2-61102-09</ToolsetCompilerPackageVersion>
@@ -26,8 +26,10 @@
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <SignAssembly>true</SignAssembly>
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
-    <OutDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\$(Configuration)'))\</OutDir>
-    <BaseIntermediateOutputPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\Obj\$(MSBuildProjectName)'))\</BaseIntermediateOutputPath>
+    <BaseOutputPath Condition="'$(BaseOutputPath)' == ''">$(RepoRoot)Binaries\</BaseOutputPath>
+    <OutDir>$(BaseOutputPath)$(Configuration)\</OutDir>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$(RepoRoot)Binaries\Obj\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
 
     <!-- Workaround until we move to Microsoft.Net.Compilers.nupkg with this fix: https://github.com/dotnet/roslyn/commit/05c12ebfcdd08a02dbceded5327a8da7a7df23be:
          Use the Microsoft.Net.Compilers.props file with the fix checked into the repo instead of the one that comes along with the nuget package:
@@ -186,7 +188,7 @@
       <PropertyGroup>
         <ProjectLanguage>C++</ProjectLanguage>
         <!-- Put intermediate outputs in the same place as managed projects for sanity -->
-        <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
+        <IntDir>$(IntermediateOutputPath)</IntDir>
 
         <!-- We just always want to build with whatever toolset matches the VS you're building with -->
         <PlatformToolset>v$(VisualStudioReferenceMajorVersion)0</PlatformToolset>

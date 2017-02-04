@@ -19,7 +19,6 @@
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <NoStdLib>true</NoStdLib>
     <RoslynProjectType>DeploymentTest</RoslynProjectType>
-    <OutDir>$(OutDir)CoreClrTest</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" />
