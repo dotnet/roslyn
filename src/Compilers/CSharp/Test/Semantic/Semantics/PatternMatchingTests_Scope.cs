@@ -11481,5 +11481,43 @@ True").VerifyDiagnostics();
             var zRef = GetReferences(tree, "z1").Single();
             Assert.Equal("System.Boolean", compilation.GetSemanticModel(tree).GetTypeInfo(zRef).Type.ToTestDisplayString());
         }
+
+        [Fact]
+        public void DeclarationInsideNameof()
+        {
+            string source = @"
+class Program
+{
+    static void Main(int i)
+    {
+        string s = nameof(M(i is var x1, x1)).ToString();
+        string s1 = x1;
+    }
+    static void M(bool b, int i) {}
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS8081: Expression does not have a name.
+                //         string s = nameof(M(i is var x1, x1)).ToString();
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(i is var x1, x1)").WithLocation(6, 27),
+                // (7,21): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         string s1 = x1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x1").WithArguments("int", "string").WithLocation(7, 21),
+                // (7,21): error CS0165: Use of unassigned local variable 'x1'
+                //         string s1 = x1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(7, 21)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var designation = GetPatternDeclarations(tree).Single();
+            var refs = GetReferences(tree, "x1").ToArray();
+
+            VerifyModelForDeclarationPattern(model, designation, refs);
+
+            var x1 = (LocalSymbol)model.GetDeclaredSymbol(designation);
+            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
+        }
     }
 }

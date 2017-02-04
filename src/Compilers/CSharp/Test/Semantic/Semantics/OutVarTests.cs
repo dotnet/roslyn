@@ -28911,7 +28911,7 @@ class C
         int x = z1 + z2;
     }
     static int M(out int z) => z = 1;
-    static int M(int a, int b) => a+b;
+    static bool M(int a, int b) => a+b == 0;
 }
 ";
             // the scope of an expression variable introduced in the default expression
@@ -28972,6 +28972,433 @@ class C
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
                 Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
             }
+        }
+
+        [Fact]
+        public void DeclarationInNameof_00()
+        {
+            var text = @"
+class C
+{
+    public static void Main()
+    {
+        var x = nameof(M2(M1(out var x1), x1)).ToString();
+    }
+    static int M1(out int z) => z = 1;
+    static int M2(int a, int b) => 2;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (6,24): error CS8081: Expression does not have a name.
+                //         var x = nameof(M2(M1(out var x1), x1)).ToString();
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M2(M1(out var x1), x1)").WithLocation(6, 24)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var name = "x1";
+            var decl = GetOutVarDeclaration(tree, name);
+            var refs = GetReferences(tree, name).ToArray();
+            Assert.Equal(1, refs.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DeclarationInNameof_01()
+        {
+            var text = @"
+class C
+{
+    public static void Main(int arg)
+    {
+        void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+        void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+
+        int x = z1 + z2;
+    }
+    static int M(out int z) => z = 1;
+    static bool M(object a, int b) => b == 0;
+}
+";
+            // the scope of an expression variable introduced in the default expression
+            // of a local function parameter is that default expression.
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (6,83): error CS0103: The name 'z1' does not exist in the current context
+                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 83),
+                // (6,39): error CS8081: Expression does not have a name.
+                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(6, 39),
+                // (6,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(nameof(M(out int z1)), z1)").WithArguments("b").WithLocation(6, 30),
+                // (6,69): error CS0103: The name 'z1' does not exist in the current context
+                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 69),
+                // (6,64): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(6, 64),
+                // (7,83): error CS0103: The name 'z2' does not exist in the current context
+                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 83),
+                // (7,39): error CS8081: Expression does not have a name.
+                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(7, 39),
+                // (7,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(nameof(M(out var z2)), z2)").WithArguments("b").WithLocation(7, 30),
+                // (7,69): error CS0103: The name 'z2' does not exist in the current context
+                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 69),
+                // (7,64): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 64),
+                // (9,17): error CS0103: The name 'z1' does not exist in the current context
+                //         int x = z1 + z2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 17),
+                // (9,22): error CS0103: The name 'z2' does not exist in the current context
+                //         int x = z1 + z2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(9, 22),
+                // (6,14): warning CS0168: The variable 'Local2' is declared but never used
+                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local2").WithArguments("Local2").WithLocation(6, 14),
+                // (7,14): warning CS0168: The variable 'Local5' is declared but never used
+                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local5").WithArguments("Local5").WithLocation(7, 14)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(4, refs.Length);
+                var boundNodesMissing = i == 2; // See https://github.com/dotnet/roslyn/issues/16374
+                VerifyModelForOutVarInNotExecutableCode(model, decl, boundNodesMissing: boundNodesMissing, reference: refs[0]);
+                VerifyNotInScope(model, refs[1]);
+                VerifyNotInScope(model, refs[2]);
+                VerifyNotInScope(model, refs[3]);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void DeclarationInNameof_02a()
+        {
+            var text = @"
+[My(C.M(nameof(C.M(out int z1)), z1), z1)]
+[My(C.M(nameof(C.M(out var z2)), z2), z2)]
+class C
+{
+    public static int M(out int z) => z = 1;
+    public static bool M(object a, int b) => b == 0;
+}
+class MyAttribute: System.Attribute
+{
+    public MyAttribute(bool x, int y) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (2,16): error CS8081: Expression does not have a name.
+                // [My(C.M(nameof(C.M(out int z1)), z1), z1)]
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "C.M(out int z1)").WithLocation(2, 16),
+                // (2,5): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [My(C.M(nameof(C.M(out int z1)), z1), z1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out int z1)), z1)").WithLocation(2, 5),
+                // (2,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [My(C.M(nameof(C.M(out int z1)), z1), z1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z1").WithLocation(2, 39),
+                // (3,16): error CS8081: Expression does not have a name.
+                // [My(C.M(nameof(C.M(out var z2)), z2), z2)]
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "C.M(out var z2)").WithLocation(3, 16),
+                // (3,5): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [My(C.M(nameof(C.M(out var z2)), z2), z2)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out var z2)), z2)").WithLocation(3, 5),
+                // (3,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [My(C.M(nameof(C.M(out var z2)), z2), z2)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z2").WithLocation(3, 39)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(2, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void DeclarationInNameof_02b()
+        {
+            var text1 = @"
+[assembly: My(C.M(nameof(C.M(out int z1)), z1), z1)]
+[assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
+";
+            var text2 = @"
+class C
+{
+    public static int M(out int z) => z = 1;
+    public static bool M(object a, int b) => b == 0;
+}
+class MyAttribute: System.Attribute
+{
+    public MyAttribute(bool x, int y) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(new[] { text1, text2 });
+            compilation.VerifyDiagnostics(
+                // (2,26): error CS8081: Expression does not have a name.
+                // [assembly: My(C.M(nameof(C.M(out int z1)), z1), z1)]
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "C.M(out int z1)").WithLocation(2, 26),
+                // (2,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [assembly: My(C.M(nameof(C.M(out int z1)), z1), z1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out int z1)), z1)").WithLocation(2, 15),
+                // (2,49): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [assembly: My(C.M(nameof(C.M(out int z1)), z1), z1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z1").WithLocation(2, 49),
+                // (3,26): error CS8081: Expression does not have a name.
+                // [assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "C.M(out var z2)").WithLocation(3, 26),
+                // (3,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out var z2)), z2)").WithLocation(3, 15),
+                // (3,49): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z2").WithLocation(3, 49)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(2, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void DeclarationInNameof_03()
+        {
+            var text = @"
+class C
+{
+    public static void Main(string[] args)
+    {
+        switch ((object)args.Length)
+        {
+            case M(nameof(M(out int z1)), z1):
+                System.Console.WriteLine(z1);
+                break;
+            case M(nameof(M(out var z2)), z2):
+                System.Console.WriteLine(z2);
+                break;
+        }
+    }
+    public static int M(out int z) => z = 1;
+    public static bool M(object a, int b) => b == 0;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (8,27): error CS8081: Expression does not have a name.
+                //             case M(nameof(M(out int z1)), z1):
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(8, 27),
+                // (8,18): error CS0150: A constant value is expected
+                //             case M(nameof(M(out int z1)), z1):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M(nameof(M(out int z1)), z1)").WithLocation(8, 18),
+                // (11,27): error CS8081: Expression does not have a name.
+                //             case M(nameof(M(out var z2)), z2):
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(11, 27),
+                // (11,18): error CS0150: A constant value is expected
+                //             case M(nameof(M(out var z2)), z2):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M(nameof(M(out var z2)), z2)").WithLocation(11, 18),
+                // (8,43): error CS0165: Use of unassigned local variable 'z1'
+                //             case M(nameof(M(out int z1)), z1):
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(8, 43),
+                // (11,43): error CS0165: Use of unassigned local variable 'z2'
+                //             case M(nameof(M(out var z2)), z2):
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z2").WithArguments("z2").WithLocation(11, 43)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(2, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void DeclarationInNameof_04()
+        {
+            var text = @"
+class C
+{
+    const bool a = M(nameof(M(out int z1)), z1);
+    const bool b = M(nameof(M(out var z2)), z2);
+    const bool c = (z1 + z2) == 0;
+
+    public static int M(out int z) => z = 1;
+    public static bool M(object a, int b) => b == 0;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (5,35): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //     const bool b = M(nameof(M(out var z2)), z2);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var z2").WithLocation(5, 35),
+                // (5,29): error CS8081: Expression does not have a name.
+                //     const bool b = M(nameof(M(out var z2)), z2);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(5, 29),
+                // (5,20): error CS0133: The expression being assigned to 'C.b' must be constant
+                //     const bool b = M(nameof(M(out var z2)), z2);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "M(nameof(M(out var z2)), z2)").WithArguments("C.b").WithLocation(5, 20),
+                // (6,21): error CS0103: The name 'z1' does not exist in the current context
+                //     const bool c = (z1 + z2) == 0;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 21),
+                // (6,26): error CS0103: The name 'z2' does not exist in the current context
+                //     const bool c = (z1 + z2) == 0;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(6, 26),
+                // (4,35): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //     const bool a = M(nameof(M(out int z1)), z1);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int z1").WithLocation(4, 35),
+                // (4,29): error CS8081: Expression does not have a name.
+                //     const bool a = M(nameof(M(out int z1)), z1);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(4, 29),
+                // (4,20): error CS0133: The expression being assigned to 'C.a' must be constant
+                //     const bool a = M(nameof(M(out int z1)), z1);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "M(nameof(M(out int z1)), z1)").WithArguments("C.a").WithLocation(4, 20)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(2, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, refs[0]);
+                VerifyNotInScope(model, refs[1]);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void DeclarationInNameof_05()
+        {
+            var text = @"
+class C
+{
+    public static void Main(string[] args)
+    {
+        const bool a = M(nameof(M(out int z1)), z1);
+        const bool b = M(nameof(M(out var z2)), z2);
+        bool c = (z1 + z2) == 0;
+    }
+
+    public static int M(out int z) => z = 1;
+    public static bool M(object a, int b) => b == 0;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (6,33): error CS8081: Expression does not have a name.
+                //         const bool a = M(nameof(M(out int z1)), z1);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(6, 33),
+                // (6,24): error CS0133: The expression being assigned to 'a' must be constant
+                //         const bool a = M(nameof(M(out int z1)), z1);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "M(nameof(M(out int z1)), z1)").WithArguments("a").WithLocation(6, 24),
+                // (7,33): error CS8081: Expression does not have a name.
+                //         const bool b = M(nameof(M(out var z2)), z2);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(7, 33),
+                // (7,24): error CS0133: The expression being assigned to 'b' must be constant
+                //         const bool b = M(nameof(M(out var z2)), z2);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "M(nameof(M(out var z2)), z2)").WithArguments("b").WithLocation(7, 24),
+                // (6,49): error CS0165: Use of unassigned local variable 'z1'
+                //         const bool a = M(nameof(M(out int z1)), z1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(6, 49),
+                // (7,49): error CS0165: Use of unassigned local variable 'z2'
+                //         const bool b = M(nameof(M(out var z2)), z2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z2").WithArguments("z2").WithLocation(7, 49)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(2, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void DeclarationInNameof_06()
+        {
+            var text = @"
+class C
+{
+    public static void Main(string[] args)
+    {
+        string s = nameof((System.Action)(() => M(M(out var z1), z1))).ToString();
+        bool c = z1 == 0;
+    }
+
+    public static int M(out int z) => z = 1;
+    public static bool M(object a, int b) => b == 0;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (6,27): error CS8081: Expression does not have a name.
+                //         string s = nameof((System.Action)(() => M(M(out var z1), z1))).ToString();
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "(System.Action)(() => M(M(out var z1), z1))").WithLocation(6, 27),
+                // (7,18): error CS0103: The name 'z1' does not exist in the current context
+                //         bool c = z1 == 0;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(7, 18)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var name = "z1";
+            var decl = GetOutVarDeclaration(tree, name);
+            var refs = GetReferences(tree, name).ToArray();
+            Assert.Equal(2, refs.Length);
+            VerifyModelForOutVar(model, decl, refs[0]);
+            VerifyNotInScope(model, refs[1]);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
         }
     }
 
