@@ -624,7 +624,7 @@
     <Compile Include="Implementation\Workspaces\ProjectCacheServiceFactory.cs" />
     <Compile Include="Implementation\Workspaces\EditorTextFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
-    <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
+    <Compile Include="Implementation\Workspaces\EditorTaskSchedulerFactory.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
     <Compile Include="Tags\IImageMonikerService.cs" />
     <Compile Include="Tags\DefaultImageMonikerService.cs" />
