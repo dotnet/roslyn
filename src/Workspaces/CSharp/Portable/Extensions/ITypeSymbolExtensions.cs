@@ -72,7 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static async Task<ISymbol> FindApplicableAlias(this ITypeSymbol type, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public static async Task<ISymbol> FindApplicableAliasAsync(
+            this ISymbol symbol, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             try
             {
@@ -84,11 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-                IEnumerable<UsingDirectiveSyntax> applicableUsings = GetApplicableUsings(position, root as CompilationUnitSyntax);
+                var applicableUsings = GetApplicableUsings(position, root as CompilationUnitSyntax);
                 foreach (var applicableUsing in applicableUsings)
                 {
                     var alias = semanticModel.GetOriginalSemanticModel().GetDeclaredSymbol(applicableUsing, cancellationToken);
-                    if (alias != null && alias.Target == type)
+                    if (alias != null && alias.Target == symbol)
                     {
                         return alias;
                     }
