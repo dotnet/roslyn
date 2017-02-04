@@ -101,7 +101,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     type, context.Workspace.CurrentSolution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var matchingImplementations = implementations.Where(
-                    impl => !impl.IsAbstract && impl.GetArity() == typeArity);
+                    impl => !impl.IsAbstract && impl.GetArity() == typeArity).Cast<INamedTypeSymbol>();
+
+                var userAssembly = context.SemanticModel.Compilation.Assembly;
+
+                matchingImplementations = matchingImplementations.Where(
+                    impl => impl.InstanceConstructors.Any(c => c.IsAccessibleWithin(userAssembly)));
 
                 if (typeArity > 0)
                 {
@@ -109,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     var constructedImplementations = ArrayBuilder<ISymbol>.GetInstance();
 
-                    foreach (var impl in matchingImplementations.Cast<INamedTypeSymbol>())
+                    foreach (var impl in matchingImplementations)
                     {
                         constructedImplementations.Add(impl.Construct(typeArguments.ToArray()));
                     }
@@ -117,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return constructedImplementations.ToImmutableAndFree();
                 }
 
-                return matchingImplementations.ToImmutableArray();
+                return matchingImplementations.ToImmutableArray<ISymbol>();
             }
 
             // Normally the user can't say things like "new IList".  Except for "IList[] x = new |".
