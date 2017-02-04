@@ -39,9 +39,10 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public RemoteHostService(Stream stream, IServiceProvider serviceProvider) :
-            base(stream, serviceProvider)
+            base(serviceProvider, stream)
         {
             // this service provide a way for client to make sure remote host is alive
+            Rpc.StartListening();
         }
 
         public string Connect(string host)

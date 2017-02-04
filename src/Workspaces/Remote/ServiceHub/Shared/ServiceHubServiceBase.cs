@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private Checksum _solutionChecksumOpt;
         private RoslynServices _lazyRoslynServices;
 
+        [Obsolete("For backward compatibility. this will be removed once all callers moved to new ctor")]
         protected ServiceHubServiceBase(Stream stream, IServiceProvider serviceProvider)
         {
             _instanceId = Interlocked.Add(ref s_instanceId, 1);
@@ -43,6 +44,26 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken = _cancellationTokenSource.Token;
 
             Rpc = JsonRpc.Attach(stream, this);
+            Rpc.Disconnected += OnRpcDisconnected;
+        }
+
+        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream)
+        {
+            _instanceId = Interlocked.Add(ref s_instanceId, 1);
+
+            // in unit test, service provider will return asset storage, otherwise, use the default one
+            AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
+
+            Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
+            Logger.TraceInformation($"{DebugInstanceString} Service instance created");
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            CancellationToken = _cancellationTokenSource.Token;
+
+            // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
+            // all sub type must explicitly start JsonRpc once everything is
+            // setup
+            Rpc = new JsonRpc(stream, stream, this);
             Rpc.Disconnected += OnRpcDisconnected;
         }
 
