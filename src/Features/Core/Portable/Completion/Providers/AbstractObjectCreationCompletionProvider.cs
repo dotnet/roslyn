@@ -103,6 +103,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var matchingImplementations = implementations.Where(
                     impl => !impl.IsAbstract && impl.GetArity() == typeArity);
 
+                if (typeArity > 0)
+                {
+                    var typeArguments = type.GetTypeArguments();
+
+                    var constructedImplementations = ArrayBuilder<ISymbol>.GetInstance();
+
+                    foreach (var impl in matchingImplementations.Cast<INamedTypeSymbol>())
+                    {
+                        constructedImplementations.Add(impl.Construct(typeArguments.ToArray()));
+                    }
+
+                    return constructedImplementations.ToImmutableAndFree();
+                }
+
                 return matchingImplementations.ToImmutableArray();
             }
 
