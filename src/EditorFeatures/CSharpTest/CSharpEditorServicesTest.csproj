@@ -191,6 +191,7 @@
     <Compile Include="Classification\TotalClassifierTests.cs" />
     <Compile Include="Classification\TotalClassifierTests_Dynamic.cs" />
     <Compile Include="CodeActions\AbstractCSharpCodeActionTest.cs" />
+    <Compile Include="CodeActions\ConvertNumericLiteral\ConvertNumericLiteralTests.cs" />
     <Compile Include="CodeActions\UseNamedArguments\UseNamedArgumentsTests.cs" />
     <Compile Include="Completion\CompletionProviders\OverrideCompletionProviderTests_ExpressionBody.cs" />
     <Compile Include="ConvertToInterpolatedString\ConvertConcatenationToInterpolatedStringTests.cs" />
