@@ -124,7 +124,7 @@ To create this AnalysisResult there are multiple passes. The first pass gathers 
 
 Information about captured variables are stored on instances of the `CapturedVariable` class, which holds information about the Symbol that was captured and rewriting information like the `SynthesizedLocal` that will replace the variable post-rewriting. Similarly, closures will be stored in instances of the `Closure` class, which contain both the original Symbol and the synthesized type or method created for the closure. All of these classes are mutable since it's expected that later passes will fill in more rewriting information using the structure gathered from the earlier passes.
 
-For instance, in the previous example we need to generate walk the tree to generate an Environment for the closures `Closure`, resulting in something like the following:
+For instance, in the previous example we need to walk the tree to generate an Environment for the closures `Closure`, resulting in something like the following:
 
 ```
 Closure
