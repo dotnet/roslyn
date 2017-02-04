@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.ConvertIfToSwitch;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
+namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertIfToSwitchCodeRefactoringProvider)), Shared]
     internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider : AbstractConvertIfToSwitchCodeRefactoringProvider

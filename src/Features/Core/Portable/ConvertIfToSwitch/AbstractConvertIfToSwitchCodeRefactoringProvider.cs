@@ -9,8 +9,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
+namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 {
     internal abstract class AbstractConvertIfToSwitchCodeRefactoringProvider : CodeRefactoringProvider
     {

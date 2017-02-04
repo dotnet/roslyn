@@ -2,7 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
+Imports Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.ConvertIfToSwitch
     Public Class ConvertIfToSwitchTests

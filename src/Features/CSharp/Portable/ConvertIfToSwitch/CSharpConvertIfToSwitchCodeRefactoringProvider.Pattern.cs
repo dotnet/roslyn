@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
+namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 {
     partial class CSharpConvertIfToSwitchCodeRefactoringProvider
     {

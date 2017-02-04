@@ -61,9 +61,9 @@
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
     <Compile Include="AddPackage\CSharpAddSpecificPackageCodeFixProvider.cs" />
-    <Compile Include="CodeRefactorings\ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.Pattern.cs" />
-    <Compile Include="CodeRefactorings\ConvertNumericLiteral\CSharpConvertNumericLiteralCodeRefactoringProvider.cs" />
+    <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.cs" />
+    <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.Pattern.cs" />
+    <Compile Include="ConvertNumericLiteral\CSharpConvertNumericLiteralCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\UseNamedArguments\CSharpUseNamedArgumentsCodeRefactoringProvider.cs" />
     <Compile Include="CSharpFeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>

@@ -2,7 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
+Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
     Partial Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
         Private MustInherit Class Pattern
             Implements IPattern(Of CaseClauseSyntax)

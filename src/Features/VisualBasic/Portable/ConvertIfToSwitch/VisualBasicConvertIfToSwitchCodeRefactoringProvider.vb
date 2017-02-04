@@ -3,11 +3,11 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.ConvertIfToSwitch
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
+Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertIfToSwitchCodeRefactoringProvider)), [Shared]>
     Partial Friend NotInheritable Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
         Inherits AbstractConvertIfToSwitchCodeRefactoringProvider
