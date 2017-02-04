@@ -9,9 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
     Public Class GenerateVariableTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing, New GenerateVariableCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New GenerateVariableCodeFixProvider())
         End Function
 
         Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
@@ -424,7 +423,7 @@ Class B
         Foo(s.[|field|])
     End Sub
 End Class",
-{String.Format(FeaturesResources.Generate_field_0_in_1, "field", "A")})
+{String.Format(FeaturesResources.Generate_field_1_0, "field", "A")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
@@ -2472,6 +2471,5 @@ End Class",
  End Sub
 End Class")
         End Function
-
     End Class
 End Namespace

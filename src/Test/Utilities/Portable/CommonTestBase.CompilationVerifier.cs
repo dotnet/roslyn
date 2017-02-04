@@ -152,9 +152,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 bool realIL = false,
                 string sequencePoints = null,
                 [CallerFilePath]string callerPath = null,
-                [CallerLineNumber]int callerLine = 0)
+                [CallerLineNumber]int callerLine = 0,
+                string source = null)
             {
-                return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: true);
+                return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: true, source: source);
             }
 
             public void VerifyLocalSignature(
@@ -175,9 +176,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 string sequencePoints,
                 string callerPath,
                 int callerLine,
-                bool escapeQuotes)
+                bool escapeQuotes,
+                string source = null)
             {
-                string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints);
+                string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, source);
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes, callerPath, callerLine);
                 return this;
             }
@@ -238,15 +240,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null, metadataMemoryOwnerOpt: null);
             }
 
-            public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null)
+            public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null, string source = null)
             {
                 // TODO: Currently the qualifiedMethodName is a symbol display name while PDB need metadata name.
                 // So we need to pass the PDB metadata name of the method to sequencePoints (instead of just bool).
 
-                return VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints);
+                return VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, source);
             }
 
-            internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints = null)
+            internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints = null, string source = null)
             {
                 Dictionary<int, string> markers = null;
 
@@ -262,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                  PdbToXmlOptions.ExcludeScopes,
                         methodName: sequencePoints);
 
-                    markers = PdbValidation.GetMarkers(actualPdbXml);
+                    markers = PdbValidation.GetMarkers(actualPdbXml, source);
                 }
 
                 if (!realIL)

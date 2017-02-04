@@ -1965,7 +1965,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Remove &amp;and Sort Imports.
+        '''  Looks up a localized string similar to R&amp;emove and Sort Imports.
         '''</summary>
         Friend ReadOnly Property Remove_and_Sort_Imports() As String
             Get

@@ -451,8 +451,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         Bar(1 + 1);
     }
 }",
-                index: 0,
-                options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
+                index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -546,8 +545,7 @@ class Program
         d.Invoke(v);
     }
 }",
-index: 0,
-options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
+index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -636,8 +634,7 @@ class Program
         G<int>.Add(@class);
     }
 }",
-index: 0,
-options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
+index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -712,8 +709,7 @@ options: ImplicitTypingEverywhere());
         G<int>.@class {|Rename:class1|} = new G<int>.@class();
         G<int>.Add(class1);
     }
-}",
-options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
+}");
         }
 
         [WorkItem(540078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540078")]
@@ -2130,8 +2126,7 @@ static class C
         Outer(y => Inner(x => { string {|Rename:v|} = Foo(x); v.ToString(); }, y), (object)null);
     }
 }",
-compareTokens: false,
-options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
+compareTokens: false);
         }
 
         [WorkItem(606347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
@@ -2422,8 +2417,7 @@ class Program
         Nullable<int*> {|Rename:v|} = new Nullable<int*>();
         v.GetValueOrDefault();
     }
-}",
-options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
+}");
         }
 
         [WorkItem(830885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830885")]
@@ -2604,8 +2598,7 @@ class C
         var l = new List<int>() { tickCount };
     }
 }",
-compareTokens: false,
-options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
+compareTokens: false);
         }
 
         [WorkItem(854662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854662")]
@@ -2690,8 +2683,7 @@ class C
         var a = new int[] { tickCount };
     }
 }",
-compareTokens: false,
-options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
+compareTokens: false);
         }
 
         [WorkItem(1022447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022447")]

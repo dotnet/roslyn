@@ -9,9 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
     Partial Public Class ImplementInterfaceTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing, New VisualBasicImplementInterfaceCodeFixProvider)
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New VisualBasicImplementInterfaceCodeFixProvider)
         End Function
 
         <WorkItem(540085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540085")>
@@ -34,6 +33,28 @@ Class C
         Throw New NotImplementedException()
     End Sub
 End Class")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Async Function TestInterfaceWithTuple() As Task
+            Await TestAsync(
+"Imports System
+Class Foo
+    Implements [|IFoo|]
+End Class
+Interface IFoo
+    Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String)
+End Interface",
+"Imports System
+Class Foo
+    Implements IFoo
+    Public Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String) Implements IFoo.Method
+        Throw New NotImplementedException()
+    End Function
+End Class
+Interface IFoo
+    Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String)
+End Interface")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>

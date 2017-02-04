@@ -1,14 +1,14 @@
 {
   "dependencies": {
     "Microsoft.Composition": "1.0.27",
-    "Microsoft.VisualStudio.Shell.15.0": "15.0.26014-alpha",
+    "Microsoft.VisualStudio.Shell.15.0": "15.0.26127-alpha",
     "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": "14.3.25407",
-    "Microsoft.VisualStudio.Editor": "15.0.26014-alpha"
+    "Microsoft.VisualStudio.Editor": "15.0.26127-alpha"
   },
   "frameworks": {
-    "net46": { }
+    "net46": {}
   },
   "runtimes": {
-    "win7": { }
+    "win7": {}
   }
 }
