@@ -69,34 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyDefaultSyntaxValue = defaultSyntaxValue;
         }
 
-        protected virtual Binder ParameterBinder
-        {
-            get { return null; }
-        }
+        protected virtual Binder ParameterBinder => null;
 
-        internal override SyntaxReference SyntaxReference
-        {
-            get
-            {
-                return _syntaxRef;
-            }
-        }
+        internal override SyntaxReference SyntaxReference => _syntaxRef;
 
-        internal ParameterSyntax CSharpSyntaxNode
-        {
-            get
-            {
-                return _syntaxRef == null ? null : (ParameterSyntax)_syntaxRef.GetSyntax();
-            }
-        }
+        internal ParameterSyntax CSharpSyntaxNode => (ParameterSyntax)_syntaxRef?.GetSyntax();
 
-        internal SyntaxTree SyntaxTree
-        {
-            get
-            {
-                return _syntaxRef == null ? null : _syntaxRef.SyntaxTree;
-            }
-        }
+        internal SyntaxTree SyntaxTree => _syntaxRef == null ? null : _syntaxRef.SyntaxTree;
 
         internal override ConstantValue ExplicitDefaultConstantValue
         {
@@ -126,73 +105,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsIDispatchConstant
-        {
-            get
-            {
-                CommonParameterWellKnownAttributeData data = GetDecodedWellKnownAttributeData();
-                return data != null && data.HasIDispatchConstantAttribute;
-            }
-        }
+            => GetDecodedWellKnownAttributeData()?.HasIDispatchConstantAttribute == true;
 
         internal override bool IsIUnknownConstant
-        {
-            get
-            {
-                CommonParameterWellKnownAttributeData data = GetDecodedWellKnownAttributeData();
-                return data != null && data.HasIUnknownConstantAttribute;
-            }
-        }
+            => GetDecodedWellKnownAttributeData()?.HasIUnknownConstantAttribute == true;
 
         private bool HasCallerLineNumberAttribute
-        {
-            get
-            {
-                ParameterEarlyWellKnownAttributeData data = GetEarlyDecodedWellKnownAttributeData();
-                return data != null && data.HasCallerLineNumberAttribute;
-            }
-        }
+            => GetEarlyDecodedWellKnownAttributeData()?.HasCallerLineNumberAttribute == true;
 
         private bool HasCallerFilePathAttribute
-        {
-            get
-            {
-                ParameterEarlyWellKnownAttributeData data = GetEarlyDecodedWellKnownAttributeData();
-                return data != null && data.HasCallerFilePathAttribute;
-            }
-        }
+            => GetEarlyDecodedWellKnownAttributeData()?.HasCallerFilePathAttribute == true;
 
         private bool HasCallerMemberNameAttribute
-        {
-            get
-            {
-                ParameterEarlyWellKnownAttributeData data = GetEarlyDecodedWellKnownAttributeData();
-                return data != null && data.HasCallerMemberNameAttribute;
-            }
-        }
+            => GetEarlyDecodedWellKnownAttributeData()?.HasCallerMemberNameAttribute == true;
 
-        internal override bool IsCallerLineNumber
-        {
-            get
-            {
-                return HasCallerLineNumberAttribute;
-            }
-        }
+        internal override bool IsCallerLineNumber => HasCallerLineNumberAttribute;
 
-        internal override bool IsCallerFilePath
-        {
-            get
-            {
-                return !HasCallerLineNumberAttribute && HasCallerFilePathAttribute;
-            }
-        }
+        internal override bool IsCallerFilePath => !HasCallerLineNumberAttribute && HasCallerFilePathAttribute;
 
-        internal override bool IsCallerMemberName
-        {
-            get
-            {
-                return !HasCallerLineNumberAttribute && !HasCallerFilePathAttribute && HasCallerMemberNameAttribute;
-            }
-        }
+        internal override bool IsCallerMemberName => !HasCallerLineNumberAttribute
+                                                  && !HasCallerFilePathAttribute
+                                                  && HasCallerMemberNameAttribute;
 
         private ConstantValue DefaultSyntaxValue
         {
@@ -293,25 +226,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected virtual IAttributeTargetSymbol AttributeOwner
-        {
-            get { return this; }
-        }
+        protected virtual IAttributeTargetSymbol AttributeOwner => this;
 
-        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner
-        {
-            get { return this.AttributeOwner; }
-        }
+        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => AttributeOwner;
 
-        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation
-        {
-            get { return AttributeLocation.Parameter; }
-        }
+        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Parameter;
 
-        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-        {
-            get { return AttributeLocation.Parameter; }
-        }
+        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AttributeLocation.Parameter;
 
         /// <summary>
         /// Symbol to copy bound attributes from, or null if the attributes are not shared among multiple source parameter symbols.
@@ -772,10 +693,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ConstantValue.Create(arg.Value, constantValueDiscriminator);
         }
 
-        private bool IsValidCallerInfoContext(AttributeSyntax node)
-        {
-            return !ContainingSymbol.IsExplicitInterfaceImplementation() && !ContainingSymbol.IsOperator() && !IsOnPartialImplementation(node);
-        }
+        private bool IsValidCallerInfoContext(AttributeSyntax node) => !ContainingSymbol.IsExplicitInterfaceImplementation()
+                                                                    && !ContainingSymbol.IsOperator()
+                                                                    && !IsOnPartialImplementation(node);
 
         /// <summary>
         /// Is the attribute syntax appearing on a parameter of a partial method implementation part?
@@ -988,69 +908,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsMetadataIn
-        {
-            get
-            {
-                var data = GetDecodedWellKnownAttributeData();
-                return data != null && data.HasInAttribute;
-            }
-        }
+        internal sealed override bool IsMetadataIn => GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
 
         internal sealed override bool IsMetadataOut
         {
             get
             {
-                if (this.RefKind == Microsoft.CodeAnalysis.RefKind.Out)
+                if (this.RefKind == RefKind.Out)
                 {
                     return true;
                 }
 
-                var data = GetDecodedWellKnownAttributeData();
-                return data != null && data.HasOutAttribute;
+                return GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
             }
         }
 
         internal sealed override MarshalPseudoCustomAttributeData MarshallingInformation
-        {
-            get
-            {
-                var data = GetDecodedWellKnownAttributeData();
-                return data != null ? data.MarshallingInformation : null;
-            }
-        }
+            => GetDecodedWellKnownAttributeData()?.MarshallingInformation;
 
-        public override bool IsParams
-        {
-            get
-            {
-                return (_parameterSyntaxKind & ParameterSyntaxKind.ParamsParameter) != 0;
-            }
-        }
+        public override bool IsParams => (_parameterSyntaxKind & ParameterSyntaxKind.ParamsParameter) != 0;
 
-        internal override bool IsExtensionMethodThis
-        {
-            get
-            {
-                return (_parameterSyntaxKind & ParameterSyntaxKind.ExtensionThisParameter) != 0;
-            }
-        }
+        internal override bool IsExtensionMethodThis => (_parameterSyntaxKind & ParameterSyntaxKind.ExtensionThisParameter) != 0;
 
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
-            }
-        }
+        public override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
-            }
-        }
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
@@ -1089,20 +971,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(refKind != RefKind.None || _refCustomModifiers.IsEmpty);
         }
 
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return _customModifiers;
-            }
-        }
+        public override ImmutableArray<CustomModifier> CustomModifiers => _customModifiers;
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get
-            {
-                return _refCustomModifiers;
-            }
-        }
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => _refCustomModifiers;
     }
 }
