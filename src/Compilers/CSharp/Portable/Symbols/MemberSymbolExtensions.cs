@@ -496,30 +496,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 member.IsExplicitInterfaceImplementation() ? ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member.Name) :
                 member.Name;
         }
-
-        /// <summary>
-        /// Locations[0] on lambda symbols covers the entire syntax, which is inconvenient but remains for compatibility.
-        /// For better diagnostics quality, use the NarrowLocation instead, which points to the "delegate" or the "=>".
-        /// </summary>
-        internal static Location NarrowLocation(this MethodSymbol methodSymbol)
-        {
-            switch (methodSymbol)
-            {
-                case LambdaSymbol lambda:
-                    var syntax = lambda.Syntax;
-                    switch (syntax.Kind())
-                    {
-                        case SyntaxKind.AnonymousMethodExpression:
-                            return ((AnonymousMethodExpressionSyntax)syntax).DelegateKeyword.GetLocation();
-                        case SyntaxKind.SimpleLambdaExpression:
-                        case SyntaxKind.ParenthesizedLambdaExpression:
-                            return ((LambdaExpressionSyntax)syntax).ArrowToken.GetLocation();
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
-                    }
-                default:
-                    return methodSymbol.Locations[0];
-            }
-        }
     }
 }

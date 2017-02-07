@@ -260,6 +260,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Locations[0] on lambda symbols covers the entire syntax, which is inconvenient but remains for compatibility.
+        /// For better diagnostics quality, use the ErrorLocation instead, which points to the "delegate" or the "=>".
+        /// </summary>
+        public override Location ErrorLocation
+        {
+            get
+            {
+                switch (_syntax.Kind())
+                {
+                    case SyntaxKind.AnonymousMethodExpression:
+                        return ((AnonymousMethodExpressionSyntax)_syntax).DelegateKeyword.GetLocation();
+                    case SyntaxKind.SimpleLambdaExpression:
+                    case SyntaxKind.ParenthesizedLambdaExpression:
+                        return ((LambdaExpressionSyntax)_syntax).ArrowToken.GetLocation();
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(_syntax.Kind());
+                }
+            }
+        }
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
@@ -267,8 +288,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray.Create<SyntaxReference>(_syntax.GetReference());
             }
         }
-
-        internal SyntaxNode Syntax => _syntax;
 
         public override Symbol ContainingSymbol
         {
