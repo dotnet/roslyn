@@ -64,7 +64,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ITypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck)
         {
-            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck);
+            try
+            {
+                return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck);
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         /// <summary>
@@ -83,82 +90,75 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ITypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck)
         {
-            try
+            Contract.ThrowIfNull(symbol);
+            Contract.ThrowIfNull(within);
+            Contract.Requires(within is INamedTypeSymbol || within is IAssemblySymbol);
+
+            failedThroughTypeCheck = false;
+            var withinAssembly = (within as IAssemblySymbol) ?? ((INamedTypeSymbol)within).ContainingAssembly;
+
+            switch (symbol.Kind)
             {
-                Contract.ThrowIfNull(symbol);
-                Contract.ThrowIfNull(within);
-                Contract.Requires(within is INamedTypeSymbol || within is IAssemblySymbol);
+                case SymbolKind.Alias:
+                    return IsSymbolAccessibleCore(((IAliasSymbol)symbol).Target, within, throughTypeOpt, out failedThroughTypeCheck);
 
-                failedThroughTypeCheck = false;
-                var withinAssembly = (within as IAssemblySymbol) ?? ((INamedTypeSymbol)within).ContainingAssembly;
+                case SymbolKind.ArrayType:
+                    return IsSymbolAccessibleCore(((IArrayTypeSymbol)symbol).ElementType, within, null, out failedThroughTypeCheck);
 
-                switch (symbol.Kind)
-                {
-                    case SymbolKind.Alias:
-                        return IsSymbolAccessibleCore(((IAliasSymbol)symbol).Target, within, throughTypeOpt, out failedThroughTypeCheck);
+                case SymbolKind.PointerType:
+                    return IsSymbolAccessibleCore(((IPointerTypeSymbol)symbol).PointedAtType, within, null, out failedThroughTypeCheck);
 
-                    case SymbolKind.ArrayType:
-                        return IsSymbolAccessibleCore(((IArrayTypeSymbol)symbol).ElementType, within, null, out failedThroughTypeCheck);
+                case SymbolKind.NamedType:
+                    return IsNamedTypeAccessible((INamedTypeSymbol)symbol, within);
 
-                    case SymbolKind.PointerType:
-                        return IsSymbolAccessibleCore(((IPointerTypeSymbol)symbol).PointedAtType, within, null, out failedThroughTypeCheck);
+                case SymbolKind.ErrorType:
+                case SymbolKind.Discard:
+                    return true;
 
-                    case SymbolKind.NamedType:
-                        return IsNamedTypeAccessible((INamedTypeSymbol)symbol, within);
+                case SymbolKind.TypeParameter:
+                case SymbolKind.Parameter:
+                case SymbolKind.Local:
+                case SymbolKind.Label:
+                case SymbolKind.Namespace:
+                case SymbolKind.DynamicType:
+                case SymbolKind.Assembly:
+                case SymbolKind.NetModule:
+                case SymbolKind.RangeVariable:
+                    // These types of symbols are always accessible (if visible).
+                    return true;
 
-                    case SymbolKind.ErrorType:
-                    case SymbolKind.Discard:
+                case SymbolKind.Method:
+                case SymbolKind.Property:
+                case SymbolKind.Field:
+                case SymbolKind.Event:
+                    if (symbol.IsStatic)
+                    {
+                        // static members aren't accessed "through" an "instance" of any type.  So we
+                        // null out the "through" instance here.  This ensures that we'll understand
+                        // accessing protected statics properly.
+                        throughTypeOpt = null;
+                    }
+
+                    // If this is a synthesized operator of dynamic, it's always accessible.
+                    if (symbol.IsKind(SymbolKind.Method) &&
+                        ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator &&
+                        symbol.ContainingSymbol.IsKind(SymbolKind.DynamicType))
+                    {
                         return true;
+                    }
 
-                    case SymbolKind.TypeParameter:
-                    case SymbolKind.Parameter:
-                    case SymbolKind.Local:
-                    case SymbolKind.Label:
-                    case SymbolKind.Namespace:
-                    case SymbolKind.DynamicType:
-                    case SymbolKind.Assembly:
-                    case SymbolKind.NetModule:
-                    case SymbolKind.RangeVariable:
-                        // These types of symbols are always accessible (if visible).
-                        return true;
+                    // If it's a synthesized operator on a pointer, use the pointer's PointedAtType.
+                    if (symbol.IsKind(SymbolKind.Method) &&
+                        ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator &&
+                        symbol.ContainingSymbol.IsKind(SymbolKind.PointerType))
+                    {
+                        return IsSymbolAccessibleCore(((IPointerTypeSymbol)symbol.ContainingSymbol).PointedAtType, within, null, out failedThroughTypeCheck);
+                    }
 
-                    case SymbolKind.Method:
-                    case SymbolKind.Property:
-                    case SymbolKind.Field:
-                    case SymbolKind.Event:
-                        if (symbol.IsStatic)
-                        {
-                            // static members aren't accessed "through" an "instance" of any type.  So we
-                            // null out the "through" instance here.  This ensures that we'll understand
-                            // accessing protected statics properly.
-                            throughTypeOpt = null;
-                        }
+                    return IsMemberAccessible(symbol.ContainingType, symbol.DeclaredAccessibility, within, throughTypeOpt, out failedThroughTypeCheck);
 
-                        // If this is a synthesized operator of dynamic, it's always accessible.
-                        if (symbol.IsKind(SymbolKind.Method) &&
-                            ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator &&
-                            symbol.ContainingSymbol.IsKind(SymbolKind.DynamicType))
-                        {
-                            return true;
-                        }
-
-                        // If it's a synthesized operator on a pointer, use the pointer's PointedAtType.
-                        if (symbol.IsKind(SymbolKind.Method) &&
-                            ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator &&
-                            symbol.ContainingSymbol.IsKind(SymbolKind.PointerType))
-                        {
-                            return IsSymbolAccessibleCore(((IPointerTypeSymbol)symbol.ContainingSymbol).PointedAtType, within, null, out failedThroughTypeCheck);
-                        }
-
-                        return IsMemberAccessible(symbol.ContainingType, symbol.DeclaredAccessibility, within, throughTypeOpt, out failedThroughTypeCheck);
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
-                }
-            }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
         }
 
