@@ -4040,6 +4040,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.SwitchSection(AsSwitchLabels(expressions), AsStatementList(statements));
         }
 
+        internal override SyntaxNode SwitchSectionFromLabels(IEnumerable<SyntaxNode> labels, IEnumerable<SyntaxNode> statements)
+        {
+            return SyntaxFactory.SwitchSection(
+                labels.Cast<SwitchLabelSyntax>().ToSyntaxList(), 
+                AsStatementList(statements));
+        }
+
         public override SyntaxNode DefaultSwitchSection(IEnumerable<SyntaxNode> statements)
         {
             return SyntaxFactory.SwitchSection(SyntaxFactory.SingletonList(SyntaxFactory.DefaultSwitchLabel() as SwitchLabelSyntax), AsStatementList(statements));

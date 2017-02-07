@@ -39,7 +39,8 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsChangeToYield = "CodeActions.ChangeToYield";
             public const string CodeActionsConvertNumericLiteral = "CodeActions.ConvertNumericLiteral";
             public const string CodeActionsConvertToInterpolatedString = "CodeActions.ConvertToInterpolatedString";
-            public const string CodeActionsConvertToIterator = "CodeActions.CodeActionsConvertToIterator";
+            public const string CodeActionsConvertToIterator = "CodeActions.ConvertToIterator";
+            public const string CodeActionsConvertIfToSwitch = "CodeActions.ConvertIfToSwitch";
             public const string CodeActionsCorrectExitContinue = "CodeActions.CorrectExitContinue";
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";
             public const string CodeActionsCorrectNextControlVariable = "CodeActions.CorrectNextControlVariable";

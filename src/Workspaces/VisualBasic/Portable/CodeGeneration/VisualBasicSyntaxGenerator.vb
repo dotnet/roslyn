@@ -435,6 +435,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 GetStatementList(statements))
         End Function
 
+        Friend Overrides Function SwitchSectionFromLabels(labels As IEnumerable(Of SyntaxNode), statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return SyntaxFactory.CaseBlock(
+                SyntaxFactory.CaseStatement(SyntaxFactory.SeparatedList(labels.Cast(Of CaseClauseSyntax))),
+                GetStatementList(statements))
+        End Function
+
         Public Overrides Function DefaultSwitchSection(statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.CaseElseBlock(
                 SyntaxFactory.CaseElseStatement(SyntaxFactory.ElseCaseClause()),

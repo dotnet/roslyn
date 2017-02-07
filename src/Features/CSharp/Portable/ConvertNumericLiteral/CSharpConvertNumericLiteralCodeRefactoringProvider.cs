@@ -2,9 +2,9 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeRefactorings.ConvertNumericLiteral;
+using Microsoft.CodeAnalysis.ConvertNumericLiteral;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertNumericLiteral
+namespace Microsoft.CodeAnalysis.CSharp.ConvertNumericLiteral
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertNumericLiteralCodeRefactoringProvider)), Shared]
     internal sealed class CSharpConvertNumericLiteralCodeRefactoringProvider : AbstractConvertNumericLiteralCodeRefactoringProvider

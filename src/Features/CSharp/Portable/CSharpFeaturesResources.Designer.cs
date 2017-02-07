@@ -279,6 +279,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert &apos;if&apos; to &apos;switch&apos;.
+        /// </summary>
+        internal static string Convert_if_to_switch {
+            get {
+                return ResourceManager.GetString("Convert_if_to_switch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to deconstruction.
         /// </summary>
         internal static string deconstruction {
