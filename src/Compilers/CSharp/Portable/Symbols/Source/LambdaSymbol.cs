@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -255,7 +256,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray.Create<Location>(_syntax.Location);
+                Location location;
+                switch(_syntax.Kind())
+                {
+                    case SyntaxKind.AnonymousMethodExpression:
+                        location = ((AnonymousMethodExpressionSyntax)_syntax).DelegateKeyword.GetLocation();
+                        break;
+                    case SyntaxKind.SimpleLambdaExpression:
+                    case SyntaxKind.ParenthesizedLambdaExpression:
+                        location = ((LambdaExpressionSyntax)_syntax).ArrowToken.GetLocation();
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(_syntax.Kind());
+                }
+                return ImmutableArray.Create<Location>(location);
             }
         }
 
