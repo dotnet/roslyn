@@ -256,20 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Location location;
-                switch(_syntax.Kind())
-                {
-                    case SyntaxKind.AnonymousMethodExpression:
-                        location = ((AnonymousMethodExpressionSyntax)_syntax).DelegateKeyword.GetLocation();
-                        break;
-                    case SyntaxKind.SimpleLambdaExpression:
-                    case SyntaxKind.ParenthesizedLambdaExpression:
-                        location = ((LambdaExpressionSyntax)_syntax).ArrowToken.GetLocation();
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(_syntax.Kind());
-                }
-                return ImmutableArray.Create<Location>(location);
+                return ImmutableArray.Create<Location>(_syntax.Location);
             }
         }
 
@@ -280,6 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray.Create<SyntaxReference>(_syntax.GetReference());
             }
         }
+
+        internal SyntaxNode Syntax => _syntax;
 
         public override Symbol ContainingSymbol
         {
