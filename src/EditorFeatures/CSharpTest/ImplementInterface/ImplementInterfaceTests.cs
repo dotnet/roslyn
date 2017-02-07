@@ -141,6 +141,35 @@ class Class : IInterface
 }");
         }
 
+        [WorkItem(16793, "https://github.com/dotnet/roslyn/issues/16793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestMethodWithValueTupleArity1()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"
+using System;
+interface I
+{
+    ValueTuple<object> F();
+}
+class C : [|I|]
+{
+}",
+@"
+using System;
+interface I
+{
+    ValueTuple<object> F();
+}
+class C : I
+{
+    public ValueTuple<object> F()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExpressionBodiedMethod1()
         {

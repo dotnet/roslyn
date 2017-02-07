@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("DateTime"))
             End Select
 
-            If symbol.IsTupleType Then
+            If symbol.IsTupleType AndAlso symbol.TupleElements.Length >= 2 Then
                 Return CreateTupleTypeSyntax(symbol)
             End If
 
