@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     return string.Format(WorkspacesResources.Fix_all_0_in_Solution, diagnosticId);
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(this.Scope);
             }
         }
 

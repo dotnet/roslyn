@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders
                                    arrayCreation.Initializer.CloseBraceToken,
                                    asNewClause.Type.GetLastToken(includeZeroWidth:=True))
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(asNewClause.NewExpression.Kind)
             End Select
 
             Return token = lastToken
