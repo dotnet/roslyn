@@ -12,6 +12,7 @@ using Xunit;
 using System.IO;
 using System.Globalization;
 using System.Text;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -715,14 +716,16 @@ i", options);
         [Fact]
         public async Task Pdb_CreateFromString_CodeFromFile_WithEmitDebugInformation_WithoutFileEncoding_CompilationErrorException()
         {
+            var code = "throw new System.Exception();";
             try
             {
                 var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx").WithFileEncoding(null);
-                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
+                var script = await CSharpScript.RunAsync(code, opts);
             }
             catch (CompilationErrorException ex)
             {
-                Assert.EndsWith("error CS8055: Cannot emit debug information for a source text without encoding.", ex.Message);
+                //  CS8055: Cannot emit debug information for a source text without encoding.
+                ex.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, code).WithLocation(1,1));
             }
         }
 
@@ -730,77 +733,77 @@ i", options);
         public Task Pdb_CreateFromString_CodeFromFile_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
-            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), "debug.csx:line 1");
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "debug.csx");
         }
 
         [Fact]
         public Task Pdb_CreateFromString_CodeFromFile_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath(null).WithFileEncoding(null);
-            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), "at Submission#0.<<Initialize>>d__0.MoveNext()");
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
         [Fact]
         public Task Pdb_CreateFromString_CodeFromFile_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
-            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), "at Submission#0.<<Initialize>>d__0.MoveNext()");
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
         [Fact]
         public Task Pdb_CreateFromStream_CodeFromFile_WithEmitDebugInformation_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx");
-            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts), "debug.csx:line 1");
+            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts), line: 1, column: 1, filename: "debug.csx");
         }
 
         [Fact]
         public Task Pdb_CreateFromStream_CodeFromFile_WithoutEmitDebugInformation_ResultInPdbNotEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath("debug.csx");
-            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts), "at Submission#0.<<Initialize>>d__0.MoveNext()");
+            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts));
         }
 
         [Fact]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithoutFileEncoding_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(null);
-            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), "at Submission#0.<<Initialize>>d__0.MoveNext() in :line 1");
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "");
         }
 
         [Fact]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(Encoding.UTF8);
-            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), "at Submission#0.<<Initialize>>d__0.MoveNext() in :line 1");
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "");
         }
 
         [Fact]
         public Task Pdb_CreateFromString_InlineCode_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFileEncoding(null);
-            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), "at Submission#0.<<Initialize>>d__0.MoveNext()");
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
         [Fact]
         public Task Pdb_CreateFromString_InlineCode_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFileEncoding(Encoding.UTF8);
-            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), "at Submission#0.<<Initialize>>d__0.MoveNext()");
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
         [Fact]
         public Task Pdb_CreateFromStream_InlineCode_WithEmitDebugInformation_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true);
-            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts), "at Submission#0.<<Initialize>>d__0.MoveNext() in :line 1");
+            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts), line: 1, column: 1, filename: "");
         }
 
         [Fact]
         public Task Pdb_CreateFromStream_InlineCode_WithoutEmitDebugInformation_ResultInPdbNotEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(false);
-            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts), "at Submission#0.<<Initialize>>d__0.MoveNext()");
+            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts));
         }
 
         [WorkItem(12348, "https://github.com/dotnet/roslyn/issues/12348")]
@@ -856,20 +859,7 @@ i", options);
             }
         }
 
-        private string GetStackTraceLine(Exception ex, int index)
-        {
-            if (ex == null || ex.StackTrace == null) return null;
-
-            var stackTrace = ex.StackTrace?.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-            if (stackTrace.Length >= index)
-            {
-                return stackTrace[index].Trim();
-            }
-
-            return null;
-        }
-
-        private async Task VerifyStackTraceAsync(Func<Script<object>> scriptProvider, string expectedFirstLineEnding)
+        private async Task VerifyStackTraceAsync(Func<Script<object>> scriptProvider, int line = 0, int column = 0, string filename = null)
         {
             try
             {
@@ -879,7 +869,11 @@ i", options);
             catch (Exception ex)
             {
                 // line information is only available when PDBs have been emitted
-                Assert.EndsWith(expectedFirstLineEnding, GetStackTraceLine(ex, 0));
+                var stackTrace = new StackTrace(ex, needFileInfo: true);
+                var firstFrame = stackTrace.GetFrames()[0];
+                Assert.Equal(filename, firstFrame.GetFileName());
+                Assert.Equal(line, firstFrame.GetFileLineNumber());
+                Assert.Equal(column, firstFrame.GetFileColumnNumber());
             }
         }
     }
