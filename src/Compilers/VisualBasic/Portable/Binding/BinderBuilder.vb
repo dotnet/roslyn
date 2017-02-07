@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function CreateBinderForSourceFileImports(moduleSymbol As SourceModuleSymbol,
                                                                 tree As SyntaxTree) As Binder
             Dim sourceModuleBinder As Binder = CreateSourceModuleBinder(moduleSymbol)
-            Dim sourceFileBinder As Binder = New SourceFileBinder(sourceModuleBinder, moduleSymbol.GetSourceFile(tree), tree)
+            Dim sourceFileBinder As Binder = New SourceFileBinder(sourceModuleBinder, moduleSymbol.TryGetSourceFile(tree), tree)
             Dim namespaceBinder As Binder = New NamespaceBinder(sourceFileBinder, moduleSymbol.ContainingSourceAssembly.DeclaringCompilation.GlobalNamespace)
             Dim ignoreBasesBinder As Binder = New IgnoreBaseClassesBinder(namespaceBinder)
 
@@ -101,7 +101,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 moduleBinder = New XmlNamespaceImportsBinder(moduleBinder, projectXmlNamespaces)
             End If
 
-            Dim sourceFile = moduleSymbol.GetSourceFile(tree)
+            Dim sourceFile = moduleSymbol.TryGetSourceFile(tree)
+
+            If sourceFile Is Nothing Then
+                Return moduleBinder
+            End If
+
             Dim sourceFileBinder As Binder = New SourceFileBinder(moduleBinder, sourceFile, tree)
 
             ' Add file-level member imports.
