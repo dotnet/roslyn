@@ -49,22 +49,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void ConstructingCSharpParseOptionstWithInvalidPreProcessorSymbolsShouldNotProduceErrors()
         {
-            var options = new CSharpParseOptions(preprocessorSymbols: new string[] { "valid1", "2invalid" });
+            var symbols = new string[] { "valid1", "2invalid" };
+            var options = new CSharpParseOptions(preprocessorSymbols: symbols);
 
-            Assert.Equal(2, options.PreprocessorSymbolNames.Count());
-            Assert.Equal("valid1", options.PreprocessorSymbolNames.ElementAt(0));
-            Assert.Equal("2invalid", options.PreprocessorSymbolNames.ElementAt(1));
+            AssertEx.SetEqual(symbols, options.PreprocessorSymbolNames);
         }
 
         [WorkItem(15900, "https://github.com/dotnet/roslyn/issues/15900")]
         [Fact]
         public void ConstructingCSharpParseOptionstWithInvalidPreProcessorSymbolsHelperShouldNotProduceErrors()
         {
+            var symbols = new string[] { "valid1", "2invalid" };
             var options = new CSharpParseOptions().WithPreprocessorSymbols(new string[] { "valid1", "2invalid" });
 
-            Assert.Equal(2, options.PreprocessorSymbolNames.Count());
-            Assert.Equal("valid1", options.PreprocessorSymbolNames.ElementAt(0));
-            Assert.Equal("2invalid", options.PreprocessorSymbolNames.ElementAt(1));
+            AssertEx.SetEqual(symbols, options.PreprocessorSymbolNames);
         }
 
         /// <summary>

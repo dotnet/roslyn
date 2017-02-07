@@ -1349,30 +1349,30 @@ d.cs
             Assert.Equal((int)ErrorCode.WRN_DefineIdentifierRequired, parsedArgs.Errors.First().Code);
             Assert.Equal("4X", parsedArgs.Errors.First().Arguments[0]);
 
-            List<Diagnostic> diagnostics = new List<Diagnostic>();
+            IEnumerable<Diagnostic> diagnostics;
 
             // The docs say /d:def1[;def2]
             string compliant = "def1;def2;def3";
             var expected = new[] { "def1", "def2", "def3" };
-            var parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(compliant, diagnostics);
+            var parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(compliant, out diagnostics);
             diagnostics.Verify();
             Assert.Equal<string>(expected, parsed);
 
             // Bug 17360: Dev11 allows for a terminating semicolon
             var dev11Compliant = "def1;def2;def3;";
-            parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(dev11Compliant, diagnostics);
+            parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(dev11Compliant, out diagnostics);
             diagnostics.Verify();
             Assert.Equal<string>(expected, parsed);
 
             // And comma
             dev11Compliant = "def1,def2,def3,";
-            parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(dev11Compliant, diagnostics);
+            parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(dev11Compliant, out diagnostics);
             diagnostics.Verify();
             Assert.Equal<string>(expected, parsed);
 
             // This breaks everything
             var nonCompliant = "def1;;def2;";
-            parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(nonCompliant, diagnostics);
+            parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(nonCompliant, out diagnostics);
             diagnostics.Verify(
                 // warning CS2029: Invalid value for '/define'; '' is not a valid identifier
                 Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments(""));

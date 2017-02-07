@@ -242,9 +242,7 @@ Public Class VisualBasicParseOptionsTests
 
         Dim options = New VisualBasicParseOptions(preprocessorSymbols:=dict)
 
-        Assert.Equal(2, options.PreprocessorSymbolNames.Count())
-        Assert.Equal("valid1", options.PreprocessorSymbolNames.ElementAt(0))
-        Assert.Equal("2", options.PreprocessorSymbolNames.ElementAt(1))
+        AssertEx.SetEqual(dict.Keys, options.PreprocessorSymbolNames)
     End Sub
 
     <WorkItem(15900, "https://github.com/dotnet/roslyn/issues/15900")>
@@ -257,9 +255,7 @@ Public Class VisualBasicParseOptionsTests
         Dim features = ImmutableDictionary(Of String, String).Empty
         Dim options = New VisualBasicParseOptions(LanguageVersion.Latest, DocumentationMode.None, SourceCodeKind.Regular, symbols, features)
 
-        Assert.Equal(2, options.PreprocessorSymbolNames.Count())
-        Assert.Equal("valid1", options.PreprocessorSymbolNames.ElementAt(0))
-        Assert.Equal("2", options.PreprocessorSymbolNames.ElementAt(1))
+        AssertEx.SetEqual(symbols.Keys, options.PreprocessorSymbolNames)
     End Sub
 
     <WorkItem(15900, "https://github.com/dotnet/roslyn/issues/15900")>
@@ -271,9 +267,7 @@ Public Class VisualBasicParseOptionsTests
 
         Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(dict)
 
-        Assert.Equal(2, options.PreprocessorSymbolNames.Count())
-        Assert.Equal("valid1", options.PreprocessorSymbolNames.ElementAt(0))
-        Assert.Equal("2", options.PreprocessorSymbolNames.ElementAt(1))
+        AssertEx.SetEqual(dict.Keys, options.PreprocessorSymbolNames)
     End Sub
 
 End Class
