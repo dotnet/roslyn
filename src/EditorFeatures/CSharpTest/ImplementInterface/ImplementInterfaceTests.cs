@@ -114,6 +114,34 @@ class Class : IInterface
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestMethodWithTuple()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    (int, int) Method((string, string) x);
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"using System;
+
+interface IInterface
+{
+    (int, int) Method((string, string) x);
+}
+
+class Class : IInterface
+{
+    public (int, int) Method((string, string) x)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExpressionBodiedMethod1()
         {
             await TestWithAllCodeStyleOptionsOnAsync(

@@ -268,6 +268,56 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateClassWithCtorFromObjectCreationWithTuple()
+        {
+            await TestAsync(
+@"class Class
+{
+    var f = new [|Generated|]((1, 2));
+}",
+@"class Class
+{
+    var f = new Generated((1, 2));
+
+    private class Generated
+    {
+        private (int, int) p;
+
+        public Generated((int, int) p)
+        {
+            this.p = p;
+        }
+    }
+}",
+index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateClassWithCtorFromObjectCreationWithTupleWithNames()
+        {
+            await TestAsync(
+@"class Class
+{
+    var f = new [|Generated|]((a: 1, b: 2, 3));
+}",
+@"class Class
+{
+    var f = new Generated((a: 1, b: 2, 3));
+
+    private class Generated
+    {
+        private (int a, int b, int) p;
+
+        public Generated((int a, int b, int) p)
+        {
+            this.p = p;
+        }
+    }
+}",
+index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromBaseList()
         {
             await TestAsync(

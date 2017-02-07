@@ -44,6 +44,9 @@
     <Compile Include="..\Portable\InternalUtilities\IReadOnlySet.cs">
       <Link>IReadOnlySet.cs</Link>
     </Compile>
+    <Compile Include="..\Portable\InternalUtilities\PlatformInformation.cs">
+      <Link>PlatformInformation.cs</Link>
+    </Compile>
     <Compile Include="..\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>ReflectionUtilities.cs</Link>
     </Compile>

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.Debugger.Evaluation;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
@@ -117,11 +118,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private bool ShouldHandleRequest(TRequest request)
         {
             var languageId = GetLanguageId(request);
-            if (languageId == Guid.Empty)
-            {
-                return true;
-            }
-            return languageId == LanguageId;
+            // Handle requests with no language id, a matching language id,
+            // or causality breakpoint requests (debugging web services).
+            return languageId == Guid.Empty ||
+                languageId == LanguageId ||
+                languageId == DkmLanguageId.CausalityBreakpoint;
         }
 
         private bool ShouldModuleHandleRequest(TModule module, string moduleName)

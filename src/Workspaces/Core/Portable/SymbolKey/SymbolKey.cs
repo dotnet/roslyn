@@ -116,9 +116,7 @@ namespace Microsoft.CodeAnalysis
 
         public static string ToString(ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var compilation = (symbol.ContainingAssembly as ISourceAssemblySymbol)?.Compilation;
-
-            using (var writer = SymbolKeyWriter.GetWriter(compilation, cancellationToken))
+            using (var writer = SymbolKeyWriter.GetWriter(cancellationToken))
             {
                 writer.WriteFirstSymbolKey(symbol);
                 return writer.CreateKey();

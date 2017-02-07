@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             public void FireEvents(DocumentId documentId, CancellationToken cancellationToken)
             {
-                var project = _workspace.ProjectTracker.GetProject(documentId.ProjectId);
+                var project = _workspace.DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
                 if (project == null)
                 {
                     return;

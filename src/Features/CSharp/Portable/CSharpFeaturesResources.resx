@@ -247,7 +247,7 @@
     <value>Organize Usings</value>
   </data>
   <data name="Remove_and_Sort_Usings" xml:space="preserve">
-    <value>Remove &amp;and Sort Usings</value>
+    <value>R&amp;emove and Sort Usings</value>
   </data>
   <data name="Autoselect_disabled_due_to_potential_implicit_array_creation" xml:space="preserve">
     <value>Autoselect disabled due to potential implicit array creation.</value>
@@ -502,5 +502,11 @@
   </data>
   <data name="Add_this" xml:space="preserve">
     <value>Add 'this.'</value>
+  </data>
+  <data name="Convert_if_to_switch" xml:space="preserve">
+    <value>Convert 'if' to 'switch'</value>
+  </data>
+  <data name="Warning_Extracting_a_local_function_reference_may_produce_invalid_code" xml:space="preserve">
+    <value>Warning: Extracting a local function reference may produce invalid code</value>
   </data>
 </root>

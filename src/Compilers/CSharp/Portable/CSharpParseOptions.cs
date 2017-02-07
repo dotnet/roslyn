@@ -48,7 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             DocumentationMode documentationMode = DocumentationMode.Parse,
             SourceCodeKind kind = SourceCodeKind.Regular,
             IEnumerable<string> preprocessorSymbols = null)
-            : this(languageVersion, documentationMode, kind, preprocessorSymbols.ToImmutableArrayOrEmpty())
+            : this(languageVersion, 
+                  documentationMode, 
+                  kind, 
+                  preprocessorSymbols.ToImmutableArrayOrEmpty(), 
+                  ImmutableDictionary<string, string>.Empty)
         {
             // We test the mapped value, LanguageVersion, rather than the parameter, languageVersion,
             // which has not had "Latest" mapped to the latest version yet.
@@ -68,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!SyntaxFacts.IsValidIdentifier(preprocessorSymbol))
                     {
-                        throw new ArgumentException(nameof(preprocessorSymbol));
+                        throw new ArgumentException($"{nameof(preprocessorSymbols)} contains a symbol that is not a valid identifier", nameof(preprocessorSymbols));
                     }
                 }
             }
@@ -100,18 +104,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // No validation
-        internal CSharpParseOptions(
+        private CSharpParseOptions(
             LanguageVersion languageVersion,
             DocumentationMode documentationMode,
             SourceCodeKind kind,
-            ImmutableArray<string> preprocessorSymbols)
+            ImmutableArray<string> preprocessorSymbols,
+            ImmutableDictionary<string, string> features)
             : base(kind, documentationMode)
         {
             Debug.Assert(!preprocessorSymbols.IsDefault);
             this.SpecifiedLanguageVersion = languageVersion;
             this.LanguageVersion = languageVersion.MapSpecifiedToEffectiveVersion();
             this.PreprocessorSymbols = preprocessorSymbols;
-            _features = ImmutableDictionary<string, string>.Empty;
+            _features = features;
         }
 
         public override string Language => LanguageNames.CSharp;

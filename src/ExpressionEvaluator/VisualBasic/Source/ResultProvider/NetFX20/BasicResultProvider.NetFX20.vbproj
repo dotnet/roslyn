@@ -59,6 +59,6 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <Import Project="..\BasicResultProvider.projitems" Label="Shared" />
-  <Import Project="..\..\..\..\..\Tools\Vsdconfig\Vsdconfig.targets" />
+  <Import Project="..\..\..\..\..\..\build\Targets\Vsdconfig.targets" />
   <Import Project="..\..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>
