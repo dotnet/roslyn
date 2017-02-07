@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var globals = new CommandLineScriptGlobals(_console.Out, _objectFormatter);
             globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
 
-            var script = Script.CreateInitialScript<int>(_scriptCompiler, SourceText.From(code ?? string.Empty), options, globals.GetType(), assemblyLoaderOpt: null);
+            var script = Script.CreateInitialScript<int>(_scriptCompiler, SourceText.From(code), options, globals.GetType(), assemblyLoaderOpt: null);
             try
             {
                 return script.RunAsync(globals, cancellationToken).Result.ReturnValue;
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             if (initialScriptCodeOpt != null)
             {
-                var script = Script.CreateInitialScript<object>(_scriptCompiler, SourceText.From(initialScriptCodeOpt ?? string.Empty), options, globals.GetType(), assemblyLoaderOpt: null);
+                var script = Script.CreateInitialScript<object>(_scriptCompiler, SourceText.From(initialScriptCodeOpt), options, globals.GetType(), assemblyLoaderOpt: null);
                 BuildAndRun(script, globals, ref state, ref options, displayResult: false, cancellationToken: cancellationToken);
             }
 

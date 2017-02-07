@@ -100,7 +100,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         public bool EmitDebugInformation { get; private set; } = false;
 
         /// <summary>
-        /// Specifies the encoding to be used when debugging scripts loaded from a file, or that will be saved to a file for debugging purposes.
+        /// Specifies the encoding to be used when debugging scripts loaded from a file, or saved to a file for debugging purposes.
+        /// If it's null, the compiler will attempt to detect the necessary encoding for debugging
         /// </summary>
         public Encoding FileEncoding { get; private set; }
 

@@ -105,16 +105,23 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Continues the script with given code snippet.
         /// </summary>
-        public Script<TResult> ContinueWith<TResult>(string code, ScriptOptions options = null) =>
-            new Script<TResult>(Compiler, Builder, SourceText.From(code ?? "", options?.FileEncoding ?? Options.FileEncoding), options ?? InheritOptions(Options), GlobalsType, this);
+        public Script<TResult> ContinueWith<TResult>(string code, ScriptOptions options = null)
+        {
+            options = options ?? InheritOptions(Options);
+            return new Script<TResult>(Compiler, Builder, SourceText.From(code ?? "", options.FileEncoding), options, GlobalsType, this);
+        }
 
         /// <summary>
         /// Continues the script with given <see cref="Stream"/> representing code.
         /// </summary>
         /// <exception cref="ArgumentNullException">Stream is null.</exception>
         /// <exception cref="ArgumentException">Stream is not readable or seekable.</exception>
-        public Script<TResult> ContinueWith<TResult>(Stream code, ScriptOptions options = null) =>
-            new Script<TResult>(Compiler, Builder, SourceText.From(code, options?.FileEncoding ?? Options.FileEncoding), options ?? InheritOptions(Options), GlobalsType, this);
+        public Script<TResult> ContinueWith<TResult>(Stream code, ScriptOptions options = null)
+        {
+            if (code == null) throw new ArgumentNullException(nameof(code));
+            options = options ?? InheritOptions(Options);
+            return new Script<TResult>(Compiler, Builder, SourceText.From(code, options.FileEncoding), options, GlobalsType, this);
+        }
 
         private static ScriptOptions InheritOptions(ScriptOptions previous)
         {

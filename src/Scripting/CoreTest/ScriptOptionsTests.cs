@@ -151,13 +151,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             options.WithImports(".blah");
         }
 
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void WithEmitDebugInformation_SetsEmitDebugInformation(bool emitDebugInformation)
+        [Fact]
+        public void WithEmitDebugInformation_SetsEmitDebugInformation()
         {
-            var options = ScriptOptions.Default.WithEmitDebugInformation(emitDebugInformation);
-            Assert.Equal(emitDebugInformation, options.EmitDebugInformation);
+            Assert.True(ScriptOptions.Default.WithEmitDebugInformation(true).EmitDebugInformation);
+            Assert.False(ScriptOptions.Default.WithEmitDebugInformation(false).EmitDebugInformation);
+            Assert.False(ScriptOptions.Default.EmitDebugInformation);
         }
 
         [Fact]
