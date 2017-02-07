@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
             protected abstract IList<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken);
             protected abstract ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken);
+            protected abstract bool DetermineReturnsByRef(CancellationToken cancellationToken);
             protected abstract IList<RefKind> DetermineParameterModifiers(CancellationToken cancellationToken);
             protected abstract IList<ITypeSymbol> DetermineParameterTypes(CancellationToken cancellationToken);
             protected abstract IList<bool> DetermineParameterOptionality(CancellationToken cancellationToken);
@@ -90,6 +91,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             {
                 var parameters = DetermineParameters(cancellationToken);
                 var returnType = DetermineReturnType(cancellationToken);
+                var returnsByRef = DetermineReturnsByRef(cancellationToken);
+
                 var isUnsafe = (parameters
                     .Any(p => p.Type.IsUnsafe()) || returnType.IsUnsafe()) &&
                     !State.IsContainedInUnsafeType;
@@ -98,6 +101,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     accessibility: DetermineAccessibility(isAbstract),
                     modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract, isUnsafe: isUnsafe),
                     returnType: returnType,
+                    returnsByRef: returnsByRef,
                     explicitInterfaceSymbol: null,
                     name: this.State.IdentifierToken.ValueText,
                     typeParameters: DetermineTypeParameters(cancellationToken),

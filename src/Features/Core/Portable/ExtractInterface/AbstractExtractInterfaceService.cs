@@ -347,6 +347,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: method.IsUnsafe()),
                             returnType: method.ReturnType,
+                            returnsByRef: method.ReturnsByRef,
                             explicitInterfaceSymbol: null,
                             name: method.Name,
                             typeParameters: method.TypeParameters,

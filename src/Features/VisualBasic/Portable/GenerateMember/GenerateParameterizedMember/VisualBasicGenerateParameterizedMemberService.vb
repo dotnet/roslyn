@@ -30,8 +30,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                     Me.InvocationExpression.ArgumentList, reservedNames:=typeParametersNames)
             End Function
 
+            Protected Overrides Function DetermineReturnsByRef(cancellationToken As CancellationToken) As Boolean
+                Return False
+            End Function
+
             Protected Overrides Function DetermineReturnTypeWorker(cancellationToken As CancellationToken) As ITypeSymbol
-                Select Case CType(Me.State.IdentifierToken, SyntaxToken).GetTypeCharacter()
+                Select Case Me.State.IdentifierToken.GetTypeCharacter()
                     Case TypeCharacter.Integer
                         Return Me.Document.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Int32)
                     Case TypeCharacter.Long

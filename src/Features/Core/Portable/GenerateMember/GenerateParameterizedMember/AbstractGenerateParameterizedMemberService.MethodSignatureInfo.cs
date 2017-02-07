@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -27,36 +26,27 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
                 => _methodSymbol.ReturnType;
 
+            protected override bool DetermineReturnsByRef(CancellationToken cancellationToken)
+                => _methodSymbol.ReturnsByRef;
+
             protected override IList<ITypeParameterSymbol> DetermineTypeParametersWorker(CancellationToken cancellationToken)
-            {
-                return _methodSymbol.TypeParameters;
-            }
+                => _methodSymbol.TypeParameters;
 
             protected override IList<RefKind> DetermineParameterModifiers(CancellationToken cancellationToken)
-            {
-                return _methodSymbol.Parameters.Select(p => p.RefKind).ToList();
-            }
+                => _methodSymbol.Parameters.Select(p => p.RefKind).ToList();
 
             protected override IList<bool> DetermineParameterOptionality(CancellationToken cancellationToken)
-            {
-                return _methodSymbol.Parameters.Select(p => p.IsOptional).ToList();
-            }
+                => _methodSymbol.Parameters.Select(p => p.IsOptional).ToList();
 
             protected override IList<ITypeSymbol> DetermineParameterTypes(CancellationToken cancellationToken)
-            {
-                return _methodSymbol.Parameters.Select(p => p.Type).ToList();
-            }
+                => _methodSymbol.Parameters.Select(p => p.Type).ToList();
 
             protected override IList<ParameterName> DetermineParameterNames(CancellationToken cancellationToken)
-            {
-                return _methodSymbol.Parameters.Select(p => new ParameterName(p.Name, isFixed: true))
-                                               .ToList();
-            }
+                => _methodSymbol.Parameters.Select(p => new ParameterName(p.Name, isFixed: true))
+                                           .ToList();
 
             protected override IList<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken)
-            {
-                return SpecializedCollections.EmptyList<ITypeSymbol>();
-            }
+                => SpecializedCollections.EmptyList<ITypeSymbol>();
         }
     }
 }

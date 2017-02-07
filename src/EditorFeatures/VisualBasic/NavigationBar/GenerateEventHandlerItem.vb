@@ -55,6 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 accessibility:=Accessibility.Private,
                 modifiers:=New DeclarationModifiers(),
                 returnType:=delegateInvokeMethod.ReturnType,
+                returnsByRef:=delegateInvokeMethod.ReturnsByRef,
                 explicitInterfaceSymbol:=Nothing,
                 name:=methodName,
                 typeParameters:=Nothing,

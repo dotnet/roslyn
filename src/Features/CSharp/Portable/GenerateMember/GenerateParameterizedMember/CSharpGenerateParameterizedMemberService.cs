@@ -36,11 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                     _invocationExpression.ArgumentList);
             }
 
+            protected override bool DetermineReturnsByRef(CancellationToken cancellationToken)
+                => _invocationExpression.IsParentKind(SyntaxKind.RefExpression);
+
             protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
             {
                 // Defer to the type inferrer to figure out what the return type of this new method
                 // should be.
-                var typeInference = this.Document.Project.LanguageServices.GetService<ITypeInferenceService>();
+                var typeInference = this.Document.Document.GetLanguageService<ITypeInferenceService>();
                 var inferredType = typeInference.InferType(
                     this.Document.SemanticModel, _invocationExpression, objectAsDefault: true, 
                     nameOpt: this.State.IdentifierToken.ValueText, cancellationToken: cancellationToken);

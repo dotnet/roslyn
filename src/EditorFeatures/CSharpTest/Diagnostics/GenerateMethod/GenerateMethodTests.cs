@@ -7360,5 +7360,33 @@ class Class
     }
 }");
         }
+
+        [WorkItem(16398, "https://github.com/dotnet/roslyn/issues/16398")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestRefReturnType1()
+        {
+            await TestAsync(
+@"class Class
+{
+    void Method(int i)
+    {
+        ref int v = ref [|Issue|](i);
+    }
+}",
+@"using System;
+
+class Class
+{
+    void Method(int i)
+    {
+        ref int v = ref Issue(i);
+    }
+
+    private ref int Issue(int i)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
     }
 }
