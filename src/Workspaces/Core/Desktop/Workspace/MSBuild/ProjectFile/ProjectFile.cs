@@ -90,6 +90,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             hostServices.RegisterHostObject(_loadedProject.FullPath, "CoreCompile", taskName, taskHost);
 
             var buildParameters = new BuildParameters(_loadedProject.ProjectCollection);
+
+            // capture errors that are output in the build log
+            var errorBuilder = new StringWriter();
+            var errorLogger = new ErrorLogger(errorBuilder) { Verbosity = LoggerVerbosity.Normal };
+            buildParameters.Loggers = new ILogger[] { errorLogger };
+
             var buildRequestData = new BuildRequestData(executedProject, new string[] { "Compile" }, hostServices);
 
             BuildResult result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
@@ -102,18 +108,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
                 else
                 {
-                    // try again with logging to pick up any logged errors from msbuild
-
-                    executedProject = _loadedProject.CreateProjectInstance();
-                    buildParameters = new BuildParameters(_loadedProject.ProjectCollection);
-
-                    var errorBuilder = new StringWriter();
-                    var errorLogger = new ErrorLogger(e => errorBuilder.WriteLine(e)) { Verbosity = LoggerVerbosity.Normal };
-                    buildParameters.Loggers = new ILogger[] { errorLogger };
-
-                    buildRequestData = new BuildRequestData(executedProject, new string[] { "Compile" }, hostServices);
-
-                    result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
                     return new BuildInfo(executedProject, errorBuilder.ToString());
                 }
             }
@@ -125,15 +119,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private class ErrorLogger : ILogger
         {
-            private readonly Action<string> _errorCallback;
+            private readonly TextWriter _writer;
+            private bool _hasError;
             private IEventSource _eventSource;
 
             public string Parameters { get; set; }
             public LoggerVerbosity Verbosity { get; set; }
 
-            public ErrorLogger(Action<string> errorCallback)
+            public ErrorLogger(TextWriter writer)
             {
-                _errorCallback = errorCallback;
+                _writer = writer;
             }
 
             public void Initialize(IEventSource eventSource)
@@ -144,7 +139,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             private void OnErrorRaised(object sender, BuildErrorEventArgs e)
             {
-                _errorCallback($"{e.File}: ({e.LineNumber}, {e.ColumnNumber}): {e.Message}");
+                if (_hasError)
+                {
+                    _writer.WriteLine();
+                }
+
+                _writer.Write($"{e.File}: ({e.LineNumber}, {e.ColumnNumber}): {e.Message}");
+                _hasError = true;
             }
 
             public void Shutdown()
