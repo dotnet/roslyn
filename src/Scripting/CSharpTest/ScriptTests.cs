@@ -32,10 +32,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         }
 
         [Fact]
+        public void TestCreateScript_CodeIsNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => CSharpScript.Create((string)null));
+        }
+
+        [Fact]
         public void TestCreateFromStreamScript()
         {
             var script = CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("1 + 2")));
             Assert.Equal("1 + 2", script.Code);
+        }
+
+        [Fact]
+        public void TestCreateFromStreamScript_StreamIsNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => CSharpScript.Create((Stream)null));
         }
 
         [Fact]
