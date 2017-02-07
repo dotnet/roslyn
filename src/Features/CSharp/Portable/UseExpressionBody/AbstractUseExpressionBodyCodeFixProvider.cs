@@ -90,11 +90,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
             if (preferExpressionBody)
             {
+                var semicolonToken = GetFirstStatementSemicolon(GetBody(declaration));
+                var trailingTrivia = semicolonToken.TrailingTrivia
+                                                   .Where(t => t.Kind() != SyntaxKind.EndOfLineTrivia)
+                                                   .Concat(declaration.GetTrailingTrivia());
+                semicolonToken = semicolonToken.WithTrailingTrivia(trailingTrivia);
+
                 return WithSemicolonToken(
                            WithExpressionBody(
                                WithBody(declaration, null),
                                GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options)),
-                           GetFirstStatementSemicolon(GetBody(declaration)));
+                           semicolonToken);
             }
             else
             {
