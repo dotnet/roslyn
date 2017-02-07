@@ -7361,6 +7361,7 @@ class Class
 }");
         }
 
+        [WorkItem(16398, "https://github.com/dotnet/roslyn/issues/16398")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestReturnsByRef()
         {

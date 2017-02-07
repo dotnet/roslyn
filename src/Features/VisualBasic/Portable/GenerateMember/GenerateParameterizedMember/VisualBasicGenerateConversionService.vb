@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
     <ExportLanguageService(GetType(IGenerateConversionService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicGenerateConversionService
@@ -138,19 +137,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 typeToGenerateIn = typeToGenerateIn.ConstructUnboundGenericType.ConstructedFrom
             End If
             Return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                            attributes:=SpecializedCollections.EmptyList(Of AttributeData),
-                            accessibility:=Nothing,
-                            modifiers:=Nothing,
-                            returnType:=typeToGenerateIn,
-                            returnsByRef:=False,
-                            explicitInterfaceSymbol:=Nothing,
-                            name:=Nothing,
-                            typeParameters:=SpecializedCollections.EmptyList(Of ITypeParameterSymbol),
-                            parameters:={CodeGenerationSymbolFactory.CreateParameterSymbol(parameterSymbol, "v")},
-                            statements:=Nothing,
-                            handlesExpressions:=Nothing,
-                            returnTypeAttributes:=Nothing,
-                            methodKind:=MethodKind.Conversion)
+                attributes:=SpecializedCollections.EmptyList(Of AttributeData),
+                accessibility:=Nothing,
+                modifiers:=Nothing,
+                returnType:=typeToGenerateIn,
+                returnsByRef:=False,
+                explicitInterfaceSymbol:=Nothing,
+                name:=Nothing,
+                typeParameters:=SpecializedCollections.EmptyList(Of ITypeParameterSymbol),
+                parameters:={CodeGenerationSymbolFactory.CreateParameterSymbol(parameterSymbol, "v")},
+                statements:=Nothing,
+                handlesExpressions:=Nothing,
+                returnTypeAttributes:=Nothing,
+                methodKind:=MethodKind.Conversion)
         End Function
 
         Protected Overrides Function GetExplicitConversionDisplayText(state As AbstractGenerateParameterizedMemberService(Of VisualBasicGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax).State) As String
@@ -162,6 +161,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
         End Function
     End Class
 End Namespace
-
-
-

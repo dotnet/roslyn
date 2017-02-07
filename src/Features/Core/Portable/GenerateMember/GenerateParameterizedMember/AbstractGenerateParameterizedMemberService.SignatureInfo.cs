@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             }
 
             protected abstract ImmutableArray<ITypeParameterSymbol> DetermineTypeParametersWorker(CancellationToken cancellationToken);
-            protected abstract bool DetermineReturnsByRef();
+            protected abstract bool DetermineReturnsByRef(CancellationToken cancellationToken);
 
             public ITypeSymbol DetermineReturnType(CancellationToken cancellationToken)
             {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     accessibility: accessibility,
                     modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract),
                     type: DetermineReturnType(cancellationToken),
-                    returnsByRef: DetermineReturnsByRef(),
+                    returnsByRef: DetermineReturnsByRef(cancellationToken),
                     explicitInterfaceSymbol: null,
                     name: this.State.IdentifierToken.ValueText,
                     parameters: DetermineParameters(cancellationToken),
@@ -100,12 +100,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     isUnsafe = returnType.IsUnsafe() || parameters.Any(p => p.Type.IsUnsafe());
                 }
 
+                var returnsByRef = DetermineReturnsByRef(cancellationToken);
+
                 var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     attributes: null,
                     accessibility: DetermineAccessibility(isAbstract),
                     modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract, isUnsafe: isUnsafe),
                     returnType: returnType,
-                    returnsByRef: DetermineReturnsByRef(),
+                    returnsByRef: returnsByRef,
                     explicitInterfaceSymbol: null,
                     name: this.State.IdentifierToken.ValueText,
                     typeParameters: DetermineTypeParameters(cancellationToken),

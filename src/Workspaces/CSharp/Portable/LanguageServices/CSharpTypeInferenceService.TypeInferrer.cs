@@ -87,7 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> GetTypesSimple(ExpressionSyntax expression)
             {
-                if (expression != null)
+                if (expression is RefTypeSyntax refType)
+                {
+                    return GetTypes(refType.Type);
+                }
+                else if (expression != null)
                 {
                     var typeInfo = SemanticModel.GetTypeInfo(expression, CancellationToken);
                     var symbolInfo = SemanticModel.GetSymbolInfo(expression, CancellationToken);
@@ -1804,9 +1808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInRefExpression(RefExpressionSyntax refExpression)
-            {
-                return InferTypes(refExpression);
-            }
+                => InferTypes(refExpression);
 
             private IEnumerable<TypeInferenceInfo> InferTypeForReturnStatement(ReturnStatementSyntax returnStatement, SyntaxToken? previousToken = null)
             {
