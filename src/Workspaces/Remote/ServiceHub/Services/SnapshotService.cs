@@ -20,9 +20,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private AssetSource _source;
 
         public SnapshotService(Stream stream, IServiceProvider serviceProvider) :
-            base(stream, serviceProvider)
+            base(serviceProvider, stream)
         {
             _gate = new object();
+
+            Rpc.StartListening();
         }
 
         public override void Initialize(int sessionId, byte[] solutionChecksum)
