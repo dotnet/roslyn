@@ -2,7 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertNumericLiteral
+Imports Microsoft.CodeAnalysis.VisualBasic.ConvertNumericLiteral
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.ConvertNumericLiteral
     Public Class ConvertNumericLiteralTests

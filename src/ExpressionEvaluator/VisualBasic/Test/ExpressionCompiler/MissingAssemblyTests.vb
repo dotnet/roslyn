@@ -358,7 +358,9 @@ End Class
 
                     Dim aliases = ImmutableArray.Create(ExceptionAlias("Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version = 4.0.0.0, Culture = neutral, PublicKeyToken = b03f5f7f11d50a3a", stowed:=True))
 
-                    Const expectedError = "error BC30002: Type 'System.Void' is not defined."
+                    Const expectedError = "error BC30652: Reference required to assembly " &
+                                          "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' " &
+                                          "containing the type 'Exception'. Add one to your project."
                     Dim expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity
 
                     Dim resultProperties As ResultProperties = Nothing

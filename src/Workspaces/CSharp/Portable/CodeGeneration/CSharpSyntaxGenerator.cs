@@ -733,18 +733,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             .WithModifiers(default(SyntaxTokenList))
                             .WithAccessorList(WithoutBodies(indexer.AccessorList));
 
+                    // convert event into field event
                     case SyntaxKind.EventDeclaration:
                         var ev = (EventDeclarationSyntax)member;
-                        return ev
-                            .WithModifiers(default(SyntaxTokenList))
-                            .WithAccessorList(WithoutBodies(ev.AccessorList));
+                        return this.EventDeclaration(
+                            ev.Identifier.ValueText,
+                            ev.Type,
+                            Accessibility.NotApplicable,
+                            DeclarationModifiers.None);
 
-                    // convert event field into event
                     case SyntaxKind.EventFieldDeclaration:
                         var ef = (EventFieldDeclarationSyntax)member;
-                        this.GetAccessibilityAndModifiers(ef.Modifiers, out acc, out modifiers);
-                        var ep = this.CustomEventDeclaration(this.GetName(ef), this.ClearTrivia(this.GetType(ef)), acc, modifiers, parameters: null, addAccessorStatements: null, removeAccessorStatements: null);
-                        return this.AsInterfaceMember(ep);
+                        return ef.WithModifiers(default(SyntaxTokenList));
 
                     // convert field into property
                     case SyntaxKind.FieldDeclaration:
@@ -4038,6 +4038,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode SwitchSection(IEnumerable<SyntaxNode> expressions, IEnumerable<SyntaxNode> statements)
         {
             return SyntaxFactory.SwitchSection(AsSwitchLabels(expressions), AsStatementList(statements));
+        }
+
+        internal override SyntaxNode SwitchSectionFromLabels(IEnumerable<SyntaxNode> labels, IEnumerable<SyntaxNode> statements)
+        {
+            return SyntaxFactory.SwitchSection(
+                labels.Cast<SwitchLabelSyntax>().ToSyntaxList(), 
+                AsStatementList(statements));
         }
 
         public override SyntaxNode DefaultSwitchSection(IEnumerable<SyntaxNode> statements)

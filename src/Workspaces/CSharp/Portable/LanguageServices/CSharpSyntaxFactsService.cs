@@ -1808,6 +1808,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
             => ((PrefixUnaryExpressionSyntax)node).Operand;
 
+        public SyntaxNode GetNextExecutableStatement(SyntaxNode statement)
+            => ((StatementSyntax)statement).GetNextStatement();
+
         public bool IsWhitespaceTrivia(SyntaxTrivia trivia)
             => trivia.IsWhitespace();
 

@@ -4083,7 +4083,7 @@ tryAgain:
             }
         }
 
-        private MemberDeclarationSyntax ParseEventDeclarationWithAccessors(
+        private EventDeclarationSyntax ParseEventDeclarationWithAccessors(
             SyntaxListBuilder<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             SyntaxToken eventToken,
@@ -4206,7 +4206,7 @@ tryAgain:
             }
         }
 
-        private MemberDeclarationSyntax ParseEventFieldDeclaration(
+        private EventFieldDeclarationSyntax ParseEventFieldDeclaration(
             SyntaxListBuilder<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             SyntaxToken eventToken,

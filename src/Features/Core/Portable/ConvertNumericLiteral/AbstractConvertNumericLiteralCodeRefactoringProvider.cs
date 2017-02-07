@@ -9,8 +9,9 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertNumericLiteral
+namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 {
     internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider : CodeRefactoringProvider
     {

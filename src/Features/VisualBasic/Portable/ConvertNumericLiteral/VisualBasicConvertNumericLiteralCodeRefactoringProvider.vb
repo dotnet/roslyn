@@ -2,9 +2,9 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeRefactorings.ConvertNumericLiteral
+Imports Microsoft.CodeAnalysis.ConvertNumericLiteral
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertNumericLiteral
+Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertNumericLiteral
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertNumericLiteralCodeRefactoringProvider)), [Shared]>
     Friend NotInheritable Class VisualBasicConvertNumericLiteralCodeRefactoringProvider
         Inherits AbstractConvertNumericLiteralCodeRefactoringProvider
