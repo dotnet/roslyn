@@ -1235,6 +1235,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Make_Async_Sub" xml:space="preserve">
     <value>Make Async Sub</value>
   </data>
+  <data name="Multiple_Types" xml:space="preserve">
+    <value>&lt;Multiple Types&gt;</value>
+  </data>
   <data name="Add_Me" xml:space="preserve">
     <value>Add 'Me.'</value>
   </data>

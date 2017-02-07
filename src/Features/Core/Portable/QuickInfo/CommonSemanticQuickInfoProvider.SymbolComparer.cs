@@ -1,11 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
+namespace Microsoft.CodeAnalysis.QuickInfo
 {
-    internal abstract partial class AbstractSemanticQuickInfoProvider
+    internal abstract partial class CommonSemanticQuickInfoProvider
     {
         private class SymbolComparer : IEqualityComparer<ISymbol>
         {

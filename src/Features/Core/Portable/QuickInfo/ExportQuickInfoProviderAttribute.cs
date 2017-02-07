@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.ComponentModel.Composition;
+using System.Composition;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.QuickInfo
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportQuickInfoProviderAttribute : ExportAttribute
+    internal sealed class ExportQuickInfoProviderAttribute : ExportAttribute
     {
         public string Name { get; }
         public string Language { get; }
 
         public ExportQuickInfoProviderAttribute(string name, string language)
-            : base(typeof(IQuickInfoProvider))
+            : base(typeof(QuickInfoProvider))
         {
             this.Name = name ?? throw new ArgumentNullException(nameof(name));
             this.Language = language ?? throw new ArgumentNullException(nameof(language));

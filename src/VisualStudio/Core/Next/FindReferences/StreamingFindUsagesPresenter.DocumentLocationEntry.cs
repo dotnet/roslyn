@@ -2,13 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
@@ -177,16 +178,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     PredefinedTextViewRoles.Document,
                     PredefinedTextViewRoles.Editable);
 
-                var content = new ElisionBufferDeferredContent(
-                    snapshotSpan,
+                return ElisionBufferContent.Create(
+                    ImmutableArray.Create(snapshotSpan),
                     Presenter._projectionBufferFactoryService,
                     Presenter._editorOptionsFactoryService,
                     Presenter._textEditorFactoryService,
                     contentType,
                     roleSet);
-
-                var element = content.Create();
-                return element;
             }
 
             private ITextBuffer CreateNewBuffer()

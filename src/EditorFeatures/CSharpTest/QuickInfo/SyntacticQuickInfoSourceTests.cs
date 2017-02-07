@@ -4,16 +4,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.CSharp.QuickInfo;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.QuickInfo;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
@@ -262,14 +262,9 @@ if (true)
 {");
         }
 
-        private IQuickInfoProvider CreateProvider(TestWorkspace workspace)
+        private QuickInfoProvider CreateProvider(TestWorkspace workspace)
         {
-            return new SyntacticQuickInfoProvider(
-                workspace.GetService<IProjectionBufferFactoryService>(),
-                workspace.GetService<IEditorOptionsFactoryService>(),
-                workspace.GetService<ITextEditorFactoryService>(),
-                workspace.GetService<IGlyphService>(),
-                workspace.GetService<ClassificationTypeMap>());
+            return new CSharpSyntacticQuickInfoProvider();
         }
 
         protected override async Task AssertNoContentAsync(
@@ -278,7 +273,7 @@ if (true)
             int position)
         {
             var provider = CreateProvider(workspace);
-            Assert.Null(await provider.GetItemAsync(document, position, CancellationToken.None));
+            Assert.Null(await provider.GetQuickInfoAsync(document, position, CancellationToken.None));
         }
 
         protected override async Task AssertContentIsAsync(
@@ -289,19 +284,15 @@ if (true)
             string expectedDocumentationComment = null)
         {
             var provider = CreateProvider(workspace);
-            var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
-            Assert.NotNull(state);
+            var info = await provider.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
+            Assert.NotNull(info);
 
-            var viewHostingControl = (ViewHostingControl)((ElisionBufferDeferredContent)state.Content).Create();
-            try
-            {
-                var actualContent = viewHostingControl.ToString();
-                Assert.Equal(expectedContent, actualContent);
-            }
-            finally
-            {
-                viewHostingControl.TextView_TestOnly.Close();
-            }
+            Assert.NotEqual(0, info.RelatedSpans.Length);
+            var tabSize = document.Project.Solution.Workspace.Options.GetOption(Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize, document.Project.Language);
+            var text = await document.GetTextAsync();
+            var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, info.RelatedSpans, tabSize);
+            var actualText = string.Concat(spans.Select(s => text.GetSubText(s).ToString()));
+            Assert.Equal(expectedContent, actualText);
         }
 
         protected override Task TestInMethodAsync(string code, string expectedContent, string expectedDocumentationComment = null)

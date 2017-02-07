@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -11,20 +12,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
     {
         public ITextVersion TextVersion { get; }
         public QuickInfoItem Item { get; }
-        public IQuickInfoProvider Provider { get; }
         public bool TrackMouse { get; }
 
         public Model(
             ITextVersion textVersion,
             QuickInfoItem item,
-            IQuickInfoProvider provider,
             bool trackMouse)
         {
             Contract.ThrowIfNull(item);
 
             this.TextVersion = textVersion;
             this.Item = item;
-            this.Provider = provider;
             this.TrackMouse = trackMouse;
         }
 
