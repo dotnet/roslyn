@@ -1632,5 +1632,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsEndOfLineTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsEndOfLineTrivia
             Return trivia.IsEndOfLine()
         End Function
+
+        Public Function IsRegularComment(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsRegularComment
+            Return trivia.Kind = SyntaxKind.CommentTrivia
+        End Function
+
+        Public Function IsDocumentationComment(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsDocumentationComment
+            Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
+        End Function
     End Class
 End Namespace

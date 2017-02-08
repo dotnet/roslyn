@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return;
             }
 
-            if (document.IsGeneratedCode())
+            if (document.IsGeneratedCode(cancellationToken))
             {
                 return;
             }
