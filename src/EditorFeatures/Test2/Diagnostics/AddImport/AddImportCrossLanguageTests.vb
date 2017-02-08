@@ -457,7 +457,6 @@ class C
                         </Document>
                     </Project>
                     <Project Language='C#' AssemblyName='CSAssembly2' CommonReferences='true'>
-                        <CompilationOptions></CompilationOptions>
                         <Document FilePath="Test2.cs">
 namespace A
 {
@@ -468,7 +467,8 @@ namespace A
                     </Project>
                 </Workspace>
 
-            Await TestMissing(input)
+            Await TestAsync(input, addedReference:="CSAssembly2",
+                            onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -510,12 +510,14 @@ namespace CSAssembly2
                             Optional addedReference As String = Nothing,
                             Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing) As Task
             Dim verifySolutions As Action(Of Solution, Solution) = Nothing
+            Dim workspace As TestWorkspace = Nothing
+
             If addedReference IsNot Nothing Then
                 verifySolutions =
                     Sub(oldSolution As Solution, newSolution As Solution)
-                        Dim changedDoc = SolutionUtilities.GetSingleChangedDocument(oldSolution, newSolution)
-                        Dim oldProject = oldSolution.GetDocument(changedDoc.Id).Project
-                        Dim newProject = newSolution.GetDocument(changedDoc.Id).Project
+                        Dim initialDocId = workspace.DocumentWithCursor.Id
+                        Dim oldProject = oldSolution.GetDocument(initialDocId).Project
+                        Dim newProject = newSolution.GetDocument(initialDocId).Project
 
                         Dim oldProjectReferences = From r In oldProject.ProjectReferences
                                                    Let p = oldSolution.GetProject(r.ProjectId)
@@ -530,7 +532,12 @@ namespace CSAssembly2
                     End Sub
             End If
 
-            Await TestAsync(definition, expected, codeActionIndex, verifySolutions:=verifySolutions, onAfterWorkspaceCreated:=onAfterWorkspaceCreated)
+            Await TestAsync(definition, expected, codeActionIndex,
+                            verifySolutions:=verifySolutions,
+                            onAfterWorkspaceCreated:=Sub(ws As TestWorkspace)
+                                                         workspace = ws
+                                                         onAfterWorkspaceCreated?.Invoke(ws)
+                                                     End Sub)
         End Function
     End Class
 End Namespace
