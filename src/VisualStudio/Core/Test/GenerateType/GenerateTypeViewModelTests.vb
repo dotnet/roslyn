@@ -203,7 +203,6 @@ namespace A
             Dim projectToSelect = viewModel.ProjectList.Where(Function(p) p.Name = "VB1").Single().Project
 
             Dim monitor = New PropertyChangedTestMonitor(viewModel)
-            monitor.AddExpectation(Function() viewModel.GetDocumentList(CancellationToken.None))
 
             ' Check to see if the values are reset when there is a change in the project selection
             viewModel.SelectedProject = projectToSelect
