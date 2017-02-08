@@ -49,6 +49,8 @@ public class C
             var badStream = new BrokenStream();
             badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
 
+            var message = new System.IO.IOException().Message;
+
             DocumentationCommentCompiler.WriteDocumentationCommentXml(
                 comp,
                 null,
@@ -58,7 +60,7 @@ public class C
 
             diags.Verify(
                 // error CS1569: Error writing to XML documentation file: I/O error occurred.
-                Diagnostic(ErrorCode.ERR_DocFileGen).WithArguments("I/O error occurred.").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_DocFileGen).WithArguments(message).WithLocation(1, 1));
         }
 
         [ClrOnlyFact]
