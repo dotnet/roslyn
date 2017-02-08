@@ -27,12 +27,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         Private Async Function TestStreamingFeature(element As XElement, searchSingleFileOnly As Boolean, uiVisibleOnly As Boolean) As Task
-            ' We don't support testing features htat only expect partial results.
+            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
+            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=True)
+        End Function
+
+        Private Async Function TestStreamingFeature(element As XElement,
+                                                    searchSingleFileOnly As Boolean,
+                                                    uiVisibleOnly As Boolean,
+                                                    outOfProcess As Boolean) As Task
+            ' We don't support testing features that only expect partial results.
             If searchSingleFileOnly OrElse uiVisibleOnly Then
                 Return
             End If
 
             Using workspace = Await TestWorkspace.CreateAsync(element)
+                workspace.Options = workspace.Options.WithChangedOption(
+                    SymbolFinderOptions.OutOfProcessAllowed, outOfProcess)
+
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
                     Dim cursorPosition = cursorDocument.CursorPosition.Value
 
@@ -143,7 +154,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Class
 
         Private Async Function TestAPI(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
+        End Function
+
+        Private Async Function TestAPI(definition As XElement,
+                                       searchSingleFileOnly As Boolean,
+                                       uiVisibleOnly As Boolean,
+                                       outOfProcess As Boolean) As Task
             Using workspace = Await TestWorkspace.CreateAsync(definition)
+                workspace.Options = workspace.Options.WithChangedOption(
+                    SymbolFinderOptions.OutOfProcessAllowed, outOfProcess)
+
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
