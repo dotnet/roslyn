@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
-            var option = (await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false)).GetOption(_option);
-            var title = option.Value
+            var documentOptionSet = await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
+            var title = documentOptionSet.GetOption(_option).Value
                 ? _useExpressionBodyTitle
                 : _useBlockBodyTitle;
 
