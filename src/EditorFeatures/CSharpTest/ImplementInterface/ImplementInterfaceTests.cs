@@ -6817,5 +6817,43 @@ class Class : IComInterface
     public int Prop => throw new NotImplementedException();
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestRefReturns()
+        {
+            await TestAsync(
+@"
+using System;
+
+interface I {
+    ref int IFoo();
+    ref int Foo { get; }
+    ref int this[int i] { get; }
+}
+
+class C : [|I|]
+{
+}",
+@"
+using System;
+
+interface I {
+    ref int IFoo();
+    ref int Foo { get; }
+    ref int this[int i] { get; }
+}
+
+class C : I
+{
+    public ref int this[int i] => throw new NotImplementedException();
+
+    public ref int Foo => throw new NotImplementedException();
+
+    public ref int IFoo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
     }
 }
