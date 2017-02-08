@@ -680,10 +680,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
             // Just default to using the first alias we see for this symbol.
             externAliasString = aliases.First();
-            return (externAliasString, HasAddExternAlias(externAliasString, contextNode));
+            return (externAliasString, HasExistingExternAlias(externAliasString, contextNode));
         }
 
-        private static bool HasAddExternAlias(string alias, SyntaxNode contextNode)
+        private static bool HasExistingExternAlias(string alias, SyntaxNode contextNode)
         {
             foreach (var externAlias in contextNode.GetEnclosingExternAliasDirectives())
             {
