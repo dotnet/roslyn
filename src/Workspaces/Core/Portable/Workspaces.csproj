@@ -384,6 +384,7 @@
     <Compile Include="Execution\SolutionAsset.cs" />
     <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
     <Compile Include="Experiments\IExperimentationService.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.LiteralInfo.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigSeverityStrings.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingRule.cs" />

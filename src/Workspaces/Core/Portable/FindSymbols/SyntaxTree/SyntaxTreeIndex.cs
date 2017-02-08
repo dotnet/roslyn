@@ -13,17 +13,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private readonly VersionStamp _version;
 
+        private readonly LiteralInfo _literalInfo;
         private readonly IdentifierInfo _identifierInfo;
         private readonly ContextInfo _contextInfo;
         private readonly DeclarationInfo _declarationInfo;
 
         private SyntaxTreeIndex(
             VersionStamp version,
+            LiteralInfo literalInfo,
             IdentifierInfo identifierInfo,
             ContextInfo contextInfo,
             DeclarationInfo declarationInfo)
         {
             Version = version;
+            _literalInfo = literalInfo;
             _identifierInfo = identifierInfo;
             _contextInfo = contextInfo;
             _declarationInfo = declarationInfo;
