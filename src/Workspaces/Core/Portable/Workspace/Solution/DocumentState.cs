@@ -73,7 +73,10 @@ namespace Microsoft.CodeAnalysis
                 language,
                 services);
 
-            // remove any initial loader so we don't keep source alive
+            // ownership of TextLoader information has moved to document state. clear out textloader the info is
+            // holding on. otherwise, these information will be held onto unnecesarily by documentInfo even after
+            // the info has changed by DocumentState.
+            // we hold onto the info so that we don't need to duplicate all information info already has in the state
             info = info.WithTextLoader(null);
 
             return new DocumentState(

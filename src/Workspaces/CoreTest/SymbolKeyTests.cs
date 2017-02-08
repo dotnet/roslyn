@@ -579,6 +579,47 @@ class C
             Assert.NotNull(SymbolKey.Create(xSymbol));
         }
 
+        [Fact, WorkItem(377839, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=377839")]
+        public void TestConstructedMethodInsideLocalFunctionWithTypeParameters()
+        {
+            var source = @"
+using System.Linq;
+
+class C
+{
+    void Method()
+    {
+        object LocalFunction<T>()
+        {
+            return Enumerable.Empty<T>();
+        }
+    }
+}";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            var symbols = GetAllSymbols(
+                compilation.GetSemanticModel(compilation.SyntaxTrees.Single()),
+                n => n is CSharp.Syntax.MemberAccessExpressionSyntax || n is CSharp.Syntax.InvocationExpressionSyntax);
+
+            var tested = false;
+            foreach (var symbol in symbols)
+            {
+                // Ensure we don't crash getting these symbol keys.
+                var id = SymbolKey.ToString(symbol);
+                Assert.NotNull(id);
+                var found = SymbolKey.Resolve(id, compilation).GetAnySymbol();
+                Assert.NotNull(found);
+
+                // note: we don't check that the symbols are equal.  That's because the compiler
+                // doesn't guarantee that the TypeParameters will be hte same across successive
+                // invocations. 
+                Assert.Equal(symbol.OriginalDefinition, found.OriginalDefinition);
+
+                tested = true;
+            }
+
+            Assert.True(tested);
+        }
+
         private void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
             foreach (var symbol in symbols)
@@ -608,46 +649,58 @@ class C
 
         private Compilation GetCompilation(string source, string language)
         {
+            var references = new[]
+            {
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location)
+            };
+
             if (language == LanguageNames.CSharp)
             {
                 var tree = CSharp.SyntaxFactory.ParseSyntaxTree(source);
-                return CSharp.CSharpCompilation.Create("Test", syntaxTrees: new[] { tree }, references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
+                return CSharp.CSharpCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
             }
             else if (language == LanguageNames.VisualBasic)
             {
                 var tree = VisualBasic.SyntaxFactory.ParseSyntaxTree(source);
-                return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: new[] { tree }, references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
+                return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
             }
 
             throw new NotSupportedException();
         }
 
-        private List<ISymbol> GetAllSymbols(SemanticModel model)
+        private List<ISymbol> GetAllSymbols(
+            SemanticModel model, Func<SyntaxNode, bool> predicate = null)
         {
             var list = new List<ISymbol>();
-            GetAllSymbols(model, model.SyntaxTree.GetRoot(), list);
+            GetAllSymbols(model, model.SyntaxTree.GetRoot(), list, predicate);
             return list;
         }
 
-        private void GetAllSymbols(SemanticModel model, SyntaxNode node, List<ISymbol> list)
+        private void GetAllSymbols(
+            SemanticModel model, SyntaxNode node,
+            List<ISymbol> list, Func<SyntaxNode, bool> predicate)
         {
-            var symbol = model.GetDeclaredSymbol(node);
-            if (symbol != null)
+            if (predicate == null || predicate(node))
             {
-                list.Add(symbol);
-            }
+                var symbol = model.GetDeclaredSymbol(node);
+                if (symbol != null)
+                {
+                    list.Add(symbol);
+                }
 
-            symbol = model.GetSymbolInfo(node).GetAnySymbol();
-            if (symbol != null)
-            {
-                list.Add(symbol);
+                symbol = model.GetSymbolInfo(node).GetAnySymbol();
+                if (symbol != null)
+                {
+                    list.Add(symbol);
+                }
             }
 
             foreach (var child in node.ChildNodesAndTokens())
             {
                 if (child.IsNode)
                 {
-                    GetAllSymbols(model, child.AsNode(), list);
+                    GetAllSymbols(model, child.AsNode(), list, predicate);
                 }
             }
         }

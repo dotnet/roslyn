@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Runtime;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
@@ -61,6 +62,16 @@ namespace Microsoft.CodeAnalysis.Host
             public string Name => _name;
             public long Size => _size;
 
+            private void ForceCompactingGC()
+            {
+                // repeated GC.Collect / WaitForPendingFinalizers till memory freed delta is super small, ignore the return value
+                GC.GetTotalMemory(forceFullCollection:true);
+
+                // compact the LOH
+                GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+                GC.Collect();
+            }
+
             /// <summary>
             /// Caller is responsible for disposing the returned stream.
             /// multiple call of this will not increase VM.
@@ -72,7 +83,18 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     if (_streamCount == 0)
                     {
-                        _accessor = _memoryMappedFile.CreateViewAccessor(0, _size, MemoryMappedFileAccess.Read);
+                        try
+                        {
+                            _accessor = _memoryMappedFile.CreateViewAccessor(0, _size, MemoryMappedFileAccess.Read);
+                        }
+                        catch (IOException)
+                        {
+                            // CreateViewAccessor will use a native memory map - which can't trigger a GC.
+                            // In this case, we'd otherwise crash with OOM, so we don't care about creating a UI delay with a full forced compacting GC.
+                            // If it crashes the second try, it means we're legitimately out of resources.
+                            this.ForceCompactingGC();
+                            _accessor = _memoryMappedFile.CreateViewAccessor(0, _size, MemoryMappedFileAccess.Read);
+                        }
                     }
 
                     _streamCount++;

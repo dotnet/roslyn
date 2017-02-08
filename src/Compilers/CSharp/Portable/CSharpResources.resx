@@ -1179,6 +1179,9 @@
   <data name="ERR_BadRetType" xml:space="preserve">
     <value>'{1} {0}' has the wrong return type</value>
   </data>
+  <data name="ERR_DelegateRefMismatch" xml:space="preserve">
+    <value>Ref mismatch between '{0}' and delegate '{1}'</value>
+  </data>
   <data name="ERR_DuplicateConstraintClause" xml:space="preserve">
     <value>A constraint clause has already been specified for type parameter '{0}'. All of the constraints for a type parameter must be specified in a single where clause.</value>
   </data>
@@ -4998,5 +5001,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadAssemblyName" xml:space="preserve">
     <value>Invalid assembly name: {0}</value>
+  </data>
+  <data name="ERR_BadAsyncMethodBuilderTaskProperty" xml:space="preserve">
+    <value>For type '{0}' to be used as an AsyncMethodBuilder for type '{1}', its Task property should return type '{1}' instead of type '{2}'.</value>
+  </data>
+  <data name="ERR_AttributesInLocalFuncDecl" xml:space="preserve">
+    <value>Attributes are not allowed on local function parameters or type parameters</value>
+  </data>
+  <data name="ERR_TypeForwardedToMultipleAssemblies" xml:space="preserve">
+    <value>Module '{0}' in assembly '{1}' is forwarding the type '{2}' to multiple assemblies: '{3}' and '{4}'.</value>
   </data>
 </root>

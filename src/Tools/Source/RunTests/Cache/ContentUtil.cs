@@ -51,6 +51,7 @@ namespace RunTests.Cache
             builder.AppendLine($"\t{nameof(_options.Trait)} - {_options.Trait}");
             builder.AppendLine($"\t{nameof(_options.NoTrait)} - {_options.NoTrait}");
             builder.AppendLine($"Extra Options: {assemblyInfo.ExtraArguments}");
+            AppendExtra(builder, assemblyPath);
 
             return builder.ToString();
         }
@@ -85,7 +86,7 @@ namespace RunTests.Cache
                     var currentHash = GetFileChecksum(currentPath);
                     references.Add(Tuple.Create(current.Name, currentHash));
                 }
-                else if (assemblyUtil.IsKnownLightUpAssembly(current))
+                else if (assemblyUtil.IsKnownMissingAssembly(current))
                 {
                     references.Add(Tuple.Create(current.Name, "<missing light up reference>"));
                 }
@@ -111,6 +112,25 @@ namespace RunTests.Cache
                     errorBuilder.AppendLine($"\t{item}");
                 }
                 throw new Exception(errorBuilder.ToString());
+            }
+        }
+
+        private void AppendExtra(StringBuilder builder, string assemblyPath)
+        {
+            builder.AppendLine("Extra Files:");
+            var all = new[]
+            {
+                "*.targets",
+                "*.props"
+            };
+
+            var binariesPath = Path.GetDirectoryName(assemblyPath);
+            foreach (var ext in all)
+            {
+                foreach (var file in Directory.EnumerateFiles(binariesPath, ext))
+                {
+                    builder.AppendLine($"\t{Path.GetFileName(file)} - {GetFileChecksum(file)}");
+                }
             }
         }
 

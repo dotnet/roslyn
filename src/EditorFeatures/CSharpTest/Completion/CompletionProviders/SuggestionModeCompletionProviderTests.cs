@@ -793,7 +793,7 @@ class C {
         {
             var triggerInfos = new List<CompletionTrigger>();
             triggerInfos.Add(CompletionTrigger.CreateInsertionTrigger('a'));
-            triggerInfos.Add(CompletionTrigger.Default);
+            triggerInfos.Add(CompletionTrigger.Invoke);
             triggerInfos.Add(CompletionTrigger.CreateDeletionTrigger('z'));
 
             var service = GetCompletionService(document.Project.Solution.Workspace);

@@ -736,6 +736,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to binary.
+        /// </summary>
+        internal static string Convert_to_binary {
+            get {
+                return ResourceManager.GetString("Convert_to_binary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to decimal.
+        /// </summary>
+        internal static string Convert_to_decimal {
+            get {
+                return ResourceManager.GetString("Convert_to_decimal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to hex.
+        /// </summary>
+        internal static string Convert_to_hex {
+            get {
+                return ResourceManager.GetString("Convert_to_hex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert to interpolated string.
         /// </summary>
         internal static string Convert_to_interpolated_string {
@@ -2239,6 +2266,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove separators.
+        /// </summary>
+        internal static string Remove_separators {
+            get {
+                return ResourceManager.GetString("Remove_separators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove Suppression.
         /// </summary>
         internal static string Remove_Suppression {
@@ -2427,6 +2463,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string Searched_in_directory_colon {
             get {
                 return ResourceManager.GetString("Searched_in_directory_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Separate nibbles.
+        /// </summary>
+        internal static string Separate_nibbles {
+            get {
+                return ResourceManager.GetString("Separate_nibbles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Separate thousands.
+        /// </summary>
+        internal static string Separate_thousands {
+            get {
+                return ResourceManager.GetString("Separate_thousands", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Separate words.
+        /// </summary>
+        internal static string Separate_words {
+            get {
+                return ResourceManager.GetString("Separate_words", resourceCulture);
             }
         }
         

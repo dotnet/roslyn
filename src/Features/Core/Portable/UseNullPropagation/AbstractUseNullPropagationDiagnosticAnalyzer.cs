@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         {
         }
 
+        public override bool OpenFileOnly(Workspace workspace) => false;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+
         protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract bool IsEquals(TBinaryExpressionSyntax condition);

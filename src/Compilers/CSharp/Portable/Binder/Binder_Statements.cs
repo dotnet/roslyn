@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            localSymbol.GrabDiagnostics(diagnostics);
+            localSymbol.GetDeclarationDiagnostics(diagnostics);
 
             Symbol.CheckForBlockAndExpressionBody(
                 node.Body, node.ExpressionBody, node, diagnostics);
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var typeSyntax = node.Declaration.Type;
+            var typeSyntax = node.Declaration.Type.SkipRef(out RefKind _);
             bool isConst = node.IsConst;
 
             bool isVar;

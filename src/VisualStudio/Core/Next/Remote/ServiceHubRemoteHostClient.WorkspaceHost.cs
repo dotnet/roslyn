@@ -31,10 +31,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _workspace = workspace;
                 _client = client;
                 _currentSolutionId = workspace.CurrentSolution.Id;
+            }
 
+            public Task InitializeAsync()
+            {
                 // Ensure that we populate the remote service with the initial state of
                 // the workspace's solution.
-                RegisterPrimarySolutionAsync().Wait();
+                return RegisterPrimarySolutionAsync();
             }
 
             public void OnAfterWorkingFolderChange()
@@ -65,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_UpdateSolutionIdStorageLocation,
                         solutionId.Id.ToByteArray(),
                         solutionId.DebugName,
-                        _workspace.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
+                        _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
                 }
             }
 

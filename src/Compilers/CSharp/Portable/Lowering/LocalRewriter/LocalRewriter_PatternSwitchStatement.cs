@@ -82,9 +82,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 // at this point the end of result is unreachable.
 
+                _declaredTemps.AddOptional(initialTemp);
+                _declaredTemps.AddRange(node.InnerLocals);
+
                 // output the sections of code
                 foreach (var section in node.SwitchSections)
                 {
+                    // Lifetime of these locals is expanded to the entire switch body.
+                    _declaredTemps.AddRange(section.Locals);
+
                     // Start with the part of the decision tree that is in scope of the section variables.
                     // Its endpoint is not reachable (it jumps back into the decision tree code).
                     var sectionSyntax = (SyntaxNode)section.Syntax;
@@ -98,14 +104,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Add the translated body of the switch section
                     sectionBuilder.AddRange(_localRewriter.VisitList(section.Statements));
+
                     sectionBuilder.Add(_factory.Goto(node.BreakLabel));
-                    result.Add(_factory.Block(section.Locals, sectionBuilder.ToImmutableAndFree()));
+
+                    ImmutableArray<BoundStatement> statements = sectionBuilder.ToImmutableAndFree();
+                    if (section.Locals.IsEmpty)
+                    {
+                        result.Add(_factory.StatementList(statements));
+                    }
+                    else
+                    {
+                        result.Add(new BoundScope(section.Syntax, section.Locals, statements));
+                    }
                     // at this point the end of result is unreachable.
                 }
 
                 result.Add(_factory.Label(node.BreakLabel));
-                _declaredTemps.AddOptional(initialTemp);
-                _declaredTemps.AddRange(node.InnerLocals);
+
                 BoundStatement translatedSwitch = _factory.Block(_declaredTemps.ToImmutableArray(), node.InnerLocalFunctions, result.ToImmutableAndFree());
 
                 // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
@@ -271,15 +286,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var defaultLabel = _factory.GenerateLabel("byTypeDefault");
 
                     // input is not a constant
-                    if (byType.Type.CanBeAssignedNull())
+                    if (byType.Type.CanContainNull())
                     {
                         // first test for null
                         var notNullLabel = _factory.GenerateLabel("notNull");
                         var inputExpression = byType.Expression;
-                        var nullValue = _factory.Null(byType.Type);
+                        var objectType = _factory.SpecialType(SpecialType.System_Object);
+                        var nullValue = _factory.Null(objectType);
                         BoundExpression notNull = byType.Type.IsNullableType()
                             ? _localRewriter.RewriteNullableNullEquality(_factory.Syntax, BinaryOperatorKind.NullableNullNotEqual, byType.Expression, nullValue, _factory.SpecialType(SpecialType.System_Boolean))
-                            : _factory.ObjectNotEqual(byType.Expression, nullValue);
+                            : _factory.ObjectNotEqual(nullValue, _factory.Convert(objectType, byType.Expression));
                         _loweredDecisionTree.Add(_factory.ConditionalGoto(notNull, notNullLabel, true));
                         LowerDecisionTree(byType.Expression, byType.WhenNull);
                         if (byType.WhenNull?.MatchIsComplete != true)

@@ -672,6 +672,18 @@
   </Node>
 
   <!--
+  This node is used to represent a visibility scope for locals, 
+  for which lifetime is extended beyond the visibility scope. 
+  At the moment, only locals declared within CasePatternSwitchLabelSyntax 
+  have their lifetime expanded to the entire switch body, whereas their 
+  visibility scope is the declaring switch section. The node is added into 
+  the tree during lowering phase.
+  -->
+  <Node Name="BoundScope" Base="BoundStatementList">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+  </Node>
+
+  <!--
   BoundStateMachineScope represents a scope within a translated iterator/async method.
   It is used to emit debugging information that allows the EE to map 
   fields to locals.

@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                         return string.Format(FeaturesResources.Rename_type_to_0, _state.DocumentName);
                     case OperationKind.RenameFile:
                         return string.Format(FeaturesResources.Rename_file_to_0, _fileName);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(_operationKind);
                 }
-
-                throw ExceptionUtilities.Unreachable;
             }
 
             public override string Title => _title;
@@ -65,9 +65,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                         return new RenameTypeEditor(_service, _state, _fileName, cancellationToken);
                     case OperationKind.RenameFile:
                         return new RenameFileEditor(_service, _state, _fileName, cancellationToken);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(_operationKind);
+                }
+            }
+
+            internal override bool PerformFinalApplicabilityCheck => true;
+
+            internal override bool IsApplicable(Workspace workspace)
+            {
+                switch (_operationKind)
+                {
+                    case OperationKind.RenameFile:
+                        return workspace.CanRenameFilesDuringCodeActions(_state.SemanticDocument.Document.Project);
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                return true;
             }
         }
     }

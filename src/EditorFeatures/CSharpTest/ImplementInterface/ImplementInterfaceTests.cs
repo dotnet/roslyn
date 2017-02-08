@@ -114,6 +114,63 @@ class Class : IInterface
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestMethodWithTuple()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    (int, int) Method((string, string) x);
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"using System;
+
+interface IInterface
+{
+    (int, int) Method((string, string) x);
+}
+
+class Class : IInterface
+{
+    public (int, int) Method((string, string) x)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(16793, "https://github.com/dotnet/roslyn/issues/16793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestMethodWithValueTupleArity1()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"
+using System;
+interface I
+{
+    ValueTuple<object> F();
+}
+class C : [|I|]
+{
+}",
+@"
+using System;
+interface I
+{
+    ValueTuple<object> F();
+}
+class C : I
+{
+    public ValueTuple<object> F()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExpressionBodiedMethod1()
         {
             await TestWithAllCodeStyleOptionsOnAsync(

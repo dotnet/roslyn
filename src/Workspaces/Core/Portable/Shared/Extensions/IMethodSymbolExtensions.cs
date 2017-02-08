@@ -85,7 +85,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)).ToList());
         }
 
-        public static IMethodSymbol RenameParameters(this IMethodSymbol method, IList<string> parameterNames)
+        public static IMethodSymbol RenameParameters(
+            this IMethodSymbol method, IList<string> parameterNames)
         {
             var parameterList = method.Parameters;
             if (parameterList.Select(p => p.Name).SequenceEqual(parameterNames))

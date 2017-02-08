@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
             else
             {
-                var projectIdsForHierarchy = workspace.ProjectTracker.ImmutableProjects
+                var projectIdsForHierarchy = (workspace.DeferredState?.ProjectTracker.ImmutableProjects ?? ImmutableArray<AbstractProject>.Empty)
                     .Where(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
                     .Where(p => p.Hierarchy == projectHierarchyOpt)
                     .Select(p => workspace.CurrentSolution.GetProject(p.Id).Id)

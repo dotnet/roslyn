@@ -108,6 +108,7 @@
     <Compile Include="Utilities\ConsoleShims.cs" />
     <Compile Include="Utilities\IListExtensions.cs" />
     <Compile Include="Utilities\ParameterValidationHelpers.cs" />
+    <Compile Include="Utilities\PdbHelpers.cs" />
     <Compile Include="Utilities\TaskExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

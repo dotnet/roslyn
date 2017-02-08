@@ -1101,5 +1101,280 @@ public delegate ref TR RefFunc<T1, T2, TR>(T1 t1, T2 t2);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(22, 43)
                 );
         }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void CannotUseYieldReturnInAReturnByRefFunction()
+        {
+            var code = @"
+class TestClass
+{
+    int x = 0;
+    ref int TestFunction()
+    {
+        yield return x;
+
+        ref int localFunction()
+        {
+            yield return x;
+        }
+
+        yield return localFunction();
+    }
+}";
+
+            CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (9,17): error CS8154: The body of 'localFunction()' cannot be an iterator block because 'localFunction()' returns by reference
+                //         ref int localFunction()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "localFunction").WithArguments("localFunction()").WithLocation(9, 17),
+                // (5,13): error CS8154: The body of 'TestClass.TestFunction()' cannot be an iterator block because 'TestClass.TestFunction()' returns by reference
+                //     ref int TestFunction()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "TestFunction").WithArguments("TestClass.TestFunction()").WithLocation(5, 13));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void CannotUseRefReturnInExpressionTree_ParenthesizedLambdaExpression()
+        {
+            var code = @"
+using System.Linq.Expressions;
+class TestClass
+{
+    int x = 0;
+
+    delegate ref int RefReturnIntDelegate(int y);
+
+    void TestFunction()
+    {
+        Expression<RefReturnIntDelegate> lambda = (y) => ref x;
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+                // (11,51): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
+                //         Expression<RefReturnIntDelegate> lambda = (y) => ref x;
+                Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "(y) => ref x").WithLocation(11, 51));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void CannotUseRefReturnInExpressionTree_SimpleLambdaExpression()
+        {
+            var code = @"
+using System.Linq.Expressions;
+class TestClass
+{
+    int x = 0;
+
+    delegate ref int RefReturnIntDelegate(int y);
+
+    void TestFunction()
+    {
+        Expression<RefReturnIntDelegate> lambda = y => ref x;
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+                // (11,51): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
+                //         Expression<RefReturnIntDelegate> lambda = y => ref x;
+                Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "y => ref x").WithLocation(11, 51));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void CannotCallExpressionThatReturnsByRefInExpressionTree()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+namespace TestRefReturns
+{
+    class TestClass
+    {
+        int x = 0;
+
+        ref int RefReturnFunction()
+        {
+            return ref x;
+        }
+
+        ref int RefReturnProperty
+        {
+            get { return ref x; }
+        }
+
+        ref int this[int y]
+        {
+            get { return ref x; }
+        }
+
+        int TakeRefFunction(ref int y)
+        {
+            return y;
+        }
+
+        void TestFunction()
+        {
+            Expression<Func<int>> lambda1 = () => TakeRefFunction(ref RefReturnFunction());
+            Expression<Func<int>> lambda2 = () => TakeRefFunction(ref RefReturnProperty);
+            Expression<Func<int>> lambda3 = () => TakeRefFunction(ref this[0]);
+        }
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+                // (32,71): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //             Expression<Func<int>> lambda1 = () => TakeRefFunction(ref RefReturnFunction());
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "RefReturnFunction()").WithLocation(32, 71),
+                // (33,71): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //             Expression<Func<int>> lambda2 = () => TakeRefFunction(ref RefReturnProperty);
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "RefReturnProperty").WithLocation(33, 71),
+                // (34,71): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //             Expression<Func<int>> lambda3 = () => TakeRefFunction(ref this[0]);
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "this[0]").WithLocation(34, 71));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void CannotRefReturnQueryRangeVariable()
+        {
+            var code = @"
+using System.Linq;
+class TestClass
+{
+    delegate ref char RefCharDelegate();
+    void TestMethod()
+    {
+        var x = from c in ""TestValue"" select (RefCharDelegate)(() => ref c);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+                // (8,74): error CS8159: Cannot return the range variable 'c' by reference
+                //         var x = from c in "TestValue" select (RefCharDelegate)(() => ref c);
+                Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "c").WithArguments("c").WithLocation(8, 74));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void CannotAssignRefInNonIdentityConversion()
+        {
+            var code = @"
+using System;
+using System.Collections.Generic;
+
+class TestClass
+{
+    int intVar = 0;
+    string stringVar = ""TEST"";
+
+    void TestMethod()
+    {
+        ref int? nullableConversion = ref intVar;
+        ref dynamic dynamicConversion = ref intVar;
+        ref IEnumerable<char> enumerableConversion = ref stringVar;
+        ref IFormattable interpolatedStringConversion = ref stringVar;
+    }
+}";
+
+            CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (12,43): error CS8173: The expression must be of type 'int?' because it is being assigned by reference
+                //         ref int? nullableConversion = ref intVar;
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "intVar").WithArguments("int?").WithLocation(12, 43),
+                // (13,45): error CS8173: The expression must be of type 'dynamic' because it is being assigned by reference
+                //         ref dynamic dynamicConversion = ref intVar;
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "intVar").WithArguments("dynamic").WithLocation(13, 45),
+                // (14,58): error CS8173: The expression must be of type 'IEnumerable<char>' because it is being assigned by reference
+                //         ref IEnumerable<char> enumerableConversion = ref stringVar;
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "stringVar").WithArguments("System.Collections.Generic.IEnumerable<char>").WithLocation(14, 58),
+                // (15,61): error CS8173: The expression must be of type 'IFormattable' because it is being assigned by reference
+                //         ref IFormattable interpolatedStringConversion = ref stringVar;
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "stringVar").WithArguments("System.IFormattable").WithLocation(15, 61));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void IteratorMethodsCannotHaveRefLocals()
+        {
+            var code = @"
+using System.Collections.Generic;
+class TestClass
+{
+    int x = 0;
+    IEnumerable<int> TestMethod()
+    {
+        ref int y = ref x;
+        yield return y;
+
+        IEnumerable<int> localFunction()
+        {
+            ref int z = ref x;
+            yield return z;
+        }
+
+        foreach(var item in localFunction())
+        {
+            yield return item;
+        }
+    }
+}";
+
+            CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (13,21): error CS8176: Iterators cannot have by reference locals
+                //             ref int z = ref x;
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "z").WithLocation(13, 21),
+                // (8,17): error CS8176: Iterators cannot have by reference locals
+                //         ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "y").WithLocation(8, 17));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void AsyncMethodsCannotHaveRefLocals()
+        {
+            var code = @"
+using System.Threading.Tasks;
+class TestClass
+{
+    int x = 0;
+    async Task TestMethod()
+    {
+        ref int y = ref x;
+        await Task.Run(async () =>
+        {
+            ref int z = ref x;
+            await Task.Delay(0);
+        });
+    }
+}";
+            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+                // (8,17): error CS8177: Async methods cannot have by reference locals
+                //         ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "y = ref x").WithLocation(8, 17),
+                // (11,21): error CS8177: Async methods cannot have by reference locals
+                //             ref int z = ref x;
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "z = ref x").WithLocation(11, 21));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void CannotUseAwaitExpressionInACallToAFunctionThatReturnsByRef()
+        {
+            var code = @"
+using System;
+using System.Threading.Tasks;
+class TestClass
+{
+    int x = 0;
+    ref int Save(int y)
+    {
+        x = y;
+        return ref x;
+    }
+    void Write(ref int y)
+    {
+        Console.WriteLine(y);
+    }
+    async Task TestMethod()
+    {
+        Write(ref Save(await Task.FromResult(0)));
+    }
+}";
+            CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics(
+                // (18,24): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
+                //         Write(ref Save(await Task.FromResult(0)));
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(0)").WithArguments("TestClass.Save(int)").WithLocation(18, 24));
+        }
     }
 }

@@ -9068,5 +9068,100 @@ public enum Something
             // should be NO errors.
             CompileAndVerify(source, expectedOutput: @"False");
         }
+
+        [Fact, WorkItem(16478, "https://github.com/dotnet/roslyn/issues/16478")]
+        public void AmbiguousInference_01()
+        {
+            string source =
+@"
+using System;
+using System.Collections.Generic;
+
+public class Test
+{
+    public static void Assert<T>(T a, T b)
+    {
+        Console.WriteLine(""Non collection"");
+    }
+
+    public static void Assert<T>(IEnumerable<T> a, IEnumerable<T> b)
+    {
+        Console.WriteLine(""Collection"");
+    }
+    
+    public static void Main()
+    {
+        string[] a = new[] { ""A"" };
+        StringValues b = new StringValues();
+
+        Assert(a, b);
+        Assert(b, a);
+    }
+    
+    private class StringValues : List<string>
+    {
+        public static implicit operator StringValues(string[] values)
+        {
+            return new StringValues();
+        }
+        
+        public static implicit operator string[] (StringValues value)
+        {
+            return new string[0];
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"Collection
+Collection");
+        }
+
+        [Fact, WorkItem(16478, "https://github.com/dotnet/roslyn/issues/16478")]
+        public void AmbiguousInference_02()
+        {
+            string source =
+@"
+using System;
+using System.Collections.Generic;
+
+public class Test
+{
+    public static void Assert<T>(T a, T b)
+    {
+        Console.WriteLine(""Non collection"");
+    }
+    
+    public static void Main()
+    {
+        string[] a = new[] { ""A"" };
+        StringValues b = new StringValues();
+
+        Assert(a, b);
+        Assert(b, a);
+    }
+    
+    private class StringValues : List<string>
+    {
+        public static implicit operator StringValues(string[] values)
+        {
+            return new StringValues();
+        }
+        
+        public static implicit operator string[] (StringValues value)
+        {
+            return new string[0];
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (17,9): error CS0411: The type arguments for method 'Test.Assert<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Assert(a, b);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Assert").WithArguments("Test.Assert<T>(T, T)").WithLocation(17, 9),
+                // (18,9): error CS0411: The type arguments for method 'Test.Assert<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Assert(b, a);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Assert").WithArguments("Test.Assert<T>(T, T)").WithLocation(18, 9)
+                );
+        }
     }
 }

@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     vsProjectItems.AddFromFile(absoluteFilePath);
                 }
 
-                var hostProject = ((VisualStudioWorkspaceImpl)Workspace).ProjectTracker.GetProject(_projectId);
+                var hostProject = ((VisualStudioWorkspaceImpl)Workspace).DeferredState.ProjectTracker.GetProject(_projectId);
                 var projectCodeModel = ((IProjectCodeModelProvider)hostProject).ProjectCodeModel;
 
                 return projectCodeModel.GetOrCreateFileCodeModel(absoluteFilePath);
