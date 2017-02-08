@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -409,23 +410,39 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             // then add that one.
             var (externAlias, hasExistingExtern) = GetExternAliasDirective(
                 namespaceOrTypeSymbol, semanticModel, contextNode);
-            if (externAlias != null)
-            {
-                return ($"extern alias {externAlias.Identifier.ValueText};", hasExistingExtern);
-            }
 
             var (usingDirective, hasExistingUsing) = GetUsingDirective(
                 document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
 
-            if (usingDirective != null)
+            var externAliasString = externAlias != null ? $"extern alias {externAlias.Identifier.ValueText};" : null;
+            var usingDirectiveString = usingDirective != null ? GetUsingDirectiveString(namespaceOrTypeSymbol) :null;
+
+            if (externAlias == null && usingDirective == null)
             {
-                var displayString = namespaceOrTypeSymbol.ToDisplayString();
-                return (namespaceOrTypeSymbol.IsKind(SymbolKind.Namespace)
-                    ? $"using {displayString};"
-                    : $"using static {displayString};", hasExistingUsing);
+                return (null, false);
             }
 
-            return (null, false);
+            if (externAlias != null && !hasExistingExtern)
+            {
+                return (externAliasString, false);
+            }
+
+            if (usingDirective != null && !hasExistingUsing)
+            {
+                return (usingDirectiveString, false);
+            }
+
+            return externAlias != null
+                ? (externAliasString, hasExistingExtern)
+                : (usingDirectiveString, hasExistingUsing);
+        }
+
+        private string GetUsingDirectiveString(INamespaceOrTypeSymbol namespaceOrTypeSymbol)
+        {
+            var displayString = namespaceOrTypeSymbol.ToDisplayString();
+            return namespaceOrTypeSymbol.IsKind(SymbolKind.Namespace)
+                ? $"using {displayString};"
+                : $"using static {displayString};";
         }
 
         protected override async Task<Document> AddImportAsync(

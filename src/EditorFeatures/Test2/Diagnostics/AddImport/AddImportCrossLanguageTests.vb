@@ -476,6 +476,7 @@ namespace A
             Dim input =
                 <Workspace>
                     <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
+                        <ProjectReference>CSAssembly2</ProjectReference>
                         <Document FilePath='Test1.cs'>
 using System.Collections.Generic;
 namespace CSAssembly1
@@ -500,8 +501,7 @@ namespace CSAssembly2
                     </Project>
                 </Workspace>
 
-            Await TestAsync(input,
-                            addedReference:="CSAssembly1")
+            Await TestMissing(input)
         End Function
 
         Friend Overloads Async Function TestAsync(definition As XElement,
