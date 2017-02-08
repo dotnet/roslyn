@@ -267,7 +267,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                     Return ReportDiagnostic.Error
 
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(level)
             End Select
         End Function
 

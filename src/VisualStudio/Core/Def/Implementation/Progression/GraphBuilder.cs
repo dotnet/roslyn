@@ -589,7 +589,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(namedType.TypeKind);
             }
 
             node[DgmlNodeProperties.Icon] = IconHelper.GetIconName(iconGroupName, namedType.DeclaredAccessibility);

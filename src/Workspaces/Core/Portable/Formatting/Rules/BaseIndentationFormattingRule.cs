@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
                 case IndentBlockOption.AbsolutePosition:
                     return FormattingOperations.CreateIndentBlockOperation(operation.StartToken, operation.EndToken, AdjustTextSpan(operation.TextSpan), operation.IndentationDeltaOrPosition, operation.Option);
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(operation.Option);
             }
         }
 
