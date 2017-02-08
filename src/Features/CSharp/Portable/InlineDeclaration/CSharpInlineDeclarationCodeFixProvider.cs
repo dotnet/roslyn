@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             // Attempt to use an out-var declaration if that's the style the user prefers.
             // Note: if using 'var' would cause a problem, we will use the actual type
-            // of hte local.  This is necessary in some cases (for example, when the
+            // of the local.  This is necessary in some cases (for example, when the
             // type of the out-var-decl affects overload resolution or generic instantiation).
 
             foreach (var diagnostic in diagnostics)
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     // to the previous token.  We're going to move it along with this declarator.
                     // If we don't, then the comment will stay with the previous token.
                     //
-                    // Note that hte moving of the comment happens later on when we make the
+                    // Note that the moving of the comment happens later on when we make the
                     // declaration expression.
                     if (sourceText.AreOnSameLine(declarator.GetFirstToken(), declarator.GetFirstToken().GetPreviousToken(includeSkipped: true)))
                     {
@@ -138,8 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             //
             //      Method(out var x)
             //
-            // Then the type is not-apperant, and we shoudl not use var if the user only wants
-            // it for apperant types
+            // Then the type is not-apparent, and we should not use var if the user only wants
+            // it for apparent types
 
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
             var newType = local.Type.GenerateTypeSyntaxOrVar(options, typeIsApperant: false);
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 // We're removing a single declarator.  Copy any comments it has to the out-var.
                 //
-                // Note: this is tricky due to comment ownership.  We want hte comments that logically
+                // Note: this is tricky due to comment ownership.  We want the comments that logically
                 // belong to the declarator, even if our syntax model attaches them to other tokens.
                 var precedingTrivia = declaratorOpt.GetAllPrecedingTriviaToPreviousToken(
                     sourceText, includePreviousTokenTrailingTriviaOnlyIfOnSameLine: true);
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 else if (trivia.IsWhitespace())
                 {
                     // Condense whitespace down to single spaces. We don't want things like
-                    // indentation spaces to be inserted in the out-var location.  It is appropraite
+                    // indentation spaces to be inserted in the out-var location.  It is appropriate
                     // though to have single spaces to help separate out things like comments and
                     // tokens though.
                     yield return SyntaxFactory.Space;
@@ -225,31 +225,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             if (newType.IsVar)
             {
                 // Options want us to use 'var' if we can.  Make sure we didn't change
-                // the semantics of teh call by doing this.
+                // the semantics of the call by doing this.
 
                 // Find the symbol that the existing invocation points to.
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var previousSymbol = semanticModel.GetSymbolInfo(invocationOrCreation).Symbol;
 
-                var annotation = new SyntaxAnnotation();
-                var updatedInvocationOrCreation = invocationOrCreation.ReplaceNode(
-                    identifier, declarationExpression).WithAdditionalAnnotations(annotation);
+                var updatedInvocationOrCreation = invocationOrCreation.ReplaceNode(identifier, declarationExpression);
+                var updatedSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(
+                    invocationOrCreation.SpanStart, updatedInvocationOrCreation, SpeculativeBindingOption.BindAsExpression);
 
-                // Note(cyrusn): "https://github.com/dotnet/roslyn/issues/14384" prevents us from just
-                // speculatively binding the new expression.  So, instead, we fork things and see if
-                // the new symbol we bind to is equivalent to the previous one.
-                var newDocument = document.WithSyntaxRoot(
-                    root.ReplaceNode(invocationOrCreation, updatedInvocationOrCreation));
-
-                var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var newSemanticModel = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                updatedInvocationOrCreation = (ExpressionSyntax)newRoot.GetAnnotatedNodes(annotation).Single();
-
-                var updatedSymbol = newSemanticModel.GetSymbolInfo(updatedInvocationOrCreation).Symbol;
-
-                if (!SymbolEquivalenceComparer.Instance.Equals(previousSymbol, updatedSymbol))
+                if (!SymbolEquivalenceComparer.Instance.Equals(previousSymbol, updatedSymbolInfo.Symbol))
                 {
                     // We're pointing at a new symbol now.  Semantic have changed.
                     return true;
