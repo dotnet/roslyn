@@ -17460,6 +17460,87 @@ BC41009: The tuple element name 'c' is ignored because a different name is speci
 
         End Sub
 
+
+        <Fact>
+        <WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")>
+        Public Sub NullCoalesingOperatorWithTupleNames()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim nab As (a As Integer, b As Integer)? = (1, 2)
+        Dim nac As (a As Integer, c As Integer)? = (1, 3)
+
+        Dim x1 = If(nab, nac) ' (a, )?
+        Dim x2 = If(nab, nac.Value) ' (a, )
+        Dim x3 = If(new C(), nac) ' C
+        Dim x4 = If(new D(), nac) ' (a, c)?
+
+        Dim x5 = If(nab IsNot Nothing, nab, nac) ' (a, )?
+
+        Dim x6 = If(nab, (a:= 1, c:= 3)) ' (a, )
+        Dim x7 = If(nab, (a:= 1, 3)) ' (a, )
+        Dim x8 = If(new C(), (a:= 1, c:= 3)) ' C
+        Dim x9 = If(new D(), (a:= 1, c:= 3)) ' (a, c)
+        Dim x6double = If(nab, (d:= 1.1, c:= 3)) ' (d, c)
+
+    End Sub
+    Public Shared Narrowing Operator CType(ByVal x As (Integer, Integer)) As C
+        Throw New System.Exception()
+    End Operator
+End Class
+Class D
+    Public Shared Narrowing Operator CType(ByVal x As D) As (d1 As Integer, d2 As Integer)
+        Throw New System.Exception()
+    End Operator
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+        Dim x6 = If(nab, (a:= 1, c:= 3)) ' (a, )
+                                 ~~~~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim x1 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(2).Names(0)
+            Assert.Equal("x1 As System.Nullable(Of (a As System.Int32, System.Int32))", model.GetDeclaredSymbol(x1).ToTestDisplayString())
+
+            Dim x2 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(3).Names(0)
+            Assert.Equal("x2 As (a As System.Int32, System.Int32)", model.GetDeclaredSymbol(x2).ToTestDisplayString())
+
+            Dim x3 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(4).Names(0)
+            Assert.Equal("x3 As C", model.GetDeclaredSymbol(x3).ToTestDisplayString())
+
+            Dim x4 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(5).Names(0)
+            Assert.Equal("x4 As System.Nullable(Of (a As System.Int32, c As System.Int32))", model.GetDeclaredSymbol(x4).ToTestDisplayString())
+
+            Dim x5 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(6).Names(0)
+            Assert.Equal("x5 As System.Nullable(Of (a As System.Int32, System.Int32))", model.GetDeclaredSymbol(x5).ToTestDisplayString())
+
+            Dim x6 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(7).Names(0)
+            Assert.Equal("x6 As (a As System.Int32, System.Int32)", model.GetDeclaredSymbol(x6).ToTestDisplayString())
+
+            Dim x7 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(8).Names(0)
+            Assert.Equal("x7 As (a As System.Int32, System.Int32)", model.GetDeclaredSymbol(x7).ToTestDisplayString())
+
+            Dim x8 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(9).Names(0)
+            Assert.Equal("x8 As C", model.GetDeclaredSymbol(x8).ToTestDisplayString())
+
+            Dim x9 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(10).Names(0)
+            Assert.Equal("x9 As (a As System.Int32, c As System.Int32)", model.GetDeclaredSymbol(x9).ToTestDisplayString())
+
+            Dim x6double = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(11).Names(0)
+            Assert.Equal("x6double As (d As System.Double, c As System.Int32)", model.GetDeclaredSymbol(x6double).ToTestDisplayString())
+        End Sub
+
         <Fact>
         Public Sub TernaryTypeInferenceWithNoNames()
 
