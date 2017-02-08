@@ -5,9 +5,9 @@
 
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <ProjectDir>$(MSBuildThisFileDirectory)..\..\..\</ProjectDir>
+    <RepoRoot>$(MSBuildThisFileDirectory)..\..\..\</RepoRoot>
     <BranchName Condition="'$(BranchName)' == ''">$(BUILD_SOURCEBRANCH)</BranchName>
-    <BinariesPath>$(ProjectDir)Binaries\$(Configuration)</BinariesPath>
+    <BinariesPath>$(RepoRoot)Binaries\$(Configuration)</BinariesPath>
     <RoslynNuGetApiKey Condition="'$(RoslynNuGetApiKey)' == ''">"no key"</RoslynNuGetApiKey>
     <PublishAssetsArgs Condition="'$(SkipPublish)' == 'true'">-test</PublishAssetsArgs>
   </PropertyGroup>
@@ -22,22 +22,22 @@
   </PropertyGroup>
 
   <Target Name="Build">
-    <Exec Command="Restore.cmd /clean" WorkingDirectory="$(ProjectDir)" Condition="'$(SkipRestore)' != 'true'" />
+    <Exec Command="Restore.cmd /clean" WorkingDirectory="$(RepoRoot)" Condition="'$(SkipRestore)' != 'true'" />
 
-    <MSBuild Projects="$(ProjectDir)Roslyn.sln" BuildInParallel="true" Properties="DeployExtension=false" />
+    <MSBuild Projects="$(RepoRoot)Roslyn.sln" BuildInParallel="true" Properties="DeployExtension=false" />
 
-    <Exec Command="$(NuGetPackageRoot)\GitLink\$(GitLinkVersion)\lib\net45\GitLink.exe $(ProjectDir) -u https://github.com/dotnet/roslyn -f Roslyn.sln -c $(Configuration)" />
+    <Exec Command="$(NuGetPackageRoot)\GitLink\$(GitLinkVersion)\lib\net45\GitLink.exe $(RepoRoot) -u https://github.com/dotnet/roslyn -f Roslyn.sln -c $(Configuration)" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\create-perftests.ps1 &quot;$(BinariesPath)&quot;" />
 
-    <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep1.proj" Properties="DeployExtension=false" />
+    <MSBuild Projects="$(RepoRoot)src\Setup\SetupStep1.proj" Properties="DeployExtension=false" />
 
-    <Exec Command="$(NuGetPackageRoot)\RoslynTools.Microsoft.SignTool\$(RoslynToolsMicrosoftSignToolVersion)\tools\SignTool.exe $(SignRoslynArgs) &quot;$(BinariesPath)&quot;" WorkingDirectory="$(ProjectDir)" />
+    <Exec Command="$(NuGetPackageRoot)\RoslynTools.Microsoft.SignTool\$(RoslynToolsMicrosoftSignToolVersion)\tools\SignTool.exe $(SignRoslynArgs) &quot;$(BinariesPath)&quot;" WorkingDirectory="$(RepoRoot)" />
 
-    <MSBuild Projects="$(ProjectDir)src\NuGet\NuGet.proj" />
-    <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" Properties="$(SetupStep2Properties);DeployExtension=false" />
+    <MSBuild Projects="$(RepoRoot)src\NuGet\NuGet.proj" />
+    <MSBuild Projects="$(RepoRoot)src\Setup\SetupStep2.proj" Properties="$(SetupStep2Properties);DeployExtension=false" />
 
-    <MSBuild Projects="$(ProjectDir)BuildAndTest.proj" Targets="Test" Condition="'$(SkipTest)' != 'true'" />
+    <MSBuild Projects="$(RepoRoot)BuildAndTest.proj" Targets="Test" Condition="'$(SkipTest)' != 'true'" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\check-toolset-insertion.ps1 &quot;$(MSBuildThisFileDirectory)..\..\..&quot; &quot;$(BinariesPath)&quot;" />
     
