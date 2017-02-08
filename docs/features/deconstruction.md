@@ -22,14 +22,14 @@ public class C
               (code, message) = new Deconstructable(); // deconstruct any object with a proper Deconstruct method into existing variables
               Console.Write(message); // world
               
-              (int code2, int message2) = pair; // deconstruct into new variables
+              (int code2, string message2) = pair; // deconstruct into new variables
               var (code3, message3) = new Deconstructable(); // deconstruct into new 'var' variables
         }
 }
 
 public class Deconstructable
 {
-        public void Deconstruct(out int x, out int y)
+        public void Deconstruct(out int x, out string y)
         {
                 x = 43;
                 y = "world";

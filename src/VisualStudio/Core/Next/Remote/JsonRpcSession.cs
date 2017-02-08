@@ -114,6 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 // this one doesn't need cancellation token since it has nothing to cancel
                 _callbackTarget = callbackTarget;
+
+                StartListening();
             }
         }
 
@@ -137,6 +139,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 _owner = owner;
                 _source = new CancellationTokenSource();
+
+                StartListening();
             }
 
             private PinnedRemotableDataScope PinnedScope => _owner.PinnedScope;
