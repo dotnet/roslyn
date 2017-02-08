@@ -92,16 +92,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 var block = (BlockSyntax)localDeclarationStatement.Parent;
                 var declarationIndex = block.Statements.IndexOf(localDeclarationStatement);
 
-                // Comments on the local declaration will move to the next statement.  Format it
-                // so that it the comments show up properly.
+                // Trivia on the local declaration will move to the next statement.
+                // use the callback form as the next statement may be hte place where we're 
+                // inlining the declaration, and thus need to see the effects of that change.
                 editor.ReplaceNode(
                     block.Statements[declarationIndex + 1],
-                    (s, g) => s.WithAdditionalAnnotations(Formatter.Annotation));
+                    (s, g) => MoveNonIndentationTrivia(localDeclarationStatement, s));
 
-                var removeOptions = localDeclarationStatement.GetTrailingTrivia().Any(t => t.IsRegularComment())
-                    ? SyntaxRemoveOptions.KeepLeadingTrivia | SyntaxRemoveOptions.KeepTrailingTrivia
-                    : SyntaxRemoveOptions.KeepLeadingTrivia;
-                editor.RemoveNode(localDeclarationStatement, removeOptions);
+                editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
             }
             else
             {
@@ -163,6 +161,30 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             editor.ReplaceNode(identifier, declarationExpression);
+        }
+
+        private static SyntaxNode MoveNonIndentationTrivia(
+            SyntaxNode from, SyntaxNode to)
+        {
+            // get all the preceding trivia from the 'from' node, not counting the leading
+            // indentation trivia is has.
+            var finalTrivia = from.GetLeadingTrivia().ToList();
+            while (finalTrivia.Count > 0 && finalTrivia.Last().Kind() == SyntaxKind.WhitespaceTrivia)
+            {
+                finalTrivia.RemoveAt(finalTrivia.Count - 1);
+            }
+
+            // Also, add on hte trailing trivia if there are trailing comments.
+            var hasTrailingComments = from.GetTrailingTrivia().Any(t => t.IsRegularComment());
+            if (hasTrailingComments)
+            {
+                finalTrivia.AddRange(from.GetTrailingTrivia());
+            }
+
+            // Merge this trivia with the existing trivia on the node.  Format in case
+            // we added comments and need them indented properly.
+            return to.WithPrependedLeadingTrivia(finalTrivia)
+                     .WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(
