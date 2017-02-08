@@ -66,6 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     accessibility:=Accessibility.Private,
                     modifiers:=CreateMethodModifiers(),
                     returnType:=Me.AnalyzerResult.ReturnType,
+                    returnsByRef:=False,
                     explicitInterfaceSymbol:=Nothing,
                     name:=_methodName.ToString(),
                     typeParameters:=CreateMethodTypeParameters(cancellationToken),

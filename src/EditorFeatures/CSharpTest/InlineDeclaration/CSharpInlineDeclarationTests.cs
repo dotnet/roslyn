@@ -1163,5 +1163,39 @@ class Program
     }
 }");
         }
+
+        [WorkItem(16198, "https://github.com/dotnet/roslyn/issues/16198")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestIndentation1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    private int Bar()
+    {
+        IProjectRuleSnapshot [|unresolvedReferenceSnapshot|] = null;
+        var itemType = GetUnresolvedReferenceItemType(originalItemSpec,
+                                                      updatedUnresolvedSnapshots,
+                                                      catalogs,
+                                                      out unresolvedReferenceSnapshot);
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private int Bar()
+    {
+        var itemType = GetUnresolvedReferenceItemType(originalItemSpec,
+                                                      updatedUnresolvedSnapshots,
+                                                      catalogs,
+                                                      out IProjectRuleSnapshot unresolvedReferenceSnapshot);
+    }
+}");
+        }
     }
 }

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     case MethodGenerationKind.ExplicitConversion:
                         return _service.GetExplicitConversionDisplayText(_state);
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(state.MethodGenerationKind);
                 }
             }
 

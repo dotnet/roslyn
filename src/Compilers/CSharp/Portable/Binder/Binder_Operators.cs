@@ -2621,32 +2621,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
             var operand = BindValue(node.Left, diagnostics, BindValueKind.RValue);
             var operandHasErrors = IsOperandErrors(node, ref operand, diagnostics);
-
             // try binding as a type, but back off to binding as an expression if that does not work.
             AliasSymbol alias;
             TypeSymbol targetType;
-            var tempBag = DiagnosticBag.GetInstance();
-            targetType = BindType(node.Right, tempBag, out alias);
+            var isTypeDiagnostics = DiagnosticBag.GetInstance();
+            targetType = BindType(node.Right, isTypeDiagnostics, out alias);
 
-            if (targetType?.IsErrorType() == true && tempBag.HasAnyResolvedErrors() &&
+            if (targetType?.IsErrorType() == true && isTypeDiagnostics.HasAnyResolvedErrors() &&
                     ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
             {
                 // it did not bind as a type; try binding as a constant expression pattern
                 bool wasExpression;
-                var tempBag2 = DiagnosticBag.GetInstance();
+                var isPatternDiagnostics = DiagnosticBag.GetInstance();
+                if ((object)operand.Type == null)
+                {
+                    if (!operandHasErrors)
+                    {
+                        isPatternDiagnostics.Add(ErrorCode.ERR_BadIsPatternExpression, node.Left.Location, operand.Display);
+                    }
+
+                    operand = ToBadExpression(operand);
+                }
+
                 var boundConstantPattern = BindConstantPattern(
-                    node.Right, operand, operand.Type, node.Right, node.Right.HasErrors, tempBag2, out wasExpression, wasSwitchCase: false);
+                    node.Right, operand, operand.Type, node.Right, node.Right.HasErrors, isPatternDiagnostics, out wasExpression, wasSwitchCase: false);
                 if (wasExpression)
                 {
-                    tempBag.Free();
-                    diagnostics.AddRangeAndFree(tempBag2);
+                    isTypeDiagnostics.Free();
+                    diagnostics.AddRangeAndFree(isPatternDiagnostics);
                     return new BoundIsPatternExpression(node, operand, boundConstantPattern, resultType, operandHasErrors);
                 }
 
-                tempBag2.Free();
+                isPatternDiagnostics.Free();
             }
 
-            diagnostics.AddRangeAndFree(tempBag);
+            diagnostics.AddRangeAndFree(isTypeDiagnostics);
             var typeExpression = new BoundTypeExpression(node.Right, alias, targetType);
             var targetTypeKind = targetType.TypeKind;
             if (operandHasErrors || IsOperatorErrors(node, operand.Type, typeExpression, diagnostics))

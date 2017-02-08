@@ -517,7 +517,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' (type, index of the parent exported type in builder, or -1 if the type is a top-level type)
                 Dim stack = ArrayBuilder(Of (type As NamedTypeSymbol, parentIndex As Integer)).GetInstance()
 
-                For Each forwardedType As NamedTypeSymbol In wellKnownAttributeData.ForwardedTypes
+                ' Hashset enumeration is not guaranteed to be deterministic. Emitting in the order of fully qualified names.
+                Dim orderedForwardedTypes = wellKnownAttributeData.ForwardedTypes.OrderBy(Function(t) t.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+
+                For Each forwardedType As NamedTypeSymbol In orderedForwardedTypes
                     Dim originalDefinition As NamedTypeSymbol = forwardedType.OriginalDefinition
                     Debug.Assert(originalDefinition.ContainingType Is Nothing, "How did a nested type get forwarded?")
 

@@ -55,9 +55,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                     case SymbolKind.Property:
                         return new WrappedPropertySymbol((IPropertySymbol)m, canImplementImplicitly, docCommentFormattingService);
-                }
 
-                throw ExceptionUtilities.Unreachable;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(m.Kind);
+                }
             }
 
             public bool IsAnonymousType => _symbol.IsAnonymousType;

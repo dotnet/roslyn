@@ -693,6 +693,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File &apos;{0}&apos; size of {1} exceeds maximum allowed size of {2}.
+        /// </summary>
+        internal static string File_0_size_of_1_exceeds_maximum_allowed_size_of_2 {
+            get {
+                return ResourceManager.GetString("File_0_size_of_1_exceeds_maximum_allowed_size_of_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File was externally modified: {0}..
         /// </summary>
         internal static string File_was_externally_modified_colon_0 {

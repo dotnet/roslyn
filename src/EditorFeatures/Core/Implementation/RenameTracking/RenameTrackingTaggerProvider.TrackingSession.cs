@@ -179,6 +179,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         }
                         else
                         {
+                            // We do not yet support renaming (inline rename or rename tracking) on
+                            // named tuple elements.
+                            if (renameSymbolInfo.Symbols.Single().ContainingType?.IsTupleType() == true)
+                            {
+                                return TriggerIdentifierKind.NotRenamable;
+                            }
+
                             return await DetermineIfRenamableSymbolAsync(renameSymbolInfo.Symbols.Single(), document, token).ConfigureAwait(false);
                         }
                     }

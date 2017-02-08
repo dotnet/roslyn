@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 case DiagnosticSeverity.Error:
                     return ReportDiagnostic.Error;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(severity);
             }
         }
 

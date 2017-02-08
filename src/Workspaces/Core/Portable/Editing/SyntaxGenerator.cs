@@ -1379,6 +1379,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode SwitchSection(IEnumerable<SyntaxNode> caseExpressions, IEnumerable<SyntaxNode> statements);
 
+        internal abstract SyntaxNode SwitchSectionFromLabels(IEnumerable<SyntaxNode> labels, IEnumerable<SyntaxNode> statements);
+
         /// <summary>
         /// Creates a single-case section a switch statement.
         /// </summary>
@@ -1457,6 +1459,8 @@ namespace Microsoft.CodeAnalysis.Editing
         #endregion
 
         #region Expressions
+
+        internal abstract SyntaxToken NumericLiteralToken(string text, ulong value);
 
         internal abstract SyntaxToken InterpolatedStringTextToken(string content);
         internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);

@@ -2,14 +2,14 @@
   "dependencies": {
     "EnvDTE": "8.0.0",
     "EnvDTE80": "8.0.0",
-    "Microsoft.VisualStudio.Editor": "14.3.25407",
-    "Microsoft.VisualStudio.Language.Intellisense": "14.3.25407",
-    "RoslynDependencies.Microsoft.VisualStudio.GraphModel": "14.3.25407",
-    "Microsoft.VisualStudio.ComponentModelHost": "14.3.25407-alpha",
-    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "14.3.25420-alpha",
-    "Microsoft.VisualStudio.Shell.Design": "14.3.25407"
+    "Microsoft.VisualStudio.Editor": "15.0.26127-alpha",
+    "Microsoft.VisualStudio.Language.Intellisense": "15.0.26127-alpha",
+    "Microsoft.VisualStudio.GraphModel": "15.0.26127-alpha",
+    "Microsoft.VisualStudio.ComponentModelHost": "15.0.26127-alpha",
+    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.26127-alpha",
+    "Microsoft.VisualStudio.Shell.Design": "15.0.26127-alpha"
   },
   "frameworks": {
-    "net46": { }
+    "net46": {}
   }
 }

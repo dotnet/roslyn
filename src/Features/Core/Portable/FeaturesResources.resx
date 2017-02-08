@@ -1154,4 +1154,25 @@ This version used in: {2}</value>
   <data name="Add_argument_name_0" xml:space="preserve">
     <value>Add argument name '{0}'</value>
   </data>
+  <data name="Convert_to_binary" xml:space="preserve">
+    <value>Convert to binary</value>
+  </data>
+  <data name="Convert_to_decimal" xml:space="preserve">
+    <value>Convert to decimal</value>
+  </data>
+  <data name="Convert_to_hex" xml:space="preserve">
+    <value>Convert to hex</value>
+  </data>
+  <data name="Separate_thousands" xml:space="preserve">
+    <value>Separate thousands</value>
+  </data>
+  <data name="Separate_words" xml:space="preserve">
+    <value>Separate words</value>
+  </data>
+  <data name="Separate_nibbles" xml:space="preserve">
+    <value>Separate nibbles</value>
+  </data>
+  <data name="Remove_separators" xml:space="preserve">
+    <value>Remove separators</value>
+  </data>
 </root>

@@ -102,6 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _kind; }
         }
 
+        internal override SyntaxNode ScopeDesignatorOpt
+        {
+            get { return null; }
+        }
+
         internal override SyntaxToken IdentifierToken
         {
             get { return default(SyntaxToken); }

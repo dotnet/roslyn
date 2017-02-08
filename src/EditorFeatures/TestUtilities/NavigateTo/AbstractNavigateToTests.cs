@@ -10,6 +10,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Extensibility.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -45,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         {
             using (var workspace = await SetupWorkspaceAsync(content))
             {
+                workspace.Options = workspace.Options.WithChangedOption(
+                    NavigateToOptions.OutOfProcessAllowed, outOfProcess);
+
                 await body(workspace);
             }
         }

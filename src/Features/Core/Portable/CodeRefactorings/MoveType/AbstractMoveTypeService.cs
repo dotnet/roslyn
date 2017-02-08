@@ -95,7 +95,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // offer to rename type with document name
                 if (state.IsDocumentNameAValidIdentifier)
                 {
-                    actions.Add(GetCodeAction(state, fileName: state.DocumentName, operationKind: OperationKind.RenameType));
+                    actions.Add(GetCodeAction(
+                        state, fileName: state.DocumentNameWithoutExtension,
+                        operationKind: OperationKind.RenameType));
                 }
             }
 
@@ -130,7 +132,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 typeDeclaration =>
                 {
                     var typeName = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken).Name;
-                    return TypeMatchesDocumentName(typeDeclaration, typeName, state.DocumentName, semanticModel, cancellationToken);
+                    return TypeMatchesDocumentName(
+                        typeDeclaration, typeName, state.DocumentNameWithoutExtension, 
+                        semanticModel, cancellationToken);
                 });
         }
 
@@ -144,20 +148,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         protected bool TypeMatchesDocumentName(
             TTypeDeclarationSyntax typeNode,
             string typeName,
-            string documentName,
+            string documentNameWithoutExtension,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            // trim extensions, if present.
-            documentName = Path.GetFileNameWithoutExtension(documentName);
-
             // If it is not a nested type, we compare the unqualified type name with the document name.
             // If it is a nested type, the type name `Outer.Inner` matches file names `Inner.cs` and `Outer.Inner.cs`
-            var namesMatch = typeName.Equals(documentName, StringComparison.CurrentCulture);
+            var namesMatch = typeName.Equals(documentNameWithoutExtension, StringComparison.CurrentCulture);
             if (!namesMatch)
             {
                 var typeNameParts = GetTypeNamePartsForNestedTypeNode(typeNode, semanticModel, cancellationToken);
-                var fileNameParts = documentName.Split('.');
+                var fileNameParts = documentNameWithoutExtension.Split('.');
 
                 // qualified type name `Outer.Inner` matches file names `Inner.cs` and `Outer.Inner.cs`
                 return typeNameParts.SequenceEqual(fileNameParts, StringComparer.CurrentCulture);

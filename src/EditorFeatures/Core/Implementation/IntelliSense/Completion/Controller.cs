@@ -150,17 +150,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         }
 
         private bool StartNewModelComputation(
-            CompletionService completionService, bool filterItems, bool dismissIfEmptyAllowed)
-        {
-            return StartNewModelComputation(
-                completionService, CompletionTrigger.Default, filterItems, dismissIfEmptyAllowed);
-        }
-
-        private bool StartNewModelComputation(
             CompletionService completionService,
-            CompletionTrigger trigger,
-            bool filterItems,
-            bool dismissIfEmptyAllowed)
+            CompletionTrigger trigger)
         {
             AssertIsForeground();
             Contract.ThrowIfTrue(sessionOpt != null);
@@ -194,35 +185,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             this.sessionOpt = new Session(this, computation, Presenter.CreateSession(TextView, SubjectBuffer, null));
 
             sessionOpt.ComputeModel(completionService, trigger, _roles, GetOptions());
-
-            var filterReason = trigger.Kind == CompletionTriggerKind.Deletion
-                ? CompletionFilterReason.BackspaceOrDelete
-                : trigger.Kind == CompletionTriggerKind.Other
-                    ? CompletionFilterReason.Other
-                    : CompletionFilterReason.TypeChar;
-
-            FilterToSomeOrAllItems(filterItems, dismissIfEmptyAllowed, filterReason);
+            sessionOpt.FilterModel(trigger.GetFilterReason(), filterState: null);
 
             return true;
-        }
-
-        private void FilterToSomeOrAllItems(bool filterItems, bool dismissIfEmptyAllowed, CompletionFilterReason filterReason)
-        {
-            if (filterItems)
-            {
-                sessionOpt.FilterModel(
-                    filterReason,
-                    recheckCaretPosition: false,
-                    dismissIfEmptyAllowed: dismissIfEmptyAllowed,
-                    filterState: null);
-            }
-            else
-            {
-                sessionOpt.IdentifyBestMatchAndFilterToAllItems(
-                    filterReason,
-                    recheckCaretPosition: false,
-                    dismissIfEmptyAllowed: dismissIfEmptyAllowed);
-            }
         }
 
         private CompletionService GetCompletionService()

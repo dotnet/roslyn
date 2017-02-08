@@ -59,13 +59,18 @@ namespace Microsoft.CodeAnalysis
             _branchId = branchId;
             _workspaceVersion = workspaceVersion;
             _solutionServices = solutionServices;
-            _solutionInfo = solutionInfo;
             _projectIds = projectIds.ToImmutableReadOnlyListOrEmpty();
             _projectIdToProjectStateMap = idToProjectStateMap;
             _projectIdToTrackerMap = projectIdToTrackerMap;
             _linkedFilesMap = linkedFilesMap;
             _dependencyGraph = dependencyGraph;
             _lazyLatestProjectVersion = lazyLatestProjectVersion;
+
+            // ownership of information on project has moved to solution state. clear out projectInfo the state is
+            // holding on. otherwise, these information will be held onto unnecesarily by solutionInfo even after
+            // the info has changed by ProjectState.
+            // we hold onto the info so that we don't need to duplicate all information info already has in the state
+            _solutionInfo = solutionInfo.WithProjects(ImmutableArray<ProjectInfo>.Empty);
 
             // when solution state is changed, we re-calcuate its checksum
             _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
@@ -407,8 +412,7 @@ namespace Microsoft.CodeAnalysis
         private SolutionState AddProject(ProjectId projectId, ProjectState projectState)
         {
             // changed project list so, increment version.
-            var newSolutionInfo = _solutionInfo.WithVersion(this.Version.GetNewerVersion())
-                                               .WithProjects(_solutionInfo.Projects.Concat(projectState.ProjectInfo));
+            var newSolutionInfo = _solutionInfo.WithVersion(this.Version.GetNewerVersion());
 
             var newProjectIds = _projectIds.ToImmutableArray().Add(projectId);
             var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
@@ -502,8 +506,7 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             // changed project list so, increment version.
-            var newSolutionInfo = _solutionInfo.WithVersion(this.Version.GetNewerVersion())
-                                               .WithProjects(_solutionInfo.Projects.Where(s => s.Id != projectId));
+            var newSolutionInfo = _solutionInfo.WithVersion(this.Version.GetNewerVersion());
 
             var newProjectIds = _projectIds.ToImmutableArray().Remove(projectId);
             var newStateMap = _projectIdToProjectStateMap.Remove(projectId);

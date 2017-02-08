@@ -17,8 +17,6 @@
     <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">rc4</RoslynNuGetMoniker>
     <!-- This is the base of the NuGet versioning for prerelease packages -->
     <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-$(RoslynNuGetMoniker)</NuGetPreReleaseVersion>
-    <!-- Currently we version IW the same as Roslyn. -->
-    <MicrosoftVisualStudioInteractiveWindowVersion>$(RoslynAssemblyVersionBase)</MicrosoftVisualStudioInteractiveWindowVersion>
 
     <!-- We should not be signing a build anywhere except for in MicroBuild, which will always specify 'BUILD_BUILDNUMBER'-->
     <BuildNumber Condition="'$(BuildNumber)' == ''">$(BUILD_BUILDNUMBER)</BuildNumber>
