@@ -388,35 +388,6 @@
     <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
   </Node>
 
-  <Node Name="BoundDeconstructionAssignmentOperator" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
-    <Field Name="Left" Type="BoundTupleExpression"/>
-    <Field Name="Right" Type="BoundExpression"/>
-
-    <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionDeconstructStep&gt;" Null="disallow" SkipInVisitor="true" />
-    <Field Name="ConversionSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="disallow" SkipInVisitor="true"/>
-    <Field Name="AssignmentSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="disallow" SkipInVisitor="true"/>
-    <Field Name="ConstructionStepsOpt" Type="ImmutableArray&lt;BoundDeconstructionConstructionStep&gt;" Null="allow" SkipInVisitor="true"/>
-  </Node>
-
-  <Node Name="BoundDeconstructionDeconstructStep" Base="BoundNode">
-    <Field Name="DeconstructInvocationOpt" Type="BoundExpression" Null="allow"/>
-    <Field Name="InputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
-    <Field Name="OutputPlaceholders" Type="ImmutableArray&lt;BoundDeconstructValuePlaceholder&gt;" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundDeconstructionAssignmentStep" Base="BoundNode">
-    <Field Name="Assignment" Type="BoundAssignmentOperator" Null="disallow"/>
-    <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundDeconstructionConstructionStep" Base="BoundNode">
-    <Field Name="Construct" Type="BoundExpression" Null="disallow"/>
-    <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
-  </Node>
-
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">
     <Field Name="LeftOperand" Type="BoundExpression"/>
     <Field Name="RightOperand" Type="BoundExpression"/>
@@ -902,7 +873,7 @@
 
   <!-- All the information need to apply a deconstruction at each iteration of a foreach loop involving a deconstruction-declaration. -->
   <Node Name="BoundForEachDeconstructStep" Base="BoundNode">
-    <Field Name="DeconstructionAssignment" Type="BoundDeconstructionAssignmentOperator" Null="disallow"/>
+    <Field Name="DeconstructionAssignment" Type="BoundAssignmentOperator" Null="disallow"/>
     <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
   </Node>
 

@@ -1646,6 +1646,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
+            if (node.Left.Kind == BoundKind.TupleLiteral)
+            {
+                ((BoundTupleExpression)node.Left).VisitAllElements((x, self) => self.VisitLvalue(x), this);
+                VisitRvalue(node.Right);
+                return null;
+            }
+
             // TODO: should events be handled specially too?
             if (RegularPropertyAccess(node.Left))
             {
@@ -1669,14 +1676,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 WriteArgument(node.Right, node.RefKind, method: null);
             }
-
-            return null;
-        }
-
-        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
-        {
-            node.Left.VisitAllElements((x, self) => self.VisitLvalue(x), this);
-            VisitRvalue(node.Right);
 
             return null;
         }

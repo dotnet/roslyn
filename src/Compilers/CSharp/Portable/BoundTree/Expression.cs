@@ -1022,21 +1022,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundDeconstructionAssignmentOperator : BoundExpression
-    {
-        protected override OperationKind ExpressionKind => OperationKind.None;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitNoneOperation(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitNoneOperation(this, argument);
-        }
-    }
-
     internal partial class BoundCompoundAssignmentOperator : ICompoundAssignmentExpression
     {
         BinaryOperationKind ICompoundAssignmentExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(this.Operator.Kind);

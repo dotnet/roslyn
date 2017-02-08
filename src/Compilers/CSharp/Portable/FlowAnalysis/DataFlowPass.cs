@@ -1850,15 +1850,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             base.VisitAssignmentOperator(node);
-            Assign(node.Left, node.Right, refKind: node.RefKind);
-            return null;
-        }
-
-        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
-        {
-            base.VisitDeconstructionAssignmentOperator(node);
-            node.Left.VisitAllElements((x, self) => self.Assign(x, value: null, refKind: RefKind.None), this);
-
+            if (node.Left.Kind == BoundKind.TupleLiteral)
+            {
+                ((BoundTupleExpression)node.Left).VisitAllElements((x, self) => self.Assign(x, value: null, refKind: RefKind.None), this);
+            }
+            else
+            {
+                Assign(node.Left, node.Right, refKind: node.RefKind);
+            }
             return null;
         }
 

@@ -27,11 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return this.SetMayHaveSideEffects();
         }
 
-        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
-        {
-            return this.SetMayHaveSideEffects();
-        }
-
         // Calls are treated as having side effects, but properties and
         // indexers are not. (Since this visitor is run on the bound tree
         // before lowering, properties are not represented as calls.)

@@ -67,6 +67,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private class DeconstructionUncommonData : UncommonData
+        {
+            internal DeconstructionUncommonData(DeconstructionInfo deconstructionInfo, ImmutableArray<Conversion> nestedConversions)
+                : base(false, false, default(UserDefinedConversionResult), null, nestedConversions)
+            {
+                _deconstructionInfo = deconstructionInfo;
+            }
+
+            internal DeconstructionInfo _deconstructionInfo;
+        }
+
         private Conversion(
             ConversionKind kind,
             UncommonData uncommonData)
@@ -115,6 +126,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversionResult: default(UserDefinedConversionResult),
                 conversionMethod: null,
                 nestedConversions: nestedConversions);
+        }
+
+        internal Conversion(ConversionKind kind, DeconstructionInfo deconstructionInfo, ImmutableArray<Conversion> nestedConversions)
+        {
+            Debug.Assert(kind == ConversionKind.Deconstruction);
+
+            this._kind = kind;
+            _uncommonData = new DeconstructionUncommonData(deconstructionInfo, nestedConversions);
         }
 
         internal Conversion SetConversionMethod(MethodSymbol conversionMethod)
@@ -213,6 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitDynamic => new Conversion(ConversionKind.ImplicitDynamic);
         internal static Conversion ExplicitDynamic => new Conversion(ConversionKind.ExplicitDynamic);
         internal static Conversion InterpolatedString => new Conversion(ConversionKind.InterpolatedString);
+        internal static Conversion Deconstruction => new Conversion(ConversionKind.Deconstruction);
 
         // trivial conversions that could be underlying in nullable conversion
         // NOTE: tuple conversions can be underlying as well, but they are not trivial 
@@ -322,6 +342,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return null;
+            }
+        }
+
+        internal DeconstructionInfo DeconstructionInfo
+        {
+            get
+            {
+                return ((DeconstructionUncommonData)_uncommonData)?._deconstructionInfo;
             }
         }
 
@@ -869,5 +897,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return !(left == right);
         }
+
+#if DEBUG
+        internal string Dump()
+        {
+            return TreeDumper.DumpCompact(Dump(this));
+
+            TreeDumperNode Dump(Conversion self)
+            {
+                var sub = new System.Collections.Generic.List<TreeDumperNode>();
+
+                if ((object)self.Method != null)
+                {
+                    sub.Add(new TreeDumperNode("method", self.Method.ToDisplayString(), null));
+                }
+
+                if ((object)self.DeconstructionInfo != null)
+                {
+                    sub.Add(new TreeDumperNode("deconstructionInfo", null,
+                        new[] { BoundTreeDumperNodeProducer.MakeTree(self.DeconstructionInfo._invocation)}));
+                }
+
+                var underlyingConversions = self.UnderlyingConversions;
+                if (!underlyingConversions.IsDefaultOrEmpty)
+                {
+                    sub.Add(new TreeDumperNode($"underlyingConversions[{underlyingConversions.Length}]", null,
+                        underlyingConversions.SelectAsArray(c => Dump(c))));
+                }
+
+                return new TreeDumperNode("conversion", self.Kind, sub);
+            }
+        }
+#endif
+    }
+
+    /// <summary>Stores all the information from binding for calling a Deconstruct method.</summary>
+    internal class DeconstructionInfo
+    {
+        internal DeconstructionInfo(BoundExpression invocation, BoundDeconstructValuePlaceholder inputPlaceholder,
+            ImmutableArray<BoundDeconstructValuePlaceholder> outputPlaceholders)
+        {
+             (_invocation, _inputPlaceholder, _outputPlaceholders) = (invocation, inputPlaceholder, outputPlaceholders);
+        }
+
+        internal BoundExpression _invocation;
+        internal BoundDeconstructValuePlaceholder _inputPlaceholder;
+        internal ImmutableArray<BoundDeconstructValuePlaceholder> _outputPlaceholders;
     }
 }

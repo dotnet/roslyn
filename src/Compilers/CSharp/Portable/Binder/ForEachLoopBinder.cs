@@ -170,14 +170,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, inferredType ?? CreateErrorType("var"));
             DeclarationExpressionSyntax declaration = null;
             ExpressionSyntax expression = null;
-            BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
-                                                                    variables,
-                                                                    variables,
-                                                                    right: null,
-                                                                    diagnostics: diagnostics,
-                                                                    rightPlaceholder: valuePlaceholder,
-                                                                    declaration: ref declaration,
-                                                                    expression: ref expression);
+            BoundAssignmentOperator deconstruction = BindDeconstruction(
+                                                        variables,
+                                                        variables,
+                                                        right: _syntax.Expression,
+                                                        diagnostics: diagnostics,
+                                                        rightPlaceholder: valuePlaceholder,
+                                                        declaration: ref declaration,
+                                                        expression: ref expression);
 
             return new BoundExpressionStatement(_syntax, deconstruction);
         }
@@ -243,10 +243,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
                             DeclarationExpressionSyntax declaration = null;
                             ExpressionSyntax expression = null;
-                            BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
+                            BoundAssignmentOperator deconstruction = BindDeconstruction(
                                                                                     variables,
                                                                                     variables,
-                                                                                    right: null,
+                                                                                    right: _syntax.Expression,
                                                                                     diagnostics: diagnostics,
                                                                                     rightPlaceholder: valuePlaceholder,
                                                                                     declaration: ref declaration,
