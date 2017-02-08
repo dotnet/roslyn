@@ -886,44 +886,57 @@ namespace Microsoft.CodeAnalysis
             return str == null || str.IsValidUnicodeString();
         }
 
-        internal static void ValidateAssemblyOrModuleName(string name, string argumentName)
+        internal static bool IsValidAssemblyOrModuleName(string name)
         {
-            var e = CheckAssemblyOrModuleName(name, argumentName);
-            if (e != null)
+            return GetAssemblyOrModuleNameErrorArgumentResourceName(name) == null;
+        }
+
+        internal static void CheckAssemblyOrModuleName(string name, CommonMessageProvider messageProvider, int code, DiagnosticBag diagnostics)
+        {
+            string errorArgumentResourceId = GetAssemblyOrModuleNameErrorArgumentResourceName(name);
+            if (errorArgumentResourceId != null)
             {
-                throw e;
+                diagnostics.Add(
+                    messageProvider.CreateDiagnostic(code, Location.None, 
+                        new CodeAnalysisResourcesLocalizableErrorArgument(errorArgumentResourceId)));
             }
         }
 
-        internal static bool IsValidAssemblyOrModuleName(string name)
+        internal static void CheckAssemblyOrModuleName(string name, CommonMessageProvider messageProvider, int code, ArrayBuilder<Diagnostic> builder)
         {
-            return CheckAssemblyOrModuleName(name, argumentName: null) == null;
+            string errorArgumentResourceId = GetAssemblyOrModuleNameErrorArgumentResourceName(name);
+            if (errorArgumentResourceId != null)
+            {
+                builder.Add(
+                    messageProvider.CreateDiagnostic(code, Location.None,
+                        new CodeAnalysisResourcesLocalizableErrorArgument(errorArgumentResourceId)));
+            }
         }
 
-        internal static Exception CheckAssemblyOrModuleName(string name, string argumentName)
+        private static string GetAssemblyOrModuleNameErrorArgumentResourceName(string name)
         {
             if (name == null)
             {
-                return new ArgumentNullException(argumentName);
+                return nameof(CodeAnalysisResources.NameCannotBeNull);
             }
 
             // Dev11 VB can produce assembly with no name (vbc /out:".dll" /target:library). 
             // We disallow it. PEVerify reports an error: Assembly has no name.
             if (name.Length == 0)
             {
-                return new ArgumentException(CodeAnalysisResources.NameCannotBeEmpty, argumentName);
+                return nameof(CodeAnalysisResources.NameCannotBeEmpty);
             }
 
             // Dev11 VB can produce assembly that starts with whitespace (vbc /out:" a.dll" /target:library). 
             // We disallow it. PEVerify reports an error: Assembly name contains leading spaces.
             if (char.IsWhiteSpace(name[0]))
             {
-                return new ArgumentException(CodeAnalysisResources.NameCannotStartWithWhitespace, argumentName);
+                return nameof(CodeAnalysisResources.NameCannotStartWithWhitespace);
             }
 
             if (!IsValidMetadataFileName(name))
             {
-                return new ArgumentException(CodeAnalysisResources.NameContainsInvalidCharacter, argumentName);
+                return nameof(CodeAnalysisResources.NameContainsInvalidCharacter);
             }
 
             return null;

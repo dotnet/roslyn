@@ -16,11 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
 {
     public partial class GenerateTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                null, new GenerateTypeCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new GenerateTypeCodeFixProvider());
 
         protected override IList<CodeAction> MassageActions(IList<CodeAction> codeActions)
             => FlattenActions(codeActions);
@@ -264,6 +261,56 @@ index: 1);
     {
         public Foo()
         {
+        }
+    }
+}",
+index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateClassWithCtorFromObjectCreationWithTuple()
+        {
+            await TestAsync(
+@"class Class
+{
+    var f = new [|Generated|]((1, 2));
+}",
+@"class Class
+{
+    var f = new Generated((1, 2));
+
+    private class Generated
+    {
+        private (int, int) p;
+
+        public Generated((int, int) p)
+        {
+            this.p = p;
+        }
+    }
+}",
+index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateClassWithCtorFromObjectCreationWithTupleWithNames()
+        {
+            await TestAsync(
+@"class Class
+{
+    var f = new [|Generated|]((a: 1, b: 2, 3));
+}",
+@"class Class
+{
+    var f = new Generated((a: 1, b: 2, 3));
+
+    private class Generated
+    {
+        private (int a, int b, int) p;
+
+        public Generated((int a, int b, int) p)
+        {
+            this.p = p;
         }
     }
 }",
@@ -4752,11 +4799,8 @@ index: 2);
 
     public partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new GenerateTypeCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new GenerateTypeCodeFixProvider());
 
         protected override IList<CodeAction> MassageActions(IList<CodeAction> codeActions)
             => FlattenActions(codeActions);

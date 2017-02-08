@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -10,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,11 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateVar
 {
     public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                null, new GenerateVariableCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new GenerateVariableCodeFixProvider());
 
         private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
 
@@ -214,7 +209,7 @@ index: 2);
         [|foo|] = 1;
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "foo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -273,7 +268,7 @@ index: 1);
         Method(ref [|foo|]);
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -309,7 +304,7 @@ new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), 
         Method(out [|foo|]);
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -1871,7 +1866,7 @@ compareTokens: false);
         [|p|]++;
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "p", "Program"), string.Format(FeaturesResources.Generate_property_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_local_0, "p") });
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_property_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_local_0, "p") });
 
             await TestAsync(
 @"class Program
@@ -4297,8 +4292,7 @@ index: 2);
         int undefined = 1;
     }
 }",
-index: 2,
-options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
+index: 2);
         }
 
         [WorkItem(545273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]

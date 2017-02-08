@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal static class DkmUtilities
     {
-        private static readonly Guid s_symUnmanagedReaderClassId = Guid.Parse("B4CE6286-2A6B-3712-A3B7-1EE1DAD467B5");
-
         internal unsafe delegate IntPtr GetMetadataBytesPtrFunction(AssemblyIdentity assemblyIdentity, out uint uSize);
 
         // Return the set of managed module instances from the AppDomain.
@@ -146,7 +144,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static object GetSymReader(this DkmClrModuleInstance clrModule)
         {
             var module = clrModule.Module; // Null if there are no symbols.
-            return (module == null) ? null : module.GetSymbolInterface(s_symUnmanagedReaderClassId);
+            if (module == null)
+            {
+                return null;
+            }
+            // Use DkmClrModuleInstance.GetSymUnmanagedReader()
+            // rather than DkmModule.GetSymbolInterface() since the
+            // latter does not handle .NET Native modules.
+            return clrModule.GetSymUnmanagedReader();
         }
 
         internal static DkmCompiledClrInspectionQuery ToQueryResult(

@@ -35,6 +35,7 @@ Supported Platforms:
     <file src="Exes\csc\csc.exe.config"  target="tools" />
     <file src="Exes\csc\csc.rsp"  target="tools" />
     <file src="Exes\csi\csi.exe"  target="tools" />
+    <file src="Exes\csi\csi.exe.config"  target="tools" />
     <file src="Exes\csi\csi.rsp"  target="tools" />
     <file src="Exes\vbc\vbc.exe"  target="tools" />
     <file src="Exes\vbc\vbc.exe.config"  target="tools" />
@@ -60,7 +61,6 @@ Supported Platforms:
     <file src="Exes\Toolset\System.IO.FileSystem.Primitives.dll" target="tools" />
     <file src="Exes\Toolset\System.IO.Pipes.dll" target="tools" />
     <file src="Exes\Toolset\System.Reflection.Metadata.dll" target="tools" />
-    <file src="Exes\Toolset\System.Runtime.InteropServices.RuntimeInformation.dll" target="tools" />
     <file src="Exes\Toolset\System.Security.AccessControl.dll" target="tools" />
     <file src="Exes\Toolset\System.Security.Claims.dll" target="tools" />
     <file src="Exes\Toolset\System.Security.Cryptography.Algorithms.dll" target="tools" />

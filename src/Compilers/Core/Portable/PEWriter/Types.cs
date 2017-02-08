@@ -381,19 +381,6 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
-    /// This interface models the metadata representation of a managed pointer.
-    /// Remark: This should be only used in attributes. For other objects like Local variables etc
-    /// there is explicit IsReference field that should be used.
-    /// </summary>
-    internal interface IManagedPointerTypeReference : ITypeReference
-    {
-        /// <summary>
-        /// The type of value stored at the target memory location.
-        /// </summary>
-        ITypeReference GetTargetType(EmitContext context);
-    }
-
-    /// <summary>
     /// A type ref with attributes attached directly to the type reference
     /// itself. Unlike <see cref="IReference.GetAttributes(EmitContext)"/> a
     /// <see cref="TypeReferenceWithAttributes"/> will never provide attributes
@@ -605,7 +592,7 @@ namespace Microsoft.Cci
         /// Unless the value of TypeCode is PrimitiveTypeCode.NotPrimitive, the type corresponds to a "primitive" CLR type (such as System.Int32) and
         /// the type code identifies which of the primitive types it corresponds to.
         /// </summary>
-        PrimitiveTypeCode TypeCode(EmitContext context);
+        PrimitiveTypeCode TypeCode { get; }
 
         /// <summary>
         /// TypeDefs defined in modules linked to the assembly being emitted are listed in the ExportedTypes table.

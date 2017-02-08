@@ -14,12 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
     public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpAsAndNullCheckDiagnosticAnalyzer(),
-                new CSharpAsAndNullCheckCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpAsAndNullCheckDiagnosticAnalyzer(), new CSharpAsAndNullCheckCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task InlineTypeCheck1()
@@ -431,5 +427,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     }
 }");
         }
+
+        [WorkItem(15957, "https://github.com/dotnet/roslyn/issues/15957")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestTrivia1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(object y)
+    {
+        if (y != null)
+        {
+        }
+
+        [|var|] x = o as string;
+        if (x != null)
+        {
+        }
     }
+}",
+@"class C
+{
+    void M(object y)
+    {
+        if (y != null)
+        {
+        }
+
+        if (o is string x)
+        {
+        }
+    }
+}", compareTokens: false);
+        }
+        }
 }

@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression;
@@ -14,12 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
 {
     public class UseCoalesceExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpUseCoalesceExpressionDiagnosticAnalyzer(),
-                new UseCoalesceExpressionCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpUseCoalesceExpressionDiagnosticAnalyzer(), new UseCoalesceExpressionCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnLeft_Equals()
@@ -309,6 +304,35 @@ class C
         var w = x ?? y ?? z;
     }
 }");
+        }
+
+        [WorkItem(16025, "https://github.com/dotnet/roslyn/issues/16025")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestTrivia1()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    public Program()
+    {
+        string x = "";
+
+        string y = [|x|] == null ? string.Empty : x;
+    }
+}",
+@"using System;
+
+class Program
+{
+    public Program()
+    {
+        string x = "";
+
+        string y = x ?? string.Empty;
+    }
+}", compareTokens: false);
         }
     }
 }

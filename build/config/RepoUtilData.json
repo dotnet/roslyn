@@ -1,19 +1,9 @@
 ﻿{
   "fixedPackages": {
-    "Microsoft.VisualStudio.Language.Intellisense": "14.3.25407",
-    "Microsoft.VSSDK.BuildTools": [ "14.3.25420", "15.0.25929-RC2" ],
+    "Microsoft.VSSDK.BuildTools": [ "14.3.25420" ],
     "Newtonsoft.Json": "9.0.1",
     "System.Reflection.Metadata": "1.0.21",
     "System.Collections.Immutable": "1.1.36",
-    "Microsoft.VisualStudio.CoreUtility": [ "14.3.25407", "15.0.25726-Preview5" ],
-    "Microsoft.VisualStudio.Editor": [ "14.3.25407", "15.0.25726-Preview5" ],
-    "Microsoft.VisualStudio.Imaging": [ "14.3.25407", "15.0.25726-Preview5" ],
-    "Microsoft.VisualStudio.ImageCatalog": [ "14.3.25407", "15.0.25726-Preview5" ],
-    "Microsoft.VisualStudio.Shell.Immutable.10.0": "10.0.30319",
-    "Microsoft.VisualStudio.Text.UI.Wpf": [ "14.3.25407", "15.0.25726-Preview5" ],
-    "Microsoft.VisualStudio.Text.Logic": [ "14.3.25407", "15.0.25726-Preview5" ],
-    "Microsoft.VisualStudio.Text.Data": [ "14.3.25407", "15.0.25726-Preview5" ],
-    "Microsoft.VisualStudio.Text.UI": "14.3.25407",
     "Microsoft.Build": {
       "generateName": "Microsoft.Build.14",
       "version": "14.3.0"
@@ -38,6 +28,10 @@
         "Microsoft.VisualBasic",
         "Microsoft.Composition",
         "Microsoft.CSharp",
+        "Microsoft.VisualStudio.Debugger.Engine",
+        "Microsoft.VisualStudio.Debugger.Metadata",
+        "Microsoft.VisualStudio.InteractiveWindow",
+        "Microsoft.VisualStudio.VsInteractiveWindow",
         "MicroBuild.*",
         "ManagedEsent",
         "Microsoft.CodeAnalysis.Elfie",
@@ -45,7 +39,8 @@
         "RoslynTools.*",
         "^Microsoft.?Build.*",
         "GitLink",
-        "Microsoft.NETCore.Runtime.CoreCLR"
+        "Microsoft.NETCore.Runtime.CoreCLR",
+        "Microsoft.VSSDK.BuildTools"
       ]
     }
   },

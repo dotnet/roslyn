@@ -142,32 +142,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         ''' <summary>
-        ''' Look up the assembly to which the given metadata type Is forwarded.
+        ''' Look up the assemblies to which the given metadata type Is forwarded.
         ''' </summary>
         ''' <param name="emittedName"></param>
         ''' <param name="ignoreCase">Pass true to look up fullName case-insensitively.  WARNING: more expensive.</param>
         ''' <param name="matchedName">Returns the actual casing of the matching name.</param>
         ''' <returns>
-        ''' The assembly to which the given type Is forwarded Or null, if there isn't one.
+        ''' The assemblies to which the given type Is forwarded Or null, if there isn't one.
         ''' </returns>
         ''' <remarks>
-        ''' The returned assembly may also forward the type.
+        ''' The returned assemblies may also forward the type.
         ''' </remarks>
-        Friend Function LookupAssemblyForForwardedMetadataType(ByRef emittedName As MetadataTypeName, ignoreCase As Boolean, <Out> ByRef matchedName As String) As AssemblySymbol
-            ' Look in the type forwarders of the primary module of this assembly, clr does not honor type forwarder
+        Friend Function LookupAssembliesForForwardedMetadataType(ByRef emittedName As MetadataTypeName, ignoreCase As Boolean, <Out> ByRef matchedName As String) As (FirstSymbol As AssemblySymbol, SecondSymbol As AssemblySymbol)
+            ' Look in the type forwarders of the primary module of this assembly, clr does not honor type forwarder		
             ' in non-primary modules.
 
             ' Examine the type forwarders, but only from the primary module.
-            Return PrimaryModule.GetAssemblyForForwardedType(emittedName, ignoreCase, matchedName)
+            Return PrimaryModule.GetAssembliesForForwardedType(emittedName, ignoreCase, matchedName)
         End Function
 
         Friend Overrides Function TryLookupForwardedMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), ignoreCase As Boolean) As NamedTypeSymbol
             ' Check if it is a forwarded type.
             Dim matchedName As String = Nothing
-            Dim forwardedToAssembly = LookupAssemblyForForwardedMetadataType(emittedName, ignoreCase, matchedName)
-            ' Don't bother to check the forwarded-to assembly if we've already seen it.
-            If forwardedToAssembly IsNot Nothing Then
-                If visitedAssemblies IsNot Nothing AndAlso visitedAssemblies.Contains(forwardedToAssembly) Then
+            Dim forwardedToAssemblies = LookupAssembliesForForwardedMetadataType(emittedName, ignoreCase, matchedName)
+
+            If forwardedToAssemblies.FirstSymbol IsNot Nothing Then
+                If forwardedToAssemblies.SecondSymbol IsNot Nothing Then
+                    ' Report the main module as that is the only one checked. clr does not honor type forwarders in non-primary modules.
+                    Return CreateMultipleForwardingErrorTypeSymbol(emittedName, PrimaryModule, forwardedToAssemblies.FirstSymbol, forwardedToAssemblies.SecondSymbol)
+                End If
+
+                ' Don't bother to check the forwarded-to assembly if we've already seen it.
+                If visitedAssemblies IsNot Nothing AndAlso visitedAssemblies.Contains(forwardedToAssemblies.FirstSymbol) Then
                     Return CreateCycleInTypeForwarderErrorTypeSymbol(emittedName)
                 Else
                     visitedAssemblies = New ConsList(Of AssemblySymbol)(Me, If(visitedAssemblies, ConsList(Of AssemblySymbol).Empty))
@@ -176,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         emittedName = MetadataTypeName.FromFullName(matchedName, emittedName.UseCLSCompliantNameArityEncoding, emittedName.ForcedArity)
                     End If
 
-                    Return forwardedToAssembly.LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, digThroughForwardedTypes:=True)
+                    Return forwardedToAssemblies.FirstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, digThroughForwardedTypes:=True)
                 End If
             End If
 

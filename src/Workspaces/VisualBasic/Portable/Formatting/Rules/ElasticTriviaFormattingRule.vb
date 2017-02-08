@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' see whether first non whitespace trivia after previous member is comment or not
             Dim list = token1.TrailingTrivia.Concat(token2.LeadingTrivia)
 
-            Dim firstNonWhitespaceTrivia = list.FirstOrDefault(Function(t) Not t.IsWhitespace())
+            Dim firstNonWhitespaceTrivia = list.FirstOrDefault(Function(t) Not t.IsWhitespaceOrEndOfLine())
             If firstNonWhitespaceTrivia.IsKind(SyntaxKind.CommentTrivia, SyntaxKind.DocumentationCommentTrivia) Then
                 Dim totalLines = GetNumberOfLines(list)
                 Dim blankLines = GetNumberOfLines(list.TakeWhile(Function(t) t <> firstNonWhitespaceTrivia))

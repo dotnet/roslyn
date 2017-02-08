@@ -17,7 +17,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum1.Fizz
-        Select Case {|FixAllInDocument:e|}
+        {|FixAllInDocument:|}Select Case e
             Case MyEnum1.Fizz
                 Exit Select
             Case MyEnum1.Buzz
@@ -182,7 +182,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum1.Fizz
-        Select Case {|FixAllInProject:e|}
+        {|FixAllInProject:|}Select Case e
             Case MyEnum1.Fizz
                 Exit Select
             Case MyEnum1.Buzz
@@ -329,7 +329,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum1.Fizz
-        Select Case {|FixAllInSolution:e|}
+        {|FixAllInSolution:|}Select Case e
             Case MyEnum1.Fizz
                 Exit Select
             Case MyEnum1.Buzz

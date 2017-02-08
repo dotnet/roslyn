@@ -1144,10 +1144,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            foreach (var statement in node.Statements)
+            VisitStatements(node.Statements);
+            return null;
+        }
+
+        private void VisitStatements(ImmutableArray<BoundStatement> statements)
+        {
+            foreach (var statement in statements)
             {
                 VisitStatement(statement);
             }
+        }
+
+        public override BoundNode VisitScope(BoundScope node)
+        {
+            VisitStatements(node.Statements);
             return null;
         }
 
@@ -1664,11 +1675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
-            foreach (BoundExpression variable in node.LeftVariables)
-            {
-                VisitLvalue(variable);
-            }
-
+            node.Left.VisitAllElements((x, self) => self.VisitLvalue(x), this);
             VisitRvalue(node.Right);
 
             return null;
@@ -2122,7 +2129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.Expression);
             var breakState = this.State.Clone();
             LoopHead(node);
-            VisitForEachIterationVariable(node);
+            VisitForEachIterationVariables(node);
             VisitStatement(node.Body);
             ResolveContinues(node.ContinueLabel);
             LoopTail(node);
@@ -2130,7 +2137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public virtual void VisitForEachIterationVariable(BoundForEachStatement node)
+        public virtual void VisitForEachIterationVariables(BoundForEachStatement node)
         {
         }
 

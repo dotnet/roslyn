@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -15,6 +16,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
+    using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     internal partial class ServiceHubRemoteHostClient : RemoteHostClient
@@ -46,14 +48,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // Create a workspace host to hear about workspace changes.  We'll 
                 // remote those changes over to the remote side when they happen.
-                RegisterWorkspaceHost(workspace, instance);
+                await RegisterWorkspaceHostAsync(workspace, instance).ConfigureAwait(false);
 
                 // return instance
                 return instance;
             }
         }
 
-        private static void RegisterWorkspaceHost(Workspace workspace, RemoteHostClient client)
+        private static async Task RegisterWorkspaceHostAsync(Workspace workspace, RemoteHostClient client)
         {
             var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (vsWorkspace == null)
@@ -61,8 +63,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return;
             }
 
-            vsWorkspace.ProjectTracker.RegisterWorkspaceHost(
-                new WorkspaceHost(vsWorkspace, client));
+            // don't block UI thread while initialize workspace host
+            var host = new WorkspaceHost(vsWorkspace, client);
+            await host.InitializeAsync().ConfigureAwait(false);
+
+            // RegisterWorkspaceHost is required to be called from UI thread so push the code
+            // to UI thread to run. 
+            await Task.Factory.SafeStartNew(() =>
+            {
+                vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider).RegisterWorkspaceHost(host);
+            }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
         }
 
         private ServiceHubRemoteHostClient(
@@ -121,6 +131,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 {
                     var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
                     return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    // if it is our own cancellation token, then rethrow
+                    // otherwise, let us retry.
+                    //
+                    // we do this since HubClient itself can throw its own cancellation token
+                    // when it couldn't connect to service hub service for some reasons
+                    // (ex, OOP process GC blocked and not responding to request)
+                    cancellationToken.ThrowIfCancellationRequested();
                 }
                 catch (RemoteInvocationException ex)
                 {

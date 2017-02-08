@@ -176,6 +176,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? null : AddByNull((DecisionTree)byType, makeDecision);
             }
 
+            if ((object)value.Value.Type == null)
+            {
+                return null;
+            }
+
             foreach (var kvp in byType.TypeAndDecision)
             {
                 var matchedType = kvp.Key;

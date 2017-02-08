@@ -110,7 +110,6 @@ Public Class BuildDevDivInsertionFiles
         "System.IO.FileSystem.DriveInfo.dll",
         "System.IO.FileSystem.Primitives.dll",
         "System.IO.Pipes.dll",
-        "System.Runtime.InteropServices.RuntimeInformation.dll",
         "System.Security.AccessControl.dll",
         "System.Security.Claims.dll",
         "System.Security.Cryptography.Algorithms.dll",
@@ -121,6 +120,7 @@ Public Class BuildDevDivInsertionFiles
         "System.Text.Encoding.CodePages.dll",
         "System.Threading.Thread.dll",
         "System.ValueTuple.dll",
+        "System.Xml.ReaderWriter.dll",
         "System.Xml.XmlDocument.dll",
         "System.Xml.XPath.dll",
         "System.Xml.XPath.XDocument.dll",
@@ -174,6 +174,7 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.CodeAnalysis.Workspaces.dll",
         "Microsoft.Diagnostics.Runtime.dll",
         "Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll",
+        "Microsoft.VisualStudio.IntegrationTest.Setup.vsix",
         "Microsoft.VisualStudio.LanguageServices.CSharp.dll",
         "Microsoft.VisualStudio.LanguageServices.dll",
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
@@ -183,8 +184,7 @@ Public Class BuildDevDivInsertionFiles
         "Roslyn.Hosting.Diagnostics.dll",
         "Roslyn.Services.Test.Utilities.dll",
         "Roslyn.Test.PdbUtilities.dll",
-        "Roslyn.Test.Utilities.dll",
-        "Roslyn.VisualStudio.Test.Setup.vsix"
+        "Roslyn.Test.Utilities.dll"
     }
 
     ' Files needed by Mad dog tests that are produced by our internal builds.
@@ -341,7 +341,6 @@ Public Class BuildDevDivInsertionFiles
         "Roslyn.Test.PdbUtilities.dll",
         "Roslyn.Test.Utilities.Desktop.dll",
         "Roslyn.Test.Utilities.dll",
-        "Roslyn.Test.Utilities.FX45.dll",
         "vbc.exe",
         "vbc.exe.config",
         "vbc.rsp",
@@ -848,7 +847,6 @@ Public Class BuildDevDivInsertionFiles
         add("Dlls\PdbUtilities\Roslyn.Test.PdbUtilities.dll")
         add("Dlls\TestUtilities.Desktop\Roslyn.Test.Utilities.Desktop.dll")
         add("Dlls\TestUtilities\Roslyn.Test.Utilities.dll")
-        add("Dlls\TestUtilities.FX45\Roslyn.Test.Utilities.FX45.dll")
         add("UnitTests\EditorServicesTest\BasicUndo.dll")
         add("UnitTests\EditorServicesTest\Esent.Interop.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
@@ -858,8 +856,8 @@ Public Class BuildDevDivInsertionFiles
         add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Native.x86.dll")
         add("UnitTests\EditorServicesTest\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll")
         add("Dlls\Concord\Microsoft.VisualStudio.Debugger.Engine.dll")
-        add("Vsix\VisualStudioTestSetup\Microsoft.Diagnostics.Runtime.dll")
-        add("Vsix\VisualStudioTestSetup\Roslyn.VisualStudio.Test.Setup.vsix")
+        add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
+        add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
         add("Vsix\CompilerExtension\System.Collections.Immutable.dll")
         add("Vsix\CompilerExtension\System.Reflection.Metadata.dll")
         add("Vsix\CompilerExtension\System.Diagnostics.FileVersionInfo.dll")
@@ -868,7 +866,6 @@ Public Class BuildDevDivInsertionFiles
         add("Vsix\CompilerExtension\System.IO.FileSystem.DriveInfo.dll")
         add("Vsix\CompilerExtension\System.IO.FileSystem.Primitives.dll")
         add("Vsix\CompilerExtension\System.IO.Pipes.dll")
-        add("Vsix\CompilerExtension\System.Runtime.InteropServices.RuntimeInformation.dll")
         add("Vsix\CompilerExtension\System.Security.AccessControl.dll")
         add("Vsix\CompilerExtension\System.Security.Claims.dll")
         add("Vsix\CompilerExtension\System.Security.Cryptography.Algorithms.dll")
@@ -878,6 +875,7 @@ Public Class BuildDevDivInsertionFiles
         add("Vsix\CompilerExtension\System.Security.Principal.Windows.dll")
         add("Vsix\CompilerExtension\System.Text.Encoding.CodePages.dll")
         add("Vsix\CompilerExtension\System.Threading.Thread.dll")
+        add("Vsix\CompilerExtension\System.Xml.ReaderWriter.dll")
         add("Vsix\CompilerExtension\System.Xml.XmlDocument.dll")
         add("Vsix\CompilerExtension\System.Xml.XPath.dll")
         add("Vsix\CompilerExtension\System.Xml.XPath.XDocument.dll")

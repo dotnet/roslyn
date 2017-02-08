@@ -88,7 +88,20 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // the entire local declaration statement.  Note that comments belonging to
                 // this local statement will be moved to be above the statement containing
                 // the out-var. 
-                editor.RemoveNode(declaration.Parent);
+                var localDeclarationStatement = (LocalDeclarationStatementSyntax)declaration.Parent;
+                var block = (BlockSyntax)localDeclarationStatement.Parent;
+                var declarationIndex = block.Statements.IndexOf(localDeclarationStatement);
+
+                // Comments on the local declaration will move to the next statement.  Format it
+                // so that it the comments show up properly.
+                editor.ReplaceNode(
+                    block.Statements[declarationIndex + 1],
+                    (s, g) => s.WithAdditionalAnnotations(Formatter.Annotation));
+
+                var removeOptions = localDeclarationStatement.GetTrailingTrivia().Any(t => t.IsRegularComment())
+                    ? SyntaxRemoveOptions.KeepLeadingTrivia | SyntaxRemoveOptions.KeepTrailingTrivia
+                    : SyntaxRemoveOptions.KeepLeadingTrivia;
+                editor.RemoveNode(localDeclarationStatement, removeOptions);
             }
             else
             {
@@ -150,22 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             editor.ReplaceNode(identifier, declarationExpression);
-
-            if (declaration.Variables.Count == 1)
-            {
-                // If we're removing the declaration entirely, move the leading/trailing comments it 
-                // had to sit above the statement containing the out-var declaration.
-                var comments = declaration.Parent.GetLeadingTrivia().Concat(declaration.Parent.GetTrailingTrivia())
-                                                                    .Where(t => t.IsSingleOrMultiLineComment())
-                                                                    .SelectMany(t => ImmutableArray.Create(t, SyntaxFactory.ElasticCarriageReturnLineFeed))
-                                                                    .ToImmutableArray();
-                if (comments.Length > 0)
-                {
-                    editor.ReplaceNode(
-                        outArgumentContainingStatement,
-                        (s, g) => s.WithPrependedLeadingTrivia(comments).WithAdditionalAnnotations(Formatter.Annotation));
-                }
-            }
         }
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(

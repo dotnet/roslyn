@@ -7,13 +7,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class LanguageParser : SyntaxParser
     {
-        // Priority is the TypeSyntax. It might return TypeSyntax which might be a constant pattern such as enum 'Days.Sunday' 
-        // We handle such cases in the binder of is operator.
-        // It is used for parsing patterns in the is operators.
-        private CSharpSyntaxNode ParseTypeOrPattern()
+        /// <summary>
+        /// Parses the type, or pattern, right-hand operand of an is expression.
+        /// Priority is the TypeSyntax. It may return a TypeSyntax which turns out in binding to
+        /// be a constant pattern such as enum 'Days.Sunday'. We handle such cases in the binder of the is operator.
+        /// </summary>
+        private CSharpSyntaxNode ParseTypeOrPatternForIsOperator()
         {
             var tk = this.CurrentToken.Kind;
-            CSharpSyntaxNode node = null;
+            Precedence precedence = GetPrecedence(SyntaxKind.IsPatternExpression);
 
             switch (tk)
             {
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.SemicolonToken:
                 case SyntaxKind.CommaToken:
                     // HACK: for error recovery, we prefer a (missing) type.
-                    return this.ParseType(ParseTypeMode.AfterIsOrCase);
+                    return this.ParseType(ParseTypeMode.AfterIs);
                 default:
                     // attempt to disambiguate.
                     break;
@@ -37,69 +39,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var resetPoint = this.GetResetPoint();
                 try
                 {
-                    TypeSyntax type = this.ParseType(ParseTypeMode.AfterIsOrCase);
+                    TypeSyntax type = this.ParseType(ParseTypeMode.AfterIs);
+
+                    if (!type.IsMissing && this.IsTrueIdentifier())
+                    {
+                        var designation = ParseSimpleDesignation();
+                        return _syntaxFactory.DeclarationPattern(type, designation);
+                    }
 
                     tk = this.CurrentToken.ContextualKind;
-                    if (!type.IsMissing)
+                    if ((!IsExpectedBinaryOperator(tk) || GetPrecedence(SyntaxFacts.GetBinaryExpression(tk)) <= precedence) &&
+                        // member selection is not formally a binary operator but has higher precedence than relational
+                        tk != SyntaxKind.DotToken) 
                     {
-                        if (this.IsTrueIdentifier())
-                        {
-                            var designation = ParseSimpleDesignation();
-                            node = _syntaxFactory.DeclarationPattern(type, designation);
-                        }
+                        // it is a typical "is Type" operator.
+                        // Note that we don't bother checking for primary expressions such as X[e], X(e), X++, and X--
+                        // as those are never semantically valid constant expressions for a pattern
+                        return type;
                     }
 
-                    if (node == null)
-                    {
-                        Debug.Assert(Precedence.Shift == Precedence.Relational + 1);
-                        if ((IsExpectedBinaryOperator(tk) && GetPrecedence(SyntaxFacts.GetBinaryExpression(tk)) > Precedence.Relational) ||
-                            tk == SyntaxKind.DotToken) // member selection is not formally a binary operator but has higher precedence than relational
-                        {
-                            this.Reset(ref resetPoint);
-                            // We parse a shift-expression ONLY (nothing looser) - i.e. not a relational expression
-                            // So x is y < z should be parsed as (x is y) < z
-                            // But x is y << z should be parsed as x is (y << z)
-                            node = _syntaxFactory.ConstantPattern(this.ParseSubExpression(Precedence.Shift));
-                        }
-                        // it is a typical "is Type" operator
-                        else
-                        {
-                            // Note that we don't bother checking for primary expressions such as X[e], X(e), X++, and X--
-                            // as those are never semantically valid constant expressions for a pattern
-                            node = type;
-                        }
-                    }
+                    this.Reset(ref resetPoint);
                 }
                 finally
                 {
                     this.Release(ref resetPoint);
                 }
             }
-            else
-            {
-                // In places where a pattern is supported, we do not support tuple types
-                // due to both syntactic and semantic ambiguities between tuple types and positional patterns.
 
-                // But it still might be a pattern such as (operand is 3) or (operand is nameof(x))
-                node = _syntaxFactory.ConstantPattern(this.ParseExpressionCore());
-            }
+            // We parse a shift-expression ONLY (nothing looser) - i.e. not a relational expression
+            // So x is y < z should be parsed as (x is y) < z
+            // But x is y << z should be parsed as x is (y << z)
+            Debug.Assert(Precedence.Shift == precedence + 1);
 
-            return node;
-        }
-
-        // This method is used when we always want a pattern as a result.
-        // For instance, it is used in parsing recursivepattern and propertypattern.
-        // SubPatterns in these (recursivepattern, propertypattern) must be a type of Pattern.
-        private PatternSyntax ParsePattern()
-        {
-            var node = this.ParseExpressionOrPattern(whenIsKeyword: false);
-            if (node is PatternSyntax)
-            {
-                return (PatternSyntax)node;
-            }
-
-            Debug.Assert(node is ExpressionSyntax);
-            return _syntaxFactory.ConstantPattern((ExpressionSyntax)node);
+            // In places where a pattern is supported, we do not support tuple types
+            // due to both syntactic and semantic ambiguities between tuple types and positional patterns.
+            // But it still might be a pattern such as (operand is 3) or (operand is nameof(x))
+            return _syntaxFactory.ConstantPattern(this.ParseSubExpressionCore(precedence));
         }
 
         //
@@ -152,18 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 bool typeIsVar = IsVarType();
                 SyntaxToken lastTokenOfType;
-                switch (ScanType(out lastTokenOfType))
+                if (ScanType(mode, out lastTokenOfType) == ScanTypeFlags.NotType)
                 {
-                    case ScanTypeFlags.PointerOrMultiplication:
-                        if (mode == ParseTypeMode.FirstElementOfPossibleTupleLiteral || mode == ParseTypeMode.AfterTupleComma)
-                        {
-                            // Tuples cannot contain pointer types because pointers may not be generic type arguments.
-                            return false;
-                        }
-                        break;
-
-                    case ScanTypeFlags.NotType:
-                        return false;
+                    return false;
                 }
 
                 // check for a designation
@@ -172,7 +138,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return false;
                 }
 
-                return mode != ParseTypeMode.FirstElementOfPossibleTupleLiteral || this.CurrentToken.Kind == SyntaxKind.CommaToken;
+                switch (mode)
+                {
+                    case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
+                        return this.CurrentToken.Kind == SyntaxKind.CommaToken;
+                    case ParseTypeMode.AfterTupleComma:
+                        return this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.CloseParenToken;
+                    default:
+                        // The other case where we disambiguate between a declaration and expression is before the `in` of a foreach loop.
+                        // There we err on the side of accepting a declaration.
+                        return true;
+                }
             }
             finally
             {
@@ -247,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // Priority is the ExpressionSyntax. It might return ExpressionSyntax which might be a constant pattern such as 'case 3:' 
         // All constant expressions are converted to the constant pattern in the switch binder if it is a match statement.
         // It is used for parsing patterns in the switch cases. It never returns constant pattern!
-        private CSharpSyntaxNode ParseExpressionOrPattern(bool whenIsKeyword)
+        private CSharpSyntaxNode ParseExpressionOrPatternForCase()
         {
             var tk = this.CurrentToken.Kind;
             CSharpSyntaxNode node = null;
@@ -259,11 +235,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var resetPoint = this.GetResetPoint();
                 try
                 {
-                    TypeSyntax type = this.ParseType(ParseTypeMode.AfterIsOrCase);
+                    TypeSyntax type = this.ParseType(ParseTypeMode.AfterCase);
                     if (!type.IsMissing)
                     {
                         // X.Y.Z id
-                        if (this.IsTrueIdentifier() && (!whenIsKeyword || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
+                        if (this.IsTrueIdentifier() && this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword)
                         {
                             var designation = ParseSimpleDesignation();
                             node = _syntaxFactory.DeclarationPattern(type, designation);

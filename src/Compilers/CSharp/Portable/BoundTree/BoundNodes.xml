@@ -392,9 +392,7 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
-    <!-- Various assignable expressions, in a flat structure (no nesting) -->
-    <Field Name="LeftVariables" Type="ImmutableArray&lt;BoundExpression&gt;" Null="disallow"/>
-
+    <Field Name="Left" Type="BoundTupleExpression"/>
     <Field Name="Right" Type="BoundExpression"/>
 
     <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionDeconstructStep&gt;" Null="disallow" SkipInVisitor="true" />
@@ -674,6 +672,18 @@
   </Node>
 
   <!--
+  This node is used to represent a visibility scope for locals, 
+  for which lifetime is extended beyond the visibility scope. 
+  At the moment, only locals declared within CasePatternSwitchLabelSyntax 
+  have their lifetime expanded to the entire switch body, whereas their 
+  visibility scope is the declaring switch section. The node is added into 
+  the tree during lowering phase.
+  -->
+  <Node Name="BoundScope" Base="BoundStatementList">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+  </Node>
+
+  <!--
   BoundStateMachineScope represents a scope within a translated iterator/async method.
   It is used to emit debugging information that allows the EE to map 
   fields to locals.
@@ -877,14 +887,14 @@
     <!-- This is so the binding API can find produce semantic info if the type is "var". -->
     <!-- If there is a deconstruction, there will be no iteration variable (but we'll still have a type for it). -->
     <Field Name="IterationVariableType" Type="BoundTypeExpression"/>
-    <Field Name="IterationVariableOpt" Type="LocalSymbol" Null="allow"/>
+    <Field Name="IterationVariables" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <!-- If this node does not have errors, then this is the foreach expression wrapped
          in a conversion to the collection type used by the foreach loop.  The conversion
          is here so that the binding API can return the correct ConvertedType in semantic 
          info.  It will be stripped off in the rewriter if it is redundant or causes extra
          boxing.  If this node has errors, then the conversion may not be present.-->
     <Field Name="Expression" Type="BoundExpression"/>
-    <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep" Null="allow" SkipInVisitor="true"/>
+    <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep" Null="allow"/>
     <Field Name="Body" Type="BoundStatement"/>
   
     <Field Name="Checked" Type="Boolean"/>

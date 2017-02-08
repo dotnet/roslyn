@@ -35,8 +35,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
                     memberOptions:
-                        SymbolDisplayMemberOptions.IncludeParameters |
+                        SymbolDisplayMemberOptions.IncludeRef |
                         SymbolDisplayMemberOptions.IncludeType |
+                        SymbolDisplayMemberOptions.IncludeParameters |
                         SymbolDisplayMemberOptions.IncludeContainingType,
                     kindOptions:
                         SymbolDisplayKindOptions.IncludeMemberKeyword,
@@ -49,7 +50,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         SymbolDisplayParameterOptions.IncludeExtensionThis |
                         SymbolDisplayParameterOptions.IncludeDefaultValue |
                         SymbolDisplayParameterOptions.IncludeOptionalBrackets,
-                    localOptions: SymbolDisplayLocalOptions.IncludeType,
+                    localOptions:
+                        SymbolDisplayLocalOptions.IncludeRef |
+                        SymbolDisplayLocalOptions.IncludeType,
                     miscellaneousOptions:
                         SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                         SymbolDisplayMiscellaneousOptions.UseSpecialTypes |

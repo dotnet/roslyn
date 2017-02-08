@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -17,6 +18,8 @@ namespace Microsoft.CodeAnalysis
         /// for scavenge operations.
         /// </summary>
         private readonly string _baseDirectory;
+
+        internal readonly Task DeleteLeftoverDirectoriesTask;
 
         /// <summary>
         /// The directory where this instance of <see cref="ShadowCopyAnalyzerAssemblyLoader"/>
@@ -41,12 +44,22 @@ namespace Microsoft.CodeAnalysis
                 _baseDirectory = Path.Combine(Path.GetTempPath(), "CodeAnalysis", "AnalyzerShadowCopies");
             }
 
-            Task.Run((Action)DeleteLeftoverDirectories);
+            DeleteLeftoverDirectoriesTask = Task.Run((Action)DeleteLeftoverDirectories);
         }
 
         private void DeleteLeftoverDirectories()
         {
-            foreach (var subDirectory in Directory.EnumerateDirectories(_baseDirectory))
+            IEnumerable<string> subDirectories;
+            try
+            {
+                subDirectories = Directory.EnumerateDirectories(_baseDirectory);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return;
+            }
+
+            foreach (var subDirectory in subDirectories)
             {
                 string name = Path.GetFileName(subDirectory).ToLowerInvariant();
                 Mutex mutex = null;

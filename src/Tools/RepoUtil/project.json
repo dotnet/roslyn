@@ -2,13 +2,12 @@
   "supports": { },
   "dependencies": {
     "Newtonsoft.Json": "8.0.3",
-    "System.Collections.Immutable": "1.3.0"
+    "System.Collections.Immutable": "1.3.1"
   },
   "frameworks": {
-    ".NETFramework,Version=v4.6": { }
+    "net46": { }
   },
   "runtimes": {
-    "win": { },
     "win7": { }
   }
 }

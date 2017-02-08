@@ -359,10 +359,10 @@ namespace Microsoft.Cci
 
             // We need to avoid emitting CDI DynamicLocals = 5 and EditAndContinueLocalSlotMap = 6 for files processed by WinMDExp until 
             // bug #1067635 is fixed and available in SDK.
-            bool suppressNewCustomDebugInfo = !compilationOptions.ExtendedCustomDebugInformation ||
-                (compilationOptions.OutputKind == OutputKind.WindowsRuntimeMetadata);
+            bool suppressNewCustomDebugInfo = compilationOptions.OutputKind == OutputKind.WindowsRuntimeMetadata;
 
-            bool emitEncInfo = compilationOptions.EnableEditAndContinue && !_metadataWriter.IsFullMetadata;
+            // delta doesn't need this information - we use information recorded by previous generation emit
+            bool emitEncInfo = compilationOptions.EnableEditAndContinue && _metadataWriter.IsFullMetadata;
 
             bool emitExternNamespaces;
             byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodToken, emitEncInfo, suppressNewCustomDebugInfo, out emitExternNamespaces);
@@ -373,7 +373,7 @@ namespace Microsoft.Cci
 
             if (emitExternNamespaces)
             {
-                this.DefineAssemblyReferenceAliases();
+                DefineAssemblyReferenceAliases();
             }
 
             CloseMethod(methodBody.IL.Length);
@@ -591,7 +591,6 @@ namespace Microsoft.Cci
         {
             Debug.Assert(!(typeReference is IArrayTypeReference));
             Debug.Assert(!(typeReference is IPointerTypeReference));
-            Debug.Assert(!(typeReference is IManagedPointerTypeReference));
             Debug.Assert(!typeReference.IsTypeSpecification());
 
             var result = PooledStringBuilder.GetInstance();

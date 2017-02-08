@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     /// 
     /// This one follows pattern compiler has set for diagnostic analyzer.
     /// </summary>
-    internal partial class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
+    internal partial class DiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
     {
         private readonly int _correlationId;
 
@@ -36,8 +37,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Workspace workspace,
             HostAnalyzerManager hostAnalyzerManager,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
-            : base(owner, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource)
         {
+            Contract.ThrowIfNull(owner);
+
+            this.Owner = owner;
+            this.Workspace = workspace;
+            this.HostAnalyzerManager = hostAnalyzerManager;
+            this.HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            this.DiagnosticLogAggregator = new DiagnosticLogAggregator(owner);
+
             _correlationId = correlationId;
 
             _stateManager = new StateManager(hostAnalyzerManager);
@@ -47,7 +55,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _compilationManager = new CompilationManager(this);
         }
 
-        public override bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
+        internal DiagnosticAnalyzerService Owner { get; }
+        internal Workspace Workspace { get; }
+        internal AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
+        internal HostAnalyzerManager HostAnalyzerManager { get; }
+        internal DiagnosticLogAggregator DiagnosticLogAggregator { get; private set; }
+
+        public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
         {
             foreach (var stateSet in _stateManager.GetStateSets(projectId))
             {
@@ -60,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return false;
         }
 
-        public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
+        public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
         {
             return e.Option.Feature == nameof(SimplificationOptions) ||
                    e.Option.Feature == nameof(CodeStyleOptions) ||
@@ -108,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             ClearAllDiagnostics(stateSets, project.Id);
         }
 
-        public override void Shutdown()
+        public void Shutdown()
         {
             var stateSets = _stateManager.GetStateSets();
 
@@ -248,13 +262,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override void LogAnalyzerCountSummary()
+        public void LogAnalyzerCountSummary()
         {
             DiagnosticAnalyzerLogger.LogAnalyzerCrashCountSummary(_correlationId, DiagnosticLogAggregator);
             DiagnosticAnalyzerLogger.LogAnalyzerTypeCountSummary(_correlationId, DiagnosticLogAggregator);
 
             // reset the log aggregator
             ResetDiagnosticLogAggregator();
+        }
+
+        private void ResetDiagnosticLogAggregator()
+        {
+            DiagnosticLogAggregator = new DiagnosticLogAggregator(Owner);
+        }
+
+        // internal for testing purposes.
+        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId)
+        {
+            return Owner.GetOnAnalyzerException(projectId, DiagnosticLogAggregator);
         }
 
         private static string GetDocumentLogMessage(string title, Document document, DiagnosticAnalyzer analyzer)

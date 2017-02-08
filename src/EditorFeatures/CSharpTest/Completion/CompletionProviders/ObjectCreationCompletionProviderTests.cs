@@ -437,5 +437,69 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "object");
         }
+
+        [WorkItem(15804, "https://github.com/dotnet/roslyn/issues/15804")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BeforeAttributeParsedAsImplicitArray()
+        {
+            var markup =
+@"class Program
+{
+    Program p = new $$ 
+
+    [STAThread]
+    static void Main() { }
+}
+";
+            await VerifyItemExistsAsync(markup, "Program");
+		}
+		
+        [WorkItem(14084, "https://github.com/dotnet/roslyn/issues/14084")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InMethodCallBeforeAssignment1()
+        {
+            var markup =
+@"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            object o;
+            string s;
+
+            Test(new $$
+            o = s;
+        }
+        static void Test(TimeSpan t, TimeSpan t2) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "TimeSpan");
+        }
+
+        [WorkItem(14084, "https://github.com/dotnet/roslyn/issues/14084")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InMethodCallBeforeAssignment2()
+        {
+            var markup =
+@"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            object o;
+            string s;
+
+            Test(new TimeSpan(), new $$
+            o = s;
+        }
+        static void Test(TimeSpan t, TimeSpan t2) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "TimeSpan");
+        }
     }
 }

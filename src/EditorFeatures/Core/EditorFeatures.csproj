@@ -1,16 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -34,12 +37,8 @@
       <Name>TextEditorFeatures</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -89,7 +88,7 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <!-- Eventually a bunch of these unit tests should move into Roslyn.Services.Implementation.UnitTests
          and this should be removed. -->
@@ -109,6 +108,9 @@
     <Compile Include="FindUsages\IFindUsagesContext.cs" />
     <Compile Include="FindUsages\IFindUsagesService.cs" />
     <Compile Include="FindUsages\SimpleFindUsagesContext.cs" />
+    <Compile Include="Implementation\InlineRename\Dashboard\DashboardAutomationPeer.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\CompletionFilterReason.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\FilterResult.cs" />
     <Compile Include="Implementation\Structure\BlockTagState.cs" />
     <Compile Include="Tags\ExportImageMonikerServiceAttribute.cs" />
     <Compile Include="Implementation\NavigateTo\AbstractNavigateToItemDisplay.cs" />
@@ -277,8 +279,8 @@
     <Compile Include="Implementation\Structure\AbstractStructureTaggerProvider.cs" />
     <Compile Include="Implementation\Preview\DifferenceViewerPreview.cs" />
     <Compile Include="Implementation\Preview\PreviewReferenceHighlightingTaggerProvider.cs" />
-    <Compile Include="Implementation\Suggestions\FixAllSuggestedAction.FixAllCodeAction.cs" />
-    <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActions\FixAllSuggestedAction.FixAllCodeAction.cs" />
+    <Compile Include="Implementation\Suggestions\FixAll\FixMultipleOccurrencesService.cs" />
     <Compile Include="GoToImplementation\GoToImplementationCommandHandler.cs" />
     <Compile Include="Implementation\TodoComment\ITodoListProvider.cs" />
     <Compile Include="Implementation\TodoComment\TodoItem.cs" />
@@ -597,14 +599,14 @@
     <Compile Include="Implementation\SmartIndent\IIndentationService.cs" />
     <Compile Include="Implementation\SmartIndent\SmartIndent.cs" />
     <Compile Include="Implementation\SmartIndent\SmartIndentProvider.cs" />
-    <Compile Include="Implementation\Suggestions\FixAllGetFixesService.cs" />
-    <Compile Include="Implementation\Suggestions\FixAllSuggestedAction.cs" />
-    <Compile Include="Implementation\Suggestions\CodeFixSuggestedAction.cs" />
-    <Compile Include="Implementation\Suggestions\CodeRefactoringSuggestedAction.cs" />
+    <Compile Include="Implementation\Suggestions\FixAll\FixAllGetFixesService.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActions\FixAllSuggestedAction.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActions\CodeFixSuggestedAction.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActions\CodeRefactoringSuggestedAction.cs" />
     <Compile Include="Implementation\Suggestions\PreviewChanges\PreviewChangesCodeAction.cs" />
     <Compile Include="Implementation\Suggestions\PreviewChanges\PreviewChangesSuggestedAction.cs" />
-    <Compile Include="Implementation\Suggestions\SuggestedAction.CaretPositionRestorer.cs" />
-    <Compile Include="Implementation\Suggestions\SuggestedAction.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActions\SuggestedAction.CaretPositionRestorer.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActions\SuggestedAction.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedActionsSourceProvider.cs" />
     <Compile Include="Implementation\TextBufferAssociatedViewService.cs" />
     <Compile Include="Implementation\TextDiffing\EditorTextDifferencingService.cs" />
@@ -622,7 +624,7 @@
     <Compile Include="Implementation\Workspaces\ProjectCacheServiceFactory.cs" />
     <Compile Include="Implementation\Workspaces\EditorTextFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
-    <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
+    <Compile Include="Implementation\Workspaces\EditorTaskSchedulerFactory.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
     <Compile Include="Tags\IImageMonikerService.cs" />
     <Compile Include="Tags\DefaultImageMonikerService.cs" />

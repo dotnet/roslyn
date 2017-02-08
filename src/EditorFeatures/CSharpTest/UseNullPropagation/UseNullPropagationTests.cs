@@ -1,13 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseNullPropagation;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.UseNullPropagation;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -15,12 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNullPropagation
 {
     public partial class UseNullPropagationTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpUseNullPropagationDiagnosticAnalyzer(),
-                new CSharpUseNullPropagationCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpUseNullPropagationDiagnosticAnalyzer(), new CSharpUseNullPropagationCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestLeft_Equals()
@@ -324,6 +318,25 @@ class C
         var v = [||]o != null ? o.ToString() : 0;
     }
 }");
+        }
+
+        [WorkItem(16287, "https://github.com/dotnet/roslyn/issues/16287")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestMethodGroup()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class D
+{
+    void Foo()
+    {
+        var c = new C();
+        Action<string> a = [||]c != null ? c.M : (Action<string>)null;
+    }
+}
+class C { public void M(string s) { } }");
         }
     }
 }

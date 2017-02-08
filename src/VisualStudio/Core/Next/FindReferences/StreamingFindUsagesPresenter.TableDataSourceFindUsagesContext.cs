@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -95,14 +96,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 DetermineCurrentGroupingByDefinitionState();
 
-                // Remove any existing sources in the window.  
-                foreach (var source in findReferencesWindow.Manager.Sources.ToArray())
-                {
-                    findReferencesWindow.Manager.RemoveSource(source);
-                }
+                Debug.Assert(_findReferencesWindow.Manager.Sources.Count == 0);
 
                 // And add ourselves as the source of results for the window.
-                findReferencesWindow.Manager.AddSource(this);
+                _findReferencesWindow.Manager.AddSource(this);
 
                 // After adding us as the source, the manager should immediately call into us to
                 // tell us what the data sink is.
@@ -199,24 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             #region FindUsagesContext overrides.
 
             public override void SetSearchTitle(string title)
-            {
-                try
-                {
-                    // Editor renamed their property from Label to Title, and made it public.
-                    // However, we don't have access to that property yet until they publish
-                    // their next SDK.  In the meantime, use reflection to get at the right
-                    // property.
-                    var titleProperty = _findReferencesWindow.GetType().GetProperty(
-                        "Title", BindingFlags.Public | BindingFlags.Instance);
-                    if (titleProperty != null)
-                    {
-                        titleProperty.SetValue(_findReferencesWindow, title);
-                    }
-                }
-                catch (Exception)
-                {
-                }
-            }
+                => _findReferencesWindow.Title = title;
 
             public override async Task OnCompletedAsync()
             {
@@ -452,11 +432,20 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             private async Task<Entry> CreateDocumentLocationEntryAsync(
-                RoslynDefinitionBucket definitionBucket, 
+                RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 bool isDefinitionLocation)
             {
                 var document = documentSpan.Document;
+
+                // The FAR system needs to know the guid for the project that a def/reference is 
+                // from (to support features like filtering).  Normally that would mean we could
+                // only support this from a VisualStudioWorkspace.  However, we want till work 
+                // in cases lke Any-Code (which does not use a VSWorkspace).  So we are tolerant
+                // when we have another type of workspace.  This means we will show results, but
+                // certain features (like filtering) may not work in that context.
+                var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
+                var guid = workspace?.GetHostProject(document.Project.Id)?.Guid ?? Guid.Empty;
 
                 var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
 
@@ -466,8 +455,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var taggedLineParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, lineSpan).ConfigureAwait(false);
 
                 return new DocumentSpanEntry(
-                    this, definitionBucket, documentSpan, 
-                    isDefinitionLocation, sourceText, taggedLineParts);
+                    this, definitionBucket, documentSpan, isDefinitionLocation,
+                    guid, sourceText, taggedLineParts);
             }
 
             private TextSpan GetLineSpanForReference(SourceText sourceText, TextSpan referenceSpan)
@@ -758,6 +747,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             void IDisposable.Dispose()
             {
+                // VS is letting go of us.  i.e. because a new FAR call is happening, or because
+                // of some other event (like the solution being closed).  Remove us from the set
+                // of sources for the window so that the existing data is cleared out.
+                Debug.Assert(_findReferencesWindow.Manager.Sources.Count == 1);
+                Debug.Assert(_findReferencesWindow.Manager.Sources[0] == this);
+
+                _findReferencesWindow.Manager.RemoveSource(this);
+
                 CancelSearch();
             }
 

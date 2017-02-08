@@ -28,38 +28,64 @@ namespace RunTests
         }
     }
 
-    internal struct TestResult
+    /// <summary>
+    /// The actual results from running the xunit tests.
+    /// </summary>
+    /// <remarks>
+    /// The difference between <see cref="TestResultInfo"/>  and <see cref="TestResult"/> is the former 
+    /// is specifically for the actual test execution results while the latter can contain extra metadata
+    /// about the results.  For example whether it was cached, or had diagonstic, output, etc ...
+    /// </remarks>
+    internal struct TestResultInfo
     {
         internal int ExitCode { get; }
-        internal AssemblyInfo AssemblyInfo { get; }
-        internal string AssemblyPath => AssemblyInfo.AssemblyPath;
-        internal string AssemblyName => Path.GetFileName(AssemblyPath);
-        internal string DisplayName => AssemblyInfo.DisplayName;
-        internal string CommandLine { get; }
         internal TimeSpan Elapsed { get; }
         internal string StandardOutput { get; }
         internal string ErrorOutput { get; }
-        internal bool IsResultFromCache { get; }
 
         /// <summary>
         /// Path to the results file.  Can be null in the case xunit error'd and did not create one.
         /// </summary>
         internal string ResultsFilePath { get; }
+        internal string ResultsDirectory { get; }
 
-        internal string ResultDir { get; }
-        internal bool Succeeded => ExitCode == 0;
-
-        internal TestResult(int exitCode, AssemblyInfo assemblyInfo, string resultDir, string resultsFilePath, string commandLine, TimeSpan elapsed, string standardOutput, string errorOutput, bool isResultFromCache)
+        internal TestResultInfo(int exitCode, string resultsDirectory, string resultsFilePath, TimeSpan elapsed, string standardOutput, string errorOutput)
         {
             ExitCode = exitCode;
-            AssemblyInfo = assemblyInfo;
-            CommandLine = commandLine;
-            ResultDir = resultDir;
+            ResultsDirectory = resultsDirectory;
             ResultsFilePath = resultsFilePath;
             Elapsed = elapsed;
             StandardOutput = standardOutput;
             ErrorOutput = errorOutput;
-            IsResultFromCache = isResultFromCache;
+        }
+    }
+
+    internal struct TestResult
+    {
+        internal TestResultInfo TestResultInfo { get; }
+        internal AssemblyInfo AssemblyInfo { get; }
+        internal string CommandLine { get; }
+        internal bool IsFromCache { get; }
+        internal string Diagnostics { get; }
+
+        internal string AssemblyPath => AssemblyInfo.AssemblyPath;
+        internal string AssemblyName => Path.GetFileName(AssemblyPath);
+        internal string DisplayName => AssemblyInfo.DisplayName;
+        internal bool Succeeded => ExitCode == 0;
+        internal int ExitCode => TestResultInfo.ExitCode;
+        internal TimeSpan Elapsed => TestResultInfo.Elapsed;
+        internal string StandardOutput => TestResultInfo.StandardOutput;
+        internal string ErrorOutput => TestResultInfo.ErrorOutput;
+        internal string ResultsFilePath => TestResultInfo.ResultsFilePath;
+        internal string ResultsDirectory => TestResultInfo.ResultsDirectory;
+
+        internal TestResult(AssemblyInfo assemblyInfo, TestResultInfo testResultInfo, string commandLine, bool isFromCache, string diagnostics = null)
+        {
+            AssemblyInfo = assemblyInfo;
+            TestResultInfo = testResultInfo;
+            CommandLine = commandLine;
+            IsFromCache = isFromCache;
+            Diagnostics = diagnostics;
         }
     }
 

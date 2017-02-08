@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility accessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol type,
+            bool returnsByRef,
             IPropertySymbol explicitInterfaceSymbol,
             string name,
             IList<IParameterSymbol> parameters,
@@ -57,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 accessibility,
                 modifiers,
                 type,
+                returnsByRef,
                 explicitInterfaceSymbol,
                 name,
                 isIndexer,
@@ -70,7 +72,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates a property symbol that can be used to describe a property declaration.
         /// </summary>
-        public static IPropertySymbol CreatePropertySymbol(IList<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers, ITypeSymbol type, IPropertySymbol explicitInterfaceSymbol, string name, IList<IParameterSymbol> parameters, IMethodSymbol getMethod, IMethodSymbol setMethod, bool isIndexer = false)
+        public static IPropertySymbol CreatePropertySymbol(
+            IList<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers,
+            ITypeSymbol type, bool returnsByRef, IPropertySymbol explicitInterfaceSymbol, string name, 
+            IList<IParameterSymbol> parameters, IMethodSymbol getMethod, IMethodSymbol setMethod,
+            bool isIndexer = false)
         {
             return CreatePropertySymbol(
                 containingType: null,
@@ -78,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 accessibility: accessibility,
                 modifiers: modifiers,
                 type: type,
+                returnsByRef: returnsByRef,
                 explicitInterfaceSymbol: explicitInterfaceSymbol,
                 name: name,
                 parameters: parameters,
@@ -116,7 +123,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return result;
         }
 
-        internal static IMethodSymbol CreateMethodSymbol(INamedTypeSymbol containingType, IList<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers, ITypeSymbol returnType, IMethodSymbol explicitInterfaceSymbol, string name, IList<ITypeParameterSymbol> typeParameters, IList<IParameterSymbol> parameters, IList<SyntaxNode> statements = null, IList<SyntaxNode> handlesExpressions = null, IList<AttributeData> returnTypeAttributes = null, MethodKind methodKind = MethodKind.Ordinary, bool returnsByRef = false)
+        internal static IMethodSymbol CreateMethodSymbol(
+            INamedTypeSymbol containingType, IList<AttributeData> attributes,
+            Accessibility accessibility, DeclarationModifiers modifiers,
+            ITypeSymbol returnType, bool returnsByRef,
+            IMethodSymbol explicitInterfaceSymbol, string name,
+            IList<ITypeParameterSymbol> typeParameters, IList<IParameterSymbol> parameters,
+            IList<SyntaxNode> statements = null, IList<SyntaxNode> handlesExpressions = null,
+            IList<AttributeData> returnTypeAttributes = null,
+            MethodKind methodKind = MethodKind.Ordinary)
         {
             var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, returnsByRef, explicitInterfaceSymbol, name, typeParameters, parameters, returnTypeAttributes, methodKind);
             CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions);
@@ -126,9 +141,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates a method symbol that can be used to describe a method declaration.
         /// </summary>
-        public static IMethodSymbol CreateMethodSymbol(IList<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers, ITypeSymbol returnType, IMethodSymbol explicitInterfaceSymbol, string name, IList<ITypeParameterSymbol> typeParameters, IList<IParameterSymbol> parameters, IList<SyntaxNode> statements = null, IList<SyntaxNode> handlesExpressions = null, IList<AttributeData> returnTypeAttributes = null, MethodKind methodKind = MethodKind.Ordinary)
+        public static IMethodSymbol CreateMethodSymbol(
+            IList<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers,
+            ITypeSymbol returnType, bool returnsByRef, IMethodSymbol explicitInterfaceSymbol, string name,
+            IList<ITypeParameterSymbol> typeParameters, IList<IParameterSymbol> parameters, 
+            IList<SyntaxNode> statements = null, IList<SyntaxNode> handlesExpressions = null, 
+            IList<AttributeData> returnTypeAttributes = null, MethodKind methodKind = MethodKind.Ordinary)
         {
-            return CreateMethodSymbol(null, attributes, accessibility, modifiers, returnType, explicitInterfaceSymbol, name, typeParameters, parameters, statements, handlesExpressions, returnTypeAttributes, methodKind);
+            return CreateMethodSymbol(null, attributes, accessibility, modifiers, returnType, returnsByRef, explicitInterfaceSymbol, name, typeParameters, parameters, statements, handlesExpressions, returnTypeAttributes, methodKind);
         }
 
         /// <summary>
@@ -223,6 +243,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 accessibility ?? accessor.DeclaredAccessibility,
                 accessor.GetSymbolModifiers().WithIsAbstract(statements == null),
                 accessor.ReturnType,
+                accessor.ReturnsByRef,
                 explicitInterfaceSymbol ?? accessor.ExplicitInterfaceImplementations.FirstOrDefault(),
                 accessor.Name,
                 accessor.TypeParameters,
@@ -243,9 +264,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 attributes,
                 accessibility,
                 new DeclarationModifiers(isAbstract: statements == null),
-                null, null,
-                string.Empty,
-                null, null,
+                returnType: null, 
+                returnsByRef: false, 
+                explicitInterfaceSymbol: null,
+                name: string.Empty,
+                typeParameters: null, 
+                parameters: null,
                 statements: statements);
         }
 
@@ -283,6 +307,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility accessibility, 
             DeclarationModifiers modifiers, 
             ITypeSymbol returnType, 
+            bool returnsByRef,
             string name, 
             IList<ITypeParameterSymbol> typeParameters = null, 
             IList<IParameterSymbol> parameters = null)
@@ -292,6 +317,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 returnType: returnType,
+                returnsByRef: returnsByRef,
                 explicitInterfaceSymbol: null,
                 name: "Invoke",
                 typeParameters: null,
@@ -337,6 +363,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 accessibility ?? method.DeclaredAccessibility,
                 modifiers ?? method.GetSymbolModifiers(),
                 method.ReturnType,
+                method.ReturnsByRef,
                 explicitInterfaceSymbol,
                 name ?? method.Name,
                 method.TypeParameters,
@@ -361,6 +388,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 accessibility ?? property.DeclaredAccessibility,
                 modifiers ?? property.GetSymbolModifiers(),
                 property.Type,
+                property.ReturnsByRef,
                 explicitInterfaceSymbol,
                 name ?? property.Name,
                 property.Parameters,

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,9 +33,10 @@ namespace Microsoft.CodeAnalysis
             using (Logger.LogBlock(FunctionId.SolutionState_ComputeChecksumsAsync, FilePath, cancellationToken))
             {
                 // get states by id order to have deterministic checksum
-                var projectChecksumTasks = ProjectIds.Select(id => ProjectStates[id])
-                                                     .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
-                                                     .Select(s => s.GetChecksumAsync(cancellationToken));
+                var orderedProjectIds = ChecksumCache.GetOrCreate(ProjectIds, _ => ProjectIds.OrderBy(id => id.Id).ToImmutableArray());
+                var projectChecksumTasks = orderedProjectIds.Select(id => ProjectStates[id])
+                                                            .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
+                                                            .Select(s => s.GetChecksumAsync(cancellationToken));
 
                 var serializer = new Serializer(_solutionServices.Workspace);
                 var infoChecksum = serializer.CreateChecksum(SolutionInfo.Attributes, cancellationToken);

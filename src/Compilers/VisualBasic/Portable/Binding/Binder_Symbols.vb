@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Interface IA(Of T As C) : End Interface
             ' Interface IB(Of T As C) : Inherits IA(Of T) : End Interface
             If checkConstraints AndAlso ShouldCheckConstraints Then
-                constructedType.CheckConstraints(syntaxArguments, diagnostics)
+                constructedType.CheckConstraintsForNonTuple(syntaxArguments, diagnostics)
             End If
 
             constructedType = DirectCast(TupleTypeSymbol.TransformToTupleIfCompatible(constructedType), NamedTypeSymbol)
@@ -342,7 +342,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim diagInfo As DiagnosticInfo = Nothing
                     If Not lookupResult.HasSymbol Then
                         Dim diagName = GetBaseNamesForDiagnostic(typeSyntax)
-                        diagInfo = NotFound(typeSyntax, diagName, binder, diagBag, reportedAnError)
+                        ' Don't report more errors if one is already reported
+                        diagInfo = NotFound(typeSyntax, diagName, binder, If(reportedAnError, Nothing, diagBag))
 
                         Return binder.GetErrorSymbol(diagName, diagInfo)
                     Else
@@ -399,13 +400,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Try
             End Function
 
-            Private Shared Function NotFound(typeSyntax As TypeSyntax, diagName As String, binder As Binder, diagBag As DiagnosticBag, reportedAnError As Boolean) As DiagnosticInfo
+            Private Shared Function NotFound(typeSyntax As TypeSyntax, diagName As String, binder As Binder, diagBag As DiagnosticBag) As DiagnosticInfo
                 Dim diagInfo As DiagnosticInfo
 
                 If diagName = "Any" AndAlso IsParameterTypeOfDeclareMethod(typeSyntax) Then
                     diagInfo = ErrorFactory.ErrorInfo(ERRID.ERR_ObsoleteAsAny, diagName)
 
-                    If Not reportedAnError Then
+                    If diagBag IsNot Nothing Then
                         Binder.ReportDiagnostic(diagBag, typeSyntax, diagInfo)
                     End If
 
@@ -413,10 +414,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim forwardedToAssembly As AssemblySymbol = Nothing
-                Dim encounteredForwardingCycle As Boolean = False
 
                 If diagName.Length > 0 Then
-                    CheckForForwardedType(binder.Compilation.Assembly, typeSyntax, diagName, forwardedToAssembly, encounteredForwardingCycle)
+                    CheckForForwardedType(binder.Compilation.Assembly, typeSyntax, diagName, forwardedToAssembly, diagBag)
                 Else
                     Debug.Assert(typeSyntax.IsMissing OrElse typeSyntax.HasErrors)
                     Return Nothing
@@ -428,13 +428,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     diagInfo = ErrorFactory.ErrorInfo(ERRID.ERR_ForwardedTypeUnavailable3, diagName, binder.Compilation.Assembly, forwardedToAssembly)
                 End If
 
-                If Not reportedAnError Then
+                If diagBag IsNot Nothing Then
                     Binder.ReportDiagnostic(diagBag, typeSyntax, diagInfo)
-
-                    If encounteredForwardingCycle Then
-                        Debug.Assert(forwardedToAssembly IsNot Nothing, "How did we find a cycle if there is no forwarding?")
-                        Binder.ReportDiagnostic(diagBag, typeSyntax, ERRID.ERR_TypeFwdCycle2, diagName, forwardedToAssembly)
-                    End If
                 End If
 
                 Return diagInfo
@@ -448,8 +443,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <param name="typeSyntax">Full name of type that failed lookup.  Shortened as different prefixes are checked.</param>
             ''' <param name="diagName">GetBaseNamesForDiagnostic(typeSyntax) (basically dot-delimited list of names).  Shortened as different prefixes are checked.</param>
             ''' <param name="forwardedToAssembly">Set if some prefix matches a forwarded type.</param>
-            ''' <param name="encounteredForwardingCycle">True if forwardedToAssembly is non-null and the type indicated by typeSyntax/diagName is in a forwarder cycle.</param>
-            Private Shared Sub CheckForForwardedType(containingAssembly As AssemblySymbol, ByRef typeSyntax As TypeSyntax, ByRef diagName As String, ByRef forwardedToAssembly As AssemblySymbol, ByRef encounteredForwardingCycle As Boolean)
+            ''' <param name="diagBag">Diagnostics bag (Nothing if errors should not be reported).</param>
+            Private Shared Sub CheckForForwardedType(containingAssembly As AssemblySymbol, ByRef typeSyntax As TypeSyntax, ByRef diagName As String, ByRef forwardedToAssembly As AssemblySymbol, diagBag As DiagnosticBag)
                 Dim currTypeSyntax As TypeSyntax = typeSyntax
                 Dim currDiagName As String = diagName
 
@@ -467,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(currDiagName, arity)
                     End If
 
-                    forwardedToAssembly = GetForwardedToAssembly(containingAssembly, fullName, arity, encounteredForwardingCycle)
+                    forwardedToAssembly = GetForwardedToAssembly(containingAssembly, fullName, arity, typeSyntax, diagBag)
 
                     If forwardedToAssembly IsNot Nothing Then
                         typeSyntax = currTypeSyntax
@@ -489,18 +484,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <param name="containingAssembly">The assembly in which to look for the type forwarder.</param>
             ''' <param name="fullName">The metadata name of the (potentially) forwarded type, including the arity (if non-zero).</param>
             ''' <param name="arity">The arity of the forwarded type.</param>
-            ''' <param name="encounteredCycle">Set to true if a cycle was found in the type forwarders.</param>
+            ''' <param name="typeSyntax">The syntax to report types on (if any).</param>
+            ''' <param name="diagBag">The diagnostics bag (Nothing if errors should not be reported).</param>
             ''' <returns></returns>
             ''' <remarks>
             ''' Since this method is intended to be used for error reporting, it stops as soon as it finds
-            ''' any type forwarder - it does not check other assemblies for consistency or better results.
+            ''' any type forwarder (or an error to report). It does not check other assemblies for consistency or better results.
             ''' 
             ''' NOTE: unlike in C#, this method searches for type forwarders case-insensitively.
             ''' </remarks>
-            Private Shared Function GetForwardedToAssembly(containingAssembly As AssemblySymbol, fullName As String, arity As Integer, ByRef encounteredCycle As Boolean) As AssemblySymbol
+            Private Shared Function GetForwardedToAssembly(containingAssembly As AssemblySymbol, fullName As String, arity As Integer, typeSyntax As TypeSyntax, diagBag As DiagnosticBag) As AssemblySymbol
                 Debug.Assert(arity = 0 OrElse fullName.EndsWith("`" & arity, StringComparison.Ordinal))
-
-                encounteredCycle = False
 
                 ' NOTE: This won't work if the type isn't using CLS-style generic naming (i.e. `arity), but this code is
                 ' only intended to improve diagnostic messages, so false negatives in corner cases aren't a big deal.
@@ -516,10 +510,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 If forwardedType IsNot Nothing Then
-                    If forwardedType.IsErrorType Then
-                        Dim diagInfo As DiagnosticInfo = DirectCast(forwardedType, ErrorTypeSymbol).ErrorInfo
-                        If diagInfo.Code = ERRID.ERR_TypeFwdCycle2 Then
-                            encounteredCycle = True
+                    If diagBag IsNot Nothing AndAlso forwardedType.IsErrorType Then
+                        Dim errorInfo = DirectCast(forwardedType, ErrorTypeSymbol).ErrorInfo
+
+                        If errorInfo.Code = ERRID.ERR_TypeFwdCycle2 Then
+                            Debug.Assert(forwardedType.ContainingAssembly IsNot Nothing, "How did we find a cycle if there is no forwarding?")
+                            Binder.ReportDiagnostic(diagBag, typeSyntax, ERRID.ERR_TypeFwdCycle2, fullName, forwardedType.ContainingAssembly)
+                        ElseIf errorInfo.Code = ERRID.ERR_TypeForwardedToMultipleAssemblies Then
+                            Binder.ReportDiagnostic(diagBag, typeSyntax, errorInfo)
+                            Return Nothing ' Cannot determine a suitable forwarding assembly
                         End If
                     End If
 
@@ -723,11 +722,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     types.Add(argumentType)
 
-                    If argumentType.IsRestrictedType() Then
-                        Binder.ReportDiagnostic(diagnostics, argumentSyntax, ERRID.ERR_RestrictedType1, argumentType)
-                    End If
-
-
                     If nameSyntax.Kind() = SyntaxKind.IdentifierToken Then
                         ' validate name if we have one
                         hasExplicitNames = True
@@ -757,18 +751,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim locationsArray As ImmutableArray(Of Location) = locations.ToImmutableAndFree()
 
                 If typesArray.Length < 2 Then
-                    elementNames?.Free()
-                    diagnostics.Add(ERRID.ERR_TupleTooFewElements, syntax.GetLocation)
-                    Return ErrorTypeSymbol.UnknownResultType
+                    Throw ExceptionUtilities.UnexpectedValue(typesArray.Length)
                 End If
 
                 Return TupleTypeSymbol.Create(syntax.GetLocation,
-                                            typesArray,
-                                            locationsArray,
-                                            If(elementNames Is Nothing, Nothing, elementNames.ToImmutableAndFree()),
-                                            binder.Compilation,
-                                            syntax,
-                                            diagnostics)
+                                                typesArray,
+                                                locationsArray,
+                                                If(elementNames Is Nothing, Nothing, elementNames.ToImmutableAndFree()),
+                                                binder.Compilation,
+                                                binder.ShouldCheckConstraints,
+                                                syntax,
+                                                diagnostics)
             End Function
 
             Private Shared Sub AnalyzeLookupResultForIllegalBaseTypeReferences(lookupResult As LookupResult,

@@ -43,16 +43,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return AsTypeDefinitionImpl(moduleBeingBuilt);
         }
 
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode
         {
-            Debug.Assert(this.IsDefinitionOrDistinct());
-
-            if (this.IsDefinition)
+            get
             {
-                return this.PrimitiveTypeCode;
-            }
+                Debug.Assert(this.IsDefinitionOrDistinct());
 
-            return Cci.PrimitiveTypeCode.NotPrimitive;
+                if (this.IsDefinition)
+                {
+                    return this.PrimitiveTypeCode;
+                }
+
+                return Cci.PrimitiveTypeCode.NotPrimitive;
+            }
         }
 
         TypeDefinitionHandle Cci.ITypeReference.TypeDef
