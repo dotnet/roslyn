@@ -84,7 +84,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Shared Sub New()
-        Shared Sub New()
             Dim operators As New Dictionary(Of String, OperatorInfo)(IdentifierComparison.Comparer) From
             {
                 {WellKnownMemberNames.OnesComplementOperatorName, New OperatorInfo(UnaryOperatorKind.Not)},
