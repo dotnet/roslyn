@@ -2465,5 +2465,35 @@ namespace System
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(22, 51)
                 );
         }
+
+        [Fact, WorkItem(14689, "https://github.com/dotnet/roslyn/issues/14689")]
+        public void SelectFromNamespaceShouldGiveAnError()
+        {
+            var code = @"
+using System.Linq;
+
+namespace ParentNamespace
+{
+    namespace ConsoleApp
+    {
+        class Program
+        {
+            static void Main()
+            {
+                var x = from c in ConsoleApp select 3;
+                var y = from c in ParentNamespace.ConsoleApp select 3;
+            }
+        }
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+                // (12,35): error CS0119: 'ConsoleApp' is a namespace, which is not valid in the given context
+                //                 var x = from c in ConsoleApp select 3;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleApp").WithArguments("ConsoleApp", "namespace").WithLocation(12, 35),
+                // (13,35): error CS0119: 'ParentNamespace.ConsoleApp' is a namespace, which is not valid in the given context
+                //                 var y = from c in ParentNamespace.ConsoleApp select 3;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ParentNamespace.ConsoleApp").WithArguments("ParentNamespace.ConsoleApp", "namespace").WithLocation(13, 35));
+        }
     }
 }
