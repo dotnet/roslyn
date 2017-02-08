@@ -112,6 +112,7 @@
     <Compile Include="Implementation\Intellisense\Completion\CompletionFilterReason.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FilterResult.cs" />
     <Compile Include="Implementation\Structure\BlockTagState.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActionSetComparer.cs" />
     <Compile Include="Tags\ExportImageMonikerServiceAttribute.cs" />
     <Compile Include="Implementation\NavigateTo\AbstractNavigateToItemDisplay.cs" />
     <Compile Include="CommandArgs.cs" />

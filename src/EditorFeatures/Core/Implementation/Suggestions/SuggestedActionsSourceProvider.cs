@@ -159,7 +159,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            public IEnumerable<SuggestedActionSet> GetSuggestedActions(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
+            public IEnumerable<SuggestedActionSet> GetSuggestedActions(
+                ISuggestedActionCategorySet requestedActionCategories,
+                SnapshotSpan range,
+                CancellationToken cancellationToken)
             {
                 AssertIsForeground();
 
@@ -187,7 +190,61 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
 
                     var allActionSets = InlineActionSetsIfDesirable(result);
-                    return allActionSets;
+                    var orderedActionSets = OrderActionSets(allActionSets);
+                    var filteredSets = FilterActionSetsByTitle(orderedActionSets);
+
+                    return filteredSets;
+                }
+            }
+
+            private ImmutableArray<SuggestedActionSet> OrderActionSets(
+                ImmutableArray<SuggestedActionSet> actionSets)
+            {
+                var caretPoint = _textView.GetCaretPoint(_subjectBuffer);
+                return actionSets.OrderByDescending(s => s.Priority)
+                                 .ThenBy(s => s, new SuggestedActionSetComparer(caretPoint))
+                                 .ToImmutableArray();
+            }
+
+            private ImmutableArray<SuggestedActionSet> FilterActionSetsByTitle(ImmutableArray<SuggestedActionSet> allActionSets)
+            {
+                var result = ArrayBuilder<SuggestedActionSet>.GetInstance();
+
+                var seenTitles = new HashSet<string>();
+
+                foreach (var set in allActionSets)
+                {
+                    var filteredSet = FilterActionSetByTitle(set, seenTitles);
+                    if (filteredSet != null)
+                    {
+                        result.Add(filteredSet);
+                    }
+                }
+
+                return result.ToImmutableAndFree();
+            }
+
+            private SuggestedActionSet FilterActionSetByTitle(SuggestedActionSet set, HashSet<string> seenTitles)
+            {
+                var actions = ArrayBuilder<ISuggestedAction>.GetInstance();
+
+                foreach (var action in set.Actions)
+                {
+                    if (seenTitles.Add(action.DisplayText))
+                    {
+                        actions.Add(action);
+                    }
+                }
+
+                try
+                {
+                    return actions.Count == 0
+                        ? null
+                        : new SuggestedActionSet(actions.ToImmutable(), set.Title, set.Priority, set.ApplicableToSpan);
+                }
+                finally
+                {
+                    actions.Free();
                 }
             }
 
@@ -240,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     supportsFeatureService.SupportsCodeFixes(document) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
-                    // We only include suppressions if lightbulb is asking for everything.
+                    // We only include suppressions if light bulb is asking for everything.
                     // If the light bulb is only asking for code fixes, then we don't include suppressions.
                     var includeSuppressionFixes = requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Any);
 
@@ -537,7 +594,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     // It may seem strange that we kick off a task, but then immediately 'Wait' on 
                     // it. However, it's deliberate.  We want to make sure that the code runs on 
-                    // the background so that no one takes an accidently dependency on running on 
+                    // the background so that no one takes an accidentally dependency on running on 
                     // the UI thread.
                     var refactorings = Task.Run(
                         () => _owner._codeRefactoringService.GetRefactoringsAsync(
