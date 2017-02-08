@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                             accessibility: DetermineMaximalAccessibility(_state),
                             modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
                             type: _state.TypeMemberType,
+                            returnsByRef: false,
                             explicitInterfaceSymbol: null,
                             name: _state.IdentifierToken.ValueText,
                             isIndexer: _state.IsIndexer,
@@ -184,10 +185,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 get
                 {
                     var text = _isConstant
-                        ? FeaturesResources.Generate_constant_0_in_1
+                        ? FeaturesResources.Generate_constant_1_0
                         : _generateProperty
                             ? _isReadonly ? FeaturesResources.Generate_read_only_property_1_0 : FeaturesResources.Generate_property_1_0
-                            : _isReadonly ? FeaturesResources.Generate_read_only_field_1_0 : FeaturesResources.Generate_field_0_in_1;
+                            : _isReadonly ? FeaturesResources.Generate_read_only_field_1_0 : FeaturesResources.Generate_field_1_0;
 
                     return string.Format(
                         text,

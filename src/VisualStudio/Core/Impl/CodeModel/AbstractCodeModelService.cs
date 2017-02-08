@@ -521,7 +521,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // Save the node keys.
             var nodeKeyValidation = new NodeKeyValidation();
-            foreach (var project in workspace.ProjectTracker.ImmutableProjects)
+            foreach (var project in workspace.DeferredState.ProjectTracker.ImmutableProjects)
             {
                 nodeKeyValidation.AddProject(project);
             }

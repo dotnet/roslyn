@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             public TTypeDeclarationSyntax TypeNode { get; set; }
             public string TypeName { get; set; }
-            public string DocumentName { get; set; }
+            public string DocumentNameWithoutExtension { get; set; }
             public bool IsDocumentNameAValidIdentifier { get; set; }
 
             private State(TService service, SemanticDocument document)
@@ -69,14 +69,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 TypeNode = typeDeclaration;
                 TypeName = typeSymbol.Name;
-                DocumentName = Path.GetFileNameWithoutExtension(this.SemanticDocument.Document.Name);
-                IsDocumentNameAValidIdentifier = syntaxFacts.IsValidIdentifier(DocumentName);
+                DocumentNameWithoutExtension = Path.GetFileNameWithoutExtension(this.SemanticDocument.Document.Name);
+                IsDocumentNameAValidIdentifier = syntaxFacts.IsValidIdentifier(DocumentNameWithoutExtension);
 
                 // if type name matches document name, per style conventions, we have nothing to do.
                 return !_service.TypeMatchesDocumentName(
                     TypeNode,
                     TypeName,
-                    DocumentName,
+                    DocumentNameWithoutExtension,
                     SemanticDocument.SemanticModel,
                     cancellationToken);
             }

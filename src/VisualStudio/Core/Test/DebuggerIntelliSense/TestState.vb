@@ -197,6 +197,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             CurrentCompletionPresenterSession.SetSelectedItem(item)
         End Sub
 
+        Public Overloads Sub SendToggleCompletionMode()
+            Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of ToggleCompletionModeCommandArgs))
+            MyBase.SendToggleCompletionmode(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
+        End Sub
+
         Public Async Function AssertNoCompletionSession(Optional block As Boolean = True) As Task
             If block Then
                 Await WaitForAsynchronousOperationsAsync()

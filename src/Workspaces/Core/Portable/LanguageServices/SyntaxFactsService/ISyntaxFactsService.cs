@@ -262,6 +262,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void AddFirstMissingCloseBrace(
             SyntaxNode root, SyntaxNode contextNode, 
             out SyntaxNode newRoot, out SyntaxNode newContextNode);
+
+        SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
     }
 
     [Flags]

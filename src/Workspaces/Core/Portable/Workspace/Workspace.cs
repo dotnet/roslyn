@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
 
             // queue used for sending events
             var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
-            _taskQueue = workspaceTaskSchedulerFactory.CreateTaskQueue();
+            _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
 
             // initialize with empty solution
             _latestSolution = CreateSolution(SolutionId.CreateNewId());
@@ -930,6 +930,8 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Apply Changes
+
+        internal virtual bool CanRenameFilesDuringCodeActions(Project project) => true;
 
         /// <summary>
         /// Determines if the specific kind of change is supported by the <see cref="TryApplyChanges(Solution)"/> method.

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -4177,6 +4178,77 @@ public class C
         }
 
         [Fact]
+        public void ShortDiscardInPattern()
+        {
+            var source =
+@"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int i = 3;
+        Write($""is _: {i is _}, "");
+        switch (3)
+        {
+            case _:
+                Write(""case _"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29),
+                // (11,18): error CS0103: The name '_' does not exist in the current context
+                //             case _:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 Write("case _");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(12, 17)
+                );
+        }
+
+        [Fact]
+        public void UnderscoreInPattern2()
+        {
+            var source =
+@"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int i = 3;
+        int _ = 4;
+        Write($""is _: {i is _}, "");
+        switch (3)
+        {
+            case _:
+                Write(""case _"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (9,29): error CS0150: A constant value is expected
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(9, 29),
+                // (12,18): error CS0150: A constant value is expected
+                //             case _:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 Write("case _");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(13, 17)
+                );
+        }
+
+        [Fact]
         public void UnderscoreInPattern()
         {
             var source =
@@ -4295,6 +4367,40 @@ unsafe public class Typ
         }
 
         [Fact]
+        [WorkItem(16513, "https://github.com/dotnet/roslyn/issues/16513")]
+        public void OrderOfPatternOperands()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        object c = new C();
+        Console.WriteLine(c is 3);
+        c = 2;
+        Console.WriteLine(c is 3);
+        c = 3;
+        Console.WriteLine(c is 3);
+    }
+}
+class C
+{
+    override public bool Equals(object other)
+    {
+        return other is int x;
+    }
+    override public int GetHashCode() => 0;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: @"False
+False
+True");
+        }
+
+        [Fact]
         public void MultiplyInPattern()
         {
             // pointer types are not supported in patterns. Therefore an attempt to use
@@ -4347,6 +4453,523 @@ public class Color
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: "True");
+        }
+
+        [Fact]
+        [WorkItem(336030, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/336030")]
+        public void NullOperand()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        System.Console.Write(null is Missing x);
+        System.Console.Write(null is Missing);
+        switch(null)
+        {
+            case Missing:
+            case Missing y:
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
+                //         System.Console.Write(null is Missing x);
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(6, 30),
+                // (6,38): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(null is Missing x);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(6, 38),
+                // (7,38): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(null is Missing);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(7, 38),
+                // (8,16): error CS8119: The switch expression must be a value; found <null>.
+                //         switch(null)
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "null").WithArguments("<null>").WithLocation(8, 16),
+                // (10,18): error CS0103: The name 'Missing' does not exist in the current context
+                //             case Missing:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(10, 18),
+                // (11,18): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
+                //             case Missing y:
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(336030, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=336030")]
+        [WorkItem(294570, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=294570")]
+        public void Fuzz46()
+        {
+            var program = @"
+public class Program46
+{
+    public static void Main(string[] args)
+    {
+        switch ((() => 1))
+        {
+            case int x4:
+            case string x9:
+            case M:
+            case ((int)M()):
+                break;
+        }
+    }
+    private static object M() => null;
+}";
+            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (6,17): error CS8119: The switch expression must be a value; found lambda expression.
+                //         switch ((() => 1))
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "(() => 1)").WithArguments("lambda expression").WithLocation(6, 17),
+                // (10,18): error CS0150: A constant value is expected
+                //             case M:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(10, 18),
+                // (11,18): error CS0150: A constant value is expected
+                //             case ((int)M()):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(363714, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=363714")]
+        public void Fuzz46b()
+        {
+            var program = @"
+public class Program46
+{
+    public static void Main(string[] args)
+    {
+        switch ((() => 1))
+        {
+            case M:
+                break;
+        }
+    }
+    private static object M() => null;
+}";
+            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (6,17): error CS8119: The switch expression must be a value; found lambda expression.
+                //         switch ((() => 1))
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "(() => 1)").WithArguments("lambda expression").WithLocation(6, 17),
+                // (8,18): error CS0150: A constant value is expected
+                //             case M:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(8, 18),
+                // (9,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(9, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(336030, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=336030")]
+        public void Fuzz401()
+        {
+            var program = @"
+public class Program401
+{
+    public static void Main(string[] args)
+    {
+        if (null is M) {}
+    }
+    private static object M() => null;
+}";
+            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (6,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
+                //         if (null is M) {}
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
+                // (6,21): error CS0150: A constant value is expected
+                //         if (null is M) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(6, 21)
+                );
+        }
+
+        [Fact]
+        [WorkItem(364165, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=364165")]
+        [WorkItem(16296, "https://github.com/dotnet/roslyn/issues/16296")]
+        public void Fuzz1717()
+        {
+            var program = @"
+public class Program1717
+{
+    public static void Main(string[] args)
+    {
+        switch (default(int?))
+        {
+            case 2:
+                break;
+            case double.NaN:
+                break;
+            case var x9:
+            case string _:
+                break;
+        }
+    }
+    private static object M() => null;
+}";
+            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (10,18): error CS0266: Cannot implicitly convert type 'double' to 'int?'. An explicit conversion exists (are you missing a cast?)
+                //             case double.NaN:
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "double.NaN").WithArguments("double", "int?").WithLocation(10, 18),
+                // (13,18): error CS8121: An expression of type int? cannot be handled by a pattern of type string.
+                //             case string _:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("int?", "string").WithLocation(13, 18)
+                );
+        }
+
+        [Fact, WorkItem(16559, "https://github.com/dotnet/roslyn/issues/16559")]
+        public void CasePatternVariableUsedInCaseExpression()
+        {
+            var program = @"
+public class Program5815
+{
+    public static void Main(object o)
+    {
+        switch (o)
+        {
+            case Color Color:
+            case Color? Color2:
+                break;
+        }
+    }
+    private static object M() => null;
+}";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (9,32): error CS1525: Invalid expression term 'break'
+                //             case Color? Color2:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(9, 32),
+                // (9,32): error CS1003: Syntax error, ':' expected
+                //             case Color? Color2:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "break").WithLocation(9, 32),
+                // (8,18): error CS0118: 'Color' is a variable but is used like a type
+                //             case Color Color:
+                Diagnostic(ErrorCode.ERR_BadSKknown, "Color").WithArguments("Color", "variable", "type").WithLocation(8, 18),
+                // (9,25): error CS0103: The name 'Color2' does not exist in the current context
+                //             case Color? Color2:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Color2").WithArguments("Color2").WithLocation(9, 25)
+                );
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var colorDecl = GetPatternDeclarations(tree, "Color").ToArray();
+            var colorRef = GetReferences(tree, "Color").ToArray();
+            Assert.Equal(1, colorDecl.Length);
+            Assert.Equal(2, colorRef.Length);
+            Assert.Null(model.GetSymbolInfo(colorRef[0]).Symbol);
+            VerifyModelForDeclarationPattern(model, colorDecl[0], colorRef[1]);
+        }
+
+        [Fact, WorkItem(16559, "https://github.com/dotnet/roslyn/issues/16559")]
+        public void Fuzz5815()
+        {
+            var program = @"
+public class Program5815
+{
+    public static void Main(string[] args)
+    {
+        switch ((int)M())
+        {
+            case var x3:
+            case true ? x3 : 4:
+                break;
+        }
+    }
+    private static object M() => null;
+}";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (9,18): error CS0150: A constant value is expected
+                //             case true ? x3 : 4:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "true ? x3 : 4").WithLocation(9, 18)
+                );
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = GetPatternDeclarations(tree, "x3").ToArray();
+            var x3Ref = GetReferences(tree, "x3").ToArray();
+            Assert.Equal(1, x3Decl.Length);
+            Assert.Equal(1, x3Ref.Length);
+            VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16721")]
+        public void Fuzz()
+        {
+            const int numTests = 1000000;
+            int dt = (int)Math.Abs(DateTime.Now.Ticks % 1000000000);
+            for (int i = 1; i < numTests; i++)
+            {
+                PatternMatchingFuzz(i + dt);
+            }
+        }
+
+        private static void PatternMatchingFuzz(int dt)
+        {
+            Random r = new Random(dt);
+
+            // generate a pattern-matching switch randomly from templates
+            string[] expressions = new[]
+            {
+                "M",              // a method group
+                "(() => 1)",      // a lambda expression
+                "1",              // a constant
+                "2",              // a constant
+                "null",           // the null constant
+                "default(int?)",  // a null constant of type int?
+                "((int?)1)",      // a constant of type int?
+                "M()",            // a method invocation
+                "double.NaN",     // a scary constant
+                "1.1",            // a double constant
+                "NotFound"        // an unbindable expression
+            };
+            string Expression()
+            {
+                int index = r.Next(expressions.Length + 1) - 1;
+                return (index < 0) ? $"(({Type()})M())" : expressions[index];
+            }
+            string[] types = new[]
+            {
+                "object",
+                "var",
+                "int",
+                "int?",
+                "double",
+                "string",
+                "NotFound"
+            };
+            string Type() => types[r.Next(types.Length)];
+            string Pattern()
+            {
+                switch (r.Next(3))
+                {
+                    case 0:
+                        return Expression(); // a "constant" pattern
+                    case 1:
+                        return Type() + " x" + r.Next(10);
+                    case 2:
+                        return Type() + " _";
+                    default:
+                        throw null;
+                }
+            }
+            string body = @"
+public class Program{0}
+{{
+    public static void Main(string[] args)
+    {{
+        {1}
+    }}
+    private static object M() => null;
+}}";
+            var statement = new StringBuilder();
+            switch (r.Next(2))
+            {
+                case 0:
+                    // test the "is-pattern" expression
+                    statement.Append($"if ({Expression()} is {Pattern()}) {{}}");
+                    break;
+                case 1:
+                    // test the pattern switch statement
+                    statement.AppendLine($"switch ({Expression()})");
+                    statement.AppendLine("{");
+                    var nCases = r.Next(5);
+                    for (int i = 1; i <= nCases; i++)
+                    {
+                        statement.AppendLine($"    case {Pattern()}:");
+                        if (i == nCases || r.Next(2) == 0)
+                        {
+                            statement.AppendLine($"        break;");
+                        }
+                    }
+                    statement.AppendLine("}");
+                    break;
+                default:
+                    throw null;
+            }
+            var program = string.Format(body, dt, statement);
+            CreateCompilationWithMscorlib45(program).GetDiagnostics();
+        }
+
+        [Fact, WorkItem(16671, "https://github.com/dotnet/roslyn/issues/16671")]
+        public void TypeParameterSubsumption01()
+        {
+            var program = @"
+using System;
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        PatternMatching<Base, Derived>(new Base());
+        PatternMatching<Base, Derived>(new Derived());
+        PatternMatching<Base, Derived>(null);
+        PatternMatching<object, int>(new object());
+        PatternMatching<object, int>(2);
+        PatternMatching<object, int>(null);
+        PatternMatching<object, int?>(new object());
+        PatternMatching<object, int?>(2);
+        PatternMatching<object, int?>(null);
+    }
+    static void PatternMatching<TBase, TDerived>(TBase o) where TDerived : TBase
+    {
+        switch (o)
+        {
+            case TDerived td:
+                Console.WriteLine(nameof(TDerived));
+                break;
+            case TBase tb:
+                Console.WriteLine(nameof(TBase));
+                break;
+            default:
+                Console.WriteLine(""Neither"");
+                break;
+        }
+    }
+}
+class Base
+{
+}
+class Derived : Base
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe).VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"TBase
+TDerived
+Neither
+TBase
+TDerived
+Neither
+TBase
+TDerived
+Neither");
+        }
+
+        [Fact, WorkItem(16671, "https://github.com/dotnet/roslyn/issues/16671")]
+        public void TypeParameterSubsumption02()
+        {
+            var program = @"
+using System;
+public class Program
+{
+    static void PatternMatching<TBase, TDerived>(TBase o) where TDerived : TBase
+    {
+        switch (o)
+        {
+            case TBase tb:
+                Console.WriteLine(nameof(TBase));
+                break;
+            case TDerived td:
+                Console.WriteLine(nameof(TDerived));
+                break;
+            default:
+                Console.WriteLine(""Neither"");
+                break;
+        }
+    }
+}
+class Base
+{
+}
+class Derived : Base
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case TDerived td:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "TDerived td").WithLocation(12, 18),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 Console.WriteLine(nameof(TDerived));
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 17)
+                );
+        }
+
+        [Fact, WorkItem(16688, "https://github.com/dotnet/roslyn/issues/16688")]
+        public void TypeParameterSubsumption03()
+        {
+            var program = @"
+using System.Collections.Generic;
+public class Program
+{
+    private static void Pattern<T>(T thing) where T : class
+    {
+        switch (thing)
+        {
+            case T tThing:
+                break;
+            case IEnumerable<object> s:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case IEnumerable<object> s:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<object> s").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16696")]
+        public void TypeParameterSubsumption04()
+        {
+            var program = @"
+using System.Collections.Generic;
+public class Program
+{
+    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
+    {
+        switch (thing)
+        {
+            case IEnumerable<TBase> sequence:
+                break;
+            case IEnumerable<TDerived> derivedSequence:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case IEnumerable<TDerived> derivedSequence:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<TDerived> derivedSequence").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16696")]
+        public void TypeParameterSubsumption05()
+        {
+            var program = @"
+using System.Collections.Generic;
+public class Program
+{
+    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
+    {
+        switch (thing)
+        {
+            case IEnumerable<object> s:
+                break;
+            case IEnumerable<TDerived> derivedSequence:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case IEnumerable<TDerived> derivedSequence:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<TDerived> derivedSequence").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                );
         }
     }
 }

@@ -109,6 +109,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.Interpolation(DirectCast(syntaxNode, ExpressionSyntax))
         End Function
 
+        Friend Overrides Function NumericLiteralToken(text As String, value As ULong) As SyntaxToken
+            Return SyntaxFactory.Literal(text, value)
+        End Function
+
         Public Overrides Function DefaultExpression(type As ITypeSymbol) As SyntaxNode
             Return SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))
         End Function
@@ -428,6 +432,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Overloads Overrides Function SwitchSection(expressions As IEnumerable(Of SyntaxNode), statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.CaseBlock(
                 SyntaxFactory.CaseStatement(GetCaseClauses(expressions)),
+                GetStatementList(statements))
+        End Function
+
+        Friend Overrides Function SwitchSectionFromLabels(labels As IEnumerable(Of SyntaxNode), statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return SyntaxFactory.CaseBlock(
+                SyntaxFactory.CaseStatement(SyntaxFactory.SeparatedList(labels.Cast(Of CaseClauseSyntax))),
                 GetStatementList(statements))
         End Function
 

@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(lineOperation.Option);
                 }
             }
 
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         return existingWhitespaceBetween.Spaces;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(rule.IndentationOperation);
                 }
             }
 
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return Math.Max(rule.Spaces, 0);
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(rule.SpaceOperation);
             }
         }
 

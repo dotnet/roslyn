@@ -72,6 +72,6 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
-  <Import Project="..\..\..\..\Tools\Vsdconfig\Vsdconfig.targets" />
+  <Import Project="..\..\..\..\..\build\Targets\Vsdconfig.targets" />
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

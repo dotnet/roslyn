@@ -28,10 +28,6 @@
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
-      <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
-      <Name>TestUtilities.FX45</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
@@ -73,11 +69,13 @@
     <Compile Include="CodeStyle\EditorConfigCodeStyleParserTests.cs" />
     <Compile Include="DependentTypeFinderTests.cs" />
     <Compile Include="EditorConfigStorageLocation\EditorConfigStorageLocationTests.cs" />
+    <Compile Include="Differencing\LongestCommonSubsequenceTests.cs" />
     <Compile Include="Editting\SyntaxEditorTests.cs" />
     <Compile Include="Execution\Extensions.cs" />
     <Compile Include="Execution\SnapshotSerializationTestBase.cs" />
     <Compile Include="Execution\SnapshotSerializationTests.cs" />
     <Compile Include="ExtensionOrdererTests.cs" />
+    <Compile Include="Host\WorkspaceServices\TestOptionsServiceFactory.cs" />
     <Compile Include="Host\WorkspaceServices\TestProjectCacheService.cs" />
     <Compile Include="Host\WorkspaceServices\TestTemporaryStorageService.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.TextMerging.cs" />

@@ -95,10 +95,6 @@
       <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</Project>
       <Name>BasicCompilerTestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
-      <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>TestUtilities.FX45</Name>
-    </ProjectReference>
     <ProjectReference Include="..\TestUtilities2\ServicesTestUtilities2.vbproj">
       <Project>{3dfb4701-e3d6-4435-9f70-a6e35822c4f2}</Project>
       <Name>ServicesTestUtilities2</Name>
@@ -194,6 +190,7 @@
     <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.Casing.vb" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
     <Compile Include="Expansion\LambdaParameterExpansionTests.vb" />
+    <Compile Include="FindReferences\FindReferencesTests.Tuples.vb" />
     <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
     <Compile Include="IntelliSense\CompletionServiceTests.vb" />
     <Compile Include="InteractivePaste\InteractivePasteCommandHandlerTests.vb" />

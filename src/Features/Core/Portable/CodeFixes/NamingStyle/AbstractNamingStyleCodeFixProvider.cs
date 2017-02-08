@@ -36,6 +36,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             var model = await document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             var symbol = model.GetDeclaredSymbol(node, context.CancellationToken);
 
+            // TODO: We should always be able to find the symbol that generated this diagnostic,
+            // but this cannot always be done by simply asking for the declared symbol on the node 
+            // from the symbol's declaration location.
+            // See https://github.com/dotnet/roslyn/issues/16588
+
+            if (symbol == null)
+            {
+                return;
+            }
+
             var fixedNames = style.MakeCompliant(symbol.Name);
             foreach (var fixedName in fixedNames)
             {

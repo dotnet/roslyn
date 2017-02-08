@@ -42,7 +42,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             /// </summary>
             public abstract Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken);
 
-            internal virtual async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
+            internal async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
+                FixAllContext fixAllContext)
+            {
+                var result = await GetDocumentDiagnosticsToFixWorkerAsync(fixAllContext).ConfigureAwait(false);
+
+                // Filter out any documents that we don't have any diagnostics for.
+                return result.Where(kvp => !kvp.Value.IsDefaultOrEmpty).ToImmutableDictionary();
+            }
+
+            internal virtual async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(
                 FixAllContext fixAllContext)
             {
                 var cancellationToken = fixAllContext.CancellationToken;

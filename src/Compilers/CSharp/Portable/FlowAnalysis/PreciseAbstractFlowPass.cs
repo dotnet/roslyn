@@ -1144,10 +1144,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            foreach (var statement in node.Statements)
+            VisitStatements(node.Statements);
+            return null;
+        }
+
+        private void VisitStatements(ImmutableArray<BoundStatement> statements)
+        {
+            foreach (var statement in statements)
             {
                 VisitStatement(statement);
             }
+        }
+
+        public override BoundNode VisitScope(BoundScope node)
+        {
+            VisitStatements(node.Statements);
             return null;
         }
 
