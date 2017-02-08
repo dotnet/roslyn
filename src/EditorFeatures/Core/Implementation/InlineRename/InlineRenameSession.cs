@@ -256,6 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
 
             UpdateConflictResolutionTask();
+            QueueApplyReplacements();
         }
 
         public Workspace Workspace { get { return _workspace; } }
@@ -380,12 +381,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             AssertIsForeground();
             VerifyNotDismissed();
-            this.ReplacementText = replacementText;
+            this.ReplacementText = _renameInfo.GetFinalSymbolName(replacementText);
+
+            var asyncToken = _asyncListener.BeginAsyncOperation(nameof(ApplyReplacementText));
 
             Action propagateEditAction = delegate
             {
+                AssertIsForeground();
+
                 if (_dismissed)
                 {
+                    asyncToken.Dispose();
                     return;
                 }
 
@@ -399,7 +405,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 _isApplyingEdit = false;
+
+                // We already kicked off UpdateConflictResolutionTask below (outside the delegate).
+                // Now that we are certain the replacement text has been propagated to all of the
+                // open buffers, it is safe to actually apply the replacements it has calculated.
+                // See https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=227513
+                QueueApplyReplacements();
+
+                asyncToken.Dispose();
             };
+
+            // Start the conflict resolution task but do not apply the results immediately. The
+            // buffer changes performed in propagateEditAction can cause source control modal
+            // dialogs to show. Those dialogs pump, and yield the UI thread to whatever work is
+            // waiting to be done there, including our ApplyReplacements work. If ApplyReplacements
+            // starts running on the UI thread while propagateEditAction is still updating buffers
+            // on the UI thread, we crash because we try to enumerate the undo stack while an undo
+            // transaction is still in process. Therefore, we defer QueueApplyReplacements until
+            // after the buffers have been edited, and any modal dialogs have been completed.
+            // In addition to avoiding the crash, this also ensures that the resolved conflict text
+            // is applied after the simple text change is propagated.
+            // See https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=227513
+            UpdateConflictResolutionTask();
 
             if (propagateEditImmediately)
             {
@@ -410,8 +437,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // When responding to a text edit, we delay propagating the edit until the first transaction completes.
                 Dispatcher.CurrentDispatcher.BeginInvoke(propagateEditAction, DispatcherPriority.Send, null);
             }
-
-            UpdateConflictResolutionTask();
         }
 
         private void UpdateConflictResolutionTask()
@@ -421,6 +446,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _conflictResolutionTaskCancellationSource.Cancel();
             _conflictResolutionTaskCancellationSource = new CancellationTokenSource();
 
+            // If the replacement text is empty, we do not update the results of the conflict
+            // resolution task. We instead wait for a non-empty identifier.
             if (this.ReplacementText == string.Empty)
             {
                 return;
@@ -430,30 +457,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var optionSet = _optionSet;
             var cancellationToken = _conflictResolutionTaskCancellationSource.Token;
 
+            var asyncToken = _asyncListener.BeginAsyncOperation(nameof(UpdateConflictResolutionTask));
+
             _conflictResolutionTask = _allRenameLocationsTask.SafeContinueWithFromAsync(
-               t => UpdateConflictResolutionTask(t.Result, replacementText, optionSet, cancellationToken),
+               t => t.Result.GetReplacementsAsync(replacementText, optionSet, cancellationToken),
                cancellationToken,
                TaskContinuationOptions.OnlyOnRanToCompletion,
                TaskScheduler.Default);
 
-            var asyncToken = _asyncListener.BeginAsyncOperation("UpdateConflictResolutionTask");
             _conflictResolutionTask.CompletesAsyncOperation(asyncToken);
         }
 
-        private Task<IInlineRenameReplacementInfo> UpdateConflictResolutionTask(IInlineRenameLocationSet locations, string replacementText, OptionSet optionSet, CancellationToken cancellationToken)
+        private void QueueApplyReplacements()
         {
-            var conflictResolutionTask = Task.Run(async () =>
-                await locations.GetReplacementsAsync(replacementText, optionSet, cancellationToken).ConfigureAwait(false),
-                cancellationToken);
+            // If the replacement text is empty, we do not update the results of the conflict
+            // resolution task. We instead wait for a non-empty identifier.
+            if (this.ReplacementText == string.Empty)
+            {
+                return;
+            }
 
-            var asyncToken = _asyncListener.BeginAsyncOperation("UpdateConflictResolutionTask");
-            conflictResolutionTask.SafeContinueWith(
-                t => ApplyReplacements(t.Result, cancellationToken),
-                cancellationToken,
+            var asyncToken = _asyncListener.BeginAsyncOperation(nameof(QueueApplyReplacements));
+            _conflictResolutionTask.SafeContinueWith(
+                t => ApplyReplacements(t.Result, _conflictResolutionTaskCancellationSource.Token),
+                _conflictResolutionTaskCancellationSource.Token,
                 TaskContinuationOptions.OnlyOnRanToCompletion,
                 ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
-
-            return conflictResolutionTask;
         }
 
         private void ApplyReplacements(IInlineRenameReplacementInfo replacementInfo, CancellationToken cancellationToken)
@@ -587,7 +616,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     newSolution = previewService.PreviewChanges(
                         string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
                         "vs.csharp.refactoring.rename",
-                        string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, _renameInfo.GetFinalSymbolName(this.ReplacementText)),
+                        string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, this.ReplacementText),
                         _renameInfo.FullDisplayName,
                         _renameInfo.Glyph,
                         _conflictResolutionTask.Result.NewSolution,

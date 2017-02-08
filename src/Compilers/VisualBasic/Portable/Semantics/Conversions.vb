@@ -426,6 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Error_SubToFunction = &H2000
         Error_ReturnTypeMismatch = &H4000
         Error_OverloadResolution = &H8000
+        Error_StubNotSupported = &H10000
 
         AllErrorReasons = Error_ByRefByValMismatch Or
                           Error_Unspecified Or
@@ -433,7 +434,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                           Error_RestrictedType Or
                           Error_SubToFunction Or
                           Error_ReturnTypeMismatch Or
-                          Error_OverloadResolution
+                          Error_OverloadResolution Or
+                          Error_StubNotSupported
     End Enum
 
     ''' <summary>
@@ -4013,6 +4015,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''     Return ConvertFrom(...)
         ''' End ... 
         ''' </summary>
+        Public Shared Function ClassifyMethodConversionBasedOnReturn(
+            returnTypeOfConvertFromMethod As TypeSymbol,
+            convertFromMethodIsByRef As Boolean,
+            returnTypeOfConvertToMethod As TypeSymbol,
+            convertToMethodIsByRef As Boolean,
+            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+        ) As MethodConversionKind
+            If convertToMethodIsByRef <> convertFromMethodIsByRef Then
+                Return MethodConversionKind.Error_ByRefByValMismatch
+            End If
+
+            Return ClassifyMethodConversionBasedOnReturnType(returnTypeOfConvertFromMethod, returnTypeOfConvertToMethod, useSiteDiagnostics)
+        End Function
+
         Public Shared Function ClassifyMethodConversionBasedOnReturnType(
             returnTypeOfConvertFromMethod As TypeSymbol,
             returnTypeOfConvertToMethod As TypeSymbol,
@@ -4128,11 +4144,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As MethodConversionKind
 
             ' determine conversions based on return type
-            Dim methodConversions = Conversions.ClassifyMethodConversionBasedOnReturnType(lambdaOrDelegateInvokeSymbol.ReturnType, toMethodSignature.ReturnType, useSiteDiagnostics)
+            Dim methodConversions = Conversions.ClassifyMethodConversionBasedOnReturn(lambdaOrDelegateInvokeSymbol.ReturnType, lambdaOrDelegateInvokeSymbol.ReturnsByRef,
+                                                                                      toMethodSignature.ReturnType, toMethodSignature.ReturnsByRef, useSiteDiagnostics)
 
             ' determine conversions based on arguments
             methodConversions = methodConversions Or ClassifyMethodConversionForLambdaOrAnonymousDelegateBasedOnParameters(toMethodSignature, lambdaOrDelegateInvokeSymbol.Parameters, useSiteDiagnostics)
 
+            Debug.Assert(Not lambdaOrDelegateInvokeSymbol.ReturnsByRef) ' No interaction of ByRef return with other relaxations
             Return methodConversions
         End Function
 
@@ -4165,7 +4183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 For parameterIndex As Integer = 0 To parameters.Length - 1
                     ' Check ByRef
-                    If toMethodSignature.IsByRef(parameterIndex) <> parameters(parameterIndex).IsByRef Then
+                    If toMethodSignature.ParameterIsByRef(parameterIndex) <> parameters(parameterIndex).IsByRef Then
                         methodConversions = methodConversions Or MethodConversionKind.Error_ByRefByValMismatch
                     End If
 
@@ -4180,7 +4198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      toParameterType)
 
                         ' Check copy back conversion.
-                        If toMethodSignature.IsByRef(parameterIndex) Then
+                        If toMethodSignature.ParameterIsByRef(parameterIndex) Then
                             methodConversions = methodConversions Or
                                                 Conversions.ClassifyMethodConversionBasedOnArgumentConversion(
                                                                          Conversions.ClassifyConversion(lambdaParameterType, toParameterType, useSiteDiagnostics).Key,

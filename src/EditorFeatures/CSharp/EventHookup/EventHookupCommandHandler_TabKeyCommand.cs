@@ -277,6 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 accessibility: Accessibility.Private,
                 modifiers: new DeclarationModifiers(isStatic: eventHookupExpression.IsInStaticContext()),
                 returnType: delegateType.DelegateInvokeMethod.ReturnType,
+                returnsByRef: delegateType.DelegateInvokeMethod.ReturnsByRef,
                 explicitInterfaceSymbol: null,
                 name: eventHandlerMethodName,
                 typeParameters: null,

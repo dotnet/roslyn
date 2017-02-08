@@ -1725,7 +1725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(_kind);
                 }
             }
 
@@ -1793,7 +1793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(newNode.Kind());
                 }
             }
 
@@ -2209,7 +2209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(newNode.Kind());
                 }
             }
 
@@ -3039,7 +3039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((ReturnStatementSyntax)statement).Expression;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(statement.Kind());
             }
         }
 
