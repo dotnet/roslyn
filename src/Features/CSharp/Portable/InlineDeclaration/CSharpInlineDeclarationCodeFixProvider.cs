@@ -253,24 +253,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var previousSymbol = semanticModel.GetSymbolInfo(invocationOrCreation).Symbol;
 
-                var annotation = new SyntaxAnnotation();
-                var updatedInvocationOrCreation = invocationOrCreation.ReplaceNode(
-                    identifier, declarationExpression).WithAdditionalAnnotations(annotation);
+                var updatedInvocationOrCreation = invocationOrCreation.ReplaceNode(identifier, declarationExpression);
+                var updatedSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(
+                    invocationOrCreation.SpanStart, updatedInvocationOrCreation, SpeculativeBindingOption.BindAsExpression);
 
-                // Note(cyrusn): "https://github.com/dotnet/roslyn/issues/14384" prevents us from just
-                // speculatively binding the new expression.  So, instead, we fork things and see if
-                // the new symbol we bind to is equivalent to the previous one.
-                var newDocument = document.WithSyntaxRoot(
-                    root.ReplaceNode(invocationOrCreation, updatedInvocationOrCreation));
-
-                var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var newSemanticModel = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                updatedInvocationOrCreation = (ExpressionSyntax)newRoot.GetAnnotatedNodes(annotation).Single();
-
-                var updatedSymbol = newSemanticModel.GetSymbolInfo(updatedInvocationOrCreation).Symbol;
-
-                if (!SymbolEquivalenceComparer.Instance.Equals(previousSymbol, updatedSymbol))
+                if (!SymbolEquivalenceComparer.Instance.Equals(previousSymbol, updatedSymbolInfo.Symbol))
                 {
                     // We're pointing at a new symbol now.  Semantic have changed.
                     return true;
