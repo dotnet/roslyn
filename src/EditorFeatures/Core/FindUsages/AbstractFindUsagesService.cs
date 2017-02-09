@@ -162,11 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // We'll take those results, massage them, and forward them along to the 
             // FindUsagesContext instance we were given.
             await SymbolFinder.FindLiteralReferencesAsync(
-                token.Value,
-                solution,
-                progressAdapter,
-                documents: null,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                token.Value, solution, progressAdapter, cancellationToken).ConfigureAwait(false);
 
             return true;
         }

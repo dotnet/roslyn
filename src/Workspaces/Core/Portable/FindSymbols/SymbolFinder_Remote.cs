@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
            object value,
            Solution solution,
            IStreamingFindLiteralReferencesProgress progress,
-           IImmutableSet<Document> documents,
            CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
