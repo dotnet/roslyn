@@ -58,8 +58,8 @@ public class C
                     default(CancellationToken));
 
                 diags.Verify(
-                // error CS1569: Error writing to XML documentation file: I/O error occurred.
-                Diagnostic(ErrorCode.ERR_DocFileGen).WithArguments("I/O error occurred.").WithLocation(1, 1));
+                    // error CS1569: Error writing to XML documentation file: I/O error occurred.
+                    Diagnostic(ErrorCode.ERR_DocFileGen).WithArguments("I/O error occurred.").WithLocation(1, 1));
             }
         }
 
