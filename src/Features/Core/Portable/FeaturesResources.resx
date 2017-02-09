@@ -1156,6 +1156,7 @@ This version used in: {2}</value>
   </data>
   <data name="Remove_unused_variable" xml:space="preserve">
     <value>Remove unused variable</value>
+  </data>
   <data name="Convert_to_binary" xml:space="preserve">
     <value>Convert to binary</value>
   </data>
