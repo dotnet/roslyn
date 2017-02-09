@@ -5099,6 +5099,175 @@ class Programand
 ");
             Assert.Equal("a, b", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
         }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        void Local() { }
+        /*</bind>*/
+    }
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions2()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        void Local() { }
+
+        /*<bind>*/
+        Local();
+        /*</bind>*/
+    }
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions3()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        void Local() { }
+
+        /*<bind>*/
+        Action = Local;
+        /*</bind>*/
+    }
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions4()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        void Local() { }
+
+        /*<bind>*/
+        var a = new Action(Local);
+        /*</bind>*/
+    }
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions5()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    static void Main()
+    {
+        void Local()
+        {
+            /*<bind>*/
+            int x = 0;
+            x++;
+            x = M(x + 1);
+            /*</bind>*/
+        }
+        Local();
+    }
+
+    int M(int i) => i;
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions6()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    static void Main()
+    {
+        var a = new Action(() =>
+        {
+            void Local()
+            {
+                /*<bind>*/
+                int x = 0;
+                x++;
+                x = M(x + 1);
+                /*</bind>*/
+            }
+        });
+        a();
+    }
+
+    int M(int i) => i;
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions7()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        void Local() { }
+
+        /*<bind>*/
+        var a = (Action)Local;
+        /*</bind>*/
+    }
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions8()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    static void Main()
+    {
+        int x = 0;
+        void Local() { x++; }
+        Local();
+
+        /*<bind>*/
+        x++;
+        x = M(x + 1);
+        /*</bind>*/
+    }
+
+    int M(int i) => i;
+}");
+            Assert.True(results.Succeeded);
+        }
         #endregion
     }
 }

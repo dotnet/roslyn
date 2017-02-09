@@ -147,6 +147,7 @@ var PackagesNotBuiltOnCore = new HashSet<string>
      "Microsoft.CodeAnalysis.VisualBasic.Features",
      "Microsoft.CodeAnalysis.Workspaces.Common",
      "Microsoft.Net.Compilers",
+     "Microsoft.VisualStudio.IntegrationTest.Utilities",
      "Microsoft.VisualStudio.LanguageServices",
      "Microsoft.VisualStudio.LanguageServices.Next",
      "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",

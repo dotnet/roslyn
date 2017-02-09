@@ -68,6 +68,8 @@
     <Compile Include="Shared\ServiceHubServiceBase.cs" />
     <Compile Include="Services\SnapshotService.cs" />
     <Compile Include="Shared\Extensions.cs" />
+    <Compile Include="Shared\RoslynJsonConverter.cs" />
+    <Compile Include="Shared\RoslynJsonConverter.SolutionIdConverters.cs" />
     <Compile Include="Shared\ServerDirectStream.cs" />
     <Compile Include="Shared\ClientDirectStream.cs" />
   </ItemGroup>

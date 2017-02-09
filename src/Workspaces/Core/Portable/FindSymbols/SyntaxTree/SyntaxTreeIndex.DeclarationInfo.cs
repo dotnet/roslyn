@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            public static DeclarationInfo? ReadFrom(ObjectReader reader)
+            public static DeclarationInfo? TryReadFrom(ObjectReader reader)
             {
                 try
                 {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var builder = ImmutableArray.CreateBuilder<DeclaredSymbolInfo>(declaredSymbolCount);
                     for (int i = 0; i < declaredSymbolCount; i++)
                     {
-                        builder.Add(DeclaredSymbolInfo.ReadFrom(reader));
+                        builder.Add(DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(reader));
                     }
 
                     return new DeclarationInfo(builder.MoveToImmutable());

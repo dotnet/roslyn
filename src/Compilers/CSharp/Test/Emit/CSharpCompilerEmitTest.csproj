@@ -35,10 +35,6 @@
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
-      <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>TestUtilities.FX45</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj">
       <Project>{7a4b2176-7bfd-4b75-a61a-e25a1fdd0a1e}</Project>
       <Name>CSharpCompilerTestUtilities.Desktop</Name>
@@ -134,6 +130,7 @@
     <Compile Include="Emit\DynamicAnalysis\DynamicInstrumentationTests.cs" />
     <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.cs" />
+    <Compile Include="Emit\EditAndContinue\EditAndContinuePdbTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueStateMachineTests.cs" />
@@ -144,6 +141,7 @@
     <Compile Include="Emit\EmitMetadata.cs" />
     <Compile Include="Emit\EmitMetadataTestBase.cs" />
     <Compile Include="Attributes\EmitTestStrongNameProvider.cs" />
+    <Compile Include="Emit\EndToEndTests.cs" />
     <Compile Include="Emit\EntryPointTests.cs" />
     <Compile Include="Emit\NoPiaEmbedTypes.cs" />
     <Compile Include="Emit\OptionalArgumentsTests.cs" />

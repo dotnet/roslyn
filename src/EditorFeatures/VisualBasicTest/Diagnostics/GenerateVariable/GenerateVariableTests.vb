@@ -411,8 +411,8 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
-        Public Async Function TestOnlyGenerateFieldInByRefProperty() As Task
-            Await TestExactActionSetOfferedAsync(
+        Public Async Function TestGenerateFieldInByRefProperty() As Task
+            Await TestAsync(
 "Class A
 End Class
 Class B
@@ -423,7 +423,53 @@ Class B
         Foo(s.[|field|])
     End Sub
 End Class",
-{String.Format(FeaturesResources.Generate_field_1_0, "field", "A")})
+"Class A
+    Friend field As Integer
+End Class
+Class B
+    Public Sub Foo(ByRef d As Integer)
+    End Sub
+    Public Sub Bar()
+        Dim s As New A()
+        Foo(s.field)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGeneratePropertyInByRefProperty() As Task
+            Await TestAsync(
+"
+Imports System
+
+Class A
+End Class
+Class B
+    Public Sub Foo(ByRef d As Integer)
+    End Sub
+    Public Sub Bar()
+        Dim s As New A()
+        Foo(s.[|field|])
+    End Sub
+End Class",
+"
+Imports System
+
+Class A
+    Public ReadOnly Property field As Integer
+        Get
+            Throw New NotImplementedException()
+        End Get
+    End Property
+End Class
+Class B
+    Public Sub Foo(ByRef d As Integer)
+    End Sub
+    Public Sub Bar()
+        Dim s As New A()
+        Foo(s.field)
+    End Sub
+End Class", index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
@@ -1055,7 +1101,7 @@ Module Program
         Integer.TryParse(""123"", local)
 #End If
     End Sub
-End Module", index:=1)
+End Module", index:=2)
         End Function
 
         <WorkItem(809542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")>
@@ -1083,7 +1129,7 @@ Module Program
         Integer.TryParse(""123"", local)
 #End If
     End Sub
-End Module", index:=1)
+End Module", index:=2)
         End Function
 
         <WorkItem(545218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545218")>

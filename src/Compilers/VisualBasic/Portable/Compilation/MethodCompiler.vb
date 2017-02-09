@@ -1542,8 +1542,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Translate the imports even if we are not writing PDBs. The translation has an impact on generated metadata 
                 ' and we don't want to emit different metadata depending on whether or we emit with PDB stream.
                 ' TODO (https://github.com/dotnet/roslyn/issues/2846): This will need to change for member initializers in partial class.
-                Dim importScopeOpt = If(method.Syntax IsNot Nothing AndAlso method.Syntax.SyntaxTree IsNot VisualBasicSyntaxTree.DummySyntaxTree.Dummy,
-                                        moduleBuilder.SourceModule.GetSourceFile(method.Syntax.SyntaxTree).Translate(moduleBuilder, diagnostics),
+                Dim importScopeOpt = If(method.Syntax IsNot Nothing,
+                                        moduleBuilder.SourceModule.TryGetSourceFile(method.Syntax.SyntaxTree)?.Translate(moduleBuilder, diagnostics),
                                         Nothing)
 
                 If diagnostics.HasAnyErrors() Then

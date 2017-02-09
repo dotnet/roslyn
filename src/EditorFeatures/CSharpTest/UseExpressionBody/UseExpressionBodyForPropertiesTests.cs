@@ -229,5 +229,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     }
 }", compareTokens: false, options: UseBlockBody);
         }
+
+        [WorkItem(16386, "https://github.com/dotnet/roslyn/issues/16386")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseExpressionBodyKeepTrailingTrivia()
+        {
+            await TestAsync(
+@"class C
+{
+    private string _prop = ""HELLO THERE!"";
+    public string Prop { get { [|return|] _prop; } }
+
+    public string OtherThing => ""Pickles"";
+}",
+@"class C
+{
+    private string _prop = ""HELLO THERE!"";
+    public string Prop => _prop;
+
+    public string OtherThing => ""Pickles"";
+}", compareTokens: false, options: UseExpressionBody);
+        }
     }
 }

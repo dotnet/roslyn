@@ -183,10 +183,16 @@ namespace Microsoft.CodeAnalysis.Remote
         private static void RaiseCancellationIfInvokeFailed(Task task, CancellationTokenSource mergedCancellation, CancellationToken cancellationToken)
         {
             // if invoke throws an exception, make sure we raise cancellation
-            var dummy = task.ContinueWith(_ =>
+            var dummy = task.ContinueWith(p =>
             {
                 try
                 {
+                    if (p.Exception != null && !cancellationToken.IsCancellationRequested)
+                    {
+                        // fail fast if we are here without cencellation raised.
+                        FatalError.Report(p.Exception);
+                    }
+
                     mergedCancellation.Cancel();
                 }
                 catch (ObjectDisposedException)

@@ -7769,14 +7769,64 @@ fourth]]>)
 
         <Fact()>
         <WorkItem(13277, "https://github.com/dotnet/roslyn/issues/13277")>
+        <WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")>
         Public Sub CreateTupleTypeSymbol_UnderlyingTypeIsError()
 
-            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef})
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef, TestReferences.SymbolsTests.netModule.netModule1})
 
             Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
             Dim vt2 = comp.CreateErrorTypeSymbol(Nothing, "ValueTuple", 2).Construct(intType, intType)
 
             Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(underlyingType:=vt2))
+
+            Dim csComp = CreateCSharpCompilation("")
+            Assert.Throws(Of ArgumentNullException)(Sub() comp.CreateErrorTypeSymbol(Nothing, Nothing, 2))
+            Assert.Throws(Of ArgumentException)(Sub() comp.CreateErrorTypeSymbol(Nothing, "a", -1))
+            Assert.Throws(Of ArgumentException)(Sub() comp.CreateErrorTypeSymbol(csComp.GlobalNamespace, "a", 1))
+
+            Assert.Throws(Of ArgumentNullException)(Sub() comp.CreateErrorNamespaceSymbol(Nothing, "a"))
+            Assert.Throws(Of ArgumentNullException)(Sub() comp.CreateErrorNamespaceSymbol(csComp.GlobalNamespace, Nothing))
+            Assert.Throws(Of ArgumentException)(Sub() comp.CreateErrorNamespaceSymbol(csComp.GlobalNamespace, "a"))
+
+            Dim ns = comp.CreateErrorNamespaceSymbol(comp.GlobalNamespace, "a")
+            Assert.Equal("a", ns.ToTestDisplayString())
+            Assert.False(ns.IsGlobalNamespace)
+            Assert.Equal(NamespaceKind.Compilation, ns.NamespaceKind)
+            Assert.Same(comp.GlobalNamespace, ns.ContainingSymbol)
+            Assert.Same(comp.GlobalNamespace.ContainingAssembly, ns.ContainingAssembly)
+            Assert.Same(comp.GlobalNamespace.ContainingModule, ns.ContainingModule)
+
+            ns = comp.CreateErrorNamespaceSymbol(comp.Assembly.GlobalNamespace, "a")
+            Assert.Equal("a", ns.ToTestDisplayString())
+            Assert.False(ns.IsGlobalNamespace)
+            Assert.Equal(NamespaceKind.Assembly, ns.NamespaceKind)
+            Assert.Same(comp.Assembly.GlobalNamespace, ns.ContainingSymbol)
+            Assert.Same(comp.Assembly.GlobalNamespace.ContainingAssembly, ns.ContainingAssembly)
+            Assert.Same(comp.Assembly.GlobalNamespace.ContainingModule, ns.ContainingModule)
+
+            ns = comp.CreateErrorNamespaceSymbol(comp.SourceModule.GlobalNamespace, "a")
+            Assert.Equal("a", ns.ToTestDisplayString())
+            Assert.False(ns.IsGlobalNamespace)
+            Assert.Equal(NamespaceKind.Module, ns.NamespaceKind)
+            Assert.Same(comp.SourceModule.GlobalNamespace, ns.ContainingSymbol)
+            Assert.Same(comp.SourceModule.GlobalNamespace.ContainingAssembly, ns.ContainingAssembly)
+            Assert.Same(comp.SourceModule.GlobalNamespace.ContainingModule, ns.ContainingModule)
+
+            ns = comp.CreateErrorNamespaceSymbol(comp.CreateErrorNamespaceSymbol(comp.GlobalNamespace, "a"), "b")
+            Assert.Equal("a.b", ns.ToTestDisplayString())
+
+            ns = comp.CreateErrorNamespaceSymbol(comp.GlobalNamespace, "")
+            Assert.Equal("", ns.ToTestDisplayString())
+            Assert.False(ns.IsGlobalNamespace)
+
+            vt2 = comp.CreateErrorTypeSymbol(comp.CreateErrorNamespaceSymbol(comp.GlobalNamespace, "System"), "ValueTuple", 2).Construct(intType, intType)
+            Assert.Equal("(System.Int32, System.Int32)", comp.CreateTupleTypeSymbol(underlyingType:=vt2).ToTestDisplayString())
+
+            vt2 = comp.CreateErrorTypeSymbol(comp.CreateErrorNamespaceSymbol(comp.Assembly.GlobalNamespace, "System"), "ValueTuple", 2).Construct(intType, intType)
+            Assert.Equal("(System.Int32, System.Int32)", comp.CreateTupleTypeSymbol(underlyingType:=vt2).ToTestDisplayString())
+
+            vt2 = comp.CreateErrorTypeSymbol(comp.CreateErrorNamespaceSymbol(comp.SourceModule.GlobalNamespace, "System"), "ValueTuple", 2).Construct(intType, intType)
+            Assert.Equal("(System.Int32, System.Int32)", comp.CreateTupleTypeSymbol(underlyingType:=vt2).ToTestDisplayString())
         End Sub
 
         <Fact>
@@ -12323,7 +12373,7 @@ second
 second")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/14529")>
+        <Fact>
         <WorkItem(14529, "https://github.com/dotnet/roslyn/issues/14529")>
         <WorkItem(14530, "https://github.com/dotnet/roslyn/issues/14530")>
         Public Sub AnonymousDelegate_02()
@@ -12916,7 +12966,8 @@ System.ValueTuple`2[System.Int32,System.Int32]
 
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/14152")>
+        <Fact>
+        <WorkItem(14152, "https://github.com/dotnet/roslyn/issues/14152")>
         Public Sub Inference13()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -12926,12 +12977,22 @@ Imports System
 Public Class C
     Shared Sub Main()
         Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=DirectCast(1, Object)))
+        Test1(Nullable((a:=1, b:=(a:=1, b:=2))), (a:=1, b:=DirectCast(1, Object)))
+        Test2(Nullable((a:=1, b:=(a:=1, b:=2))), (a:=1, b:=DirectCast(1, Object)))
         Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(c:=1, d:=2)))
         Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(1, 2)))
         Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(a:=1, b:=2)))
     End Sub
 
+    Shared Function Nullable(Of T as structure)(x as T) as T?
+        return x
+    End Function
+
     Shared Sub Test1(Of T, U)(x As (T, U)?, y As (T, U))
+        Console.WriteLine(GetType(U))
+    End Sub
+
+    Shared Sub Test2(Of T, U)(x As (T, U), y As (T, U))
         Console.WriteLine(GetType(U))
     End Sub
 End Class
@@ -12940,6 +13001,8 @@ End Class
 options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
 
             CompileAndVerify(comp, expectedOutput:="
+System.Object
+System.Object
 System.Object
 System.ValueTuple`2[System.Int32,System.Int32]
 System.ValueTuple`2[System.Int32,System.Int32]
@@ -17218,6 +17281,149 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
         End Sub
 
         <Fact>
+        Public Sub ValueTupleBaseError_NoSystemRuntime()
+            Dim comp = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Interface I
+    Function F() As ((Integer, Integer), (Integer, Integer))
+End Interface
+    </file>
+</compilation>,
+                references:={ValueTupleRef})
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+    Function F() As ((Integer, Integer), (Integer, Integer))
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+    Function F() As ((Integer, Integer), (Integer, Integer))
+                     ~~~~~~~~~~~~~~~~~~
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+    Function F() As ((Integer, Integer), (Integer, Integer))
+                                         ~~~~~~~~~~~~~~~~~~
+</errors>)
+        End Sub
+
+        <WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")>
+        <Fact>
+        Public Sub ValueTupleBaseError_MissingReference()
+            Dim comp0 = CreateCompilationWithMscorlib(
+<compilation name="5a03232e-1a0f-4d1b-99ba-5d7b40ea931e">
+    <file name="a.vb">
+Public Class A
+End Class
+Public Class B
+End Class
+    </file>
+</compilation>)
+            comp0.AssertNoDiagnostics()
+            Dim ref0 = comp0.EmitToImageReference()
+            Dim comp1 = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Public Class C(Of T)
+End Class
+Namespace System
+    Public Class ValueTuple(Of T1, T2)
+        Inherits A
+        Public Sub New(_1 As T1, _2 As T2)
+        End Sub
+    End Class
+    Public Class ValueTuple(Of T1, T2, T3)
+        Inherits C(Of B)
+        Public Sub New(_1 As T1, _2 As T2, _3 As T3)
+        End Sub
+    End Class
+End Namespace
+    </file>
+</compilation>,
+                references:={ref0})
+            Dim ref1 = comp1.EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Interface I
+    Function F() As (Integer, (Integer, Integer), (Integer, Integer))
+End Interface
+    </file>
+</compilation>,
+                references:={ref1})
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC30652: Reference required to assembly '5a03232e-1a0f-4d1b-99ba-5d7b40ea931e, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A'. Add one to your project.
+BC30652: Reference required to assembly '5a03232e-1a0f-4d1b-99ba-5d7b40ea931e, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'B'. Add one to your project.
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub ValueTupleBase_AssemblyUnification()
+            Dim signedDllOptions = TestOptions.ReleaseDll.
+                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
+                WithStrongNameProvider(New SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray(Of String).Empty))
+            Dim comp0v1 = CreateCompilationWithMscorlib(
+<compilation name="A">
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyVersion("1.0.0.0")>
+Public Class A
+End Class
+    ]]></file>
+</compilation>,
+                options:=signedDllOptions)
+            comp0v1.AssertNoDiagnostics()
+            Dim ref0v1 = comp0v1.EmitToImageReference()
+            Dim comp0v2 = CreateCompilationWithMscorlib(
+<compilation name="A">
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyVersion("2.0.0.0")>
+Public Class A
+End Class
+    ]]></file>
+</compilation>,
+                options:=signedDllOptions)
+            comp0v2.AssertNoDiagnostics()
+            Dim ref0v2 = comp0v2.EmitToImageReference()
+            Dim comp1 = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Public Class B
+    Inherits A
+End Class
+    </file>
+</compilation>,
+                references:={ref0v1})
+            comp1.AssertNoDiagnostics()
+            Dim ref1 = comp1.EmitToImageReference()
+            Dim comp2 = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Namespace System
+    Public Class ValueTuple(Of T1, T2)
+        Inherits B
+        Public Sub New(_1 As T1, _2 As T2)
+        End Sub
+    End Class
+End Namespace
+    </file>
+</compilation>,
+                references:={ref0v1, ref1})
+            Dim ref2 = comp2.EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Interface I
+    Function F() As (Integer, Integer)
+End Interface
+    </file>
+</compilation>,
+                references:={ref0v2, ref1, ref2})
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
+</errors>)
+        End Sub
+
+        <Fact>
         Public Sub TernaryTypeInferenceWithDynamicAndTupleNames()
             ' No dynamic in VB
 
@@ -17252,6 +17458,87 @@ BC41009: The tuple element name 'c' is ignored because a different name is speci
             Dim x1Symbol = model.GetDeclaredSymbol(x1)
             Assert.Equal("x1 As (a As System.Int32, System.Int32)", x1Symbol.ToTestDisplayString())
 
+        End Sub
+
+
+        <Fact>
+        <WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")>
+        Public Sub NullCoalesingOperatorWithTupleNames()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim nab As (a As Integer, b As Integer)? = (1, 2)
+        Dim nac As (a As Integer, c As Integer)? = (1, 3)
+
+        Dim x1 = If(nab, nac) ' (a, )?
+        Dim x2 = If(nab, nac.Value) ' (a, )
+        Dim x3 = If(new C(), nac) ' C
+        Dim x4 = If(new D(), nac) ' (a, c)?
+
+        Dim x5 = If(nab IsNot Nothing, nab, nac) ' (a, )?
+
+        Dim x6 = If(nab, (a:= 1, c:= 3)) ' (a, )
+        Dim x7 = If(nab, (a:= 1, 3)) ' (a, )
+        Dim x8 = If(new C(), (a:= 1, c:= 3)) ' C
+        Dim x9 = If(new D(), (a:= 1, c:= 3)) ' (a, c)
+        Dim x6double = If(nab, (d:= 1.1, c:= 3)) ' (d, c)
+
+    End Sub
+    Public Shared Narrowing Operator CType(ByVal x As (Integer, Integer)) As C
+        Throw New System.Exception()
+    End Operator
+End Class
+Class D
+    Public Shared Narrowing Operator CType(ByVal x As D) As (d1 As Integer, d2 As Integer)
+        Throw New System.Exception()
+    End Operator
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+        Dim x6 = If(nab, (a:= 1, c:= 3)) ' (a, )
+                                 ~~~~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim x1 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(2).Names(0)
+            Assert.Equal("x1 As System.Nullable(Of (a As System.Int32, System.Int32))", model.GetDeclaredSymbol(x1).ToTestDisplayString())
+
+            Dim x2 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(3).Names(0)
+            Assert.Equal("x2 As (a As System.Int32, System.Int32)", model.GetDeclaredSymbol(x2).ToTestDisplayString())
+
+            Dim x3 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(4).Names(0)
+            Assert.Equal("x3 As C", model.GetDeclaredSymbol(x3).ToTestDisplayString())
+
+            Dim x4 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(5).Names(0)
+            Assert.Equal("x4 As System.Nullable(Of (a As System.Int32, c As System.Int32))", model.GetDeclaredSymbol(x4).ToTestDisplayString())
+
+            Dim x5 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(6).Names(0)
+            Assert.Equal("x5 As System.Nullable(Of (a As System.Int32, System.Int32))", model.GetDeclaredSymbol(x5).ToTestDisplayString())
+
+            Dim x6 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(7).Names(0)
+            Assert.Equal("x6 As (a As System.Int32, System.Int32)", model.GetDeclaredSymbol(x6).ToTestDisplayString())
+
+            Dim x7 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(8).Names(0)
+            Assert.Equal("x7 As (a As System.Int32, System.Int32)", model.GetDeclaredSymbol(x7).ToTestDisplayString())
+
+            Dim x8 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(9).Names(0)
+            Assert.Equal("x8 As C", model.GetDeclaredSymbol(x8).ToTestDisplayString())
+
+            Dim x9 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(10).Names(0)
+            Assert.Equal("x9 As (a As System.Int32, c As System.Int32)", model.GetDeclaredSymbol(x9).ToTestDisplayString())
+
+            Dim x6double = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(11).Names(0)
+            Assert.Equal("x6double As (d As System.Double, c As System.Int32)", model.GetDeclaredSymbol(x6double).ToTestDisplayString())
         End Sub
 
         <Fact>

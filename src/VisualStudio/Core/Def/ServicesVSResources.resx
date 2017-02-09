@@ -858,4 +858,13 @@ Additional information: {1}</value>
   <data name="Get_help_for_0_from_Bing" xml:space="preserve">
     <value>Get help for '{0}' from Bing</value>
   </data>
+  <data name="Move_down" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="Move_up" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
 </root>

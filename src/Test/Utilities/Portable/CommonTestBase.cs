@@ -267,6 +267,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return AssemblyMetadata.CreateFromImage(assemblyBytes).GetReference(embedInteropTypes: embedInteropTypes);
         }
 
+        internal static MetadataReference GetILModuleReference(string ilSource, bool appendDefaultHeader = true)
+        {
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            EmitILToArray(ilSource, appendDefaultHeader, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            return ModuleMetadata.CreateFromImage(assemblyBytes).GetReference();
+        }
+
         #endregion
 
         #region Compilation Creation Helpers

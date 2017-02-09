@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -629,6 +630,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool System.IEquatable<BoundTypeOrValueData>.Equals(BoundTypeOrValueData b)
         {
             return b == this;
+        }
+    }
+
+    internal partial class BoundTupleExpression
+    {
+        /// <summary>
+        /// Applies action to all the nested elements of this tuple.
+        /// </summary>
+        internal void VisitAllElements<T>(Action<BoundExpression, T> action, T args)
+        {
+            foreach (var argument in this.Arguments)
+            {
+                if (argument.Kind == BoundKind.TupleLiteral)
+                {
+                    ((BoundTupleExpression)argument).VisitAllElements(action, args);
+                }
+                else
+                {
+                    action(argument, args);
+                }
+            }
         }
     }
 }

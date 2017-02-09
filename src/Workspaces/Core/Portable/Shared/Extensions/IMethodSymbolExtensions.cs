@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.DeclaredAccessibility,
                 method.GetSymbolModifiers(),
                 method.ReturnType.SubstituteTypes(mapping, typeGenerator),
+                method.ReturnsByRef,
                 method.ExplicitInterfaceImplementations.FirstOrDefault(),
                 method.Name,
                 updatedTypeParameters,
@@ -84,7 +85,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)).ToList());
         }
 
-        public static IMethodSymbol RenameParameters(this IMethodSymbol method, IList<string> parameterNames)
+        public static IMethodSymbol RenameParameters(
+            this IMethodSymbol method, IList<string> parameterNames)
         {
             var parameterList = method.Parameters;
             if (parameterList.Select(p => p.Name).SequenceEqual(parameterNames))
@@ -100,6 +102,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.DeclaredAccessibility,
                 method.GetSymbolModifiers(),
                 method.ReturnType,
+                method.ReturnsByRef,
                 method.ExplicitInterfaceImplementations.FirstOrDefault(),
                 method.Name,
                 method.TypeParameters,
@@ -199,6 +202,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.DeclaredAccessibility,
                 method.GetSymbolModifiers(),
                 method.ReturnType,
+                method.ReturnsByRef,
                 method.ExplicitInterfaceImplementations.FirstOrDefault(),
                 method.Name,
                 method.TypeParameters,

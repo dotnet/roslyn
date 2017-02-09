@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -33,8 +32,11 @@ namespace Microsoft.CodeAnalysis
             using (Logger.LogBlock(FunctionId.ProjectState_ComputeChecksumsAsync, FilePath, cancellationToken))
             {
                 // get states by id order to have deterministic checksum
-                var documentChecksumsTasks = DocumentIds.Select(id => DocumentStates[id].GetChecksumAsync(cancellationToken));
-                var additionalDocumentChecksumTasks = AdditionalDocumentIds.Select(id => AdditionalDocumentStates[id].GetChecksumAsync(cancellationToken));
+                var orderedDocumentIds = ChecksumCache.GetOrCreate(DocumentIds, _ => DocumentIds.OrderBy(id => id.Id).ToImmutableArray());
+                var documentChecksumsTasks = orderedDocumentIds.Select(id => DocumentStates[id].GetChecksumAsync(cancellationToken));
+
+                var orderedAdditionalDocumentIds = ChecksumCache.GetOrCreate(AdditionalDocumentIds, _ => AdditionalDocumentIds.OrderBy(id => id.Id).ToImmutableArray());
+                var additionalDocumentChecksumTasks = orderedAdditionalDocumentIds.Select(id => AdditionalDocumentStates[id].GetChecksumAsync(cancellationToken));
 
                 var serializer = new Serializer(_solutionServices.Workspace);
 
@@ -60,26 +62,6 @@ namespace Microsoft.CodeAnalysis
                     metadataReferenceChecksums,
                     analyzerReferenceChecksums,
                     new TextDocumentChecksumCollection(additionalChecksums));
-            }
-        }
-
-        /// <summary>
-        /// hold onto object checksum that currently doesn't have a place to hold onto checksum
-        /// </summary>
-        private static class ChecksumCache
-        {
-            private static readonly ConditionalWeakTable<object, object> s_cache = new ConditionalWeakTable<object, object>();
-
-            public static Checksum GetOrCreate(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator)
-            {
-                // same key should always return same checksum
-                return (Checksum)s_cache.GetValue(value, checksumCreator);
-            }
-
-            public static T GetOrCreate<T>(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator) where T : IChecksummedObject
-            {
-                // same key should always return same checksum
-                return (T)s_cache.GetValue(value, checksumCreator);
             }
         }
     }

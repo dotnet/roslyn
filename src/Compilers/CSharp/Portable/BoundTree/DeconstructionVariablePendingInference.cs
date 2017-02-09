@@ -12,7 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression SetInferredType(TypeSymbol type, Binder binderOpt, DiagnosticBag diagnostics)
         {
             Debug.Assert(binderOpt != null || (object)type != null);
-            Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation);
+
+            Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation ||
+                (this.Syntax.Kind() == SyntaxKind.DeclarationExpression &&
+                ((DeclarationExpressionSyntax)this.Syntax).Designation.Kind() == SyntaxKind.SingleVariableDesignation));
 
             bool inferenceFailed = ((object)type == null);
 
@@ -49,13 +52,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundFieldAccess(this.Syntax, this.ReceiverOpt, field, constantValueOpt: null, hasErrors: this.HasErrors || inferenceFailed);
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(this.VariableSymbol.Kind);
             }
         }
 
         private void ReportInferenceFailure(DiagnosticBag diagnostics)
         {
-            var designation = (SingleVariableDesignationSyntax)this.Syntax;
+            SingleVariableDesignationSyntax designation;
+            switch (this.Syntax.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    designation = (SingleVariableDesignationSyntax)this.Syntax;
+                    break;
+                case SyntaxKind.DeclarationExpression:
+                    designation = (SingleVariableDesignationSyntax)((DeclarationExpressionSyntax)this.Syntax).Designation;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(this.Syntax.Kind());
+            }
+
             Binder.Error(
                 diagnostics, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, designation.Identifier,
                 designation.Identifier.ValueText);

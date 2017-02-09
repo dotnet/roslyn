@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1224,7 +1224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_WinRtEventPassedByRef = 7084,
         ERR_ByRefReturnUnsupported = 7085,
         ERR_NetModuleNameMismatch = 7086,
-        ERR_BadCompilationOption = 7087,
+        ERR_BadModuleName = 7087,
         ERR_BadCompilationOptionValue = 7088,
         ERR_BadAppConfigPath = 7089,
         WRN_AssemblyAttributeFromModuleIsOverridden = 7090,
@@ -1291,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_EnumsCantContainDefaultConstructor = 8054,
         ERR_EncodinglessSyntaxTree = 8055,
-        ERR_AccessorListAndExpressionBody = 8056,
+        // ERR_AccessorListAndExpressionBody = 8056, Deprecated in favor of ERR_BlockBodyAndExpressionBody
         ERR_BlockBodyAndExpressionBody = 8057,
         ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
@@ -1435,9 +1435,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DeclarationExpressionNotPermitted = 8185,
         ERR_MustDeclareForeachIteration = 8186,
         ERR_TupleElementNamesInDeconstruction = 8187,
+        ERR_ExpressionTreeContainsThrowExpression = 8188,
+        ERR_DelegateRefMismatch = 8189,
         #endregion stragglers for C# 7
 
-        // Available  = 8188-8195
+        // Available  = 8190-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
@@ -1449,6 +1451,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarInvocationLvalueReserved = 8199,
         ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
         ERR_ExpressionVariableInQueryClause = 8201,
+        ERR_PublicSignNetModule = 8202,
+        ERR_BadAssemblyName = 8203,
+        ERR_BadAsyncMethodBuilderTaskProperty = 8204,
+        ERR_AttributesInLocalFuncDecl = 8205,
+        ERR_TypeForwardedToMultipleAssemblies = 8206,
         #endregion more stragglers for C# 7
     }
 }

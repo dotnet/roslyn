@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConstantPattern:
                     {
                         var constantPattern = (BoundConstantPattern)pattern;
-                        if (constantPattern.Value.HasErrors || constantPattern.Value.ConstantValue == null)
+                        if (constantPattern.Value.HasErrors || constantPattern.Value.ConstantValue == null || constantPattern.Value.ConstantValue.IsBad)
                         {
                             // since this will have been reported earlier, we use ErrorCode.ERR_NoImplicitConvCast
                             // as a flag to suppress errors in subsumption analysis.
@@ -241,9 +241,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         var type = td.Key;
                                         var decision = td.Value;
+                                        // if the pattern's type is already handled by the previous pattern
+                                        // or the previous pattern handles all of the (non-null) input data...
                                         if (ExpressionOfTypeMatchesPatternType(
-                                                declarationPattern.DeclaredType.Type.TupleUnderlyingTypeOrSelf(), type, ref _useSiteDiagnostics) == true)
+                                                declarationPattern.DeclaredType.Type.TupleUnderlyingTypeOrSelf(), type, ref _useSiteDiagnostics) == true ||
+                                            ExpressionOfTypeMatchesPatternType(byType.Type, type, ref _useSiteDiagnostics) == true)
                                         {
+                                            // then we check if the pattern is subsumed by the previous decision
                                             var error = CheckSubsumed(pattern, decision, inputCouldBeNull);
                                             if (error != 0)
                                             {

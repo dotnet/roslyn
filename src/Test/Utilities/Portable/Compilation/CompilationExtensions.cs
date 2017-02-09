@@ -111,10 +111,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var pdbName = Path.ChangeExtension(compilation.SourceModule.Name, "pdb");
 
-            // keep the stream open, it's passed to CompilationDifference
-            var pdbStream = new MemoryStream();
-
-            using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream())
+            using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream())
             {
                 var updatedMethods = new List<MethodDefinitionHandle>();
 
@@ -129,12 +126,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     testData,
                     default(CancellationToken));
 
-                pdbStream.Seek(0, SeekOrigin.Begin);
-
                 return new CompilationDifference(
                     mdStream.ToImmutable(),
                     ilStream.ToImmutable(),
-                    pdbStream,
+                    pdbStream.ToImmutable(),
                     testData,
                     result,
                     updatedMethods.ToImmutableArray());

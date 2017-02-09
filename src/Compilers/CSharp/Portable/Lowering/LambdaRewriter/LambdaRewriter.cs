@@ -890,12 +890,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Method.MethodKind == MethodKind.LocalFunction)
             {
-                var rewrittenArguments = this.VisitList(node.Arguments);
-
                 var withArguments = node.Update(
                     node.ReceiverOpt,
                     node.Method,
-                    rewrittenArguments,
+                    this.VisitList(node.Arguments),
                     node.ArgumentNamesOpt,
                     node.ArgumentRefKindsOpt,
                     node.IsDelegateCall,
@@ -903,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.InvokedAsExtensionMethod,
                     node.ArgsToParamsOpt,
                     node.ResultKind,
-                    node.Type);
+                    this.VisitType(node.Type));
 
                 return PartiallyLowerLocalFunctionReference(withArguments);
             }
@@ -1002,6 +1000,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // TODO: we may not need to update if there was nothing to rewrite.
             return node.Update(newLocals.ToImmutableAndFree(), node.LocalFunctions, newStatements.ToImmutableAndFree());
+        }
+
+        public override BoundNode VisitScope(BoundScope node)
+        {
+            Debug.Assert(!node.Locals.IsEmpty);
+            var newLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+            RewriteLocals(node.Locals, newLocals);
+
+            var statements = VisitList(node.Statements);
+            if (newLocals.Count == 0)
+            {
+                newLocals.Free();
+                return new BoundStatementList(node.Syntax, statements);
+            }
+
+            return node.Update(newLocals.ToImmutableAndFree(), statements);
         }
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
@@ -1147,7 +1161,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
             {
-                return PartiallyLowerLocalFunctionReference(node);
+                var rewritten = node.Update(
+                    node.Argument,
+                    node.MethodOpt,
+                    node.IsExtensionMethod,
+                    this.VisitType(node.Type));
+
+                return PartiallyLowerLocalFunctionReference(rewritten);
             }
             return base.VisitDelegateCreationExpression(node);
         }
@@ -1177,7 +1197,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.ConversionKind == ConversionKind.MethodGroup &&
                 conversion.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
             {
-                return PartiallyLowerLocalFunctionReference(conversion);
+                var rewritten = conversion.Update(
+                    conversion.Operand,
+                    conversion.Conversion,
+                    conversion.IsBaseConversion,
+                    conversion.Checked,
+                    conversion.ExplicitCastInCode,
+                    conversion.ConstantValueOpt,
+                    this.VisitType(conversion.Type));
+
+                return PartiallyLowerLocalFunctionReference(rewritten);
             }
             return base.VisitConversion(conversion);
         }

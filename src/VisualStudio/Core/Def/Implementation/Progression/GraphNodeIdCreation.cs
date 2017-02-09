@@ -404,7 +404,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 var workspace = solution.Workspace as VisualStudioWorkspaceImpl;
                 if (workspace != null)
                 {
-                    var vsProject = workspace.ProjectTracker.GetProject(foundProject.Id);
+                    // We have found a project in the solution, so clearly the deferred state has been loaded
+                    var vsProject = workspace.DeferredState.ProjectTracker.GetProject(foundProject.Id);
                     if (vsProject != null)
                     {
                         var output = vsProject.BinOutputPath;

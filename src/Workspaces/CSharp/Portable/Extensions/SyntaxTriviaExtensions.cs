@@ -171,9 +171,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsWhitespaceOrEndOfLine(this SyntaxTrivia trivia)
-        {
-            return IsWhitespace(trivia) || trivia.Kind() == SyntaxKind.EndOfLineTrivia;
-        }
+            => IsWhitespace(trivia) || IsEndOfLine(trivia);
+
+        public static bool IsEndOfLine(this SyntaxTrivia trivia)
+            => trivia.Kind() == SyntaxKind.EndOfLineTrivia;
 
         public static bool IsWhitespace(this SyntaxTrivia trivia)
             => trivia.Kind() == SyntaxKind.WhitespaceTrivia;

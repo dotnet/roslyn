@@ -2526,7 +2526,15 @@ class Program
                 var si = model.GetSymbolInfo(node);
                 var symbol = si.Symbol;
                 if (symbol == null) continue;
-                Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+
+                if (node is DeclarationExpressionSyntax)
+                {
+                    Assert.Equal(SymbolKind.Local, symbol.Kind);
+                }
+                else
+                {
+                    Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+                }
             }
         }
 
@@ -2720,6 +2728,58 @@ unsafe class C
                 //         (var*[] x4, int y4) = c;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "y4").WithArguments("y4").WithLocation(9, 25)
                 );
+        }
+
+        [Fact]
+        public void DeclarationInsideNameof()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        string s = nameof((int x1, var x2) = (1, 2)).ToString();
+        string s1 = x1, s2 = x2;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,28): error CS8185: A declaration is not allowed in this context.
+                //         string s = nameof((int x1, var x2) = (1, 2)).ToString();
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x1").WithLocation(6, 28),
+                // (6,27): error CS8081: Expression does not have a name.
+                //         string s = nameof((int x1, var x2) = (1, 2)).ToString();
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "(int x1, var x2) = (1, 2)").WithLocation(6, 27),
+                // (7,21): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         string s1 = x1, s2 = x2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x1").WithArguments("int", "string").WithLocation(7, 21),
+                // (7,30): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         string s1 = x1, s2 = x2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x2").WithArguments("int", "string").WithLocation(7, 30),
+                // (7,21): error CS0165: Use of unassigned local variable 'x1'
+                //         string s1 = x1, s2 = x2;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(7, 21),
+                // (7,30): error CS0165: Use of unassigned local variable 'x2'
+                //         string s1 = x1, s2 = x2;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(7, 30)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+            Assert.Equal(2, designations.Count());
+            var refs = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>();
+
+            var x1 = model.GetDeclaredSymbol(designations[0]);
+            Assert.Equal("x1", x1.Name);
+            Assert.Equal("System.Int32", ((LocalSymbol)x1).Type.ToTestDisplayString());
+            Assert.Same(x1, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x1").Single()).Symbol);
+
+            var x2 = model.GetDeclaredSymbol(designations[1]);
+            Assert.Equal("x2", x2.Name);
+            Assert.Equal("System.Int32", ((LocalSymbol)x2).Type.ToTestDisplayString());
+            Assert.Same(x2, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x2").Single()).Symbol);
         }
     }
 }

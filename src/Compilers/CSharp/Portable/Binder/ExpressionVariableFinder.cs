@@ -56,6 +56,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variablesBuilder = save;
         }
 
+        public override void Visit(SyntaxNode node)
+        {
+            if (node != null)
+            {
+                // no stackguard
+                ((CSharpSyntaxNode)node).Accept(this);
+            }
+        }
+
         public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
         {
             if (node.ArgumentList != null)

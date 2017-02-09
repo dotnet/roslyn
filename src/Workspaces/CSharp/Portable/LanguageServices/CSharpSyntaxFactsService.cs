@@ -1602,10 +1602,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((invocationExpression as InvocationExpressionSyntax)?.ArgumentList.Arguments).Value;
         }
 
+        public bool IsRegularComment(SyntaxTrivia trivia)
+            => trivia.IsRegularComment();
+
+        public bool IsDocumentationComment(SyntaxTrivia trivia)
+            => trivia.IsDocComment();
+
         public bool IsDocumentationComment(SyntaxNode node)
-        {
-            return SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
-        }
+            => SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
 
         public bool IsUsingOrExternOrImport(SyntaxNode node)
         {
@@ -1807,6 +1811,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
             => ((PrefixUnaryExpressionSyntax)node).Operand;
+
+        public SyntaxNode GetNextExecutableStatement(SyntaxNode statement)
+            => ((StatementSyntax)statement).GetNextStatement();
+
+        public bool IsWhitespaceTrivia(SyntaxTrivia trivia)
+            => trivia.IsWhitespace();
+
+        public bool IsEndOfLineTrivia(SyntaxTrivia trivia)
+            => trivia.IsEndOfLine();
 
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
         {

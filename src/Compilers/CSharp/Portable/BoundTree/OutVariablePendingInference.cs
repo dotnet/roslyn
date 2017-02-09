@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportInferenceFailure(inferenceDiagnostics);
                     }
 
-                    fieldSymbol.SetType(type, inferenceDiagnostics);
+                    type = fieldSymbol.SetType(type, inferenceDiagnostics);
                     inferenceDiagnostics.Free();
 
                     return new BoundFieldAccess(this.Syntax,
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 this.HasErrors || inferenceFailed);
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(this.VariableSymbol.Kind);
             }
 
         }

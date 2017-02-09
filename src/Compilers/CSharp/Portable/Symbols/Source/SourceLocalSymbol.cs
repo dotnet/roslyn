@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _scopeBinder; }
         }
 
+        internal override SyntaxNode ScopeDesignatorOpt
+        {
+            get { return _scopeBinder.ScopeDesignator; }
+        }
+
         /// <summary>
         /// Binder that should be used to bind type syntax for the local.
         /// </summary>

@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -1235,6 +1236,767 @@ End Module",
 }
 ]]>)
             verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub LambdaToByRefDelegate()
+            Dim comp1 = CreateCSharpCompilation(
+"public delegate ref T D<T>();
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d() = t;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of Integer)()
+        B.F(Function() o.F(), 2)
+
+        Dim d = Function() o.F()
+        B.F(d, 2)
+        System.Console.Write(o.F())
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC36532: Nested function does not have the same signature as delegate 'D(Of Integer)'.
+        B.F(Function() o.F(), 2)
+            ~~~~~~~~~~~~~~~~
+BC30311: Value of type 'Function <generated method>() As Integer' cannot be converted to 'D(Of Integer)'.
+        B.F(d, 2)
+            ~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub LambdaCallingByRefFunction()
+            Dim comp1 = CreateCSharpCompilation(
+"public delegate T D<T>();
+public class A<T>
+{
+    private T _t;
+
+    public A(T t)
+    {
+        _t = t;
+    }
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d)
+    {
+        System.Console.WriteLine(d());
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of String)(""13206"")
+        B.F(Function() o.F())
+
+        Dim d = Function() o.F()
+        B.F(d)
+        System.Console.WriteLine(o.F())
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics()
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:=
+"13206
+13206
+13206")
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub LambdaCallingByRefFunctionDifferentType()
+            Dim comp1 = CreateCSharpCompilation(
+"public delegate string D();
+public class A<T>
+{
+    private T _t;
+
+    public A(T t)
+    {
+        _t = t;
+    }
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F(D d)
+    {
+        System.Console.WriteLine(d());
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of Integer)(13206)
+        B.F(Function() o.F())
+
+        Dim d = Function() o.F()
+        B.F(d)
+        System.Console.WriteLine(o.F())
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics()
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:=
+"13206
+13206
+13206")
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub LambdaCallingByRefFunctionDropReturn()
+            Dim comp1 = CreateCSharpCompilation(
+"public delegate void D();
+public class A<T>
+{
+    private T _t;
+
+    public A(T t)
+    {
+        _t = t;
+    }
+    public ref T F()
+    {
+        System.Console.WriteLine(""A.F"");
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F(D d)
+    {
+        System.Console.WriteLine(""B.F"");
+        d();
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of Integer)(13206)
+        B.F(Function() o.F())
+
+        Dim d = Function() o.F()
+        B.F(d)
+        System.Console.WriteLine(o.F())
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics()
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:=
+"B.F
+A.F
+B.F
+A.F
+A.F
+13206")
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub LambdaCallingByRefFunctionKeepingVsDropingByRef()
+            Dim comp1 = CreateCSharpCompilation(
+"
+public delegate T D1<T>();
+public delegate ref T D2<T>();
+public class A<T>
+{
+    private T _t;
+
+    public A(T t)
+    {
+        _t = t;
+    }
+
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D1<T> d, T t)
+    {
+        System.Console.WriteLine(""D1"");
+        d();
+    }
+    public static void F<T>(D2<T> d, T t)
+    {
+        System.Console.WriteLine(""D2"");
+        d() = t;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of Integer)(13206)
+        B.F(Function() o.F, 1)
+        Dim d = Function() o.F
+        B.F(d, 2)
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics()
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:=
+"D1
+D1")
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub DelegateToByRefFunction()
+            Dim comp1 = CreateCSharpCompilation(
+"public delegate ref T D<T>();
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d() = t;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of Integer)()
+        B.F(AddressOf o.F, 2)
+        System.Console.Write(o.F())
+        B.F(New D(Of Integer)(AddressOf o.F), 3)
+        System.Console.Write(o.F())
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics()
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="23")
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub DelegateToByRefFunctionDropArguments()
+            Dim comp1 = CreateCSharpCompilation(
+"public delegate ref T D<T>(int x);
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d(1) = t;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of Integer)()
+        B.F(AddressOf o.F, 2)
+        System.Console.Write(o.F())
+        B.F(New D(Of Integer)(AddressOf o.F), 3)
+        System.Console.Write(o.F())
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics(
+<expexcted>
+BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a signature compatible with delegate 'Delegate ByRef Function D(Of Integer)(x As Integer) As Integer'.
+        B.F(AddressOf o.F, 2)
+                      ~~~
+BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a signature compatible with delegate 'Delegate ByRef Function D(Of Integer)(x As Integer) As Integer'.
+        B.F(New D(Of Integer)(AddressOf o.F), 3)
+                                        ~~~
+</expexcted>)
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub DelegateToByRefFunctionDropArgumentsAndByRef()
+            Dim comp1 = CreateCSharpCompilation(
+"public delegate T D<T>(int x);
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        System.Console.WriteLine(""A.F"");
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        System.Console.WriteLine(""B.F"");
+        d(1);
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of Integer)()
+        B.F(AddressOf o.F, 2)
+        B.F(New D(Of Integer)(AddressOf o.F), 3)
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics(
+<expected>
+BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a signature compatible with delegate 'Delegate Function D(Of Integer)(x As Integer) As Integer'.
+        B.F(AddressOf o.F, 2)
+                      ~~~
+BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a signature compatible with delegate 'Delegate Function D(Of Integer)(x As Integer) As Integer'.
+        B.F(New D(Of Integer)(AddressOf o.F), 3)
+                                        ~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub DelegateToByRefFunctionDropByRef()
+            Dim comp1 = CreateCSharpCompilation(
+"public delegate T D<T>();
+public class A<T>
+{
+    private T _t;
+
+    public A(T t)
+    {
+        _t = t;
+    }
+
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d)
+    {
+        System.Console.WriteLine(d());
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of String)(13206)
+        B.F(AddressOf o.F)
+        System.Console.WriteLine(o.F())
+        o = New A(Of String)(13207)
+        B.F(New D(Of Integer)(AddressOf o.F))
+        System.Console.WriteLine(o.F())
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics(
+<expected>
+BC31143: Method 'Public Overloads ByRef Function F() As String' does not have a signature compatible with delegate 'Delegate Function D(Of String)() As String'.
+        B.F(AddressOf o.F)
+                      ~~~
+BC32050: Type parameter 'T' for 'Public Shared Overloads Sub F(Of T)(d As D(Of T))' cannot be inferred.
+        B.F(New D(Of Integer)(AddressOf o.F))
+          ~
+BC31143: Method 'Public Overloads ByRef Function F() As String' does not have a signature compatible with delegate 'Delegate Function D(Of Integer)() As Integer'.
+        B.F(New D(Of Integer)(AddressOf o.F))
+                                        ~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub DelegateToByRefFunctionDropReturn()
+            Dim comp1 = CreateCSharpCompilation(
+"public delegate void D();
+public class A<T>
+{
+    private T _t;
+
+    public A(T t)
+    {
+        _t = t;
+    }
+
+    public ref T F()
+    {
+        System.Console.WriteLine(""A.F"");
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F(D d)
+    {
+        System.Console.WriteLine(""B.F"");
+        d();
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of String)(13206)
+        B.F(AddressOf o.F)
+        B.F(New D(AddressOf o.F))
+        System.Console.Write(o.F())
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics(
+<expected>
+BC31143: Method 'Public Overloads ByRef Function F() As String' does not have a signature compatible with delegate 'Delegate Sub D()'.
+        B.F(AddressOf o.F)
+                      ~~~
+BC31143: Method 'Public Overloads ByRef Function F() As String' does not have a signature compatible with delegate 'Delegate Sub D()'.
+        B.F(New D(AddressOf o.F))
+                            ~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub DelegateToByRefFunctionDropByRefDifferentType()
+            Dim comp1 = CreateCSharpCompilation(
+"public delegate string D();
+public class A<T>
+{
+    private T _t;
+
+    public A(T t)
+    {
+        _t = t;
+    }
+
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F(D d)
+    {
+        System.Console.WriteLine(d());
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of Integer)(13206)
+        B.F(AddressOf o.F)
+        System.Console.WriteLine(o.F())
+        o = New A(Of Integer)(13207)
+        B.F(New D(AddressOf o.F))
+        System.Console.WriteLine(o.F())
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics(
+<expected>
+BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a signature compatible with delegate 'Delegate Function D() As String'.
+        B.F(AddressOf o.F)
+                      ~~~
+BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a signature compatible with delegate 'Delegate Function D() As String'.
+        B.F(New D(AddressOf o.F))
+                            ~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub DelegateAddByRef()
+            Dim comp1 = CreateCSharpCompilation(
+"public delegate ref T D<T>();
+public class A<T>
+{
+    private T _t;
+
+    public A(T t)
+    {
+        _t = t;
+    }
+
+    public T F()
+    {
+        return _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d() = t;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of String)(13206)
+        B.F(AddressOf o.F, ""1"")
+        System.Console.Write(o.F())
+        o = New A(Of String)(13207)
+        B.F(New D(Of Integer)(AddressOf o.F), ""2"")
+        System.Console.Write(o.F())
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics(
+<expected>
+BC31143: Method 'Public Overloads Function F() As String' does not have a signature compatible with delegate 'Delegate ByRef Function D(Of String)() As String'.
+        B.F(AddressOf o.F, "1")
+                      ~~~
+BC31143: Method 'Public Overloads Function F() As String' does not have a signature compatible with delegate 'Delegate ByRef Function D(Of Integer)() As Integer'.
+        B.F(New D(Of Integer)(AddressOf o.F), "2")
+                                        ~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub DelegateToByRefFunctionWithDifferentType()
+            Dim comp1 = CreateCSharpCompilation(
+"public delegate ref string D();
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D d, T t)
+    {
+        d() = t.ToString();
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of Integer)()
+        B.F(AddressOf o.F, 2)
+        System.Console.Write(o.F())
+        B.F(New D(AddressOf o.F), 3)
+        System.Console.Write(o.F())
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics(
+<expected>
+BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a signature compatible with delegate 'Delegate ByRef Function D() As String'.
+        B.F(AddressOf o.F, 2)
+                      ~~~
+BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a signature compatible with delegate 'Delegate ByRef Function D() As String'.
+        B.F(New D(AddressOf o.F), 3)
+                            ~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub DelegateToByRefFunctionKeepingVsDropingByRef()
+            Dim comp1 = CreateCSharpCompilation(
+"
+public delegate T D1<T>();
+public delegate ref T D2<T>();
+public class A<T>
+{
+    private T _t;
+
+    public A(T t)
+    {
+        _t = t;
+    }
+
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D1<T> d, T t)
+    {
+        System.Console.WriteLine(""D1"");
+        d();
+    }
+    public static void F<T>(D2<T> d, T t)
+    {
+        System.Console.WriteLine(""D2"");
+        d() = t;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of Integer)(13206)
+        B.F(AddressOf o.F, 1)
+        System.Console.WriteLine(o.F())
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics()
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:=
+"D2
+1")
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        Public Sub DelegateToByRefFunctionDropingByRefVsDroppingReturn()
+            Dim comp1 = CreateCSharpCompilation(
+"
+public delegate T D1<T>();
+public delegate void D2<T>();
+public class A<T>
+{
+    private T _t;
+
+    public A(T t)
+    {
+        _t = t;
+    }
+
+    public ref T F()
+    {
+        System.Console.WriteLine(""A.F"");
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D1<T> d)
+    {
+        System.Console.WriteLine(""D1"");
+        d();
+    }
+    public static void F<T>(D2<T> d)
+    {
+        System.Console.WriteLine(""D2"");
+        d();
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o As New A(Of Integer)(13206)
+        B.F(AddressOf o.F)
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics(
+<expected>
+BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a signature compatible with delegate 'Delegate Function D1(Of Integer)() As Integer'.
+        B.F(AddressOf o.F)
+                      ~~~
+</expected>)
         End Sub
 
     End Class

@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             // After the FAR engine is done call into any third party extensions to see
             // if they want to add results.
-            await findReferencesProgress.CallThirdPartyExtensionsAsync().ConfigureAwait(true);
+            await findReferencesProgress.CallThirdPartyExtensionsAsync(
+                context.CancellationToken).ConfigureAwait(true);
         }
 
         private async Task<ProgressAdapter> FindReferencesWorkerAsync(

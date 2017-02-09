@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     accessibility: Accessibility.Private,
                     modifiers: CreateMethodModifiers(),
                     returnType: this.AnalyzerResult.ReturnType,
+                    returnsByRef: false,
                     explicitInterfaceSymbol: null,
                     name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(cancellationToken),
