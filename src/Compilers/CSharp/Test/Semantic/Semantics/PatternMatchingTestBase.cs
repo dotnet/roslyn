@@ -51,6 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyModelForDeclarationPattern(model, decl, false, references);
         }
 
+        protected static void VerifyModelForDeclarationPatternWithoutDataFlow(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
+        {
+            VerifyModelForDeclarationPattern(model, decl, false, references);
+        }
+
         protected static void VerifyModelForDeclarationPattern(
             SemanticModel model,
             SingleVariableDesignationSyntax designation,
