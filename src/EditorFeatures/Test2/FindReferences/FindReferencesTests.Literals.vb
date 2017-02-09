@@ -231,5 +231,27 @@ end class
 
             Await TestStreamingFeature(test)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDecimalLiterals1() As Task
+            Dim test =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+
+class C
+{
+    void M()
+    {
+        var i = $$1M; // Decimals not currently supported
+        var i = 1M;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestStreamingFeature(test)
+        End Function
     End Class
 End Namespace
