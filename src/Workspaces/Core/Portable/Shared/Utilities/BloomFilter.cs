@@ -319,29 +319,37 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             for (var i = 0; i < _hashFunctionCount; i++)
             {
-                var hash = ComputeHash(value, i);
-                hash = hash % _bitArray.Length;
-                _bitArray[Math.Abs(hash)] = true;
+                _bitArray[GetBitArrayIndex(value, i)] = true;
             }
+        }
+
+        private int GetBitArrayIndex(string value, int i)
+        {
+            var hash = ComputeHash(value, i);
+            hash = hash % _bitArray.Length;
+            return Math.Abs(hash);
         }
 
         public void Add(long value)
         {
             for (var i = 0; i < _hashFunctionCount; i++)
             {
-                var hash = ComputeHash(value, i);
-                hash = hash % _bitArray.Length;
-                _bitArray[Math.Abs(hash)] = true;
+                _bitArray[GetBitArrayIndex(value, i)] = true;
             }
+        }
+
+        private int GetBitArrayIndex(long value, int i)
+        {
+            var hash = ComputeHash(value, i);
+            hash = hash % _bitArray.Length;
+            return Math.Abs(hash);
         }
 
         public bool ProbablyContains(string value)
         {
             for (var i = 0; i < _hashFunctionCount; i++)
             {
-                var hash = ComputeHash(value, i);
-                hash = hash % _bitArray.Length;
-                if (!_bitArray[Math.Abs(hash)])
+                if (!_bitArray[GetBitArrayIndex(value, i)])
                 {
                     return false;
                 }
@@ -354,9 +362,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             for (var i = 0; i < _hashFunctionCount; i++)
             {
-                var hash = ComputeHash(value, i);
-                hash = hash % _bitArray.Length;
-                if (!_bitArray[Math.Abs(hash)])
+                if (!_bitArray[GetBitArrayIndex(value, i)])
                 {
                     return false;
                 }
