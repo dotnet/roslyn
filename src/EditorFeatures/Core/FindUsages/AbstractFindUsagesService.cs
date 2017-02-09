@@ -130,7 +130,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             // Searching for decimals not supported currently.
-            if (token.Value is decimal)
+            var tokenValue = token.Value;
+            if (tokenValue == null || tokenValue is decimal)
             {
                 return false;
             }
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // We'll take those results, massage them, and forward them along to the 
             // FindUsagesContext instance we were given.
             await SymbolFinder.FindLiteralReferencesAsync(
-                token.Value, solution, progressAdapter, cancellationToken).ConfigureAwait(false);
+                tokenValue, solution, progressAdapter, cancellationToken).ConfigureAwait(false);
 
             return true;
         }
