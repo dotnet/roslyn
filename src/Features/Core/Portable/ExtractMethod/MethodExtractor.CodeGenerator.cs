@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken);
             protected abstract SyntaxNode GetPreviousMember(SemanticDocument document);
-            protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(CancellationToken cancellationToken);
+            protected abstract Task<OperationStatus<IMethodSymbol>> GenerateMethodDefinitionAsync(CancellationToken cancellationToken);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
             protected abstract SyntaxToken CreateMethodName();
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract Task<TNodeUnderContainer> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(SyntaxAnnotation callsiteAnnotation, CancellationToken cancellationToken);
 
             protected abstract TExpression CreateCallSignature();
-            protected abstract TStatement CreateDeclarationStatement(VariableInfo variable, TExpression initialValue, CancellationToken cancellationToken);
+            protected abstract Task<TStatement> CreateDeclarationStatementAsync(VariableInfo variable, TExpression initialValue, CancellationToken cancellationToken);
             protected abstract TStatement CreateAssignmentExpressionStatement(SyntaxToken identifier, TExpression rvalue);
             protected abstract TStatement CreateReturnStatement(string identifierName = null);
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var codeGenerationService = this.SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
 
-                var result = this.GenerateMethodDefinition(cancellationToken);
+                var result = await this.GenerateMethodDefinitionAsync(cancellationToken).ConfigureAwait(false);
                 var newContainer = codeGenerationService.AddMethod(
                     destination, result.Data,
                     new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true),
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     (TStatement)(SyntaxNode)await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(this.CallSiteAnnotation, cancellationToken).ConfigureAwait(false));
             }
 
-            protected IEnumerable<TStatement> AddAssignmentStatementToCallSite(
+            protected async Task<IEnumerable<TStatement>> AddAssignmentStatementToCallSiteAsync(
                 IEnumerable<TStatement> statements,
                 CancellationToken cancellationToken)
             {
@@ -189,8 +189,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     // there must be one decl behavior when there is "return value and initialize" variable
                     Contract.ThrowIfFalse(this.AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken).Single(v => v.ReturnBehavior == ReturnBehavior.Initialization) != null);
 
-                    var declarationStatement = CreateDeclarationStatement(
-                        variable, CreateCallSignature(), cancellationToken).WithAdditionalAnnotations(this.CallSiteAnnotation);
+                    var declarationStatement = await CreateDeclarationStatementAsync(
+                        variable, CreateCallSignature(), cancellationToken).ConfigureAwait(false);
+                    declarationStatement = declarationStatement.WithAdditionalAnnotations(this.CallSiteAnnotation);
 
                     return statements.Concat(declarationStatement);
                 }
@@ -200,21 +201,22 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     CreateAssignmentExpressionStatement(CreateIdentifier(variable.Name), CreateCallSignature()).WithAdditionalAnnotations(this.CallSiteAnnotation));
             }
 
-            protected IEnumerable<TStatement> CreateDeclarationStatements(
+            protected async Task<IEnumerable<TStatement>> CreateDeclarationStatementsAsync(
                 IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)
             {
                 var list = new List<TStatement>();
 
                 foreach (var variable in variables)
                 {
-                    list.Add(CreateDeclarationStatement(
-                        variable, initialValue: null, cancellationToken: cancellationToken));
+                    var declaration = await CreateDeclarationStatementAsync(
+                        variable, initialValue: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    list.Add(declaration);
                 }
 
                 return list;
             }
 
-            protected IEnumerable<TStatement> AddSplitOrMoveDeclarationOutStatementsToCallSite(
+            protected async Task<IEnumerable<TStatement>> AddSplitOrMoveDeclarationOutStatementsToCallSiteAsync(
                 IEnumerable<TStatement> statements, CancellationToken cancellationToken)
             {
                 var list = new List<TStatement>();
@@ -226,8 +228,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    list.Add(CreateDeclarationStatement(
-                        variable, initialValue: null, cancellationToken: cancellationToken));
+                    var declaration = await CreateDeclarationStatementAsync(
+                        variable, initialValue: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    list.Add(declaration);
                 }
 
                 return list;
