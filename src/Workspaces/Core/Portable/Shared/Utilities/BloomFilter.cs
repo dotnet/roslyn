@@ -128,7 +128,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     var c1 = GetCharacter(key, index);
                     var c2 = GetCharacter(key, index + 1);
 
-                    CombineTwoCharacters(ref numberOfCharsLeft, ref h, ref index, c1, c2);
+                    h = CombineTwoCharacters(h, c1, c2);
+
+                    index += 2;
+                    numberOfCharsLeft -= 2;
                 }
 
                 // Handle the last char (or 2 bytes) if they exist.  This happens if the original string had
@@ -167,7 +170,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     var c1 = GetCharacter(key, index);
                     var c2 = GetCharacter(key, index + 1);
 
-                    CombineTwoCharacters(ref numberOfCharsLeft, ref h, ref index, c1, c2);
+                    h = CombineTwoCharacters(h, c1, c2);
+
+                    index += 2;
+                    numberOfCharsLeft -= 2;
                 }
 
                 Debug.Assert(numberOfCharsLeft == 0);
@@ -200,28 +206,22 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private static void CombineTwoCharacters(
-            ref int numberOfCharsLeft, 
-            ref uint h, 
-            ref int index, 
+        private static uint CombineTwoCharacters(
+            uint h, 
             uint c1, uint c2)
         {
             unchecked
             {
                 var k = c1 | (c2 << 16);
-                var local_h = h;
 
                 k *= Compute_Hash_m;
                 k ^= k >> Compute_Hash_r;
                 k *= Compute_Hash_m;
 
-                local_h *= Compute_Hash_m;
-                local_h ^= k;
+                h *= Compute_Hash_m;
+                h ^= k;
 
-                h = local_h;
-
-                index += 2;
-                numberOfCharsLeft -= 2;
+                return h;
             }
         }
 
