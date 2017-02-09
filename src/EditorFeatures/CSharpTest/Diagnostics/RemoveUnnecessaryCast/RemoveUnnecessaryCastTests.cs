@@ -3931,5 +3931,49 @@ class Program
     }
 }");
         }
+
+        [WorkItem(17029, "https://github.com/dotnet/roslyn/issues/17029")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnEnumComparison1()
+        {
+            await TestMissingAsync(
+@"
+enum TransferTypeKey
+{
+    Transfer,
+    TransferToBeneficiary
+}
+
+class Program
+{
+    static void Main(dynamic p)
+    {
+        if (p.TYP != [|(int)TransferTypeKey.TransferToBeneficiary|])
+          throw new InvalidOperationException();
+    }
+}");
+        }
+
+        [WorkItem(17029, "https://github.com/dotnet/roslyn/issues/17029")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnEnumComparison2()
+        {
+            await TestMissingAsync(
+@"
+enum TransferTypeKey
+{
+    Transfer,
+    TransferToBeneficiary
+}
+
+class Program
+{
+    static void Main(dynamic p)
+    {
+        if ([|(int)TransferTypeKey.TransferToBeneficiary|] != p.TYP)
+          throw new InvalidOperationException();
+    }
+}");
+        }
     }
 }
