@@ -666,6 +666,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasSuppressUnmanagedCodeSecurityAttribute = true;
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ObsoleteAttribute))
+            {
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasObsoleteAttribute = true;
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ClassInterfaceAttribute))
             {
                 attribute.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);

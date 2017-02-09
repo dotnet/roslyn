@@ -49,6 +49,24 @@ namespace Microsoft.CodeAnalysis
         }
         #endregion
 
+        #region ObsoleteAttribute
+        private bool _hasObsoleteeAttribute;
+        public bool HasObsoleteAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasObsoleteeAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasObsoleteeAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
         #region DefaultMemberAttribute
         private bool _hasDefaultMemberAttribute;
         public bool HasDefaultMemberAttribute

@@ -8409,5 +8409,69 @@ class MyAttribute : System.Attribute
 
             CompileAndVerify(source, symbolValidator: attributeValidator);
         }
+
+        [Fact()]
+        [WorkItem(10639, "https://github.com/dotnet/roslyn/issues/10639")]
+        public void ObsoleteClassesGetReported()
+        {
+            var text = @"
+using System;
+using static D;
+
+[Obsolete (""Broken class"", true)]
+static class D
+{
+    public static void Foo()
+    {
+
+    }
+}
+
+class Test
+{
+    public static void Main()
+    {
+        Foo();
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (19,17): error CS0619: 'D' is obsolete: 'Broken class'
+                //                 Foo();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Foo()").WithArguments("D", "Broken class").WithLocation(19, 9));
+        }
+
+        [Fact()]
+        [WorkItem(10639, "https://github.com/dotnet/roslyn/issues/10639")]
+        public void ObsoleteClassesAndFunctionsGetReportedBoth()
+        {
+            var text = @"
+using System;
+using static D;
+
+[Obsolete (""Broken class"", true)]
+static class D
+{
+    [Obsolete (""Broken function"", true)]
+    public static void Foo()
+    {
+
+    }
+}
+
+class Test
+{
+    public static void Main()
+    {
+        Foo();
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (19,9): error CS0619: 'D.Foo()' is obsolete: 'Broken function'
+                //         Foo();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Foo()").WithArguments("D.Foo()", "Broken function").WithLocation(19, 9),
+                // (19,9): error CS0619: 'D' is obsolete: 'Broken class'
+                //         Foo();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Foo()").WithArguments("D", "Broken class").WithLocation(19, 9));
+        }
     }
 }
