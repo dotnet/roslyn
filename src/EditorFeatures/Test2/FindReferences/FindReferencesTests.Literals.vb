@@ -170,6 +170,7 @@ class C
     {
         var i = [|"foo"|];
         var i = [|"foo"|];
+        var i = [|@"foo"|];
         var i = "fo";
         var i = "fooo";
         var i = 'f';
@@ -211,7 +212,7 @@ class C
     void M()
     {
         var i = [|"foo\nbar"|];
-        var i = [|"foo
+        var i = [|@"foo
 bar"|];
         var i = "foo\r\nbar";
     }
