@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 ' Protype Feature
                 Case Feature.PROTOTYPE_ImplicitDefaultOptionalParameters
-                    Return LanguageVersion.Latest
+                    Return LanguageVersion.VisualBasic15
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
