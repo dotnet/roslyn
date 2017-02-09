@@ -2848,10 +2848,10 @@ public class C
     {
         dynamic d = ""qq"";
 
-        foo(ref d);
+        F(ref d);
     }
 
-    public static ref dynamic foo(ref dynamic d)
+    public static ref dynamic F(ref dynamic d)
     {
         return ref d.Length;
     }
@@ -2877,10 +2877,10 @@ public class C
     {
         dynamic d = ""qq"";
 
-        foo(ref d);
+        F(ref d);
     }
 
-    public static ref dynamic foo(ref dynamic d)
+    public static ref dynamic F(ref dynamic d)
     {
         return ref d[0];
     }
@@ -2907,15 +2907,15 @@ public class C
     {
         dynamic d = ""qq"";
 
-        foo(ref d);
+        F(ref d);
     }
 
-    public static ref dynamic foo(ref dynamic d)
+    public static ref dynamic F(ref dynamic d)
     {
-        return ref bar(ref d.Length);
+        return ref G(ref d.Length);
     }
 
-    public static ref dynamic bar(ref dynamic d)
+    public static ref dynamic G(ref dynamic d)
     {
         return ref d;
     }
@@ -2925,11 +2925,11 @@ public class C
 
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
                 // (14,28): error CS8156: An expression cannot be used in this context because it may not be returned by reference
-                //         return ref bar(ref d.Length);
+                //         return ref G(ref d.Length);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "d.Length").WithLocation(14, 28),
-                // (14,20): error CS8164: Cannot return by reference a result of 'C.bar(ref dynamic)' because the argument passed to parameter 'd' cannot be returned by reference
-                //         return ref bar(ref d.Length);
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "bar(ref d.Length)").WithArguments("C.bar(ref dynamic)", "d").WithLocation(14, 20)
+                // (14,20): error CS8164: Cannot return by reference a result of 'C.G(ref dynamic)' because the argument passed to parameter 'd' cannot be returned by reference
+                //         return ref G(ref d.Length);
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "G(ref d.Length)").WithArguments("C.G(ref dynamic)", "d").WithLocation(14, 20)
 
             );
         }
