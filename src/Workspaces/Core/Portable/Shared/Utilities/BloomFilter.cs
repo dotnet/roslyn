@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// ]]></summary>
         public BloomFilter(int expectedCount, double falsePositiveProbability, bool isCaseSensitive)
         {
-            int m = Math.Max(1, ComputeM(expectedCount, falsePositiveProbability));
-            int k = Math.Max(1, ComputeK(expectedCount, falsePositiveProbability));
+            var m = Math.Max(1, ComputeM(expectedCount, falsePositiveProbability));
+            var k = Math.Max(1, ComputeK(expectedCount, falsePositiveProbability));
 
             // We must have size in even bytes, so that when we deserialize from bytes we get a bit array with the same count.
             // The count is used by the hash functions.
-            int sizeInEvenBytes = (m + 7) & ~7;
+            var sizeInEvenBytes = (m + 7) & ~7;
 
             _bitArray = new BitArray(length: sizeInEvenBytes);
             _hashFunctionCount = k;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public BloomFilter(double falsePositiveProbability, bool isCaseSensitive, ICollection<string> values)
             : this(values.Count, falsePositiveProbability, isCaseSensitive)
         {
-            this.AddRange(values);
+            AddRange(values);
         }
 
         public BloomFilter(
@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             ICollection<long> longValues)
             : this(stringValues.Count + longValues.Count, falsePositiveProbability, isCaseSensitive: false)
         {
-            this.AddRange(stringValues);
-            this.AddRange(longValues);
+            AddRange(stringValues);
+            AddRange(longValues);
         }
 
         private BloomFilter(BitArray bitArray, int hashFunctionCount, bool isCaseSensitive)
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             foreach (var v in values)
             {
-                this.Add(v);
+                Add(v);
             }
         }
 
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             foreach (var v in values)
             {
-                this.Add(v);
+                Add(v);
             }
         }
 
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return false;
             }
 
-            for (int i = 0; i < array1.Length; i++)
+            for (var i = 0; i < array1.Length; i++)
             {
                 if (array1[i] != array2[i])
                 {
