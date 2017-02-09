@@ -71,6 +71,42 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 context.CancellationToken).ConfigureAwait(true);
         }
 
+        private async Task<FindReferencesProgressAdapter> FindSymbolReferencesAsync(
+            Document document, int position, IFindUsagesContext context)
+        {
+            var cancellationToken = context.CancellationToken;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Find the symbol we want to search and the solution we want to search in.
+            var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
+            if (symbolAndProject == null)
+            {
+                return null;
+            }
+
+            var symbol = symbolAndProject?.symbol;
+            var project = symbolAndProject?.project;
+
+            context.SetSearchTitle(string.Format(EditorFeaturesResources._0_references,
+                FindUsagesHelpers.GetDisplayName(symbol)));
+
+            var progressAdapter = new FindReferencesProgressAdapter(project.Solution, context);
+
+            // Now call into the underlying FAR engine to find reference.  The FAR
+            // engine will push results into the 'progress' instance passed into it.
+            // We'll take those results, massage them, and forward them along to the 
+            // FindReferencesContext instance we were given.
+            await SymbolFinder.FindReferencesAsync(
+                SymbolAndProjectId.Create(symbol, project.Id),
+                project.Solution,
+                progressAdapter,
+                documents: null,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            return progressAdapter;
+        }
+
         private async Task<bool> TryFindLiteralReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
@@ -128,42 +164,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return true;
-        }
-
-        private async Task<ProgressAdapter> FindSymbolReferencesAsync(
-            Document document, int position, IFindUsagesContext context)
-        {
-            var cancellationToken = context.CancellationToken;
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Find the symbol we want to search and the solution we want to search in.
-            var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndProject == null)
-            {
-                return null;
-            }
-
-            var symbol = symbolAndProject?.symbol;
-            var project = symbolAndProject?.project;
-
-            context.SetSearchTitle(string.Format(EditorFeaturesResources._0_references,
-                FindUsagesHelpers.GetDisplayName(symbol)));
-
-            var progressAdapter = new ProgressAdapter(project.Solution, context);
-
-            // Now call into the underlying FAR engine to find reference.  The FAR
-            // engine will push results into the 'progress' instance passed into it.
-            // We'll take those results, massage them, and forward them along to the 
-            // FindReferencesContext instance we were given.
-            await SymbolFinder.FindReferencesAsync(
-                SymbolAndProjectId.Create(symbol, project.Id),
-                project.Solution,
-                progressAdapter,
-                documents: null,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            return progressAdapter;
         }
     }
 }

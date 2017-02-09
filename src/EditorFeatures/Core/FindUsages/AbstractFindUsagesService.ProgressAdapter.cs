@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// <summary>
         /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
         /// </summary>
-        private class ProgressAdapter : ForegroundThreadAffinitizedObject, IStreamingFindReferencesProgress
+        private class FindReferencesProgressAdapter : ForegroundThreadAffinitizedObject, IStreamingFindReferencesProgress
         {
             private readonly Solution _solution;
             private readonly IFindUsagesContext _context;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             private readonly Func<ISymbol, DefinitionItem> _definitionFactory;
 
-            public ProgressAdapter(Solution solution, IFindUsagesContext context)
+            public FindReferencesProgressAdapter(Solution solution, IFindUsagesContext context)
             {
                 _solution = solution;
                 _context = context;
