@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             {
                 using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferences)))
                 {
-                    // Let the presented know we're starging a search.  It will give us back
+                    // Let the presented know we're starting a search.  It will give us back
                     // the context object that the FAR service will push results into.
                     var context = presenter.StartSearch(
                         EditorFeaturesResources.Find_References, alwaysShowDeclarations: false);
@@ -132,8 +132,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                     // Note: we don't need to put this in a finally.  The only time we might not hit
                     // this is if cancellation or another error gets thrown.  In the former case,
                     // that means that a new search has started.  We don't care about telling the
-                    // context it has completed.  In the latter case somethign wrong has happened
-                    // and we don't want to run any more code code in this particular context.
+                    // context it has completed.  In the latter case something wrong has happened
+                    // and we don't want to run any more code in this particular context.
                     await context.OnCompletedAsync().ConfigureAwait(false);
                 }
             }

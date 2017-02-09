@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -47,7 +49,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // CallThirdPartyExtensionsAsync will happen on the UI thread.  We need
             // this to maintain the threading guarantee we had around that method
             // from pre-Roslyn days.
-            var findReferencesProgress = await FindReferencesWorkerAsync(
+            var cancellationToken = context.CancellationToken;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var found = await TryFindLiteralReferencesAsync(document, position, context).ConfigureAwait(true);
+            if (found)
+            {
+                return;
+            }
+
+            var findReferencesProgress = await FindSymbolReferencesAsync(
                 document, position, context).ConfigureAwait(true);
             if (findReferencesProgress == null)
             {
@@ -60,7 +71,66 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 context.CancellationToken).ConfigureAwait(true);
         }
 
-        private async Task<ProgressAdapter> FindReferencesWorkerAsync(
+        private async Task<bool> TryFindLiteralReferencesAsync(
+            Document document, int position, IFindUsagesContext context)
+        {
+            var cancellationToken = context.CancellationToken;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var token = await syntaxTree.GetTouchingTokenAsync(
+                position,
+                t => syntaxFacts.IsNumericLiteral(t) ||
+                     syntaxFacts.IsCharacterLiteral(t) ||
+                     syntaxFacts.IsStringLiteral(t),
+                cancellationToken).ConfigureAwait(false);
+
+            if (token.RawKind == 0)
+            {
+                return false;
+            }
+
+            // Searching for decimals not supported currently.
+            if (token.Value is decimal)
+            {
+                return false;
+            }
+
+            var title = syntaxFacts.ConvertToSingleLine(token.Parent).ToString();
+            if (title.Length >= 10)
+            {
+                title = title.Substring(0, 10) + "...";
+            }
+
+            var searchTitle = string.Format(EditorFeaturesResources._0_references, title);
+            context.SetSearchTitle(searchTitle);
+
+            var solution = document.Project.Solution;
+
+            var definition = DefinitionItem.CreateNonNavigableItem(
+                ImmutableArray.Create(TextTags.StringLiteral),
+                ImmutableArray.Create(new TaggedText(TextTags.Text, searchTitle)));
+
+            var progressAdapter = new FindLiteralsProgressAdapter(context, definition);
+
+            await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
+
+            // Now call into the underlying FAR engine to find reference.  The FAR
+            // engine will push results into the 'progress' instance passed into it.
+            // We'll take those results, massage them, and forward them along to the 
+            // FindReferencesContext instance we were given.
+            await SymbolFinder.FindLiteralReferencesAsync(
+                token.Value,
+                solution,
+                progressAdapter,
+                documents: null,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            return true;
+        }
+
+        private async Task<ProgressAdapter> FindSymbolReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;

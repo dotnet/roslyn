@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Callback object we pass to the OOP server to hear about the result 
         /// of the FindReferencesEngine as it executes there.
         /// </summary>
-        private class ServerCallback
+        private class FindReferencesServerCallback
         {
             private readonly Solution _solution;
             private readonly IStreamingFindReferencesProgress _progress;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId> _definitionMap =
                 new Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId>();
 
-            public ServerCallback(
+            public FindReferencesServerCallback(
                 Solution solution,
                 IStreamingFindReferencesProgress progress,
                 CancellationToken cancellationToken)

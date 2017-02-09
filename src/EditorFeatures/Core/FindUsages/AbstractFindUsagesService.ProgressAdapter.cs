@@ -9,11 +9,32 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
+        private class FindLiteralsProgressAdapter : IStreamingFindLiteralReferencesProgress
+        {
+            private readonly IFindUsagesContext _context;
+            private readonly DefinitionItem _definition;
+
+            public FindLiteralsProgressAdapter(
+                IFindUsagesContext context, DefinitionItem definition)
+            {
+                _context = context;
+                _definition = definition;
+            }
+
+            public Task OnReferenceFoundAsync(Document document, TextSpan span)
+                => _context.OnReferenceFoundAsync(new SourceReferenceItem(
+                    _definition, new DocumentSpan(document, span)));
+
+            public Task ReportProgressAsync(int current, int maximum)
+                => _context.ReportProgressAsync(current, maximum);
+        }
+
         /// <summary>
         /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
         /// </summary>

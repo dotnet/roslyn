@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestStreamingFeature(definition, searchSingleFileOnly, uiVisibleOnly)
         End Function
 
-        Private Async Function TestStreamingFeature(element As XElement, searchSingleFileOnly As Boolean, uiVisibleOnly As Boolean) As Task
+        Private Async Function TestStreamingFeature(element As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
             Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
             Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=True)
         End Function
