@@ -206,9 +206,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private static uint CombineTwoCharacters(
-            uint h, 
-            uint c1, uint c2)
+        private static uint CombineTwoCharacters(uint h, uint c1, uint c2)
         {
             unchecked
             {
