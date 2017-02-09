@@ -667,6 +667,29 @@ $$</Document>
             End Using
         End Sub
 
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function TypeNumberAtStartOfViewDoesNotCrash() As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>$$</Document>
+                               <Document>class Program
+{
+    static void Main(string[] args)
+    [|{|]
+
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, True)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("4")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
         Private Async Function VerifyCompletionAndDotAfter(item As String, state As TestState) As Task
             state.SendTypeChars(item)
             Await state.WaitForAsynchronousOperationsAsync()
