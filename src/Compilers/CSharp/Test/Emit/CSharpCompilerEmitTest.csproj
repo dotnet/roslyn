@@ -134,6 +134,7 @@
     <Compile Include="Emit\DynamicAnalysis\DynamicInstrumentationTests.cs" />
     <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.cs" />
+    <Compile Include="Emit\EditAndContinue\EditAndContinuePdbTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueStateMachineTests.cs" />
@@ -144,6 +145,7 @@
     <Compile Include="Emit\EmitMetadata.cs" />
     <Compile Include="Emit\EmitMetadataTestBase.cs" />
     <Compile Include="Attributes\EmitTestStrongNameProvider.cs" />
+    <Compile Include="Emit\EndToEndTests.cs" />
     <Compile Include="Emit\EntryPointTests.cs" />
     <Compile Include="Emit\NoPiaEmbedTypes.cs" />
     <Compile Include="Emit\OptionalArgumentsTests.cs" />

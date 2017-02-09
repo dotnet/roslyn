@@ -525,6 +525,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ERRID.ERR_EncUpdateFailedMissingAttribute
             End Get
         End Property
+
+        Public Overrides ReadOnly Property ERR_BadAssemblyName As Integer
+            Get
+                Return ERRID.ERR_BadAssemblyName
+            End Get
+        End Property
     End Class
 
 End Namespace

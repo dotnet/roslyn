@@ -143,9 +143,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static SyntaxTreeIndex ReadFrom(ObjectReader reader, VersionStamp version)
         {
-            var identifierInfo = IdentifierInfo.ReadFrom(reader);
-            var contextInfo = ContextInfo.ReadFrom(reader);
-            var declarationInfo = DeclarationInfo.ReadFrom(reader);
+            var identifierInfo = IdentifierInfo.TryReadFrom(reader);
+            var contextInfo = ContextInfo.TryReadFrom(reader);
+            var declarationInfo = DeclarationInfo.TryReadFrom(reader);
 
             if (identifierInfo == null || contextInfo == null || declarationInfo == null)
             {

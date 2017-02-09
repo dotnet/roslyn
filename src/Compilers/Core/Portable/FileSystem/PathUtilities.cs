@@ -14,16 +14,16 @@ namespace Roslyn.Utilities
     // For example we need to be able to work with invalid paths or paths containing wildcards
     internal static class PathUtilities
     {
-        internal static readonly bool IsUnixLikePlatform = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
         // We consider '/' a directory separator on Unix like systems. 
         // On Windows both / and \ are equally accepted.
-        internal static readonly char DirectorySeparatorChar = IsUnixLikePlatform ? '/' : '\\';
+        internal static readonly char DirectorySeparatorChar = PlatformInformation.IsUnix ? '/' : '\\';
         internal static readonly char AltDirectorySeparatorChar = '/';
-        internal static readonly char VolumeSeparatorChar = ':';
-        private static readonly string DirectorySeparatorStr = DirectorySeparatorChar.ToString();
+        internal static readonly string DirectorySeparatorStr = new string(DirectorySeparatorChar, 1);
+        internal const char VolumeSeparatorChar = ':';
         internal static readonly string ParentRelativeDirectory = "..";
         internal static readonly string ThisDirectory = ".";
+
+        internal static bool IsUnixLikePlatform => PlatformInformation.IsUnix;
 
         /// <summary>
         /// True if the character is a directory separator character.

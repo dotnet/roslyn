@@ -518,10 +518,6 @@
     <value>Delegate</value>
     <comment>{locked} unless the capitalization should be handled differently</comment>
   </data>
-  <data name="Ends_with_Async" xml:space="preserve">
-    <value>Ends with Async</value>
-    <comment>{locked:async}</comment>
-  </data>
   <data name="Enum" xml:space="preserve">
     <value>Enum</value>
     <comment>{locked} unless the capitalization should be handled differently</comment>
@@ -613,5 +609,8 @@
   </data>
   <data name="The_first_word_0_must_begin_with_a_lower_case_character" xml:space="preserve">
     <value>The first word, '{0}', must begin with a lower case character</value>
+  </data>
+  <data name="File_0_size_of_1_exceeds_maximum_allowed_size_of_2" xml:space="preserve">
+    <value>File '{0}' size of {1} exceeds maximum allowed size of {2}</value>
   </data>
 </root>

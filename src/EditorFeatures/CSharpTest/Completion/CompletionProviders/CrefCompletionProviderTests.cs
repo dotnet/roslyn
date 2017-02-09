@@ -443,5 +443,22 @@ class C
                 Assert.True(called);
             }
         }
+
+        [WorkItem(16060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/16060")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SpecialTypeNames()
+        {
+            var text = @"
+using System;
+/// <see cref=""$$""/>
+class C 
+{ 
+    public void foo(int x) { }
+}
+";
+
+            await VerifyItemExistsAsync(text, "uint");
+            await VerifyItemExistsAsync(text, "UInt32");
+        }
     }
 }

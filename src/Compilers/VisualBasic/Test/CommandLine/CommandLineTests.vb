@@ -8020,6 +8020,94 @@ End Module
             CleanupAllGeneratedFiles(sourceFile.Path)
         End Sub
 
+        <Fact>
+        Public Sub IOFailure_DisposeOutputFile()
+            Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
+            Dim exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe")
+            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", $"/out:{exePath}", srcPath})
+            csc.FileOpen = Function(filePath, mode, access, share)
+                               If filePath = exePath Then
+                                   Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
+                               End If
+
+                               Return File.Open(filePath, mode, access, share)
+                           End Function
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Assert.Equal(1, csc.Run(outWriter))
+            Assert.Equal($"vbc : error BC2012: can't open '{exePath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub IOFailure_DisposePdbFile()
+            Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
+            Dim exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe")
+            Dim pdbPath = Path.ChangeExtension(exePath, "pdb")
+            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug", $"/out:{exePath}", srcPath})
+            csc.FileOpen = Function(filePath, mode, access, share)
+                               If filePath = pdbPath Then
+                                   Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
+                               End If
+
+                               Return File.Open(filePath, mode, access, share)
+                           End Function
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Assert.Equal(1, csc.Run(outWriter))
+            Assert.Equal($"vbc : error BC2012: can't open '{pdbPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub IOFailure_DisposeXmlFile()
+            Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
+            Dim xmlPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.xml")
+            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", $"/doc:{xmlPath}", srcPath})
+            csc.FileOpen = Function(filePath, mode, access, share)
+                               If filePath = xmlPath Then
+                                   Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
+                               End If
+
+                               Return File.Open(filePath, mode, access, share)
+                           End Function
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Assert.Equal(1, csc.Run(outWriter))
+            Assert.Equal($"error BC2012: can't open '{xmlPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub IOFailure_DisposeSourceLinkFile()
+            Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
+            Dim sourceLinkPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.json")
+            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug:portable", $"/sourcelink:{sourceLinkPath}", srcPath})
+            csc.FileOpen = Function(filePath, mode, access, share)
+                               If filePath = sourceLinkPath Then
+                                   Return New TestStream(
+                                   backingStream:=New MemoryStream(Encoding.UTF8.GetBytes("
+{
+  ""documents"": {
+     ""f:/build/*"" : ""https://raw.githubusercontent.com/my-org/my-project/1111111111111111111111111111111111111111/*""
+  }
+}
+")),
+                                   dispose:=Sub() Throw New IOException("Fake IOException"))
+                               End If
+
+                               Return File.Open(filePath, mode, access, share)
+                           End Function
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Assert.Equal(1, csc.Run(outWriter))
+            Assert.Equal($"error BC2012: can't open '{sourceLinkPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
+        End Sub
+
+        Private Function MakeTrivialExe(Optional directory As String = Nothing) As String
+            Return Temp.CreateFile(directory:=directory, prefix:="", extension:=".vb").WriteAllText("
+Class Program
+    Public Shared Sub Main()
+    End Sub
+End Class").Path
+        End Function
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

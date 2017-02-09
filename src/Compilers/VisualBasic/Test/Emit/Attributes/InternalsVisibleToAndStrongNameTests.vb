@@ -337,7 +337,8 @@ End Class
     End Sub
 
     <Fact>
-    Public Sub PublicKeyFromOptions_OssSigned()
+    <WorkItem(11427, "https://github.com/dotnet/roslyn/issues/11427")>
+    Public Sub PublicKeyFromOptions_PublicSign()
         ' attributes are ignored
         Dim source =
 <compilation>
@@ -350,8 +351,13 @@ End Class
     </file>
 </compilation>
 
-        Dim c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey))
-        c.VerifyDiagnostics()
+        Dim c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey).WithPublicSign(True))
+        c.AssertTheseDiagnostics(
+            <expected>
+BC42379: Attribute 'System.Reflection.AssemblyKeyFileAttribute' is ignored when public signing is specified.
+BC42379: Attribute 'System.Reflection.AssemblyKeyNameAttribute' is ignored when public signing is specified.
+            </expected>
+            )
         Assert.True(ByteSequenceComparer.Equals(s_publicKey, c.Assembly.Identity.PublicKey))
 
         Dim Metadata = ModuleMetadata.CreateFromImage(c.EmitToArray())
@@ -360,6 +366,41 @@ End Class
         Assert.True(identity.HasPublicKey)
         AssertEx.Equal(identity.PublicKey, s_publicKey)
         Assert.Equal(CorFlags.ILOnly Or CorFlags.StrongNameSigned, Metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags)
+
+        c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseModule.WithCryptoPublicKey(s_publicKey).WithPublicSign(True))
+        c.AssertTheseDiagnostics(
+            <expected>
+BC37282: Public signing is not supported for netmodules.
+            </expected>
+            )
+
+        c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseModule.WithCryptoKeyFile(s_publicKeyFile).WithPublicSign(True))
+        c.AssertTheseDiagnostics(
+            <expected>
+BC37207: Attribute 'System.Reflection.AssemblyKeyFileAttribute' given in a source file conflicts with option 'CryptoKeyFile'.
+BC37282: Public signing is not supported for netmodules.
+            </expected>
+            )
+
+        Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey)
+
+        Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+<assembly: System.Reflection.AssemblyKeyName("roslynTestContainer")>
+<assembly: System.Reflection.AssemblyKeyFile("]]><%= snk.Path %><![CDATA[")>
+Public Class C
+End Class
+]]>
+    </file>
+</compilation>
+
+        c = CreateCompilationWithMscorlib(source1, options:=TestOptions.ReleaseModule.WithCryptoKeyFile(snk.Path).WithPublicSign(True))
+        c.AssertTheseDiagnostics(
+            <expected>
+BC37282: Public signing is not supported for netmodules.
+            </expected>
+            )
     End Sub
 
     <Fact>
@@ -1706,14 +1747,17 @@ End Class
         PublicSignCore(compilation)
     End Sub
 
-    Public Sub PublicSignCore(compilation As Compilation)
+    Public Sub PublicSignCore(compilation As Compilation, Optional assertNoDiagnostics As Boolean = True)
         Assert.True(compilation.Options.PublicSign)
         Assert.Null(compilation.Options.DelaySign)
 
         Dim stream As New MemoryStream()
         Dim emitResult = compilation.Emit(stream)
         Assert.True(emitResult.Success)
-        Assert.True(emitResult.Diagnostics.IsEmpty)
+        If assertNoDiagnostics Then
+            Assert.True(emitResult.Diagnostics.IsEmpty)
+        End If
+
         stream.Position = 0
 
         Using reader As New PEReader(stream)
@@ -1759,6 +1803,7 @@ End Class
         AssertTheseDiagnostics(c,
                                <errors>
 BC37254: Public sign was specified and requires a public key, but no public key was specified
+BC42379: Attribute 'System.Reflection.AssemblyKeyFileAttribute' is ignored when public signing is specified.
                                </errors>)
 
         Assert.True(c.Options.PublicSign)
@@ -1778,6 +1823,7 @@ End Class
         AssertTheseDiagnostics(c,
                                <errors>
 BC37254: Public sign was specified and requires a public key, but no public key was specified
+BC42379: Attribute 'System.Reflection.AssemblyKeyNameAttribute' is ignored when public signing is specified.
                                </errors>)
 
         Assert.True(c.Options.PublicSign)
@@ -1845,7 +1891,14 @@ End Class
         Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey)
         Dim options = TestOptions.ReleaseDll.WithCryptoKeyFile(snk.Path).WithPublicSign(True)
         Dim compilation = CreateCompilationWithMscorlib(source, options:=options)
-        PublicSignCore(compilation)
+
+        AssertTheseDiagnostics(compilation,
+                               <errors>
+BC42379: Attribute 'System.Reflection.AssemblyKeyFileAttribute' is ignored when public signing is specified.
+BC42379: Attribute 'System.Reflection.AssemblyKeyNameAttribute' is ignored when public signing is specified.
+                               </errors>)
+
+        PublicSignCore(compilation, assertNoDiagnostics:=False)
     End Sub
 
     <Fact>

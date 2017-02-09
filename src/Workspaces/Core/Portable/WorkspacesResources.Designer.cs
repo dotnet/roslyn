@@ -612,15 +612,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ends with Async.
-        /// </summary>
-        internal static string Ends_with_Async {
-            get {
-                return ResourceManager.GetString("Ends_with_Async", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enum.
         /// </summary>
         internal static string Enum {
@@ -698,6 +689,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Failure {
             get {
                 return ResourceManager.GetString("Failure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File &apos;{0}&apos; size of {1} exceeds maximum allowed size of {2}.
+        /// </summary>
+        internal static string File_0_size_of_1_exceeds_maximum_allowed_size_of_2 {
+            get {
+                return ResourceManager.GetString("File_0_size_of_1_exceeds_maximum_allowed_size_of_2", resourceCulture);
             }
         }
         

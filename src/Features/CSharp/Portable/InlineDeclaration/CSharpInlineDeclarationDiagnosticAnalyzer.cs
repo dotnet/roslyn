@@ -36,10 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         {
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        public bool OpenFileOnly(Workspace workspace) => false;
+        public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected override void InitializeWorker(AnalysisContext context)
         {
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return;
             }
 
-            if (IsInExpressionTree(semanticModel, argumentExpression, expressionTypeOpt, cancellationToken))
+            if (argumentExpression.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken))
             {
                 // out-vars are not allowed inside expression-trees.  So don't offer to
                 // fix if we're inside one.
@@ -232,28 +232,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 GetDescriptorWithSeverity(option.Notification.Value),
                 reportNode.GetLocation(),
                 additionalLocations: allLocations));
-        }
-
-        private bool IsInExpressionTree(
-            SemanticModel semanticModel, SyntaxNode argumentExpression,
-            INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
-        {
-            if (expressionTypeOpt != null)
-            {
-                for (var current = argumentExpression; current != null; current = current.Parent)
-                {
-                    if (current.IsAnyLambda())
-                    {
-                        var typeInfo = semanticModel.GetTypeInfo(current, cancellationToken);
-                        if (expressionTypeOpt.Equals(typeInfo.ConvertedType?.OriginalDefinition))
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
         }
 
         private bool WouldCauseDefiniteAssignmentErrors(

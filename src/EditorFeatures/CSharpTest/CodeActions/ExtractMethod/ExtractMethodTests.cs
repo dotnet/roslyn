@@ -902,11 +902,11 @@ compareTokens: false);
 {
     static void Main(string[] args)
     {
-        object x = {|Rename:NewMethod|}();
+        (int c, int d) x = {|Rename:NewMethod|}();
         System.Console.WriteLine(x.c);
     }
 
-    private static object NewMethod()
+    private static (int c, int d) NewMethod()
     {
         return (c: 1, d: 2);
     }
@@ -1309,6 +1309,233 @@ class C
         return v;
     }
 }", options: Option(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
+        }
+
+        [Fact]
+        [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
+        public async Task ExtractLocalFunctionCall()
+        {
+            await TestAsync(@"
+class C
+{
+    public static void Main()
+    {
+        void Local() { }
+        [|Local();|]
+    }
+}", @"
+class C
+{
+    public static void Main()
+    {
+        void Local() { }
+        {|Rename:NewMethod|}();
+    }
+
+    private static void NewMethod()
+    {
+        {|Warning:Local();|}
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
+        public async Task ExtractLocalFunctionCallWithCapture()
+        {
+            await TestAsync(@"
+class C
+{
+    public static void Main(string[] args)
+    {
+        bool Local() => args == null;
+        [|Local();|]
+    }
+}", @"
+class C
+{
+    public static void Main(string[] args)
+    {
+        bool Local() => args == null;
+        {|Rename:NewMethod|}();
+    }
+
+    private static void NewMethod()
+    {
+        {|Warning:Local();|}
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
+        public async Task ExtractLocalFunctionDeclaration()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    public static void Main()
+    {
+        [|bool Local() => args == null;|]
+        Local();
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
+        public async Task ExtractLocalFunctionInterior()
+        {
+            await TestAsync(@"
+class C
+{
+    public static void Main()
+    {
+        void Local()
+        {
+            [|int x = 0;
+            x++;|]
+        }
+        Local();
+    }
+}", @"
+class C
+{
+    public static void Main()
+    {
+        void Local()
+        {
+            {|Rename:NewMethod|}();
+        }
+        Local();
+    }
+
+    private static void NewMethod()
+    {
+        {|Warning:int x = 0;
+        x++;|}
+    }
+}");
+        }
+
+        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task Bug3790()
+        {
+            await TestAsync(@"
+class Test
+{
+    void method()
+    {
+        static void Main(string[] args)
+        {
+            int v = 0;
+            for(int i=0 ; i<5; i++)
+            {
+                [|v = v + i;|]
+            }
+        }
+    }
+}", @"
+class Test
+{
+    void method()
+    {
+        static void Main(string[] args)
+        {
+            int v = 0;
+            for(int i=0 ; i<5; i++)
+            {
+                {|Rename:NewMethod|}();
+            }
+        }
+    }
+
+    private static void NewMethod()
+    {
+        {|Warning:v = v + i|};
+    }
+}");
+        }
+
+        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task Bug3790_1()
+        {
+            await TestAsync(@"
+class Test
+{
+    void method()
+    {
+        static void Main(string[] args)
+        {
+            int v = 0;
+            for(int i=0 ; i<5; i++)
+            {
+                [|v = v + i|];
+            }
+        }
+    }
+}", @"
+class Test
+{
+    void method()
+    {
+        static void Main(string[] args)
+        {
+            int v = 0;
+            for(int i=0 ; i<5; i++)
+            {
+                v = {|Rename:NewMethod|}();
+            }
+        }
+    }
+
+    private static int NewMethod()
+    {
+        {|Warning:return v + i|};
+    }
+}");
+        }
+
+        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task Bug3790_2()
+        {
+            await TestAsync(@"
+class Test
+{
+    void method()
+    {
+        static void Main(string[] args)
+        {
+            int v = 0;
+            for(int i=0 ; i<5; i++)
+            {
+                [|i = v = v + i|];
+            }
+        }
+    }
+}", @"
+class Test
+{
+    void method()
+    {
+        static void Main(string[] args)
+        {
+            int v = 0;
+            for(int i=0 ; i<5; i++)
+            {
+                i = {|Rename:NewMethod|}();
+            }
+        }
+    }
+
+    private static int NewMethod()
+    {
+        {|Warning:return v = v + i;|}
+    }
+}");
         }
     }
 }

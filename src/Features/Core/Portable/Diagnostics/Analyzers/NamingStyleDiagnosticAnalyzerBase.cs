@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal abstract class NamingStyleDiagnosticAnalyzerBase :
-        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+        AbstractCodeStyleDiagnosticAnalyzer
     {
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableTitleNamingStyle = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
@@ -33,9 +33,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             SymbolKind.Method,
             SymbolKind.NamedType,
             SymbolKind.Namespace,
-            SymbolKind.Property);
+            SymbolKind.Property,
+            SymbolKind.Parameter);
 
-        public bool OpenFileOnly(Workspace workspace) => true;
+        public override bool OpenFileOnly(Workspace workspace) => true;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(CompilationStartAction);
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             context.ReportDiagnostic(Diagnostic.Create(descriptor, context.Symbol.Locations.First(), builder.ToImmutable()));
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

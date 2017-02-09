@@ -104,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return IsNamedTypeAccessible((INamedTypeSymbol)symbol, within);
 
                 case SymbolKind.ErrorType:
+                case SymbolKind.Discard:
                     return true;
 
                 case SymbolKind.TypeParameter:

@@ -423,6 +423,36 @@ public class C {}
             Assert.True(identity.HasPublicKey);
             AssertEx.Equal(identity.PublicKey, s_publicKey);
             Assert.Equal(CorFlags.ILOnly | CorFlags.StrongNameSigned, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
+
+            c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseModule.WithCryptoPublicKey(s_publicKey).WithPublicSign(true));
+
+            c.VerifyDiagnostics(
+                // error CS8201: Public signing is not supported for netmodules.
+                Diagnostic(ErrorCode.ERR_PublicSignNetModule).WithLocation(1, 1)
+            );
+
+            c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseModule.WithCryptoKeyFile(s_publicKeyFile).WithPublicSign(true));
+
+            c.VerifyDiagnostics(
+                // error CS7091: Attribute 'System.Reflection.AssemblyKeyFileAttribute' given in a source file conflicts with option 'CryptoKeyFile'.
+                Diagnostic(ErrorCode.ERR_CmdOptionConflictsSource).WithArguments("System.Reflection.AssemblyKeyFileAttribute", "CryptoKeyFile").WithLocation(1, 1),
+                // error CS8201: Public signing is not supported for netmodules.
+                Diagnostic(ErrorCode.ERR_PublicSignNetModule).WithLocation(1, 1)
+            );
+
+            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
+
+            string source1 = @"
+[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")] 
+[assembly: System.Reflection.AssemblyKeyFile(@""" + snk.Path + @""")] 
+public class C {}
+";
+
+            c = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseModule.WithCryptoKeyFile(snk.Path).WithPublicSign(true));
+            c.VerifyDiagnostics(
+                // error CS8201: Public signing is not supported for netmodules.
+                Diagnostic(ErrorCode.ERR_PublicSignNetModule).WithLocation(1, 1)
+            );
         }
 
         [Fact, WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]

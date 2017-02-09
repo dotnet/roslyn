@@ -1351,6 +1351,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitReference:
                     return true;
+
+                case ConversionKind.ImplicitTuple:
+                case ConversionKind.ImplicitTupleLiteral:
+                    // check if all element conversions satisfy the requirement
+                    foreach (var elementConversion in conversion.UnderlyingConversions)
+                    {
+                        if (!IsValidExtensionMethodThisArgConversion(elementConversion))
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+
                 default:
                     return false;
             }

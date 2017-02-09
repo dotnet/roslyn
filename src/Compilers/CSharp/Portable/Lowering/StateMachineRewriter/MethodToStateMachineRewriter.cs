@@ -292,7 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We need to produce hoisted local scope debug information for user locals as well as 
                 // lambda display classes, since Dev12 EE uses them to determine which variables are displayed 
                 // in Locals window.
-                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined ||
+                if ((local.SynthesizedKind == SynthesizedLocalKind.UserDefined && 
+                        local.ScopeDesignatorOpt?.Kind() != SyntaxKind.SwitchSection) ||
                     local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
                 {
                     hoistedLocalsWithDebugScopes.Add(((CapturedToStateMachineFieldReplacement)proxy).HoistedField);
@@ -619,6 +620,52 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBlock(BoundBlock node)
         {
             return PossibleIteratorScope(node.Locals, () => (BoundStatement)base.VisitBlock(node));
+        }
+
+        public override BoundNode VisitScope(BoundScope node)
+        {
+            Debug.Assert(!node.Locals.IsEmpty);
+            var newLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+            var hoistedLocalsWithDebugScopes = ArrayBuilder<StateMachineFieldSymbol>.GetInstance();
+            foreach (var local in node.Locals)
+            {
+                Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
+                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection);
+
+                if (!NeedsProxy(local))
+                {
+                    newLocals.Add(local);
+                    continue;
+                }
+
+                hoistedLocalsWithDebugScopes.Add(((CapturedToStateMachineFieldReplacement)proxies[local]).HoistedField);
+            }
+
+            var statements = VisitList(node.Statements);
+
+            // wrap the node in an iterator scope for debugging
+            if (hoistedLocalsWithDebugScopes.Count != 0)
+            {
+                BoundStatement translated;
+
+                if (newLocals.Count == 0)
+                {
+                    newLocals.Free();
+                    translated = new BoundStatementList(node.Syntax, statements);
+                }
+                else
+                {
+                    translated = node.Update(newLocals.ToImmutableAndFree(), statements);
+                }
+
+                return MakeStateMachineScope(hoistedLocalsWithDebugScopes.ToImmutable(), translated);
+            }
+            else
+            {
+                hoistedLocalsWithDebugScopes.Free();
+                newLocals.Free();
+                return node.Update(node.Locals, statements);
+            }
         }
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
