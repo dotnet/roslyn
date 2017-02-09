@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var cancellationToken = context.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
 
+            // First, see if we're on a literal.  If so search for literals in the solution with
+            // the same value.
             var found = await TryFindLiteralReferencesAsync(document, position, context).ConfigureAwait(true);
             if (found)
             {
@@ -133,6 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 return false;
             }
 
+            // Use the literal to make the title.  Trim literal if it's too long.
             var title = syntaxFacts.ConvertToSingleLine(token.Parent).ToString();
             if (title.Length >= 10)
             {
@@ -144,18 +147,20 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var solution = document.Project.Solution;
 
+            // There will only be one 'definition' that all matching literal reference.
+            // So just create it now and report to the context what it is.
             var definition = DefinitionItem.CreateNonNavigableItem(
                 ImmutableArray.Create(TextTags.StringLiteral),
                 ImmutableArray.Create(new TaggedText(TextTags.Text, searchTitle)));
 
-            var progressAdapter = new FindLiteralsProgressAdapter(context, definition);
-
             await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
+
+            var progressAdapter = new FindLiteralsProgressAdapter(context, definition);
 
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
             // We'll take those results, massage them, and forward them along to the 
-            // FindReferencesContext instance we were given.
+            // FindUsagesContext instance we were given.
             await SymbolFinder.FindLiteralReferencesAsync(
                 token.Value,
                 solution,
