@@ -560,19 +560,22 @@ Done:
                     End If
 
                     If checkTypes Then
-                        Dim type1 As TypeWithModifiers
-                        If typeSubstitution1 IsNot Nothing Then
-                            type1 = SubstituteType(typeSubstitution1, New TypeWithModifiers(param1.OriginalDefinition.Type, param1.OriginalDefinition.CustomModifiers))
-                        Else
-                            type1 = New TypeWithModifiers(param1.Type, param1.CustomModifiers)
-                        End If
+                        Dim type1 As TypeWithModifiers = GetTypeWithModifiers(typeSubstitution1, param1) 
+                        Dim type2 As TypeWithModifiers = GetTypeWithModifiers(typeSubstitution2, param2) 
+                  
+                        'Dim type1 As TypeWithModifiers
+                        'If typeSubstitution1 IsNot Nothing Then
+                        '    type1 = SubstituteType(typeSubstitution1, New TypeWithModifiers(param1.OriginalDefinition.Type, param1.OriginalDefinition.CustomModifiers))
+                        'Else
+                        '    type1 = New TypeWithModifiers(param1.Type, param1.CustomModifiers)
+                        'End If
 
-                        Dim type2 As TypeWithModifiers
-                        If typeSubstitution2 IsNot Nothing Then
-                            type2 = SubstituteType(typeSubstitution2, New TypeWithModifiers(param2.OriginalDefinition.Type, param2.OriginalDefinition.CustomModifiers))
-                        Else
-                            type2 = New TypeWithModifiers(param2.Type, param2.CustomModifiers)
-                        End If
+                        'Dim type2 As TypeWithModifiers
+                        'If typeSubstitution2 IsNot Nothing Then
+                        '    type2 = SubstituteType(typeSubstitution2, New TypeWithModifiers(param2.OriginalDefinition.Type, param2.OriginalDefinition.CustomModifiers))
+                        'Else
+                        '    type2 = New TypeWithModifiers(param2.Type, param2.CustomModifiers)
+                        'End If
 
                         If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.AllIgnoreOptionsForVB) Then
                             If bothOptional Then
