@@ -136,6 +136,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 return false;
             }
 
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var symbol = semanticModel.GetSymbolInfo(token.Parent).Symbol ?? semanticModel.GetDeclaredSymbol(token.Parent);
+            if (symbol is ILabelSymbol)
+            {
+                return false;
+            }
+
             // Use the literal to make the title.  Trim literal if it's too long.
             var title = syntaxFacts.ConvertToSingleLine(token.Parent).ToString();
             if (title.Length >= 10)

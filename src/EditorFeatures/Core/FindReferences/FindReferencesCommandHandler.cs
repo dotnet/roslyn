@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             }
 
             // Otherwise, either the language doesn't support streaming results,
-            // or the host has no way to present results in a sreaming manner.
+            // or the host has no way to present results in a streaming manner.
             // Fall back to the old non-streaming approach to finding and presenting 
             // results.
             if (synchronousService != null)
