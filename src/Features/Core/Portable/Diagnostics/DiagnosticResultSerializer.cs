@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticResultSerializer
     {
