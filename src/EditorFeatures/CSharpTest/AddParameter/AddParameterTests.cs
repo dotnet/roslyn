@@ -96,7 +96,7 @@ class D
 {
     void M()
     {
-        new C(1);
+        new C(p: 1);
     }
 }");
         }
