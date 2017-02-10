@@ -2,8 +2,8 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateConstructor
     Public Class GenerateConstructorTests
