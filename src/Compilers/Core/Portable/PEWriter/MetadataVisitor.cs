@@ -198,10 +198,6 @@ namespace Microsoft.Cci
             this.Visit(localDefinition.Type);
         }
 
-        public virtual void Visit(IManagedPointerTypeReference managedPointerTypeReference)
-        {
-        }
-
         public virtual void Visit(IMarshallingInformation marshallingInformation)
         {
             throw ExceptionUtilities.Unreachable;

@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var argument = new DiagnosticArguments(
                 analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics,
                 analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
-                project.Id, optionAsset.Checksum.ToArray(), hostChecksums, analyzerMap.Keys.ToArray());
+                project.Id, optionAsset.Checksum, hostChecksums, analyzerMap.Keys.ToArray());
 
             // TODO: send telemetry on session
             using (var session = await client.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
@@ -161,11 +161,11 @@ This data should always be correct as we're never persisting the data between se
             }
         }
 
-        private ImmutableArray<byte[]> GetHostAnalyzerReferences(
+        private ImmutableArray<Checksum> GetHostAnalyzerReferences(
             ISolutionSynchronizationService snapshotService, string language, IEnumerable<AnalyzerReference> references, CancellationToken cancellationToken)
         {
             // TODO: cache this to somewhere
-            var builder = ImmutableArray.CreateBuilder<byte[]>();
+            var builder = ImmutableArray.CreateBuilder<Checksum>();
             foreach (var reference in references)
             {
                 var analyzers = reference.GetAnalyzers(language);
@@ -178,7 +178,7 @@ This data should always be correct as we're never persisting the data between se
                 }
 
                 var asset = snapshotService.GetGlobalAsset(reference, cancellationToken);
-                builder.Add(asset.Checksum.ToArray());
+                builder.Add(asset.Checksum);
             }
 
             return builder.ToImmutable();

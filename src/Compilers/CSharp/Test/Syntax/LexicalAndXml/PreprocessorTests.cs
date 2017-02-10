@@ -3326,18 +3326,21 @@ public class Test
         [Trait("Feature", "Directives")]
         public void TestRegressPragmaWarningDisableWithWarningCode()
         {
-            var text = @"#pragma warning disable 440
-using global = A; // CS0440
+            var text = @"
 class A
 {
-static void Main() { }
+    static void Main(bool b)
+    {
+#pragma warning disable 642
+        if (b);{}
+    }
 }
 ";
             // verify that error still appears in GetDiagnostics
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var diagnostic = tree.GetDiagnostics().Single();
             Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
-            Assert.Equal(440, diagnostic.Code);
+            Assert.Equal(642, diagnostic.Code);
 
             // verify pragma information
             var node = tree.GetCompilationUnitRoot();
@@ -3346,7 +3349,7 @@ static void Main() { }
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new[] { "440" }
+                WarningList = new[] { "642" }
             });
 
             // verify that GetParseDiagnostics filters disabled warning

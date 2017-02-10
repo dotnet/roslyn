@@ -42,7 +42,7 @@ try
     {
         "dev15-rc3" { } 
         "master" { } 
-        "treePerf_allWork" { }
+        "post-dev15" { } 
         default
         {
             if (-not $test)

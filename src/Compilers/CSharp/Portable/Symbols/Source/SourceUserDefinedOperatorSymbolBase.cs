@@ -128,10 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 signatureBinder,
                 this,
                 ParameterListSyntax,
-                true,
                 out arglistToken,
                 diagnostics,
-                false);
+                allowRefOrOut: true,
+                allowThis: false,
+                beStrict: false);
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {

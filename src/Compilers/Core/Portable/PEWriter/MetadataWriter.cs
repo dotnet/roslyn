@@ -3655,9 +3655,6 @@ namespace Microsoft.Cci
         {
             while (true)
             {
-                // BYREF is specified directly in RetType, Param, LocalVarSig signatures
-                Debug.Assert(!(typeReference is IManagedPointerTypeReference));
-
                 // TYPEDREF is only allowed in RetType, Param, LocalVarSig signatures
                 Debug.Assert(!module.IsPlatformType(typeReference, PlatformType.SystemTypedReference));
 
