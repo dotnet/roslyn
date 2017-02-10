@@ -80,6 +80,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Dictionary<SyntaxTree, ImmutableHashSet<ISymbol>> _lazyGeneratedCodeSymbolsMap;
 
         /// <summary>
+        /// Lazily populated dictionary indicating whether a source file has any hidden regions - we populate it lazily to avoid realizing all syntax trees in the compilation upfront.
+        /// </summary>
+        private Dictionary<SyntaxTree, bool> _lazyTreesWithHiddenRegionsMap;
+
+        /// <summary>
         /// Symbol for <see cref="System.CodeDom.Compiler.GeneratedCodeAttribute"/>.
         /// </summary>
         private INamedTypeSymbol _generatedCodeAttribute;
@@ -155,6 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _treatAllCodeAsNonGeneratedCode = ShouldTreatAllCodeAsNonGeneratedCode(unsuppressedAnalyzers, _generatedCodeAnalysisFlagsMap);
                     _lazyGeneratedCodeFilesMap = _treatAllCodeAsNonGeneratedCode ? null : new Dictionary<SyntaxTree, bool>();
                     _lazyGeneratedCodeSymbolsMap = _treatAllCodeAsNonGeneratedCode ? null : new Dictionary<SyntaxTree, ImmutableHashSet<ISymbol>>();
+                    _lazyTreesWithHiddenRegionsMap = _treatAllCodeAsNonGeneratedCode ? null : new Dictionary<SyntaxTree, bool>();
                     _generatedCodeAttribute = analyzerExecutor.Compilation?.GetTypeByMetadataName("System.CodeDom.Compiler.GeneratedCodeAttribute");
 
                     _symbolActionsByKind = MakeSymbolActionsByKind();
@@ -243,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var analyzerExecutor = AnalyzerExecutor.Create(
                 compilation, analysisOptions.Options ?? AnalyzerOptions.Empty, addNotCategorizedDiagnosticOpt, newOnAnalyzerException, analysisOptions.AnalyzerExceptionFilter,
-                IsCompilerAnalyzer, analyzerManager, ShouldSkipAnalysisOnGeneratedCode, ShouldSuppressGeneratedCodeDiagnostic, GetAnalyzerGate,
+                IsCompilerAnalyzer, analyzerManager, ShouldSkipAnalysisOnGeneratedCode, ShouldSuppressGeneratedCodeDiagnostic, IsGeneratedOrHiddenCodeLocation, GetAnalyzerGate,
                 analysisOptions.LogAnalyzerExecutionTime, addCategorizedLocalDiagnosticOpt, addCategorizedNonLocalDiagnosticOpt, cancellationToken);
 
             Initialize(analyzerExecutor, diagnosticQueue, compilationData, cancellationToken);
@@ -602,8 +608,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            // Check if this is a generated code file by its extension.
-            if (IsGeneratedCode(location.SourceTree))
+            // Check if this is a generated code location.
+            if (IsGeneratedOrHiddenCodeLocation(location))
             {
                 return true;
             }
@@ -1265,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var declaringRef in symbol.DeclaringSyntaxReferences)
             {
-                if (!IsGeneratedCode(declaringRef.SyntaxTree))
+                if (!IsGeneratedOrHiddenCodeLocation(declaringRef.GetLocation()))
                 {
                     return false;
                 }
@@ -1297,6 +1303,37 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         protected bool DoNotAnalyzeGeneratedCode => _doNotAnalyzeGeneratedCode;
+
+        // Location is in generated code if either the containing tree is a generated code file OR if it is a hidden source location.
+        protected bool IsGeneratedOrHiddenCodeLocation(Location location) =>
+            IsGeneratedCode(location.SourceTree) || IsHiddenSourceLocation(location);
+
+        protected bool IsHiddenSourceLocation(Location location) =>
+            location.IsInSource &&
+            HasHiddenRegions(location.SourceTree) &&
+            location.SourceTree.IsHiddenPosition(location.SourceSpan.Start);
+
+        private bool HasHiddenRegions(SyntaxTree tree)
+        {
+            Debug.Assert(tree != null);
+
+            if (_lazyTreesWithHiddenRegionsMap == null)
+            {
+                return false;
+            }
+
+            lock (_lazyTreesWithHiddenRegionsMap)
+            {
+                bool hasHiddenRegions;
+                if (!_lazyTreesWithHiddenRegionsMap.TryGetValue(tree, out hasHiddenRegions))
+                {
+                    hasHiddenRegions = tree.HasHiddenRegions();
+                    _lazyTreesWithHiddenRegionsMap.Add(tree, hasHiddenRegions);
+                }
+
+                return hasHiddenRegions;
+            }
+        }
 
         internal async Task<AnalyzerActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, CompilationOptions compilationOptions, CancellationToken cancellationToken)
         {
@@ -1589,7 +1626,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    var isInGeneratedCode = isGeneratedCodeSymbol || IsGeneratedCode(decl.SyntaxTree);
+                    var isInGeneratedCode = isGeneratedCodeSymbol || IsGeneratedOrHiddenCodeLocation(decl.GetLocation());
                     if (isInGeneratedCode && DoNotAnalyzeGeneratedCode)
                     {
                         analysisStateOpt?.MarkDeclarationComplete(symbol, i, analysisScope.Analyzers);

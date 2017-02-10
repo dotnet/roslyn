@@ -9,9 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractC
     Partial Public Class ImplementAbstractClassTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing, New VisualBasicImplementAbstractClassCodeFixProvider)
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New VisualBasicImplementAbstractClassCodeFixProvider)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
@@ -35,6 +34,27 @@ Public Class Bar
         Throw New NotImplementedException()
     End Sub
     Protected Overrides Function Bar(s As String, ByRef d As Double) As Boolean
+        Throw New NotImplementedException()
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        Public Async Function TestMethodWithTupleNames() As Task
+            Await TestAsync(
+"Public MustInherit Class Base
+    Protected MustOverride Function Bar(x As (a As Integer, Integer)) As (c As Integer, Integer)
+End Class
+Public Class [|Derived|]
+    Inherits Base
+End Class",
+"Imports System
+Public MustInherit Class Base
+    Protected MustOverride Function Bar(x As (a As Integer, Integer)) As (c As Integer, Integer)
+End Class
+Public Class Derived
+    Inherits Base
+    Protected Overrides Function Bar(x As (a As Integer, Integer)) As (c As Integer, Integer)
         Throw New NotImplementedException()
     End Function
 End Class")

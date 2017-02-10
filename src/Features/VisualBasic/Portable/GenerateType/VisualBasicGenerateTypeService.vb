@@ -697,6 +697,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                             explicitInterfaceSymbol:=Nothing,
                             name:=propertyName.ToString,
                             type:=typeSymbol,
+                            returnsByRef:=False,
                             parameters:=Nothing,
                             getMethod:=Nothing,
                             setMethod:=Nothing,

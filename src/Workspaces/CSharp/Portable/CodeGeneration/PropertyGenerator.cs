@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = SyntaxFactory.IndexerDeclaration(
                     attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), options),
                     modifiers: GenerateModifiers(property, destination, options),
-                    type: property.Type.GenerateTypeSyntax(),
+                    type: GeneratePropertyType(property),
                     explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                     parameterList: ParameterGenerator.GenerateBracketedParameterList(property.Parameters, explicitInterfaceSpecifier != null, options),
                     accessorList: GenerateAccessorList(property, destination, workspace, options, parseOptions));
@@ -104,6 +104,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return AddCleanupAnnotationsTo(
                 AddAnnotationsTo(property, declaration));
+        }
+
+        private static TypeSyntax GeneratePropertyType(IPropertySymbol property)
+        {
+            return property.ReturnsByRef
+                            ? property.Type.GenerateRefTypeSyntax()
+                            : property.Type.GenerateTypeSyntax();
         }
 
         private static MemberDeclarationSyntax GeneratePropertyDeclaration(
@@ -123,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var propertyDeclaration = SyntaxFactory.PropertyDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), options),
                 modifiers: GenerateModifiers(property, destination, options),
-                type: property.Type.GenerateTypeSyntax(),
+                type: GeneratePropertyType(property),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: property.Name.ToIdentifierToken(),
                 accessorList: accessorList,

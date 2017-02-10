@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -499,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static IList<MemberDeclarationSyntax> GetMembersInSpan(
+        public static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
             this SyntaxTree syntaxTree,
             TextSpan textSpan,
             CancellationToken cancellationToken)
@@ -511,50 +512,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var containingType = firstMember.Parent as TypeDeclarationSyntax;
                 if (containingType != null)
                 {
-                    var members = GetMembersInSpan(textSpan, containingType, firstMember);
-                    if (members != null)
-                    {
-                        return members;
-                    }
+                    return GetMembersInSpan(textSpan, containingType, firstMember);
                 }
             }
 
-            return SpecializedCollections.EmptyList<MemberDeclarationSyntax>();
+            return ImmutableArray<MemberDeclarationSyntax>.Empty;
         }
 
-        private static List<MemberDeclarationSyntax> GetMembersInSpan(
+        private static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
             TextSpan textSpan,
             TypeDeclarationSyntax containingType,
             MemberDeclarationSyntax firstMember)
         {
-            List<MemberDeclarationSyntax> selectedMembers = null;
-
-            var members = containingType.Members;
-            var fieldIndex = members.IndexOf(firstMember);
-            if (fieldIndex < 0)
+            var selectedMembers = ArrayBuilder<MemberDeclarationSyntax>.GetInstance();
+            try
             {
-                return null;
-            }
 
-            for (var i = fieldIndex; i < members.Count; i++)
+                var members = containingType.Members;
+                var fieldIndex = members.IndexOf(firstMember);
+                if (fieldIndex < 0)
+                {
+                    return ImmutableArray<MemberDeclarationSyntax>.Empty;
+                }
+
+                for (var i = fieldIndex; i < members.Count; i++)
+                {
+                    var member = members[i];
+                    if (textSpan.Contains(member.Span))
+                    {
+                        selectedMembers.Add(member);
+                    }
+                    else if (textSpan.OverlapsWith(member.Span))
+                    {
+                        return ImmutableArray<MemberDeclarationSyntax>.Empty;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                return selectedMembers.ToImmutable();
+            }
+            finally
             {
-                var member = members[i];
-                if (textSpan.Contains(member.Span))
-                {
-                    selectedMembers = selectedMembers ?? new List<MemberDeclarationSyntax>();
-                    selectedMembers.Add(member);
-                }
-                else if (textSpan.OverlapsWith(member.Span))
-                {
-                    return null;
-                }
-                else
-                {
-                    break;
-                }
+                selectedMembers.Free();
             }
-
-            return selectedMembers;
         }
 
         public static bool IsInPartiallyWrittenGeneric(

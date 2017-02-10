@@ -579,6 +579,33 @@ class C
             Assert.NotNull(SymbolKey.Create(xSymbol));
         }
 
+        [Fact]
+        public void TestGenericMethodTypeParameterMissing1()
+        {
+            var source1 = @"
+public class C
+{
+    void M<T>(T t) { }
+}
+";
+
+            var source2 = @"
+public class C
+{
+}
+";
+
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var methods = GetDeclaredSymbols(compilation1).OfType<IMethodSymbol>();
+            foreach (var method in methods)
+            {
+                var key = SymbolKey.Create(method);
+                key.Resolve(compilation2);
+            }
+        }
+
         [Fact, WorkItem(377839, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=377839")]
         public void TestConstructedMethodInsideLocalFunctionWithTypeParameters()
         {

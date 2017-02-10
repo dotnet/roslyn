@@ -6,6 +6,7 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -486,6 +487,52 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotNull(checksum);
         }
 
+        [Fact]
+        public void TestEncodingSerialization()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var workspace = new AdhocWorkspace(hostServices);
+            var serializer = new Serializer(workspace);
+
+            // test with right serializable encoding
+            var sourceText = SourceText.From("Hello", Encoding.UTF8);
+            using (var stream = SerializableBytes.CreateWritableStream())
+            {
+                using (var objectWriter = new StreamObjectWriter(stream))
+                {
+                    serializer.Serialize(sourceText, objectWriter, CancellationToken.None);
+                }
+
+                stream.Position = 0;
+
+                using (var objectReader = StreamObjectReader.TryGetReader(stream))
+                {
+                    var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                    Assert.Equal(sourceText.ToString(), newText.ToString());
+                }
+            }
+
+            // test with wrong encoding that doesn't support serialization
+            sourceText = SourceText.From("Hello", new NotSerializableEncoding());
+            using (var stream = SerializableBytes.CreateWritableStream())
+            {
+                using (var objectWriter = new StreamObjectWriter(stream))
+                {
+                    serializer.Serialize(sourceText, objectWriter, CancellationToken.None);
+                }
+
+                stream.Position = 0;
+
+                using (var objectReader = StreamObjectReader.TryGetReader(stream))
+                {
+                    var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                    Assert.Equal(sourceText.ToString(), newText.ToString());
+                }
+            }
+        }
+
         private static async Task VerifyOptionSetsAsync(Workspace workspace, string language)
         {
             var assetBuilder = new CustomAssetBuilder(workspace);
@@ -670,6 +717,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 // return something other than given one. mimicing behavior of shadow copy 
                 return typeof(SharedAttribute).Assembly;
             }
+        }
+
+        private class NotSerializableEncoding : Encoding
+        {
+            private readonly Encoding _real = Encoding.UTF8;
+
+            public override string WebName => _real.WebName;
+            public override int GetByteCount(char[] chars, int index, int count) => _real.GetByteCount(chars, index, count);
+            public override int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex) => GetBytes(chars, charIndex, charCount, bytes, byteIndex);
+            public override int GetCharCount(byte[] bytes, int index, int count) => GetCharCount(bytes, index, count);
+            public override int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex) => GetChars(bytes, byteIndex, byteCount, chars, charIndex);
+            public override int GetMaxByteCount(int charCount) => GetMaxByteCount(charCount);
+            public override int GetMaxCharCount(int byteCount) => GetMaxCharCount(byteCount);
         }
     }
 }

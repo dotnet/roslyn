@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(diagnosticId);
             }
 
             if (descriptor == null)

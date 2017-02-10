@@ -301,6 +301,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Me.Modules(0), emittedName, diagInfo)
         End Function
 
+        Friend Function CreateMultipleForwardingErrorTypeSymbol(ByRef emittedName As MetadataTypeName, forwardingModule As ModuleSymbol, destination1 As AssemblySymbol, destination2 As AssemblySymbol) As ErrorTypeSymbol
+            Dim diagnosticInfo = New DiagnosticInfo(MessageProvider.Instance, ERRID.ERR_TypeForwardedToMultipleAssemblies, forwardingModule, Me, emittedName.FullName, destination1, destination2)
+            Return New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(forwardingModule, emittedName, diagnosticInfo)
+        End Function
+
         ''' <summary>
         ''' Lookup declaration for predefined CorLib type in this Assembly. Only valid if this 
         ''' assembly is the Cor Library

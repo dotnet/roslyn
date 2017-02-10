@@ -435,7 +435,7 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Dim service = CreateCompletionService(
                     workspace,
                     ImmutableArray.Create(Of CompletionProvider)(completionProvider))
-                Dim completionList = Await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Default)
+                Dim completionList = Await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Invoke)
 
                 Assert.True(called)
             End Using

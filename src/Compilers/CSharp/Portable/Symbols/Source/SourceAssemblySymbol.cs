@@ -2583,18 +2583,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var peModuleSymbol = (Metadata.PE.PEModuleSymbol)_modules[i];
 
-                    var forwardedToAssembly = peModuleSymbol.GetAssemblyForForwardedType(ref emittedName);
-                    if ((object)forwardedToAssembly != null)
+                    (AssemblySymbol firstSymbol, AssemblySymbol secondSymbol) = peModuleSymbol.GetAssembliesForForwardedType(ref emittedName);
+
+                    if ((object)firstSymbol != null)
                     {
+                        if ((object)secondSymbol != null)
+                        {
+                            return CreateMultipleForwardingErrorTypeSymbol(ref emittedName, peModuleSymbol, firstSymbol, secondSymbol);
+                        }
+
                         // Don't bother to check the forwarded-to assembly if we've already seen it.
-                        if (visitedAssemblies != null && visitedAssemblies.Contains(forwardedToAssembly))
+                        if (visitedAssemblies != null && visitedAssemblies.Contains(firstSymbol))
                         {
                             return CreateCycleInTypeForwarderErrorTypeSymbol(ref emittedName);
                         }
                         else
                         {
                             visitedAssemblies = new ConsList<AssemblySymbol>(this, visitedAssemblies ?? ConsList<AssemblySymbol>.Empty);
-                            return forwardedToAssembly.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
+                            return firstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
                         }
                     }
                 }

@@ -194,10 +194,10 @@ namespace RepoUtil
                     func = (c, s, g) => new ViewCommand(c, s);
                     break;
                 case "consumes":
-                    func = (c, s, g) => new ConsumesCommand(RepoData.Create(c, s));
+                    func = (c, s, g) => new ConsumesCommand(RepoData.Create(c, s, ignoreConflicts: false));
                     break;
                 case "change":
-                    func = (c, s, g) => new ChangeCommand(RepoData.Create(c, s), g);
+                    func = (c, s, g) => new ChangeCommand(RepoData.Create(c, s, ignoreConflicts: true), g);
                     break;
                 case "produces":
                     func = (c, s, g) => new ProducesCommand(c, s);

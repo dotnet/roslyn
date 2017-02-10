@@ -2929,5 +2929,57 @@ class AAttribute: Attribute
                 Assert.Equal("[A(Skip )]", state.GetLineTextFromCaretPosition())
             End Using
         End Function
+
+        <WorkItem(362890, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=362890")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFilteringAfterSimpleInvokeShowsAllItemsMatchingFilter() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+
+enum Color
+{
+    Red,
+    Green,
+    Blue
+}
+
+class C
+{
+    void M()
+    {
+        Color.Re$$d
+    }
+}
+            ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Red")
+                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue", "Equals"})
+
+                Dim filters = state.CurrentCompletionPresenterSession.CompletionItemFilters
+                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
+                For Each f In filters
+                    dict(f) = False
+                Next
+
+                dict(CompletionItemFilter.EnumFilter) = True
+
+                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
+                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
+                Await state.AssertSelectedCompletionItem("Red")
+                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue"})
+                Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "Equals"))
+
+                For Each f In filters
+                    dict(f) = False
+                Next
+
+                args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
+                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
+                Await state.AssertSelectedCompletionItem("Red")
+                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue", "Equals"})
+
+            End Using
+        End Function
     End Class
 End Namespace

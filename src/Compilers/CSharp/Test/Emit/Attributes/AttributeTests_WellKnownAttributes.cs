@@ -8409,5 +8409,120 @@ class MyAttribute : System.Attribute
 
             CompileAndVerify(source, symbolValidator: attributeValidator);
         }
+
+        [Fact, WorkItem(10639, "https://github.com/dotnet/roslyn/issues/10639")]
+        public void UsingStaticDirectiveDoesNotIgnoreObsoleteAttribute_DifferentSeverity()
+        {
+            var source = @"
+using System;
+using static TestError;
+using static TestWarning;
+
+[Obsolete (""Broken Error Class"", true)]
+static class TestError
+{
+    public static void TestErrorFunc()
+    {
+
+    }
+}
+
+[Obsolete (""Broken Warning Class"", false)]
+static class TestWarning
+{
+    public static void TestWarningFunc()
+    {
+
+    }
+}
+
+class Test
+{
+    public static void Main()
+    {
+        TestErrorFunc();
+        TestWarningFunc();
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,14): error CS0619: 'TestError' is obsolete: 'Broken Error Class'
+                // using static TestError;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "TestError").WithArguments("TestError", "Broken Error Class").WithLocation(3, 14),
+                // (4,14): warning CS0618: 'TestWarning' is obsolete: 'Broken Warning Class'
+                // using static TestWarning;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "TestWarning").WithArguments("TestWarning", "Broken Warning Class").WithLocation(4, 14));
+        }
+
+        [Fact, WorkItem(10639, "https://github.com/dotnet/roslyn/issues/10639")]
+        public void UsingStaticDirectiveDoesNotIgnoreObsoleteAttribute_NestedClasses()
+        {
+            var source = @"
+using System;
+using static ActiveParent.ObsoleteChild;
+using static ObsoleteParent.ActiveChild;
+using static BothObsoleteParent.BothObsoleteChild;
+
+static class ActiveParent
+{
+    [Obsolete]
+    public static class ObsoleteChild
+    {
+        public static void ObsoleteChildFunc()
+        {
+
+        }
+    }
+}
+
+[Obsolete]
+static class ObsoleteParent
+{
+    public static class ActiveChild
+    {
+        public static void ActiveChildFunc()
+        {
+
+        }
+    }
+}
+
+[Obsolete]
+static class BothObsoleteParent
+{
+    [Obsolete]
+    public static class BothObsoleteChild
+    {
+        public static void BothObsoleteFunc()
+        {
+
+        }
+    }
+}
+
+class Test
+{
+    public static void Main()
+    {
+        ObsoleteChildFunc();
+        ActiveChildFunc();
+        BothObsoleteFunc();
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,14): warning CS0612: 'ActiveParent.ObsoleteChild' is obsolete
+                // using static ActiveParent.ObsoleteChild;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ActiveParent.ObsoleteChild").WithArguments("ActiveParent.ObsoleteChild").WithLocation(3, 14),
+                // (4,14): warning CS0612: 'ObsoleteParent' is obsolete
+                // using static ObsoleteParent.ActiveChild;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteParent").WithArguments("ObsoleteParent").WithLocation(4, 14),
+                // (5,14): warning CS0612: 'BothObsoleteParent' is obsolete
+                // using static BothObsoleteParent.BothObsoleteChild;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "BothObsoleteParent").WithArguments("BothObsoleteParent").WithLocation(5, 14),
+                // (5,14): warning CS0612: 'BothObsoleteParent.BothObsoleteChild' is obsolete
+                // using static BothObsoleteParent.BothObsoleteChild;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "BothObsoleteParent.BothObsoleteChild").WithArguments("BothObsoleteParent.BothObsoleteChild").WithLocation(5, 14));
+        }
     }
 }

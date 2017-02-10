@@ -19,7 +19,6 @@
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <NoStdLib>true</NoStdLib>
     <RoslynProjectType>DeploymentTest</RoslynProjectType>
-    <OutDir>$(OutDir)CoreClrTest</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" />
@@ -77,10 +76,6 @@
     <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj">
       <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
       <Name>BasicScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Tools\CommonNetCoreReferences\CommonNetCoreReferences.csproj">
-      <Project>{b5a6057a-eb4c-49fb-987d-943137e72e47}</Project>
-      <Name>CommonNetCoreReferences</Name>
     </ProjectReference>
     <ProjectReference Include="..\PdbUtilities\PdbUtilities.csproj">
       <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>

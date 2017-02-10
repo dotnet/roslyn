@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundFieldAccess(this.Syntax, this.ReceiverOpt, field, constantValueOpt: null, hasErrors: this.HasErrors || inferenceFailed);
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(this.VariableSymbol.Kind);
             }
         }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     designation = (SingleVariableDesignationSyntax)((DeclarationExpressionSyntax)this.Syntax).Designation;
                     break;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(this.Syntax.Kind());
             }
 
             Binder.Error(

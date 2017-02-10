@@ -57,8 +57,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim originalCompilation = compilation
 
-            If syntax IsNot Nothing Then
-                compilation = compilation.AddSyntaxTrees(syntax.SyntaxTree)
+            If syntax IsNot Nothing AndAlso compilation.Options.SuppressEmbeddedDeclarations AndAlso
+               compilation.SyntaxTrees.IsEmpty Then
+                ' We need to add an empty tree to the compilation as 
+                ' a workaround for https://github.com/dotnet/roslyn/issues/16885.
+                compilation = compilation.AddSyntaxTrees(VisualBasicSyntaxTree.Dummy)
             End If
 
             Dim defaultNamespaceName As String = methodDebugInfo.DefaultNamespaceName

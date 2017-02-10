@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis
 
             if (arity < 0)
             {
-                throw new ArgumentException(nameof(arity));
+                throw new ArgumentException($"{nameof(arity)} must be >= 0", nameof(arity));
             }
 
             return CommonCreateErrorTypeSymbol(container, name, arity);
@@ -822,6 +822,51 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public INamedTypeSymbol ScriptClass { get { return CommonScriptClass; } }
         protected abstract INamedTypeSymbol CommonScriptClass { get; }
+
+        /// <summary>
+        /// Resolves a symbol that represents script container (Script class). Uses the
+        /// full name of the container class stored in <see cref="CompilationOptions.ScriptClassName"/> to find the symbol.
+        /// </summary>
+        /// <returns>The Script class symbol or null if it is not defined.</returns>
+        protected INamedTypeSymbol CommonBindScriptClass()
+        {
+            string scriptClassName = this.Options.ScriptClassName ?? "";
+
+            string[] parts = scriptClassName.Split('.');
+            INamespaceSymbol container = this.SourceModule.GlobalNamespace;
+
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                INamespaceSymbol next = container.GetNestedNamespace(parts[i]);
+                if (next == null)
+                {
+                    AssertNoScriptTrees();
+                    return null;
+                }
+
+                container = next;
+            }
+
+            foreach (INamedTypeSymbol candidate in container.GetTypeMembers(parts[parts.Length - 1]))
+            {
+                if (candidate.IsScriptClass)
+                {
+                    return candidate;
+                }
+            }
+
+            AssertNoScriptTrees();
+            return null;
+        }
+
+        [Conditional("DEBUG")]
+        private void AssertNoScriptTrees()
+        {
+            foreach (var tree in this.SyntaxTrees)
+            {
+                Debug.Assert(tree.Options.Kind != SourceCodeKind.Script);
+            }
+        }
 
         /// <summary>
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
