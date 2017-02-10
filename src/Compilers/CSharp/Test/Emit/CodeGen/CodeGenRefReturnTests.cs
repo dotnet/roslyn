@@ -2592,5 +2592,248 @@ class E : Exception
                 Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(11, 25)
                 );
         }
+
+        [Fact]
+        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        public void Lambda_01()
+        { 
+            var source =
+@"public delegate ref T D<T>();
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d() = t;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var o = new A<int>();
+        B.F(() => o.F(), 2);
+        System.Console.WriteLine(o.F());
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (24,19): error CS8150: By-value returns may only be used in methods that return by value
+                //         B.F(() => o.F(), 2);
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "o.F()").WithLocation(24, 19)
+                );
+        }
+
+        [Fact]
+        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        public void Lambda_02()
+        {
+            var source =
+@"public delegate ref T D<T>();
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d() = t;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var o = new A<int>();
+        B.F(() => ref o.F(), 2);
+        System.Console.WriteLine(o.F());
+    }
+}";
+
+            var v = CompileAndVerify(source, expectedOutput: "2");
+        }
+
+        [Fact]
+        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        public void Lambda_03()
+        {
+            var source =
+@"public delegate T D<T>();
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var o = new A<int>();
+        B.F(() => ref o.F(), 2);
+        System.Console.WriteLine(o.F());
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (24,23): error CS8149: By-reference returns may only be used in methods that return by reference
+                //         B.F(() => ref o.F(), 2);
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "o.F()").WithLocation(24, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        public void Delegate_01()
+        {
+            var source =
+@"public delegate ref T D<T>();
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d() = t;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var o = new A<int>();
+        B.F(o.F, 2);
+        System.Console.Write(o.F());
+        B.F(new D<int>(o.F), 3);
+        System.Console.Write(o.F());
+    }
+}";
+
+            var v = CompileAndVerify(source, expectedOutput: "23");
+        }
+
+        [Fact]
+        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        public void Delegate_02()
+        {
+            var source =
+@"public delegate T D<T>();
+public class A<T>
+{
+#pragma warning disable 0649
+    private T _t;
+    public ref T F()
+    {
+        return ref _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var o = new A<int>();
+        B.F(o.F, 2);
+        System.Console.Write(o.F());
+        B.F(new D<int>(o.F), 3);
+        System.Console.Write(o.F());
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (24,13): error CS8189: Ref mismatch between 'A<int>.F()' and delegate 'D<int>'
+                //         B.F(o.F, 2);
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "o.F").WithArguments("A<int>.F()", "D<int>").WithLocation(24, 13),
+                // (26,24): error CS8189: Ref mismatch between 'A<int>.F()' and delegate 'D<int>'
+                //         B.F(new D<int>(o.F), 3);
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "o.F").WithArguments("A<int>.F()", "D<int>").WithLocation(26, 24)
+                );
+        }
+
+        [Fact]
+        [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
+        public void Delegate_03()
+        {
+            var source =
+@"public delegate ref T D<T>();
+public class A<T>
+{
+    private T _t = default(T);
+    public T F()
+    {
+        return _t;
+    }
+}
+public class B
+{
+    public static void F<T>(D<T> d, T t)
+    {
+        d() = t;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var o = new A<int>();
+        B.F(o.F, 2);
+        System.Console.Write(o.F());
+        B.F(new D<int>(o.F), 3);
+        System.Console.Write(o.F());
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (23,13): error CS8189: Ref mismatch between 'A<int>.F()' and delegate 'D<int>'
+                //         B.F(o.F, 2);
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "o.F").WithArguments("A<int>.F()", "D<int>").WithLocation(23, 13),
+                // (25,24): error CS8189: Ref mismatch between 'A<int>.F()' and delegate 'D<int>'
+                //         B.F(new D<int>(o.F), 3);
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "o.F").WithArguments("A<int>.F()", "D<int>").WithLocation(25, 24)
+                );
+        }
     }
 }

@@ -65,7 +65,6 @@
     <NuGetPackageToIncludeInVsix Include="System.ObjectModel" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
-    <NuGetPackageToIncludeInVsix Include="System.Runtime.InteropServices.RuntimeInformation" />
     <NuGetPackageToIncludeInVsix Include="System.Runtime.Numerics" />
     <NuGetPackageToIncludeInVsix Include="System.Security.AccessControl" />
     <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Algorithms" />

@@ -28,7 +28,7 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ({|FixAllInDocument:e|})
+            {|FixAllInDocument:|}switch (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -192,7 +192,7 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ({|FixAllInProject:e|})
+            {|FixAllInProject:|}switch (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -342,7 +342,7 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum1.Fizz;
-            switch ({|FixAllInSolution:e|})
+            {|FixAllInSolution:|}switch (e)
             {
                 case MyEnum1.Fizz:
                 case MyEnum1.Buzz:

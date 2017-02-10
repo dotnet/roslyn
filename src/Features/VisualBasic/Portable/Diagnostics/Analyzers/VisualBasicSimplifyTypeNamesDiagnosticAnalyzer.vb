@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -14,16 +15,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
     Friend NotInheritable Class VisualBasicSimplifyTypeNamesDiagnosticAnalyzer
         Inherits SimplifyTypeNamesDiagnosticAnalyzerBase(Of SyntaxKind)
 
-        Private Shared ReadOnly s_kindsOfInterest As SyntaxKind() =
-        {
+        Private Shared ReadOnly s_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
             SyntaxKind.QualifiedName,
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxKind.IdentifierName,
-            SyntaxKind.GenericName
-        }
+            SyntaxKind.GenericName)
 
-        Public Overrides Sub Initialize(context As AnalysisContext)
-            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, s_kindsOfInterest)
+        Public Sub New()
+            MyBase.New(s_kindsOfInterest)
         End Sub
 
         Protected Overrides Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)

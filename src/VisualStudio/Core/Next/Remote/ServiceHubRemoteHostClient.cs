@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
-    internal partial class ServiceHubRemoteHostClient : RemoteHostClient
+    internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
     {
         private readonly HubClient _hubClient;
         private readonly JsonRpc _rpc;
@@ -54,20 +54,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
-        private static Task RegisterWorkspaceHostAsync(Workspace workspace, RemoteHostClient client)
+        private static async Task RegisterWorkspaceHostAsync(Workspace workspace, RemoteHostClient client)
         {
             var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (vsWorkspace == null)
             {
-                return Task.CompletedTask;
+                return;
             }
+
+            // don't block UI thread while initialize workspace host
+            var host = new WorkspaceHost(vsWorkspace, client);
+            await host.InitializeAsync().ConfigureAwait(false);
 
             // RegisterWorkspaceHost is required to be called from UI thread so push the code
             // to UI thread to run. 
-            return Task.Factory.SafeStartNew(() =>
+            await Task.Factory.SafeStartNew(() =>
             {
-                vsWorkspace.ProjectTracker.RegisterWorkspaceHost(new WorkspaceHost(vsWorkspace, client));
-            }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler);
+                vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider).RegisterWorkspaceHost(host);
+            }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
         }
 
         private ServiceHubRemoteHostClient(
@@ -77,10 +81,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _hubClient = hubClient;
             _hostGroup = hostGroup;
 
-            _rpc = JsonRpc.Attach(stream, target: this);
+            _rpc = new JsonRpc(stream, stream, target: this);
 
             // handle disconnected situation
             _rpc.Disconnected += OnRpcDisconnected;
+
+            _rpc.StartListening();
         }
 
         protected override async Task<Session> CreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)

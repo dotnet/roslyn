@@ -8453,10 +8453,16 @@ class C
     {
         // nested tuple literals set lower bounds
         Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (object)1));
+        Test1(Nullable((a: 1, b: (a: 1, b: 2))), (a: 1, b: (object)1));
         Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (c: 1, d: 2)));
         Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (1, 2)));
         Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (a: 1, b: 2)));
-}
+    }
+
+    static T? Nullable<T>(T x) where T : struct
+    {
+        return x;
+    }
 
     static void Test1<T, U>((T, U)? x, (T, U) y)
     {
@@ -8469,10 +8475,43 @@ class C
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 System.Object
+System.Object
 System.ValueTuple`2[System.Int32,System.Int32]
 System.ValueTuple`2[System.Int32,System.Int32]
 System.ValueTuple`2[System.Int32,System.Int32]
 ");
+        }
+
+        [Fact]
+        public void Inference13_Err()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        Test1(Nullable((a: 1, b: (a: 1, b: 2))), (a: 1, b: (object)1));
+    }
+
+    static T? Nullable<T>(T x) where T : struct
+    {
+        return x;
+    }
+
+    static void Test1<T, U>((T, U) x, (T, U) y)
+    {
+        System.Console.WriteLine(typeof(U));
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source,
+                references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS1503: Argument 1: cannot convert from '(int a, (int a, int b) b)?' to '(int, object)'
+                //         Test1(Nullable((a: 1, b: (a: 1, b: 2))), (a: 1, b: (object)1));
+                Diagnostic(ErrorCode.ERR_BadArgType, "Nullable((a: 1, b: (a: 1, b: 2)))").WithArguments("1", "(int a, (int a, int b) b)?", "(int, object)").WithLocation(6, 15)
+                );
         }
 
         [Fact]
@@ -15036,6 +15075,38 @@ class C
         }
 
         [Fact]
+        [WorkItem(14600, "https://github.com/dotnet/roslyn/issues/14600")]
+        public void GetSymbolInfo_01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        // error is intentional. GetSymbolInfo should still work
+        DummyType x1 = (Alice: 1, ""hello"");
+
+        var Alice = x1.Alice;
+    }
+}
+" + trivial2uple + trivial3uple + tupleattributes_cs;
+
+            var tree = Parse(source, options: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(tree);
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var nc = nodes.OfType<NameColonSyntax>().ElementAt(0);
+
+            var sym = model.GetSymbolInfo(nc.Name);
+
+            Assert.Equal(SymbolKind.Field, sym.Symbol.Kind);
+            Assert.Equal("Alice", sym.Symbol.Name);
+            Assert.Equal(nc.Name.GetLocation(), sym.Symbol.Locations[0]);
+        }
+
+        [Fact]
         public void CompileTupleLib()
         {
             string additionalSource = @"
@@ -16840,6 +16911,91 @@ public class C
 
             var x2 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().Skip(5).First());
             Assert.Equal("(System.Int32 a, dynamic c) x2", x2.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")]
+        public void NullCoalesingOperatorWithTupleNames()
+        {
+            // See section 7.13 of the spec, regarding the null-coalescing operator
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        (int a, int b)? nab = (1, 2);
+        (int a, int c)? nac = (1, 3);
+
+        var x1 = nab ?? nac; // (a, b)?
+        var x2 = nab ?? nac.Value; // (a, b)
+        var x3 = new C() ?? nac; // C
+        var x4 = new D() ?? nac; // (a, c)?
+
+        var x5 = nab != null ? nab : nac; // (a, )?
+
+        var x6 = nab ?? (a: 1, c: 3); // (a, b)
+        var x7 = nab ?? (a: 1, c: 3); // (a, b)
+        var x8 = new C() ?? (a: 1, c: 3); // C
+        var x9 = new D() ?? (a: 1, c: 3); // (a, c)
+
+        var x6double = nab ?? (d: 1.1, c: 3); // (a, c)
+    }
+    public static implicit operator C((int, int) x) { throw null; }
+}
+public class D
+{
+    public static implicit operator (int d1, int d2) (D x) { throw null; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (16,32): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int a, int b)'.
+                //         var x6 = nab ?? (a: 1, c: 3); // (a, b)?
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(int a, int b)").WithLocation(16, 32),
+                // (17,32): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int a, int b)'.
+                //         var x7 = nab ?? (a: 1, c: 3); // (a, b)
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(int a, int b)").WithLocation(17, 32),
+                // (18,30): warning CS8123: The tuple element name 'a' is ignored because a different name is specified by the target type '(int, int)'.
+                //         var x8 = new C() ?? (a: 1, c: 3); // C
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "a: 1").WithArguments("a", "(int, int)").WithLocation(18, 30),
+                // (18,36): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int, int)'.
+                //         var x8 = new C() ?? (a: 1, c: 3); // C
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(int, int)").WithLocation(18, 36)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var x1 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(2));
+            Assert.Equal("(System.Int32 a, System.Int32 b)? x1", x1.ToTestDisplayString());
+
+            var x2 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(3));
+            Assert.Equal("(System.Int32 a, System.Int32 b) x2", x2.ToTestDisplayString());
+
+            var x3 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(4));
+            Assert.Equal("C x3", x3.ToTestDisplayString());
+
+            var x4 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(5));
+            Assert.Equal("(System.Int32 a, System.Int32 c)? x4", x4.ToTestDisplayString());
+
+            var x5 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(6));
+            Assert.Equal("(System.Int32 a, System.Int32)? x5", x5.ToTestDisplayString());
+
+            var x6 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(7));
+            Assert.Equal("(System.Int32 a, System.Int32 b) x6", x6.ToTestDisplayString());
+
+            var x7 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(8));
+            Assert.Equal("(System.Int32 a, System.Int32 b) x7", x7.ToTestDisplayString());
+
+            var x8 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(9));
+            Assert.Equal("C x8", x8.ToTestDisplayString());
+
+            var x9 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(10));
+            Assert.Equal("(System.Int32 a, System.Int32 c) x9", x9.ToTestDisplayString());
+
+            var x6double = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(11));
+            Assert.Equal("(System.Double d, System.Int32 c) x6double", x6double.ToTestDisplayString());
         }
 
         [Fact]
@@ -21707,6 +21863,164 @@ class C
             Assert.Equal("(Alice: 1)", tuple.ToString());
             var tupleType = model.GetTypeInfo(tuple);
             Assert.Equal("(System.Int32 Alice, ?)", tupleType.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(16159, "https://github.com/dotnet/roslyn/issues/16159")]
+        public void ExtensionMethodOnConvertedTuple001()
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+static class C
+{
+    static IEnumerable<(T, U)> Zip<T, U>(this(IEnumerable<T> xs, IEnumerable<U> ys) source) => source.xs.Zip(source.ys, (x, y) => (x, y));
+
+    static void Main()
+    {
+        foreach (var t in Zip((new int[] { 1, 2 }, new byte[] { 3, 4 })))
+        {
+            System.Console.WriteLine(t);
+        }
+
+        foreach (var t in (new int[] { 1, 2 }, new byte[] { 3, 4 }).Zip())
+        {
+            System.Console.WriteLine(t);
+        }
+
+        var notALiteral = (new int[] { 1, 2 }, new byte[] { 3, 4 });
+
+        foreach (var (x, y) in notALiteral.Zip())
+        {
+            System.Console.WriteLine((x, y));
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs.Concat(new[] { LinqAssemblyRef }),
+                parseOptions: TestOptions.Regular, expectedOutput: @"
+(1, 3)
+(2, 4)
+(1, 3)
+(2, 4)
+(1, 3)
+(2, 4)
+");
+        }
+
+        [Fact]
+        public void ExtensionMethodOnConvertedTuple002()
+        {
+            var source = @"
+using System;
+using System.Collections;
+
+static class C
+{
+    static string M(this(object x, (ValueType, IStructuralComparable) y) self) => self.ToString();
+
+    static string M1(this (dynamic x, System.Exception y) self) => self.ToString();
+
+    static void Main()
+    {
+        System.Console.WriteLine((""qq"", (Alice: 1, (2, 3))).M());
+
+        (dynamic Alice, NullReferenceException Bob) arg = (123, null);
+        System.Console.WriteLine(arg.M1());
+    }
+}
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs.Concat(new[] { LinqAssemblyRef }),
+                parseOptions: TestOptions.Regular, expectedOutput: @"
+(qq, (1, (2, 3)))
+(123, )
+");
+        }
+
+        [Fact]
+        public void ExtensionMethodOnConvertedTuple002Err()
+        {
+            var source = @"
+using System;
+using System.Collections;
+
+static class C
+{
+    static string M(this(object x, (ValueType, IStructuralComparable) y) self) => self.ToString();
+
+    static string GetAwaiter(this (object x, Func<int> y) self) => self.ToString();
+
+    static void Main()
+    {
+        System.Console.WriteLine((""qq"", (Alice: 1, (null, 3))).M());
+
+        System.Console.WriteLine((""qq"", ()=>1 ).GetAwaiter());
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs.Concat(new[] { LinqAssemblyRef }));
+            comp.VerifyDiagnostics(
+                // (13,64): error CS0117: '(string, (int, (<null>, int)))' does not contain a definition for 'M'
+                //         System.Console.WriteLine(("qq", (Alice: 1, (null, 3))).M());
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("(string, (int, (<null>, int)))", "M").WithLocation(13, 64),
+                // (15,49): error CS0117: '(string, lambda expression)' does not contain a definition for 'GetAwaiter'
+                //         System.Console.WriteLine(("qq", ()=>1 ).GetAwaiter());
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetAwaiter").WithArguments("(string, lambda expression)", "GetAwaiter").WithLocation(15, 49)
+                );
+        }
+        
+        [Fact]
+        public void ExtensionMethodOnConvertedTuple003()
+        {
+            var source = @"
+static class C
+{
+    static string M(this (int x, long y) self) => self.ToString();
+    static string M1(this (int x, long? y) self) => self.ToString();
+
+    static void Main()
+    {
+        // implicit constant conversion
+        System.Console.WriteLine((1, 2).M());
+
+        // identity conversion (this one is OK)
+        System.Console.WriteLine((1, 2L).M());
+
+        // implicit nullable conversion
+        System.Console.WriteLine((First: 1, Second: 2L).M1());
+
+        // null literal conversion
+        System.Console.WriteLine((1, null).M1());
+
+        // implicit numeric conversion
+        var notAliteral = (A: 1, B: 2);
+        System.Console.WriteLine(notAliteral.M());
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs.Concat(new[] { LinqAssemblyRef }));
+            comp.VerifyDiagnostics(
+                // (10,41): error CS1928: '(int, int)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' has some invalid arguments
+                //         System.Console.WriteLine((1, 2).M());
+                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "M").WithArguments("(int, int)", "M", "C.M((int x, long y))").WithLocation(10, 41),
+                // (16,57): error CS1928: '(int, long)' does not contain a definition for 'M1' and the best extension method overload 'C.M1((int x, long? y))' has some invalid arguments
+                //         System.Console.WriteLine((First: 1, Second: 2L).M1());
+                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "M1").WithArguments("(int, long)", "M1", "C.M1((int x, long? y))").WithLocation(16, 57),
+                // (19,44): error CS0117: '(int, <null>)' does not contain a definition for 'M1'
+                //         System.Console.WriteLine((1, null).M1());
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "M1").WithArguments("(int, <null>)", "M1").WithLocation(19, 44),
+                // (23,46): error CS1928: '(int A, int B)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' has some invalid arguments
+                //         System.Console.WriteLine(notAliteral.M());
+                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "M").WithArguments("(int A, int B)", "M", "C.M((int x, long y))").WithLocation(23, 46)
+                );
+
         }
     }
 }

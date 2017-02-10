@@ -16,7 +16,7 @@ using StreamJsonRpc;
 
 namespace Roslyn.Test.Utilities.Remote
 {
-    internal class InProcRemoteHostClient : RemoteHostClient
+    internal sealed class InProcRemoteHostClient : RemoteHostClient
     {
         private readonly InProcRemoteServices _inprocServices;
         private readonly JsonRpc _rpc;
@@ -47,10 +47,12 @@ namespace Roslyn.Test.Utilities.Remote
         {
             _inprocServices = inprocServices;
 
-            _rpc = JsonRpc.Attach(stream, target: this);
+            _rpc = new JsonRpc(stream, stream, target: this);
 
             // handle disconnected situation
             _rpc.Disconnected += OnRpcDisconnected;
+
+            _rpc.StartListening();
         }
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;

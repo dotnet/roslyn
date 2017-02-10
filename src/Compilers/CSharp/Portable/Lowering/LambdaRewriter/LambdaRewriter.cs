@@ -1002,6 +1002,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Update(newLocals.ToImmutableAndFree(), node.LocalFunctions, newStatements.ToImmutableAndFree());
         }
 
+        public override BoundNode VisitScope(BoundScope node)
+        {
+            Debug.Assert(!node.Locals.IsEmpty);
+            var newLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+            RewriteLocals(node.Locals, newLocals);
+
+            var statements = VisitList(node.Statements);
+            if (newLocals.Count == 0)
+            {
+                newLocals.Free();
+                return new BoundStatementList(node.Syntax, statements);
+            }
+
+            return node.Update(newLocals.ToImmutableAndFree(), statements);
+        }
+
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
             // Test if this frame has captured variables and requires the introduction of a closure class.

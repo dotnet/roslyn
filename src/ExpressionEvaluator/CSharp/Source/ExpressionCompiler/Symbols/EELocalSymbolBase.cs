@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return SynthesizedLocalKind.UserDefined; }
         }
 
+        internal override SyntaxNode ScopeDesignatorOpt
+        {
+            get { return null; }
+        }
+
         internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
         {
             throw ExceptionUtilities.Unreachable;

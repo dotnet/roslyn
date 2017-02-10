@@ -1,5 +1,4 @@
-# EditorConfig is awesome:
-http://EditorConfig.org
+# EditorConfig is awesome:http://EditorConfig.org
 
 # top-most EditorConfig file
 root = true
@@ -10,7 +9,7 @@ indent_style = space
 # (Please don't specify an indent_size here; that has too many unintended consequences.)
 
 # Code files
-[*.cs,*.csx,*.vb,*.vbx]
+[*.{cs,csx,vb,vbx}]
 indent_size = 4
 
 # Xml project files
@@ -26,7 +25,7 @@ indent_size = 2
 indent_size = 2
 
 # Dotnet code style settings:
-[*.{cs, vb}]
+[*.{cs,vb}]
 # Sort using and Import directives with System.* appearing first
 dotnet_sort_system_directives_first = true
 # Avoid "this." and "Me." if not necessary
@@ -69,3 +68,11 @@ csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
 csharp_style_inlined_variable_declaration = true:suggestion
 csharp_style_throw_expression = true:suggestion
 csharp_style_conditional_delegate_call = true:suggestion
+
+# Newline settings
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true

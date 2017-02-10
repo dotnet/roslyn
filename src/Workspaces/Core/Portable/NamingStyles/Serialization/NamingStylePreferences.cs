@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     /// </summary>
     internal class NamingStylePreferences : IEquatable<NamingStylePreferences>
     {
-        private readonly static int s_serializationVersion = 3;
+        private readonly static int s_serializationVersion = 4;
 
         public readonly ImmutableArray<SymbolSpecification> SymbolSpecifications;
         public readonly ImmutableArray<NamingStyle> NamingStyles;
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             => CreateXElement().ToString().GetHashCode();
 
         private static readonly string _defaultNamingPreferencesString = $@"
-<NamingPreferencesInfo SerializationVersion=""3"">
+<NamingPreferencesInfo SerializationVersion=""4"">
   <SymbolSpecifications>
     <SymbolSpecification ID=""5c545a62-b14d-460a-88d8-e936c0a39316"" Name=""{WorkspacesResources.Class}"">
       <ApplicableSymbolKindList>
