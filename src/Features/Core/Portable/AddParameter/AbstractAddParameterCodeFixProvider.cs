@@ -97,6 +97,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 ? StringComparer.Ordinal
                 : CaseInsensitiveComparison.Comparer;
 
+            var constructorsAndArgumentToAdd = ArrayBuilder<(IMethodSymbol constructor, TArgumentSyntax argument, int index)>.GetInstance();
+
             foreach (var constructor in type.InstanceConstructors.OrderBy(m => m.Parameters.Length))
             {
                 if (IsInSource(constructor) &&
@@ -117,16 +119,28 @@ namespace Microsoft.CodeAnalysis.AddParameter
                             continue;
                         }
 
-                        var parameters = constructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
-                        var signature = $"{type.Name}({string.Join(", ", parameters)})";
-
-                        var title = string.Format(FeaturesResources.Add_parameter_to_0, signature);
-
-                        context.RegisterCodeFix(
-                             new MyCodeAction(title, c => FixAsync(document, constructor, argumentToAdd, arguments, c)),
-                             context.Diagnostics);
+                        constructorsAndArgumentToAdd.Add(
+                            (constructor, argumentToAdd, arguments.IndexOf(argumentToAdd)));
                     }
                 }
+            }
+
+            // Order by the furthest argument index to the nearest argument index.  The ones with
+            // larger argument indexes mean that we matched more earlier arguments (and thus are
+            // likely to be the correct match).
+            foreach (var tuple in constructorsAndArgumentToAdd.OrderByDescending(t => t.index))
+            {
+                var constructor = tuple.constructor;
+                var argumentToAdd = tuple.argument;
+
+                var parameters = constructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
+                var signature = $"{type.Name}({string.Join(", ", parameters)})";
+
+                var title = string.Format(FeaturesResources.Add_parameter_to_0, signature);
+
+                context.RegisterCodeFix(
+                     new MyCodeAction(title, c => FixAsync(document, constructor, argumentToAdd, arguments, c)),
+                     context.Diagnostics);
             }
         }
 

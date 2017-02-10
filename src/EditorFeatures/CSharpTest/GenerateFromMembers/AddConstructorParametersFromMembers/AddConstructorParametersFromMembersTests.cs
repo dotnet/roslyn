@@ -183,7 +183,7 @@ class Program
         this.b = b;
     }
 }",
-string.Format(FeaturesResources.Add_parameters_to_0, "Program", "bool"),
+string.Format(FeaturesResources.Add_parameters_to_0, "Program(bool)"),
 index: 0);
         }
 
