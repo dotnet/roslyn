@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
-    internal partial class AddConstructorParametersFromMembersService
+    internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
     {
         private class State
         {
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             public List<IParameterSymbol> Parameters { get; private set; }
 
             public static State Generate(
-                AddConstructorParametersFromMembersService service,
+                AddConstructorParametersFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 IList<ISymbol> selectedMembers,
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
 
             private bool TryInitialize(
-                AddConstructorParametersFromMembersService service,
+                AddConstructorParametersFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 IList<ISymbol> selectedMembers,

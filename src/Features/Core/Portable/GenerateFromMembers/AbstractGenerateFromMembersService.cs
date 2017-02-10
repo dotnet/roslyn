@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -19,9 +20,9 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
     }
 
-    internal abstract class AbstractGenerateFromMembersService
+    internal abstract class AbstractGenerateFromMembersCodeRefactoringProvider : CodeRefactoringProvider
     {
-        protected AbstractGenerateFromMembersService()
+        protected AbstractGenerateFromMembersCodeRefactoringProvider()
         {
         }
 
