@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 return;
             }
 
-            var service = document.GetLanguageService<IGenerateEqualsAndGetHashCodeFromMembersService>();
+            var service = GenerateEqualsAndGetHashCodeFromMembersService.Instance;
             var actions = await service.GenerateEqualsAndGetHashCodeFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (!actions.IsDefault)
             {

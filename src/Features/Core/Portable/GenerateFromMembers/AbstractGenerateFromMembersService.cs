@@ -1,43 +1,49 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateFromMembers
 {
-    internal abstract class AbstractGenerateFromMembersService<TMemberDeclarationSyntax>
-        where TMemberDeclarationSyntax : SyntaxNode
+    internal interface IGenerateFromMembersHelperService : ILanguageService
+    {
+        Task<ImmutableArray<SyntaxNode>> GetSelectedMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+        IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
+    }
+
+    internal abstract class AbstractGenerateFromMembersService
     {
         protected AbstractGenerateFromMembersService()
         {
         }
 
-        protected abstract Task<IList<TMemberDeclarationSyntax>> GetSelectedMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
-        protected abstract IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, TMemberDeclarationSyntax memberDeclaration, CancellationToken cancellationToken);
-
         protected class SelectedMemberInfo
         {
             public INamedTypeSymbol ContainingType;
-            public IList<TMemberDeclarationSyntax> SelectedDeclarations;
+            public IList<SyntaxNode> SelectedDeclarations;
             public IList<ISymbol> SelectedMembers;
         }
 
         protected async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var selectedDeclarations = await this.GetSelectedMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var helper = document.GetLanguageService<IGenerateFromMembersHelperService>();
 
-            if (selectedDeclarations.Count > 0)
+            var selectedDeclarations = await helper.GetSelectedMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+
+            if (selectedDeclarations.Length > 0)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var selectedMembers = selectedDeclarations.SelectMany(
-                    d => this.GetDeclaredSymbols(semanticModel, d, cancellationToken)).WhereNotNull().ToList();
+                    d => helper.GetDeclaredSymbols(semanticModel, d, cancellationToken)).WhereNotNull().ToList();
                 if (selectedMembers.Count > 0)
                 {
                     var containingType = selectedMembers.First().ContainingType;

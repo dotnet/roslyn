@@ -11,12 +11,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
-    internal abstract partial class AbstractGenerateConstructorFromMembersService<TService, TMemberDeclarationSyntax> :
-            AbstractGenerateFromMembersService<TMemberDeclarationSyntax>, IGenerateConstructorFromMembersService
-        where TService : AbstractGenerateConstructorFromMembersService<TService, TMemberDeclarationSyntax>
-        where TMemberDeclarationSyntax : SyntaxNode
+    internal partial class GenerateConstructorFromMembersService : AbstractGenerateFromMembersService
     {
-        protected AbstractGenerateConstructorFromMembersService()
+        public static readonly GenerateConstructorFromMembersService Instance = new GenerateConstructorFromMembersService();
+
+        private GenerateConstructorFromMembersService()
         {
         }
 
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var info = await GetSelectedMemberInfoAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
                 if (info != null)
                 {
-                    var state = State.Generate((TService)this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken);
+                    var state = State.Generate(this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken);
                     if (state != null)
                     {
                         return GetCodeActions(document, state).AsImmutableOrNull();
@@ -41,10 +40,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         private IEnumerable<CodeAction> GetCodeActions(Document document, State state)
         {
-            yield return new FieldDelegatingCodeAction((TService)this, document, state);
+            yield return new FieldDelegatingCodeAction(this, document, state);
             if (state.DelegatedConstructor != null)
             {
-                yield return new ConstructorDelegatingCodeAction((TService)this, document, state);
+                yield return new ConstructorDelegatingCodeAction(this, document, state);
             }
         }
     }

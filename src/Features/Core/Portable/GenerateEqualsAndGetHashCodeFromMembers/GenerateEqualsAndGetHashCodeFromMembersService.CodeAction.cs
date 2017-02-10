@@ -11,20 +11,20 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
-    internal abstract partial class AbstractGenerateEqualsAndGetHashCodeFromMembersService<TService, TMemberDeclarationSyntax>
+    internal partial class GenerateEqualsAndGetHashCodeFromMembersService
     {
         private class GenerateEqualsAndHashCodeAction : CodeAction
         {
             private readonly bool _generateEquals;
             private readonly bool _generateGetHashCode;
-            private readonly TService _service;
+            private readonly GenerateEqualsAndGetHashCodeFromMembersService _service;
             private readonly Document _document;
             private readonly INamedTypeSymbol _containingType;
             private readonly IList<ISymbol> _selectedMembers;
             private readonly TextSpan _textSpan;
 
             public GenerateEqualsAndHashCodeAction(
-                TService service,
+                GenerateEqualsAndGetHashCodeFromMembersService service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
