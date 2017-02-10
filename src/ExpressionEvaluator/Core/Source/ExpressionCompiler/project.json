@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "Microsoft.VisualStudio.Debugger.Engine": "15.0.25824-RC",
+    "Microsoft.VisualStudio.Debugger.Engine": "15.0.26201-alpha",
     "Microsoft.DiaSymReader": "1.1.0"
   },
   "frameworks": {

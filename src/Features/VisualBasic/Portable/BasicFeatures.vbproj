@@ -320,9 +320,6 @@
     <Compile Include="ExtractMethod\VisualBasicSyntaxTriviaServiceFactory.vb" />
     <Compile Include="Structure\Providers\ForBlockStructureProvider.vb" />
     <Compile Include="Structure\Providers\ForEachBlockStructureProvider.vb" />
-    <Compile Include="GenerateFromMembers\AddConstructorParameters\VisualBasicAddConstructorParametersService.vb" />
-    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\VisualBasicGenerateConstructorFromMembersService.vb" />
-    <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\VisualBasicGenerateEqualsAndGetHashCodeService.vb" />
     <Compile Include="GenerateFromMembers\GenerateFromMembersHelpers.vb" />
     <Compile Include="GenerateMember\GenerateConstructor\VisualBasicGenerateConstructorService.vb" />
     <Compile Include="GenerateMember\GenerateDefaultConstructors\VisualBasicGenerateDefaultConstructorsService.vb" />

@@ -70,6 +70,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpFeaturesResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="GenerateFromMembers\GenerateFromMembersHelpers.cs" />
     <Compile Include="ImplementAbstractClass\CSharpImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="ImplementInterface\CSharpImplementInterfaceCodeFixProvider.cs" />
     <Compile Include="Structure\Providers\ArrowExpressionClauseStructureProvider.cs" />
@@ -334,10 +335,6 @@
     <Compile Include="ExtractMethod\CSharpSyntaxTriviaService.cs" />
     <Compile Include="ExtractMethod\CSharpSyntaxTriviaServiceFactory.cs" />
     <Compile Include="ExtractMethod\Extensions.cs" />
-    <Compile Include="GenerateFromMembers\AddConstructorParameters\CSharpAddConstructorParametersService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\CSharpGenerateConstructorFromMembersService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\CSharpGenerateEqualsAndGetHashCodeService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateFromMembersHelpers.cs" />
     <Compile Include="GenerateMember\GenerateConstructor\CSharpGenerateConstructorService.cs" />
     <Compile Include="GenerateMember\GenerateDefaultConstructors\CSharpGenerateDefaultConstructorsService.cs" />
     <Compile Include="GenerateMember\GenerateEnumMember\CSharpGenerateEnumMemberService.cs" />
