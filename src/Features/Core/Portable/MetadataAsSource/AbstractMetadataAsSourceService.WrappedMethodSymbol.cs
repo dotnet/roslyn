@@ -178,6 +178,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
+            public bool ReturnsByReadonlyRef
+            {
+                get
+                {
+                    return _symbol.ReturnsByReadonlyRef;
+                }
+            }
+
             public ITypeSymbol ReturnType
             {
                 get
