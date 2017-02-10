@@ -2692,5 +2692,98 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17)
                 );
         }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void DynamicDifferences_01()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<dynamic>();
+        switch (list)
+        {
+            case List<object> list1:
+                break;
+            case List<dynamic> list2: // subsumed
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case List<dynamic> list2: // subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "List<dynamic> list2").WithLocation(13, 18),
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break")
+                );
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void DynamicDifferences_02()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<dynamic>();
+        switch (list)
+        {
+            case List<object> list1:
+                Console.WriteLine(""pass"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17089")]
+        [WorkItem(17089, "https://github.com/dotnet/roslyn/issues/17089")]
+        public void Dynamic_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        switch (d)
+        {
+            case dynamic x: // should be an error
+                break;
+        }
+        switch (d)
+        {
+            case int i: // should not be an error
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // Per https://github.com/dotnet/roslyn/issues/17089, the compiler does not produce correct diagnostics for this.
+                );
+        }
     }
 }
