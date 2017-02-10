@@ -3329,6 +3329,33 @@ static class Extension
         }
 
         [Fact]
+        public void DeconstructExtensionOnInterface()
+        {
+            string source = @"
+public interface Interface { }
+class C : Interface
+{
+    static void Main()
+    {
+        var (x, y) = new C();
+        System.Console.Write($""{x} {y}"");
+    }
+}
+static class Extension
+{
+    public static void Deconstruct(this Interface value, out int item1, out string item2)
+    {
+        item1 = 42;
+        item2 = ""hello"";
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "42 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ForEachIEnumerableDeclarationWithDeconstruct()
         {
             string source = @"

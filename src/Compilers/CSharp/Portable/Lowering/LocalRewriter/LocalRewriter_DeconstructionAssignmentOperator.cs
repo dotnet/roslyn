@@ -30,7 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<Binder.DeconstructionVariable> lhsTargets = GetAssignmentTargetsAndSideEffects(left, temps, effects.init);
 
             BoundExpression returnTuple = ApplyDeconstructionConversion(lhsTargets, right, conversion, temps, effects, inInit: true);
-            BoundExpression result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), VisitExpression(returnTuple));
+            if (!returnTuple.HasErrors)
+            {
+                returnTuple = VisitExpression(returnTuple);
+            }
+            BoundExpression result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnTuple);
             Binder.DeconstructionVariable.FreeDeconstructionVariables(lhsTargets);
 
             return result;
@@ -189,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localSymbol = new SynthesizedLocal(_factory.CurrentMethod, outputPlaceholder.Type, SynthesizedLocalKind.LoweringTemp);
 
                 var localBound = new BoundLocal(target.Syntax, localSymbol, constantValueOpt: null, type: outputPlaceholder.Type)
-                    { WasCompilerGenerated = true };
+                { WasCompilerGenerated = true };
 
                 temps.Add(localSymbol);
                 AddPlaceholderReplacement(outputPlaceholder, localBound);
@@ -207,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return outLocals.ToImmutableAndFree();
         }
 
-        BoundExpression EvaluateSideEffectingArgumentToTemp( BoundExpression arg, ArrayBuilder<BoundExpression> effects,
+        BoundExpression EvaluateSideEffectingArgumentToTemp(BoundExpression arg, ArrayBuilder<BoundExpression> effects,
             ref ArrayBuilder<LocalSymbol> temps)
         {
             if (CanChangeValueBetweenReads(arg, localsMayBeAssignedOrCaptured: true))
