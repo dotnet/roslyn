@@ -334,7 +334,7 @@
     <Compile Include="ExtractMethod\CSharpSyntaxTriviaService.cs" />
     <Compile Include="ExtractMethod\CSharpSyntaxTriviaServiceFactory.cs" />
     <Compile Include="ExtractMethod\Extensions.cs" />
-    <Compile Include="GenerateFromMembers\AddConstructorParameters\CSharpAddConstructorParametersService.cs" />
+    <Compile Include="GenerateFromMembers\AddConstructorParametersFromMembers\CSharpAddConstructorParametersFromMembersService.cs" />
     <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\CSharpGenerateConstructorFromMembersService.cs" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\CSharpGenerateEqualsAndGetHashCodeService.cs" />
     <Compile Include="GenerateFromMembers\GenerateFromMembersHelpers.cs" />

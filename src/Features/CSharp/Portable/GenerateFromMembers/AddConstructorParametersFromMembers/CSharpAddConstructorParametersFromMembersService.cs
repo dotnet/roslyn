@@ -5,16 +5,16 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters;
+using Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParametersFromMembers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.GenerateFromMembers.AddConstructorParameters
+namespace Microsoft.CodeAnalysis.CSharp.GenerateFromMembers.AddConstructorParametersFromMembers
 {
-    [ExportLanguageService(typeof(IAddConstructorParametersService), LanguageNames.CSharp), Shared]
-    internal class CSharpAddConstructorParametersService :
-        AbstractAddConstructorParametersService<CSharpAddConstructorParametersService, MemberDeclarationSyntax>
+    [ExportLanguageService(typeof(IAddConstructorParametersFromMembersService), LanguageNames.CSharp), Shared]
+    internal class CSharpAddConstructorParametersFromMembersService :
+        AbstractAddConstructorParametersFromMembersService<CSharpAddConstructorParametersFromMembersService, MemberDeclarationSyntax>
     {
         protected override async Task<IList<MemberDeclarationSyntax>> GetSelectedMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {

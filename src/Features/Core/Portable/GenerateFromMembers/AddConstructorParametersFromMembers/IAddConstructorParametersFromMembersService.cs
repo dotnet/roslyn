@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters
+namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParametersFromMembers
 {
-    internal interface IAddConstructorParametersService : ILanguageService
+    internal interface IAddConstructorParametersFromMembersService : ILanguageService
     {
-        Task<ImmutableArray<CodeAction>> AddConstructorParametersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+        Task<ImmutableArray<CodeAction>> AddConstructorParametersFromMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
     }
 }

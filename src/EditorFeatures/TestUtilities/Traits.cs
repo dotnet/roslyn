@@ -27,7 +27,7 @@ namespace Roslyn.Test.Utilities
             public const string ChangeSignature = nameof(ChangeSignature);
             public const string Classification = nameof(Classification);
             public const string ClassView = nameof(ClassView);
-            public const string CodeActionsAddConstructorParameters = "CodeActions.AddConstructorParameters";
+            public const string CodeActionsAddConstructorParametersFromMembers = "CodeActions.AddConstructorParametersFromMembers";
             public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
             public const string CodeActionsAddAsync = "CodeActions.AddAsync";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";

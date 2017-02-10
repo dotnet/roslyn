@@ -6,17 +6,16 @@ using Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.GenerateConstr
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.GenerateFromMembers.GenerateConstructorFromMembers
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.GenerateConstructorFromMembers
 {
     public class GenerateConstructorFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new GenerateConstructorFromMembersCodeRefactoringProvider();
-        }
+            => new GenerateConstructorFromMembersCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSingleField()

@@ -1,18 +1,19 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.AddConstructorParameters
+Imports Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.AddConstructorParametersFromMembers
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.GenerateConstructorFromMembers
-    Public Class AddConstructorParameterTests
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddConstructorParametersFromMembers
+    Public Class AddConstructorParameterFromMembersTests
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
-            Return New AddConstructorParametersCodeRefactoringProvider()
+            Return New AddConstructorParametersFromMembersCodeRefactoringProvider()
         End Function
 
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         Public Async Function TestAdd1() As Task
             Await TestAsync(
 "Class Program
@@ -33,7 +34,7 @@ End Class")
         End Function
 
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         Public Async Function TestAddOptional1() As Task
             Await TestAsync(
 "Class Program
@@ -55,7 +56,7 @@ index:=1)
         End Function
 
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         Public Async Function TestAddToConstructorWithMostMatchingParameters1() As Task
             Await TestAsync(
 "Class Program
@@ -86,7 +87,7 @@ End Class")
         End Function
 
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         Public Async Function TestAddOptionalToConstructorWithMostMatchingParameters1() As Task
             Await TestAsync(
 "Class Program

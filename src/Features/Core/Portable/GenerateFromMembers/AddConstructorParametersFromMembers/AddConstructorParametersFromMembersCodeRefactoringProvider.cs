@@ -2,15 +2,15 @@
 
 using System.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters;
+using Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParametersFromMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.AddConstructorParameters
+namespace Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.AddConstructorParametersFromMembers
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers), Shared]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers)]
-    internal class AddConstructorParametersCodeRefactoringProvider : CodeRefactoringProvider
+    internal class AddConstructorParametersFromMembersCodeRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.AddConstru
                 return;
             }
 
-            var service = document.GetLanguageService<IAddConstructorParametersService>();
-            var actions = await service.AddConstructorParametersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var service = document.GetLanguageService<IAddConstructorParametersFromMembersService>();
+            var actions = await service.AddConstructorParametersFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (!actions.IsDefault)
             {
                 context.RegisterRefactorings(actions);

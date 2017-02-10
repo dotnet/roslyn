@@ -2,15 +2,15 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters
+Imports Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParametersFromMembers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GenerateFromMembers.AddConstructorParameters
-    <ExportLanguageService(GetType(IAddConstructorParametersService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicAddConstructorParametersService
-        Inherits AbstractAddConstructorParametersService(Of VisualBasicAddConstructorParametersService, StatementSyntax)
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GenerateFromMembers.AddConstructorParametersFromMembers
+    <ExportLanguageService(GetType(IAddConstructorParametersFromMembersService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicAddConstructorParametersFromMembersService
+        Inherits AbstractAddConstructorParametersFromMembersService(Of VisualBasicAddConstructorParametersFromMembersService, StatementSyntax)
 
         Protected Overloads Overrides Function GetSelectedMembersAsync(
                 document As Document, textSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of IList(Of StatementSyntax))

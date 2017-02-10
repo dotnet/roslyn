@@ -124,6 +124,8 @@
     </Compile>
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
+    <Compile Include="GenerateFromMembers\AddConstructorParametersFromMembers\AbstractAddConstructorParametersFromMembersService.State.cs" />
+    <Compile Include="GenerateFromMembers\AddConstructorParametersFromMembers\IAddConstructorParametersFromMembersService.cs" />
     <Compile Include="ImplementType\ImplementTypeOptions.cs" />
     <Compile Include="ImplementType\ImplementTypeOptionsProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
@@ -246,9 +248,9 @@
     <Compile Include="ConvertToInterpolatedString\AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractMethod\AbstractExtractMethodCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\GenerateDefaultConstructors\GenerateDefaultConstructorsCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeCodeRefactoringProvider.cs" />
+    <Compile Include="GenerateFromMembers\AddConstructorParametersFromMembers\AddConstructorParametersFromMembersCodeRefactoringProvider.cs" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersCodeRefactoringProvider.cs" />
+    <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ICodeRefactoringHelpersService.cs" />
     <Compile Include="CodeRefactorings\ICodeRefactoringService.cs" />
     <Compile Include="CodeRefactorings\IntroduceVariable\IntroduceVariableCodeRefactoringProvider.cs" />
@@ -507,10 +509,8 @@
     <Compile Include="ExtractMethod\UniqueNameGenerator.cs" />
     <Compile Include="ExtractMethod\VariableStyle.cs" />
     <Compile Include="GenerateFromMembers\AbstractGenerateFromMembersService.cs" />
-    <Compile Include="GenerateFromMembers\AddConstructorParameters\AbstractAddConstructorParametersService.CodeAction.cs" />
-    <Compile Include="GenerateFromMembers\AddConstructorParameters\AbstractAddConstructorParametersService.cs" />
-    <Compile Include="GenerateFromMembers\AddConstructorParameters\AbstractAddConstructorParametersService.State.cs" />
-    <Compile Include="GenerateFromMembers\AddConstructorParameters\IAddConstructorParametersService.cs" />
+    <Compile Include="GenerateFromMembers\AddConstructorParametersFromMembers\AbstractAddConstructorParametersFromMembersService.CodeAction.cs" />
+    <Compile Include="GenerateFromMembers\AddConstructorParametersFromMembers\AbstractAddConstructorParametersFromMembersService.cs" />
     <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\AbstractGenerateConstructorFromMembersService.ConstructorDelegatingCodeAction.cs" />
     <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\AbstractGenerateConstructorFromMembersService.cs" />
     <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\AbstractGenerateConstructorFromMembersService.FieldDelegatingCodeAction.cs" />

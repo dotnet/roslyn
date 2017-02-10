@@ -6,9 +6,9 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters
+namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParametersFromMembers
 {
-    internal abstract partial class AbstractAddConstructorParametersService<TService, TMemberDeclarationSyntax>
+    internal abstract partial class AbstractAddConstructorParametersFromMembersService<TService, TMemberDeclarationSyntax>
     {
         private class State
         {

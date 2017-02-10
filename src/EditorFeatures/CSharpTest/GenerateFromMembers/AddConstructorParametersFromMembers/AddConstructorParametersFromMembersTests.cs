@@ -2,21 +2,20 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.AddConstructorParameters;
+using Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.AddConstructorParametersFromMembers;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.GenerateFromMembers.AddConstructorParameters
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.AddConstructorParameters
 {
-    public class AddConstructorParametersTests : AbstractCSharpCodeActionTest
+    public class AddConstructorParametersFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new AddConstructorParametersCodeRefactoringProvider();
-        }
+            => new AddConstructorParametersFromMembersCodeRefactoringProvider();
 
-        [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAdd1()
         {
             await TestAsync(
@@ -48,7 +47,7 @@ class Program
 index: 0);
         }
 
-        [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddOptional1()
         {
             await TestAsync(
@@ -80,7 +79,7 @@ class Program
 index: 1);
         }
 
-        [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddToConstructorWithMostMatchingParameters1()
         {
             await TestAsync(
@@ -124,7 +123,7 @@ class Program
 index: 0);
         }
 
-        [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddOptionalToConstructorWithMostMatchingParameters1()
         {
             await TestAsync(
@@ -168,7 +167,7 @@ class Program
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestSmartTagDisplayText1()
         {
             await TestSmartTagTextAsync(
@@ -188,7 +187,7 @@ string.Format(FeaturesResources.Add_parameters_to_0_1, "Program", "bool"),
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestSmartTagDisplayText2()
         {
             await TestSmartTagTextAsync(
@@ -208,7 +207,7 @@ string.Format(FeaturesResources.Add_optional_parameters_to_0_1, "Program", "bool
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTuple()
         {
             await TestAsync(
@@ -236,7 +235,7 @@ index: 1);
 index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleWithNames()
         {
             await TestAsync(
@@ -264,7 +263,7 @@ index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
 index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleWithDifferentNames()
         {
             await TestMissingAsync(
@@ -281,7 +280,7 @@ index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
 parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleOptional()
         {
             await TestAsync(
@@ -309,7 +308,7 @@ parseOptions: TestOptions.Regular, withScriptOption: true);
 index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleOptionalWithNames()
         {
             await TestAsync(
@@ -337,7 +336,7 @@ index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
 index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleOptionalWithDifferentNames()
         {
             await TestMissingAsync(
@@ -354,7 +353,7 @@ index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
 parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleWithNullable()
         {
             await TestAsync(
@@ -382,7 +381,7 @@ parseOptions: TestOptions.Regular, withScriptOption: true);
 index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleWithGenericss()
         {
             await TestAsync(

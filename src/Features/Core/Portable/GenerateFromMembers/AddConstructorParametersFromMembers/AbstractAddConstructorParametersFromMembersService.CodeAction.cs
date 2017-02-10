@@ -12,9 +12,9 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters
+namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParametersFromMembers
 {
-    internal abstract partial class AbstractAddConstructorParametersService<TService, TMemberDeclarationSyntax>
+    internal abstract partial class AbstractAddConstructorParametersFromMembersService<TService, TMemberDeclarationSyntax>
     {
         private class AddConstructorParametersCodeAction : CodeAction
         {

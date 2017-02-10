@@ -10,20 +10,20 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters
+namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParametersFromMembers
 {
-    internal abstract partial class AbstractAddConstructorParametersService<TService, TMemberDeclarationSyntax> :
-            AbstractGenerateFromMembersService<TMemberDeclarationSyntax>, IAddConstructorParametersService
-        where TService : AbstractAddConstructorParametersService<TService, TMemberDeclarationSyntax>
+    internal abstract partial class AbstractAddConstructorParametersFromMembersService<TService, TMemberDeclarationSyntax> :
+            AbstractGenerateFromMembersService<TMemberDeclarationSyntax>, IAddConstructorParametersFromMembersService
+        where TService : AbstractAddConstructorParametersFromMembersService<TService, TMemberDeclarationSyntax>
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        protected AbstractAddConstructorParametersService()
+        protected AbstractAddConstructorParametersFromMembersService()
         {
         }
 
-        public async Task<ImmutableArray<CodeAction>> AddConstructorParametersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeAction>> AddConstructorParametersFromMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_AddConstructorParameters, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_AddConstructorParametersFromMembers, cancellationToken))
             {
                 var info = await this.GetSelectedMemberInfoAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
                 if (info != null)

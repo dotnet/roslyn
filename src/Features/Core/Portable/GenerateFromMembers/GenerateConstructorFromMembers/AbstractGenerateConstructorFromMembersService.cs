@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructorFromMemb
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateConstructor, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateConstructorFromMembers, cancellationToken))
             {
                 var info = await GetSelectedMemberInfoAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
                 if (info != null)
