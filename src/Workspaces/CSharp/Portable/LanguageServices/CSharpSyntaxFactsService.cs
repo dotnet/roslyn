@@ -1598,9 +1598,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             => token.IsVerbatimStringLiteral();
 
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
-        {
-            return ((invocationExpression as InvocationExpressionSyntax)?.ArgumentList.Arguments).Value;
-        }
+            => GetArgumentsOfArgumentList((invocationExpression as InvocationExpressionSyntax)?.ArgumentList);
+
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode invocationExpression)
+            => GetArgumentsOfArgumentList((invocationExpression as ObjectCreationExpressionSyntax)?.ArgumentList);
+
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
+            => (argumentList as ArgumentListSyntax)?.Arguments ?? default(SeparatedSyntaxList<SyntaxNode>);
 
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();
@@ -1685,10 +1689,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             newContextNode = newRoot.GetAnnotatedNodes(s_annotation).Single();
         }
 
-        public SyntaxNode GetObjectCreationInitializer(SyntaxNode objectCreationExpression)
-        {
-            return ((ObjectCreationExpressionSyntax)objectCreationExpression).Initializer;
-        }
+        public SyntaxNode GetObjectCreationInitializer(SyntaxNode node)
+            => ((ObjectCreationExpressionSyntax)node).Initializer;
+
+        public SyntaxNode GetObjectCreationType(SyntaxNode node)
+            => ((ObjectCreationExpressionSyntax)node).Type;
 
         public bool IsSimpleAssignmentStatement(SyntaxNode statement)
         {

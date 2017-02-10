@@ -165,6 +165,7 @@
   <ItemGroup>
     <Compile Include="AddBraces\AddBracesFixAllTests.cs" />
     <Compile Include="AddBraces\AddBracesTests.cs" />
+    <Compile Include="AddParameter\AddParameterTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticBraceCompletionTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticBracketCompletionTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticLessAndGreaterThanCompletionTests.cs" />
@@ -277,7 +278,7 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerDriver\DiagnosticAnalyzerDriverTests.cs" />
     <Compile Include="Diagnostics\FixAllProvider\BatchFixerTests.cs" />
     <Compile Include="Diagnostics\FullyQualify\FullyQualifyTests.cs" />
-    <Compile Include="Diagnostics\GenerateConstructor\GenerateConstructorTests.cs" />
+    <Compile Include="GenerateConstructor\GenerateConstructorTests.cs" />
     <Compile Include="Diagnostics\GenerateEnumMember\GenerateEnumMemberTests.cs" />
     <Compile Include="Diagnostics\GenerateMethod\GenerateMethodTests.cs" />
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests.cs" />

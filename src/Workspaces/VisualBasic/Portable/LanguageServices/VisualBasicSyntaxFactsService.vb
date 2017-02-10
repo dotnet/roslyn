@@ -1395,8 +1395,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function GetArgumentsOfInvocationExpression(invocationExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsOfInvocationExpression
-            Dim arguments = TryCast(invocationExpression, InvocationExpressionSyntax)?.ArgumentList?.Arguments
+        Public Function GetArgumentsOfInvocationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsOfInvocationExpression
+            Return GetArgumentsOfArgumentList(TryCast(node, InvocationExpressionSyntax)?.ArgumentList)
+        End Function
+
+        Public Function GetArgumentsOfObjectCreationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsOfObjectCreationExpression
+            Return GetArgumentsOfArgumentList(TryCast(node, ObjectCreationExpressionSyntax)?.ArgumentList)
+        End Function
+
+        Public Function GetArgumentsOfArgumentList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsOfArgumentList
+            Dim arguments = TryCast(node, ArgumentListSyntax)?.Arguments
             Return If(arguments.HasValue, arguments.Value, Nothing)
         End Function
 
@@ -1498,8 +1506,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             newContextNode = contextNode
         End Sub
 
-        Public Function GetObjectCreationInitializer(objectCreationExpression As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetObjectCreationInitializer
-            Return DirectCast(objectCreationExpression, ObjectCreationExpressionSyntax).Initializer
+        Public Function GetObjectCreationInitializer(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetObjectCreationInitializer
+            Return DirectCast(node, ObjectCreationExpressionSyntax).Initializer
+        End Function
+
+        Public Function GetObjectCreationType(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetObjectCreationType
+            Return DirectCast(node, ObjectCreationExpressionSyntax).Type
         End Function
 
         Public Function IsSimpleAssignmentStatement(statement As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleAssignmentStatement

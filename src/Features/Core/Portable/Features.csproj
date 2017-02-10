@@ -105,6 +105,7 @@
     <Compile Include="AddPackage\InstallPackageDirectlyCodeActionOperation.cs" />
     <Compile Include="AddPackage\InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageParentCodeAction.cs" />
+    <Compile Include="AddParameter\AbstractAddParameterCodeFixProvider.cs" />
     <Compile Include="ConvertIfToSwitch\AbstractConvertIfToSwitchCodeRefactoringProvider.cs" />
     <Compile Include="ConvertNumericLiteral\AbstractConvertNumericLiteralCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\UseNamedArguments\AbstractUseNamedArgumentsCodeRefactoringProvider.cs" />

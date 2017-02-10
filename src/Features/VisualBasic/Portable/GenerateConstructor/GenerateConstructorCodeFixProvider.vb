@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports System.Composition
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor
+Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateConstructor), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.FullyQualify)>
     Friend Class GenerateConstructorCodeFixProvider

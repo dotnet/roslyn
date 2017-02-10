@@ -61,6 +61,7 @@
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
     <Compile Include="AddPackage\CSharpAddSpecificPackageCodeFixProvider.cs" />
+    <Compile Include="AddParameter\CSharpAddParameterCodeFixProvider.cs" />
     <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.cs" />
     <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.Pattern.cs" />
     <Compile Include="ConvertNumericLiteral\CSharpConvertNumericLiteralCodeRefactoringProvider.cs" />
@@ -110,7 +111,7 @@
     <Compile Include="CodeFixes\Async\CSharpAddAwaitCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpConvertToAsyncMethodCodeFixProvider.cs" />
     <Compile Include="CodeFixes\FullyQualify\CSharpFullyQualifyCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\GenerateConstructor\GenerateConstructorCodeFixProvider.cs" />
+    <Compile Include="GenerateConstructor\GenerateConstructorCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateEnumMember\GenerateEnumMemberCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMethod\GenerateConversionCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMethod\GenerateMethodCodeFixProvider.cs" />
@@ -338,7 +339,7 @@
     <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\CSharpGenerateConstructorFromMembersService.cs" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\CSharpGenerateEqualsAndGetHashCodeService.cs" />
     <Compile Include="GenerateFromMembers\GenerateFromMembersHelpers.cs" />
-    <Compile Include="GenerateMember\GenerateConstructor\CSharpGenerateConstructorService.cs" />
+    <Compile Include="GenerateConstructor\CSharpGenerateConstructorService.cs" />
     <Compile Include="GenerateMember\GenerateDefaultConstructors\CSharpGenerateDefaultConstructorsService.cs" />
     <Compile Include="GenerateMember\GenerateEnumMember\CSharpGenerateEnumMemberService.cs" />
     <Compile Include="GenerateMember\GenerateParameterizedMember\CSharpCommonGenerationServiceMethods.cs" />

@@ -75,17 +75,11 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters
                     var parameters = _state.DelegatedConstructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
                     var optional = _parameters.First().IsOptional;
+                    var signature = $"{_state.ContainingType.Name}({parameterString})";
 
-                    if (optional)
-                    {
-                        return string.Format(FeaturesResources.Add_optional_parameters_to_0_1,
-                            _state.ContainingType.Name, parameterString);
-                    }
-                    else
-                    {
-                        return string.Format(FeaturesResources.Add_parameters_to_0_1,
-                            _state.ContainingType.Name, parameterString);
-                    }
+                    return optional
+                        ? string.Format(FeaturesResources.Add_optional_parameters_to_0, signature)
+                        : string.Format(FeaturesResources.Add_parameters_to_0, signature);
                 }
             }
         }

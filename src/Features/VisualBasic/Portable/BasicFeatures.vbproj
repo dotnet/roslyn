@@ -81,7 +81,7 @@
     <Compile Include="CodeFixes\Iterator\VisualBasicChangeToYieldCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Iterator\VisualBasicConvertToIteratorCodeFixProvider.vb" />
     <Compile Include="CodeFixes\FullyQualify\VisualBasicFullyQualifyCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\GenerateConstructor\GenerateConstructorCodeFixProvider.vb" />
+    <Compile Include="GenerateConstructor\GenerateConstructorCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateEndConstruct\GenerateEndConstructCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateEnumMember\GenerateEnumMemberCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateEvent\GenerateEventCodeFixProvider.CodeAction.vb" />
@@ -324,7 +324,7 @@
     <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\VisualBasicGenerateConstructorFromMembersService.vb" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\VisualBasicGenerateEqualsAndGetHashCodeService.vb" />
     <Compile Include="GenerateFromMembers\GenerateFromMembersHelpers.vb" />
-    <Compile Include="GenerateMember\GenerateConstructor\VisualBasicGenerateConstructorService.vb" />
+    <Compile Include="GenerateConstructor\VisualBasicGenerateConstructorService.vb" />
     <Compile Include="GenerateMember\GenerateDefaultConstructors\VisualBasicGenerateDefaultConstructorsService.vb" />
     <Compile Include="GenerateMember\GenerateEnumMember\VisualBasicGenerateEnumMemberService.vb" />
     <Compile Include="GenerateMember\GenerateParameterizedMember\VisualBasicGenerateParameterizedMemberService.vb" />

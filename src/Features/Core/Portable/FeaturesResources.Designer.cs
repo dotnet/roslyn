@@ -162,20 +162,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add optional parameters to &apos;{0}({1})&apos;.
+        ///   Looks up a localized string similar to Add optional parameters to &apos;{0}&apos;.
         /// </summary>
-        internal static string Add_optional_parameters_to_0_1 {
+        internal static string Add_optional_parameters_to_0 {
             get {
-                return ResourceManager.GetString("Add_optional_parameters_to_0_1", resourceCulture);
+                return ResourceManager.GetString("Add_optional_parameters_to_0", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add parameters to &apos;{0}({1})&apos;.
+        ///   Looks up a localized string similar to Add parameter to &apos;{0}&apos;.
         /// </summary>
-        internal static string Add_parameters_to_0_1 {
+        internal static string Add_parameter_to_0 {
             get {
-                return ResourceManager.GetString("Add_parameters_to_0_1", resourceCulture);
+                return ResourceManager.GetString("Add_parameter_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add parameters to &apos;{0}&apos;.
+        /// </summary>
+        internal static string Add_parameters_to_0 {
+            get {
+                return ResourceManager.GetString("Add_parameters_to_0", resourceCulture);
             }
         }
         
