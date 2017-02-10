@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // handling of cancellation and exception
                 var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     Debug.Assert(reader != null,
     @"We only ge a reader for data transmitted between live processes.
