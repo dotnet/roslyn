@@ -500,14 +500,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var sourceText = SourceText.From("Hello", Encoding.UTF8);
             using (var stream = SerializableBytes.CreateWritableStream())
             {
-                using (var objectWriter = new StreamObjectWriter(stream))
+                using (var objectWriter = new ObjectWriter(stream))
                 {
                     serializer.Serialize(sourceText, objectWriter, CancellationToken.None);
                 }
 
                 stream.Position = 0;
 
-                using (var objectReader = StreamObjectReader.TryGetReader(stream))
+                using (var objectReader = ObjectReader.TryGetReader(stream))
                 {
                     var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
                     Assert.Equal(sourceText.ToString(), newText.ToString());
@@ -518,14 +518,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             sourceText = SourceText.From("Hello", new NotSerializableEncoding());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
-                using (var objectWriter = new StreamObjectWriter(stream))
+                using (var objectWriter = new ObjectWriter(stream))
                 {
                     serializer.Serialize(sourceText, objectWriter, CancellationToken.None);
                 }
 
                 stream.Position = 0;
 
-                using (var objectReader = StreamObjectReader.TryGetReader(stream))
+                using (var objectReader = ObjectReader.TryGetReader(stream))
                 {
                     var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
                     Assert.Equal(sourceText.ToString(), newText.ToString());
