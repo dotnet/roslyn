@@ -241,8 +241,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             left.IsKind(SyntaxKind.IdentifierName) && right.IsKind(SyntaxKind.NullLiteralExpression);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
+            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
     }
 }

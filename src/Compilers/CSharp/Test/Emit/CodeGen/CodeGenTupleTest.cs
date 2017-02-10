@@ -15075,6 +15075,38 @@ class C
         }
 
         [Fact]
+        [WorkItem(14600, "https://github.com/dotnet/roslyn/issues/14600")]
+        public void GetSymbolInfo_01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        // error is intentional. GetSymbolInfo should still work
+        DummyType x1 = (Alice: 1, ""hello"");
+
+        var Alice = x1.Alice;
+    }
+}
+" + trivial2uple + trivial3uple + tupleattributes_cs;
+
+            var tree = Parse(source, options: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(tree);
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var nc = nodes.OfType<NameColonSyntax>().ElementAt(0);
+
+            var sym = model.GetSymbolInfo(nc.Name);
+
+            Assert.Equal(SymbolKind.Field, sym.Symbol.Kind);
+            Assert.Equal("Alice", sym.Symbol.Name);
+            Assert.Equal(nc.Name.GetLocation(), sym.Symbol.Locations[0]);
+        }
+
+        [Fact]
         public void CompileTupleLib()
         {
             string additionalSource = @"
@@ -16879,6 +16911,91 @@ public class C
 
             var x2 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().Skip(5).First());
             Assert.Equal("(System.Int32 a, dynamic c) x2", x2.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")]
+        public void NullCoalesingOperatorWithTupleNames()
+        {
+            // See section 7.13 of the spec, regarding the null-coalescing operator
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        (int a, int b)? nab = (1, 2);
+        (int a, int c)? nac = (1, 3);
+
+        var x1 = nab ?? nac; // (a, b)?
+        var x2 = nab ?? nac.Value; // (a, b)
+        var x3 = new C() ?? nac; // C
+        var x4 = new D() ?? nac; // (a, c)?
+
+        var x5 = nab != null ? nab : nac; // (a, )?
+
+        var x6 = nab ?? (a: 1, c: 3); // (a, b)
+        var x7 = nab ?? (a: 1, c: 3); // (a, b)
+        var x8 = new C() ?? (a: 1, c: 3); // C
+        var x9 = new D() ?? (a: 1, c: 3); // (a, c)
+
+        var x6double = nab ?? (d: 1.1, c: 3); // (a, c)
+    }
+    public static implicit operator C((int, int) x) { throw null; }
+}
+public class D
+{
+    public static implicit operator (int d1, int d2) (D x) { throw null; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (16,32): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int a, int b)'.
+                //         var x6 = nab ?? (a: 1, c: 3); // (a, b)?
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(int a, int b)").WithLocation(16, 32),
+                // (17,32): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int a, int b)'.
+                //         var x7 = nab ?? (a: 1, c: 3); // (a, b)
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(int a, int b)").WithLocation(17, 32),
+                // (18,30): warning CS8123: The tuple element name 'a' is ignored because a different name is specified by the target type '(int, int)'.
+                //         var x8 = new C() ?? (a: 1, c: 3); // C
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "a: 1").WithArguments("a", "(int, int)").WithLocation(18, 30),
+                // (18,36): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int, int)'.
+                //         var x8 = new C() ?? (a: 1, c: 3); // C
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(int, int)").WithLocation(18, 36)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var x1 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(2));
+            Assert.Equal("(System.Int32 a, System.Int32 b)? x1", x1.ToTestDisplayString());
+
+            var x2 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(3));
+            Assert.Equal("(System.Int32 a, System.Int32 b) x2", x2.ToTestDisplayString());
+
+            var x3 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(4));
+            Assert.Equal("C x3", x3.ToTestDisplayString());
+
+            var x4 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(5));
+            Assert.Equal("(System.Int32 a, System.Int32 c)? x4", x4.ToTestDisplayString());
+
+            var x5 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(6));
+            Assert.Equal("(System.Int32 a, System.Int32)? x5", x5.ToTestDisplayString());
+
+            var x6 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(7));
+            Assert.Equal("(System.Int32 a, System.Int32 b) x6", x6.ToTestDisplayString());
+
+            var x7 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(8));
+            Assert.Equal("(System.Int32 a, System.Int32 b) x7", x7.ToTestDisplayString());
+
+            var x8 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(9));
+            Assert.Equal("C x8", x8.ToTestDisplayString());
+
+            var x9 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(10));
+            Assert.Equal("(System.Int32 a, System.Int32 c) x9", x9.ToTestDisplayString());
+
+            var x6double = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(11));
+            Assert.Equal("(System.Double d, System.Int32 c) x6double", x6double.ToTestDisplayString());
         }
 
         [Fact]

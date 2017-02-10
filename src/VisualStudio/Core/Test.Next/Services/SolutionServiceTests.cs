@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
@@ -33,6 +34,61 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
             }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestStrongNameProvider()
+        {
+            var workspace = new AdhocWorkspace();
+
+            var filePath = typeof(SolutionServiceTests).Assembly.Location;
+
+            workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(), VersionStamp.Create(), "test", "test.dll", LanguageNames.CSharp,
+                    filePath: filePath, outputFilePath: filePath));
+
+            var service = await GetSolutionServiceAsync(workspace.CurrentSolution);
+
+            var solutionChecksum = await workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None);
+            var solution = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
+
+            var compilationOptions = solution.Projects.First().CompilationOptions;
+
+            Assert.True(compilationOptions.StrongNameProvider is DesktopStrongNameProvider);
+            Assert.True(compilationOptions.XmlReferenceResolver is XmlFileResolver);
+
+            var dirName = PathUtilities.GetDirectoryName(filePath);
+            var array = new[] { dirName, dirName };
+            Assert.Equal(Hash.CombineValues(array, StringComparer.Ordinal), compilationOptions.StrongNameProvider.GetHashCode());
+            Assert.Equal(((XmlFileResolver)compilationOptions.XmlReferenceResolver).BaseDirectory, dirName);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestStrongNameProviderEmpty()
+        {
+            var workspace = new AdhocWorkspace();
+
+            var filePath = "testLocation";
+
+            workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(), VersionStamp.Create(), "test", "test.dll", LanguageNames.CSharp,
+                    filePath: filePath, outputFilePath: filePath));
+
+            var service = await GetSolutionServiceAsync(workspace.CurrentSolution);
+
+            var solutionChecksum = await workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None);
+            var solution = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
+
+            var compilationOptions = solution.Projects.First().CompilationOptions;
+
+            Assert.True(compilationOptions.StrongNameProvider is DesktopStrongNameProvider);
+            Assert.True(compilationOptions.XmlReferenceResolver is XmlFileResolver);
+
+            var array = new string[] { };
+            Assert.Equal(Hash.CombineValues(array, StringComparer.Ordinal), compilationOptions.StrongNameProvider.GetHashCode());
+            Assert.Equal(((XmlFileResolver)compilationOptions.XmlReferenceResolver).BaseDirectory, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -191,42 +247,110 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             });
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestAdditionalDocument()
+        {
+            var code = @"class Test { void Method() { } }";
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            {
+                var projectId = workspace.CurrentSolution.ProjectIds.First();
+                var additionalDocumentId = DocumentId.CreateNewId(projectId);
+                var additionalDocumentInfo = DocumentInfo.Create(
+                    additionalDocumentId, "additionalFile",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("test"), VersionStamp.Create())));
+
+                await VerifySolutionUpdate(workspace, s =>
+                {
+                    return s.AddAdditionalDocument(additionalDocumentInfo);
+                });
+
+                workspace.OnAdditionalDocumentAdded(additionalDocumentInfo);
+
+                await VerifySolutionUpdate(workspace, s =>
+                {
+                    return s.WithAdditionalDocumentText(additionalDocumentId, SourceText.From("changed"));
+                });
+
+                await VerifySolutionUpdate(workspace, s =>
+                {
+                    return s.RemoveAdditionalDocument(additionalDocumentId);
+                });
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestDocument()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            {
+                var projectId = workspace.CurrentSolution.ProjectIds.First();
+                var documentId = DocumentId.CreateNewId(projectId);
+                var documentInfo = DocumentInfo.Create(
+                    documentId, "sourceFile",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class A { }"), VersionStamp.Create())));
+
+                await VerifySolutionUpdate(workspace, s =>
+                {
+                    return s.AddDocument(documentInfo);
+                });
+
+                workspace.OnDocumentAdded(documentInfo);
+
+                await VerifySolutionUpdate(workspace, s =>
+                {
+                    return s.WithDocumentText(documentId, SourceText.From("class Changed { }"));
+                });
+
+                await VerifySolutionUpdate(workspace, s =>
+                {
+                    return s.RemoveDocument(documentId);
+                });
+            }
+        }
+
         private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
             {
-                var map = new Dictionary<Checksum, object>();
-
-                var solution = workspace.CurrentSolution;
-                var service = await GetSolutionServiceAsync(solution, map);
-
-                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-
-                // update primary workspace
-                await service.UpdatePrimaryWorkspaceAsync(solutionChecksum, CancellationToken.None);
-                var first = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
-
-                Assert.Equal(solutionChecksum, await first.State.GetChecksumAsync(CancellationToken.None));
-                Assert.True(object.ReferenceEquals(PrimaryWorkspace.Workspace.PrimaryBranchId, first.BranchId));
-
-                // get new solution
-                var newSolution = newSolutionGetter(solution);
-                var newSolutionChecksum = await newSolution.State.GetChecksumAsync(CancellationToken.None);
-                newSolution.AppendAssetMap(map);
-
-                // get solution without updating primary workspace
-                var second = await service.GetSolutionAsync(newSolutionChecksum, CancellationToken.None);
-
-                Assert.Equal(newSolutionChecksum, await second.State.GetChecksumAsync(CancellationToken.None));
-                Assert.False(object.ReferenceEquals(PrimaryWorkspace.Workspace.PrimaryBranchId, second.BranchId));
-
-                // do same once updating primary workspace
-                await service.UpdatePrimaryWorkspaceAsync(newSolutionChecksum, CancellationToken.None);
-                var third = await service.GetSolutionAsync(newSolutionChecksum, CancellationToken.None);
-
-                Assert.Equal(newSolutionChecksum, await third.State.GetChecksumAsync(CancellationToken.None));
-                Assert.True(object.ReferenceEquals(PrimaryWorkspace.Workspace.PrimaryBranchId, third.BranchId));
+                await VerifySolutionUpdate(workspace, newSolutionGetter);
             }
+        }
+
+        private static async Task VerifySolutionUpdate(TestWorkspace workspace, Func<Solution, Solution> newSolutionGetter)
+        {
+            var map = new Dictionary<Checksum, object>();
+
+            var solution = workspace.CurrentSolution;
+            var service = await GetSolutionServiceAsync(solution, map);
+
+            var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+
+            // update primary workspace
+            await service.UpdatePrimaryWorkspaceAsync(solutionChecksum, CancellationToken.None);
+            var first = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
+
+            Assert.Equal(solutionChecksum, await first.State.GetChecksumAsync(CancellationToken.None));
+            Assert.True(object.ReferenceEquals(PrimaryWorkspace.Workspace.PrimaryBranchId, first.BranchId));
+
+            // get new solution
+            var newSolution = newSolutionGetter(solution);
+            var newSolutionChecksum = await newSolution.State.GetChecksumAsync(CancellationToken.None);
+            newSolution.AppendAssetMap(map);
+
+            // get solution without updating primary workspace
+            var second = await service.GetSolutionAsync(newSolutionChecksum, CancellationToken.None);
+
+            Assert.Equal(newSolutionChecksum, await second.State.GetChecksumAsync(CancellationToken.None));
+            Assert.False(object.ReferenceEquals(PrimaryWorkspace.Workspace.PrimaryBranchId, second.BranchId));
+
+            // do same once updating primary workspace
+            await service.UpdatePrimaryWorkspaceAsync(newSolutionChecksum, CancellationToken.None);
+            var third = await service.GetSolutionAsync(newSolutionChecksum, CancellationToken.None);
+
+            Assert.Equal(newSolutionChecksum, await third.State.GetChecksumAsync(CancellationToken.None));
+            Assert.True(object.ReferenceEquals(PrimaryWorkspace.Workspace.PrimaryBranchId, third.BranchId));
         }
 
         private static async Task<SolutionService> GetSolutionServiceAsync(Solution solution, Dictionary<Checksum, object> map = null)

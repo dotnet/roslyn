@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis
             private readonly Dictionary<ISymbol, int> _symbolToId = new Dictionary<ISymbol, int>();
             private readonly StringBuilder _stringBuilder = new StringBuilder();
 
-            public Compilation Compilation { get; private set; }
             public CancellationToken CancellationToken { get; private set; }
 
             private List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
@@ -83,7 +82,6 @@ namespace Microsoft.CodeAnalysis
                 _symbolToId.Clear();
                 _stringBuilder.Clear();
                 _methodSymbolStack.Clear();
-                Compilation = null;
                 CancellationToken = default(CancellationToken);
                 _nestingCount = 0;
                 _nextId = 0;
@@ -92,16 +90,15 @@ namespace Microsoft.CodeAnalysis
                 s_writerPool.Free(this);
             }
 
-            public static SymbolKeyWriter GetWriter(Compilation compilation, CancellationToken cancellationToken)
+            public static SymbolKeyWriter GetWriter(CancellationToken cancellationToken)
             {
                 var visitor = s_writerPool.Allocate();
-                visitor.Initialize(compilation, cancellationToken);
+                visitor.Initialize(cancellationToken);
                 return visitor;
             }
 
-            private void Initialize(Compilation compilation, CancellationToken cancellationToken)
+            private void Initialize(CancellationToken cancellationToken)
             {
-                Compilation = compilation;
                 CancellationToken = cancellationToken;
             }
 

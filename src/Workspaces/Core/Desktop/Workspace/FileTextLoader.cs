@@ -7,11 +7,28 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    internal static class FileTextLoaderOptions
+    {
+        /// <summary>
+        /// Hidden registry key to control maximum size of a text file we will read into memory. 
+        /// we have this option to reduce a chance of OOM when user adds massive size files to the solution.
+        /// Default threshold is 100MB which came from some internal data on big files and some discussion.
+        /// 
+        /// User can override default value by setting DWORD value on FileLengthThreshold in 
+        /// "[VS HIVE]\Roslyn\Internal\Performance\Text"
+        /// </summary>
+        [ExportOption]
+        internal static readonly Option<long> FileLengthThreshold = new Option<long>(nameof(FileTextLoaderOptions), nameof(FileLengthThreshold), defaultValue: 100 * 1024 * 1024,
+            storageLocations: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Performance\Text\FileLengthThreshold"));
+    }
+
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public class FileTextLoader : TextLoader
     {
@@ -67,8 +84,11 @@ namespace Microsoft.CodeAnalysis
         /// Load a text and a version of the document in the workspace.
         /// </summary>
         /// <exception cref="IOException"></exception>
+        /// <exception cref="InvalidDataException"></exception>
         public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
+            ValidateFileLength(workspace, _path);
+
             DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
 
             TextAndVersion textAndVersion;
@@ -166,8 +186,15 @@ namespace Microsoft.CodeAnalysis
             return textAndVersion;
         }
 
+        /// <summary>
+        /// Load a text and a version of the document in the workspace.
+        /// </summary>
+        /// <exception cref="IOException"></exception>
+        /// <exception cref="InvalidDataException"></exception>
         internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
+            ValidateFileLength(workspace, _path);
+
             DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
 
             TextAndVersion textAndVersion;
@@ -197,6 +224,31 @@ namespace Microsoft.CodeAnalysis
         private string GetDebuggerDisplay()
         {
             return nameof(Path) + " = " + Path;
+        }
+
+        private static void ValidateFileLength(Workspace workspace, string path)
+        {
+            // Validate file length is under our threshold. 
+            // Otherwise, rather than reading the content into the memory, we will throw
+            // InvalidDataException to caller of FileTextLoader.LoadText to deal with 
+            // the situation.
+            // 
+            // check this (http://source.roslyn.io/#Microsoft.CodeAnalysis.Workspaces/Workspace/Solution/TextDocumentState.cs,132)
+            // to see how workspace deal with exception from FileTextLoader. other consumer can handle the exception differently
+            var fileLength = FileUtilities.GetFileLength(path);
+            var threshold = workspace.Options.GetOption(FileTextLoaderOptions.FileLengthThreshold);
+            if (fileLength > threshold)
+            {
+                // log max file length which will log to VS telemetry in VS host
+                Logger.Log(FunctionId.FileTextLoader_FileLengthThresholdExceeded, KeyValueLogMessage.Create(m =>
+                {
+                    m["FileLength"] = fileLength;
+                    m["Ext"] = PathUtilities.GetExtension(path);
+                }));
+
+                var message = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, path, fileLength, threshold);
+                throw new InvalidDataException(message);
+            }
         }
     }
 }

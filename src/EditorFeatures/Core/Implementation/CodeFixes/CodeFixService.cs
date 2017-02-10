@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             this.AssertIsForeground();
                             return fix.Action.IsApplicable(document.Project.Solution.Workspace);
                         },
-                        cancellationToken, TaskCreationOptions.None, this.ForegroundTaskScheduler).ConfigureAwait(false);
+                        cancellationToken, TaskCreationOptions.None, ForegroundTaskScheduler).ConfigureAwait(false);
                     this.AssertIsBackground();
 
                     if (applicable)

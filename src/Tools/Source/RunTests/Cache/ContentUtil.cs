@@ -86,7 +86,7 @@ namespace RunTests.Cache
                     var currentHash = GetFileChecksum(currentPath);
                     references.Add(Tuple.Create(current.Name, currentHash));
                 }
-                else if (assemblyUtil.IsKnownLightUpAssembly(current))
+                else if (assemblyUtil.IsKnownMissingAssembly(current))
                 {
                     references.Add(Tuple.Create(current.Name, "<missing light up reference>"));
                 }

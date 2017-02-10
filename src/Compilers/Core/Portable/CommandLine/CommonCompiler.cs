@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis
                 var finalXmlFilePath = Arguments.DocumentationPath;
 
                 var diagnosticBag = DiagnosticBag.GetInstance();
-                Stream sourceLinkStreamOpt = null;
+                NoThrowStreamDisposer sourceLinkStreamDisposerOpt = null;
 
                 try
                 {
@@ -611,7 +611,21 @@ namespace Microsoft.CodeAnalysis
 
                     if (Arguments.SourceLink != null)
                     {
-                        sourceLinkStreamOpt = OpenFile(Arguments.SourceLink, consoleOutput, FileMode.Open, FileAccess.Read, FileShare.Read);
+                        var sourceLinkStreamOpt = OpenFile(
+                            Arguments.SourceLink,
+                            consoleOutput,
+                            FileMode.Open,
+                            FileAccess.Read,
+                            FileShare.Read);
+
+                        if (sourceLinkStreamOpt != null)
+                        {
+                            sourceLinkStreamDisposerOpt = new NoThrowStreamDisposer(
+                                sourceLinkStreamOpt,
+                                Arguments.SourceLink,
+                                consoleOutput,
+                                MessageProvider);
+                        }
                     }
 
                     var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
@@ -619,7 +633,7 @@ namespace Microsoft.CodeAnalysis
                         Arguments.ManifestResources,
                         emitOptions,
                         debugEntryPoint: null,
-                        sourceLinkStream: sourceLinkStreamOpt,
+                        sourceLinkStream: sourceLinkStreamDisposerOpt?.Stream,
                         embeddedTexts: embeddedTexts,
                         testData: null,
                         cancellationToken: cancellationToken);
@@ -641,24 +655,30 @@ namespace Microsoft.CodeAnalysis
                             {
                                 // NOTE: as native compiler does, we generate the documentation file
                                 // NOTE: 'in place', replacing the contents of the file if it exists
-                                Stream xmlStreamOpt = null;
+                                NoThrowStreamDisposer xmlStreamDisposerOpt = null;
 
                                 if (finalXmlFilePath != null)
                                 {
-                                    xmlStreamOpt = OpenFile(finalXmlFilePath,
-                                                            consoleOutput,
-                                                            FileMode.OpenOrCreate,
-                                                            FileAccess.Write,
-                                                            FileShare.ReadWrite | FileShare.Delete);
+                                    var xmlStreamOpt = OpenFile(finalXmlFilePath,
+                                                                consoleOutput,
+                                                                FileMode.OpenOrCreate,
+                                                                FileAccess.Write,
+                                                                FileShare.ReadWrite | FileShare.Delete);
+
                                     if (xmlStreamOpt == null)
                                     {
                                         return Failed;
                                     }
 
                                     xmlStreamOpt.SetLength(0);
+                                    xmlStreamDisposerOpt = new NoThrowStreamDisposer(
+                                        xmlStreamOpt,
+                                        finalXmlFilePath,
+                                        consoleOutput,
+                                        MessageProvider);
                                 }
 
-                                using (xmlStreamOpt)
+                                using (xmlStreamDisposerOpt)
                                 {
                                     IEnumerable<DiagnosticInfo> errors;
                                     using (var win32ResourceStreamOpt = GetWin32Resources(Arguments, compilation, out errors))
@@ -670,17 +690,22 @@ namespace Microsoft.CodeAnalysis
 
                                         success = compilation.GenerateResourcesAndDocumentationComments(
                                             moduleBeingBuilt,
-                                            xmlStreamOpt,
+                                            xmlStreamDisposerOpt?.Stream,
                                             win32ResourceStreamOpt,
                                             diagnosticBag,
                                             cancellationToken);
                                     }
+                                }
 
-                                    // only report unused usings if we have success.
-                                    if (success)
-                                    {
-                                        compilation.ReportUnusedImports(null, diagnosticBag, cancellationToken);
-                                    }
+                                if (xmlStreamDisposerOpt?.HasFailedToDispose == true)
+                                {
+                                    return Failed;
+                                }
+
+                                // only report unused usings if we have success.
+                                if (success)
+                                {
+                                    compilation.ReportUnusedImports(null, diagnosticBag, cancellationToken);
                                 }
                             }
 
@@ -708,8 +733,10 @@ namespace Microsoft.CodeAnalysis
                         {
                             bool emitPdbFile = Arguments.EmitPdb && emitOptions.DebugInformationFormat != Emit.DebugInformationFormat.Embedded;
 
-                            using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath))
-                            using (var pdbStreamProviderOpt = emitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null)
+                            var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath);
+                            var pdbStreamProviderOpt = emitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
+
+                            try
                             {
                                 success = compilation.SerializeToPeStream(
                                     moduleBeingBuilt,
@@ -719,15 +746,20 @@ namespace Microsoft.CodeAnalysis
                                     diagnostics: diagnosticBag,
                                     metadataOnly: emitOptions.EmitMetadataOnly,
                                     cancellationToken: cancellationToken);
+                            }
+                            finally
+                            {
+                                peStreamProvider.Close(diagnosticBag);
+                                pdbStreamProviderOpt?.Close(diagnosticBag);
+                            }
 
-                                if (success && touchedFilesLogger != null)
+                            if (success && touchedFilesLogger != null)
+                            {
+                                if (pdbStreamProviderOpt != null)
                                 {
-                                    if (pdbStreamProviderOpt != null)
-                                    {
-                                        touchedFilesLogger.AddWritten(finalPdbFilePath);
-                                    }
-                                    touchedFilesLogger.AddWritten(finalPeFilePath);
+                                    touchedFilesLogger.AddWritten(finalPdbFilePath);
                                 }
+                                touchedFilesLogger.AddWritten(finalPeFilePath);
                             }
                         }
                     }
@@ -741,7 +773,12 @@ namespace Microsoft.CodeAnalysis
                 finally
                 {
                     diagnosticBag.Free();
-                    sourceLinkStreamOpt?.Dispose();
+                    sourceLinkStreamDisposerOpt?.Dispose();
+                }
+
+                if (sourceLinkStreamDisposerOpt?.HasFailedToDispose == true)
+                {
+                    return Failed;
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -776,26 +813,37 @@ namespace Microsoft.CodeAnalysis
                         touchedFilesLogger.AddWritten(finalXmlFilePath);
                     }
 
-                    var readStream = OpenFile(Arguments.TouchedFilesPath + ".read", consoleOutput, mode: FileMode.OpenOrCreate);
-                    if (readStream == null)
+                    string readFilesPath = Arguments.TouchedFilesPath + ".read";
+                    string writtenFilesPath = Arguments.TouchedFilesPath + ".write";
+
+                    var readStream = OpenFile(readFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
+                    var writtenStream = OpenFile(writtenFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
+
+                    if (readStream == null || writtenStream == null)
                     {
                         return Failed;
                     }
 
-                    using (var writer = new StreamWriter(readStream))
+                    string filePath = null;
+                    try
                     {
-                        touchedFilesLogger.WriteReadPaths(writer);
-                    }
+                        filePath = readFilesPath;
+                        using (var writer = new StreamWriter(readStream))
+                        {
+                            touchedFilesLogger.WriteReadPaths(writer);
+                        }
 
-                    var writtenStream = OpenFile(Arguments.TouchedFilesPath + ".write", consoleOutput, mode: FileMode.OpenOrCreate);
-                    if (writtenStream == null)
+                        filePath = writtenFilesPath;
+                        using (var writer = new StreamWriter(writtenStream))
+                        {
+                            touchedFilesLogger.WriteWrittenPaths(writer);
+                        }
+                    }
+                    catch (Exception e)
                     {
+                        Debug.Assert(filePath != null);
+                        MessageProvider.ReportStreamWriteException(e, filePath, consoleOutput);
                         return Failed;
-                    }
-
-                    using (var writer = new StreamWriter(writtenStream))
-                    {
-                        touchedFilesLogger.WriteWrittenPaths(writer);
                     }
                 }
             }
@@ -926,11 +974,12 @@ namespace Microsoft.CodeAnalysis
         }
         private Func<string, FileMode, FileAccess, FileShare, Stream> _fileOpen;
 
-        private Stream OpenFile(string filePath,
-                                TextWriter consoleOutput,
-                                FileMode mode = FileMode.Open,
-                                FileAccess access = FileAccess.ReadWrite,
-                                FileShare share = FileShare.None)
+        private Stream OpenFile(
+            string filePath,
+            TextWriter consoleOutput,
+            FileMode mode = FileMode.Open,
+            FileAccess access = FileAccess.ReadWrite,
+            FileShare share = FileShare.None)
         {
             try
             {
@@ -938,13 +987,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e)
             {
-                if (consoleOutput != null)
-                {
-                    // TODO: distinct error message?
-                    DiagnosticInfo diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)MessageProvider.ERR_OutputWriteFailed, filePath, e.Message);
-                    consoleOutput.WriteLine(diagnosticInfo.ToString(Culture));
-                }
-
+                MessageProvider.ReportStreamWriteException(e, filePath, consoleOutput);
                 return null;
             }
         }

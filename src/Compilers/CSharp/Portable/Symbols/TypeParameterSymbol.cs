@@ -524,17 +524,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(ContainingSymbol, Ordinal);
         }
 
-        /// <summary>
-        /// Returns a bag of applied custom attributes and data decoded from well-known attributes. Returns null if there are no attributes applied on the symbol.
-        /// </summary>
-        /// <remarks>
-        /// Forces binding and decoding of attributes.
-        /// </remarks>
-        internal virtual CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
-        {
-            return null;
-        }
-
         #region ITypeParameterTypeSymbol Members
 
         TypeParameterKind ITypeParameterSymbol.TypeParameterKind
