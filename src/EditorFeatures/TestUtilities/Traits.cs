@@ -50,7 +50,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsGenerateEndConstruct = "CodeActions.GenerateEndConstruct";
             public const string CodeActionsGenerateEnumMember = "CodeActions.GenerateEnumMember";
             public const string CodeActionsGenerateEvent = "CodeActions.GenerateEvent";
-            public const string CodeActionsGenerateEqualsAndGetHashCode = "CodeActions.GenerateEqualsAndGetHashCode";
+            public const string CodeActionsGenerateEqualsAndGetHashCode = "CodeActions.GenerateEqualsAndGetHashCodeFromMembers";
             public const string CodeActionsGenerateVariable = "CodeActions.GenerateVariable";
             public const string CodeActionsGenerateMethod = "CodeActions.GenerateMethod";
             public const string CodeActionsGenerateType = "CodeActions.GenerateType";

@@ -187,9 +187,9 @@
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.vb" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
-    <Compile Include="GenerateFromMembers\AddConstructorParametersFromMembers\AddConstructorParametersFromMembersTests.vb" />
-    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.vb" />
-    <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.vb" />
+    <Compile Include="AddConstructorParametersFromMembers\AddConstructorParametersFromMembersTests.vb" />
+    <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.vb" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersTests.vb" />
     <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.vb" />
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.vb" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.vb" />
