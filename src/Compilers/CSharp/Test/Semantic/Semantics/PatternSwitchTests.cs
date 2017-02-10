@@ -2539,5 +2539,158 @@ class Program
 @"case: 3
 3");
         }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_01()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<(int a, int b)>();
+        switch (list)
+        {
+            case List<(int x, int y)> list1:
+                break;
+            case List<(int z, int w)> list2: // subsumed
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case List<(int z, int w)> list2: // subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "List<(int z, int w)> list2").WithLocation(13, 18),
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_02()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<(int a, int b)>();
+        switch (list)
+        {
+            case List<(int x, int y)> list1:
+                Console.WriteLine(""pass"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_03()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var t = (a: 1, b: 2);
+        switch (t)
+        {
+            case ValueTuple<int, int> x:
+                Console.WriteLine(""pass"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_04()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var t = (a: 1, b: 2);
+        switch (t)
+        {
+            case var x:
+                Console.WriteLine(x.a);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"1");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_05()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var t = (a: 1, b: 2);
+        switch (t)
+        {
+            case ValueTuple<int, int> x:
+                break;
+            case var x:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var x:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var x").WithLocation(13, 18),
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17)
+                );
+        }
     }
 }
