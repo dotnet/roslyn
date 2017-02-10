@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
@@ -44,7 +44,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestDiagnosticArguments()
         {
-            var arguments = new hub::Microsoft.CodeAnalysis.Remote.Diagnostics.DiagnosticArguments(
+            var arguments = new DiagnosticArguments(
                 reportSuppressedDiagnostics: true,
                 logAnalyzerExecutionTime: false,
                 projectId: ProjectId.CreateNewId("project"),

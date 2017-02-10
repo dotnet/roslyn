@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.Remote.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
     /// helper type to package diagnostic arguments to pass around between remote hosts
