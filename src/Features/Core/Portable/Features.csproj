@@ -124,7 +124,7 @@
     </Compile>
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
-    <Compile Include="AddConstructorParametersFromMembers\AddConstructorParametersFromMembersService.State.cs" />
+    <Compile Include="AddConstructorParametersFromMembers\State.cs" />
     <Compile Include="ImplementType\ImplementTypeOptions.cs" />
     <Compile Include="ImplementType\ImplementTypeOptionsProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
@@ -508,14 +508,11 @@
     <Compile Include="ExtractMethod\UniqueNameGenerator.cs" />
     <Compile Include="ExtractMethod\VariableStyle.cs" />
     <Compile Include="GenerateFromMembers\AbstractGenerateFromMembersService.cs" />
-    <Compile Include="AddConstructorParametersFromMembers\AddConstructorParametersFromMembersService.CodeAction.cs" />
-    <Compile Include="AddConstructorParametersFromMembers\AddConstructorParametersFromMembersService.cs" />
-    <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersService.ConstructorDelegatingCodeAction.cs" />
-    <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersService.cs" />
-    <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersService.FieldDelegatingCodeAction.cs" />
-    <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersService.State.cs" />
-    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersService.cs" />
-    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersService.CodeAction.cs" />
+    <Compile Include="AddConstructorParametersFromMembers\AddConstructorParametersCodeAction.cs" />
+    <Compile Include="GenerateConstructorFromMembers\ConstructorDelegatingCodeAction.cs" />
+    <Compile Include="GenerateConstructorFromMembers\FieldDelegatingCodeAction.cs" />
+    <Compile Include="GenerateConstructorFromMembers\State.cs" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndHashCodeAction.cs" />
     <Compile Include="GenerateMember\AbstractGenerateMemberService.cs" />
     <Compile Include="GenerateMember\GenerateConstructor\AbstractGenerateConstructorService.CodeAction.cs" />
     <Compile Include="GenerateMember\GenerateConstructor\AbstractGenerateConstructorService.cs" />

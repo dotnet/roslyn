@@ -14,17 +14,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
-    internal partial class AddConstructorParametersFromMembersService
+    internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
     {
         private class AddConstructorParametersCodeAction : CodeAction
         {
-            private readonly AddConstructorParametersFromMembersService _service;
+            private readonly AddConstructorParametersFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly State _state;
             private readonly IList<IParameterSymbol> _parameters;
 
             public AddConstructorParametersCodeAction(
-                AddConstructorParametersFromMembersService service,
+                AddConstructorParametersFromMembersCodeRefactoringProvider service,
                 Document document,
                 State state,
                 IList<IParameterSymbol> parameters)

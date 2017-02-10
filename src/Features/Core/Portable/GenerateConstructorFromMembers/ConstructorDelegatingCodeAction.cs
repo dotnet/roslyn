@@ -12,16 +12,16 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
-    internal partial class GenerateConstructorFromMembersService
+    internal partial class GenerateConstructorFromMembersCodeRefactoringProvider
     {
         private class ConstructorDelegatingCodeAction : CodeAction
         {
-            private readonly GenerateConstructorFromMembersService _service;
+            private readonly GenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly State _state;
 
             public ConstructorDelegatingCodeAction(
-                GenerateConstructorFromMembersService service,
+                GenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 State state)
             {
