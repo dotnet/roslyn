@@ -17,13 +17,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private class RoslynDefinitionBucket : DefinitionBucket, ISupportsNavigation
         {
             private readonly StreamingFindUsagesPresenter _presenter;
-            private readonly TableDataSourceFindUsagesContext _context;
+            private readonly AbstractTableDataSourceFindUsagesContext _context;
 
             public readonly DefinitionItem DefinitionItem;
 
             public RoslynDefinitionBucket(
                 StreamingFindUsagesPresenter presenter,
-                TableDataSourceFindUsagesContext context,
+                AbstractTableDataSourceFindUsagesContext context,
                 DefinitionItem definitionItem)
                 : base(name: definitionItem.DisplayParts.JoinText() + " " + definitionItem.GetHashCode(),
                        sourceTypeIdentifier: context.SourceTypeIdentifier,
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 case StandardTableKeyNames2.TextInlines:
                     var inlines = new List<Inline> { new Run(" ") };
-                    inlines.AddRange(DefinitionItem.DisplayParts.ToInlines(_presenter._typeMap));
+                    inlines.AddRange(DefinitionItem.DisplayParts.ToInlines(_presenter.TypeMap));
                     foreach (var inline in inlines)
                     {
                         inline.SetValue(TextElement.FontWeightProperty, FontWeights.Bold);

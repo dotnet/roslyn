@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     case StandardTableKeyNames.ProjectName:
                         return this.TryGetDocument()?.Project.Name;
                     case StandardTableKeyNames.Text:
-                        return _message; 
+                        return _message;
                 }
 
                 return null;
