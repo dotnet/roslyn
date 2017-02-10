@@ -99,6 +99,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add argument name &apos;{0}&apos;.
+        /// </summary>
+        internal static string Add_argument_name_0 {
+            get {
+                return ResourceManager.GetString("Add_argument_name_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add both.
         /// </summary>
         internal static string Add_both {
@@ -727,6 +736,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to binary.
+        /// </summary>
+        internal static string Convert_to_binary {
+            get {
+                return ResourceManager.GetString("Convert_to_binary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to decimal.
+        /// </summary>
+        internal static string Convert_to_decimal {
+            get {
+                return ResourceManager.GetString("Convert_to_decimal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to hex.
+        /// </summary>
+        internal static string Convert_to_hex {
+            get {
+                return ResourceManager.GetString("Convert_to_hex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert to interpolated string.
         /// </summary>
         internal static string Convert_to_interpolated_string {
@@ -1108,20 +1144,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate abstract method &apos;{0}&apos; in &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Generate abstract method &apos;{1}.{0}&apos;.
         /// </summary>
-        internal static string Generate_abstract_method_0_in_1 {
+        internal static string Generate_abstract_method_1_0 {
             get {
-                return ResourceManager.GetString("Generate_abstract_method_0_in_1", resourceCulture);
+                return ResourceManager.GetString("Generate_abstract_method_1_0", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate abstract property &apos;{0}&apos; in &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Generate abstract property &apos;{1}.{0}&apos;.
         /// </summary>
-        internal static string Generate_abstract_property_0_in_1 {
+        internal static string Generate_abstract_property_1_0 {
             get {
-                return ResourceManager.GetString("Generate_abstract_property_0_in_1", resourceCulture);
+                return ResourceManager.GetString("Generate_abstract_property_1_0", resourceCulture);
             }
         }
         
@@ -1144,11 +1180,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate constant &apos;{0}&apos; in &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Generate constant &apos;{1}.{0}&apos;.
         /// </summary>
-        internal static string Generate_constant_0_in_1 {
+        internal static string Generate_constant_1_0 {
             get {
-                return ResourceManager.GetString("Generate_constant_0_in_1", resourceCulture);
+                return ResourceManager.GetString("Generate_constant_1_0", resourceCulture);
             }
         }
         
@@ -1180,11 +1216,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate enum member &apos;{0}&apos; in &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Generate enum member &apos;{1}.{0}&apos;.
         /// </summary>
-        internal static string Generate_enum_member_0_in_1 {
+        internal static string Generate_enum_member_1_0 {
             get {
-                return ResourceManager.GetString("Generate_enum_member_0_in_1", resourceCulture);
+                return ResourceManager.GetString("Generate_enum_member_1_0", resourceCulture);
             }
         }
         
@@ -1198,11 +1234,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate field &apos;{0}&apos; in &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Generate field &apos;{1}.{0}&apos;.
         /// </summary>
-        internal static string Generate_field_0_in_1 {
+        internal static string Generate_field_1_0 {
             get {
-                return ResourceManager.GetString("Generate_field_0_in_1", resourceCulture);
+                return ResourceManager.GetString("Generate_field_1_0", resourceCulture);
             }
         }
         
@@ -2230,6 +2266,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove separators.
+        /// </summary>
+        internal static string Remove_separators {
+            get {
+                return ResourceManager.GetString("Remove_separators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove Suppression.
         /// </summary>
         internal static string Remove_Suppression {
@@ -2418,6 +2463,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string Searched_in_directory_colon {
             get {
                 return ResourceManager.GetString("Searched_in_directory_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Separate nibbles.
+        /// </summary>
+        internal static string Separate_nibbles {
+            get {
+                return ResourceManager.GetString("Separate_nibbles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Separate thousands.
+        /// </summary>
+        internal static string Separate_thousands {
+            get {
+                return ResourceManager.GetString("Separate_thousands", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Separate words.
+        /// </summary>
+        internal static string Separate_words {
+            get {
+                return ResourceManager.GetString("Separate_words", resourceCulture);
             }
         }
         

@@ -221,7 +221,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 await session.InvokeAsync(
                     WellKnownRemoteHostServices.RemoteHostService_SynchronizePrimaryWorkspaceAsync,
-                    new object[] { (await solution.State.GetChecksumAsync(CancellationToken.None)).ToArray() });
+                    await solution.State.GetChecksumAsync(CancellationToken.None));
             }
         }
 

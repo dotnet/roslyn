@@ -1629,7 +1629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_NetModuleNameMismatch = 37205
         ERR_BadModuleName = 37206
         ERR_CmdOptionConflictsSource = 37207
-        ' unused 37208   
+        ERR_TypeForwardedToMultipleAssemblies = 37208
         ERR_InvalidSignaturePublicKey = 37209
         ERR_CollisionWithPublicTypeInModule = 37210
         ERR_ExportedTypeConflictsWithDeclaration = 37211

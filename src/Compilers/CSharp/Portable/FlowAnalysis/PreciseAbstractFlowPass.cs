@@ -1921,7 +1921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         right = udBinOp.Right;
                         break;
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(binary.Kind);
                 }
 
                 var op = kind.Operator();

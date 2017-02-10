@@ -66,8 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private async Task InitializeAsync()
         {
             // all roslyn remote service must based on ServiceHubServiceBase which implements Initialize method
-            await _snapshotClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
-            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
+            await _snapshotClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum).ConfigureAwait(false);
+            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum).ConfigureAwait(false);
         }
 
         public override Task InvokeAsync(string targetName, params object[] arguments)
@@ -114,6 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 // this one doesn't need cancellation token since it has nothing to cancel
                 _callbackTarget = callbackTarget;
+
+                StartListening();
             }
         }
 
@@ -137,6 +139,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 _owner = owner;
                 _source = new CancellationTokenSource();
+
+                StartListening();
             }
 
             private PinnedRemotableDataScope PinnedScope => _owner.PinnedScope;
@@ -220,7 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var checksum = kv.Key;
                     var remotableData = kv.Value;
 
-                    writer.WriteValue(checksum.ToArray());
+                    checksum.WriteTo(writer);
                     writer.WriteString(remotableData.Kind);
 
                     await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);

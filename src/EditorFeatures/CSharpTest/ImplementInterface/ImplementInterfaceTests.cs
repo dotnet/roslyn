@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -20,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
     public partial class ImplementInterfaceTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpImplementInterfaceCodeFixProvider());
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new CSharpImplementInterfaceCodeFixProvider());
 
         private static readonly Dictionary<OptionKey, object> AllOptionsOff =
             new Dictionary<OptionKey, object>
@@ -108,6 +107,63 @@ interface IInterface
 class Class : IInterface
 {
     public void Method1()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestMethodWithTuple()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    (int, int) Method((string, string) x);
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"using System;
+
+interface IInterface
+{
+    (int, int) Method((string, string) x);
+}
+
+class Class : IInterface
+{
+    public (int, int) Method((string, string) x)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(16793, "https://github.com/dotnet/roslyn/issues/16793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestMethodWithValueTupleArity1()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"
+using System;
+interface I
+{
+    ValueTuple<object> F();
+}
+class C : [|I|]
+{
+}",
+@"
+using System;
+interface I
+{
+    ValueTuple<object> F();
+}
+class C : I
+{
+    public ValueTuple<object> F()
     {
         throw new NotImplementedException();
     }
@@ -6759,6 +6815,44 @@ class Class : IComInterface
     public void X() { throw new NotImplementedException(); }
     public void MOverload(int i) { throw new NotImplementedException(); }
     public int Prop => throw new NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestRefReturns()
+        {
+            await TestAsync(
+@"
+using System;
+
+interface I {
+    ref int IFoo();
+    ref int Foo { get; }
+    ref int this[int i] { get; }
+}
+
+class C : [|I|]
+{
+}",
+@"
+using System;
+
+interface I {
+    ref int IFoo();
+    ref int Foo { get; }
+    ref int this[int i] { get; }
+}
+
+class C : I
+{
+    public ref int this[int i] => throw new NotImplementedException();
+
+    public ref int Foo => throw new NotImplementedException();
+
+    public ref int IFoo()
+    {
+        throw new NotImplementedException();
+    }
 }");
         }
     }

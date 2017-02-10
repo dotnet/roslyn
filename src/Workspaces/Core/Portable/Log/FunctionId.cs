@@ -162,8 +162,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Refactoring_CodeRefactoringService_GetRefactoringsAsync,
         Refactoring_AddImport,
         Refactoring_FullyQualify,
-        Refactoring_GenerateFromMembers_AddConstructorParameters,
-        Refactoring_GenerateFromMembers_GenerateConstructor,
+        Refactoring_GenerateFromMembers_AddConstructorParametersFromMembers,
+        Refactoring_GenerateFromMembers_GenerateConstructorFromMembers,
         Refactoring_GenerateFromMembers_GenerateEqualsAndGetHashCode,
         Refactoring_GenerateMember_GenerateConstructor,
         Refactoring_GenerateMember_GenerateDefaultConstructors,
@@ -361,5 +361,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         JsonRpcSession_RequestAssetAsync,
         SolutionSynchronizationService_GetRemotableData,
         AssetService_SynchronizeProjectAssetsAsync,
+        FileTextLoader_FileLengthThresholdExceeded,
     }
 }

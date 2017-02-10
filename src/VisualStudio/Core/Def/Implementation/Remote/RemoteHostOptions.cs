@@ -27,6 +27,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             nameof(InternalFeatureOnOffOptions), nameof(SolutionChecksumMonitorBackOffTimeSpanInMS), defaultValue: 4000,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(SolutionChecksumMonitorBackOffTimeSpanInMS)));
 
+        // Default timeout for service hub HubClient.RequestServiceAsync call
+        // it turns out HubClient.RequestServiceAsync has internal timeout on how long it will try to connect requested service from service hub
+        // if it can't connect, then it throws its own cancellation exception.
+        // this is our timeout on how long we will try keep connecting. so far I saw over 2-3 seconds before connection made 
+        // when there are many (over 10+ requests) at the same time. one of reasons of this is we put our service hub process as "Below Normal" priority.
+        // normally response time is within 10s ms. at most 100ms. if priority is changed to "Normal", most of time 10s ms.
+        [ExportOption]
+        public static readonly Option<int> RequestServiceTimeoutInMS = new Option<int>(nameof(InternalFeatureOnOffOptions), nameof(RequestServiceTimeoutInMS), defaultValue: 10 * 60 * 1000);
+
         [ExportOption]
         public static readonly Option<bool> RemoteHostTest = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(RemoteHostTest), defaultValue: false);
     }
