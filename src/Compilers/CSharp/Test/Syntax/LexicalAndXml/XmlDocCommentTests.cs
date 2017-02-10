@@ -45,7 +45,8 @@ public class C
     /// </summary>
     public void M() { }
 }");
-            using (new EnsureEnglishUICulture()) {
+            using (new EnsureEnglishUICulture()) 
+            {
                 var diags = new DiagnosticBag();
                 var badStream = new BrokenStream();
                 badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
