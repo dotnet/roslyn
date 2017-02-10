@@ -36,33 +36,42 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
             var document = context.Document;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(diagnotic.Location.SourceSpan);
 
-            while (node != null)
+            var initialNode = root.FindNode(diagnotic.Location.SourceSpan);
+
+            for (var node = initialNode; node != null; node = node.Parent)
             {
                 if (node is TObjectCreationExpressionSyntax objectCreation)
                 {
-                    await HandleObjectCreationExpressionAsync(context, objectCreation).ConfigureAwait(false);
+                    var argumentOpt = TryGetRelevantArgument(initialNode, node);
+                    await HandleObjectCreationExpressionAsync(context, objectCreation, argumentOpt).ConfigureAwait(false);
                     return;
                 }
                 else if (node is TInvocationExpressionSyntax invocationExpression)
                 {
-                    await HandleInvocationExpressionAsync(context, invocationExpression).ConfigureAwait(false);
+                    var argumentOpt = TryGetRelevantArgument(initialNode, node);
+                    await HandleInvocationExpressionAsync(context, invocationExpression, argumentOpt).ConfigureAwait(false);
                     return;
                 }
-
-                node = node.Parent;
             }
         }
 
-        private Task HandleInvocationExpressionAsync(CodeFixContext context, TInvocationExpressionSyntax invocationExpression)
+        private static TArgumentSyntax TryGetRelevantArgument(SyntaxNode initialNode, SyntaxNode node)
+        {
+            return initialNode.GetAncestorsOrThis<TArgumentSyntax>()
+                                                             .LastOrDefault(a => a.AncestorsAndSelf().Contains(node));
+        }
+
+        private Task HandleInvocationExpressionAsync(
+            CodeFixContext context, TInvocationExpressionSyntax invocationExpression, TArgumentSyntax argumentOpt)
         {
             return SpecializedTasks.EmptyTask;
         }
 
         private async Task HandleObjectCreationExpressionAsync(
             CodeFixContext context,
-            TObjectCreationExpressionSyntax objectCreation)
+            TObjectCreationExpressionSyntax objectCreation,
+            TArgumentSyntax argumentOpt)
         {
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
@@ -94,10 +103,20 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     NonParamsParameterCount(constructor) < arguments.Count)
                 {
                     var argumentToAdd = DetermineFirstArgumentToAdd(
-                        semanticModel, syntaxFacts, comparer, constructor, arguments);
+                        semanticModel, syntaxFacts, comparer, constructor, 
+                        arguments, argumentOpt);
 
                     if (argumentToAdd != null)
                     {
+                        if (argumentOpt != null && argumentToAdd != argumentOpt)
+                        {
+                            // We were trying to fix a specific argument, but the argument we want
+                            // to fix is something different.  That means there was an error earlier
+                            // than this argument.  Which means we're looking at a non-viable 
+                            // constructor.  Skip this one.
+                            continue;
+                        }
+
                         var parameters = constructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
                         var signature = $"{type.Name}({string.Join(", ", parameters)})";
 
@@ -195,7 +214,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
             ISyntaxFactsService syntaxFacts,
             StringComparer comparer,
             IMethodSymbol method,
-            SeparatedSyntaxList<TArgumentSyntax> arguments)
+            SeparatedSyntaxList<TArgumentSyntax> arguments,
+            TArgumentSyntax argumentOpt)
         {
             var methodParameterNames = new HashSet<string>(comparer);
             methodParameterNames.AddRange(method.Parameters.Select(p => p.Name));
