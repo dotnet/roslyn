@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return;
             }
 
-            var service = document.GetLanguageService<IGenerateConstructorFromMembersService>();
+            var service = GenerateConstructorFromMembersService.Instance;
             var actions = await service.GenerateConstructorFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (!actions.IsDefault)
             {

@@ -13,12 +13,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
-    internal abstract partial class AbstractAddConstructorParametersFromMembersService<TService, TMemberDeclarationSyntax> :
-            AbstractGenerateFromMembersService<TMemberDeclarationSyntax>, IAddConstructorParametersFromMembersService
-        where TService : AbstractAddConstructorParametersFromMembersService<TService, TMemberDeclarationSyntax>
-        where TMemberDeclarationSyntax : SyntaxNode
+    internal partial class AddConstructorParametersFromMembersService : AbstractGenerateFromMembersService
     {
-        protected AbstractAddConstructorParametersFromMembersService()
+        public static readonly AddConstructorParametersFromMembersService Instance = new AddConstructorParametersFromMembersService();
+
+        private AddConstructorParametersFromMembersService()
         {
         }
 
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 var info = await this.GetSelectedMemberInfoAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
                 if (info != null)
                 {
-                    var state = State.Generate((TService)this, document, textSpan, info.SelectedMembers, cancellationToken);
+                    var state = State.Generate(this, document, textSpan, info.SelectedMembers, cancellationToken);
                     if (state != null)
                     {
                         return CreateCodeActions(document, state).AsImmutableOrNull();
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             var lastParameter = state.DelegatedConstructor.Parameters.Last();
             if (!lastParameter.IsOptional)
             {
-                yield return new AddConstructorParametersCodeAction((TService)this, document, state, state.Parameters);
+                yield return new AddConstructorParametersCodeAction(this, document, state, state.Parameters);
             }
 
             var parameters = state.Parameters.Select(p => CodeGenerationSymbolFactory.CreateParameterSymbol(
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 isOptional: true,
                 hasDefaultValue: true)).ToList();
 
-            yield return new AddConstructorParametersCodeAction((TService)this, document, state, parameters);
+            yield return new AddConstructorParametersCodeAction(this, document, state, parameters);
         }
     }
 }

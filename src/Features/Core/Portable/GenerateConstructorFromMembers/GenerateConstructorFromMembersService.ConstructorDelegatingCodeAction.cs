@@ -12,16 +12,16 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
-    internal abstract partial class AbstractGenerateConstructorFromMembersService<TService, TMemberDeclarationSyntax>
+    internal partial class GenerateConstructorFromMembersService
     {
-        private class FieldDelegatingCodeAction : CodeAction
+        private class ConstructorDelegatingCodeAction : CodeAction
         {
-            private readonly TService _service;
+            private readonly GenerateConstructorFromMembersService _service;
             private readonly Document _document;
             private readonly State _state;
 
-            public FieldDelegatingCodeAction(
-                TService service,
+            public ConstructorDelegatingCodeAction(
+                GenerateConstructorFromMembersService service,
                 Document document,
                 State state)
             {
@@ -38,29 +38,41 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 //
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
-                var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
-                for (int i = 0; i < _state.Parameters.Count; i++)
+                var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.ContainingType.Language);
+                var factory = provider.GetService<SyntaxGenerator>();
+                var codeGenerationService = provider.GetService<ICodeGenerationService>();
+
+                var thisConstructorArguments = factory.CreateArguments(_state.DelegatedConstructor.Parameters);
+                var statements = new List<SyntaxNode>();
+
+                for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Count; i++)
                 {
-                    parameterToExistingFieldMap[_state.Parameters[i].Name] = _state.SelectedMembers[i];
+                    var symbolName = _state.SelectedMembers[i].Name;
+                    var parameterName = _state.Parameters[i].Name;
+                    var assignExpression = factory.AssignmentStatement(
+                        factory.MemberAccessExpression(
+                            factory.ThisExpression(),
+                            factory.IdentifierName(symbolName)),
+                        factory.IdentifierName(parameterName));
+
+                    var expressionStatement = factory.ExpressionStatement(assignExpression);
+                    statements.Add(expressionStatement);
                 }
 
-                var factory = _document.GetLanguageService<SyntaxGenerator>();
-
                 var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var members = factory.CreateFieldDelegatingConstructor(
-                    _state.ContainingType.Name,
-                    _state.ContainingType,
-                    _state.Parameters,
-                    parameterToExistingFieldMap,
-                    parameterToNewFieldMap: null,
-                    cancellationToken: cancellationToken);
-
-                var result = await CodeGenerator.AddMemberDeclarationsAsync(
+                var result = await codeGenerationService.AddMethodAsync(
                     _document.Project.Solution,
                     _state.ContainingType,
-                    members,
+                    CodeGenerationSymbolFactory.CreateConstructorSymbol(
+                        attributes: null,
+                        accessibility: Accessibility.Public,
+                        modifiers: new DeclarationModifiers(),
+                        typeName: _state.ContainingType.Name,
+                        parameters: _state.Parameters,
+                        statements: statements,
+                        thisConstructorArguments: thisConstructorArguments),
                     new CodeGenerationOptions(contextLocation: syntaxTree.GetLocation(_state.TextSpan)),
-                    cancellationToken)
+                    cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
 
                 return result;
@@ -74,16 +86,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     var parameters = _state.Parameters.Select(p => symbolDisplayService.ToDisplayString(p, SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
 
-                    if (_state.DelegatedConstructor == null)
-                    {
-                        return string.Format(FeaturesResources.Generate_constructor_0_1,
-                            _state.ContainingType.Name, parameterString);
-                    }
-                    else
-                    {
-                        return string.Format(FeaturesResources.Generate_field_assigning_constructor_0_1,
-                            _state.ContainingType.Name, parameterString);
-                    }
+                    return string.Format(FeaturesResources.Generate_delegating_constructor_0_1,
+                        _state.ContainingType.Name, parameterString);
                 }
             }
         }

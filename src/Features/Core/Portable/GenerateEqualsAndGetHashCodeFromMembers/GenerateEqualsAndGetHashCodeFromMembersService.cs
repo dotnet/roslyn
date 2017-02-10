@@ -13,18 +13,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
-    internal abstract partial class AbstractGenerateEqualsAndGetHashCodeFromMembersService<TService, TMemberDeclarationSyntax> :
-        AbstractGenerateFromMembersService<TMemberDeclarationSyntax>, IGenerateEqualsAndGetHashCodeFromMembersService
-        where TService : AbstractGenerateEqualsAndGetHashCodeFromMembersService<TService, TMemberDeclarationSyntax>
-        where TMemberDeclarationSyntax : SyntaxNode
+    internal partial class GenerateEqualsAndGetHashCodeFromMembersService : AbstractGenerateFromMembersService
     {
         private const string EqualsName = "Equals";
         private const string GetHashCodeName = "GetHashCode";
         private const string ObjName = nameof(ObjName);
 
-        protected AbstractGenerateEqualsAndGetHashCodeFromMembersService()
-        {
-        }
+        public static readonly GenerateEqualsAndGetHashCodeFromMembersService Instance = new GenerateEqualsAndGetHashCodeFromMembersService();
 
         public async Task<ImmutableArray<CodeAction>> GenerateEqualsAndGetHashCodeFromMembersAsync(
             Document document,
@@ -71,17 +66,17 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         {
             if (!hasEquals)
             {
-                yield return new GenerateEqualsAndHashCodeAction((TService)this, document, textSpan, containingType, selectedMembers, generateEquals: true);
+                yield return new GenerateEqualsAndHashCodeAction(this, document, textSpan, containingType, selectedMembers, generateEquals: true);
             }
 
             if (!hasGetHashCode)
             {
-                yield return new GenerateEqualsAndHashCodeAction((TService)this, document, textSpan, containingType, selectedMembers, generateGetHashCode: true);
+                yield return new GenerateEqualsAndHashCodeAction(this, document, textSpan, containingType, selectedMembers, generateGetHashCode: true);
             }
 
             if (!hasEquals && !hasGetHashCode)
             {
-                yield return new GenerateEqualsAndHashCodeAction((TService)this, document, textSpan, containingType, selectedMembers, generateEquals: true, generateGetHashCode: true);
+                yield return new GenerateEqualsAndHashCodeAction(this, document, textSpan, containingType, selectedMembers, generateEquals: true, generateGetHashCode: true);
             }
         }
     }

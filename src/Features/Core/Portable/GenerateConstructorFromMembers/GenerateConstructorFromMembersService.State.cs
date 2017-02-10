@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
-    internal abstract partial class AbstractGenerateConstructorFromMembersService<TService, TMemberDeclarationSyntax>
+    internal partial class GenerateConstructorFromMembersService
     {
         private class State
         {
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             public List<IParameterSymbol> Parameters { get; private set; }
 
             public static State Generate(
-                TService service,
+                GenerateConstructorFromMembersService service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             private bool TryInitialize(
-                TService service,
+                GenerateConstructorFromMembersService service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
