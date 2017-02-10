@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             foreach (var constructor in type.InstanceConstructors.OrderBy(m => m.Parameters.Length))
             {
                 if (IsInSource(constructor) &&
-                    constructor.Parameters.Length < arguments.Count)
+                    NonParamsParameterCount(constructor) < arguments.Count)
                 {
                     var argumentToAdd = DetermineFirstArgumentToAdd(
                         semanticModel, syntaxFacts, comparer, constructor, arguments);
@@ -110,6 +110,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 }
             }
         }
+
+        private int NonParamsParameterCount(IMethodSymbol method)
+            => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
         private bool IsInSource(ISymbol symbol)
             => !symbol.IsImplicitlyDeclared &&
@@ -188,11 +191,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
                         miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         private TArgumentSyntax DetermineFirstArgumentToAdd(
-                SemanticModel semanticModel,
-                ISyntaxFactsService syntaxFacts,
-                StringComparer comparer,
-                IMethodSymbol method,
-                SeparatedSyntaxList<TArgumentSyntax> arguments)
+            SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFacts,
+            StringComparer comparer,
+            IMethodSymbol method,
+            SeparatedSyntaxList<TArgumentSyntax> arguments)
         {
             var methodParameterNames = new HashSet<string>(comparer);
             methodParameterNames.AddRange(method.Parameters.Select(p => p.Name));
@@ -217,17 +220,28 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     // then this definitely is an argument we could add.
                     if (i >= method.Parameters.Length)
                     {
+                        if (method.Parameters.LastOrDefault()?.IsParams == true)
+                        {
+                            // Last parameter is a params.  We can't place any parameters past it.
+                            return null;
+                        }
+
                         return argument;
                     }
 
                     var argumentTypeInfo = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfArgument(argument));
                     var parameter = method.Parameters[i];
 
-                    // If this argument already matches the method's parameter, then we don't want 
-                    // to add it.
-                    if (!parameter.Type.Equals(argumentTypeInfo.Type) &&
-                        !parameter.Type.Equals(argumentTypeInfo.ConvertedType))
+                    if (!TypeInfoMatchesType(argumentTypeInfo, parameter.Type))
                     {
+                        if (parameter.IsParams && parameter.Type is IArrayTypeSymbol arrayType)
+                        {
+                            if (TypeInfoMatchesType(argumentTypeInfo, arrayType.ElementType))
+                            {
+                                return null;
+                            }
+                        }
+
                         return argument;
                     }
                 }
@@ -235,6 +249,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
             return null;
         }
+
+        private bool TypeInfoMatchesType(TypeInfo argumentTypeInfo, ITypeSymbol type)
+            => type.Equals(argumentTypeInfo.Type) || type.Equals(argumentTypeInfo.ConvertedType);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

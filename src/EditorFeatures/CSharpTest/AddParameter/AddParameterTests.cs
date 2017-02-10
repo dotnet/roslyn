@@ -183,5 +183,56 @@ class D
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestParams1()
+        {
+            await TestAsync(
+@"
+class C
+{
+    public C(params int[] i) { }
+}
+
+class D
+{
+    void M()
+    {
+        new C([|true|], 1);
+    }
+}",
+@"
+class C
+{
+    public C(bool v, params int[] i) { }
+}
+
+class D
+{
+    void M()
+    {
+        new C(true, 1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestParams2()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    public C(params int[] i) { }
+}
+
+class D
+{
+    void M()
+    {
+        new [|C|](1, true);
+    }
+}");
+        }
     }
 }
