@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             // Cursor has to at least be touching a string token.
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!token.Span.IntersectsWith(position) || 
+            if (!token.Span.IntersectsWith(position) ||
                 !syntaxFacts.IsStringLiteral(token))
             {
                 return;
@@ -64,13 +64,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-            // Now walk down the concatenation collecting all the pieces that we are 
+            // Now walk down the concatenation collecting all the pieces that we are
             // concatenating.
             var pieces = new List<SyntaxNode>();
             CollectPiecesDown(syntaxFacts, pieces, top, semanticModel, cancellationToken);
 
             // If the entire expression is just concatenated strings, then don't offer to
-            // make an interpolated string.  The user likely manually split this for 
+            // make an interpolated string.  The user likely manually split this for
             // readability.
             if (pieces.All(syntaxFacts.IsStringLiteralExpression))
             {
@@ -112,22 +112,45 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var endToken = CreateInterpolatedStringEndToken()
                                 .WithTrailingTrivia(pieces.Last().GetTrailingTrivia());
 
-            var content = new List<SyntaxNode>();
-            foreach (var piece in pieces)
+            var content = new List<SyntaxNode>(pieces.Count);
+            var previousIndex = -2;
+            var insertionIndex = -1;
+            for (int i = 0; i < pieces.Count; i++)
             {
-                if (syntaxFacts.IsStringLiteralExpression(piece))
+                if (syntaxFacts.IsStringLiteralExpression(pieces[i]))
                 {
-                    var text = piece.GetFirstToken().Text;
+                    var text = pieces[i].GetFirstToken().Text;
                     var textWithoutQuotes = GetTextWithoutQuotes(text, isVerbatimStringLiteral);
-                    content.Add(generator.InterpolatedStringText(
-                        generator.InterpolatedStringTextToken(textWithoutQuotes)));
+                    if (i-1 == previousIndex)
+                    {
+                        // Last part we added to the content list was also an interpolated-string-text-node.
+                        // We need to combine these as the API for creating an interpolated strings
+                        // does not expect to be given a list containing non-contiguous string nodes.
+                        // Essentially if we combine '"A" + 1 + "B" + "C"' into '$"A{1}BC"' it must be:
+                        //      {InterpolatedStringText}{Interpolation}{InterpolatedStringText}
+                        // not:
+                        //      {InterpolatedStringText}{Interpolation}{InterpolatedStringText}{InterpolatedStringText}
+                        var interpolatedStringTextNode = content[insertionIndex];
+                        var existingText = interpolatedStringTextNode.GetFirstToken().Text;
+                        var newText = existingText + textWithoutQuotes;
+                        content[insertionIndex] = generator.InterpolatedStringText(generator.InterpolatedStringTextToken(newText));
+                    }
+                    else
+                    {
+                        // This is either the first string literal we have encountered or it is the most recent one we've seen
+                        // after adding an interpolation.  Add a new interpolated-string-text-node to the list.
+                        content.Add(generator.InterpolatedStringText(generator.InterpolatedStringTextToken(textWithoutQuotes)));
+
+                        // Update the insertion index incase the next piece is also a interpolated-string-text-node.
+                        insertionIndex = i;
+                    }
+                    previousIndex = i;
                 }
                 else
                 {
-                    content.Add(generator.Interpolation(piece.WithoutTrivia()));
+                    content.Add(generator.Interpolation(pieces[i].WithoutTrivia()));
                 }
             }
-
             return generator.InterpolatedStringExpression(startToken, content, endToken);
         }
 
@@ -137,9 +160,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
         private void CollectPiecesDown(
             ISyntaxFactsService syntaxFacts,
-            List<SyntaxNode> pieces, 
-            SyntaxNode node, 
-            SemanticModel semanticModel, 
+            List<SyntaxNode> pieces,
+            SyntaxNode node,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             if (!IsStringConcat(syntaxFacts, node, semanticModel, cancellationToken))
@@ -155,7 +178,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         }
 
         private bool IsStringConcat(
-            ISyntaxFactsService syntaxFacts, SyntaxNode expression, 
+            ISyntaxFactsService syntaxFacts, SyntaxNode expression,
             SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (!syntaxFacts.IsBinaryExpression(expression))
@@ -172,7 +195,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Convert_to_interpolated_string, createChangedDocument)
             {
             }
