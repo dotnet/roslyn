@@ -18,7 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Helper class for rewriting a pattern switch statement by lowering it to a decision tree and
-        /// then to a sequence of statements.
+        /// then lowering the decision tree to a sequence of bound statements. We inherit <see cref="DecisionTreeBuilder"/>
+        /// for the machinery to build the decision tree, and then use
+        /// <see cref="PatternSwitchLocalRewriter.LowerDecisionTree(BoundExpression, DecisionTree)"/>
+        /// recursively to produce bound nodes that implement it.
         /// </summary>
         private class PatternSwitchLocalRewriter : DecisionTreeBuilder
         {

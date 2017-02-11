@@ -9,7 +9,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     /// <summary>
     /// Helper class for binding the pattern switch statement. It helps compute which labels
-    /// are subsumed and/or reachable.
+    /// are subsumed and/or reachable. The strategy, implemented in <see cref="PatternSwitchBinder"/>,
+    /// is to start with an empty decision tree, and for each case
+    /// we visit the decision tree to see if the case is subsumed. If it is, we report an error.
+    /// If it is not subsumed and there is no guard expression, we then add it to the decision
+    /// tree.
     /// </summary>
     internal class SubsumptionDiagnosticBuilder : DecisionTreeBuilder
     {

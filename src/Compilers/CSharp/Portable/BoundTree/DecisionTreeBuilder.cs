@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// being built, a data structure (decision tree) representing the sequence of operations
     /// required to select the applicable case branch is constructed. See <see cref="DecisionTree"/>
     /// for the kinds of decisions that can appear in a decision tree.
+    /// 
+    /// The strategy for building the decision tree is: the top node is a ByType if the input
+    /// could possibly be null. Otherwise it is a ByValue. Then, based on the type of switch
+    /// label, we navigate to the appropriate node of the existing decision tree and insert
+    /// a new decision tree node representing the condition associated with the new switch case.
     /// </summary>
     internal abstract class DecisionTreeBuilder
     {
@@ -199,8 +204,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             DecisionTree forType = null;
 
-            // Find an existing decision tree for the expression's type. Since this new test
-            // should logically be last, we look for the last one we can piggy-back it onto.
+            // This new type test should logically be last. However it might be the same type as the one that is already
+            // last. In that case we can produce better code by piggy-backing our new case on to the last decision.
+            // Also, the last one might be a non-overlapping type, in which case we can piggy-back onto the second-last
+            // type test.
             for (int i = byType.TypeAndDecision.Count - 1; i >= 0 && forType == null; i--)
             {
                 var kvp = byType.TypeAndDecision[i];
@@ -213,10 +220,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (ExpressionOfTypeMatchesPatternType(value.Value.Type, matchedType, ref _useSiteDiagnostics) != false)
                 {
+                    // because there is overlap, we cannot reuse some earlier entry
                     break;
                 }
             }
 
+            // if we did not piggy-back, then create a new decision tree node for the type.
             if (forType == null)
             {
                 var type = value.Value.Type;
