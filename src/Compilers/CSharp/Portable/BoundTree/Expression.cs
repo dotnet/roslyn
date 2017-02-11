@@ -2945,32 +2945,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>
-    /// This node represents an out variable.
+    /// This node represents an out or deconstruction variable.
     /// It is only used temporarily during initial binding.
     /// </summary>
-    internal partial class OutVariablePendingInference
-    {
-        public override void Accept(OperationVisitor visitor)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        protected override OperationKind ExpressionKind
-        {
-            get { throw ExceptionUtilities.Unreachable; }
-        }
-    }
-
-    /// <summary>
-    /// This node represents a deconstruction local.
-    /// It is only used temporarily during initial binding.
-    /// </summary>
-    internal partial class DeconstructionVariablePendingInference
+    internal partial class VariablePendingInference
     {
         public override void Accept(OperationVisitor visitor)
         {
