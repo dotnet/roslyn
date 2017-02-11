@@ -27,6 +27,10 @@ namespace Microsoft.CodeAnalysis.Options
                 if (allRawConventions.TryGetValue(KeyName, out object value))
                 {
                     result = _parseValue(value.ToString(), type);
+                    if (result == null)
+                    {
+                        return false;
+                    }
                     return true;
                 }
             }
@@ -49,11 +53,19 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 if (type == typeof(int))
                 {
-                    return int.Parse(s);
+                    if (int.TryParse(s, out var value))
+                    {
+                        return value;
+                    }
+                    return null;
                 }
                 else if (type == typeof(bool))
                 {
-                    return bool.Parse(s);
+                    if (bool.TryParse(s, out var value))
+                    {
+                        return value;
+                    }
+                    return null;
                 }
                 else if (type == typeof(CodeStyleOption<bool>))
                 {
