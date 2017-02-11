@@ -14762,9 +14762,9 @@ unsafe struct s
                 // (8,20): error CS0209: The type of a local declared in a fixed statement must be a pointer type
                 //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
                 Diagnostic(ErrorCode.ERR_BadFixedInitType, "_buffer[2]"),
-                // (8,20): error CS0210: You must provide an initializer in a fixed or using statement declaration
+                // (8,20): error CS0210: You must provide an initializer in a 'fixed' statement declaration
                 //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "_buffer[2]"));
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "_buffer[2]").WithArguments("fixed"));
         }
 
 

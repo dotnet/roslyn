@@ -901,7 +901,7 @@
     <value>The type of a local declared in a fixed statement must be a pointer type</value>
   </data>
   <data name="ERR_FixedMustInit" xml:space="preserve">
-    <value>You must provide an initializer in a fixed or using statement declaration</value>
+    <value>You must provide an initializer in a '{0}' statement declaration</value>
   </data>
   <data name="ERR_InvalidAddrOp" xml:space="preserve">
     <value>Cannot take the address of the given expression</value>

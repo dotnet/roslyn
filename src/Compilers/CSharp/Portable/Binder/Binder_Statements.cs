@@ -905,14 +905,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (kind == LocalDeclarationKind.FixedVariable || kind == LocalDeclarationKind.UsingVariable)
             {
-                // CONSIDER: The error message is "you must provide an initializer in a fixed 
-                // CONSIDER: or using declaration". The error message could be targetted to 
-                // CONSIDER: the actual situation. "you must provide an initializer in a 
-                // CONSIDER: 'fixed' declaration."
-
                 if (initializerOpt == null)
                 {
-                    Error(localDiagnostics, ErrorCode.ERR_FixedMustInit, declarator);
+                    Error(localDiagnostics, ErrorCode.ERR_FixedMustInit, declarator, kind == LocalDeclarationKind.FixedVariable ? "fixed" : "using");
                     hasErrors = true;
                 }
             }

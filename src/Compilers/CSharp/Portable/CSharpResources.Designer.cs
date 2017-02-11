@@ -4517,7 +4517,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You must provide an initializer in a fixed or using statement declaration.
+        ///   Looks up a localized string similar to You must provide an initializer in a '{0}' statement declaration.
         /// </summary>
         internal static string ERR_FixedMustInit {
             get {
