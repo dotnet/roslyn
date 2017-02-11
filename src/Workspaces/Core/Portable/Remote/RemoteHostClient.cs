@@ -24,6 +24,16 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public event EventHandler<bool> ConnectionChanged;
 
+        public Task<Session> CreateServiceSessionAsync(string serviceName, CancellationToken cancellationToken)
+        {
+            return CreateServiceSessionAsync(serviceName, callbackTarget: null, cancellationToken: cancellationToken);
+        }
+
+        public Task<Session> CreateServiceSessionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        {
+            return CreateServiceSessionAsync(serviceName, snapshot: null, callbackTarget: callbackTarget, cancellationToken: cancellationToken);
+        }
+
         public Task<Session> CreateServiceSessionAsync(string serviceName, Solution solution, CancellationToken cancellationToken)
         {
             return CreateServiceSessionAsync(serviceName, solution, callbackTarget: null, cancellationToken: cancellationToken);
@@ -73,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
         // TODO: make this to not exposed to caller. abstract all of these under Request and Response mechanism
         public abstract class Session : IDisposable
         {
-            protected readonly PinnedRemotableDataScope PinnedScope;
+            protected readonly PinnedRemotableDataScope PinnedScopeOpt;
             protected readonly CancellationToken CancellationToken;
 
             private bool _disposed;
@@ -82,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 _disposed = false;
 
-                PinnedScope = scope;
+                PinnedScopeOpt = scope;
                 CancellationToken = cancellationToken;
             }
 
@@ -93,7 +103,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public void AddAdditionalAssets(CustomAsset asset)
             {
-                PinnedScope.AddAdditionalAsset(asset, CancellationToken);
+                Contract.ThrowIfNull(PinnedScopeOpt);
+                PinnedScopeOpt.AddAdditionalAsset(asset, CancellationToken);
             }
 
             protected virtual void OnDisposed()
@@ -112,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 OnDisposed();
 
-                PinnedScope.Dispose();
+                PinnedScopeOpt?.Dispose();
             }
         }
     }
