@@ -450,14 +450,13 @@ namespace Microsoft.CodeAnalysis
             if (hasDiagnostics || hasAnnotations)
             {
                 kindBits |= ExtendedSerializationInfoMask;
-            }
-
-            writer.WriteUInt16(kindBits);
-
-            if (hasDiagnostics || hasAnnotations)
-            {
+                writer.WriteUInt16(kindBits);
                 writer.WriteValue(hasDiagnostics ? this.GetDiagnostics() : null);
                 writer.WriteValue(hasAnnotations ? this.GetAnnotations() : null);
+            }
+            else
+            {
+                writer.WriteUInt16(kindBits);
             }
         }
 
