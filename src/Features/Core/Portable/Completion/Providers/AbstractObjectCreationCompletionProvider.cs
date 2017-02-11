@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
 
-        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(
+        protected override async Task<ImmutableArray<(ISymbol, CompletionItemRules)>> GetPreselectedSymbolsWorker(
             SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var newExpression = this.GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);
             if (newExpression == null)
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
             }
 
             var typeInferenceService = context.GetLanguageService<ITypeInferenceService>();
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (type == null)
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
             }
 
             // Unwrap nullable
@@ -80,17 +80,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (type.SpecialType == SpecialType.System_Void)
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
             }
 
             if (type.ContainsAnonymousType())
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
             }
 
             if (!type.CanBeReferencedByName)
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
             }
 
             if (type.IsInterfaceType())
@@ -112,17 +112,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     var typeArguments = type.GetTypeArguments();
 
-                    var constructedImplementations = ArrayBuilder<ISymbol>.GetInstance();
+                    var constructedImplementations = ArrayBuilder<(ISymbol, CompletionItemRules)>.GetInstance();
 
                     foreach (var impl in matchingImplementations)
                     {
-                        constructedImplementations.Add(impl.Construct(typeArguments.ToArray()));
+                        constructedImplementations.Add((impl.Construct(typeArguments.ToArray()), CompletionItemRules.Default));
                     }
 
                     return constructedImplementations.ToImmutableAndFree();
                 }
 
-                return matchingImplementations.ToImmutableArray<ISymbol>();
+                return matchingImplementations.Select(s => ((ISymbol)s, CompletionItemRules.Default)).ToImmutableArray();
             }
 
             // Normally the user can't say things like "new IList".  Except for "IList[] x = new |".
@@ -134,22 +134,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     type.TypeKind == TypeKind.Dynamic ||
                     type.IsAbstract)
                 {
-                    return ImmutableArray<ISymbol>.Empty;
+                    return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
                 }
 
                 if (type.TypeKind == TypeKind.TypeParameter &&
                     !((ITypeParameterSymbol)type).HasConstructorConstraint)
                 {
-                    return ImmutableArray<ISymbol>.Empty;
+                    return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
                 }
             }
 
             if (!type.IsEditorBrowsable(options.GetOption(RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language), context.SemanticModel.Compilation))
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
             }
 
-            return ImmutableArray.Create((ISymbol)type);
+            return ImmutableArray.Create(((ISymbol)type, CompletionItemRules.Default));
         }
 
         protected override (string displayText, string insertionText) GetDisplayAndInsertionText(
