@@ -239,7 +239,10 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
+            // TODO: Remove the below suppression once the following Roslyn bug is fixed: https://github.com/dotnet/roslyn/issues/8884
+#pragma warning disable CA1801
             private string GetSiblingNamesToRemoveFromUnshippedTextCore(ISymbol symbol)
+#pragma warning restore CA1801
             {
                 // Compute all sibling names that must be removed from unshipped text, as they are no longer public or have been changed.
                 if (symbol.ContainingSymbol is INamespaceOrTypeSymbol containingSymbol)

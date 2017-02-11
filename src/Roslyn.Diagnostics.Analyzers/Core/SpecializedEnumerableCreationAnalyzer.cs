@@ -137,7 +137,10 @@ namespace Roslyn.Diagnostics.Analyzers
                     arrayType.Rank == 1;
             }
 
+            // TODO: Remove the below suppression once the following Roslyn bug is fixed: https://github.com/dotnet/roslyn/issues/8884
+#pragma warning disable CA1801
             protected void AnalyzeMemberAccessName(SyntaxNode name, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic)
+#pragma warning restore CA1801
             {
                 if (semanticModel.GetSymbolInfo(name).Symbol is IMethodSymbol methodSymbol &&
                     methodSymbol.OriginalDefinition == _genericEmptyEnumerableSymbol)
