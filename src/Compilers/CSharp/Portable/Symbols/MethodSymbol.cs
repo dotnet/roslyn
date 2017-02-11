@@ -171,7 +171,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Indicates whether or not the method returns by reference
         /// </summary>
-        public bool ReturnsByRef { get { return this.RefKind != RefKind.None; } }
+        public bool ReturnsByRef
+        {
+            get
+            {
+                Debug.Assert(this.RefKind != RefKind.Out);
+                return this.RefKind == RefKind.Ref;
+            }
+        }
+
+        /// <summary>
+        /// Indicates whether or not the method returns by readonly reference
+        /// </summary>
+        public bool ReturnsByReadonlyRef
+        {
+            get
+            {
+                Debug.Assert(this.RefKind != RefKind.Out);
+                return this.RefKind == RefKind.In;
+            }
+        }
 
         /// <summary>
         /// Gets the ref kind of the method's return value

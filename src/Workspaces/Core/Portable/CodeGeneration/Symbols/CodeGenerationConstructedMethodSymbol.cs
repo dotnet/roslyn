@@ -48,6 +48,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
+        public override bool ReturnsByReadonlyRef
+        {
+            get
+            {
+                return _constructedFrom.ReturnsByReadonlyRef;
+            }
+        }
+
         public override ITypeSymbol ReturnType
         {
             get

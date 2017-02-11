@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal partial class CodeGenerationMethodSymbol : CodeGenerationAbstractMethodSymbol
     {
         private readonly ITypeSymbol _returnType;
-        private readonly bool _returnsByRef;
+        private readonly RefKind _refKind;
         private readonly ImmutableArray<ITypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<IParameterSymbol> _parameters;
         private readonly ImmutableArray<IMethodSymbol> _explicitInterfaceImplementations;
@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes)
         {
             _returnType = returnType;
-            _returnsByRef = returnsByRef;
+            // PROTOTYPE(readonlyRef): NYI 
+            _refKind = returnsByRef ? RefKind.Ref: RefKind.None;
             _typeParameters = typeParameters.AsImmutableOrEmpty();
             _parameters = parameters.AsImmutableOrEmpty();
             _explicitInterfaceImplementations = explicitInterfaceSymbolOpt == null
@@ -114,7 +115,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return _returnsByRef;
+                return _refKind == RefKind.Ref;
+            }
+        }
+
+        public override bool ReturnsByReadonlyRef
+        {
+            get
+            {
+                return _refKind == RefKind.In;
             }
         }
 
