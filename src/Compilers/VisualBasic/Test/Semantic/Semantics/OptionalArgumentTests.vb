@@ -106,13 +106,47 @@ expectedOutput:=<![CDATA[
 
         ' Report error if the default value of overridden method is different 
         <Fact()>
-        Public Sub TestOverridingOptionalWithDifferentDefaultValue()
+        Public Sub TestOverridingOptionalWithDifferentDefaultValue1()
             Dim source =
 <compilation name="TestOverridingOptionalWithDifferentDefaultValue">
     <file name="a.vb">
         <![CDATA[
 MustInherit Class c1
     Public MustOverride Sub s1(Optional i As Integer = 0)
+    Public MustOverride Sub s1(s As String)
+End Class
+
+Class c2
+    Inherits c1
+
+    Overrides Sub s1(Optional i As Integer = 2)
+    End Sub
+
+    Overrides Sub s1(s As String)
+    End Sub
+End Class
+
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module
+
+]]>
+    </file>
+</compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OverrideWithDefault2, "s1").WithArguments("Public Overrides Sub s1([i As Integer = 2])", "Public MustOverride Sub s1([i As Integer = 0])"))
+        End Sub
+
+        ' Report error if the default value of overridden method is different 
+        <Fact()>
+        Public Sub TestOverridingOptionalWithDifferentDefaultValue2()
+            Dim source =
+<compilation name="TestOverridingOptionalWithDifferentDefaultValue">
+    <file name="a.vb">
+        <![CDATA[
+MustInherit Class c1
+    Public MustOverride Sub s1(Optional i As Integer)
     Public MustOverride Sub s1(s As String)
 End Class
 
@@ -247,13 +281,40 @@ End Module
 
         <WorkItem(543395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543395")>
         <Fact()>
-        Public Sub TestEventWithOptionalInteger()
+        Public Sub TestEventWithOptionalInteger1()
             Dim source =
 <compilation name="TestEventWithOptionalInteger">
     <file name="a.vb">
         <![CDATA[
 Class A
     Event E(Optional I As Integer = 0)
+
+    Public Sub Do_E()
+        RaiseEvent E()
+    End Sub
+End Class
+
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module
+]]>
+    </file>
+</compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OptionalIllegal1, "Optional").WithArguments("Event"),
+                                   Diagnostic(ERRID.ERR_OmittedArgument2, "RaiseEvent E()").WithArguments("I", "Public Event E(I As Integer)"))
+        End Sub
+
+        <WorkItem(543395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543395")>
+        <Fact()>
+        Public Sub TestEventWithOptionalInteger2()
+            Dim source =
+<compilation name="TestEventWithOptionalInteger">
+    <file name="a.vb">
+        <![CDATA[
+Class A
+    Event E(Optional I As Integer)
 
     Public Sub Do_E()
         RaiseEvent E()
@@ -403,7 +464,7 @@ End Structure
         End Sub
 
         <Fact(), WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
-        Public Sub OptionalNullableIntegerWithNothingValue()
+        Public Sub OptionalNullableIntegerWithNothingValue1()
             Dim source =
 <compilation name="OptionalNullableInteger">
     <file name="a.vb">
@@ -439,6 +500,45 @@ False
 }
 ]]>)
         End Sub
+
+                <Fact(), WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
+        Public Sub OptionalNullableIntegerWithNothingValue2()
+            Dim source =
+<compilation name="OptionalNullableInteger">
+    <file name="a.vb">
+        <![CDATA[
+    Imports System
+
+    Module m
+      Sub X(Optional i As Integer?)
+        Console.WriteLine("{0}", i.hasValue)
+      End Sub
+  
+    Sub main()
+        X()
+    End Sub
+  End Module
+]]>
+    </file>
+</compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            CompileAndVerify(source,
+     expectedOutput:=<![CDATA[
+False
+]]>).VerifyIL("m.main", <![CDATA[
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (Integer? V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "Integer?"
+  IL_0008:  ldloc.0
+  IL_0009:  call       "Sub m.X(Integer?)"
+  IL_000e:  ret
+}
+]]>)
+        End Sub
+
 
         <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
         <Fact()>
@@ -624,7 +724,7 @@ x = nothing
 
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <Fact()>
-        Public Sub OptionalWithIUnknownConstantAndIDispatchConstant()
+        Public Sub OptionalWithIUnknownConstantAndIDispatchConstant1()
 
             Dim libSource =
 <compilation>
@@ -718,7 +818,102 @@ System.Runtime.InteropServices.DispatchWrapper
 
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <Fact()>
-        Public Sub OptionalWithIUnknownConstantAndIDispatchConstantWithString()
+        Public Sub OptionalWithIUnknownConstantAndIDispatchConstant2()
+
+            Dim libSource =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Imports System
+Imports System.Runtime.InteropServices
+Imports System.Runtime.CompilerServices
+
+Public Class C
+
+    Public Shared Sub M1(Optional x As Object)
+        Console.WriteLine(If(x, 1))
+    End Sub
+
+    Public Shared Sub M2(<[Optional]> x As Object)
+        Console.WriteLine(If(x, 2))
+    End Sub
+
+    Public Shared Sub M3(<IDispatchConstant> Optional x As Object)
+        Console.WriteLine(If(x, 3))
+    End Sub
+
+    Public Shared Sub M4(<IDispatchConstant> <[Optional]> x As Object)
+        Console.WriteLine(If(x, 4))
+    End Sub
+
+    Public Shared Sub M5(<IUnknownConstant> Optional x As Object)
+        Console.WriteLine(If(x, 5))
+    End Sub
+
+    Public Shared Sub M6(<IUnknownConstant> <[Optional]> x As Object) 
+        Console.WriteLine(If(x, 6))
+    End Sub
+
+    Public Shared Sub M7(<IUnknownConstant> <IDispatchConstant> Optional x As Object)
+        Console.WriteLine(If(x, 7))
+    End Sub
+
+    Public Shared Sub M8(<IUnknownConstant> <IDispatchConstant> <[Optional]> x As Object)
+        Console.WriteLine(If(x, 8))
+    End Sub
+
+End Class
+    ]]></file>
+</compilation>
+
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource)
+
+            Dim source =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        C.M1()
+        C.M2()
+        C.M3()
+        C.M4()
+        C.M5()
+        C.M6()
+        C.M7()
+        C.M8()
+    End Sub
+
+End Module
+    ]]></file>
+</compilation>
+
+            Dim compilationRef As MetadataReference = libComp.ToMetadataReference()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={compilationRef})
+
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "M2").WithArguments("x", "Public Shared Sub M2(x As Object)"),
+                                   Diagnostic(ERRID.ERR_OmittedArgument2, "M4").WithArguments("x", "Public Shared Sub M4(x As Object)"),
+                                   Diagnostic(ERRID.ERR_OmittedArgument2, "M6").WithArguments("x", "Public Shared Sub M6(x As Object)"),
+                                   Diagnostic(ERRID.ERR_OmittedArgument2, "M8").WithArguments("x", "Public Shared Sub M8(x As Object)"))
+
+            Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
+
+            CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=<![CDATA[
+1
+System.Reflection.Missing
+3
+System.Runtime.InteropServices.DispatchWrapper
+5
+System.Runtime.InteropServices.UnknownWrapper
+7
+System.Runtime.InteropServices.DispatchWrapper
+]]>).VerifyDiagnostics()
+        End Sub
+
+
+        <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
+        <Fact()>
+        Public Sub OptionalWithIUnknownConstantAndIDispatchConstantWithString1()
 
             Dim libSource =
 <compilation>
@@ -736,6 +931,61 @@ Public Class C
     End Sub
 
     Public Shared Sub M2(<IUnknownConstant> Optional x As string = Nothing)
+        Console.WriteLine(If(x, 2))
+    End Sub
+
+End Class
+
+End Namespace
+    ]]></file>
+</compilation>
+
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource)
+
+            Dim source =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Imports SpecialOptionalLib.C
+
+Module Module1
+
+    Sub Main()
+        M1()
+        M2()
+    End Sub
+
+End Module
+    ]]></file>
+</compilation>
+
+            Dim libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
+
+            CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
+1
+2
+]]>).VerifyDiagnostics()
+        End Sub
+
+                <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
+        <Fact()>
+        Public Sub OptionalWithIUnknownConstantAndIDispatchConstantWithString2()
+
+            Dim libSource =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Imports System
+Imports System.Runtime.InteropServices
+Imports System.Runtime.CompilerServices
+
+Namespace SpecialOptionalLib
+
+Public Class C
+
+    Public Shared Sub M1(<IDispatchConstant> Optional x As string)
+        Console.WriteLine(If(x, 1))
+    End Sub
+
+    Public Shared Sub M2(<IUnknownConstant> Optional x As string)
         Console.WriteLine(If(x, 2))
     End Sub
 
@@ -1047,7 +1297,7 @@ End Interface
 
         <WorkItem(578129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578129")>
         <Fact()>
-        Public Sub Bug578129()
+        Public Sub Bug578129_1()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1100,6 +1350,64 @@ BC30002: Type 'CallerMemberName' is not defined.
             '       BC30213: Comma or ')' expected.
 
         End Sub
+
+                <WorkItem(578129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578129")>
+        <Fact()>
+        Public Sub Bug578129_2()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Partial Class PC2 ' attributes on implementation
+    Partial Private Sub VerifyCallerInfo(
+            expectedPath As String,
+            expectedLine As String,
+            expectedMember As String,
+            Optional f A String = "",
+            Optional l As Integer = -1,
+            Optional m As String)
+    End Sub
+End Class
+Partial Class PC2
+    Private Sub VerifyCallerInfo(
+            expectedPath As String,
+            expectedLine As String,
+            expectedMember As String,
+            <CallerFilePath> Optional f As String = "",
+            <CallerLineNumber> Optional l As Integer = -1,
+            <CallerMemberName> Optional m As String)
+        Console.WriteLine("callerinfo: ({0}, {1}, {2})", "[...]", l, m)
+    End Sub
+ 
+End Class
+]]>
+    </file>
+</compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseDll)
+
+            AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
+            Optional f A String = "",
+                     ~
+BC30002: Type 'CallerFilePath' is not defined.
+            <CallerFilePath> Optional f As String = "",
+             ~~~~~~~~~~~~~~
+BC30002: Type 'CallerLineNumber' is not defined.
+            <CallerLineNumber> Optional l As Integer = -1,
+             ~~~~~~~~~~~~~~~~
+BC30002: Type 'CallerMemberName' is not defined.
+            <CallerMemberName> Optional m As String)
+             ~~~~~~~~~~~~~~~~
+]]></expected>)
+            '       BC30213: Comma or ')' expected.
+
+        End Sub
+
+
 
         <Fact()>
         Public Sub CallerInfo1()
@@ -1813,7 +2121,7 @@ Void Main() - 10, Main, a.vb
 
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         <Fact()>
-        Public Sub CallerInfo5()
+        Public Sub CallerInfo5_1()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1871,9 +2179,70 @@ End Class
 ]]>)
         End Sub
 
+               <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
+        <Fact()>
+        Public Sub CallerInfo5_2()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Class C
+    ReadOnly Property P As C
+        Get
+            Return Me
+        End Get
+    End Property
+    Default ReadOnly Property Q(index As Integer, <CallerLineNumber> Optional line As Integer) As C
+        Get
+            Console.WriteLine("{0}: {1}", index, line)
+            Return Me
+        End Get
+    End Property
+    Function F(Optional id As Integer, <CallerLineNumber> Optional line As Integer) As C
+        Console.WriteLine("{0}: {1}", id, line)
+        Return Me
+    End Function
+    Shared Sub Main()
+        Dim c = New C()
+        c.F(1).
+          F
+        c = c(
+           2
+          )(3)
+        c = c.
+          F(
+           4
+          ).
+          P(5)
+        Dim o As Object = c
+        o =
+          DirectCast(o, C)(
+           6
+          )
+    End Sub
+End Class
+	]]>
+    </file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation,
+            <![CDATA[
+1: 21
+0: 22
+2: 23
+3: 23
+4: 27
+5: 30
+6: 33
+]]>)
+        End Sub
+
+
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         <Fact()>
-        Public Sub CallerInfo6()
+        Public Sub CallerInfo6_1()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1906,8 +2275,44 @@ y: 15
 ]]>)
         End Sub
 
+        <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         <Fact()>
-        Public Sub CallerInfo7()
+        Public Sub CallerInfo6_2()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Class C
+    Function F() As C
+        Return Me
+    End Function
+    Default ReadOnly Property P(s As String, <CallerLineNumber> Optional line As Integer) As C
+        Get
+            Console.WriteLine("{0}: {1}", s, line)
+            Return Me
+        End Get
+    End Property
+    Shared Sub Main()
+        Dim c = (New C())!x.
+            F()!y
+    End Sub
+End Class
+	]]>
+    </file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation,
+            <![CDATA[
+x: 14
+y: 15
+]]>)
+        End Sub
+
+
+        <Fact()>
+        Public Sub CallerInfo7_1()
             Dim compilation1 = CreateCSharpCompilation(<![CDATA[
 using System.Runtime.CompilerServices;
 public delegate void D(object o = null, [CallerLineNumber]int line = 0);
@@ -1946,8 +2351,48 @@ End Class
 ]]>)
         End Sub
 
+        <Fact()>
+        Public Sub CallerInfo7_2()
+            Dim compilation1 = CreateCSharpCompilation(<![CDATA[
+using System.Runtime.CompilerServices;
+public delegate void D(object o = null, [CallerLineNumber]int line = 0);
+]]>.Value,
+                assemblyName:="1",
+                referencedAssemblies:=New MetadataReference() {MscorlibRef_v4_0_30316_17626})
+            compilation1.VerifyDiagnostics()
+            Dim reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray())
+            Dim compilation2 = CreateCompilationWithMscorlib45AndVBRuntime(
+                <compilation>
+                    <file name="a.vb">
+                        <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Class C
+    Shared Sub M(Optional o As Object, <CallerLineNumber> Optional line As Integer)
+        Console.WriteLine(line)
+    End Sub
+    Shared Sub Main()
+        Dim d As New D(AddressOf M)
+        d(
+            1
+          )
+        d
+    End Sub
+End Class
+	]]>
+                    </file>
+                </compilation>,
+                options:=TestOptions.ReleaseExe,
+                additionalRefs:={reference1})
+            CompileAndVerify(compilation2,
+            <![CDATA[
+9
+12
+]]>)
+        End Sub
+
         <Fact>
-        Public Sub TestCallerFilePath1()
+        Public Sub TestCallerFilePath1_1()
             Dim source1 = "
 Imports System.Runtime.CompilerServices
 Imports System
@@ -2007,8 +2452,69 @@ End Module
 ")
         End Sub
 
+               <Fact>
+        Public Sub TestCallerFilePath1_2()
+            Dim source1 = "
+Imports System.Runtime.CompilerServices
+Imports System
+
+Partial Module A
+    Dim i As Integer
+
+    Sub Log(<CallerFilePath> Optional filePath As String)
+        i = i + 1
+        Console.WriteLine(""{0}: '{1}'"", i, filePath)
+    End Sub
+
+    Sub Main()
+        Log()
+        Main2()
+        Main3()
+        Main4()
+    End Sub
+End Module"
+
+            Dim source2 = "
+Partial Module A 
+    Sub Main2() 
+        Log()
+    End Sub
+End Module
+"
+            Dim source3 = "
+Partial Module A 
+    Sub Main3() 
+        Log()
+    End Sub
+End Module
+"
+            Dim source4 = "
+Partial Module A 
+    Sub Main4() 
+        Log()
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilationWithReferences(
+                {
+                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source4, path:="       ", encoding:=Encoding.UTF8)
+                },
+                {MscorlibRef_v4_0_30316_17626, MsvbRef},
+                TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default))
+
+            CompileAndVerify(compilation, expectedOutput:="
+1: 'C:\filename'
+2: 'a\b\..\c\d'
+3: '*'
+4: '       '
+")
+        End Sub
+
         <Fact>
-        Public Sub TestCallerFilePath2()
+        Public Sub TestCallerFilePath2_1()
             Dim source1 = "
 Imports System.Runtime.CompilerServices
 Imports System
@@ -2017,6 +2523,91 @@ Partial Module A
     Dim i As Integer
 
     Sub Log(<CallerFilePath> Optional filePath As String = Nothing)
+        i = i + 1
+        Console.WriteLine(""{0}: '{1}'"", i, filePath)
+    End Sub
+
+    Sub Main()
+        Log()
+        Main2()
+        Main3()
+        Main4()
+        Main5()
+    End Sub
+End Module"
+            Dim source2 = "
+Partial Module A 
+    Sub Main2() 
+        Log()
+    End Sub
+End Module
+"
+            Dim source3 = "
+#ExternalSource(""make_hidden"", 30)
+#End ExternalSource
+
+Partial Module A 
+    Sub Main3() 
+        Log()
+    End Sub
+End Module
+"
+            Dim source4 = "
+#ExternalSource(""abc"", 30)
+
+Partial Module A 
+    Sub Main4() 
+        Log()
+    End Sub
+End Module
+
+#End ExternalSource
+"
+            Dim source5 = "
+#ExternalSource(""     "", 30)
+
+Partial Module A 
+    Sub Main5() 
+        Log()
+    End Sub
+End Module
+
+#End ExternalSource
+"
+
+            Dim compilation = CreateCompilationWithReferences(
+                {
+                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d.vb", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source4, path:="C:\x.vb", encoding:=Encoding.UTF8),
+                    SyntaxFactory.ParseSyntaxTree(source5, path:="C:\x.vb", encoding:=Encoding.UTF8)
+                },
+                {MscorlibRef_v4_0_30316_17626, MsvbRef},
+                TestOptions.ReleaseExe.WithSourceReferenceResolver(New SourceFileResolver(
+                    searchPaths:=ImmutableArray(Of String).Empty,
+                    baseDirectory:="C:\A\B",
+                    pathMap:=ImmutableArray.Create(New KeyValuePair(Of String, String)("C:", "/X")))))
+
+            CompileAndVerify(compilation, expectedOutput:="
+1: '/X/filename'
+2: '/X/A/B/a/c/d.vb'
+3: '*'
+4: '/X/abc'
+5: '     '
+")
+        End Sub
+
+                <Fact>
+        Public Sub TestCallerFilePath2_2()
+            Dim source1 = "
+Imports System.Runtime.CompilerServices
+Imports System
+
+Partial Module A
+    Dim i As Integer
+
+    Sub Log(<CallerFilePath> Optional filePath As String)
         i = i + 1
         Console.WriteLine(""{0}: '{1}'"", i, filePath)
     End Sub
@@ -2133,8 +2724,6 @@ a
             Assert.IsType(Of Long)(Bug623122.Parameters(0).ExplicitDefaultValue)
         End Sub
 
-
-
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_PrimitiveStruct()
@@ -2161,6 +2750,8 @@ Public Class C
     Public Sub M6(<[Optional]> <DefaultParameterValue(0)> p As Integer) ' default of type, optional
     End Sub
     Public Sub M7(<[Optional]> <DefaultParameterValue(1)> p As Integer) ' not default of type, optional
+    End Sub
+    Public Sub M1(Optional p As Integer) ' default of type
     End Sub
 End Class
 ]]>
@@ -2191,6 +2782,12 @@ End Class
                     Assert.Equal(1, parameters(2).ExplicitDefaultValue)
                     Assert.Equal(ConstantValue.Create(1), parameters(2).ExplicitDefaultConstantValue)
                     Assert.Equal(0, parameters(2).GetAttributes().Length)
+
+                    Assert.True(parameters(8).IsOptional)
+                    Assert.False(parameters(8).HasExplicitDefaultValue)
+                    'Assert.Equal(1, parameters(8).ExplicitDefaultValue)
+                    'Assert.Equal(ConstantValue.Create(1), parameters(8).ExplicitDefaultConstantValue)
+                    Assert.Equal(0, parameters(8).GetAttributes().Length)
 
                     ' 3 - see below
 
@@ -2269,6 +2866,9 @@ Public Class C
     End Sub
     Public Sub M4(<[Optional]> <DefaultParameterValue(Nothing)> p As S) ' default of type, optional
     End Sub
+    Public Sub M1(Optional p As S)
+    End Sub
+
 End Class
 
 Public Structure S
@@ -2297,6 +2897,11 @@ End Structure
                     Assert.Equal(ConstantValue.Null, parameters(1).ExplicitDefaultConstantValue)
                     Assert.Equal(0, parameters(1).GetAttributes().Length)
 
+                    Assert.True(parameters(5).IsOptional)
+                    Assert.False(parameters(5).HasExplicitDefaultValue)
+                    'Assert.Null(parameters(5).ExplicitDefaultValue)
+                    'Assert.Equal(ConstantValue.Null, parameters(5).ExplicitDefaultConstantValue)
+                    Assert.Equal(0, parameters(5).GetAttributes().Length)
                     ' 2 - see below
 
                     Assert.False(parameters(3).IsOptional)
@@ -2362,6 +2967,9 @@ Public Class C
     End Sub
     Public Sub M7(<[Optional]> <DefaultParameterValue("A")> p As String) ' not default of type, optional
     End Sub
+    Public Sub M1(Optional p As String) ' default of type
+    End Sub
+
 End Class
 ]]>
     </file>
@@ -2392,6 +3000,11 @@ End Class
                     Assert.Equal(ConstantValue.Create("A"), parameters(2).ExplicitDefaultConstantValue)
                     Assert.Equal(0, parameters(2).GetAttributes().Length)
 
+                    Assert.True(parameters(8).IsOptional)
+                    Assert.False(parameters(8).HasExplicitDefaultValue)
+                    'Assert.Null(parameters(8).ExplicitDefaultValue)
+                    'Assert.Equal(ConstantValue.Null, parameters(8).ExplicitDefaultConstantValue)
+                    Assert.Equal(0, parameters(8).GetAttributes().Length)
                     ' 3 - see below
 
                     Assert.False(parameters(4).IsOptional)
@@ -2484,6 +3097,8 @@ Public Class C
     End Sub
     Public Sub M11(<[Optional]> <DecimalConstant(0, 0, 0, 0, 1)> p As Decimal) ' not default of type, optional
     End Sub
+    Public Sub M1(Optional p As Decimal) ' default of type
+    End Sub
 End Class
 ]]>
     </file>
@@ -2516,6 +3131,12 @@ End Class
                     Assert.Equal(decimalOne, parameters(2).ExplicitDefaultValue)
                     Assert.Equal(ConstantValue.Create(decimalOne), parameters(2).ExplicitDefaultConstantValue)
                     Assert.Equal(0, parameters(2).GetAttributes().Length)
+
+                    Assert.True(parameters(12).IsOptional)
+                    Assert.False(parameters(12).HasExplicitDefaultValue)
+                    'Assert.Equal(decimalZero, parameters(12).ExplicitDefaultValue)
+                    'Assert.Equal(ConstantValue.Create(decimalZero), parameters(12).ExplicitDefaultConstantValue)
+                    Assert.Equal(0, parameters(12).GetAttributes().Length)
 
                     ' 3 - see below
 
@@ -2645,6 +3266,8 @@ Public Class C
     End Sub
     Public Sub M9(<[Optional]> <DateTimeConstant(1)> p As Date) ' not default of type, optional
     End Sub
+    Public Sub M1(Optional p As Date) ' default of type
+    End Sub
 End Class
 ]]>
     </file>
@@ -2678,6 +3301,12 @@ End Class
                     Assert.Equal(dateTimeOther, parameters(2).ExplicitDefaultValue)
                     Assert.Equal(ConstantValue.Create(dateTimeOther), parameters(2).ExplicitDefaultConstantValue)
                     Assert.Equal(0, parameters(2).GetAttributes().Length)
+
+                    Assert.True(parameters(10).IsOptional)
+                    Assert.False(parameters(10).HasExplicitDefaultValue)
+                    'Assert.Equal(dateTimeZero, parameters(10).ExplicitDefaultValue)
+                    'Assert.Equal(ConstantValue.Create(dateTimeZero), parameters(10).ExplicitDefaultConstantValue)
+                    Assert.Equal(0, parameters(10).GetAttributes().Length)
 
                     ' 3 - see below
 
