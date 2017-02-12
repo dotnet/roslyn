@@ -1087,12 +1087,6 @@ End Class
 BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
             Optional f A String = "",
                      ~
-BC30812: Optional parameters must specify a default value.
-            Optional f A String = "",
-                       ~
-BC30451: 'A' is not declared. It may be inaccessible due to its protection level.
-            Optional f A String = "",
-                       ~
 BC30002: Type 'CallerFilePath' is not defined.
             <CallerFilePath> Optional f As String = "",
              ~~~~~~~~~~~~~~
@@ -1103,6 +1097,8 @@ BC30002: Type 'CallerMemberName' is not defined.
             <CallerMemberName> Optional m As String = Nothing)
              ~~~~~~~~~~~~~~~~
 ]]></expected>)
+            '       BC30213: Comma or ')' expected.
+
         End Sub
 
         <Fact()>
