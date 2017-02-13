@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -145,12 +147,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
                 catch (RemoteInvocationException ex)
                 {
-                    // RequestServiceAsync should never fail unless service itself is actually broken.
-                    // So far, we catched multiple issues from this NFW. so we will keep this NFW.
-                    // one request from service hub team is adding service hub logs when this happen.
-                    // tracked by https://github.com/dotnet/roslyn/issues/17012
-                    FatalError.ReportWithoutCrash(ex);
-                    lastException = ex;
+                    // save info only if it failed with different issue than before.
+                    if (lastException?.Message != ex.Message)
+                    {
+                        // RequestServiceAsync should never fail unless service itself is actually broken.
+                        // So far, we catched multiple issues from this NFW. so we will keep this NFW.
+                        WatsonReporter.Report("RequestServiceAsync Failed", ex, ReportDetailInfo);
+
+                        lastException = ex;
+                    }
                 }
 
                 // wait for retry_delayInMS before next try
@@ -199,6 +204,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             // request service to HubClient timed out, more than we are willing to wait
             throw new TimeoutException("RequestServiceAsync timed out");
+        }
+
+        private static int ReportDetailInfo(IFaultUtility faultUtility)
+        {
+            // 0 means send watson, otherwise, cancel watson
+            // we always send watson since dump itself can have valuable data
+            var exitCode = 0;
+
+            try
+            {
+                var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
+                if (!Directory.Exists(logPath))
+                {
+                    return exitCode;
+                }
+
+                // attach all log files that are modified less than 1 day before.
+                var now = DateTime.UtcNow;
+                var oneDay = TimeSpan.FromDays(1);
+
+                foreach (var file in Directory.EnumerateFiles(logPath, "*.log"))
+                {
+                    var lastWrite = File.GetLastWriteTimeUtc(file);
+                    if (now - lastWrite > oneDay)
+                    {
+                        continue;
+                    }
+
+                    faultUtility.AddFile(file);
+                }
+            }
+            catch (Exception ex) when (ReportNonIOException(ex))
+            {
+            }
+
+            return exitCode;
+        }
+
+        private static bool ReportNonIOException(Exception ex)
+        {
+            // IOException is expected. log other exceptions
+            if (!(ex is IOException))
+            {
+                WatsonReporter.Report(ex);
+            }
+
+            // catch all exception. not worth crashing VS.
+            return true;
         }
     }
 }
