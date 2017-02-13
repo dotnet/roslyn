@@ -1726,6 +1726,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_Merge_conflict_marker_encountered = 37284
 
+        ERR_BadSourceCodeKind = 37285
+        ERR_BadDocumentationMode = 37286
+        ERR_BadLanguageVersion = 37287
+
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
         WRN_InvalidOverrideDueToTupleNames2 = 40001

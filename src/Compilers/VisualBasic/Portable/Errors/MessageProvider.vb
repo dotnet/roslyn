@@ -232,6 +232,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        ' parse options:
+
+        Public Overrides ReadOnly Property ERR_BadSourceCodeKind As Integer
+            Get
+                Return ERRID.ERR_BadSourceCodeKind
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_BadDocumentationMode As Integer
+            Get
+                Return ERRID.ERR_BadDocumentationMode
+            End Get
+        End Property
+
         ' compilation options:
 
         Public Overrides ReadOnly Property ERR_BadCompilationOptionValue As Integer

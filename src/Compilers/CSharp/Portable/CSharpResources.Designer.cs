@@ -1331,6 +1331,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Provided Documentation Mode is unsupported or invalid: &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_BadDocumentationMode {
+            get {
+                return ResourceManager.GetString("ERR_BadDocumentationMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: user-defined conversions to or from the dynamic type are not allowed.
         /// </summary>
         internal static string ERR_BadDynamicConversion {
@@ -1619,6 +1628,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Provided Language Version is unsupported or invalid: &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_BadLanguageVersion {
+            get {
+                return ResourceManager.GetString("ERR_BadLanguageVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The modifier &apos;{0}&apos; is not valid for this item.
         /// </summary>
         internal static string ERR_BadMemberFlag {
@@ -1858,6 +1876,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadSKunknown {
             get {
                 return ResourceManager.GetString("ERR_BadSKunknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Provided Source Code Kind is unsupported or invalid: &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_BadSourceCodeKind {
+            get {
+                return ResourceManager.GetString("ERR_BadSourceCodeKind", resourceCulture);
             }
         }
         

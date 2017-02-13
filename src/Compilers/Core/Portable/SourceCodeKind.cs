@@ -32,6 +32,24 @@ namespace Microsoft.CodeAnalysis
 
     internal static partial class SourceCodeKindExtensions
     {
+        internal static SourceCodeKind MapSpecifiedToEffectiveKind(this SourceCodeKind kind)
+        {
+            switch (kind)
+            {
+                case SourceCodeKind.Regular:
+                    return SourceCodeKind.Regular;
+
+#pragma warning disable CS0618 // SourceCodeKind.Interactive is obsolete
+                case SourceCodeKind.Script:
+                case SourceCodeKind.Interactive:
+                    return SourceCodeKind.Script;
+#pragma warning restore CS0618 // SourceCodeKind.Interactive is obsolete
+
+                default:
+                    throw new NotSupportedException($"SourceCodeKind {kind} not supported");
+            }
+        }
+
         internal static bool IsValid(this SourceCodeKind value)
         {
             return value >= SourceCodeKind.Regular && value <= SourceCodeKind.Script;

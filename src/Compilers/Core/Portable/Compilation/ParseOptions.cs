@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using Roslyn.Utilities;
@@ -13,10 +14,18 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class ParseOptions
     {
+        private readonly Lazy<ImmutableArray<Diagnostic>> _lazyErrors;
+
         /// <summary>
         /// Specifies whether to parse as regular code files, script files or interactive code.
         /// </summary>
         public SourceCodeKind Kind { get; protected set; }
+
+        /// <summary>
+        /// Gets the specified source code kind, which is the value that was specified in
+        /// the call to the constructor, or modified using the <see cref="WithKind(SourceCodeKind)"/> method.
+        /// </summary>
+        public SourceCodeKind SpecifiedKind { get; protected set; }
 
         /// <summary>
         /// Gets a value indicating whether the documentation comments are parsed.
@@ -26,8 +35,16 @@ namespace Microsoft.CodeAnalysis
 
         internal ParseOptions(SourceCodeKind kind, DocumentationMode documentationMode)
         {
-            this.Kind = kind;
+            this.SpecifiedKind = kind;
+            this.Kind = kind.MapSpecifiedToEffectiveKind();
             this.DocumentationMode = documentationMode;
+
+            _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
+            {
+                var builder = ArrayBuilder<Diagnostic>.GetInstance();
+                ValidateOptions(builder);
+                return builder.ToImmutableAndFree();
+            });
         }
 
         /// <summary>
@@ -36,11 +53,38 @@ namespace Microsoft.CodeAnalysis
         public abstract string Language { get; }
 
         /// <summary>
+        /// Errors collection related to an incompatible set of parse options
+        /// </summary>
+        public ImmutableArray<Diagnostic> Errors
+        {
+            get { return _lazyErrors.Value; }
+        }
+
+        /// <summary>
         /// Creates a new options instance with the specified source code kind.
         /// </summary>
         public ParseOptions WithKind(SourceCodeKind kind)
         {
             return CommonWithKind(kind);
+        }
+
+        /// <summary>
+        /// Performs validation of options compatibilities and generates diagnostics if needed
+        /// </summary>
+        internal abstract void ValidateOptions(ArrayBuilder<Diagnostic> builder);
+
+        internal void ValidateOptions(ArrayBuilder<Diagnostic> builder, CommonMessageProvider messageProvider)
+        {
+            // Validate SpecifiedKind not Kind, to catch deprecated specified kinds:
+            if (!SpecifiedKind.IsValid())
+            {
+                builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_BadSourceCodeKind, Location.None, SpecifiedKind));
+            }
+
+            if (!DocumentationMode.IsValid())
+            {
+                builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_BadDocumentationMode, Location.None, DocumentationMode));
+            }
         }
 
         // It was supposed to be a protected implementation detail. 

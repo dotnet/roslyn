@@ -5467,4 +5467,13 @@
   <data name="ERR_Merge_conflict_marker_encountered" xml:space="preserve">
     <value>Merge conflict marker encountered</value>
   </data>
+  <data name="ERR_BadDocumentationMode" xml:space="preserve">
+    <value>Provided Documentation Mode is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="ERR_BadLanguageVersion" xml:space="preserve">
+    <value>Provided Language Version is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="ERR_BadSourceCodeKind" xml:space="preserve">
+    <value>Provided Source Code Kind is unsupported or invalid: '{0}'.</value>
+  </data>
 </root>

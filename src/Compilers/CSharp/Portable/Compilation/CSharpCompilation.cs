@@ -1927,6 +1927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var syntaxTree = syntaxTrees[i];
                             AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
                             builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
+                            builder.AddRange(syntaxTree.Options.Errors);
                         }));
                 }
                 else

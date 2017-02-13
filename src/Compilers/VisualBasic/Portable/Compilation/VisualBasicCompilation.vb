@@ -1927,6 +1927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     For Each tree In SyntaxTrees
                         cancellationToken.ThrowIfCancellationRequested()
                         builder.AddRange(tree.GetDiagnostics(cancellationToken))
+                        builder.AddRange(tree.Options.Errors)
                     Next
                 End If
             End If

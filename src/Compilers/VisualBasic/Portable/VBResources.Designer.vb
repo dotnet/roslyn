@@ -1036,6 +1036,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Provided Documentation Mode is unsupported or invalid: &apos;{0}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_BadDocumentationMode() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadDocumentationMode", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Enum &apos;{0}&apos; must contain at least one member..
         '''</summary>
         Friend ReadOnly Property ERR_BadEmptyEnum1() As String
@@ -1279,6 +1288,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Provided Language Version is unsupported or invalid: &apos;{0}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_BadLanguageVersion() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadLanguageVersion", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}&apos; is not valid on a local constant declaration..
         '''</summary>
         Friend ReadOnly Property ERR_BadLocalConstFlags1() As String
@@ -1482,6 +1500,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_BadReturnValueInIterator() As String
             Get
                 Return ResourceManager.GetString("ERR_BadReturnValueInIterator", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Provided Source Code Kind is unsupported or invalid: &apos;{0}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_BadSourceCodeKind() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadSourceCodeKind", resourceCulture)
             End Get
         End Property
         

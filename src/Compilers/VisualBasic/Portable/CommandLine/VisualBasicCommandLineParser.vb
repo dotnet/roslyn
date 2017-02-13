@@ -1311,7 +1311,9 @@ lVbRuntimePlus:
                 preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()),
                 features:=parsedFeatures)
 
-            Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
+            If IsScriptRunner Then
+                parseOptions = parseOptions.WithKind(SourceCodeKind.Script)
+            End If
 
             ' We want to report diagnostics with source suppression in the error log file.
             ' However, these diagnostics won't be reported on the command line.
@@ -1357,6 +1359,7 @@ lVbRuntimePlus:
 
             ' add option incompatibility errors if any
             diagnostics.AddRange(options.Errors)
+            diagnostics.AddRange(parseOptions.Errors)
 
             If documentationPath Is GenerateFileNameForDocComment Then
                 documentationPath = PathUtilities.CombineAbsoluteAndRelativePaths(outputDirectory, PathUtilities.RemoveExtension(outputFileName))
@@ -1398,7 +1401,7 @@ lVbRuntimePlus:
                 .DisplayVersion = displayVersion,
                 .ManifestResources = managedResources.AsImmutable(),
                 .CompilationOptions = options,
-                .ParseOptions = If(IsScriptRunner, scriptParseOptions, parseOptions),
+                .ParseOptions = parseOptions,
                 .EmitOptions = emitOptions,
                 .ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
                 .TouchedFilesPath = touchedFilesPath,

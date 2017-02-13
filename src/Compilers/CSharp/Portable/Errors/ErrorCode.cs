@@ -1439,7 +1439,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DelegateRefMismatch = 8189,
         #endregion stragglers for C# 7
 
-        // Available  = 8190-8195
+        #region diagnostics for parse options
+        ERR_BadSourceCodeKind = 8190,
+        ERR_BadDocumentationMode = 8191,
+        ERR_BadLanguageVersion = 8192,
+        #endregion
+
+        // Available  = 8193-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
