@@ -20,9 +20,6 @@ Public Class VisualBasicParseOptionsTests
         TestProperty(Function(old, value) old.WithKind(value), Function(opt) opt.Kind, SourceCodeKind.Script)
         TestProperty(Function(old, value) old.WithLanguageVersion(value), Function(opt) opt.LanguageVersion, LanguageVersion.VisualBasic9)
         TestProperty(Function(old, value) old.WithDocumentationMode(value), Function(opt) opt.DocumentationMode, DocumentationMode.None)
-
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithKind(DirectCast(Integer.MaxValue, SourceCodeKind)))
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithLanguageVersion(DirectCast(1000, LanguageVersion)))
     End Sub
 
     <Fact>
@@ -51,44 +48,6 @@ Public Class VisualBasicParseOptionsTests
         Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(CType(Nothing, ImmutableArray(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
         Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(DirectCast(Nothing, IEnumerable(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
         Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(DirectCast(Nothing, KeyValuePair(Of String, Object)())).PreprocessorSymbols.Length)
-
-        Dim syms2 = {New KeyValuePair(Of String, Object)("A", 1),
-                     New KeyValuePair(Of String, Object)("B", New List(Of String)()),
-                     New KeyValuePair(Of String, Object)("C", 3)}
-
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms2))
-        Assert.Throws(Of ArgumentException)(Function() VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms2))
-    End Sub
-
-    <Fact>
-    Public Sub ConstructorValidation()
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(kind:=DirectCast(Int32.MaxValue, SourceCodeKind)))
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(languageVersion:=DirectCast(1000, LanguageVersion)))
-    End Sub
-
-    <Fact, WorkItem(546206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546206")>
-    Public Sub InvalidDefineSymbols()
-
-        ' Command line: error BC31030: Project-level conditional compilation constant 'xxx' is not valid: Identifier expected
-
-        Dim syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("", 1))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
-
-        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)(" ", 1))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
-
-        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("Good", 1),
-                                     New KeyValuePair(Of String, Object)(Nothing, 2))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
-
-        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("Good", 1),
-                                     New KeyValuePair(Of String, Object)("Bad.Symbol", 2))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
-
-        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("123", 1),
-                                     New KeyValuePair(Of String, Object)("Bad/Symbol", 2),
-                                     New KeyValuePair(Of String, Object)("Good", 3))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
     End Sub
 
     <Fact>

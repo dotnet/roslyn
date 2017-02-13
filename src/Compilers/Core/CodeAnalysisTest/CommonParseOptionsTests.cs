@@ -19,10 +19,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 typeof(ParseOptions),
                 "DocumentationMode",
-                "Language",
+                "Errors",
                 "Features",
                 "Kind",
-                "PreprocessorSymbolNames");
+                "Language",
+                "PreprocessorSymbolNames",
+                "SpecifiedKind");
         }
     }
 }

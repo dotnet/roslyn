@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return
-                this.Kind == other.Kind &&
+                this.SpecifiedKind == other.SpecifiedKind &&
                 this.DocumentationMode == other.DocumentationMode &&
                 this.Features.SequenceEqual(other.Features) &&
                 (this.PreprocessorSymbolNames == null ? other.PreprocessorSymbolNames == null : this.PreprocessorSymbolNames.SequenceEqual(other.PreprocessorSymbolNames, StringComparer.Ordinal));
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis
         protected int GetHashCodeHelper()
         {
             return
-                Hash.Combine((int)this.Kind,
+                Hash.Combine((int)this.SpecifiedKind,
                 Hash.Combine((int)this.DocumentationMode,
                 Hash.Combine(HashFeatures(this.Features),
                 Hash.Combine(Hash.CombineValues(this.PreprocessorSymbolNames, StringComparer.Ordinal), 0))));

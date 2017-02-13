@@ -29,30 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             TestProperty((old, value) => old.WithDocumentationMode(value), opt => opt.DocumentationMode, DocumentationMode.None);
             TestProperty((old, value) => old.WithPreprocessorSymbols(value), opt => opt.PreprocessorSymbols, ImmutableArray.Create<string>("A", "B", "C"));
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => CSharpParseOptions.Default.WithKind((SourceCodeKind)Int32.MaxValue));
-            Assert.Throws<ArgumentOutOfRangeException>(() => CSharpParseOptions.Default.WithLanguageVersion((LanguageVersion)1000));
-
             Assert.Equal(0, CSharpParseOptions.Default.WithPreprocessorSymbols(ImmutableArray.Create<string>("A", "B")).WithPreprocessorSymbols(default(ImmutableArray<string>)).PreprocessorSymbols.Length);
             Assert.Equal(0, CSharpParseOptions.Default.WithPreprocessorSymbols(ImmutableArray.Create<string>("A", "B")).WithPreprocessorSymbols((IEnumerable<string>)null).PreprocessorSymbols.Length);
             Assert.Equal(0, CSharpParseOptions.Default.WithPreprocessorSymbols(ImmutableArray.Create<string>("A", "B")).WithPreprocessorSymbols((string[])null).PreprocessorSymbols.Length);
-        }
-
-        [Fact]
-        public void ConstructorValidation()
-        {
-            Assert.Throws<ArgumentOutOfRangeException>(() => new CSharpParseOptions(kind: (SourceCodeKind)Int32.MaxValue));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new CSharpParseOptions(languageVersion: (LanguageVersion)1000));
-        }
-
-        [Fact(), WorkItem(546206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546206")]
-        public void InvalidDefineSymbols()
-        {
-            // command line gives CS2029: Invalid value for '/define'; 'xxx' is not a valid identifier
-            Assert.Throws<ArgumentException>(() => new CSharpParseOptions(preprocessorSymbols: ImmutableArray.Create<string>("")));
-            Assert.Throws<ArgumentException>(() => new CSharpParseOptions(preprocessorSymbols: ImmutableArray.Create<string>(" ")));
-            Assert.Throws<ArgumentException>(() => new CSharpParseOptions(preprocessorSymbols: ImmutableArray.Create<string>("Good", "Bad.Symbol")));
-            Assert.Throws<ArgumentException>(() => new CSharpParseOptions(preprocessorSymbols: ImmutableArray.Create<string>("123", "Good")));
-            Assert.Throws<ArgumentException>(() => new CSharpParseOptions(preprocessorSymbols: ImmutableArray.Create<string>("Good", null, @"Bad\Symbol")));
         }
 
         /// <summary>
