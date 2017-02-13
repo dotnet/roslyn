@@ -74,6 +74,7 @@
     <Compile Include="FlowAnalysis\StructTests.cs" />
     <Compile Include="FlowAnalysis\TryLockUsingStatementTests.cs" />
     <Compile Include="Semantics\FuzzTests.cs" />
+    <Compile Include="Semantics\OverloadResolutionPerfTests.cs" />
     <Compile Include="Semantics\PatternMatchingTests_Global.cs" />
     <Compile Include="Semantics\BindingAsyncTasklikeMoreTests.cs" />
     <Compile Include="Semantics\BindingAsyncTasklikeTests.cs" />
