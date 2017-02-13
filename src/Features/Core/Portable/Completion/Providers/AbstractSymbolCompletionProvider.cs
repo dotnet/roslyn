@@ -233,9 +233,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private async Task<ImmutableArray<(ISymbol, CompletionItemRules)>> GetSymbolsWorker(int position, bool preselect, SyntaxContext context, OptionSet options, CancellationToken cancellationToken)
         {
-            return preselect
-                ? await GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false)
-                : (await GetSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false)).Select(s => (s, CompletionItemRules.Default)).ToImmutableArray();
+            if (preselect)
+            {
+                return await GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
+            }
+            
+            return (await GetSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false))
+                    .Select(s => (s, CompletionItemRules.Default)).ToImmutableArray();
         }
 
         private HashSet<ISymbol> UnionSymbols(List<Tuple<DocumentId, SyntaxContext, ImmutableArray<ISymbol>>> linkedContextSymbolLists, out Dictionary<ISymbol, SyntaxContext> originDictionary)
@@ -271,7 +275,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (IsCandidateProject(context, cancellationToken))
                 {
-                    var symbols = (await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false)).Select(t => t.Item1).ToImmutableArray();
+                    var symbols = (await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false))
+                                    .Select(t => t.Item1).ToImmutableArray();
+
                     perContextSymbols.Add(Tuple.Create(relatedDocument.Id, context, symbols));
                 }
             }
