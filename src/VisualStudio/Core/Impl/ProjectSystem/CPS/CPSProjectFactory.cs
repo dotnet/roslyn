@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
@@ -16,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
     [Export(typeof(IWorkspaceProjectContextFactory))]
-    internal partial class CPSProjectFactory : IWorkspaceProjectContextFactory
+    internal partial class CPSProjectFactory : ForegroundThreadAffinitizedObject, IWorkspaceProjectContextFactory
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
@@ -33,7 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public CPSProjectFactory(
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspace,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
+            base(assertIsForeground: false)
         {
             _serviceProvider = serviceProvider;
             _visualStudioWorkspace = visualStudioWorkspace;
@@ -43,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         // internal for testing purposes only.
         internal static CPSProject CreateCPSProject(VisualStudioProjectTracker projectTracker, IServiceProvider serviceProvider, IVsHierarchy hierarchy, string projectDisplayName, string projectFilePath, Guid projectGuid, string language, ICommandLineParserService commandLineParserService, string binOutputPath)
         {
+            // this only runs under unit test
             return new CPSProject(projectTracker, reportExternalErrorCreatorOpt: null, hierarchy: hierarchy, language: language,
                 serviceProvider: serviceProvider, visualStudioWorkspaceOpt: null, hostDiagnosticUpdateSourceOpt: null,
                 projectDisplayName: projectDisplayName, projectFilePath: projectFilePath, projectGuid: projectGuid,
@@ -57,6 +60,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             object hierarchy,
             string binOutputPath)
         {
+            AssertIsForeground();
+
+            EnsurePackageLoaded(languageName);
+
             // NOTE: It is acceptable for hierarchy to be null in Deferred Project Load scenarios.
             var vsHierarchy = hierarchy as IVsHierarchy;
 
@@ -76,6 +83,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             string binOutputPath,
             ProjectExternalErrorReporter errorReporter)
         {
+            AssertIsForeground();
+
+            EnsurePackageLoaded(languageName);
+
             // NOTE: It is acceptable for hierarchy to be null in Deferred Project Load scenarios.
             var vsHierarchy = hierarchy as IVsHierarchy;
 
@@ -93,6 +104,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
 
             return new ProjectExternalErrorReporter(projectId, errorCodePrefix, _serviceProvider);
+        }
+
+        private void EnsurePackageLoaded(string language)
+        {
+            // we need to make sure we load required packages which initialize VS related services 
+            // such as OB, FAR, Error list, Msic workspace, solution crawler before actually
+            // set roslyn CPS up.
+            var shell = (IVsShell)_serviceProvider.GetService(typeof(SVsShell));
+            if (shell == null)
+            {
+                // no shell. can happen in unit test
+                return;
+            }
+
+            IVsPackage unused;
+            switch (language)
+            {
+                case LanguageNames.CSharp:
+                    shell.LoadPackage(Guids.CSharpPackageId, out unused);
+                    break;
+                case LanguageNames.VisualBasic:
+                    shell.LoadPackage(Guids.VisualBasicPackageId, out unused);
+                    break;
+                default:
+                    // by default, load roslyn package for things like typescript and etc
+                    shell.LoadPackage(Guids.RoslynPackageId, out unused);
+                    break;
+            }
         }
     }
 }
