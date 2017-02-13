@@ -5108,6 +5108,35 @@ class C
         }
 
         [Fact]
+        public void VerifyDiscardIL()
+        {
+            var source =
+@"
+class C
+{
+    static int M()
+    {
+        var (x, _, _) = (1, new C(), 2);
+        return x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.M()", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  .locals init (C V_0)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldc.i4.1
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
         public void SingleDiscardInAssignment()
         {
             var source =
@@ -6125,6 +6154,189 @@ public class MyClass
                 Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(arr[out int size], int b)").WithLocation(9, 18)
 
                 );
+        }
+
+        [Fact]
+        public void SimpleAssignInConstructor()
+        {
+            string source = @"
+public class C
+{
+    public long x;
+    public string y;
+
+    public C(int a, string b) => (x, y) = (a, b);
+
+    public static void Main()
+    {
+        var c = new C(1, ""hello"");
+        System.Console.WriteLine(c.x + "" "" + c.y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C..ctor(int, string)", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (long V_0,
+                string V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.1
+  IL_0007:  conv.i8
+  IL_0008:  stloc.0
+  IL_0009:  ldarg.2
+  IL_000a:  stloc.1
+  IL_000b:  ldarg.0
+  IL_000c:  ldloc.0
+  IL_000d:  stfld      ""long C.x""
+  IL_0012:  ldarg.0
+  IL_0013:  ldloc.1
+  IL_0014:  stfld      ""string C.y""
+  IL_0019:  ret
+}");
+        }
+
+        [Fact]
+        public void DeconstructAssignInConstructor()
+        {
+            string source = @"
+public class C
+{
+    public long x;
+    public string y;
+
+    public C(C oldC) => (x, y) = oldC;
+    public C() { }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+
+    public static void Main()
+    {
+        var oldC = new C() { x = 1, y = ""hello"" };
+        var newC = new C(oldC);
+        System.Console.WriteLine(newC.x + "" "" + newC.y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  .locals init (int V_0,
+                string V_1,
+                long V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.1
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_0010:  ldloc.0
+  IL_0011:  conv.i8
+  IL_0012:  stloc.2
+  IL_0013:  ldarg.0
+  IL_0014:  ldloc.2
+  IL_0015:  stfld      ""long C.x""
+  IL_001a:  ldarg.0
+  IL_001b:  ldloc.1
+  IL_001c:  stfld      ""string C.y""
+  IL_0021:  ret
+}");
+        }
+
+        [Fact]
+        public void AssignInConstructorWithProperties()
+        {
+            string source = @"
+public class C
+{
+    public long X { get; set; }
+    public string Y { get; }
+    private int z;
+    public ref int Z { get { return ref z; } }
+
+    public C(int a, string b, ref int c) => (X, Y, Z) = (a, b, c);
+
+    public static void Main()
+    {
+        int number = 2;
+        var c = new C(1, ""hello"", ref number);
+        System.Console.WriteLine($""{c.X} {c.Y} {c.Z}"");
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello 2", additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C..ctor(int, string, ref int)", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  4
+  .locals init (long V_0,
+                string V_1,
+                int V_2,
+                long V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""ref int C.Z.get""
+  IL_000c:  ldarg.1
+  IL_000d:  conv.i8
+  IL_000e:  stloc.0
+  IL_000f:  ldarg.2
+  IL_0010:  stloc.1
+  IL_0011:  ldarg.3
+  IL_0012:  ldind.i4
+  IL_0013:  stloc.2
+  IL_0014:  ldarg.0
+  IL_0015:  ldloc.0
+  IL_0016:  dup
+  IL_0017:  stloc.3
+  IL_0018:  call       ""void C.X.set""
+  IL_001d:  ldarg.0
+  IL_001e:  ldloc.1
+  IL_001f:  stfld      ""string C.<Y>k__BackingField""
+  IL_0024:  ldloc.2
+  IL_0025:  stind.i4
+  IL_0026:  ret
+}");
+        }
+
+        [Fact]
+        public void VerifyDeconstructionInAsync()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+class C
+{
+    static void Main()
+    {
+        System.Console.Write(C.M().Result);
+    }
+    static async Task<int> M()
+    {
+        await Task.Delay(0);
+        var (x, y) = (1, 2);
+        return x + y;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "3");
         }
     }
 }

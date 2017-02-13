@@ -69,10 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class DeconstructionUncommonData : UncommonData
         {
-            internal DeconstructionUncommonData(DeconstructionInfo deconstructionInfo, ImmutableArray<Conversion> nestedConversions)
+            internal DeconstructionUncommonData(DeconstructionInfo deconstructionInfoOpt, ImmutableArray<Conversion> nestedConversions)
                 : base(false, false, default(UserDefinedConversionResult), null, nestedConversions)
             {
-                _deconstructionInfo = deconstructionInfo;
+                Debug.Assert(!nestedConversions.IsDefaultOrEmpty);
+                _deconstructionInfo = deconstructionInfoOpt;
             }
 
             internal DeconstructionInfo _deconstructionInfo;
