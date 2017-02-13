@@ -1437,5 +1437,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics for out var
 
         ERR_BadDynamicMethodArgDefault = 9000,
+        ERR_DefaultNotValid = 9001,
     }
 }

@@ -837,6 +837,9 @@
   <data name="ERR_NullNotValid" xml:space="preserve">
     <value>Use of null is not valid in this context</value>
   </data>
+  <data name="ERR_DefaultNotValid" xml:space="preserve">
+    <value>Use of default is not valid in this context</value>
+  </data>
   <data name="ERR_UseDefViolationThis" xml:space="preserve">
     <value>The 'this' object cannot be used before all of its fields are assigned to</value>
   </data>

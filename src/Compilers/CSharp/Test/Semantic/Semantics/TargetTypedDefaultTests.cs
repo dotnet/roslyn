@@ -242,6 +242,57 @@ class C
         }
 
         [Fact]
+        public void GenericCast()
+        {
+            string source = @"
+class C
+{
+    static void M<T>()
+    {
+        const T x = default(T);
+        const T y = (T)default;
+        System.Console.Write($""{x} {y}"");
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0283: The type 'T' cannot be declared const
+                //         const T x = default(T);
+                Diagnostic(ErrorCode.ERR_BadConstType, "T").WithArguments("T").WithLocation(6, 15),
+                // (7,15): error CS0283: The type 'T' cannot be declared const
+                //         const T y = (T)default;
+                Diagnostic(ErrorCode.ERR_BadConstType, "T").WithArguments("T").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void UserDefinedStruct()
+        {
+            string source = @"
+struct S { }
+class C
+{
+    static void M()
+    {
+        const S x = default(S);
+        const S y = (S)default;
+        System.Console.Write($""{x} {y}"");
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
+            comp.VerifyDiagnostics(
+                // (7,15): error CS0283: The type 'S' cannot be declared const
+                //         const S x = default(S);
+                Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("S").WithLocation(7, 15),
+                // (8,15): error CS0283: The type 'S' cannot be declared const
+                //         const S y = (S)default;
+                Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("S").WithLocation(8, 15)
+                );
+        }
+
+        [Fact]
         public void ImplicitlyTypedArray()
         {
             string source = @"
@@ -351,7 +402,6 @@ class C
             var def = nodes.OfType<DefaultLiteralSyntax>().Single();
             Assert.Null(model.GetTypeInfo(def).Type);
             Assert.Null(model.GetSymbolInfo(def).Symbol);
-            Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Null(model.GetDeclaredSymbol(def));
         }
 
@@ -364,6 +414,23 @@ class C
     static int M()
     {
         return default;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void YieldReturn()
+        {
+            string source = @"
+using System.Collections.Generic;
+class C
+{
+    static IEnumerable<int> M()
+    {
+        yield return default;
     }
 }
 ";
@@ -490,9 +557,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,27): error CS0446: Foreach cannot operate on a 'default'. Did you intend to invoke the 'default'?
+                // (6,27): error CS9001: Use of default is not valid in this context
                 //         foreach (int x in default) { }
-                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "default").WithArguments("default").WithLocation(6, 27),
+                Diagnostic(ErrorCode.ERR_DefaultNotValid, "default").WithLocation(6, 27),
                 // (7,27): error CS0186: Use of null is not valid in this context
                 //         foreach (int x in null) { }
                 Diagnostic(ErrorCode.ERR_NullNotValid, "null").WithLocation(7, 27)
@@ -591,6 +658,26 @@ class C
                 // (6,30): error CS0077: The as operator must be used with a reference type or nullable type ('long' is a non-nullable value type)
                 //         System.Console.Write(default as long);
                 Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "default as long").WithArguments("long").WithLocation(6, 30)
+                );
+        }
+
+        [Fact]
+        public void DefaultInIsPattern()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write(default is long);
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS9001: Use of default is not valid in this context
+                //         System.Console.Write(default is long);
+                Diagnostic(ErrorCode.ERR_DefaultNotValid, "default is long").WithArguments("long").WithLocation(6, 30)
                 );
         }
 
@@ -873,7 +960,6 @@ class C
 
             var def = nodes.OfType<DefaultLiteralSyntax>().Single();
             Assert.Null(model.GetTypeInfo(def).Type);
-            Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Null(model.GetDeclaredSymbol(def));
 

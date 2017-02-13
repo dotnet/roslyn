@@ -3167,6 +3167,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use of default is not valid in this context.
+        /// </summary>
+        internal static string ERR_DefaultNotValid {
+            get {
+                return ResourceManager.GetString("ERR_DefaultNotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument of type &apos;{0}&apos; is not applicable for the DefaultParameterValue attribute.
         /// </summary>
         internal static string ERR_DefaultValueBadValueType {

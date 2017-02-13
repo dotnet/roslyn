@@ -388,12 +388,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol collectionExprType = collectionExpr.Type;
 
-            if (collectionExpr.ConstantValue != null && collectionExpr.ConstantValue.IsNull)
+            if (collectionExpr.ConstantValue != null)
             {
-                // Spec seems to refer to null literals, but Dev10 reports anything known to be null.
-                Debug.Assert(collectionExpr.ConstantValue.IsNull); // only constant value with no type
-                diagnostics.Add(ErrorCode.ERR_NullNotValid, _syntax.Expression.Location);
-
+                if (collectionExpr.ConstantValue.IsNull)
+                {
+                    // Spec seems to refer to null literals, but Dev10 reports anything known to be null.
+                    diagnostics.Add(ErrorCode.ERR_NullNotValid, _syntax.Expression.Location);
+                }
+                else if (collectionExpr.ConstantValue.IsDefaultLiteral)
+                {
+                    diagnostics.Add(ErrorCode.ERR_DefaultNotValid, _syntax.Expression.Location);
+                }
                 return false;
             }
 
