@@ -58,12 +58,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool Equals(object obj)
         {
-            return obj is LazyObsoleteDiagnosticInfo lod &&
-                this._lazyActualObsoleteDiagnostic.Equals(lod._lazyActualObsoleteDiagnostic) &&
-                this._symbol.Equals(lod._symbol) &&
-                this._containingSymbol.Equals(lod._containingSymbol) &&
-                this._binderFlags.Equals(lod._binderFlags) &&
-                base.Equals(obj);
+            if (obj is LazyObsoleteDiagnosticInfo lod)
+            {
+                return this.GetResolvedInfo().Equals(lod.GetResolvedInfo()) &&
+                       this._symbol == lod._symbol &&
+                       this._containingSymbol == lod._containingSymbol &&
+                       this._binderFlags == lod._binderFlags &&
+                       base.Equals(obj);
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public override int GetHashCode()

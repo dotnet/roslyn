@@ -49,9 +49,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function Equals(obj As Object) As Boolean
             If obj.GetType() Is GetType(LazyObsoleteDiagnosticInfo) Then
                 Dim asd = CType(obj, LazyObsoleteDiagnosticInfo)
-                Return Me._symbol.Equals(asd._symbol) AndAlso
-                    Me._containingSymbol.Equals(asd._containingSymbol) AndAlso
-                    Me._lazyActualObsoleteDiagnostic.Equals(asd._lazyActualObsoleteDiagnostic) AndAlso
+                Dim containingSame = False
+                Return Me._symbol = asd._symbol AndAlso
+                    Me._containingSymbol = asd._containingSymbol AndAlso
+                    Me.GetResolvedInfo().Equals(asd.GetResolvedInfo()) AndAlso
                     MyBase.Equals(obj)
             End If
             Return False

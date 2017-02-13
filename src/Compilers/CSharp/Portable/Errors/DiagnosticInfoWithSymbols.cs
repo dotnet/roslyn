@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
@@ -25,13 +27,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool Equals(object obj)
         {
             return obj is DiagnosticInfoWithSymbols diws && 
-                   this.Symbols.Equals(diws.Symbols) && 
+                   (this.Symbols as IStructuralEquatable).Equals(diws.Symbols, EqualityComparer<Symbol>.Default) &&
                    base.Equals(obj);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.Symbols.GetHashCode(), base.GetHashCode());
+            return Hash.Combine(
+                (this.Symbols as IStructuralEquatable).GetHashCode(EqualityComparer<Symbol>.Default),
+                base.GetHashCode());
         }
     }
 }
