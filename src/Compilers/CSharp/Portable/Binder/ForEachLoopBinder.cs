@@ -394,12 +394,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Spec seems to refer to null literals, but Dev10 reports anything known to be null.
                     diagnostics.Add(ErrorCode.ERR_NullNotValid, _syntax.Expression.Location);
+                    return false;
                 }
                 else if (collectionExpr.ConstantValue.IsDefaultLiteral)
                 {
                     diagnostics.Add(ErrorCode.ERR_DefaultNotValid, _syntax.Expression.Location);
+                    return false;
                 }
-                return false;
             }
 
             if ((object)collectionExprType == null) // There's no way to enumerate something without a type.

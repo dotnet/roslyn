@@ -251,7 +251,8 @@ class C
     {
         const T x = default(T);
         const T y = (T)default;
-        System.Console.Write($""{x} {y}"");
+        const object z = (T)default;
+        System.Console.Write($""{x} {y} {z}"");
     }
 }
 ";
@@ -262,7 +263,10 @@ class C
                 Diagnostic(ErrorCode.ERR_BadConstType, "T").WithArguments("T").WithLocation(6, 15),
                 // (7,15): error CS0283: The type 'T' cannot be declared const
                 //         const T y = (T)default;
-                Diagnostic(ErrorCode.ERR_BadConstType, "T").WithArguments("T").WithLocation(7, 15)
+                Diagnostic(ErrorCode.ERR_BadConstType, "T").WithArguments("T").WithLocation(7, 15),
+                // (8,26): error CS0134: 'z' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
+                //         const object z = (T)default;
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, "(T)default").WithArguments("z", "object").WithLocation(8, 26)
                 );
         }
 
@@ -277,18 +281,22 @@ class C
     {
         const S x = default(S);
         const S y = (S)default;
-        System.Console.Write($""{x} {y}"");
+        const object z = (S)default;
+        System.Console.Write($""{x} {y} {z}"");
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
-                // (7,15): error CS0283: The type 'S' cannot be declared const
+                 // (7,15): error CS0283: The type 'S' cannot be declared const
                 //         const S x = default(S);
                 Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("S").WithLocation(7, 15),
                 // (8,15): error CS0283: The type 'S' cannot be declared const
                 //         const S y = (S)default;
-                Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("S").WithLocation(8, 15)
+                Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("S").WithLocation(8, 15),
+                // (9,26): error CS0134: 'z' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
+                //         const object z = (S)default;
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, "(S)default").WithArguments("z", "object").WithLocation(9, 26)
                 );
         }
 
@@ -425,10 +433,15 @@ class C
         public void YieldReturn()
         {
             string source = @"
+using System.Collections;
 using System.Collections.Generic;
 class C
 {
     static IEnumerable<int> M()
+    {
+        yield return default;
+    }
+    static IEnumerable M2()
     {
         yield return default;
     }
@@ -682,7 +695,7 @@ class C
         }
 
         [Fact]
-        public void CS0403ERR_TypeVarCanBeDefault()
+        public void TypeVarCanBeDefault()
         {
             var source =
 @"interface I { }
