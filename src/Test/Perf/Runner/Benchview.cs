@@ -64,14 +64,14 @@ namespace Roslyn.Test.Performance.Runner
             return true;
         }
 
-        internal static void UploadBenchviewReport(string submissionType, string submissionName, string branch)
+        internal static void UploadBenchviewReport(string submissionType, string submissionName, string branch, bool isTestingMachines)
         {
             var consumptionXml = Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults.xml");
             var result = ConvertConsumptionToMeasurementJson(consumptionXml);
 
             if (result)
             {
-                var submissionJson = CreateSubmissionJson(submissionType, submissionName, branch, Path.Combine(s_outputDirectory, "measurement.json"));
+                var submissionJson = CreateSubmissionJson(submissionType, submissionName, branch, Path.Combine(s_outputDirectory, "measurement.json"), isTestingMachines);
 
                 Log("Uploading json to Azure blob storage");
                 var uploadPy = Path.Combine(s_scriptDirectory, "upload.py");
@@ -102,7 +102,12 @@ namespace Roslyn.Test.Performance.Runner
         }
 
         /// Takes a measurement.json in BenchView's format and generates a submission.json, ready for upload 
-        private static string CreateSubmissionJson(string submissionType, string submissionName, string branch, string measurementJsonPath)
+        private static string CreateSubmissionJson(
+                string submissionType,
+                string submissionName,
+                string branch,
+                string measurementJsonPath,
+                bool isTestingMachines)
         {
             RuntimeSettings.Logger.Log("Creating BenchView submission json");
 
@@ -140,16 +145,30 @@ namespace Roslyn.Test.Performance.Runner
             string configuration = "Release";
 #endif
 
+            string groupName;
+            string extraConfiguration;
+            if (isTestingMachines) {
+                var machineName = Environment.MachineName;
+                groupName = "roslyn-machine-test";
+                extraConfiguration =
+$@"--config-name machine
+--config configuration {machineName}";
+            } else {
+                groupName = "roslyn";
+                extraConfiguration = "";
+            }
+
             string arguments = $@"
 ""{submissionPy}""
  {measurementJsonPath}
  --metadata ""{submissionMetadataJson}""
  --build ""{buildJson}""
  --machine-data ""{machinedataJson}""
- --group ""roslyn""
+ --group ""{groupName}""
  --type {submissionType}
  --config-name {configuration}
  --config configuration {configuration}
+ {extraConfiguration}
  --architecture amd64
  --machinepool ""ml-perf""
  -o ""{submissionJson}""
