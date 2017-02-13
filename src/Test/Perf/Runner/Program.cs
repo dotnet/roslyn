@@ -147,6 +147,7 @@ namespace Runner
 
             // Print message at startup
             Log("Starting Performance Test Run");
+            Log($"Base directory {testDirectory}");
             Log("hash: " + FirstLine(StdoutFromOrDefault("git", "show --format=\"%h\" HEAD --", "git missing")));
             Log("time: " + DateTime.Now.ToString());
 
