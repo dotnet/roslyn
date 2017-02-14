@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int GetHashCode()
         {
             return Hash.Combine(
-                this._lazyActualObsoleteDiagnostic,
+                this.GetResolvedInfo(),
                 Hash.Combine(this._symbol,
                 Hash.Combine(this._containingSymbol,
                 Hash.Combine(_binderFlags.GetHashCode(),

@@ -54,8 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Public Overrides Function Equals(obj As Object) As Boolean
-                If obj.GetType() Is GetType(ImportDiagnosticInfo) Then
-                    Dim idi = CType(obj, ImportDiagnosticInfo)
+                Dim idi = TryCast(obj, ImportDiagnosticInfo)
+                If idi IsNot Nothing Then
                     Return Me._importText.Equals(idi._importText) AndAlso
                         Me._startIndex = idi._startIndex AndAlso
                         Me._length = idi._length AndAlso

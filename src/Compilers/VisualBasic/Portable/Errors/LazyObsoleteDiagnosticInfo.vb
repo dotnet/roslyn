@@ -47,9 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean
-            If obj.GetType() Is GetType(LazyObsoleteDiagnosticInfo) Then
-                Dim asd = CType(obj, LazyObsoleteDiagnosticInfo)
-                Dim containingSame = False
+            Dim asd = TryCast(obj, LazyObsoleteDiagnosticInfo)
+            If asd IsNot Nothing Then
                 Return Me._symbol = asd._symbol AndAlso
                     Me._containingSymbol = asd._containingSymbol AndAlso
                     Me.GetResolvedInfo().Equals(asd.GetResolvedInfo()) AndAlso
@@ -61,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function GetHashCode() As Integer
             Return Hash.Combine(Me._symbol,
                 Hash.Combine(Me._containingSymbol,
-                Hash.Combine(Me._lazyActualObsoleteDiagnostic,
+                Hash.Combine(Me.GetResolvedInfo(),
                 MyBase.GetHashCode())))
         End Function
     End Class
