@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // attempt to load from persisted state
                 using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
                 using (var stream = await storage.ReadStreamAsync(document, persistenceName, cancellationToken).ConfigureAwait(false))
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     if (reader != null)
                     {
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
                 using (var stream = SerializableBytes.CreateWritableStream())
-                using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                 {
                     data.WriteVersion(writer, formatVersion);
                     data.WriteTo(writer);
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
                 using (var stream = await storage.ReadStreamAsync(document, persistenceName, cancellationToken).ConfigureAwait(false))
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     if (reader != null)
                     {
