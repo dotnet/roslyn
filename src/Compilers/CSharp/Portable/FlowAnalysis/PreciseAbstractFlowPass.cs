@@ -546,6 +546,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.TupleLiteral:
+                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.VisitLvalue(x), this);
+                    break;
+
                 default:
                     VisitRvalue(node);
                     break;
@@ -1646,13 +1650,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
-            if (node.Left.Kind == BoundKind.TupleLiteral)
-            {
-                ((BoundTupleExpression)node.Left).VisitAllElements((x, self) => self.VisitLvalue(x), this);
-                VisitRvalue(node.Right);
-                return null;
-            }
-
             // TODO: should events be handled specially too?
             if (RegularPropertyAccess(node.Left))
             {

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class LocalRewriter
     {
         /// <summary>
-        /// The left represents a tree of L-values. The structure of right is a sub-set of that tree.
+        /// The left represents a tree of L-values. The structure of right can be missing parts of the tree on the left.
         /// The conversion holds nested conversisons and deconstruction information, which matches the tree from the left,
         /// and it provides the information to fill in the missing parts of the tree from the right and convert it to
         /// the tree from the left.
@@ -40,6 +40,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        /// <summary>
+        /// This method recurses through leftTargets, right and conversion at the same time.
+        /// As it does, it collects side-effects into the proper buckets (init, deconstructions, conversions, assignments).
+        ///
+        /// The side-effects from the right initially go into the init bucket. But once we started drilling into a Deconstruct
+        /// invocation, subsequent side-effects from the right go into the deconstructions bucket (otherwise they would
+        /// be evaluated out of order).
+        /// </summary>
         private BoundTupleLiteral ApplyDeconstructionConversion(ArrayBuilder<Binder.DeconstructionVariable> leftTargets,
             BoundExpression right, Conversion conversion, ArrayBuilder<LocalSymbol> temps, DeconstructionSideEffects effects,
             bool inInit)
@@ -235,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Adds the side effects to stores and returns temporaries to access them.
+        /// Adds the side effects to effects and returns temporaries to access them.
         /// The caller is responsible for releasing the nested ArrayBuilders.
         /// The variables should be unlowered.
         /// </summary>

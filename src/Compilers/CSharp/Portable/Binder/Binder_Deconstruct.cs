@@ -447,10 +447,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The tuple created here is not identical to the one created by
-            // MakeDeconstructionConstructionStep. It represents a smaller
+            // DeconstructionVariablesAsTuple. It represents a smaller
             // tree of types used for figuring out natural types in tuple literal.
             // Therefore, we do not check constraints here as it would report errors
-            // that are already reported later. MakeDeconstructionConstructionStep
+            // that are already reported later. DeconstructionVariablesAsTuple
             // constructs the final tuple type and checks constraints.
             return TupleTypeSymbol.Create(
                 locationOpt: null,
