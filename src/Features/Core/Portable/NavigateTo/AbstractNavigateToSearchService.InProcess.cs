@@ -57,7 +57,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                         if (!patternMatches.IsEmpty)
                         {
-                            result.Add(ConvertResult(containsDots, declaredSymbolInfo, document, patternMatches));
+                            var converted = await TryConvertResultAsync(
+                                containsDots, declaredSymbolInfo, document, patternMatches, cancellationToken).ConfigureAwait(false);
+
+                            if (converted != null)
+                            {
+                                result.Add(converted);
+                            }
                         }
                     }
                 }
@@ -78,9 +84,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private static INavigateToSearchResult ConvertResult(
+        private static async Task<INavigateToSearchResult> TryConvertResultAsync(
             bool containsDots, DeclaredSymbolInfo declaredSymbolInfo, 
-            Document document, PatternMatches matches)
+            Document document, PatternMatches matches, CancellationToken cancellationToken)
         {
             var matchKind = GetNavigateToMatchKind(containsDots, matches);
 
@@ -88,7 +94,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // case sensitive. 
             var isCaseSensitive = matches.All(m => m.IsCaseSensitive);
             var kind = GetItemKind(declaredSymbolInfo);
-            var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
+            var navigableItem = await NavigableItemFactory.TryGetItemFromDeclaredSymbolInfoAsync(
+                declaredSymbolInfo, document, cancellationToken).ConfigureAwait(false);
+
+            if (navigableItem == null)
+            {
+                return null;
+            }
 
             return new SearchResult(
                 document, declaredSymbolInfo, kind, matchKind, 

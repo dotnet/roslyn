@@ -3,6 +3,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -21,9 +23,13 @@ namespace Microsoft.CodeAnalysis.Navigation
                 solution, symbol, location, displayTaggedParts);
         }
 
-        public static INavigableItem GetItemFromDeclaredSymbolInfo(DeclaredSymbolInfo declaredSymbolInfo, Document document)
+        public static async Task<INavigableItem> TryGetItemFromDeclaredSymbolInfoAsync(
+            DeclaredSymbolInfo declaredSymbolInfo, Document document, CancellationToken cancellationToken)
         {
-            return new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
+            var symbol = await declaredSymbolInfo.TryResolveAsync(document, cancellationToken).ConfigureAwait(false);
+            return symbol == null
+                ? null
+                : new DeclaredSymbolNavigableItem(document, declaredSymbolInfo, symbol);
         }
 
         public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(
