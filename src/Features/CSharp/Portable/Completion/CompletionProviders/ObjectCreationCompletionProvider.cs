@@ -59,10 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var result = await base.GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
             var builder = ArrayBuilder<(ISymbol, CompletionItemRules)>.GetInstance();
 
-            foreach (var (symbol, _) in result)
+            foreach (var (symbol, rules) in result)
             {
                 var alias = await symbol.FindApplicableAliasAsync(position, context.SemanticModel, cancellationToken).ConfigureAwait(false);
-                builder.Add((alias ?? symbol, CompletionItemRules.Default));
+                builder.Add((alias ?? symbol, rules));
             }
 
             return builder.ToImmutableAndFree();
