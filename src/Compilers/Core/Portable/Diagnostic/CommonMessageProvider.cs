@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// Abstracts the ability to classify and load messages for error codes. Allows the error
     /// infrastructure to be reused between C# and VB.
     /// </summary>
-    internal abstract class CommonMessageProvider
+    internal abstract class CommonMessageProvider : IObjectWritable
     {
         /// <summary>
         /// Given an error code, get the severity (warning or error) of the code.
@@ -240,5 +240,7 @@ namespace Microsoft.CodeAnalysis
         public abstract void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName1, string parameterName2);
 
         public abstract int ERR_BadAssemblyName { get; }
+
+        public abstract void WriteTo(ObjectWriter writer);
     }
 }

@@ -993,6 +993,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Private Class MockMessageProvider
             Inherits TestMessageProvider
 
+            Public Overrides Sub WriteTo(writer As ObjectWriter)
+                Throw New NotImplementedException()
+            End Sub
+
             Public Overrides ReadOnly Property CodePrefix As String
                 Get
                     Return "MOCK"

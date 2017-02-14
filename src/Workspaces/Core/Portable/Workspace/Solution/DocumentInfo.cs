@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis
                 Id.WriteTo(writer);
 
                 writer.WriteString(Name);
-                writer.WriteValue(Folders.ToArray());
+                writer.WriteArray(Folders.ToArray());
                 writer.WriteInt32((int)SourceCodeKind);
                 writer.WriteString(FilePath);
                 writer.WriteBoolean(IsGenerated);
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis
                 var documentId = DocumentId.ReadFrom(reader);
 
                 var name = reader.ReadString();
-                var folders = (string[])reader.ReadValue();
+                var folders = (string[])reader.ReadArray();
                 var sourceCodeKind = reader.ReadInt32();
                 var filePath = reader.ReadString();
                 var isGenerated = reader.ReadBoolean();

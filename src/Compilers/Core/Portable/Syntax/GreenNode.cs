@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract class GreenNode : IObjectWritable, IObjectReadable
+    internal abstract class GreenNode : IObjectWritable
     {
         private string GetDebuggerDisplay()
         {
@@ -420,14 +420,14 @@ namespace Microsoft.CodeAnalysis
 
             if ((kindBits & ExtendedSerializationInfoMask) != 0)
             {
-                var diagnostics = (DiagnosticInfo[])reader.ReadValue();
+                var diagnostics = (DiagnosticInfo[])reader.ReadArray();
                 if (diagnostics != null && diagnostics.Length > 0)
                 {
                     this.flags |= NodeFlags.ContainsDiagnostics;
                     s_diagnosticsTable.Add(this, diagnostics);
                 }
 
-                var annotations = (SyntaxAnnotation[])reader.ReadValue();
+                var annotations = (SyntaxAnnotation[])reader.ReadArray();
                 if (annotations != null && annotations.Length > 0)
                 {
                     this.flags |= NodeFlags.ContainsAnnotations;
@@ -450,23 +450,16 @@ namespace Microsoft.CodeAnalysis
             if (hasDiagnostics || hasAnnotations)
             {
                 kindBits |= ExtendedSerializationInfoMask;
+                writer.WriteUInt16(kindBits);
+                writer.WriteArray(hasDiagnostics ? this.GetDiagnostics() : null);
+                writer.WriteArray(hasAnnotations ? this.GetAnnotations() : null);
             }
-
-            writer.WriteUInt16(kindBits);
-
-            if (hasDiagnostics || hasAnnotations)
+            else
             {
-                writer.WriteValue(hasDiagnostics ? this.GetDiagnostics() : null);
-                writer.WriteValue(hasAnnotations ? this.GetAnnotations() : null);
+                writer.WriteUInt16(kindBits);
             }
         }
 
-        Func<ObjectReader, object> IObjectReadable.GetReader()
-        {
-            return this.GetReader();
-        }
-
-        internal abstract Func<ObjectReader, object> GetReader();
         #endregion
 
         #region Annotations 

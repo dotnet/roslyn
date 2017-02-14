@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, _source.Token))
                     using (var stream = await DirectStream.GetAsync(streamName, _source.Token).ConfigureAwait(false))
                     {
-                        using (var writer = new StreamObjectWriter(stream))
+                        using (var writer = new ObjectWriter(stream))
                         {
                             writer.WriteInt32(sessionId);
 
@@ -208,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var remotableData = PinnedScope.GetRemotableData(new Checksum(checksum), _source.Token) ?? RemotableData.Null;
                 writer.WriteInt32(1);
 
-                writer.WriteValue(checksum);
+                writer.WriteArray(checksum);
                 writer.WriteString(remotableData.Kind);
 
                 await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
@@ -224,7 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var checksum = kv.Key;
                     var remotableData = kv.Value;
 
-                    writer.WriteValue(checksum.ToArray());
+                    writer.WriteArray(checksum.ToArray());
                     writer.WriteString(remotableData.Kind);
 
                     await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);

@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 WriteTo(reference, writer, checksum: true, cancellationToken: cancellationToken);
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
                 WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Execution
             var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
             var guid = metadataReader.GetGuid(mvidHandle);
 
-            writer.WriteValue(guid.ToByteArray());
+            writer.WriteArray(guid.ToByteArray());
         }
 
         private void WritePortableExecutableReferenceTo(
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Execution
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32((int)properties.Kind);
-            writer.WriteValue(properties.Aliases.ToArray());
+            writer.WriteArray(properties.Aliases.ToArray());
             writer.WriteBoolean(properties.EmbedInteropTypes);
         }
 
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Execution
             var bytes = new byte[length];
             Marshal.Copy((IntPtr)reader.MetadataPointer, bytes, 0, length);
 
-            writer.WriteValue(bytes);
+            writer.WriteArray(bytes);
         }
 
         private void WriteTo(AnalyzerReference reference, ObjectWriter writer, bool checksum, CancellationToken cancellationToken)
