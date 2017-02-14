@@ -1,46 +1,85 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// A type that provides object and type encoding/decoding.
+    /// A <see cref="ObjectBinder"/> that records runtime types and object readers during object writing so they
+    /// can be used to read back objects later.
     /// </summary>
-    internal abstract class ObjectBinder
+    /// <remarks>
+    /// This binder records runtime types an object readers as a way to avoid needing to describe all serialization types up front
+    /// or using reflection to determine them on demand.
+    /// </remarks>
+    internal sealed class ObjectBinder
     {
-        /// <summary>
-        /// Gets the <see cref="Type"/> corresponding to the specified <see cref="TypeKey"/>.
-        /// Returns false if no type corresponds to the key.
-        /// </summary>
-        public abstract bool TryGetType(TypeKey key, out Type type);
+        private readonly ConcurrentDictionary<Type, Func<ObjectReader, object>> _readerMap =
+            new ConcurrentDictionary<Type, Func<ObjectReader, object>>(concurrencyLevel: 2, capacity: 64);
 
-        /// <summary>
-        /// Gets the <see cref="TypeKey"/> for the specified <see cref="Type"/>.
-        /// Returns false if the type cannot be serialized. 
-        /// </summary>
-        public virtual bool TryGetTypeKey(Type type, out TypeKey key)
+        private readonly object _gate = new object();
+        private readonly Dictionary<Type, int> _typeToIndex = new Dictionary<Type, int>();
+        private readonly List<Type> _types = new List<Type>();
+
+        public bool TryGetReader(Type type, out Func<ObjectReader, object> reader)
+            => _readerMap.TryGetValue(type, out reader);
+
+        private void RecordReader(object instance)
         {
-            key = new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName);
-            return true;
+            if (instance != null)
+            {
+                var type = instance.GetType();
+                var typeKey = GetOrCreateTypeId(type);
+
+                if (!_readerMap.ContainsKey(type))
+                {
+                    var readable = instance as IObjectReadable;
+                    _readerMap.TryAdd(type, readable?.GetReader());
+                }
+            }
+        }
+        
+        public int GetOrCreateTypeId(Type type)
+        {
+            lock (_gate)
+            {
+                if (!_typeToIndex.TryGetValue(type, out var index))
+                {
+                    index = _types.Count;
+                    _types.Add(type);
+                    _typeToIndex.Add(type, index);
+                }
+
+                return index;
+            }
         }
 
-        /// <summary>
-        /// Gets a function that reads an type's members from an <see cref="ObjectReader"/> and constructs an instance with those members.
-        /// Returns false if the type cannot be deserialized.
-        /// </summary>
-        public abstract bool TryGetReader(Type type, out Func<ObjectReader, object> reader);
+        public Type GetType(int index)
+        {
+            lock (_gate)
+            {
+                return _types[index];
+            }
+        }
+
+        private static readonly Action<ObjectWriter, object> s_writer
+            = (w, i) => ((IObjectWritable)i).WriteTo(w);
 
         /// <summary>
         /// Gets a function that writes an object's members to a <see cref="ObjectWriter"/>.
         /// Returns false if the type cannot be serialized.
         /// </summary>
-        public virtual bool TryGetWriter(object instance, out Action<ObjectWriter, object> writer)
-        {          
+        public bool TryGetWriter(object instance, out Action<ObjectWriter, object> writer)
+        {
+            RecordReader(instance);
+
             if (instance is IObjectWritable)
             {
-                writer = (w, i) => ((IObjectWritable)i).WriteTo(w); // static delegate should be cached
+                writer = s_writer;
                 return true;
             }
             else
