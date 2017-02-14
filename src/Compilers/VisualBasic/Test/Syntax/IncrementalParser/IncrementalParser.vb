@@ -1508,7 +1508,7 @@ End Module
 
     <Fact>
     Public Sub Reformat()
-        Dim oldSource = ToText(<![CDATA[
+        Dim oldSource = "
 Class C
     Sub Method()
                                 Dim i = 1
@@ -1517,8 +1517,8 @@ Select          Case            i
                                                     End             Select              
     End Sub
 End Class
-]]>)
-        Dim newSource = ToText(<![CDATA[
+"
+        Dim newSource = "
 Class C
     Sub Method()
         Dim i = 1
@@ -1527,7 +1527,7 @@ Class C
         End Select
     End Sub
 End Class
-]]>)
+"
         Dim oldText = SourceText.From(oldSource)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim startOfNew = newSource.IndexOf("Dim", StringComparison.Ordinal)
@@ -1542,7 +1542,7 @@ End Class
     <WorkItem(604044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604044")>
     <Fact>
     Public Sub BunchALabels()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Program
     Sub Main()
 &HF:
@@ -1558,7 +1558,7 @@ Module Program
     End Sub
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Add enter after &HFFFFFFFFFF:.
@@ -1572,33 +1572,36 @@ End Module
     <Fact()>
     Public Sub LabelAfterColon()
         ' Label following another label on separate lines.
-        LabelAfterColonCore(True, <![CDATA[Module M
-            Sub M()
-        10:
-        20:
-        30:
-        40:
-        50:
-        60:
-        70:
-            End Sub
-        End Module
-        ]]>.Value)
+        LabelAfterColonCore(True, 
+"Module M
+    Sub M()
+10:
+20:
+30:
+40:
+50:
+60:
+70:
+    End Sub
+End Module
+")
         ' Label following another label on separate lines.
-        LabelAfterColonCore(True, <![CDATA[Module M
-            Sub M()
-        10: : 
-        20:
-        30:
-        40:
-        50:
-        60:
-        70:
-            End Sub
-        End Module
-        ]]>.Value)
+        LabelAfterColonCore(True, 
+"Module M
+    Sub M()
+10: : 
+20:
+30:
+40:
+50:
+60:
+70:
+    End Sub
+End Module
+")
         ' Label following on the same line as another label.
-        LabelAfterColonCore(False, <![CDATA[Module M
+        LabelAfterColonCore(False, 
+"Module M
     Sub M()
 10: 20:
 30:
@@ -1608,9 +1611,10 @@ End Module
 70:
     End Sub
 End Module
-]]>.Value)
+")
         ' Label following on the same line as another label.
-        LabelAfterColonCore(False, <![CDATA[Module M
+        LabelAfterColonCore(False, 
+"Module M
     Sub M()
 10: : 20:
 30:
@@ -1620,9 +1624,10 @@ End Module
 70:
     End Sub
 End Module
-]]>.Value)
+")
         ' Label following on the same line as another statement.
-        LabelAfterColonCore(False, <![CDATA[Module M
+        LabelAfterColonCore(False, 
+"Module M
     Sub M()
 M() : 20:
 30:
@@ -1632,9 +1637,10 @@ M() : 20:
 70:
     End Sub
 End Module
-]]>.Value)
+")
         ' Label following a colon within a single-line statement.
-        LabelAfterColonCore(False, <![CDATA[Module M
+        LabelAfterColonCore(False, 
+"Module M
     Sub M()
 If True Then M() : 20:
 30:
@@ -1644,7 +1650,7 @@ If True Then M() : 20:
 70:
     End Sub
 End Module
-]]>.Value)
+")
     End Sub
 
     Private Sub LabelAfterColonCore(valid As Boolean, code As String)
@@ -1663,12 +1669,12 @@ End Module
     <WorkItem(529260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529260")>
     <Fact()>
     Public Sub DoNotReuseAnnotatedNodes()
-        Dim text As String = <![CDATA[
+        Dim text As String = "
 Class C
 End Class
 Class D
 End Class
-]]>.Value.Replace(vbCr, vbCrLf)
+".Replace(vbCr, vbCrLf)
 
         ' NOTE: We're using the class statement, rather than the block, because the
         ' change region is expanded enough to impinge on the block.
@@ -1729,7 +1735,7 @@ End Class
         'Sub Block
         'Function Block
         'Property Block
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Namespace N
     Module M
         Function F() as Boolean
@@ -1744,7 +1750,7 @@ Namespace N
     End Module
 End Namespace
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1759,7 +1765,7 @@ End Namespace
     <Fact>
     Public Sub IncrementalParsing_ExecutableStatementBlock_TryLinkSyntaxClass()
         'Class Block         
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module M        
     Sub M()
     End Sub
@@ -1771,7 +1777,7 @@ Module M
     Class C2        
     End Class
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1786,7 +1792,7 @@ End Module
     <Fact>
     Public Sub IncrementalParsing_ExecutableStatementBlock_TryLinkSyntaxStructure()
         'Structure Block
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module M        
     Sub M()
     End Sub
@@ -1800,7 +1806,7 @@ Module M
         Dim i as integer
     End Structure
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1815,12 +1821,12 @@ End Module
     <Fact()>
     Public Sub IncrementalParsing_ExecutableStatementBlock_TryLinkSyntaxOptionStatement()
         'Option Statement
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Option Strict Off
 Option Infer On
 Option Explicit On
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1835,11 +1841,11 @@ Option Explicit On
     <Fact()>
     Public Sub IncrementalParsing_ExecutableStatementBlock_TryLinkSyntaxImports()
         'Imports Statement
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Imports System
 Imports System.Collections
 Imports Microsoft.Visualbasic
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1855,7 +1861,7 @@ Imports Microsoft.Visualbasic
     <Fact>
     Public Sub IncrementalParsing_ExecutableStatementBlock_TryLinkSyntaxDelegateSub()
         'ExecutableStatementBlock -> DelegateSub
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Main()
 
@@ -1865,7 +1871,7 @@ Module Module1
     Public Delegate Sub FooWithModifier()
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1879,7 +1885,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxOperatorBlock()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Main()
         Dim x As New SomeClass
@@ -1897,7 +1903,7 @@ Module Module1
     End Class
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1912,7 +1918,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxEventBlock()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Main()
         
@@ -1931,7 +1937,7 @@ Module Module1
     End Class
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1946,7 +1952,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxPropertyBlock()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Main()        
     End Sub
@@ -1962,7 +1968,7 @@ Module Module1
         End Property
     End Class
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim TextToRemove As String = "Class SomeClass"
@@ -1976,7 +1982,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxNamespaceModuleBlock()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 
 Namespace NS1
     Module Module1
@@ -1993,7 +1999,7 @@ Namespace NS1
         Dim x
     End Module
 End Namespace
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim TextToRemove As String = "End Module 'Remove"
@@ -2007,7 +2013,7 @@ End Namespace
 
     <Fact>
     Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxNamespaceNamespaceBlock()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 
 Namespace NS1
     Module Module1
@@ -2025,7 +2031,7 @@ Namespace NS1
 
     End Namespace
 End Namespace
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim TextToRemove As String = "End Module 'Remove"
@@ -2039,12 +2045,12 @@ End Namespace
 
     <Fact>
     Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxItems()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
     Class SomeClass
         Dim member As Long = 2
         Sub abc() 'Remove
             Dim xyz as integer = 2
-            IF member = 1 then Console.writeline("TEST");
+            IF member = 1 then Console.writeline(""TEST"");
             Dim SingleLineDeclare as integer = 2
         End Sub
 
@@ -2055,7 +2061,7 @@ End Namespace
                 Item1
         End Enum
     End Class
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim TextToRemove As String = "Sub abc() 'Remove"
@@ -2070,7 +2076,7 @@ End Namespace
     <Fact>
     Public Sub IncrementalParsing_PropertyContextBlock_TryLinkSyntaxSetAccessor()
         'PropertyContextBlock -> SetAccessor 
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Class C
     Private _p As Integer = 0
 
@@ -2086,7 +2092,7 @@ Class C
     Private _d As Integer = 1
 End Class
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2101,7 +2107,7 @@ End Class
 
     <Fact>
     Public Sub IncrementalParsing_BlockContext_TryLinkSyntaxSelectBlock()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Private _p As Integer = 0
     Sub Bar()
@@ -2122,7 +2128,7 @@ Module Module1
         Catch ex As exception
         End Try
 
-        If y = 1 Then Console.WriteLine("Test")
+        If y = 1 Then Console.WriteLine(""Test"")
         Y = 1
 
         While y <= 10
@@ -2167,7 +2173,7 @@ End Module
 Class Foo
     Implements IDisposable
 
-#Region "IDisposable Support"
+#Region ""IDisposable Support""
     Private disposedValue As Boolean ' To detect redundant calls
     ' IDisposable
     Protected Overridable Sub Dispose(disposing As Boolean)
@@ -2188,7 +2194,7 @@ End Class
 Class OtherClass
 
 End Class
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2203,7 +2209,7 @@ End Class
 
     <Fact>
     Public Sub IncrementalParsing_EventBlockContext_TryLinkSyntax1()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Public Custom Event AnyName As EventHandler
         AddHandler(ByVal value As EventHandler)
@@ -2220,7 +2226,7 @@ Module Module1
     Sub Main()
     End Sub
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2235,7 +2241,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_EventBlockContext_TryLinkSyntax2()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Public Custom Event AnyName As EventHandler
         AddHandler(ByVal value As EventHandler)
@@ -2254,7 +2260,7 @@ Module Module1
     End Sub
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2269,7 +2275,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_InterfaceBlockContext_TryLinkSyntaxClass()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Main()
     End Sub
@@ -2280,7 +2286,7 @@ Module Module1
     End Class
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2295,7 +2301,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_InterfaceBlockContext_TryLinkSyntaxEnum()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Main()
 
@@ -2311,7 +2317,7 @@ Module Module1
     End Enum
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2326,7 +2332,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_CaseBlockContext_TryLinkSyntaxCase()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Foo()
         Dim i As Integer
@@ -2345,7 +2351,7 @@ Module Module1
 
     End Sub
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2359,7 +2365,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_CatchContext_TryLinkSyntaxCatch()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Foo()
         Dim x1 As Integer = 1
@@ -2381,7 +2387,7 @@ Module Module1
     End Function
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2396,7 +2402,7 @@ End Module
 
     <Fact()>
     Public Sub IncrementalParsing_NamespaceBlockContext_TryLinkSyntaxModule()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Namespace NS1
 Module ModuleTemp 'Remove
 End Module
@@ -2409,7 +2415,7 @@ Module Module1 'Remove
     End Function
 End Module
 End Namespace
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2424,7 +2430,7 @@ End Namespace
 
     <Fact>
     Public Sub IncrementalParsing_IfBlockContext_TryLinkSyntax()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 
 Module Module1
     Private _p As Integer = 0
@@ -2443,7 +2449,7 @@ Module Module1
         End If 
     End Sub
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2459,7 +2465,7 @@ End Module
     <WorkItem(719787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/719787")>
     <Fact()>
     Public Sub Bug719787_EOF()
-        Dim source = <![CDATA[
+        Dim source ="
 Namespace N
     Class C
         Property P As Integer
@@ -2468,7 +2474,7 @@ Namespace N
         Private F As Object
     End Structure
 End Namespace
-]]>.Value.Trim()
+".Trim()
         ' Add two line breaks at end.
         source += vbCrLf
         Dim position = source.Length
@@ -2487,7 +2493,7 @@ End Namespace
     <WorkItem(719787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/719787")>
     <Fact>
     Public Sub Bug719787_MultiLineIf()
-        Dim source = <![CDATA[
+        Dim source = "
 Class C
     Sub M()
         If e1 Then
@@ -2524,7 +2530,7 @@ Class C
     End Sub
     ' Comment
 End Class
-]]>.Value.Trim()
+".Trim()
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim toReplace = "' Comment"
