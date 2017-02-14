@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.Collections
 
 
 Friend Module ParserTestUtilities
-     ReadOnly PooledStringBuilerPool As ObjectPool(Of PooledStringBuilder)= PooledStringBuilder.CreatePool
+    ReadOnly PooledStringBuilerPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
     Public Function ParseAndVerify(code As XCData, Optional expectedErrors As XElement = Nothing) As SyntaxTree
@@ -78,10 +78,10 @@ Friend Module ParserTestUtilities
 
         ' Verify Errors
         If expectedDiagnostics Is Nothing Then
-            Dim errors = PooledStringBuilerPool.Allocate 'As New StringBuilder()
+            Dim errors = PooledStringBuilerPool.Allocate
             AppendSyntaxErrors(tree.GetDiagnostics(), errors)
-            Assert.False(root.ContainsDiagnostics, errors.ToStringAndFree)
             Assert.Equal(root.ContainsDiagnostics, errors.Length > 0)
+            Assert.False(root.ContainsDiagnostics, errors.ToStringAndFree)
         Else
             Assert.True(root.ContainsDiagnostics, "Tree was expected to contain errors.")
             If errorCodesOnly Then
@@ -558,22 +558,22 @@ Public Module VerificationHelpers
             .Append("<error id=""")
             .Append(id)
             .Append("""")
-        If message IsNot Nothing Then
-            .Append(" message=""")
-            .Append(message)
-            .Append("""")
-        End If
-        If start IsNot Nothing Then
-            .Append(" start=""")
-            .Append(start)
-            .Append("""")
-        End If
-        If [end] IsNot Nothing Then
-            .Append(" end=""")
-            .Append([end])
-            .Append("""")
-        End If
-        .Append("/>")
+            If message IsNot Nothing Then
+                .Append(" message=""")
+                .Append(message)
+                .Append("""")
+            End If
+            If start IsNot Nothing Then
+                .Append(" start=""")
+                .Append(start)
+                .Append("""")
+            End If
+            If [end] IsNot Nothing Then
+                .Append(" end=""")
+                .Append([end])
+                .Append("""")
+            End If
+            .Append("/>")
         End With
         Return errorString.ToStringAndFree
     End Function
@@ -636,13 +636,13 @@ Public Module VerificationHelpers
         If errorScenarioFailed Then
             Dim errorMessage = PooledStringBuilderPool.Allocate 'As New StringBuilder()
             With errorMessage.Builder
-            .AppendLine()
-            .AppendLine("Expected Subset:")
-            For Each e In expectedErrors.<error>
-                .AppendLine(GetErrorString(CInt(e.@id), If(e.@message, "?"), If(e.@start, "?"), If(e.@end, "?")))
-            Next
-            .AppendLine("Actual Errors (on " & node.Kind().ToString & node.Span.ToString & ")")
-                End With
+                .AppendLine()
+                .AppendLine("Expected Subset:")
+                For Each e In expectedErrors.<error>
+                    .AppendLine(GetErrorString(CInt(e.@id), If(e.@message, "?"), If(e.@start, "?"), If(e.@end, "?")))
+                Next
+                .AppendLine("Actual Errors (on " & node.Kind().ToString & node.Span.ToString & ")")
+            End With
             AppendSyntaxErrors(tree.GetDiagnostics(node), errorMessage)
             Assert.False(errorScenarioFailed, errorMessage.ToStringAndFree())
         End If
