@@ -1237,8 +1237,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal virtual Location ErrorLocation => Locations[0];
-
         #region IMethodSymbolInternal
 
         bool IMethodSymbolInternal.IsIterator => IsIterator;

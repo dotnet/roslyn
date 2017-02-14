@@ -262,9 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Locations[0] on lambda symbols covers the entire syntax, which is inconvenient but remains for compatibility.
-        /// For better diagnostics quality, use the ErrorLocation instead, which points to the "delegate" or the "=>".
+        /// For better diagnostics quality, use the DiagnosticLocation instead, which points to the "delegate" or the "=>".
         /// </summary>
-        internal override Location ErrorLocation
+        internal Location DiagnosticLocation
         {
             get
             {
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.ParenthesizedLambdaExpression:
                         return ((LambdaExpressionSyntax)_syntax).ArrowToken.GetLocation();
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(_syntax.Kind());
+                        return Locations[0];
                 }
             }
         }
