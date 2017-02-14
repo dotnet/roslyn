@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
@@ -76,6 +77,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
 
         protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            // For now, disable these rules in .cshtml/.aspx files.  The issues may be in
+            // hidden code, and we don't want to report issues there.
+            if (context.IsInContainedDocument())
+            {
+                return;
+            }
+
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
@@ -104,6 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             {
                 return;
             }
+
             // earlier we did a context insensitive check to see if this style was preferred in *any* context at all.
             // now, we have to make a context sensitive check to see if options settings for our context requires us to report a diagnostic.
             if (ShouldReportDiagnostic(predefinedTypeNode, optionSet, language, out var diagnosticId, out var diagnosticSeverity))

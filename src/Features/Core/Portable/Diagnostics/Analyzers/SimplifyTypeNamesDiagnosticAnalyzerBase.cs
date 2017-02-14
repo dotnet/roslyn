@@ -91,7 +91,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             context.RegisterSyntaxNodeAction(AnalyzeNode, _kindsOfInterest);
         }
 
-        protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        {
+            // For now, disable these rules in .cshtml/.aspx files.  The issues may be in
+            // hidden code, and we don't want to report issues there.
+            if (context.IsInContainedDocument())
+            {
+                return;
+            }
+
+            AnalyzeNodeWorker(context);
+        }
+
+        protected abstract void AnalyzeNodeWorker(SyntaxNodeAnalysisContext context);
 
         protected abstract bool CanSimplifyTypeNameExpressionCore(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken);
 

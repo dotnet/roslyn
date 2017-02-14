@@ -50,6 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
+            // For now, disable these rules in .cshtml/.aspx files.  The issues may be in
+            // hidden code, and we don't want to report issues there.
+            if (context.IsInContainedDocument())
+            {
+                return;
+            }
+
             TypeSyntax declaredType;
             State state = null;
             var shouldAnalyze = false;

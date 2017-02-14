@@ -236,5 +236,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
                 position, includeSkipped, includeDirectives, includeDocumentationComments);
         }
+
+        public static bool IsInContainedDocument(this SyntaxTree tree, Workspace workspace)
+        {
+            if (workspace != null)
+            {
+                var solution = workspace.CurrentSolution;
+                var documentId = solution.GetDocumentId(tree);
+                if (documentId != null)
+                {
+                    var document = solution.GetDocument(documentId);
+                    return document.IsContained();
+                }
+            }
+
+            return false;
+        }
     }
 }

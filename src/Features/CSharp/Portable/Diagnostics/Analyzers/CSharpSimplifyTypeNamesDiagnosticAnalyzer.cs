@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         {
         }
 
-        protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        protected override void AnalyzeNodeWorker(SyntaxNodeAnalysisContext context)
         {
             if (context.Node.Ancestors(ascendOutOfTrivia: false).Any(n => !n.IsKind(SyntaxKind.QualifiedCref) && s_kindsOfInterest.Contains(n.Kind())))
             {

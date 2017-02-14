@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -34,26 +35,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly IFormattingRule _noopRule = new NoOpFormattingRule();
 
             public bool ShouldUseBaseIndentation(Document document)
-            {
-                return IsContainedDocument(document);
-            }
+                => document.IsContained();
 
             public bool ShouldNotFormatOrCommitOnPaste(Document document)
-            {
-                return IsContainedDocument(document);
-            }
-
-            private bool IsContainedDocument(Document document)
-            {
-                var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                if (visualStudioWorkspace == null)
-                {
-                    return false;
-                }
-
-                var containedDocument = visualStudioWorkspace.GetHostDocument(document.Id);
-                return containedDocument is ContainedDocument;
-            }
+                => document.IsContained();
 
             public IFormattingRule CreateRule(Document document, int position)
             {

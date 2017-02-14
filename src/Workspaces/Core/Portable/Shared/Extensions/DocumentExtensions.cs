@@ -196,5 +196,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
             return generatedCodeRecognitionService != null && generatedCodeRecognitionService.IsGeneratedCode(document);
         }
+
+        public static bool IsContained(this Document document)
+            => document.Project.Solution.Workspace.IsContained(document);
     }
 }
