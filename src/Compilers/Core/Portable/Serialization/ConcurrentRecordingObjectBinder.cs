@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -10,13 +10,13 @@ namespace Roslyn.Utilities
     /// <summary>
     /// A binder that gathers type/reader mappings during object writing
     /// </summary>
-    internal sealed class SimpleRecordingObjectBinder : RecordingObjectBinder
+    internal sealed class ConcurrentRecordingObjectBinder : RecordingObjectBinder
     {
-        private readonly Dictionary<TypeKey, Type> _typeMap =
-            new Dictionary<TypeKey, Type>();
+        private readonly ConcurrentDictionary<TypeKey, Type> _typeMap =
+            new ConcurrentDictionary<TypeKey, Type>();
 
-        private readonly Dictionary<Type, Func<ObjectReader, object>> _readerMap =
-            new Dictionary<Type, Func<ObjectReader, object>>();
+        private readonly ConcurrentDictionary<Type, Func<ObjectReader, object>> _readerMap =
+            new ConcurrentDictionary<Type, Func<ObjectReader, object>>();
 
         public override Type GetType(string assemblyName, string typeName)
         {
@@ -50,10 +50,7 @@ namespace Roslyn.Utilities
             if (type != null)
             {
                 var key = new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName);
-                if (!_typeMap.ContainsKey(key))
-                {
-                    _typeMap.Add(key, type);
-                }
+                _typeMap.TryAdd(key, type);
             }
         }
 
@@ -68,14 +65,10 @@ namespace Roslyn.Utilities
                 {
                     if (HasConstructor(type))
                     {
-                        Debug.Assert(_typeMap.ContainsKey(new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName)));
                         return;
                     }
 
-                    if (!_readerMap.ContainsKey(type))
-                    {
-                        _readerMap.Add(type, readable.GetReader());
-                    }
+                    _readerMap.TryAdd(type, readable.GetReader());
                 }
 
                 Record(type);

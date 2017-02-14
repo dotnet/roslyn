@@ -2,47 +2,36 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Reflection;
 
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// An <see cref="ObjectBinder"/> with a fixed set of type and reader mappings.
+    /// A binder that used a predetermine list of types and reader functions.
     /// </summary>
     internal class FixedObjectBinder : ObjectBinder
     {
         private readonly ImmutableDictionary<TypeKey, Type> _typeMap;
         private readonly ImmutableDictionary<Type, Func<ObjectReader, object>> _readerMap;
 
-        public FixedObjectBinder(
-            ImmutableDictionary<TypeKey, Type> typeMap,
-            ImmutableDictionary<Type, Func<ObjectReader, object>> readerMap)
+        public FixedObjectBinder(ImmutableDictionary<Type, Func<ObjectReader, object>> readerMap)
         {
-            _typeMap = typeMap ?? ImmutableDictionary<TypeKey, Type>.Empty;
-            _readerMap = readerMap ?? ImmutableDictionary<Type, Func<ObjectReader, object>>.Empty;
+            _readerMap = readerMap;
+            _typeMap = readerMap.Keys.ToImmutableDictionary(t => new TypeKey(t.GetTypeInfo().Assembly.FullName, t.FullName));
         }
 
-        public static readonly FixedObjectBinder Empty = new FixedObjectBinder(null, null);
-
-        public override bool TryGetType(TypeKey key, out Type type)
+        public override Type GetType(string assemblyName, string typeName)
         {
-            return _typeMap.TryGetValue(key, out type);
+            Type type;
+            _typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out type);
+            return type;
         }
 
-        public override bool TryGetTypeKey(Type type, out TypeKey key)
+        public override Func<ObjectReader, object> GetReader(Type type)
         {
-            // do not let types have keys that cannot be reverse mapped.
-            return base.TryGetTypeKey(type, out key) && _typeMap.ContainsKey(key);
-        }
-
-        public override bool TryGetWriter(Object instance, out Action<ObjectWriter, Object> writer)
-        {
-            // don't let objects be written that do not have known readers.
-            return base.TryGetWriter(instance, out writer) && _readerMap.ContainsKey(instance.GetType());
-        }
-
-        public override bool TryGetReader(Type type, out Func<ObjectReader, object> reader)
-        {
-            return _readerMap.TryGetValue(type, out reader);
+            Func<ObjectReader, object> reader;
+            _readerMap.TryGetValue(type, out reader);
+            return reader;
         }
     }
 }

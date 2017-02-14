@@ -56,12 +56,11 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var results = new List<ValueTuple<Checksum, object>>();
 
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     Debug.Assert(reader != null,
 @"We only ge a reader for data transmitted between live processes.
 This data should always be correct as we're never persisting the data between sessions.");
-
                     var responseSessionId = reader.ReadInt32();
                     Contract.ThrowIfFalse(sessionId == responseSessionId);
 
