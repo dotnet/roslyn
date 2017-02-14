@@ -92,6 +92,12 @@ class C
                 var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
                 Assert.Equal(@"(x, y)", lhs.ToString());
                 Assert.Equal("(System.Int64, System.String)", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+
+                var right = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+                Assert.Equal(@"new C()", right.ToString());
+                Assert.Equal("C", model.GetTypeInfo(right).Type.ToTestDisplayString());
+                Assert.Equal("C", model.GetTypeInfo(right).ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.Identity, model.GetConversion(right).Kind);
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
