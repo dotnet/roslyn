@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric:false);
                     if ((object)builderType != null)
                     {
-                        taskProperty = GetCustomTaskProperty(F, builderType);
+                        taskProperty = GetCustomTaskProperty(F, builderType, returnType);
                         createBuilderMethod = GetCustomCreateMethod(F, builderType);
                     }
                 }
@@ -216,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((object)builderType != null)
                     {
                         builderType = builderType.ConstructedFrom.Construct(resultType);
-                        taskProperty = GetCustomTaskProperty(F, builderType);
+                        taskProperty = GetCustomTaskProperty(F, builderType, returnType);
                         createBuilderMethod = GetCustomCreateMethod(F, builderType);
                     }
                 }
@@ -396,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method.IsStatic &&
                     method.ParameterCount == 0 &&
                     !method.IsGenericMethod &&
-                    method.ReturnType == builderType) 
+                    method.ReturnType.Equals(builderType, TypeCompareKind.AllIgnoreOptions))
                 {
                     return method;
                 }
@@ -407,7 +408,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static PropertySymbol GetCustomTaskProperty(
             SyntheticBoundNodeFactory F,
-            NamedTypeSymbol builderType)
+            NamedTypeSymbol builderType,
+            NamedTypeSymbol returnType)
         {
             const string propertyName = "Task";
             var members = builderType.GetMembers(propertyName);
@@ -422,6 +424,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !property.IsStatic &&
                     (property.ParameterCount == 0))
                 {
+                    if (!property.Type.Equals(returnType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        var badTaskProperty = new CSDiagnostic(
+                            new CSDiagnosticInfo(ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty, builderType, returnType, property.Type),
+                            F.Syntax.Location);
+                        F.Diagnostics.Add(badTaskProperty);
+                        return null;
+                    }
+
                     return property;
                 }
             }

@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -15,12 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     public partial class CSharpInlineDeclarationTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpInlineDeclarationDiagnosticAnalyzer(),
-                new CSharpInlineDeclarationCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpInlineDeclarationDiagnosticAnalyzer(), new CSharpInlineDeclarationCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task InlineVariable1()
@@ -1165,6 +1160,40 @@ class Program
     public static void Method(Expression<Action> expression)
     {
 
+    }
+}");
+        }
+
+        [WorkItem(16198, "https://github.com/dotnet/roslyn/issues/16198")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestIndentation1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    private int Bar()
+    {
+        IProjectRuleSnapshot [|unresolvedReferenceSnapshot|] = null;
+        var itemType = GetUnresolvedReferenceItemType(originalItemSpec,
+                                                      updatedUnresolvedSnapshots,
+                                                      catalogs,
+                                                      out unresolvedReferenceSnapshot);
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private int Bar()
+    {
+        var itemType = GetUnresolvedReferenceItemType(originalItemSpec,
+                                                      updatedUnresolvedSnapshots,
+                                                      catalogs,
+                                                      out IProjectRuleSnapshot unresolvedReferenceSnapshot);
     }
 }");
         }

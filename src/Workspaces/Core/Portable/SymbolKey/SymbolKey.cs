@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -105,7 +106,9 @@ namespace Microsoft.CodeAnalysis
         {
             using (var reader = SymbolKeyReader.GetReader(symbolKey, compilation, ignoreAssemblyKey, cancellationToken))
             {
-                return reader.ReadFirstSymbolKey();
+                var result = reader.ReadFirstSymbolKey();
+                Debug.Assert(reader.Position == symbolKey.Length);
+                return result;
             }
         }
 

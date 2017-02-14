@@ -139,7 +139,7 @@ text;
                     sendThroughEnterOption);
 
                 var service = GetCompletionService(workspace);
-                var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Default);
+                var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
                 Assert.Equal(expected, Controller.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar));

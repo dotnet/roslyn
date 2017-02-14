@@ -6,17 +6,20 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    internal struct ClassifiedSpansAndHighlightSpan
+    internal partial class StreamingFindUsagesPresenter
     {
-        public readonly ImmutableArray<ClassifiedSpan> ClassifiedSpans;
-        public readonly TextSpan HighlightSpan;
-
-        public ClassifiedSpansAndHighlightSpan(
-            ImmutableArray<ClassifiedSpan> classifiedSpans,
-            TextSpan highlightSpan)
+        private struct ClassifiedSpansAndHighlightSpan
         {
-            ClassifiedSpans = classifiedSpans;
-            HighlightSpan = highlightSpan;
+            public readonly ImmutableArray<ClassifiedSpan> ClassifiedSpans;
+            public readonly TextSpan HighlightSpan;
+
+            public ClassifiedSpansAndHighlightSpan(
+                ImmutableArray<ClassifiedSpan> classifiedSpans,
+                TextSpan highlightSpan)
+            {
+                ClassifiedSpans = classifiedSpans;
+                HighlightSpan = highlightSpan;
+            }
         }
     }
 }

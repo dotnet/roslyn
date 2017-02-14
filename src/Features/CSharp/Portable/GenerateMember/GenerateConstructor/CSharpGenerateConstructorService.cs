@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -36,14 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
 
         protected override bool TryInitializeConstructorInitializerGeneration(
             SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken,
-            out SyntaxToken token, out IList<ArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn)
+            out SyntaxToken token, out ImmutableArray<ArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn)
         {
             var constructorInitializer = (ConstructorInitializerSyntax)node;
 
             if (!constructorInitializer.ArgumentList.CloseParenToken.IsMissing)
             {
                 token = constructorInitializer.ThisOrBaseKeyword;
-                arguments = constructorInitializer.ArgumentList.Arguments.ToList();
+                arguments = constructorInitializer.ArgumentList.Arguments.ToImmutableArray();
 
                 var semanticModel = document.SemanticModel;
                 var currentType = semanticModel.GetEnclosingNamedType(constructorInitializer.SpanStart, cancellationToken);
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
             }
 
             token = default(SyntaxToken);
-            arguments = null;
+            arguments = default(ImmutableArray<ArgumentSyntax>);
             typeToGenerateIn = null;
             return false;
         }
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
             SyntaxNode node,
             CancellationToken cancellationToken,
             out SyntaxToken token,
-            out IList<ArgumentSyntax> arguments,
+            out ImmutableArray<ArgumentSyntax> arguments,
             out INamedTypeSymbol typeToGenerateIn)
         {
             var simpleName = (SimpleNameSyntax)node;
@@ -109,14 +110,14 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
                 {
                     var symbolInfo = document.SemanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken);
                     token = simpleName.Identifier;
-                    arguments = objectCreationExpression.ArgumentList.Arguments.ToList();
+                    arguments = objectCreationExpression.ArgumentList.Arguments.ToImmutableArray();
                     typeToGenerateIn = symbolInfo.GetAnySymbol() as INamedTypeSymbol;
                     return typeToGenerateIn != null;
                 }
             }
 
             token = default(SyntaxToken);
-            arguments = null;
+            arguments = default(ImmutableArray<ArgumentSyntax>);
             typeToGenerateIn = null;
             return false;
         }
@@ -126,8 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
             SyntaxNode node,
             CancellationToken cancellationToken,
             out SyntaxToken token,
-            out IList<ArgumentSyntax> arguments,
-            out IList<AttributeArgumentSyntax> attributeArguments,
+            out ImmutableArray<ArgumentSyntax> arguments,
+            out ImmutableArray<AttributeArgumentSyntax> attributeArguments,
             out INamedTypeSymbol typeToGenerateIn)
         {
             var simpleName = (SimpleNameSyntax)node;
@@ -145,8 +146,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
                     if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure && !symbolInfo.CandidateSymbols.IsEmpty)
                     {
                         token = simpleName.Identifier;
-                        attributeArguments = attribute.ArgumentList.Arguments.ToList();
-                        arguments = attributeArguments.Select(x => SyntaxFactory.Argument(x.NameColon ?? ((x.NameEquals != null) ? SyntaxFactory.NameColon(x.NameEquals.Name) : null), default(SyntaxToken), x.Expression)).ToList();
+                        attributeArguments = attribute.ArgumentList.Arguments.ToImmutableArray();
+                        arguments = attributeArguments.Select(
+                            x => SyntaxFactory.Argument(
+                                x.NameColon ?? (x.NameEquals != null ? SyntaxFactory.NameColon(x.NameEquals.Name) : null),
+                                default(SyntaxToken), x.Expression)).ToImmutableArray();
 
                         typeToGenerateIn = symbolInfo.CandidateSymbols.FirstOrDefault().ContainingSymbol as INamedTypeSymbol;
                         return typeToGenerateIn != null;
@@ -155,23 +159,19 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
             }
 
             token = default(SyntaxToken);
-            arguments = null;
-            attributeArguments = null;
+            arguments = default(ImmutableArray<ArgumentSyntax>);
+            attributeArguments = default(ImmutableArray<AttributeArgumentSyntax>);
             typeToGenerateIn = null;
             return false;
         }
 
-        protected override IList<ParameterName> GenerateParameterNames(
+        protected override ImmutableArray<ParameterName> GenerateParameterNames(
             SemanticModel semanticModel, IEnumerable<ArgumentSyntax> arguments, IList<string> reservedNames)
-        {
-            return semanticModel.GenerateParameterNames(arguments, reservedNames);
-        }
+            => semanticModel.GenerateParameterNames(arguments, reservedNames);
 
-        protected override IList<ParameterName> GenerateParameterNames(
+        protected override ImmutableArray<ParameterName> GenerateParameterNames(
             SemanticModel semanticModel, IEnumerable<AttributeArgumentSyntax> arguments, IList<string> reservedNames)
-        {
-            return semanticModel.GenerateParameterNames(arguments, reservedNames);
-        }
+            => semanticModel.GenerateParameterNames(arguments, reservedNames).ToImmutableArray();
 
         protected override string GenerateNameForArgument(
             SemanticModel semanticModel, ArgumentSyntax argument)

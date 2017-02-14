@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -21,18 +20,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract class AbstractDiagnosticProviderBasedUserDiagnosticTest : AbstractUserDiagnosticTest
     {
-        private readonly ConcurrentDictionary<Workspace, Tuple<DiagnosticAnalyzer, CodeFixProvider>> _analyzerAndFixerMap =
-            new ConcurrentDictionary<Workspace, Tuple<DiagnosticAnalyzer, CodeFixProvider>>();
+        private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap =
+            new ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)>();
 
-        internal abstract Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
+        internal abstract (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace);
 
-        internal virtual Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(
-            Workspace workspace, object fixProviderData)
-        {
-            return CreateDiagnosticProviderAndFixer(workspace);
-        }
+        internal virtual (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace, object fixProviderData)
+            => CreateDiagnosticProviderAndFixer(workspace);
 
-        private Tuple<DiagnosticAnalyzer, CodeFixProvider> GetOrCreateDiagnosticProviderAndFixer(
+        private (DiagnosticAnalyzer, CodeFixProvider) GetOrCreateDiagnosticProviderAndFixer(
             Workspace workspace, object fixProviderData)
         {
             return fixProviderData == null

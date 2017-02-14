@@ -17,28 +17,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal class JsonRpcSession : RemoteHostClient.Session
     {
-        private static int s_sessionId = 0;
+        private static int s_sessionId = 1;
 
         // current session id
         private readonly int _currentSessionId;
 
-        // communication channel related to snapshot information
-        private readonly SnapshotJsonRpcClient _snapshotClient;
-
         // communication channel related to service information
         private readonly ServiceJsonRpcClient _serviceClient;
+
+        // communication channel related to snapshot information
+        private readonly SnapshotJsonRpcClient _snapshotClientOpt;
 
         // close connection when cancellation has raised
         private readonly CancellationTokenRegistration _cancellationRegistration;
 
         public static async Task<JsonRpcSession> CreateAsync(
             PinnedRemotableDataScope snapshot,
-            Stream snapshotStream,
             object callbackTarget,
             Stream serviceStream,
+            Stream snapshotStreamOpt,
             CancellationToken cancellationToken)
         {
-            var session = new JsonRpcSession(snapshot, snapshotStream, callbackTarget, serviceStream, cancellationToken);
+            var session = new JsonRpcSession(snapshot, callbackTarget, serviceStream, snapshotStreamOpt, cancellationToken);
 
             await session.InitializeAsync().ConfigureAwait(false);
 
@@ -47,17 +47,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private JsonRpcSession(
             PinnedRemotableDataScope snapshot,
-            Stream snapshotStream,
             object callbackTarget,
             Stream serviceStream,
+            Stream snapshotStreamOpt,
             CancellationToken cancellationToken) :
             base(snapshot, cancellationToken)
         {
             // get session id
             _currentSessionId = Interlocked.Increment(ref s_sessionId);
 
-            _snapshotClient = new SnapshotJsonRpcClient(this, snapshotStream, cancellationToken);
             _serviceClient = new ServiceJsonRpcClient(serviceStream, callbackTarget, cancellationToken);
+            _snapshotClientOpt = snapshot == null ? null : new SnapshotJsonRpcClient(this, snapshotStreamOpt, cancellationToken);
 
             // dispose session when cancellation has raised
             _cancellationRegistration = CancellationToken.Register(Dispose);
@@ -66,8 +66,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private async Task InitializeAsync()
         {
             // all roslyn remote service must based on ServiceHubServiceBase which implements Initialize method
-            await _snapshotClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
-            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
+            if (_snapshotClientOpt != null)
+            {
+                await _snapshotClientOpt.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt.SolutionChecksum).ConfigureAwait(false);
+            }
+
+            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt?.SolutionChecksum).ConfigureAwait(false);
         }
 
         public override Task InvokeAsync(string targetName, params object[] arguments)
@@ -97,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             // dispose service and snapshot channels
             _serviceClient.Dispose();
-            _snapshotClient.Dispose();
+            _snapshotClientOpt?.Dispose();
         }
 
         /// <summary>
@@ -137,13 +141,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             public SnapshotJsonRpcClient(JsonRpcSession owner, Stream stream, CancellationToken cancellationToken)
                 : base(stream, callbackTarget: null, useThisAsCallback: true, cancellationToken: cancellationToken)
             {
+                Contract.ThrowIfNull(owner.PinnedScopeOpt);
+
                 _owner = owner;
                 _source = new CancellationTokenSource();
 
                 StartListening();
             }
 
-            private PinnedRemotableDataScope PinnedScope => _owner.PinnedScope;
+            private PinnedRemotableDataScope PinnedScope => _owner.PinnedScopeOpt;
 
             /// <summary>
             /// this is callback from remote host side to get asset associated with checksum from VS.
@@ -157,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, _source.Token))
                     using (var stream = await DirectStream.GetAsync(streamName, _source.Token).ConfigureAwait(false))
                     {
-                        using (var writer = new StreamObjectWriter(stream))
+                        using (var writer = new ObjectWriter(stream))
                         {
                             writer.WriteInt32(sessionId);
 
@@ -224,7 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var checksum = kv.Key;
                     var remotableData = kv.Value;
 
-                    writer.WriteValue(checksum.ToArray());
+                    checksum.WriteTo(writer);
                     writer.WriteString(remotableData.Kind);
 
                     await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);

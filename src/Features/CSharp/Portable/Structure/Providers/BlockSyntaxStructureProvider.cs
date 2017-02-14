@@ -130,6 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 case SyntaxKind.CatchClause: return BlockTypes.Statement;
                 case SyntaxKind.FinallyClause: return BlockTypes.Statement;
 
+                case SyntaxKind.UnsafeStatement: return BlockTypes.Statement;
+                case SyntaxKind.FixedStatement: return BlockTypes.Statement;
                 case SyntaxKind.LockStatement: return BlockTypes.Statement;
                 case SyntaxKind.UsingStatement: return BlockTypes.Statement;
 

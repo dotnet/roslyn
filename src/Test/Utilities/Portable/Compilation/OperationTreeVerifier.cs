@@ -790,7 +790,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ILiteralExpression));
 
-            if (operation.ConstantValue.HasValue && operation.ConstantValue.Value.ToString() == operation.Text)
+            object value;
+            if (operation.ConstantValue.HasValue && ((value = operation.ConstantValue.Value) == null ? "null" : value.ToString()) == operation.Text)
             {
                 LogString($" (Text: {operation.Text})");
             }

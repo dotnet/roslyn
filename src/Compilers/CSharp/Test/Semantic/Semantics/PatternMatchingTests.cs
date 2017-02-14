@@ -4244,6 +4244,77 @@ public class C
         }
 
         [Fact]
+        public void ShortDiscardInPattern()
+        {
+            var source =
+@"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int i = 3;
+        Write($""is _: {i is _}, "");
+        switch (3)
+        {
+            case _:
+                Write(""case _"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29),
+                // (11,18): error CS0103: The name '_' does not exist in the current context
+                //             case _:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 Write("case _");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(12, 17)
+                );
+        }
+
+        [Fact]
+        public void UnderscoreInPattern2()
+        {
+            var source =
+@"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int i = 3;
+        int _ = 4;
+        Write($""is _: {i is _}, "");
+        switch (3)
+        {
+            case _:
+                Write(""case _"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (9,29): error CS0150: A constant value is expected
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(9, 29),
+                // (12,18): error CS0150: A constant value is expected
+                //             case _:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 Write("case _");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(13, 17)
+                );
+        }
+
+        [Fact]
         public void UnderscoreInPattern()
         {
             var source =

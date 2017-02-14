@@ -41,26 +41,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             _useBlockBodyTitle = useBlockBodyTitle;
         }
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
-            var option = context.Document.Project.Solution.Workspace.Options.GetOption(_option);
-            var title = option.Value
+            var documentOptionSet = await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
+            var title = documentOptionSet.GetOption(_option).Value
                 ? _useExpressionBodyTitle
                 : _useBlockBodyTitle;
 
             context.RegisterCodeFix(
                 new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c)),
                 diagnostic);
-
-            return SpecializedTasks.EmptyTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var options = document.Project.Solution.Options;
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var preferExpressionBody = options.GetOption(_option).Value;
 
             foreach (var diagnostic in diagnostics)
@@ -68,8 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 cancellationToken.ThrowIfCancellationRequested();
                 AddEdits(editor, diagnostic, options, preferExpressionBody, cancellationToken);
             }
-
-            return SpecializedTasks.EmptyTask;
         }
 
         private void AddEdits(
@@ -90,11 +86,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
             if (preferExpressionBody)
             {
+                var semicolonToken = GetFirstStatementSemicolon(GetBody(declaration));
+                var trailingTrivia = semicolonToken.TrailingTrivia
+                                                   .Where(t => t.Kind() != SyntaxKind.EndOfLineTrivia)
+                                                   .Concat(declaration.GetTrailingTrivia());
+                semicolonToken = semicolonToken.WithTrailingTrivia(trailingTrivia);
+
                 return WithSemicolonToken(
                            WithExpressionBody(
                                WithBody(declaration, null),
                                GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options)),
-                           GetFirstStatementSemicolon(GetBody(declaration)));
+                           semicolonToken);
             }
             else
             {

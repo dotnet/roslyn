@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -15,10 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 {
     public class GenerateMethodTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new GenerateMethodCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new GenerateMethodCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationIntoSameType()
@@ -7358,6 +7355,37 @@ class Class
     }
 
     private object Issue(int i)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(16398, "https://github.com/dotnet/roslyn/issues/16398")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestReturnsByRef()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C 
+{
+    public void Foo()
+    {
+        ref int i = ref [|Bar|]();
+    }
+}",
+@"using System;
+
+class C 
+{
+    public void Foo()
+    {
+        ref int i = ref Bar();
+    }
+
+    private ref int Bar()
     {
         throw new NotImplementedException();
     }
