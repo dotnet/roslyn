@@ -609,9 +609,9 @@ class C
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.ExperimentalParseOptions);
             compilation.VerifyDiagnostics(
-                // (5,35): error CS0186: Use of null is not valid in this context
+                // (5,35): error CS9001: Use of default is not valid in this context
                 //         var q = from x in default select x;
-                Diagnostic(ErrorCode.ERR_NullNotValid, "select x").WithLocation(5, 35)
+                Diagnostic(ErrorCode.ERR_DefaultNotValid, "select x").WithLocation(5, 35)
                 );
         }
 
