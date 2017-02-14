@@ -94,6 +94,10 @@ namespace Roslyn.Test.Performance.Runner
                 return false;
             }
 
+            Log("START_XML");
+            Log(File.ReadAllText(source));
+            Log("END_XML");
+
             var measurementPy = Path.Combine(s_scriptDirectory, "measurement.py");
             var measurementJson = Path.Combine(s_outputDirectory, "measurement.json");
             ShellOutVital("py", $"\"{measurementPy}\" rps \"{source}\" --better desc -o \"{measurementJson}\"");
