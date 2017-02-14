@@ -1234,7 +1234,7 @@ namespace Microsoft.CodeAnalysis
             return IsEquivalentToCore(node, topLevel);
         }
 
-        internal static readonly ObjectBinder s_defaultBinder = new RecordingObjectBinder();
+        internal static readonly ObjectBinder s_defaultBinder = new ObjectBinder();
 
         public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -1248,23 +1248,9 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
             }
 
-            var start = stream.Position;
-
-            try
+            using (var writer = new ObjectWriter(stream, GetSerializationObjectData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
             {
-                using (var writer = new StreamObjectWriter(stream, GetSerializationObjectData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
-                {
-                    writer.WriteValue(this.Green);
-                }
-            }
-            catch (Exception e) when (e is StreamObjectWriter.RecursionDepthExceeded || StackGuard.IsInsufficientExecutionStackException(e))
-            {
-                stream.Position = start;
-
-                using (var writer = new StreamObjectWriter(stream, GetSerializationObjectData(), binder: s_defaultBinder, recursive: false, cancellationToken: cancellationToken))
-                {
-                    writer.WriteValue(this.Green);
-                }
+                writer.WriteValue(this.Green);
             }
         }
 

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
+    using System.Collections.Immutable;
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
 #else
@@ -23,53 +23,38 @@ namespace Roslyn.Utilities
     /// <summary>
     /// An <see cref="ObjectWriter"/> that serializes objects to a byte stream.
     /// </summary>
-    internal sealed partial class StreamObjectWriter : ObjectWriter, IDisposable
+    internal sealed partial class ObjectWriter : IDisposable
     {
         private readonly BinaryWriter _writer;
-        private readonly ObjectBinder _binder;
-        private readonly bool _recursive;
+        private readonly ObjectBinder _binderOpt;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Map of serialized object's reference ids.
+        /// Map of serialized object's reference ids.  The object-reference-map uses refernece equality
+        /// for performance.  While the string-reference-map uses value-equality for greater cache hits 
+        /// and reuse.
         /// </summary>
-        private readonly ReferenceMap _referenceMap;
-
-        /// <summary>
-        /// The stack of values (object members or array elements) in order to be emitted.
-        /// </summary>
-        private readonly Stack<Variant> _valueStack;
-
-        /// <summary>
-        /// The list of member values written by the member writer
-        /// </summary>
-        private readonly List<Variant> _memberList;
-
-        /// <summary>
-        /// An <see cref="ObjectWriter"/> that is used to write object members into a list of variants.
-        /// </summary>
-        private readonly VariantListWriter _memberWriter;
+        private readonly WriterReferenceMap _objectReferenceMap;
+        private readonly WriterReferenceMap _stringReferenceMap;
 
         // collection pools to reduce GC overhead
-        internal static readonly ObjectPool<List<Variant>> s_variantListPool
-            = new ObjectPool<List<Variant>>(() => new List<Variant>(20));
+        internal static readonly ObjectPool<ImmutableArray<Variant>.Builder> s_variantListPool
+            = new ObjectPool<ImmutableArray<Variant>.Builder>(() => ImmutableArray.CreateBuilder<Variant>(20));
 
         internal static readonly ObjectPool<Stack<Variant>> s_variantStackPool
             = new ObjectPool<Stack<Variant>>(() => new Stack<Variant>(20));
 
         /// <summary>
-        /// Creates a new instance of a <see cref="StreamObjectWriter"/>.
+        /// Creates a new instance of a <see cref="ObjectWriter"/>.
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
-        /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="StreamObjectReader"/>.</param>
+        /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="ObjectReader"/>.</param>
         /// <param name="binder">A binder that provides object and type encoding.</param>
-        /// <param name="recursive">True if the writer encodes objects recursively.</param>
         /// <param name="cancellationToken"></param>
-        public StreamObjectWriter(
+        public ObjectWriter(
             Stream stream,
             ObjectData knownObjects = null,
             ObjectBinder binder = null,
-            bool recursive = true,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             // String serialization assumes both reader and writer to be of the same endianness.
@@ -77,139 +62,45 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _writer = new BinaryWriter(stream, Encoding.UTF8);
-            _referenceMap = new ReferenceMap(knownObjects);
-            _binder = binder ?? FixedObjectBinder.Empty;
-            _recursive = recursive;
+            _objectReferenceMap = new WriterReferenceMap(knownObjects, valueEquality: false);
+            _stringReferenceMap = new WriterReferenceMap(knownObjects, valueEquality: true);
+            _binderOpt = binder;
             _cancellationToken = cancellationToken;
 
             WriteVersion();
-
-            if (_recursive)
-            {
-                _writer.Write((byte)EncodingKind.Recursive);
-            }
-            else
-            {
-                _writer.Write((byte)EncodingKind.NonRecursive);
-                _valueStack = s_variantStackPool.Allocate();
-                _memberList = s_variantListPool.Allocate();
-                _memberWriter = new VariantListWriter(_memberList);
-            }
         }
 
         private void WriteVersion()
         {
-            _writer.Write(StreamObjectReader.VersionByte1);
-            _writer.Write(StreamObjectReader.VersionByte2);
+            _writer.Write(ObjectReader.VersionByte1);
+            _writer.Write(ObjectReader.VersionByte2);
         }
 
         public void Dispose()
         {
-            _referenceMap.Dispose();
-
-            if (!_recursive)
-            {
-                _memberList.Clear();
-                s_variantListPool.Free(_memberList);
-
-                _valueStack.Clear();
-                s_variantStackPool.Free(_valueStack);
-            }
+            _objectReferenceMap.Dispose();
+            _stringReferenceMap.Dispose();
         }
 
-        public override void WriteBoolean(bool value)
+        public void WriteBoolean(bool value) => _writer.Write(value);
+        public void WriteByte(byte value) => _writer.Write(value);
+        // written as ushort because BinaryWriter fails on chars that are unicode surrogates
+        public void WriteChar(char ch) => _writer.Write((ushort)ch);
+        public void WriteDecimal(decimal value) => _writer.Write(value);
+        public void WriteDouble(double value) => _writer.Write(value);
+        public void WriteSingle(float value) => _writer.Write(value);
+        public void WriteInt32(int value) => _writer.Write(value);
+        public void WriteInt64(long value) => _writer.Write(value);
+        public void WriteSByte(sbyte value) => _writer.Write(value);
+        public void WriteInt16(short value) => _writer.Write(value);
+        public void WriteUInt32(uint value) => _writer.Write(value);
+        public void WriteUInt64(ulong value) => _writer.Write(value);
+        public void WriteUInt16(ushort value) => _writer.Write(value);
+        public void WriteString(string value) => WriteStringValue(value);
+        public void WriteValue(object value)
         {
-            _writer.Write(value);
-        }
-
-        public override void WriteByte(byte value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteChar(char ch)
-        {
-            // written as ushort because BinaryWriter fails on chars that are unicode surrogates
-            _writer.Write((ushort)ch);
-        }
-
-        public override void WriteDecimal(decimal value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteDouble(double value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteSingle(float value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteInt32(int value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteInt64(long value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteSByte(sbyte value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteInt16(short value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteUInt32(uint value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteUInt64(ulong value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteUInt16(ushort value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteString(string value)
-        {
-            WriteStringValue(value);
-        }
-
-        public override void WriteValue(object value)
-        {
-            if (_recursive)
-            {
-                WriteVariant(Variant.FromBoxedObject(value));
-            }
-            else
-            {
-                _valueStack.Push(Variant.FromBoxedObject(value));
-                Emit();
-            }
-        }
-
-        private void Emit()
-        {
-            // emit all values on the stack
-            while (_valueStack.Count > 0)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-                var value = _valueStack.Pop();
-                WriteVariant(value);
-            }
+            Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
+            WriteVariant(Variant.FromBoxedObject(value));
         }
 
         private void WriteVariant(Variant value)
@@ -353,162 +244,81 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// An <see cref="ObjectWriter"/> that writes into a list of <see cref="Variant"/>.
-        /// </summary>
-        private class VariantListWriter : ObjectWriter
-        {
-            private readonly List<Variant> _list;
-
-            public VariantListWriter(List<Variant> list)
-            {
-                _list = list;
-            }
-
-            public override void WriteBoolean(bool value)
-            {
-                _list.Add(Variant.FromBoolean(value));
-            }
-
-            public override void WriteByte(byte value)
-            {
-                _list.Add(Variant.FromByte(value));
-            }
-
-            public override void WriteChar(char ch)
-            {
-                _list.Add(Variant.FromChar(ch));
-            }
-
-            public override void WriteDecimal(decimal value)
-            {
-                _list.Add(Variant.FromDecimal(value));
-            }
-
-            public override void WriteDouble(double value)
-            {
-                _list.Add(Variant.FromDouble(value));
-            }
-
-            public override void WriteSingle(float value)
-            {
-                _list.Add(Variant.FromSingle(value));
-            }
-
-            public override void WriteInt32(int value)
-            {
-                _list.Add(Variant.FromInt32(value));
-            }
-
-            public override void WriteInt64(long value)
-            {
-                _list.Add(Variant.FromInt64(value));
-            }
-
-            public override void WriteSByte(sbyte value)
-            {
-                _list.Add(Variant.FromSByte(value));
-            }
-
-            public override void WriteInt16(short value)
-            {
-                _list.Add(Variant.FromInt16(value));
-            }
-
-            public override void WriteUInt32(uint value)
-            {
-                _list.Add(Variant.FromUInt32(value));
-            }
-
-            public override void WriteUInt64(ulong value)
-            {
-                _list.Add(Variant.FromUInt64(value));
-            }
-
-            public override void WriteUInt16(ushort value)
-            {
-                _list.Add(Variant.FromUInt16(value));
-            }
-
-            public override void WriteString(string value)
-            {
-                if (value == null)
-                {
-                    _list.Add(Variant.Null);
-                }
-                else
-                {
-                    _list.Add(Variant.FromString(value));
-                }
-            }
-
-            public override void WriteValue(object value)
-            {
-                _list.Add(Variant.FromBoxedObject(value));
-            }
-        }
-
-        /// <summary>
         /// An object reference to reference-id map, that can share base data efficiently.
         /// </summary>
-        private class ReferenceMap
+        private class WriterReferenceMap
         {
-            private readonly ImmutableDictionary<object, int> _baseMap;
+            private readonly Dictionary<object, int> _baseMap;
             private readonly Dictionary<object, int> _valueToIdMap;
+            private readonly bool _valueEquality;
             private int _nextId;
 
-            // note: uses value equality so strings get unified for better compaction
-            private static readonly ObjectPool<Dictionary<object, int>> s_dictionaryPool =
+            private static readonly ObjectPool<Dictionary<object, int>> s_referenceDictionaryPool =
+                new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128, ReferenceEqualityComparer.Instance));
+
+            private static readonly ObjectPool<Dictionary<object, int>> s_valueDictionaryPool =
                 new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128));
 
-            private ReferenceMap(ImmutableDictionary<object, int> baseMap)
+            private WriterReferenceMap(Dictionary<object, int> baseMap, bool valueEquality)
             {
                 _baseMap = baseMap;
-                _valueToIdMap = s_dictionaryPool.Allocate();
+                _valueEquality = valueEquality;
+                _valueToIdMap = GetDictionaryPool().Allocate();
                 _nextId = _baseMap != null ? _baseMap.Count : 0;
             }
 
-            public ReferenceMap(ObjectData data)
-                : this(data != null ? GetBaseMap(data) : null)
+            private ObjectPool<Dictionary<object, int>> GetDictionaryPool()
+                => _valueEquality ? s_valueDictionaryPool : s_referenceDictionaryPool;
+
+            public WriterReferenceMap(ObjectData data, bool valueEquality)
+                : this(data != null ? GetBaseMap(data, valueEquality) : null, valueEquality)
             {
             }
 
-            private static readonly ConditionalWeakTable<ObjectData, ImmutableDictionary<object, int>> s_baseDataMap
-                = new ConditionalWeakTable<ObjectData, ImmutableDictionary<object, int>>();
+            private static readonly ConditionalWeakTable<ObjectData, Dictionary<object, int>> s_referenceBaseDataMap
+                = new ConditionalWeakTable<ObjectData, Dictionary<object, int>>();
 
-            private static ImmutableDictionary<object, int> GetBaseMap(ObjectData data)
+            private static readonly ConditionalWeakTable<ObjectData, Dictionary<object, int>> s_valueBaseDataMap
+                = new ConditionalWeakTable<ObjectData, Dictionary<object, int>>();
+
+            private static Dictionary<object, int> GetBaseMap(ObjectData data, bool valueEquality)
             {
-                ImmutableDictionary<object, int> baseData;
-                if (!s_baseDataMap.TryGetValue(data, out baseData))
+                var dataMap = valueEquality ? s_valueBaseDataMap : s_referenceBaseDataMap;
+
+                Dictionary<object, int> baseData;
+                if (!dataMap.TryGetValue(data, out baseData))
                 {
-                    baseData = s_baseDataMap.GetValue(data, CreateBaseMap);
+                    baseData = dataMap.GetValue(data, CreateBaseMap);
                 }
 
                 return baseData;
             }
 
-            private static ImmutableDictionary<object, int> CreateBaseMap(ObjectData data)
+            private static Dictionary<object, int> CreateBaseMap(ObjectData data)
             {
-                var builder = ImmutableDictionary<object, int>.Empty.ToBuilder();
+                var builder = new Dictionary<object, int>();
                 for (int i = 0; i < data.Objects.Length; i++)
                 {
                     builder.Add(data.Objects[i], i);
                 }
 
-                return builder.ToImmutable();
+                return builder;
             }
 
             public void Dispose()
             {
+                var pool = GetDictionaryPool();
+
                 // If the map grew too big, don't return it to the pool.
                 // When testing with the Roslyn solution, this dropped only 2.5% of requests.
                 if (_valueToIdMap.Count > 1024)
                 {
-                    s_dictionaryPool.ForgetTrackedObject(_valueToIdMap);
+                    pool.ForgetTrackedObject(_valueToIdMap);
                 }
                 else
                 {
                     _valueToIdMap.Clear();
-                    s_dictionaryPool.Free(_valueToIdMap);
+                    pool.Free(_valueToIdMap);
                 }
             }
 
@@ -573,7 +383,7 @@ namespace Roslyn.Utilities
             else
             {
                 int id;
-                if (_referenceMap.TryGetReferenceId(value, out id))
+                if (_stringReferenceMap.TryGetReferenceId(value, out id))
                 {
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
@@ -594,7 +404,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    _referenceMap.Add(value);
+                    _stringReferenceMap.Add(value);
 
                     if (value.IsValidUnicodeString())
                     {
@@ -704,31 +514,20 @@ namespace Roslyn.Utilities
                 // emit header up front
                 this.WriteType(elementType);
 
-                if (_recursive)
+                // recursive: write elements now
+                _recursionDepth++;
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                if (_recursionDepth > MaxRecursionDepth)
                 {
-                    // recursive: write elements now
-                    _recursionDepth++;
-                    StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-                    if (_recursionDepth > MaxRecursionDepth)
-                    {
-                        throw new RecursionDepthExceeded();
-                    }
-
-                    for (int i = 0; i < array.Length; i++)
-                    {
-                        this.WriteValue(array.GetValue(i));
-                    }
-
-                    _recursionDepth--;
+                    throw new RecursionDepthExceeded();
                 }
-                else
+
+                for (int i = 0; i < array.Length; i++)
                 {
-                    // non-recursive: push elements in reverse order so we later emit first element first
-                    for (int i = array.Length - 1; i >= 0; i--)
-                    {
-                        _valueStack.Push(Variant.FromBoxedObject(array.GetValue(i)));
-                    }
+                    this.WriteValue(array.GetValue(i));
                 }
+
+                _recursionDepth--;
             }
         }
 
@@ -910,7 +709,7 @@ namespace Roslyn.Utilities
         private void WriteType(Type type)
         {
             int id;
-            if (_referenceMap.TryGetReferenceId(type, out id))
+            if (_objectReferenceMap.TryGetReferenceId(type, out id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
@@ -931,18 +730,17 @@ namespace Roslyn.Utilities
             }
             else
             {
-                _referenceMap.Add(type);
+                _objectReferenceMap.Add(type);
 
                 _writer.Write((byte)EncodingKind.Type);
 
-                TypeKey key;
-                if (!_binder.TryGetTypeKey(type, out key))
+                if (_binderOpt == null)
                 {
                     throw NoSerializationTypeException(type.FullName);
                 }
 
-                this.WriteStringValue(key.AssemblyName);
-                this.WriteStringValue(key.TypeName);
+                var typeId = _binderOpt.GetOrCreateTypeId(type);
+                this.WriteInt32(typeId);
             }
         }
 
@@ -962,7 +760,7 @@ namespace Roslyn.Utilities
 
             // write object ref if we already know this instance
             int id;
-            if (_referenceMap.TryGetReferenceId(instance, out id))
+            if (_objectReferenceMap.TryGetReferenceId(instance, out id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
@@ -984,59 +782,35 @@ namespace Roslyn.Utilities
             else
             {
                 Action<ObjectWriter, object> typeWriter;
-                if (!_binder.TryGetWriter(instance, out typeWriter))
+                if (_binderOpt == null || !_binderOpt.TryGetWriter(instance, out typeWriter))
                 {
                     throw NoSerializationWriterException(instance.GetType().FullName);
                 }
 
-                if (_recursive)
+                _recursionDepth++;
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                if (_recursionDepth > MaxRecursionDepth)
                 {
-                    _recursionDepth++;
-                    StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-                    if (_recursionDepth > MaxRecursionDepth)
-                    {
-                        throw new RecursionDepthExceeded();
-                    }
-
-                    // emit object header up front
-                    this.WriteObjectHeader(instance, 0);
-
-                    typeWriter(this, instance);
-
-                    _recursionDepth--;
+                    throw new RecursionDepthExceeded();
                 }
-                else
-                {
-                    // gather instance members by writing them into a list of variants
-                    _memberList.Clear();
-                    typeWriter(_memberWriter, instance);
 
-                    // emit object header up front
-                    this.WriteObjectHeader(instance, (uint)_memberList.Count);
+                // emit object header up front
+                this.WriteObjectHeader(instance);
 
-                    // all object members are emitted as variant values (tagged in stream) so we can later read them non-recursively.
-                    // push all members in reverse order so we later emit the first member written first
-                    for (int i = _memberList.Count - 1; i >= 0; i--)
-                    {
-                        _valueStack.Push(_memberList[i]);
-                    }
-                }
+                typeWriter(this, instance);
+
+                _recursionDepth--;
             }
         }
 
-        private void WriteObjectHeader(object instance, uint memberCount)
+        private void WriteObjectHeader(object instance)
         {
-            _referenceMap.Add(instance);
+            _objectReferenceMap.Add(instance);
 
             _writer.Write((byte)EncodingKind.Object);
 
             Type type = instance.GetType();
             this.WriteType(type);
-
-            if (!_recursive)
-            {
-                this.WriteCompressedUInt(memberCount);
-            }
         }
 
         private static Exception NoSerializationTypeException(string typeName)
@@ -1050,27 +824,44 @@ namespace Roslyn.Utilities
         }
 
         // we have s_typeMap and s_reversedTypeMap since there is no bidirectional map in compiler
-        internal static readonly ImmutableDictionary<Type, EncodingKind> s_typeMap = ImmutableDictionary.CreateRange<Type, EncodingKind>(
-            new KeyValuePair<Type, EncodingKind>[]
-            {
-                KeyValuePair.Create(typeof(bool), EncodingKind.BooleanType),
-                KeyValuePair.Create(typeof(char), EncodingKind.Char),
-                KeyValuePair.Create(typeof(string), EncodingKind.StringType),
-                KeyValuePair.Create(typeof(sbyte), EncodingKind.Int8),
-                KeyValuePair.Create(typeof(short), EncodingKind.Int16),
-                KeyValuePair.Create(typeof(int), EncodingKind.Int32),
-                KeyValuePair.Create(typeof(long), EncodingKind.Int64),
-                KeyValuePair.Create(typeof(byte), EncodingKind.UInt8),
-                KeyValuePair.Create(typeof(ushort), EncodingKind.UInt16),
-                KeyValuePair.Create(typeof(uint), EncodingKind.UInt32),
-                KeyValuePair.Create(typeof(ulong), EncodingKind.UInt64),
-                KeyValuePair.Create(typeof(float), EncodingKind.Float4),
-                KeyValuePair.Create(typeof(double), EncodingKind.Float8),
-                KeyValuePair.Create(typeof(decimal), EncodingKind.Decimal),
-            });
+        // Note: s_typeMap is effectively immutable.  However, for maxiumum perf we use mutable types because
+        // they are used in hotspots.
+        internal static readonly Dictionary<Type, EncodingKind> s_typeMap;
 
-        internal static readonly ImmutableDictionary<EncodingKind, Type> s_reverseTypeMap 
-            = s_typeMap.ToImmutableDictionary(kv => kv.Value, kv => kv.Key);
+        /// <summary>
+        /// Indexed by EncodingKind.
+        /// </summary>
+        internal static readonly ImmutableArray<Type> s_reverseTypeMap;
+
+        static ObjectWriter()
+        {
+            s_typeMap = new Dictionary<Type, EncodingKind>
+            {
+                { typeof(bool), EncodingKind.BooleanType },
+                { typeof(char), EncodingKind.Char },
+                { typeof(string), EncodingKind.StringType },
+                { typeof(sbyte), EncodingKind.Int8 },
+                { typeof(short), EncodingKind.Int16 },
+                { typeof(int), EncodingKind.Int32 },
+                { typeof(long), EncodingKind.Int64 },
+                { typeof(byte), EncodingKind.UInt8 },
+                { typeof(ushort), EncodingKind.UInt16 },
+                { typeof(uint), EncodingKind.UInt32 },
+                { typeof(ulong), EncodingKind.UInt64 },
+                { typeof(float), EncodingKind.Float4 },
+                { typeof(double), EncodingKind.Float8 },
+                { typeof(decimal), EncodingKind.Decimal },
+            };
+
+            var temp = new Type[(int)EncodingKind.Last];
+
+            foreach (var kvp in s_typeMap)
+            {
+                temp[(int)kvp.Value] = kvp.Key;
+            }
+
+            s_reverseTypeMap = ImmutableArray.Create(temp);
+        }
 
         /// <summary>
         /// byte marker mask for encoding compressed uint 
@@ -1097,16 +888,6 @@ namespace Roslyn.Utilities
         /// </summary>
         internal enum EncodingKind : byte
         {
-            /// <summary>
-            /// The stream is encoding using recursive object serialization
-            /// </summary>
-            Recursive,
-
-            /// <summary>
-            /// The stream is encoded using non-recursive object serialzation
-            /// </summary>
-            NonRecursive,
-
             /// <summary>
             /// The null value
             /// </summary>
@@ -1420,7 +1201,10 @@ namespace Roslyn.Utilities
             /// <summary>
             /// The string type
             /// </summary>
-            StringType
+            StringType,
+
+
+            Last = StringType + 1,
         }
 
         internal enum VariantKind
@@ -1445,16 +1229,16 @@ namespace Roslyn.Utilities
             BoxedEnum,
             DateTime,
             Array,
-            Type
+            Type,
         }
 
         internal struct Variant
         {
             public readonly VariantKind Kind;
-            private readonly decimal _image;
+            private readonly long _image;
             private readonly object _instance;
 
-            private Variant(VariantKind kind, decimal image, object instance = null)
+            private Variant(VariantKind kind, long image, object instance = null)
             {
                 Kind = kind;
                 _image = image;
@@ -1506,7 +1290,7 @@ namespace Roslyn.Utilities
 
             public static Variant FromUInt64(ulong value)
             {
-                return new Variant(VariantKind.UInt64, value);
+                return new Variant(VariantKind.UInt64, unchecked((long)value));
             }
 
             public static Variant FromSingle(float value)
@@ -1531,7 +1315,7 @@ namespace Roslyn.Utilities
 
             public static Variant FromDecimal(Decimal value)
             {
-                return new Variant(VariantKind.Decimal, value);
+                return new Variant(VariantKind.Decimal, image: 0, instance: value);
             }
 
             public static Variant FromBoxedEnum(object value)
@@ -1604,31 +1388,31 @@ namespace Roslyn.Utilities
             public long AsInt64()
             {
                 Debug.Assert(Kind == VariantKind.Int64);
-                return (long)_image;
+                return _image;
             }
 
             public ulong AsUInt64()
             {
                 Debug.Assert(Kind == VariantKind.UInt64);
-                return (ulong)_image;
+                return unchecked((ulong)_image);
             }
 
             public decimal AsDecimal()
             {
                 Debug.Assert(Kind == VariantKind.Decimal);
-                return _image;
+                return (decimal)_instance;
             }
 
             public float AsSingle()
             {
                 Debug.Assert(Kind == VariantKind.Float4);
-                return (float)BitConverter.Int64BitsToDouble((long)_image);
+                return (float)BitConverter.Int64BitsToDouble(_image);
             }
 
             public double AsDouble()
             {
                 Debug.Assert(Kind == VariantKind.Float8);
-                return BitConverter.Int64BitsToDouble((long)_image);
+                return BitConverter.Int64BitsToDouble(_image);
             }
 
             public char AsChar()
@@ -1658,7 +1442,7 @@ namespace Roslyn.Utilities
             public DateTime AsDateTime()
             {
                 Debug.Assert(Kind == VariantKind.DateTime);
-                return DateTime.FromBinary((long)_image);
+                return DateTime.FromBinary(_image);
             }
 
             public Type AsType()
@@ -1673,6 +1457,8 @@ namespace Roslyn.Utilities
                 return (Array)_instance;
             }
 
+            private static readonly PropertyInfo s_getTypeCode = typeof(Type).GetRuntimeProperty("TypeCode");
+
             public static Variant FromBoxedObject(object value)
             {
                 if (value == null)
@@ -1683,72 +1469,36 @@ namespace Roslyn.Utilities
                 {
                     var type = value.GetType();
                     var typeInfo = type.GetTypeInfo();
+                    Debug.Assert(!typeInfo.IsEnum, "Enums should not be written with WriteObject.  Write them out as integers instead.");
 
-                    if (typeInfo.IsEnum)
+                    // Perf: Note that JIT optimizes each expression value.GetType() == typeof(T) to a single register comparison.
+                    // Also the checks are sorted by commonality of the checked types.
+
+                    // The primitive types are Boolean, Byte, SByte, Int16, UInt16, Int32, UInt32, Int64, UInt64, IntPtr, UIntPtr, Char, Double, and Single.
+                    if (typeInfo.IsPrimitive)
                     {
-                        return FromBoxedEnum(value);
+                        // Note: int, double, bool, char, have been chosen to go first as they're they
+                        // common values of literals in code, and so would be hte likely hits if we do
+                        // have a primitive type we're serializing out.
+                        if (value.GetType() == typeof(int)) { return FromInt32((int)value); }
+                        if (value.GetType() == typeof(double)) { return FromDouble((double)value); }
+                        if (value.GetType() == typeof(bool)) { return FromBoolean((bool)value); }
+                        if (value.GetType() == typeof(char)) { return FromChar((char)value); }
+                        if (value.GetType() == typeof(byte)) { return FromByte((byte)value); }
+                        if (value.GetType() == typeof(short)) { return FromInt16((short)value); }
+                        if (value.GetType() == typeof(long)) { return FromInt64((long)value); }
+                        if (value.GetType() == typeof(sbyte)) { return FromSByte((sbyte)value); }
+                        if (value.GetType() == typeof(float)) { return FromSingle((float)value); }
+                        if (value.GetType() == typeof(ushort)) { return FromUInt16((ushort)value); }
+                        if (value.GetType() == typeof(uint)) { return FromUInt32((uint)value); }
+                        if (value.GetType() == typeof(ulong)) { return FromUInt64((ulong)value); }
                     }
-                    else if (type == typeof(bool))
-                    {
-                        return FromBoolean((bool)value);
-                    }
-                    else if (type == typeof(int))
-                    {
-                        return FromInt32((int)value);
-                    }
-                    else if (type == typeof(string))
-                    {
-                        return FromString((string)value);
-                    }
-                    else if (type == typeof(short))
-                    {
-                        return FromInt16((short)value);
-                    }
-                    else if (type == typeof(long))
-                    {
-                        return FromInt64((long)value);
-                    }
-                    else if (type == typeof(char))
-                    {
-                        return FromChar((char)value);
-                    }
-                    else if (type == typeof(sbyte))
-                    {
-                        return FromSByte((sbyte)value);
-                    }
-                    else if (type == typeof(byte))
-                    {
-                        return FromByte((byte)value);
-                    }
-                    else if (type == typeof(ushort))
-                    {
-                        return FromUInt16((ushort)value);
-                    }
-                    else if (type == typeof(uint))
-                    {
-                        return FromUInt32((uint)value);
-                    }
-                    else if (type == typeof(ulong))
-                    {
-                        return FromUInt64((ulong)value);
-                    }
-                    else if (type == typeof(decimal))
-                    {
-                        return FromDecimal((decimal)value);
-                    }
-                    else if (type == typeof(float))
-                    {
-                        return FromSingle((float)value);
-                    }
-                    else if (type == typeof(double))
-                    {
-                        return FromDouble((double)value);
-                    }
-                    else if (type == typeof(DateTime))
-                    {
-                        return FromDateTime((DateTime)value);
-                    }
-                    else if (type.IsArray)
+
+                    if (value.GetType() == typeof(decimal)) { return FromDecimal((decimal)value); }
+                    if (value.GetType() == typeof(DateTime)) { return FromDateTime((DateTime)value); }
+                    if (value.GetType() == typeof(string)) { return FromString((string)value); }
+
+                    if (type.IsArray)
                     {
                         var instance = (Array)value;
 
@@ -1759,14 +1509,10 @@ namespace Roslyn.Utilities
 
                         return Variant.FromArray(instance);
                     }
-                    else if (value is Type)
-                    {
-                        return Variant.FromType((Type)value);
-                    }
-                    else
-                    {
-                        return Variant.FromObject(value);
-                    }
+
+                    return value is Type t
+                        ? Variant.FromType(t)
+                        : Variant.FromObject(value);
                 }
             }
 
@@ -1774,46 +1520,26 @@ namespace Roslyn.Utilities
             {
                 switch (this.Kind)
                 {
-                    case VariantKind.Array:
-                        return this.AsArray();
-                    case VariantKind.Boolean:
-                        return this.AsBoolean();
-                    case VariantKind.BoxedEnum:
-                        return this.AsBoxedEnum();
-                    case VariantKind.Byte:
-                        return this.AsByte();
-                    case VariantKind.Char:
-                        return this.AsChar();
-                    case VariantKind.DateTime:
-                        return this.AsDateTime();
-                    case VariantKind.Decimal:
-                        return this.AsDecimal();
-                    case VariantKind.Float4:
-                        return this.AsSingle();
-                    case VariantKind.Float8:
-                        return this.AsDouble();
-                    case VariantKind.Int16:
-                        return this.AsInt16();
-                    case VariantKind.Int32:
-                        return this.AsInt32();
-                    case VariantKind.Int64:
-                        return this.AsInt64();
-                    case VariantKind.Null:
-                        return null;
-                    case VariantKind.Object:
-                        return this.AsObject();
-                    case VariantKind.SByte:
-                        return this.AsSByte();
-                    case VariantKind.String:
-                        return this.AsString();
-                    case VariantKind.Type:
-                        return this.AsType();
-                    case VariantKind.UInt16:
-                        return this.AsUInt16();
-                    case VariantKind.UInt32:
-                        return this.AsUInt32();
-                    case VariantKind.UInt64:
-                        return this.AsUInt64();
+                    case VariantKind.Array: return this.AsArray();
+                    case VariantKind.Boolean: return this.AsBoolean();
+                    case VariantKind.BoxedEnum: return this.AsBoxedEnum();
+                    case VariantKind.Byte: return this.AsByte();
+                    case VariantKind.Char: return this.AsChar();
+                    case VariantKind.DateTime: return this.AsDateTime();
+                    case VariantKind.Decimal: return this.AsDecimal();
+                    case VariantKind.Float4: return this.AsSingle();
+                    case VariantKind.Float8: return this.AsDouble();
+                    case VariantKind.Int16: return this.AsInt16();
+                    case VariantKind.Int32: return this.AsInt32();
+                    case VariantKind.Int64: return this.AsInt64();
+                    case VariantKind.Null: return null;
+                    case VariantKind.Object: return this.AsObject();
+                    case VariantKind.SByte: return this.AsSByte();
+                    case VariantKind.String: return this.AsString();
+                    case VariantKind.Type: return this.AsType();
+                    case VariantKind.UInt16: return this.AsUInt16();
+                    case VariantKind.UInt32: return this.AsUInt32();
+                    case VariantKind.UInt64: return this.AsUInt64();
                     default:
                         throw ExceptionUtilities.UnexpectedValue(this.Kind);
                 }
