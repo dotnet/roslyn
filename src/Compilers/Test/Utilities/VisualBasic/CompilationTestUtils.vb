@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -93,9 +93,10 @@ Friend Module CompilationUtils
 
     Public Function CreateCompilationWithMscorlib45(sourceTrees As IEnumerable(Of SyntaxTree),
                                                     Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                    Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+                                                    Optional options As VisualBasicCompilationOptions = Nothing,
+                                                    Optional assemblyName As String = Nothing) As VisualBasicCompilation
         Dim additionalRefs = {MscorlibRef_v4_0_30316_17626}
-        Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
+        Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
     End Function
 
     Public Function CreateCompilationWithMscorlib45AndVBRuntime(sourceTrees As IEnumerable(Of SyntaxTree),
@@ -874,47 +875,51 @@ Friend Module CompilationUtils
         AssertTheseDiagnostics(errors, expectedText, suppressInfos)
     End Sub
 
+    Friend ReadOnly PooledStringBuilerPool As ObjectPool(Of Collections.PooledStringBuilder)  = Collections.PooledStringBuilder.CreatePool
+
     Private Sub AssertTheseDiagnostics(errors As ImmutableArray(Of Diagnostic), expectedText As String, suppressInfos As Boolean)
         Dim actualText = DumpAllDiagnostics(errors.ToArray(), suppressInfos)
         If expectedText <> actualText Then
 
-            Dim messages As New StringBuilder
-            messages.AppendLine()
+            Dim messages = PooledStringBuilerPool.Allocate
+            With messages.Builder
+            .AppendLine()
 
             If actualText.StartsWith(expectedText, StringComparison.Ordinal) AndAlso actualText.Substring(expectedText.Length).Trim().Length > 0 Then
-                messages.AppendLine("UNEXPECTED ERROR MESSAGES:")
-                messages.AppendLine(actualText.Substring(expectedText.Length))
+                .AppendLine("UNEXPECTED ERROR MESSAGES:")
+                .AppendLine(actualText.Substring(expectedText.Length))
 
-                Assert.True(False, messages.ToString())
+                Assert.True(False, messages.ToStringAndFree)
             Else
                 Dim expectedLines = expectedText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
                 Dim actualLines = actualText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
 
                 Dim appendedLines As Integer = 0
 
-                messages.AppendLine("MISSING ERROR MESSAGES:")
+                .AppendLine("MISSING ERROR MESSAGES:")
                 For Each l In expectedLines
                     If Not actualLines.Contains(l) Then
-                        messages.AppendLine(l)
+                        .AppendLine(l)
                         appendedLines += 1
                     End If
                 Next
 
-                messages.AppendLine("UNEXPECTED ERROR MESSAGES:")
+                .AppendLine("UNEXPECTED ERROR MESSAGES:")
                 For Each l In actualLines
                     If Not expectedLines.Contains(l) Then
-                        messages.AppendLine(l)
+                        .AppendLine(l)
                         appendedLines += 1
                     End If
                 Next
 
                 If appendedLines > 0 Then
-                    Assert.True(False, messages.ToString())
+                    Assert.True(False, messages.ToStringAndFree())
                 Else
                     CompareLineByLine(expectedText, actualText)
                 End If
 
             End If
+                End With
         End If
     End Sub
 
@@ -922,18 +927,18 @@ Friend Module CompilationUtils
         Dim expectedReader = New StringReader(expected)
         Dim actualReader = New StringReader(actual)
 
-        Dim expectedBuilder As New StringBuilder()
-        Dim actualBuilder As New StringBuilder()
+        Dim expectedBuilder = PooledStringBuilerPool.Allocate 'As New StringBuilder()
+        Dim actualBuilder = PooledStringBuilerPool.Allocate'As New StringBuilder()
         Dim expectedLine = expectedReader.ReadLine()
         Dim actualLine = actualReader.ReadLine()
 
         While expectedLine IsNot Nothing AndAlso actualLine IsNot Nothing
             If Not expectedLine.Equals(actualLine) Then
-                expectedBuilder.AppendLine("<! " & expectedLine)
-                actualBuilder.AppendLine("!> " & actualLine)
+                expectedBuilder.Builder.AppendLine("<! " & expectedLine)
+                actualBuilder.Builder.AppendLine("!> " & actualLine)
             Else
-                expectedBuilder.AppendLine(expectedLine)
-                actualBuilder.AppendLine(actualLine)
+                expectedBuilder.Builder.AppendLine(expectedLine)
+                actualBuilder.Builder.AppendLine(actualLine)
             End If
 
             expectedLine = expectedReader.ReadLine()
@@ -942,16 +947,16 @@ Friend Module CompilationUtils
         End While
 
         While expectedLine IsNot Nothing
-            expectedBuilder.AppendLine("<! " & expectedLine)
+            expectedBuilder.Builder.AppendLine("<! " & expectedLine)
             expectedLine = expectedReader.ReadLine()
         End While
 
         While actualLine IsNot Nothing
-            actualBuilder.AppendLine("!> " & actualLine)
+            actualBuilder.Builder.AppendLine("!> " & actualLine)
             actualLine = actualReader.ReadLine()
         End While
 
-        Assert.Equal(expectedBuilder.ToString(), actualBuilder.ToString())
+        Assert.Equal(expectedBuilder.ToStringAndFree(), actualBuilder.ToStringAndFree())
     End Sub
 
     ' There are certain cases where multiple distinct errors are
@@ -975,13 +980,13 @@ Friend Module CompilationUtils
 
         Array.Sort(diagnosticsAndIndices, Function(diag1, diag2) CompareErrors(diag1, diag2))
 
-        Dim builder As New StringBuilder
+        Dim builder = PooledStringBuilerPool.Allocate 'As New StringBuilder
         For Each e In diagnosticsAndIndices
             If Not suppressInfos OrElse e.Diagnostic.Severity > DiagnosticSeverity.Info Then
-                builder.Append(ErrorText(e.Diagnostic))
+                builder.Builder.Append(ErrorText(e.Diagnostic))
             End If
         Next
-        Return builder.ToString()
+        Return builder.ToStringAndFree'.ToString()
     End Function
 
     ' Get the text of a diagnostic. For source error, includes the text of the line itself, with the 
@@ -1209,14 +1214,14 @@ Friend Module CompilationUtils
 
     Public Function SortAndMergeStrings(ParamArray strings As String()) As String
         Array.Sort(strings)
-        Dim builder = New StringBuilder
+        Dim builder = PooledStringBuilerPool.Allocate 'New StringBuilder
         For Each str In strings
             If builder.Length > 0 Then
-                builder.AppendLine()
+                builder.Builder.AppendLine()
             End If
-            builder.Append(str)
+            builder.Builder.Append(str)
         Next
-        Return builder.ToString
+        Return builder.ToStringAndFree'ToString
     End Function
 
     Public Sub CheckSymbolsUnordered(Of TSymbol As ISymbol)(symbols As ImmutableArray(Of TSymbol), ParamArray descriptions As String())
