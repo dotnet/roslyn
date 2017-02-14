@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.Collections
 
 
 Friend Module ParserTestUtilities
-     ReadOnly PSBP As ObjectPool(Of PooledStringBuilder)= PooledStringBuilder.CreatePool
+     ReadOnly PooledStringBuilerPool As ObjectPool(Of PooledStringBuilder)= PooledStringBuilder.CreatePool
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
     Public Function ParseAndVerify(code As XCData, Optional expectedErrors As XElement = Nothing) As SyntaxTree
@@ -78,7 +78,7 @@ Friend Module ParserTestUtilities
 
         ' Verify Errors
         If expectedDiagnostics Is Nothing Then
-            Dim errors = PSBP.Allocate 'As New StringBuilder()
+            Dim errors = PooledStringBuilerPool.Allocate 'As New StringBuilder()
             AppendSyntaxErrors(tree.GetDiagnostics(), errors)
             Assert.False(root.ContainsDiagnostics, errors.ToStringAndFree)
             Assert.Equal(root.ContainsDiagnostics, errors.Length > 0)
@@ -552,7 +552,7 @@ Public Module VerificationHelpers
 #Region "Private Helpers"
 
     Private Function GetErrorString(id As Integer, message As String, start As String, [end] As String) As String
-        Dim errorString = PooledStringBuilerPool.Allocate
+        Dim errorString = PooledStringBuilderPool.Allocate
         With errorString.Builder
             .Append(vbTab)
             .Append("<error id=""")
@@ -634,7 +634,7 @@ Public Module VerificationHelpers
         Next
 
         If errorScenarioFailed Then
-            Dim errorMessage = PooledStringBuilerPool.Allocate 'As New StringBuilder()
+            Dim errorMessage = PooledStringBuilderPool.Allocate 'As New StringBuilder()
             With errorMessage.Builder
             .AppendLine()
             .AppendLine("Expected Subset:")
