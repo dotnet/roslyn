@@ -13,8 +13,13 @@ namespace Microsoft.CodeAnalysis
     /// with the annotations attached.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public sealed class SyntaxAnnotation : IObjectWritable, IObjectReadable, IEquatable<SyntaxAnnotation>
+    public sealed class SyntaxAnnotation : IObjectWritable, IEquatable<SyntaxAnnotation>
     {
+        static SyntaxAnnotation()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(SyntaxAnnotation), r => new SyntaxAnnotation(r));
+        }
+
         /// <summary>
         /// A predefined syntax annotation that indicates whether the syntax element has elastic trivia.
         /// </summary>
@@ -57,11 +62,6 @@ namespace Microsoft.CodeAnalysis
             writer.WriteInt64(_id);
             writer.WriteString(this.Kind);
             writer.WriteString(this.Data);
-        }
-
-        Func<ObjectReader, object> IObjectReadable.GetReader()
-        {
-            return r => new SyntaxAnnotation(r);
         }
 
         private string GetDebuggerDisplay()
