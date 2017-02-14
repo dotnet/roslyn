@@ -118,8 +118,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 string publicApiName = GetPublicApiName(symbol);
                 _visitedApiList.Add(publicApiName);
 
-                ApiLine apiLine;
-                var hasPublicApiEntry = _publicApiMap.TryGetValue(publicApiName, out apiLine);
+                var hasPublicApiEntry = _publicApiMap.TryGetValue(publicApiName, out ApiLine apiLine);
                 if (!hasPublicApiEntry)
                 {
                     // Unshipped public API with no entry in public API file - report diagnostic.
@@ -204,9 +203,8 @@ namespace Roslyn.Diagnostics.Analyzers
                                 else if (!overloadHasOptionalParams)
                                 {
                                     var overloadPublicApiName = GetPublicApiName(overload);
-                                    ApiLine overloadPublicApiLine;
-                                    var isOverloadUnshipped = !_publicApiMap.TryGetValue(overloadPublicApiName, out overloadPublicApiLine) ||
-                                        !overloadPublicApiLine.IsShippedApi;
+                                    var isOverloadUnshipped = !_publicApiMap.TryGetValue(overloadPublicApiName, out ApiLine overloadPublicApiLine) ||
+    !overloadPublicApiLine.IsShippedApi;
                                     if (isOverloadUnshipped)
                                     {
                                         string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
@@ -241,11 +239,13 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
+            // TODO: Remove the below suppression once the following Roslyn bug is fixed: https://github.com/dotnet/roslyn/issues/8884
+#pragma warning disable CA1801
             private string GetSiblingNamesToRemoveFromUnshippedTextCore(ISymbol symbol)
+#pragma warning restore CA1801
             {
                 // Compute all sibling names that must be removed from unshipped text, as they are no longer public or have been changed.
-                var containingSymbol = symbol.ContainingSymbol as INamespaceOrTypeSymbol;
-                if (containingSymbol != null)
+                if (symbol.ContainingSymbol is INamespaceOrTypeSymbol containingSymbol)
                 {
                     // First get the lines in the unshipped text for siblings of the symbol:
                     //  (a) Contains Public API name of containing symbol.
@@ -386,9 +386,8 @@ namespace Roslyn.Diagnostics.Analyzers
 
             private bool IsPublicAPI(ISymbol symbol)
             {
-                var methodSymbol = symbol as IMethodSymbol;
-                if (methodSymbol != null &&
-                    s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
+                if (symbol is IMethodSymbol methodSymbol &&
+    s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
                 {
                     return false;
                 }
@@ -417,8 +416,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             private bool CanTypeBeExtendedPublicly(ITypeSymbol type)
             {
-                bool result;
-                if (_typeCanBeExtendedCache.TryGetValue(type, out result))
+                if (_typeCanBeExtendedCache.TryGetValue(type, out bool result))
                 {
                     return result;
                 }

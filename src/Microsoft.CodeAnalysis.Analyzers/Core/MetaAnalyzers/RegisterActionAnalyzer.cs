@@ -271,9 +271,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 // Only analyze this method if declares a parameter with one of the allowed analysis context types.
                 foreach (IParameterSymbol parameter in method.Parameters)
                 {
-                    var namedType = parameter.Type as INamedTypeSymbol;
-                    if (namedType != null &&
-                        IsContextType(namedType, _analysisContext, _codeBlockStartAnalysisContext, _operationBlockStartAnalysisContext, _compilationStartAnalysisContext))
+                    if (parameter.Type is INamedTypeSymbol namedType &&
+    IsContextType(namedType, _analysisContext, _codeBlockStartAnalysisContext, _operationBlockStartAnalysisContext, _compilationStartAnalysisContext))
                     {
                         return true;
                     }
@@ -422,18 +421,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 SyntaxNode argumentExpression = GetArgumentExpression((TArgumentSyntax)context.Node);
                 if (argumentExpression != null)
                 {
-                    var parameter = context.SemanticModel.GetSymbolInfo(argumentExpression, context.CancellationToken).Symbol as IParameterSymbol;
-                    if (parameter != null)
+                    if (context.SemanticModel.GetSymbolInfo(argumentExpression, context.CancellationToken).Symbol is IParameterSymbol parameter)
                     {
                         AnalyzeParameterReference(parameter);
                     }
                 }
             }
 
+            // TODO: Remove the below suppression once the following Roslyn bug is fixed: https://github.com/dotnet/roslyn/issues/8884
+#pragma warning disable CA1801
             private void AnalyzerParameterSyntax(SyntaxNodeAnalysisContext context)
+#pragma warning restore CA1801
             {
-                var parameter = context.SemanticModel.GetDeclaredSymbol(context.Node, context.CancellationToken) as IParameterSymbol;
-                if (parameter != null)
+                if (context.SemanticModel.GetDeclaredSymbol(context.Node, context.CancellationToken) is IParameterSymbol parameter)
                 {
                     AnalyzeParameterDeclaration(parameter);
                 }
@@ -487,8 +487,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
 
                 _nestedActionsMap = _nestedActionsMap ?? new Dictionary<IParameterSymbol, List<NodeAndSymbol>>();
-                List<NodeAndSymbol> registerInvocations;
-                if (!_nestedActionsMap.TryGetValue(contextParameter, out registerInvocations))
+                if (!_nestedActionsMap.TryGetValue(contextParameter, out List<NodeAndSymbol> registerInvocations))
                 {
                     registerInvocations = new List<NodeAndSymbol>();
                 }
@@ -516,8 +515,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     var hasEndAction = false;
                     var hasNonEndAction = false;
 
-                    List<NodeAndSymbol> registeredActions;
-                    if (_nestedActionsMap != null && _nestedActionsMap.TryGetValue(contextParameter, out registeredActions))
+                    if (_nestedActionsMap != null && _nestedActionsMap.TryGetValue(contextParameter, out List<NodeAndSymbol> registeredActions))
                     {
                         foreach (NodeAndSymbol invocationInfo in registeredActions)
                         {

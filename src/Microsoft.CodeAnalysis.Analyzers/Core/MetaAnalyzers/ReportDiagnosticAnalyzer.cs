@@ -140,16 +140,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             private ImmutableArray<IFieldSymbol> GetSupportedDescriptors(Compilation compilation, INamedTypeSymbol analyzer, CancellationToken cancellationToken)
             {
-                ImmutableArray<IFieldSymbol> descriptorFields;
-                if (_supportedDescriptorFieldsMap.TryGetValue(analyzer, out descriptorFields))
+                if (_supportedDescriptorFieldsMap.TryGetValue(analyzer, out ImmutableArray<IFieldSymbol> descriptorFields))
                 {
                     return descriptorFields;
                 }
 
                 descriptorFields = default(ImmutableArray<IFieldSymbol>);
 
-                var supportedDiagnosticBaseProperty = this.DiagnosticAnalyzer.GetMembers(SupportedDiagnosticsName).FirstOrDefault() as IPropertySymbol;
-                if (supportedDiagnosticBaseProperty != null)
+                if (this.DiagnosticAnalyzer.GetMembers(SupportedDiagnosticsName).FirstOrDefault() is IPropertySymbol supportedDiagnosticBaseProperty)
                 {
                     IPropertySymbol supportedDiagnosticsProperty = analyzer.GetMembers()
                         .OfType<IPropertySymbol>()
@@ -183,8 +181,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     if (symbol != null && symbol.Kind == SymbolKind.Field)
                     {
                         var field = (IFieldSymbol)symbol;
-                        var fieldType = field.Type as INamedTypeSymbol;
-                        if (fieldType != null && fieldType.GetBaseTypesAndThis().Contains(_diagnosticDescriptorType))
+                        if (field.Type is INamedTypeSymbol fieldType && fieldType.GetBaseTypesAndThis().Contains(_diagnosticDescriptorType))
                         {
                             builder.Add((IFieldSymbol)symbol);
                         }
@@ -217,8 +214,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         {
                             SyntaxNode diagnosticInitializerOpt = null;
 
-                            var local = argSymbol as ILocalSymbol;
-                            if (local != null)
+                            if (argSymbol is ILocalSymbol local)
                             {
                                 SyntaxReference syntaxRef = local.DeclaringSyntaxReferences.FirstOrDefault();
                                 if (syntaxRef != null)
@@ -228,10 +224,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             }
                             else
                             {
-                                var method = argSymbol as IMethodSymbol;
-                                if (method != null &&
-                                    method.ContainingType.Equals(_diagnosticType) &&
-                                    method.Name.Equals(nameof(Diagnostic.Create), StringComparison.OrdinalIgnoreCase))
+                                if (argSymbol is IMethodSymbol method &&
+    method.ContainingType.Equals(_diagnosticType) &&
+    method.Name.Equals(nameof(Diagnostic.Create), StringComparison.OrdinalIgnoreCase))
                                 {
                                     diagnosticInitializerOpt = argument;
                                 }
