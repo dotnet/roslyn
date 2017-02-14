@@ -1997,5 +1997,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_BinaryLiterals
         FEATURE_Tuples
         FEATURE_IOperation
+        ' Prototype Features
+        FEATURE_PROTOTYPE_ImplicitDefaultOptionalParameters
     End Enum
 End Namespace

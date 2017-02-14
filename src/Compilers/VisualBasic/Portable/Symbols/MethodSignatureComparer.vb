@@ -483,14 +483,13 @@ Done:
             End If
         End Function
 
-        Public Shared Function DetailedParameterCompare(
-            params1 As ImmutableArray(Of ParameterSymbol),
-            <[In]> ByRef lazyTypeSubstitution1 As LazyTypeSubstitution,
-            params2 As ImmutableArray(Of ParameterSymbol),
-            <[In]> ByRef lazyTypeSubstitution2 As LazyTypeSubstitution,
-            comparisons As SymbolComparisonResults,
-            Optional stopIfAny As SymbolComparisonResults = 0
-        ) As SymbolComparisonResults
+        Public Shared Function DetailedParameterCompare _
+            (
+                 params1 As ImmutableArray(Of ParameterSymbol), <[In]> ByRef lazyTypeSubstitution1 As LazyTypeSubstitution,
+                 params2 As ImmutableArray(Of ParameterSymbol), <[In]> ByRef lazyTypeSubstitution2 As LazyTypeSubstitution,
+             comparisons As SymbolComparisonResults, Optional stopIfAny As SymbolComparisonResults = 0
+             ) As SymbolComparisonResults
+
             Dim results As SymbolComparisonResults = Nothing
 
             Dim commonParamCount As Integer
@@ -564,7 +563,7 @@ Done:
                         Dim type1 As TypeWithModifiers = GetTypeWithModifiers(typeSubstitution1, param1)
                         Dim type2 As TypeWithModifiers = GetTypeWithModifiers(typeSubstitution2, param2)
 
-                        If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.AllIgnoreOptionsForVB) Then
+                        If Not type1.Type.IsSameTypeIgnoringAll(type2.Type) Then
                             If bothOptional Then
                                 results = results Or SymbolComparisonResults.OptionalParameterTypeMismatch
                                 If (stopIfAny And SymbolComparisonResults.OptionalParameterTypeMismatch) <> 0 Then
@@ -578,8 +577,7 @@ Done:
                             End If
                         Else
                             If (comparisons And SymbolComparisonResults.TupleNamesMismatch) <> 0 AndAlso
-                                Not type1.Type.IsSameType(type2.Type, TypeCompareKind.AllIgnoreOptionsForVB And
-                                                Not TypeCompareKind.IgnoreTupleNames) Then
+                                Not type1.Type.IsSameType(type2.Type, TypeCompareKind.AllIgnoreOptionsForVB And Not TypeCompareKind.IgnoreTupleNames) Then
 
                                 results = results Or SymbolComparisonResults.TupleNamesMismatch
                                 If (stopIfAny And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
@@ -588,13 +586,16 @@ Done:
                             End If
 
                             If (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
-                                       (Not type1.IsSameType(type2, TypeCompareKind.AllIgnoreOptionsForVB And
-                                                    Not TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) OrElse
-                                           Not GetRefModifiers(typeSubstitution1, param1).SequenceEqual(GetRefModifiers(typeSubstitution2, param2))) Then
+                                    (Not type1.IsSameType(type2, TypeCompareKind.AllIgnoreOptionsForVB And
+                                                                 Not TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) OrElse
+                                     Not GetRefModifiers(typeSubstitution1, param1).SequenceEqual(GetRefModifiers(typeSubstitution2, param2))
+                                    ) Then
                                 results = results Or SymbolComparisonResults.CustomModifierMismatch
+
                                 If (stopIfAny And SymbolComparisonResults.CustomModifierMismatch) <> 0 Then
                                     GoTo Done
                                 End If
+
                             End If
                         End If
                     End If
@@ -627,18 +628,32 @@ Done:
                         ' default value and a source parameter symbol in method that implements or overrides a metadata method specifies a default value.
 
                         If bothHaveExplicitDefaultValue Then
-                            optionalParameterMismatch = ParameterDefaultValueMismatch(param1, param2)
+                            optionalParameterMismatch = ParameterDefaultValueMismatch(param1, param1.ExplicitDefaultConstantValue, param2, param2.ExplicitDefaultConstantValue)
                         Else
-                            ' Strictly speaking, what we would like to check is that both parameters are from the "current" compilation.
-                            ' However, the only way to know the current compilation at this point is to pass it into every method
-                            ' signature comparison (tedious, since we can't change the signature while implementing IEqualityComparer,
-                            ' so we'd have to give up having constant instances).  Fortunately, we can make a good approximation: we can
-                            ' require that both parameters be from the same (non-nothing) compilation.  With this rule, an inexact result
-                            ' can never change the interaction between two assemblies (i.e. there will never be an observable difference
-                            ' between referencing a source assembly and referencing the corresponding metadata assembly).
-                            Dim comp1 = param1.DeclaringCompilation
-                            Dim comp2 = param2.DeclaringCompilation
-                            optionalParameterMismatch = comp1 IsNot Nothing AndAlso comp1 Is comp2
+                            Select Case True
+                                Case param1.HasExplicitDefaultValue
+                                    optionalParameterMismatch = ParameterDefaultValueMismatch(param1, param1.ExplicitDefaultConstantValue, param2, ConstantValue.Nothing)
+                                Case param2.HasExplicitDefaultValue
+                                    optionalParameterMismatch = ParameterDefaultValueMismatch(param1, ConstantValue.Nothing, param2, param2.ExplicitDefaultConstantValue)
+                                Case Else
+                                    optionalParameterMismatch = ParameterDefaultValueMismatch(param1, ConstantValue.Nothing, param2, ConstantValue.Nothing)
+                            End Select
+                            If optionalParameterMismatch Then
+
+                                ' Strictly speaking, what we would like to check is that both parameters are from the "current" compilation.
+                                ' However, the only way to know the current compilation at this point is to pass it into every method
+                                ' signature comparison (tedious, since we can't change the signature while implementing IEqualityComparer,
+                                ' so we'd have to give up having constant instances).  Fortunately, we can make a good approximation: we can
+                                ' require that both parameters be from the same (non-nothing) compilation.  With this rule, an inexact result
+                                ' can never change the interaction between two assemblies (i.e. there will never be an observable difference
+                                ' between referencing a source assembly and referencing the corresponding metadata assembly).
+                                Dim comp1 = param1.DeclaringCompilation
+                                Dim comp2 = param2.DeclaringCompilation
+                                Dim areDeclaringCompilationsMatched = (comp1 IsNot Nothing) AndAlso (comp2 IsNot Nothing) AndAlso (comp1 Is comp2)
+                                optionalParameterMismatch = areDeclaringCompilationsMatched
+
+                            End If
+
                         End If
 
                         If optionalParameterMismatch Then
@@ -654,6 +669,32 @@ Done:
 
 Done:
             Return results
+        End Function
+
+        Private Shared Function ParameterDefaultValueMismatch(
+                                                               param1 As ParameterSymbol, ByRef constValue1 As ConstantValue,
+                                                               param2 As ParameterSymbol, ByRef constValue2 As ConstantValue
+                                                             ) As Boolean
+
+            ' bad constants do not match
+            If constValue1.IsBad OrElse constValue2.IsBad Then Return True
+
+            ' Since Nothing literal essentially means the type's Default value it is equal 
+            ' to zero value of types which allow zero values, for example for decimal 0;
+            ' so, for signature comparison purpose we have to treat them same as zeroes.
+
+            ' replace Nothing constants with corresponding Zeros if possible
+            If constValue1.IsNothing Then
+                Dim descriminator = ConstantValue.GetDiscriminator(param1.Type.GetEnumUnderlyingTypeOrSelf.SpecialType)
+                If descriminator <> ConstantValueTypeDiscriminator.Bad Then constValue1 = ConstantValue.Default(descriminator)
+            End If
+
+            If constValue2.IsNothing Then
+                Dim descriminator = ConstantValue.GetDiscriminator(param2.Type.GetEnumUnderlyingTypeOrSelf.SpecialType)
+                If descriminator <> ConstantValueTypeDiscriminator.Bad Then constValue2 = ConstantValue.Default(descriminator)
+            End If
+
+            Return Not constValue1.Equals(constValue2)
         End Function
 
         Private Shared Function GetTypeWithModifiers(typeSubstitution As TypeSubstitution, param As ParameterSymbol) As TypeWithModifiers
@@ -672,44 +713,14 @@ Done:
             End If
         End Function
 
-        Private Shared Function ParameterDefaultValueMismatch(param1 As ParameterSymbol, param2 As ParameterSymbol) As Boolean
-            Dim constValue1 As ConstantValue = param1.ExplicitDefaultConstantValue
-            Dim constValue2 As ConstantValue = param2.ExplicitDefaultConstantValue
-
-            ' bad constants do not match
-            If constValue1.IsBad OrElse constValue2.IsBad Then
-                Return True
-            End If
-
-            ' Since Nothing literal essentially means the type's Default value it is equal 
-            ' to zero value of types which allow zero values, for example for decimal 0;
-            ' so, for signature comparison purpose we have to treat them same as zeroes.
-
-            ' replace Nothing constants with corresponding Zeros if possible
-            If constValue1.IsNothing Then
-                Dim descriminator = ConstantValue.GetDiscriminator(param1.Type.GetEnumUnderlyingTypeOrSelf.SpecialType)
-                If descriminator <> ConstantValueTypeDiscriminator.Bad Then
-                    constValue1 = ConstantValue.Default(descriminator)
-                End If
-            End If
-
-            If constValue2.IsNothing Then
-                Dim descriminator = ConstantValue.GetDiscriminator(param2.Type.GetEnumUnderlyingTypeOrSelf.SpecialType)
-                If descriminator <> ConstantValueTypeDiscriminator.Bad Then
-                    constValue2 = ConstantValue.Default(descriminator)
-                End If
-            End If
-
-            Return Not constValue1.Equals(constValue2)
-        End Function
 
 #End Region
 
         Public Shared Function HaveSameParameterTypes(params1 As ImmutableArray(Of ParameterSymbol), typeSubstitution1 As TypeSubstitution,
-                                                       params2 As ImmutableArray(Of ParameterSymbol), typeSubstitution2 As TypeSubstitution,
-                                                       considerByRef As Boolean,
-                                                       considerCustomModifiers As Boolean,
-                                                       considerTupleNames As Boolean) As Boolean
+                                                      params2 As ImmutableArray(Of ParameterSymbol), typeSubstitution2 As TypeSubstitution,
+                                                      considerByRef As Boolean,
+                                                      considerCustomModifiers As Boolean,
+                                                      considerTupleNames As Boolean) As Boolean
             Dim numParams = params1.Length
 
             If numParams <> params2.Length Then

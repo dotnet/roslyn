@@ -4545,11 +4545,14 @@ checkNullable:
                     Dim paramSpecifiers As ParameterSpecifiers = 0
                     Dim modifiers = ParseParameterSpecifiers(paramSpecifiers)
                     Dim param = ParseParameter(attributes, modifiers)
-
-                    ' TODO - Bug 889301 - Dev10 does a resync here when there is an error.  That prevents ERRID_InvalidParameterSyntax below from
-                    ' being reported. For now keep backwards compatibility.
-                    If param.ContainsDiagnostics Then
+                    If CheckFeatureAvailability(Feature.PROTOTYPE_ImplicitDefaultOptionalParameters) Then
                         param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
+                    Else
+                        ' TODO - Bug 889301 - Dev10 does a resync here when there is an error.  That prevents ERRID_InvalidParameterSyntax below from
+                        ' being reported. For now keep backwards compatibility.
+                        If param.ContainsDiagnostics Then
+                            param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
+                        End If
                     End If
 
                     Dim comma As PunctuationSyntax = Nothing
@@ -4724,9 +4727,10 @@ checkNullable:
                 value = ParseExpressionCore()
 
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
-
-                equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
-                value = ParseExpressionCore()
+                If Not CheckFeatureAvailability(Feature.PROTOTYPE_ImplicitDefaultOptionalParameters) Then
+                    equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
+                    value = ParseExpressionCore()
+                End If
 
             End If
 

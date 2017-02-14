@@ -5464,4 +5464,7 @@
   <data name="ERR_TypeForwardedToMultipleAssemblies" xml:space="preserve">
     <value>Module '{0}' in assembly '{1}' is forwarding the type '{2}' to multiple assemblies: '{3}' and '{4}'.</value>
   </data>
+  <data name="FEATURE_PROTOTYPE_ImplicitDefaultOptionalParameters" xml:space="preserve">
+    <value>Implicit Default Optional Parameters</value>
+  </data>
 </root>
