@@ -73,10 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : base(false, false, default(UserDefinedConversionResult), null, nestedConversions)
             {
                 Debug.Assert(!nestedConversions.IsDefaultOrEmpty);
-                _deconstructionInfo = deconstructionInfoOpt;
+                DeconstructionInfo = deconstructionInfoOpt;
             }
 
-            internal DeconstructionInfo _deconstructionInfo;
+            readonly internal DeconstructionInfo DeconstructionInfo;
         }
 
         private Conversion(
@@ -350,7 +350,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return ((DeconstructionUncommonData)_uncommonData)?._deconstructionInfo;
+                var uncommonData = (DeconstructionUncommonData)_uncommonData;
+                return uncommonData == null ? default(DeconstructionInfo) : uncommonData.DeconstructionInfo;
             }
         }
 
@@ -916,7 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)self.DeconstructionInfo != null)
                 {
                     sub.Add(new TreeDumperNode("deconstructionInfo", null,
-                        new[] { BoundTreeDumperNodeProducer.MakeTree(self.DeconstructionInfo._invocation)}));
+                        new[] { BoundTreeDumperNodeProducer.MakeTree(self.DeconstructionInfo.Invocation)}));
                 }
 
                 var underlyingConversions = self.UnderlyingConversions;
@@ -933,16 +934,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Stores all the information from binding for calling a Deconstruct method.</summary>
-    internal class DeconstructionInfo
+    internal struct DeconstructionInfo
     {
         internal DeconstructionInfo(BoundExpression invocation, BoundDeconstructValuePlaceholder inputPlaceholder,
             ImmutableArray<BoundDeconstructValuePlaceholder> outputPlaceholders)
         {
-             (_invocation, _inputPlaceholder, _outputPlaceholders) = (invocation, inputPlaceholder, outputPlaceholders);
+             (Invocation, InputPlaceholder, OutputPlaceholders) = (invocation, inputPlaceholder, outputPlaceholders);
         }
 
-        internal BoundExpression _invocation;
-        internal BoundDeconstructValuePlaceholder _inputPlaceholder;
-        internal ImmutableArray<BoundDeconstructValuePlaceholder> _outputPlaceholders;
+        readonly internal BoundExpression Invocation;
+        readonly internal BoundDeconstructValuePlaceholder InputPlaceholder;
+        readonly internal ImmutableArray<BoundDeconstructValuePlaceholder> OutputPlaceholders;
+        internal bool IsDefault => (object)Invocation == null;
     }
 }

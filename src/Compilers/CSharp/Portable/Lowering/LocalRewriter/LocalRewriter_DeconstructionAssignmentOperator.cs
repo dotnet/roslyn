@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> rightParts;
 
             var deconstructionInfo = conversion.DeconstructionInfo;
-            if ((object)deconstructionInfo != null)
+            if (!deconstructionInfo.IsDefault)
             {
                 Debug.Assert(right.Kind != BoundKind.TupleLiteral && right.Kind != BoundKind.ConvertedTupleLiteral);
 
@@ -192,9 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<BoundExpression> InvokeDeconstructMethod(DeconstructionInfo deconstruction, BoundExpression target,
             ArrayBuilder<BoundExpression> effects, ref ArrayBuilder<LocalSymbol> temps)
         {
-            AddPlaceholderReplacement(deconstruction._inputPlaceholder, target);
+            AddPlaceholderReplacement(deconstruction.InputPlaceholder, target);
 
-            var outputPlaceholders = deconstruction._outputPlaceholders;
+            var outputPlaceholders = deconstruction.OutputPlaceholders;
             var outLocals = ArrayBuilder<BoundExpression>.GetInstance(outputPlaceholders.Length);
             foreach (var outputPlaceholder in outputPlaceholders)
             {
@@ -208,9 +208,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outLocals.Add(localBound);
             }
 
-            effects.Add(VisitExpression(deconstruction._invocation));
+            effects.Add(VisitExpression(deconstruction.Invocation));
 
-            RemovePlaceholderReplacement(deconstruction._inputPlaceholder);
+            RemovePlaceholderReplacement(deconstruction.InputPlaceholder);
             foreach (var outputPlaceholder in outputPlaceholders)
             {
                 RemovePlaceholderReplacement(outputPlaceholder);

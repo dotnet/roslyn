@@ -1479,7 +1479,7 @@ public static class Extensions
             comp.VerifyDiagnostics(
                 // (8,25): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         (x, y, z) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "string"),
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "string").WithLocation(8, 25),
                 // (8,9): error CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
                 //         (x, y, z) = (1, 2);
                 Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(x, y, z) = (1, 2)").WithArguments("2", "3").WithLocation(8, 9)
@@ -2324,6 +2324,7 @@ class C
                 Assert.Equal(@"(1, 2)", nestedLiteral.ToString());
                 Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(nestedLiteral).Type.ToTestDisplayString());
                 Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(nestedLiteral).ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.Identity, model.GetConversion(nestedLiteral).Kind);
             };
 
             var comp = CompileAndVerify(source, expectedOutput: " (1, 2)", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
@@ -5086,10 +5087,10 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "_").WithArguments("string", "int").WithLocation(11, 30),
                 // (11,22): error CS8186: A foreach loop must declare its iteration variables.
                 //             foreach ((var y, _) in new[] { (1, "hello") }) { System.Console.Write("4"); } // error
-                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(var y, _)"),
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(var y, _)").WithLocation(11, 22),
                 // (10,17): warning CS0168: The variable '_' is declared but never used
                 //             int _;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_").WithArguments("_")
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_").WithArguments("_").WithLocation(10, 17)
                 );
         }
 
@@ -5829,13 +5830,13 @@ class Program
             compilation.VerifyDiagnostics(
                 // (6,34): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         foreach ((M(out var x1), args is var x2, _) in new[] { (1, 2, 3) })
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "args is var x2"),
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "args is var x2").WithLocation(6, 34),
                 // (6,34): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //         foreach ((M(out var x1), args is var x2, _) in new[] { (1, 2, 3) })
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "args is var x2").WithArguments("int", "bool").WithLocation(6, 34),
                 // (6,18): error CS8186: A foreach loop must declare its iteration variables.
                 //         foreach ((M(out var x1), args is var x2, _) in new[] { (1, 2, 3) })
-                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(M(out var x1), args is var x2, _)")
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(M(out var x1), args is var x2, _)").WithLocation(6, 18)
                 );
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);

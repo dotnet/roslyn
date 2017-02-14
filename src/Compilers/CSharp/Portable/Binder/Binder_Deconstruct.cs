@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// - a BoundConversion as its Right, holding:
     ///     - a tree of Conversion objects with Kind=Deconstruction, information about a Deconstruct method (optional) and
     ///         an array of nested Conversions (like a tuple conversion),
-    ///     - an BoundExpression as its Operand.
+    ///     - a BoundExpression as its Operand.
     /// </summary>
     internal partial class Binder
     {
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             conversion = Conversion.Deconstruction;
 
             // Figure out the deconstruct method (if one is required) and determine the types we get from the RHS at this level
-            DeconstructionInfo deconstructInfo = null;
+            var deconstructInfo = default(DeconstructionInfo);
             if (type.IsTupleType)
             {
                 // tuple literal such as `(1, 2)`, `(null, null)`, `(x.P, y.M())`
