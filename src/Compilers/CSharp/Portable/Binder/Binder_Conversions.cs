@@ -920,6 +920,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.NullLiteral:
                     return sourceConstantValue;
 
+                case ConversionKind.DefaultLiteral:
+                    Debug.Assert(sourceConstantValue.IsDefaultLiteral);
+                    return destination.GetDefaultValue();
+
                 case ConversionKind.ImplicitConstant:
                     return FoldConstantNumericConversion(syntax, sourceConstantValue, destination, diagnostics);
 

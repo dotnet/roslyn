@@ -849,6 +849,9 @@
   <data name="ERR_NullNotValid" xml:space="preserve">
     <value>Use of null is not valid in this context</value>
   </data>
+  <data name="ERR_DefaultNotValid" xml:space="preserve">
+    <value>Use of default is not valid in this context</value>
+  </data>
   <data name="ERR_UseDefViolationThis" xml:space="preserve">
     <value>The 'this' object cannot be used before all of its fields are assigned to</value>
   </data>
@@ -2184,7 +2187,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Cannot use local variable '{0}' before it is declared. The declaration of the local variable hides the field '{1}'.</value>
   </data>
   <data name="ERR_ExpressionTreeContainsBadCoalesce" xml:space="preserve">
-    <value>An expression tree lambda may not contain a coalescing operator with a null literal left-hand side</value>
+    <value>An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side</value>
   </data>
   <data name="ERR_IdentifierExpected" xml:space="preserve">
     <value>Identifier expected</value>
@@ -5022,5 +5025,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PatternDynamicType" xml:space="preserve">
     <value>It is not legal to use the type 'dynamic' in a pattern.</value>
+  </data>
+  <data name="ERR_BadDynamicMethodArgDefault" xml:space="preserve">
+    <value>Cannot use a type-inferred default operator as an argument to a dynamically dispatched operation.</value>
   </data>
 </root>

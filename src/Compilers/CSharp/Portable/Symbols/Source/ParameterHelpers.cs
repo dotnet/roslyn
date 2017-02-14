@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Also when valuetype S has a parameterless constructor, 
             // new S() is clearly not a constant expression and should produce an error
             return (expression.ConstantValue != null) ||
-                   (expression.Kind == BoundKind.DefaultOperator) ||
+                   (expression.Kind == BoundKind.DefaultLiteral) ||
                    (expression.Kind == BoundKind.ObjectCreationExpression &&
                        IsValidDefaultValue((BoundObjectCreationExpression)expression));
         }

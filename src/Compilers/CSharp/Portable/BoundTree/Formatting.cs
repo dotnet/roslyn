@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultOperator
+    internal partial class BoundDefaultLiteral
     {
         public override object Display
         {

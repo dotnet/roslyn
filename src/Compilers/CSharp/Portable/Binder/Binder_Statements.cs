@@ -1005,8 +1005,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializerOpt = GenerateConversionForAssignment(declType, initializerOpt, diagnostics);
                 if (!initializerOpt.HasAnyErrors)
                 {
-                    Debug.Assert(initializerOpt.Kind == BoundKind.Conversion && ((BoundConversion)initializerOpt).Operand.IsLiteralNull(),
+                    Debug.Assert(initializerOpt.Kind == BoundKind.Conversion &&
+                        (((BoundConversion)initializerOpt).Operand.IsLiteralNull() ||
+                            ((BoundConversion)initializerOpt).Operand.IsLiteralDefault()),
                         "All other typeless expressions should have conversion errors");
+
                     // CONSIDER: this is a very confusing error message, but it's what Dev10 reports.
                     Error(diagnostics, ErrorCode.ERR_FixedNotNeeded, initializerSyntax);
                 }
@@ -3197,7 +3200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var interactiveInitializerMethod = this.ContainingMemberOrLambda as SynthesizedInteractiveInitializerMethod;
                 if (interactiveInitializerMethod != null)
                 {
-                    arg = new BoundDefaultOperator(interactiveInitializerMethod.GetNonNullSyntaxNode(), interactiveInitializerMethod.ResultType);
+                    arg = new BoundDefaultLiteral(interactiveInitializerMethod.GetNonNullSyntaxNode(), interactiveInitializerMethod.ResultType);
                 }
             }
 

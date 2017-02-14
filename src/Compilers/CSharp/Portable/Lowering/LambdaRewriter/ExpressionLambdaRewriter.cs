@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnaryOperator:
                     return VisitUnaryOperator((BoundUnaryOperator)node);
 
-                case BoundKind.DefaultOperator:
+                case BoundKind.DefaultLiteral:
                 case BoundKind.HostObjectMemberReference:
                 case BoundKind.Literal:
                 case BoundKind.Local:

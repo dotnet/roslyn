@@ -191,8 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitAsExpression((BoundAsOperator)expression, used);
                     break;
 
-                case BoundKind.DefaultOperator:
-                    EmitDefaultExpression((BoundDefaultOperator)expression, used);
+                case BoundKind.DefaultLiteral:
+                    EmitDefaultExpression((BoundDefaultLiteral)expression, used);
                     break;
 
                 case BoundKind.TypeOfOperator:
@@ -2637,7 +2637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitDefaultExpression(BoundDefaultOperator expression, bool used)
+        private void EmitDefaultExpression(BoundDefaultLiteral expression, bool used)
         {
             Debug.Assert(expression.Type.SpecialType == SpecialType.System_Decimal ||
                 expression.Type.GetDefaultValue() == null, "constant should be set on this expression");

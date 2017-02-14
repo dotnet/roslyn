@@ -1349,6 +1349,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use a type-inferred default operator as an argument to a dynamically dispatched operation..
+        /// </summary>
+        internal static string ERR_BadDynamicMethodArgDefault {
+            get {
+                return ResourceManager.GetString("ERR_BadDynamicMethodArgDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type..
         /// </summary>
         internal static string ERR_BadDynamicMethodArgLambda {
@@ -3176,6 +3185,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use of default is not valid in this context.
+        /// </summary>
+        internal static string ERR_DefaultNotValid {
+            get {
+                return ResourceManager.GetString("ERR_DefaultNotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument of type &apos;{0}&apos; is not applicable for the DefaultParameterValue attribute.
         /// </summary>
         internal static string ERR_DefaultValueBadValueType {
@@ -4121,7 +4139,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree lambda may not contain a coalescing operator with a null literal left-hand side.
+        ///   Looks up a localized string similar to An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsBadCoalesce {
             get {

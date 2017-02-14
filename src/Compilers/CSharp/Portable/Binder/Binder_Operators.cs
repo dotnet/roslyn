@@ -2672,6 +2672,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
+            if (operand.ConstantValue == ConstantValue.DefaultLiteral)
+            {
+                Error(diagnostics, ErrorCode.ERR_DefaultNotValid, node, targetType);
+                return new BoundIsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+            }
+
             if (operand.ConstantValue == ConstantValue.Null ||
                 operand.Kind == BoundKind.MethodGroup ||
                 operand.Type.SpecialType == SpecialType.System_Void)
@@ -3062,8 +3068,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // to pick a particular method
                 return new BoundAsOperator(node, operand, typeExpression, Conversion.NullLiteral, resultType);
             }
-
-            // PROTOTYPE(default) Something needed here for "as" operator
 
             if (operand.Kind == BoundKind.MethodGroup)
             {

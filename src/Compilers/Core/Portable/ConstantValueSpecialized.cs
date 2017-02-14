@@ -269,6 +269,7 @@ namespace Microsoft.CodeAnalysis
             public static readonly ConstantValueDefault Decimal = new ConstantValueDecimalZero();
             public static readonly ConstantValueDefault DateTime = new ConstantValueDefault(ConstantValueTypeDiscriminator.DateTime);
             public static readonly ConstantValueDefault Boolean = new ConstantValueDefault(ConstantValueTypeDiscriminator.Boolean);
+            public static readonly ConstantValueDefault DefaultLiteralConstant = new ConstantValueDefault(ConstantValueTypeDiscriminator.DefaultLiteral);
 
             protected ConstantValueDefault(ConstantValueTypeDiscriminator discriminator)
                 : base(discriminator)

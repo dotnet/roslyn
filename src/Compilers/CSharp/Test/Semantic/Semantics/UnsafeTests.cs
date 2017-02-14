@@ -1853,7 +1853,7 @@ No, FieldAccess 'new S().i' is not a non-moveable variable
 No, ObjectCreationExpression 'new S()' is not a non-moveable variable
 No, Conversion 'default(S).i' is not a non-moveable variable
 No, FieldAccess 'default(S).i' is not a non-moveable variable
-No, DefaultOperator 'default(S)' is not a non-moveable variable
+No, DefaultLiteral 'default(S)' is not a non-moveable variable
 No, Conversion 'MakeS().i' is not a non-moveable variable
 No, FieldAccess 'MakeS().i' is not a non-moveable variable
 No, Call 'MakeS()' is not a non-moveable variable

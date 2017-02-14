@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = GetLiftedUnaryOperatorConsequence(kind, syntax, method, type, call_GetValueOrDefault);
 
             // default(R?)
-            BoundExpression alternative = new BoundDefaultOperator(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultLiteral(syntax, null, type);
 
             // temp.HasValue ? 
             //          new R?(OP(temp.GetValueOrDefault())) : 
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (NullableNeverHasValue(loweredOperand))
             {
-                return new BoundDefaultOperator(syntax, null, type);
+                return new BoundDefaultLiteral(syntax, null, type);
             }
 
             // Second, another simple optimization. If we know that the operand is never null
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, userDefinedCall);
 
             // default(S?)
-            BoundExpression alternative = new BoundDefaultOperator(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultLiteral(syntax, null, type);
 
             // temp.HasValue ? 
             //          new S?(op_Increment(temp.GetValueOrDefault())) : 
@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // new decimal?(op_Inc(x.GetValueOrDefault()))
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, methodCall);
             // default(decimal?)
-            BoundExpression alternative = new BoundDefaultOperator(syntax, null, operand.Type);
+            BoundExpression alternative = new BoundDefaultLiteral(syntax, null, operand.Type);
 
             // x.HasValue ? new decimal?(op_Inc(x.GetValueOrDefault())) : default(decimal?)
             return RewriteConditionalOperator(syntax, condition, consequence, alternative, ConstantValue.NotAvailable, operand.Type);

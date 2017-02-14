@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (frame.Constructor == null)
             {
                 Debug.Assert(frame.TypeKind == TypeKind.Struct);
-                newFrame = new BoundDefaultOperator(syntax: syntax, type: frameType);
+                newFrame = new BoundDefaultLiteral(syntax: syntax, type: frameType);
             }
             else
             {
