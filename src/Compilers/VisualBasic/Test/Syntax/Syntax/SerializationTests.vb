@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             root.SerializeTo(stream)
 
             stream.Position = 2
-            Assert.Equal(expectRecursive, Roslyn.Utilities.StreamObjectReader.IsRecursive(stream))
+            Assert.Equal(expectRecursive, Roslyn.Utilities.ObjectReader.IsRecursive(stream))
 
             stream.Position = 0
             Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
