@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BaseParameterListSyntax syntax,
             bool allowRefOrOut,
             out SyntaxToken arglistToken,
-            DiagnosticBag diagnostics,
-            bool beStrict)
+            DiagnosticBag diagnostics)
         {
             arglistToken = default(SyntaxToken);
 
@@ -78,8 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     parameterIndex,
                     (paramsKeyword.Kind() != SyntaxKind.None),
                     parameterIndex == 0 && thisKeyword.Kind() != SyntaxKind.None,
-                    diagnostics,
-                    beStrict);
+                    diagnostics);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter, firstDefault, diagnostics);
 

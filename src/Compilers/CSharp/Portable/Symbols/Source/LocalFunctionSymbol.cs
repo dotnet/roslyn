@@ -108,6 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal Binder ScopeBinder { get; }
 
+        /// <summary>
+        /// Binder used to bind local function parameters.
+        /// </summary>
+        internal Binder ParameterBinder => _binder;
+
         internal void GetDeclarationDiagnostics(DiagnosticBag addTo)
         {
             // Force attribute binding for diagnostics
@@ -118,6 +123,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // force lazy init
             ComputeParameters();
+
+            foreach (var param in _lazyParametersAndDiagnostics.Parameters)
+            {
+                ((SourceParameterSymbol)param).GetDeclarationDiagnostics(addTo);
+            }
 
             foreach (var p in _syntax.ParameterList.Parameters)
             {
@@ -184,8 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _syntax.ParameterList,
                 allowRefOrOut: true,
                 arglistToken: out arglistToken,
-                diagnostics: diagnostics,
-                beStrict: true);
+                diagnostics: diagnostics);
 
             var isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             if (IsAsync && diagnostics.IsEmptyWithoutResolution)

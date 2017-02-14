@@ -30,7 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private ThreeState _lazyHasOptionalAttribute;
-        protected ConstantValue _lazyDefaultSyntaxValue;
+        private ConstantValue _lazyDefaultSyntaxValue;
+
+        private Binder LocalFunctionParameterBinder
+            => (ContainingSymbol as LocalFunctionSymbol)?.ParameterBinder;
 
         internal SourceComplexParameterSymbol(
             Symbol owner,
@@ -67,11 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _lazyDefaultSyntaxValue = defaultSyntaxValue;
-        }
-
-        protected virtual Binder ParameterBinder
-        {
-            get { return null; }
         }
 
         internal override SyntaxReference SyntaxReference
@@ -112,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Dev11 emits the first parameter as option with default value and the second as regular parameter.
                 // The syntactic default value is suppressed since additional synthesized parameters are added at the end of the signature.
 
-                return DefaultSyntaxValue ?? DefaultValueFromAttributes;
+                return GetDefaultSyntaxValue() ?? DefaultValueFromAttributes;
             }
         }
 
@@ -194,23 +192,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ConstantValue DefaultSyntaxValue
+        private ConstantValue GetDefaultSyntaxValue(DiagnosticBag diagnosticsOpt = null)
         {
-            get
+            if (_lazyDefaultSyntaxValue == ConstantValue.Unset)
             {
-                if (_lazyDefaultSyntaxValue == ConstantValue.Unset)
+                var diagnostics = DiagnosticBag.GetInstance();
+                if (Interlocked.CompareExchange(
+                        ref _lazyDefaultSyntaxValue,
+                        MakeDefaultExpression(diagnostics, LocalFunctionParameterBinder),
+                        ConstantValue.Unset)
+                    == ConstantValue.Unset)
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    if (Interlocked.CompareExchange(ref _lazyDefaultSyntaxValue, MakeDefaultExpression(diagnostics, ParameterBinder), ConstantValue.Unset) == ConstantValue.Unset)
+                    if (diagnosticsOpt == null)
                     {
                         AddDeclarationDiagnostics(diagnostics);
                     }
-
-                    diagnostics.Free();
                 }
+                diagnosticsOpt?.AddRange(diagnostics);
 
-                return _lazyDefaultSyntaxValue;
+                diagnostics.Free();
             }
+
+            return _lazyDefaultSyntaxValue;
         }
 
         // If binder is null, then get it from the compilation. Otherwise use the provided binder.
@@ -453,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     var attributeSyntax = this.GetAttributeDeclarations();
-                    bagCreatedOnThisThread = LoadAndValidateAttributes(attributeSyntax, ref _lazyCustomAttributesBag, addToDiagnostics: diagnosticsOpt, binderOpt: ParameterBinder);
+                    bagCreatedOnThisThread = LoadAndValidateAttributes(attributeSyntax, ref _lazyCustomAttributesBag, addToDiagnostics: diagnosticsOpt, binderOpt: LocalFunctionParameterBinder);
                 }
 
                 if (bagCreatedOnThisThread)
@@ -1052,6 +1055,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ImmutableArray<CustomModifier>.Empty;
             }
+        }
+
+        /// <summary>
+        /// Force diagnostics to be realized and added to the bag
+        /// </summary>
+        internal override void GetDeclarationDiagnostics(DiagnosticBag diagnostics)
+        {
+            base.GetDeclarationDiagnostics(diagnostics);
+
+            // Force default value
+            GetDefaultSyntaxValue(diagnostics);
         }
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)

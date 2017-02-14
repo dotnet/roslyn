@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             bool isParams,
             bool isExtensionMethodThis,
-            DiagnosticBag diagnostics,
-            bool beStrict)
+            DiagnosticBag diagnostics)
         {
             var name = identifier.ValueText;
             var locations = ImmutableArray.Create<Location>(new SourceLocation(identifier));
@@ -58,23 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !owner.IsPartialMethod())
             {
                 return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
-            }
-
-            if (beStrict)
-            {
-                return new SourceStrictComplexParameterSymbol(
-                    diagnostics,
-                    context,
-                    owner,
-                    ordinal,
-                    parameterType,
-                    refKind,
-                    name,
-                    locations,
-                    syntax.GetReference(),
-                    ConstantValue.Unset,
-                    isParams,
-                    isExtensionMethodThis);
             }
 
             return new SourceComplexParameterSymbol(
@@ -158,6 +140,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
             state.DefaultForceComplete(this);
+        }
+
+        internal virtual void GetDeclarationDiagnostics(DiagnosticBag diagnosticsOpt = null)
+        {
+            // Force attributes
+            GetAttributesBag(diagnosticsOpt);
         }
 
         /// <summary>

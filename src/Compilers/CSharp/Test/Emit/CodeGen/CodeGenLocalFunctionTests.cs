@@ -105,6 +105,27 @@ class C
         }
 
         [Fact]
+        public void NameofRecursiveDefaultParameter()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        void Local(string s = nameof(Local))
+        {
+            Console.WriteLine(s);
+        }
+        Local();
+    }
+}", options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            comp.DeclarationDiagnostics.Verify();
+            CompileAndVerify(comp, expectedOutput: "Local");
+        }
+
+        [Fact]
         [WorkItem(16399, "https://github.com/dotnet/roslyn/issues/16399")]
         public void RecursiveGenericLocalFunctionIterator()
         {
