@@ -875,51 +875,51 @@ Friend Module CompilationUtils
         AssertTheseDiagnostics(errors, expectedText, suppressInfos)
     End Sub
 
-    Friend ReadOnly PooledStringBuilerPool As ObjectPool(Of Collections.PooledStringBuilder)  = Collections.PooledStringBuilder.CreatePool
+    Friend ReadOnly PooledStringBuilderPool As ObjectPool(Of Collections.PooledStringBuilder) = Collections.PooledStringBuilder.CreatePool
 
     Private Sub AssertTheseDiagnostics(errors As ImmutableArray(Of Diagnostic), expectedText As String, suppressInfos As Boolean)
         Dim actualText = DumpAllDiagnostics(errors.ToArray(), suppressInfos)
         If expectedText <> actualText Then
 
-            Dim messages = PooledStringBuilerPool.Allocate
+            Dim messages = PooledStringBuilderPool.Allocate
             With messages.Builder
-            .AppendLine()
+                .AppendLine()
 
-            If actualText.StartsWith(expectedText, StringComparison.Ordinal) AndAlso actualText.Substring(expectedText.Length).Trim().Length > 0 Then
-                .AppendLine("UNEXPECTED ERROR MESSAGES:")
-                .AppendLine(actualText.Substring(expectedText.Length))
+                If actualText.StartsWith(expectedText, StringComparison.Ordinal) AndAlso actualText.Substring(expectedText.Length).Trim().Length > 0 Then
+                    .AppendLine("UNEXPECTED ERROR MESSAGES:")
+                    .AppendLine(actualText.Substring(expectedText.Length))
 
-                Assert.True(False, messages.ToStringAndFree)
-            Else
-                Dim expectedLines = expectedText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
-                Dim actualLines = actualText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
-
-                Dim appendedLines As Integer = 0
-
-                .AppendLine("MISSING ERROR MESSAGES:")
-                For Each l In expectedLines
-                    If Not actualLines.Contains(l) Then
-                        .AppendLine(l)
-                        appendedLines += 1
-                    End If
-                Next
-
-                .AppendLine("UNEXPECTED ERROR MESSAGES:")
-                For Each l In actualLines
-                    If Not expectedLines.Contains(l) Then
-                        .AppendLine(l)
-                        appendedLines += 1
-                    End If
-                Next
-
-                If appendedLines > 0 Then
-                    Assert.True(False, messages.ToStringAndFree())
+                    Assert.True(False, messages.ToStringAndFree)
                 Else
-                    CompareLineByLine(expectedText, actualText)
-                End If
+                    Dim expectedLines = expectedText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
+                    Dim actualLines = actualText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
 
-            End If
-                End With
+                    Dim appendedLines As Integer = 0
+
+                    .AppendLine("MISSING ERROR MESSAGES:")
+                    For Each l In expectedLines
+                        If Not actualLines.Contains(l) Then
+                            .AppendLine(l)
+                            appendedLines += 1
+                        End If
+                    Next
+
+                    .AppendLine("UNEXPECTED ERROR MESSAGES:")
+                    For Each l In actualLines
+                        If Not expectedLines.Contains(l) Then
+                            .AppendLine(l)
+                            appendedLines += 1
+                        End If
+                    Next
+
+                    If appendedLines > 0 Then
+                        Assert.True(False, messages.ToStringAndFree())
+                    Else
+                        CompareLineByLine(expectedText, actualText)
+                    End If
+
+                End If
+            End With
         End If
     End Sub
 
@@ -927,8 +927,8 @@ Friend Module CompilationUtils
         Dim expectedReader = New StringReader(expected)
         Dim actualReader = New StringReader(actual)
 
-        Dim expectedBuilder = PooledStringBuilerPool.Allocate 'As New StringBuilder()
-        Dim actualBuilder = PooledStringBuilerPool.Allocate'As New StringBuilder()
+        Dim expectedBuilder = PooledStringBuilderPool.Allocate
+        Dim actualBuilder = PooledStringBuilderPool.Allocate
         Dim expectedLine = expectedReader.ReadLine()
         Dim actualLine = actualReader.ReadLine()
 
@@ -980,13 +980,13 @@ Friend Module CompilationUtils
 
         Array.Sort(diagnosticsAndIndices, Function(diag1, diag2) CompareErrors(diag1, diag2))
 
-        Dim builder = PooledStringBuilerPool.Allocate 'As New StringBuilder
+        Dim builder = PooledStringBuilderPool.Allocate
         For Each e In diagnosticsAndIndices
             If Not suppressInfos OrElse e.Diagnostic.Severity > DiagnosticSeverity.Info Then
                 builder.Builder.Append(ErrorText(e.Diagnostic))
             End If
         Next
-        Return builder.ToStringAndFree'.ToString()
+        Return builder.ToStringAndFree '.ToString()
     End Function
 
     ' Get the text of a diagnostic. For source error, includes the text of the line itself, with the 
@@ -1214,14 +1214,14 @@ Friend Module CompilationUtils
 
     Public Function SortAndMergeStrings(ParamArray strings As String()) As String
         Array.Sort(strings)
-        Dim builder = PooledStringBuilerPool.Allocate 'New StringBuilder
+        Dim builder = PooledStringBuilderPool.Allocate
         For Each str In strings
             If builder.Length > 0 Then
                 builder.Builder.AppendLine()
             End If
             builder.Builder.Append(str)
         Next
-        Return builder.ToStringAndFree'ToString
+        Return builder.ToStringAndFree
     End Function
 
     Public Sub CheckSymbolsUnordered(Of TSymbol As ISymbol)(symbols As ImmutableArray(Of TSymbol), ParamArray descriptions As String())
