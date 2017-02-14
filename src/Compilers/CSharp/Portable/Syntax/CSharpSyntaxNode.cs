@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
 
-            using (var reader = StreamObjectReader.TryGetReader(stream, knownObjects: GetDeserializationObjectData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
+            using (var reader = ObjectReader.TryGetReader(stream, knownObjects: GetDeserializationObjectData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
             {
                 if (reader == null)
                 {

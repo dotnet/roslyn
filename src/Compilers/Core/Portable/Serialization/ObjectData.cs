@@ -10,7 +10,7 @@ namespace Roslyn.Utilities
     /// </summary>
     /// <remarks>
     /// This class is just a sneaky way to get a reference to an ImmutableArray, 
-    /// due to <see cref="StreamObjectWriter"/> needing to be able to use it as a key for a ConditionalWeakTable.
+    /// due to <see cref="ObjectWriter"/> needing to be able to use it as a key for a ConditionalWeakTable.
     /// </remarks>
     internal class ObjectData
     {

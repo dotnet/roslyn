@@ -21,24 +21,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             stream.Position = 0;
 
-            var reader = StreamObjectReader.TryGetReader(stream);
+            var reader = ObjectReader.TryGetReader(stream);
             Assert.Null(reader);
         }
 
-        private void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction, bool recursive)
+        private void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction)
         {
             var stream = new MemoryStream();
-            var binder = new RecordingObjectBinder();
-            var writer = new StreamObjectWriter(stream, binder: binder, recursive: recursive);
+            var binder = new ObjectBinder();
+            var writer = new ObjectWriter(stream, binder: binder);
 
             writeAction(writer);
             writer.Dispose();
 
-            stream.Position = 2;
-            Assert.Equal(recursive, StreamObjectReader.IsRecursive(stream));
-
             stream.Position = 0;
-            using (var reader = StreamObjectReader.TryGetReader(stream, binder: binder))
+            using (var reader = ObjectReader.TryGetReader(stream, binder: binder))
             {
                 readAction(reader);
             }
@@ -46,56 +43,54 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private void TestRoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction)
         {
-            RoundTrip(writeAction, readAction, recursive: true);
-            RoundTrip(writeAction, readAction, recursive: false);
+            RoundTrip(writeAction, readAction);
         }
 
-        private T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
+        private T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction)
         {
             var stream = new MemoryStream();
-            var binder = new RecordingObjectBinder();
-            var writer = new StreamObjectWriter(stream, binder: binder, recursive: recursive);
+            var binder = new ObjectBinder();
+            var writer = new ObjectWriter(stream, binder: binder);
 
             writeAction(writer, value);
             writer.Dispose();
 
-            stream.Position = 2;
-            Assert.Equal(recursive, StreamObjectReader.IsRecursive(stream));
-
             stream.Position = 0;
-            using (var reader = StreamObjectReader.TryGetReader(stream, binder: binder))
+            using (var reader = ObjectReader.TryGetReader(stream, binder: binder))
             {
                 return (T)readAction(reader);
             }
         }
 
-        private void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
-        {
-            var newValue = RoundTrip(value, writeAction, readAction, recursive);
-            Assert.True(Equalish(value, newValue));
-        }
-
         private void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction)
         {
-            TestRoundTrip(value, writeAction, readAction, recursive: true);
-            TestRoundTrip(value, writeAction, readAction, recursive: false);
-        }
-
-        private T RoundTripValue<T>(T value, bool recursive)
-        {
-            return RoundTrip(value, (w, v) => w.WriteValue(v), r => (T)r.ReadValue(), recursive);
-        }
-
-        private void TestRoundTripValue<T>(T value, bool recursive)
-        {
-            var newValue = RoundTripValue(value, recursive);
+            var newValue = RoundTrip(value, writeAction, readAction);
             Assert.True(Equalish(value, newValue));
+        }
+
+        private T RoundTripValue<T>(T value)
+        {
+            return RoundTrip(value, 
+                (w, v) =>
+                {
+                    if (v != null && v.GetType().IsEnum)
+                    {
+                        w.WriteInt64(Convert.ToInt64((object)v));
+                    }
+                    else
+                    {
+                        w.WriteValue(v);
+                    }
+                },
+                r => value != null && value.GetType().IsEnum 
+                    ? (T)Enum.ToObject(typeof(T), r.ReadInt64()) 
+                    : (T)r.ReadValue());
         }
 
         private void TestRoundTripValue<T>(T value)
         {
-            TestRoundTripValue(value, recursive: true);
-            TestRoundTripValue(value, recursive: false);
+            var newValue = RoundTripValue(value);
+            Assert.True(Equalish(value, newValue));
         }
 
         private static bool Equalish<T>(T value1, T value2)
@@ -142,12 +137,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             private TypeWithOneMember(ObjectReader reader)
             {
-                _member = (T)reader.ReadValue();
+                _member = typeof(T).IsEnum 
+                    ? (T)Enum.ToObject(typeof(T), reader.ReadInt64())
+                    : (T)reader.ReadValue();
             }
 
             void IObjectWritable.WriteTo(ObjectWriter writer)
             {
-                writer.WriteValue(_member);
+                if (typeof(T).IsEnum)
+                {
+                    writer.WriteInt64(Convert.ToInt64(_member));
+                }
+                else
+                {
+                    writer.WriteValue(_member);
+                }
             }
 
             Func<ObjectReader, object> IObjectReadable.GetReader() => (r) => new TypeWithOneMember<T>(r);
@@ -357,36 +361,36 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestInt32EncodingKinds()
         {
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_1, StreamObjectWriter.EncodingKind.Int32_0 + 1);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_2, StreamObjectWriter.EncodingKind.Int32_0 + 2);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_3, StreamObjectWriter.EncodingKind.Int32_0 + 3);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_4, StreamObjectWriter.EncodingKind.Int32_0 + 4);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_5, StreamObjectWriter.EncodingKind.Int32_0 + 5);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_6, StreamObjectWriter.EncodingKind.Int32_0 + 6);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_7, StreamObjectWriter.EncodingKind.Int32_0 + 7);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_8, StreamObjectWriter.EncodingKind.Int32_0 + 8);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_9, StreamObjectWriter.EncodingKind.Int32_0 + 9);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_10, StreamObjectWriter.EncodingKind.Int32_0 + 10);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_1, ObjectWriter.EncodingKind.Int32_0 + 1);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_2, ObjectWriter.EncodingKind.Int32_0 + 2);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_3, ObjectWriter.EncodingKind.Int32_0 + 3);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_4, ObjectWriter.EncodingKind.Int32_0 + 4);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_5, ObjectWriter.EncodingKind.Int32_0 + 5);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_6, ObjectWriter.EncodingKind.Int32_0 + 6);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_7, ObjectWriter.EncodingKind.Int32_0 + 7);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_8, ObjectWriter.EncodingKind.Int32_0 + 8);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_9, ObjectWriter.EncodingKind.Int32_0 + 9);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_10, ObjectWriter.EncodingKind.Int32_0 + 10);
         }
 
         [Fact]
         public void TestUInt32EncodingKinds()
         {
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_1, StreamObjectWriter.EncodingKind.UInt32_0 + 1);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_2, StreamObjectWriter.EncodingKind.UInt32_0 + 2);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_3, StreamObjectWriter.EncodingKind.UInt32_0 + 3);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_4, StreamObjectWriter.EncodingKind.UInt32_0 + 4);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_5, StreamObjectWriter.EncodingKind.UInt32_0 + 5);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_6, StreamObjectWriter.EncodingKind.UInt32_0 + 6);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_7, StreamObjectWriter.EncodingKind.UInt32_0 + 7);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_8, StreamObjectWriter.EncodingKind.UInt32_0 + 8);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_9, StreamObjectWriter.EncodingKind.UInt32_0 + 9);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_10, StreamObjectWriter.EncodingKind.UInt32_0 + 10);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_1, ObjectWriter.EncodingKind.UInt32_0 + 1);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_2, ObjectWriter.EncodingKind.UInt32_0 + 2);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_3, ObjectWriter.EncodingKind.UInt32_0 + 3);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_4, ObjectWriter.EncodingKind.UInt32_0 + 4);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_5, ObjectWriter.EncodingKind.UInt32_0 + 5);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_6, ObjectWriter.EncodingKind.UInt32_0 + 6);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_7, ObjectWriter.EncodingKind.UInt32_0 + 7);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_8, ObjectWriter.EncodingKind.UInt32_0 + 8);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_9, ObjectWriter.EncodingKind.UInt32_0 + 9);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_10, ObjectWriter.EncodingKind.UInt32_0 + 10);
         }
 
         private void TestRoundTripCompressedUint(uint value)
         {
-            TestRoundTrip(value, (w, v) => ((StreamObjectWriter)w).WriteCompressedUInt(v), r => ((StreamObjectReader)r).ReadCompressedUInt());
+            TestRoundTrip(value, (w, v) => ((ObjectWriter)w).WriteCompressedUInt(v), r => ((ObjectReader)r).ReadCompressedUInt());
         }
 
         [Fact]
@@ -645,6 +649,60 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void TestInt64Values()
+        {
+            TestRoundTripValue<Int64>(0);
+            TestRoundTripValue<Int64>(1);
+            TestRoundTripValue<Int64>(2);
+            TestRoundTripValue<Int64>(3);
+            TestRoundTripValue<Int64>(4);
+            TestRoundTripValue<Int64>(5);
+            TestRoundTripValue<Int64>(6);
+            TestRoundTripValue<Int64>(7);
+            TestRoundTripValue<Int64>(8);
+            TestRoundTripValue<Int64>(9);
+            TestRoundTripValue<Int64>(10);
+            TestRoundTripValue<Int64>(-1);
+            TestRoundTripValue<Int64>(Byte.MinValue);
+            TestRoundTripValue<Int64>(Byte.MaxValue);
+            TestRoundTripValue<Int64>(Int16.MinValue);
+            TestRoundTripValue<Int64>(Int16.MaxValue);
+            TestRoundTripValue<Int64>(UInt16.MinValue);
+            TestRoundTripValue<Int64>(UInt16.MaxValue);
+            TestRoundTripValue<Int64>(Int32.MinValue);
+            TestRoundTripValue<Int64>(Int32.MaxValue);
+            TestRoundTripValue<Int64>(UInt32.MinValue);
+            TestRoundTripValue<Int64>(UInt32.MaxValue);
+            TestRoundTripValue<Int64>(Int64.MinValue);
+            TestRoundTripValue<Int64>(Int64.MaxValue);
+        }
+
+        [Fact]
+        public void TestUInt64Values()
+        {
+            TestRoundTripValue<UInt64>(0);
+            TestRoundTripValue<UInt64>(1);
+            TestRoundTripValue<UInt64>(2);
+            TestRoundTripValue<UInt64>(3);
+            TestRoundTripValue<UInt64>(4);
+            TestRoundTripValue<UInt64>(5);
+            TestRoundTripValue<UInt64>(6);
+            TestRoundTripValue<UInt64>(7);
+            TestRoundTripValue<UInt64>(8);
+            TestRoundTripValue<UInt64>(9);
+            TestRoundTripValue<UInt64>(10);
+            TestRoundTripValue<UInt64>(Byte.MinValue);
+            TestRoundTripValue<UInt64>(Byte.MaxValue);
+            TestRoundTripValue<UInt64>(UInt16.MinValue);
+            TestRoundTripValue<UInt64>(UInt16.MaxValue);
+            TestRoundTripValue<UInt64>(Int32.MaxValue);
+            TestRoundTripValue<UInt64>(UInt32.MinValue);
+            TestRoundTripValue<UInt64>(UInt32.MaxValue);
+            TestRoundTripValue<UInt64>(UInt64.MinValue);
+            TestRoundTripValue<UInt64>(UInt64.MaxValue);
+        }
+
+        [Fact]
         public void TestPrimitiveMemberValues()
         {
             TestRoundTripMember(true);
@@ -814,15 +872,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.WriteValue("\uDC00\uD800"); // invalid surrogate pair
             writer.WriteValue("\uD800"); // incomplete surrogate pair
             writer.WriteValue(null);
-            writer.WriteValue(ConsoleColor.Cyan);
-            writer.WriteValue(EByte.Value);
-            writer.WriteValue(ESByte.Value);
-            writer.WriteValue(EShort.Value);
-            writer.WriteValue(EUShort.Value);
-            writer.WriteValue(EInt.Value);
-            writer.WriteValue(EUInt.Value);
-            writer.WriteValue(ELong.Value);
-            writer.WriteValue(EULong.Value);
+            unchecked
+            {
+                writer.WriteInt64((long)ConsoleColor.Cyan);
+                writer.WriteInt64((long)EByte.Value);
+                writer.WriteInt64((long)ESByte.Value);
+                writer.WriteInt64((long)EShort.Value);
+                writer.WriteInt64((long)EUShort.Value);
+                writer.WriteInt64((long)EInt.Value);
+                writer.WriteInt64((long)EUInt.Value);
+                writer.WriteInt64((long)ELong.Value);
+                writer.WriteInt64((long)EULong.Value);
+            }
             writer.WriteValue(typeof(object));
             writer.WriteValue(_testNow);
         }
@@ -850,15 +911,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("\uDC00\uD800", (String)reader.ReadValue()); // invalid surrogate pair
             Assert.Equal("\uD800", (String)reader.ReadValue()); // incomplete surrogate pair
             Assert.Equal(null, reader.ReadValue());
-            Assert.Equal(ConsoleColor.Cyan, reader.ReadValue());
-            Assert.Equal(EByte.Value, reader.ReadValue());
-            Assert.Equal(ESByte.Value, reader.ReadValue());
-            Assert.Equal(EShort.Value, reader.ReadValue());
-            Assert.Equal(EUShort.Value, reader.ReadValue());
-            Assert.Equal(EInt.Value, reader.ReadValue());
-            Assert.Equal(EUInt.Value, reader.ReadValue());
-            Assert.Equal(ELong.Value, reader.ReadValue());
-            Assert.Equal(EULong.Value, reader.ReadValue());
+
+            unchecked
+            {
+                Assert.Equal((long)ConsoleColor.Cyan, reader.ReadInt64());
+                Assert.Equal((long)EByte.Value, reader.ReadInt64());
+                Assert.Equal((long)ESByte.Value, reader.ReadInt64());
+                Assert.Equal((long)EShort.Value, reader.ReadInt64());
+                Assert.Equal((long)EUShort.Value, reader.ReadInt64());
+                Assert.Equal((long)EInt.Value, reader.ReadInt64());
+                Assert.Equal((long)EUInt.Value, reader.ReadInt64());
+                Assert.Equal((long)ELong.Value, reader.ReadInt64());
+                Assert.Equal((long)EULong.Value, reader.ReadInt64());
+            }
+
             Assert.Equal(typeof(object), (Type)reader.ReadValue());
             Assert.Equal(_testNow, (DateTime)reader.ReadValue());
         }
@@ -977,8 +1043,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     instances.Add(new TypeWithTwoMembers<int, string>(i, i.ToString()));
                 }
 
-                var binder = new RecordingObjectBinder();
-                var writer = new StreamObjectWriter(stream, binder: binder);
+                var binder = new ObjectBinder();
+                var writer = new ObjectWriter(stream, binder: binder);
                 // Write each instance twice. The second time around, they'll become ObjectRefs
                 for (int pass = 0; pass < 2; pass++)
                 {
@@ -991,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 writer.Dispose();
 
                 stream.Position = 0;
-                using (var reader = StreamObjectReader.TryGetReader(stream, binder: binder))
+                using (var reader = ObjectReader.TryGetReader(stream, binder: binder))
                 {
                     for (int pass = 0; pass < 2; pass++)
                     {
@@ -1028,15 +1094,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             int id = 0;
             var graph = ConstructGraph(ref id, 1, 1000);
-            Assert.Throws<StreamObjectWriter.RecursionDepthExceeded>(() => TestRoundTripValue(graph));
-        }
-
-        [Fact]
-        public void TestDeepObjectGraph_NonRecursiveSucceeds()
-        {
-            int id = 0;
-            var graph = ConstructGraph(ref id, 1, 1000);
-            TestRoundTripValue(graph, recursive: false);
+            Assert.Throws<ObjectWriter.RecursionDepthExceeded>(() => TestRoundTripValue(graph));
         }
 
         private Node ConstructGraph(ref int id, int width, int depth)

@@ -209,9 +209,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var stream = new MemoryStream();
             root.SerializeTo(stream);
 
-            stream.Position = 2;
-            Assert.Equal(expectRecursive, Roslyn.Utilities.StreamObjectReader.IsRecursive(stream));
-
             stream.Position = 0;
             var newRoot = CSharpSyntaxNode.DeserializeFrom(stream);
             var newText = newRoot.ToFullString();
@@ -285,22 +282,6 @@ class C { }");
 
             var newRoot = CSharpSyntaxNode.DeserializeFrom(stream);
             Assert.True(newRoot.ContainsDirectives);
-        }
-
-        [Fact]
-        public void RoundTripDeepSyntaxNode()
-        {
-            // trees with excessively deep expressions tend to overflow the stack when using recursive encoding.
-            // test that the tree is successfully serialized using non-recursive encoding.
-            var text = @"
-public class C
-{
-    public string B = " + string.Join(" + ", Enumerable.Range(0, 1000).Select(i => "\"" + i.ToString() + "\"").ToArray()) + @";
-}";
-
-            // serialization should fail to encode stream using recursive object encoding and
-            // succeed with non-recursive object encoding.
-            RoundTrip(text, expectRecursive: false);
         }
     }
 }
