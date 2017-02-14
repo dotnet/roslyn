@@ -430,6 +430,10 @@ Public Class BuildDevDivInsertionFiles
             Next
         Next
 
+        ' Finally, include these to allow the waiters to be imported and consumed in VS tests.
+        filesToInsert.Add(New NugetFileInfo("Dlls\Diagnostics\Roslyn.Hosting.Diagnostics.dll"))
+        filesToInsert.Add(New NugetFileInfo("Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix"))
+
         ProcessVsixFiles(filesToInsert, dependencies)
 
         ' Generate Roslyn.nuspec:
