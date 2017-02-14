@@ -348,6 +348,22 @@ class C
         }
 
         [Fact]
+        public void ArrayConstruction()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var t = new object[default];
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Tuple()
         {
             string source = @"
