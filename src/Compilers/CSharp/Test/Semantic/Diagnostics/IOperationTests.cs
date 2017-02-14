@@ -55,5 +55,39 @@ public class Cls
   IArgument (Matching Parameter: x) (OperationKind.Argument)
     ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null)");
         }
+
+        [Fact]
+        public void DeconstructionAssignmentFromTuple()
+        {
+            var text = @"
+public class C
+{
+    public static void M()
+    {
+        int x, y, z;
+        (x, y, z) = (1, 2, 3);
+        (x, y, z) = new C();
+        var (a, b) = (1, 2);
+    }
+    public void Deconstruct(out int a, out int b, out int c)
+    {
+        a = b = c = 1;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.RegularWithIOperationFeature);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var assignments = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().ToArray();
+            Assert.Equal("(x, y, z) = (1, 2, 3)", assignments[0].ToString());
+            Assert.Equal(null, model.GetOperation(assignments[0]));
+
+            Assert.Equal("(x, y, z) = new C()", assignments[1].ToString());
+            Assert.Equal(null, model.GetOperation(assignments[1]));
+
+            Assert.Equal("var (a, b) = (1, 2)", assignments[2].ToString());
+            Assert.Equal(null, model.GetOperation(assignments[2]));
+        }
     }
 }
