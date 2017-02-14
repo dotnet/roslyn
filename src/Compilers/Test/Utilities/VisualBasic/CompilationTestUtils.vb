@@ -18,27 +18,7 @@ Friend Module CompilationUtils
     Private Function ParseSources(sources As IEnumerable(Of String), parseOptions As VisualBasicParseOptions) As IEnumerable(Of SyntaxTree)
         Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
     End Function
-
-    Public Function CreateCompilation(sourceTrees As IEnumerable(Of SyntaxTree),
-                                      Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                      Optional options As VisualBasicCompilationOptions = Nothing,
-                                      Optional assemblyName As String = Nothing) As VisualBasicCompilation
-        If options Is Nothing Then
-            options = TestOptions.ReleaseDll
-        End If
-
-        ' Using single-threaded build if debugger attached, to simplify debugging.
-        If Debugger.IsAttached Then
-            options = options.WithConcurrentBuild(False)
-        End If
-
-        Return VisualBasicCompilation.Create(
-                If(assemblyName, GetUniqueName()),
-                sourceTrees,
-                references,
-                options)
-    End Function
-
+            
     Public Function CreateCompilation(sources As IEnumerable(Of String),
                                       Optional references As IEnumerable(Of MetadataReference) = Nothing,
                                       Optional options As VisualBasicCompilationOptions = Nothing,
