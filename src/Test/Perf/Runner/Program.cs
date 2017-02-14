@@ -24,6 +24,7 @@ namespace Runner
             string submissionType = null;
             string traceDestination = @"\\mlangfs1\public\basoundr\PerfTraces";
             string branch = null;
+            string searchDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
             var parameterOptions = new OptionSet()
             {
@@ -33,8 +34,10 @@ namespace Runner
                 {"branch=", "name of the branch you are measuring on", name => { branch = name; } },
                 {"ci-test", "mention that we are running in the continuous integration lab", _ => isCiTest = true},
                 {"no-trace-upload", "disable the uploading of traces", _ => shouldUploadTrace = false},
-                {"trace-upload_destination", "set the trace uploading destination", loc => { traceDestination = loc; }}
+                {"trace-upload_destination", "set the trace uploading destination", loc => { traceDestination = loc; } },
+                {"search-directory", "the directory to recursively search for tests", dir => { searchDirectory = dir; } } 
             };
+
             parameterOptions.Parse(args);
 
             if (shouldReportBenchview)
@@ -48,7 +51,7 @@ namespace Runner
             }
 
             Cleanup();
-            AsyncMain(isCiTest).GetAwaiter().GetResult();
+            AsyncMain(isCiTest, searchDirectory).GetAwaiter().GetResult();
 
             if (isCiTest)
             {
@@ -139,11 +142,9 @@ namespace Runner
             }
         }
 
-        private static async Task AsyncMain(bool isRunningUnderCI)
+        private static async Task AsyncMain(bool isRunningUnderCI, string searchDirectory)
         {
             RuntimeSettings.IsRunnerAttached = true;
-
-            var testDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
             // Print message at startup
             Log("Starting Performance Test Run");
@@ -153,7 +154,7 @@ namespace Runner
             var testInstances = new List<PerfTest>();
 
             // Find all the tests from inside of the csx files.
-            foreach (var script in GetAllCsxRecursive(testDirectory))
+            foreach (var script in GetAllCsxRecursive(searchDirectory))
             {
                 var scriptName = Path.GetFileNameWithoutExtension(script);
                 Log($"Collecting tests from {scriptName}");
