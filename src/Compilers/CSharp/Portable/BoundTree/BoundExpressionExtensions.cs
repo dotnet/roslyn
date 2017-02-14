@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsLiteralDefault(this BoundExpression node)
         {
-            return node.Kind == BoundKind.DefaultOperator && (object)node.Type == null;
+            return node.Kind == BoundKind.DefaultLiteral && (object)node.Type == null;
         }
 
         // returns true when expression has no side-effects and produces
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //       after some folding/propagation/algebraic transformations.
         public static bool IsDefaultValue(this BoundExpression node)
         {
-            if (node.Kind == BoundKind.DefaultOperator)
+            if (node.Kind == BoundKind.DefaultLiteral)
             {
                 return true;
             }

@@ -711,6 +711,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_NullNotValid, node.Location);
                 }
+                else if (ultimateReceiver.IsLiteralDefault())
+                {
+                    diagnostics.Add(ErrorCode.ERR_DefaultNotValid, node.Location);
+                }
                 else if (ultimateReceiver.Kind == BoundKind.Lambda || ultimateReceiver.Kind == BoundKind.UnboundLambda)
                 {
                     // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
