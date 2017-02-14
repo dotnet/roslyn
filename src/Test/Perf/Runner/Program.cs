@@ -34,8 +34,8 @@ namespace Runner
                 {"branch=", "name of the branch you are measuring on", name => { branch = name; } },
                 {"ci-test", "mention that we are running in the continuous integration lab", _ => isCiTest = true},
                 {"no-trace-upload", "disable the uploading of traces", _ => shouldUploadTrace = false},
-                {"trace-upload_destination", "set the trace uploading destination", loc => { traceDestination = loc; } },
-                {"search-directory", "the directory to recursively search for tests", dir => { searchDirectory = dir; } } 
+                {"trace-upload_destination=", "set the trace uploading destination", loc => { traceDestination = loc; } },
+                {"search-directory=", "the directory to recursively search for tests", dir => { searchDirectory = dir; } } 
             };
 
             parameterOptions.Parse(args);
