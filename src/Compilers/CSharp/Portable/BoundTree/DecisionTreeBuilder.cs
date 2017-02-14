@@ -83,6 +83,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// A delegate to create the final (guarded) decision in a path when adding to the decision tree.
+        /// </summary>
+        /// <param name="expression">The input expression, cast to the required type if needed</param>
+        /// <param name="type">The type of the input expression</param>
         protected delegate DecisionTree.Guarded DecisionMaker(
             BoundExpression expression,
             TypeSymbol type);
@@ -114,6 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // There is no default at this branch of the decision tree, so we create one.
+                // Before the decision tree can match by value, it needs to test if the input is of the required type.
+                // So we create a ByType node to represent that test.
                 guarded.Default = new DecisionTree.ByType(guarded.Expression, guarded.Type, null);
             }
 

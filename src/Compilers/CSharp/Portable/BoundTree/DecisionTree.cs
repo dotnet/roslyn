@@ -19,14 +19,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The input expression to this branch of the decision tree.
         /// </summary>
         public readonly BoundExpression Expression;
+
         /// <summary>
         /// The type of the input at this branch of the decision tree.
         /// </summary>
         public readonly TypeSymbol Type;
+
         /// <summary>
         /// A temporary variable that is holding the computed input at this branch.
         /// </summary>
         public LocalSymbol Temp;
+
         /// <summary>
         /// True if this decision tree fully handles all possible values of its input.
         /// </summary>
@@ -35,7 +38,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The three different kinds of nodes in the decision tree.
         /// </summary>
-        public enum DecisionKind { ByType, ByValue, Guarded }
+        public enum DecisionKind {
+            /// <summary>
+            /// For the type <see cref="DecisionTree.ByType"/>
+            /// </summary>
+            ByType,
+
+            /// <summary>
+            /// For the type <see cref="DecisionTree.ByValue"/>
+            /// </summary>
+            ByValue,
+
+            /// <summary>
+            /// For the type <see cref="DecisionTree.Guarded"/>
+            /// </summary>
+            Guarded
+        }
+
         /// <summary>
         /// The kind of this node in the decision tree.
         /// </summary>
