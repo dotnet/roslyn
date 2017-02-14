@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.RemoveUnusedVariable
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                var root = await context.Document.GetSyntaxRootAsync().ConfigureAwait(false);
+                var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
                 var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
                 var ancestor = token.GetAncestor<TLocalDeclarationStatement>();
 
