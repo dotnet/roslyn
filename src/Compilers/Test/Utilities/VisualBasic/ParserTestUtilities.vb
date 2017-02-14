@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
 Imports System.Runtime.CompilerServices
@@ -10,8 +10,11 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Roslyn.Test.Utilities
 Imports Xunit
+Imports Microsoft.CodeAnalysis.Collections
+
 
 Friend Module ParserTestUtilities
+     ReadOnly PSBP As ObjectPool(Of PooledStringBuilder)= PooledStringBuilder.CreatePool
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
     Public Function ParseAndVerify(code As XCData, Optional expectedErrors As XElement = Nothing) As SyntaxTree
@@ -75,9 +78,9 @@ Friend Module ParserTestUtilities
 
         ' Verify Errors
         If expectedDiagnostics Is Nothing Then
-            Dim errors As New StringBuilder()
+            Dim errors = PSBP.Allocate 'As New StringBuilder()
             AppendSyntaxErrors(tree.GetDiagnostics(), errors)
-            Assert.False(root.ContainsDiagnostics, errors.ToString())
+            Assert.False(root.ContainsDiagnostics, errors.ToStringAndFree)
             Assert.Equal(root.ContainsDiagnostics, errors.Length > 0)
         Else
             Assert.True(root.ContainsDiagnostics, "Tree was expected to contain errors.")
@@ -539,38 +542,40 @@ Public Module VerificationHelpers
         End Function
     End Class
 
-    Friend Sub AppendSyntaxErrors(errors As IEnumerable(Of Diagnostic), output As StringBuilder)
+    Friend Sub AppendSyntaxErrors(errors As IEnumerable(Of Diagnostic), output As PooledStringBuilder)
         For Each e In errors
             Dim span = e.Location.SourceSpan
-            output.AppendLine(GetErrorString(e.Code, e.GetMessage(EnsureEnglishUICulture.PreferredOrNull), span.Start.ToString(), span.End.ToString()))
+            output.Builder.AppendLine(GetErrorString(e.Code, e.GetMessage(EnsureEnglishUICulture.PreferredOrNull), span.Start.ToString(), span.End.ToString()))
         Next
     End Sub
 
 #Region "Private Helpers"
 
     Private Function GetErrorString(id As Integer, message As String, start As String, [end] As String) As String
-        Dim errorString As New StringBuilder()
-        errorString.Append(vbTab)
-        errorString.Append("<error id=""")
-        errorString.Append(id)
-        errorString.Append("""")
+        Dim errorString = PooledStringBuilerPool.Allocate
+        With errorString.Builder
+            .Append(vbTab)
+            .Append("<error id=""")
+            .Append(id)
+            .Append("""")
         If message IsNot Nothing Then
-            errorString.Append(" message=""")
-            errorString.Append(message)
-            errorString.Append("""")
+            .Append(" message=""")
+            .Append(message)
+            .Append("""")
         End If
         If start IsNot Nothing Then
-            errorString.Append(" start=""")
-            errorString.Append(start)
-            errorString.Append("""")
+            .Append(" start=""")
+            .Append(start)
+            .Append("""")
         End If
         If [end] IsNot Nothing Then
-            errorString.Append(" end=""")
-            errorString.Append([end])
-            errorString.Append("""")
+            .Append(" end=""")
+            .Append([end])
+            .Append("""")
         End If
-        errorString.Append("/>")
-        Return errorString.ToString()
+        .Append("/>")
+        End With
+        Return errorString.ToStringAndFree
     End Function
 
     Private Function AreErrorsEquivalent(syntaxError As Diagnostic, xmlError As XElement) As Boolean
@@ -629,15 +634,17 @@ Public Module VerificationHelpers
         Next
 
         If errorScenarioFailed Then
-            Dim errorMessage As New StringBuilder()
-            errorMessage.AppendLine()
-            errorMessage.AppendLine("Expected Subset:")
+            Dim errorMessage = PooledStringBuilerPool.Allocate 'As New StringBuilder()
+            With errorMessage.Builder
+            .AppendLine()
+            .AppendLine("Expected Subset:")
             For Each e In expectedErrors.<error>
-                errorMessage.AppendLine(GetErrorString(CInt(e.@id), If(e.@message, "?"), If(e.@start, "?"), If(e.@end, "?")))
+                .AppendLine(GetErrorString(CInt(e.@id), If(e.@message, "?"), If(e.@start, "?"), If(e.@end, "?")))
             Next
-            errorMessage.AppendLine("Actual Errors (on " & node.Kind().ToString & node.Span.ToString & ")")
+            .AppendLine("Actual Errors (on " & node.Kind().ToString & node.Span.ToString & ")")
+                End With
             AppendSyntaxErrors(tree.GetDiagnostics(node), errorMessage)
-            Assert.False(errorScenarioFailed, errorMessage.ToString())
+            Assert.False(errorScenarioFailed, errorMessage.ToStringAndFree())
         End If
     End Sub
 
