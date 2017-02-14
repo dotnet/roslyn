@@ -32,9 +32,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             writer.WriteUInt16(CType(_subKind, UShort))
         End Sub
 
-        Friend Overrides Function GetReader() As Func(Of ObjectReader, Object)
-            Return Function(r) New BadTokenSyntax(r)
-        End Function
+        Shared Sub New()
+            ObjectBinder.RegisterTypeReader(GetType(BadTokenSyntax), Function(r) New BadTokenSyntax(r))
+        End Sub
 
         Friend ReadOnly Property SubKind As SyntaxSubKind
             Get

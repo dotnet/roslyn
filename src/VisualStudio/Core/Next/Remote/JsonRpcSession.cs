@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, _source.Token))
                     using (var stream = await DirectStream.GetAsync(streamName, _source.Token).ConfigureAwait(false))
                     {
-                        using (var writer = new StreamObjectWriter(stream))
+                        using (var writer = new ObjectWriter(stream))
                         {
                             writer.WriteInt32(sessionId);
 
