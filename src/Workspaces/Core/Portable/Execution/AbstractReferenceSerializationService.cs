@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 WriteTo(reference, writer, checksum: true, cancellationToken: cancellationToken);
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
                 WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
