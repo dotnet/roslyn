@@ -17,7 +17,7 @@ Public Class DeclarationTests
 
     <Fact>
     Public Sub TestSimpleDeclarations()
-        Dim text1 = <literal>
+        Dim text1 = "
 namespace NA.NB
   partial class C(Of T)
     partial class D
@@ -27,9 +27,9 @@ namespace NA.NB
   class C 
   end class
 end namespace
-</literal>.Value
+"
 
-        Dim text2 = <literal>
+        Dim text2 = "
 namespace Na
   namespace nB
     partial class C(Of T)
@@ -40,7 +40,7 @@ namespace Na
     end class
   end namespace
 end namespace
-</literal>.Value
+"
 
         Dim rootNamespace = ImmutableArray.Create(Of String)()
         Dim tree1 = ParseFile(text1)
@@ -180,12 +180,12 @@ end namespace
 
     <Fact>
     Public Sub TestRootNamespace()
-        Dim text1 = <literal>
+        Dim text1 = "
 namespace NA
 end namespace
 Class C2
 End Class
-</literal>.Value
+"
 
         Dim tree1 = ParseFile(text1)
         Assert.NotNull(tree1)
