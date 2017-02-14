@@ -12,8 +12,10 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestBase
 Imports Xunit
-
+Imports Microsoft.CodeAnalysis.Collections
 Friend Module CompilationUtils
+
+    Private ReadOnly Property _PooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool()
 
     Private Function ParseSources(sources As IEnumerable(Of String), parseOptions As VisualBasicParseOptions) As IEnumerable(Of SyntaxTree)
         Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
@@ -923,18 +925,18 @@ Friend Module CompilationUtils
         Dim expectedReader = New StringReader(expected)
         Dim actualReader = New StringReader(actual)
 
-        Dim expectedBuilder As New StringBuilder()
-        Dim actualBuilder As New StringBuilder()
+        Dim expectedBuilder = _PooledStringBuilderPool.Allocate()
+        Dim actualBuilder = _PooledStringBuilderPool.Allocate()
         Dim expectedLine = expectedReader.ReadLine()
         Dim actualLine = actualReader.ReadLine()
 
         While expectedLine IsNot Nothing AndAlso actualLine IsNot Nothing
             If Not expectedLine.Equals(actualLine) Then
-                expectedBuilder.AppendLine("<! " & expectedLine)
-                actualBuilder.AppendLine("!> " & actualLine)
+                expectedBuilder.Builder.AppendLine("<! " & expectedLine)
+                actualBuilder.Builder.AppendLine("!> " & actualLine)
             Else
-                expectedBuilder.AppendLine(expectedLine)
-                actualBuilder.AppendLine(actualLine)
+                expectedBuilder.Builder.AppendLine(expectedLine)
+                actualBuilder.Builder.AppendLine(actualLine)
             End If
 
             expectedLine = expectedReader.ReadLine()
@@ -943,16 +945,16 @@ Friend Module CompilationUtils
         End While
 
         While expectedLine IsNot Nothing
-            expectedBuilder.AppendLine("<! " & expectedLine)
+            expectedBuilder.Builder.AppendLine("<! " & expectedLine)
             expectedLine = expectedReader.ReadLine()
         End While
 
         While actualLine IsNot Nothing
-            actualBuilder.AppendLine("!> " & actualLine)
+            actualBuilder.Builder.AppendLine("!> " & actualLine)
             actualLine = actualReader.ReadLine()
         End While
 
-        Assert.Equal(expectedBuilder.ToString(), actualBuilder.ToString())
+        Assert.Equal(expectedBuilder.ToStringAndFree(), actualBuilder.ToStringAndFree())
     End Sub
 
     ' There are certain cases where multiple distinct errors are
@@ -976,13 +978,13 @@ Friend Module CompilationUtils
 
         Array.Sort(diagnosticsAndIndices, Function(diag1, diag2) CompareErrors(diag1, diag2))
 
-        Dim builder As New StringBuilder
+        Dim builder = _PooledStringBuilderPool.Allocate()
         For Each e In diagnosticsAndIndices
             If Not suppressInfos OrElse e.Diagnostic.Severity > DiagnosticSeverity.Info Then
-                builder.Append(ErrorText(e.Diagnostic))
+                builder.Builder.Append(ErrorText(e.Diagnostic))
             End If
         Next
-        Return builder.ToString()
+        Return builder.ToStringAndFree()
     End Function
 
     ' Get the text of a diagnostic. For source error, includes the text of the line itself, with the 
@@ -1210,14 +1212,14 @@ Friend Module CompilationUtils
 
     Public Function SortAndMergeStrings(ParamArray strings As String()) As String
         Array.Sort(strings)
-        Dim builder = New StringBuilder
+        Dim builder = _PooledStringBuilderPool.Allocate
         For Each str In strings
             If builder.Length > 0 Then
-                builder.AppendLine()
+                builder.Builder.AppendLine()
             End If
-            builder.Append(str)
+            builder.Builder.Append(str)
         Next
-        Return builder.ToString
+        Return builder.ToStringAndFree
     End Function
 
     Public Sub CheckSymbolsUnordered(Of TSymbol As ISymbol)(symbols As ImmutableArray(Of TSymbol), ParamArray descriptions As String())
