@@ -61,6 +61,7 @@
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
     <Compile Include="AddPackage\CSharpAddSpecificPackageCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\RemoveUnusedVariable\RemoveUnusedVariableCodeFixProvider.cs" />
     <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.cs" />
     <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.Pattern.cs" />
     <Compile Include="ConvertNumericLiteral\CSharpConvertNumericLiteralCodeRefactoringProvider.cs" />

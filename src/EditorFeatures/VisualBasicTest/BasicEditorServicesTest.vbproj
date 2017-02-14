@@ -182,6 +182,7 @@
     <Compile Include="CodeActions\ConvertIfToSwitch\ConvertIfToSwitchTests.vb" />
     <Compile Include="CodeActions\ConvertNumericLiteral\ConvertNumericLiteralTests.vb" />
     <Compile Include="CodeActions\UseNamedArguments\UseNamedArgumentsTests.vb" />
+    <Compile Include="Diagnostics\RemoveUnusedVariable\RemoveUnusedVariableTest.vb" />
     <Compile Include="Structure\CollectionInitializerStructureProviderTests.vb" />
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.vb" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />
