@@ -79,6 +79,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             if (!canReuse)
             {
+                _currentlyRunningInstance?.Close();
                 _currentlyRunningInstance = null;
             }
         }
@@ -221,6 +222,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public void Dispose()
         {
             _currentlyRunningInstance?.Close();
+            _currentlyRunningInstance = null;
 
             // We want to make sure everybody cleaned up their contexts by the end of everything
             ThrowExceptionIfAlreadyHasActiveContext();
