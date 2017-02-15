@@ -48,9 +48,12 @@ Public Class VisualBasicParseOptionsTests
 
         TestProperty(Function(old, value) old.WithPreprocessorSymbols(value), Function(opt) opt.PreprocessorSymbols, syms)
 
-        Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(CType(Nothing, ImmutableArray(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
-        Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(DirectCast(Nothing, IEnumerable(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
-        Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(DirectCast(Nothing, KeyValuePair(Of String, Object)())).PreprocessorSymbols.Length)
+        Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).
+                                                        WithPreprocessorSymbols(CType(Nothing, ImmutableArray(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
+        Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).
+                                                        WithPreprocessorSymbols(DirectCast(Nothing, IEnumerable(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
+        Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).
+                                                        WithPreprocessorSymbols(DirectCast(Nothing, KeyValuePair(Of String, Object)())).PreprocessorSymbols.Length)
 
         Dim syms2 = {New KeyValuePair(Of String, Object)("A", 1),
                      New KeyValuePair(Of String, Object)("B", New List(Of String)()),
@@ -97,25 +100,32 @@ Public Class VisualBasicParseOptionsTests
         Dim empty = ImmutableArray.Create(Of KeyValuePair(Of String, Object))()
 
         Dim symbols = AddPredefinedPreprocessorSymbols(OutputKind.NetModule)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
+                           New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
 
         ' if the symbols are already there, don't change their values
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.DynamicallyLinkedLibrary, symbols)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
+                           New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
-                                                   {New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)})
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
+                                                   {New KeyValuePair(Of String, Object)("VBC_VER", "Foo"),
+                                                    New KeyValuePair(Of String, Object)("TARGET", 123)})
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"),
+                           New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
                                                    New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123))
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"),
+                           New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication, empty)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "exe")}, symbols.AsEnumerable)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
+                           New KeyValuePair(Of String, Object)("TARGET", "exe")}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication, empty)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "winexe")}, symbols.AsEnumerable)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
+                           New KeyValuePair(Of String, Object)("TARGET", "winexe")}, symbols.AsEnumerable)
     End Sub
 
     <Fact>
@@ -135,116 +145,74 @@ Public Class VisualBasicParseOptionsTests
         Dim options = VisualBasicParseOptions.Default
 
         Dim symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsRuntimeApplication)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "appcontainerexe")}, symbols.AsEnumerable)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
+                           New KeyValuePair(Of String, Object)("TARGET", "appcontainerexe")}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsRuntimeMetadata)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "winmdobj")}, symbols.AsEnumerable)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
+                           New KeyValuePair(Of String, Object)("TARGET", "winmdobj")}, symbols.AsEnumerable)
     End Sub
 
     <Fact>
     Public Sub ParseOptionsPass()
-        ParseAndVerify("
-                Option strict
-                Option strict on
-                Option strict off
-            ")
+        ParseAndVerify(
+"Option strict
+Option strict on
+Option strict off")
 
-        ParseAndVerify("
-                        Option infer
-                        Option infer on
-                        option infer off
-                    ")
+        ParseAndVerify(
+"Option infer
+Option infer on
+option infer off")
 
-        ParseAndVerify("
-                option explicit
-                Option explicit On
-                Option explicit off
-            ")
+        ParseAndVerify(
+"option explicit
+Option explicit On
+Option explicit off")
 
-        ParseAndVerify("
-                Option compare text
-                Option compare binary
-            ")
+        ParseAndVerify(
+"Option compare text
+Option compare binary")
     End Sub
 
     <Fact()>
     Public Sub BC30208ERR_ExpectedOptionCompare()
-
-        ParseAndVerify("
-                Option text
-            ",
-            <errors>
-                <error id="30208"/>
-            </errors>)
+        ParseAndVerify("Option text", <errors><error id="30208"/></errors>)
     End Sub
 
     <Fact()>
     Public Sub BC30979ERR_InvalidOptionInfer()
-        ParseAndVerify("
-                Option infer xyz
-            ",
-            <errors>
-                <error id="30979"/>
-            </errors>)
+        ParseAndVerify("Option infer xyz", <errors><error id="30979"/></errors>)
     End Sub
 
     <Fact()>
     Public Sub BC31141ERR_InvalidOptionStrictCustom()
-        ParseAndVerify("
-                Option strict custom
-            ",
-            <errors>
-                <error id="31141"/>
-            </errors>)
+        ParseAndVerify("Option strict custom", <errors><error id="31141"/></errors>)
     End Sub
 
     <Fact, WorkItem(536060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536060")>
     Public Sub BC30620ERR_InvalidOptionStrict_FollowedByAssemblyAttribute()
-        ParseAndVerify("
-            Option Strict False
-            <Assembly: CLSCompliant(True)> 
-        ",
-        <errors>
-            <error id="30620"/>
-        </errors>)
+        ParseAndVerify(
+"Option Strict False
+<Assembly: CLSCompliant(True)> ", <errors><error id="30620"/></errors>)
     End Sub
 
     <Fact, WorkItem(536067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536067")>
     Public Sub BC30627ERR_OptionStmtWrongOrder()
-        ParseAndVerify("
-            Imports System
-            Option Infer On
-        ",
-        <errors>
-            <error id="30627"/>
-        </errors>)
+        ParseAndVerify(
+"Imports System
+Option Infer On", <errors><error id="30627"/></errors>)
     End Sub
 
     <Fact, WorkItem(536362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536362")>
     Public Sub BC30206ERR_ExpectedForOptionStmt_NullReferenceException()
-        ParseAndVerify("
-            Option
-        ",
-        <errors>
-            <error id="30206"/>
-        </errors>)
-
-        ParseAndVerify("
-                Option on
-            ",
-    <errors>
-        <error id="30206"/>
-    </errors>)
+        ParseAndVerify("Option", <errors><error id="30206"/></errors>)
+        ParseAndVerify("Option on", <errors><error id="30206"/></errors>)
     End Sub
 
     <Fact, WorkItem(536432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536432")>
     Public Sub BC30205ERR_ExpectedEOS_ParseOption_ExtraSyntaxAtEOL()
-        ParseAndVerify("
-            Option Infer On O
-        ",
-        <errors>
-            <error id="30205"/>
-        </errors>)
+        ParseAndVerify("Option Infer On O", <errors><error id="30205"/></errors>)
     End Sub
 
     ''' <summary>
@@ -256,12 +224,7 @@ Public Class VisualBasicParseOptionsTests
     <Fact>
     Public Sub TestFieldsForEqualsAndGetHashCode()
         ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
-                (GetType(VisualBasicParseOptions)),
-                "Features",
-                "Language",
-                "LanguageVersion",
-                "PreprocessorSymbolNames",
-                "PreprocessorSymbols",
-                "SpecifiedLanguageVersion")
+            GetType(VisualBasicParseOptions),
+            "Features", "Language", "LanguageVersion", "PreprocessorSymbolNames", "PreprocessorSymbols", "SpecifiedLanguageVersion")
     End Sub
 End Class
