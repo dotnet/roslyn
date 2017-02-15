@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             case DecisionTree.DecisionKind.Guarded:
                                 {
-                                    // This is unreachable because the subsimption version of the decision tree
+                                    // This is unreachable because the subsumption version of the decision tree
                                     // never contains guarded decision trees that are not complete, or that have
                                     // any guard other than `true`.
                                     throw ExceptionUtilities.Unreachable;

@@ -81,10 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Create a fresh decision tree for the given input expression of the given type.
         /// </summary>
-        /// <param name="expression"></param>
-        /// <param name="type"></param>
-        /// <param name="enclosingSymbol"></param>
-        /// <returns></returns>
         public static DecisionTree Create(BoundExpression expression, TypeSymbol type, Symbol enclosingSymbol)
         {
             Debug.Assert(expression.Type == type);
@@ -115,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// A decisoin tree node that branches based on (1) whether the input value is null, (2) the runtime
+        /// A decision tree node that branches based on (1) whether the input value is null, (2) the runtime
         /// type of the input expression, and finally (3) a default decision tree if nothing in the previous
         /// cases handles the input.
         /// </summary>

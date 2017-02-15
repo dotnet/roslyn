@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // last. In that case we can produce better code by piggy-backing our new case on to the last decision.
             // Also, the last one might be a non-overlapping type, in which case we can piggy-back onto the second-last
             // type test.
-            for (int i = byType.TypeAndDecision.Count - 1; i >= 0 && forType == null; i--)
+            for (int i = byType.TypeAndDecision.Count - 1; i >= 0; i--)
             {
                 var kvp = byType.TypeAndDecision[i];
                 var matchedType = kvp.Key;
