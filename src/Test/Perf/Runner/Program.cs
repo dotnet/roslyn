@@ -148,7 +148,7 @@ namespace Runner
 
             // Print message at startup
             Log("Starting Performance Test Run");
-            Log("hash: " + FirstLine(StdoutFromOrDefault("git", "show --format=\"%h\" HEAD --", "git missing")));
+            Log("hash: " + FirstLine(StdoutFromOrDefault("git.exe", args: "show --format=\"%h\" HEAD --", workingDirectory: Environment.CurrentDirectory, defaultText: "git missing")));
             Log("time: " + DateTime.Now.ToString());
 
             var testInstances = new List<PerfTest>();
