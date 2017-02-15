@@ -158,14 +158,23 @@ namespace Runner
             {
                 var scriptName = Path.GetFileNameWithoutExtension(script);
                 Log($"Collecting tests from {scriptName}");
-                var state = await RunFile(script).ConfigureAwait(false);
-                var tests = RuntimeSettings.ResultTests;
-                RuntimeSettings.ResultTests = null;
-                foreach (var test in tests)
+                try
                 {
-                    test.SetWorkingDirectory(Path.GetDirectoryName(script));
+                    var state = await RunFile(script).ConfigureAwait(false);
+                    var tests = RuntimeSettings.ResultTests;
+                    RuntimeSettings.ResultTests = null;
+                    foreach (var test in tests)
+                    {
+                        test.SetWorkingDirectory(Path.GetDirectoryName(script));
+                    }
+                    testInstances.AddRange(tests);
                 }
-                testInstances.AddRange(tests);
+                catch (Exception e)
+                {
+                    Log($"Encountered exception collecting tests from {scriptName}");
+                    Log(e.Message);
+                    Log(e.StackTrace);
+                }
             }
 
 
