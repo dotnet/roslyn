@@ -188,7 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.NullLiteral:
-                case ConversionKind.DefaultLiteral:
                     if (!_inExpressionLambda || !explicitCastInCode)
                     {
                         return new BoundDefaultLiteral(syntax, rewrittenType);

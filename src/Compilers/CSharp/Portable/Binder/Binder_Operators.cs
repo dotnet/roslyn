@@ -2628,7 +2628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            if (operand.ConstantValue == ConstantValue.DefaultLiteral)
+            if (operand.Kind == BoundKind.DefaultLiteral && operand.ConstantValue == null)
             {
                 Error(diagnostics, ErrorCode.ERR_DefaultNotValid, node, targetType);
                 return new BoundIsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);

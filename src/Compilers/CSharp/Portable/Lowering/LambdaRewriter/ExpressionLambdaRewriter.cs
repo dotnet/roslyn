@@ -644,6 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return Convert(e1, intermediate, node.Type, node.Checked, false);
                     }
                 case ConversionKind.NullLiteral:
+                    // TODO REVIEW
                     return Convert(Constant(_bound.Null(_objectType)), _objectType, node.Type, false, node.ExplicitCastInCode);
                 default:
                     return Convert(Visit(node.Operand), node.Operand.Type, node.Type, node.Checked, node.ExplicitCastInCode);

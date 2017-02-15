@@ -41,6 +41,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         // implement them for compatibility with the native compiler.
         IntPtr,
         InterpolatedString, // a conversion from an interpolated string to IFormattable or FormattableString
-        DefaultLiteral,
     }
 }

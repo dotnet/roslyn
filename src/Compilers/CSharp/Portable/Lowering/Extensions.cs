@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (conversion.ConversionKind)
                 {
                     case ConversionKind.NullLiteral:
-                        // Any "null literal conversion" is a conversion from the literal null to
+                        // Any "null literal conversion" is a conversion from the literals null/default to
                         // a nullable value type; obviously it never has a value.
                         return true;
                     case ConversionKind.ImplicitNullable:

@@ -396,19 +396,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_NullNotValid, _syntax.Expression.Location);
                     return false;
                 }
-                else if (collectionExpr.ConstantValue.IsDefaultLiteral)
-                {
-                    diagnostics.Add(ErrorCode.ERR_DefaultNotValid, _syntax.Expression.Location);
-                    return false;
-                }
             }
 
             if ((object)collectionExprType == null) // There's no way to enumerate something without a type.
             {
-                // The null literal was caught above, so anything else with a null type is a method group or anonymous function
-                diagnostics.Add(ErrorCode.ERR_AnonMethGrpInForEach, _syntax.Expression.Location, collectionExpr.Display);
-                // CONSIDER: dev10 also reports ERR_ForEachMissingMember (i.e. failed pattern match).
-
+                if (collectionExpr.Kind == BoundKind.DefaultLiteral && (object)collectionExpr.Type == null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_DefaultNotValid, _syntax.Expression.Location);
+                }
+                else
+                {
+                    // The null and default literals were caught above, so anything else with a null type is a method group or anonymous function
+                    diagnostics.Add(ErrorCode.ERR_AnonMethGrpInForEach, _syntax.Expression.Location, collectionExpr.Display);
+                    // CONSIDER: dev10 also reports ERR_ForEachMissingMember (i.e. failed pattern match).
+                }
                 return false;
             }
 

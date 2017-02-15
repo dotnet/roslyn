@@ -807,19 +807,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.DefaultLiteral:
+                    var defaultExpression = (BoundDefaultLiteral)sourceExpression;
+                    if ((object)defaultExpression.Type == null)
+                    {
+                        return Conversion.NullLiteral;
+                    }
+                    break;
+
                 case BoundKind.TupleLiteral:
                     var tupleConversion = ClassifyImplicitTupleLiteralConversion((BoundTupleLiteral)sourceExpression, destination, ref useSiteDiagnostics);
                     if (tupleConversion.Exists)
                     {
                         return tupleConversion;
-                    }
-                    break;
-
-                case BoundKind.DefaultLiteral:
-                    var defaultExpression = (BoundDefaultLiteral)sourceExpression;
-                    if ((object)defaultExpression.Type == null)
-                    {
-                        return Conversion.DefaultLiteral;
                     }
                     break;
 

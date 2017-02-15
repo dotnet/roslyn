@@ -606,9 +606,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitTuple:
                     return false;
 
-                case ConversionKind.DefaultLiteral:
-                    return true;
-
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

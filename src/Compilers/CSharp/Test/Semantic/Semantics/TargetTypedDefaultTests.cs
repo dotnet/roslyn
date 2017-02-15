@@ -264,9 +264,9 @@ class C
                 // (7,15): error CS0283: The type 'T' cannot be declared const
                 //         const T y = (T)default;
                 Diagnostic(ErrorCode.ERR_BadConstType, "T").WithArguments("T").WithLocation(7, 15),
-                // (8,26): error CS0134: 'z' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
+                // (8,26): error CS0133: The expression being assigned to 'z' must be constant
                 //         const object z = (T)default;
-                Diagnostic(ErrorCode.ERR_NotNullConstRefField, "(T)default").WithArguments("z", "object").WithLocation(8, 26)
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "(T)default").WithArguments("z").WithLocation(8, 26)
                 );
         }
 
@@ -288,15 +288,15 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
-                 // (7,15): error CS0283: The type 'S' cannot be declared const
+                // (7,15): error CS0283: The type 'S' cannot be declared const
                 //         const S x = default(S);
                 Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("S").WithLocation(7, 15),
                 // (8,15): error CS0283: The type 'S' cannot be declared const
                 //         const S y = (S)default;
                 Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("S").WithLocation(8, 15),
-                // (9,26): error CS0134: 'z' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
+                // (9,26): error CS0133: The expression being assigned to 'z' must be constant
                 //         const object z = (S)default;
-                Diagnostic(ErrorCode.ERR_NotNullConstRefField, "(S)default").WithArguments("z", "object").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "(S)default").WithArguments("z").WithLocation(9, 26)
                 );
         }
 
@@ -322,10 +322,10 @@ class C
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
             var def = nodes.OfType<DefaultLiteralSyntax>().Single();
-            Assert.Null(model.GetTypeInfo(def).Type);
+            Assert.Equal("System.Int32", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
-            Assert.Equal("", model.GetConstantValue(def).Value.ToString()); // crash
+            Assert.Equal("0", model.GetConstantValue(def).Value.ToString());
         }
 
         [Fact]
@@ -425,7 +425,7 @@ class C
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
             var def = nodes.OfType<DefaultLiteralSyntax>().Single();
-            Assert.Null(model.GetTypeInfo(def).Type);
+            Assert.Equal("System.Int32", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Null(model.GetDeclaredSymbol(def));
         }
@@ -648,7 +648,14 @@ class C
 }
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.ExperimentalParseOptions);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (5,30): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
+                //         System.Console.Write((int?)1 == default);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(int?)1 == default").WithArguments("false", "int", "int?").WithLocation(5, 30),
+                // (6,30): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
+                //         System.Console.Write(default == (int?)1);
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "default == (int?)1").WithArguments("false", "int", "int?").WithLocation(6, 30)
+                );
         }
 
         [Fact]
@@ -788,7 +795,7 @@ class Program
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var def = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultLiteralSyntax>().Single();
-            Assert.Null(model.GetTypeInfo(def).Type);
+            Assert.Equal("System.Int32?", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("System.Int32?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
         }
@@ -989,7 +996,7 @@ class C
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
             var def = nodes.OfType<DefaultLiteralSyntax>().Single();
-            Assert.Null(model.GetTypeInfo(def).Type);
+            Assert.Equal("System.Int16", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Null(model.GetDeclaredSymbol(def));
 
