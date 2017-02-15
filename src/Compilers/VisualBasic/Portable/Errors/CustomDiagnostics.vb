@@ -113,15 +113,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function Equals(obj As Object) As Boolean
             If obj.GetType() Is GetType(AmbiguousSymbolDiagnostic) Then
                 Dim asd = CType(obj, AmbiguousSymbolDiagnostic)
-                Return CType(_symbols, IStructuralEquatable).Equals(asd._symbols, EqualityComparer(Of Symbol).Default) AndAlso
+                Return _symbols.SequenceEqual(asd._symbols) AndAlso
                     MyBase.Equals(obj)
             End If
             Return False
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(CType(Me._symbols, IStructuralEquatable).GetHashCode(EqualityComparer(Of Symbol).Default),
-                                MyBase.GetHashCode())
+            Return Hash.Combine(Hash.CombineValues(Me._symbols), MyBase.GetHashCode())
         End Function
     End Class
 End Namespace

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
+using static System.Linq.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -27,15 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool Equals(object obj)
         {
             return obj is DiagnosticInfoWithSymbols diws && 
-                   (this.Symbols as IStructuralEquatable).Equals(diws.Symbols, EqualityComparer<Symbol>.Default) &&
+                   this.Symbols.SequenceEqual(diws.Symbols) &&
                    base.Equals(obj);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(
-                (this.Symbols as IStructuralEquatable).GetHashCode(EqualityComparer<Symbol>.Default),
-                base.GetHashCode());
+            return Hash.Combine(Hash.CombineValues(Symbols), base.GetHashCode());
         }
     }
 }
