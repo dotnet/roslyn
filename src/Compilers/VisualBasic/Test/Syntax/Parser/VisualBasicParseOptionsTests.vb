@@ -143,36 +143,36 @@ Public Class VisualBasicParseOptionsTests
 
     <Fact>
     Public Sub ParseOptionsPass()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Option strict
                 Option strict on
                 Option strict off
-            ]]>)
+            ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                         Option infer
                         Option infer on
                         option infer off
-                    ]]>)
+                    ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 option explicit
                 Option explicit On
                 Option explicit off
-            ]]>)
+            ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Option compare text
                 Option compare binary
-            ]]>)
+            ")
     End Sub
 
     <Fact()>
     Public Sub BC30208ERR_ExpectedOptionCompare()
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Option text
-            ]]>,
+            ",
             <errors>
                 <error id="30208"/>
             </errors>)
@@ -180,9 +180,9 @@ Public Class VisualBasicParseOptionsTests
 
     <Fact()>
     Public Sub BC30979ERR_InvalidOptionInfer()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Option infer xyz
-            ]]>,
+            ",
             <errors>
                 <error id="30979"/>
             </errors>)
@@ -190,9 +190,9 @@ Public Class VisualBasicParseOptionsTests
 
     <Fact()>
     Public Sub BC31141ERR_InvalidOptionStrictCustom()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Option strict custom
-            ]]>,
+            ",
             <errors>
                 <error id="31141"/>
             </errors>)
@@ -200,10 +200,10 @@ Public Class VisualBasicParseOptionsTests
 
     <Fact, WorkItem(536060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536060")>
     Public Sub BC30620ERR_InvalidOptionStrict_FollowedByAssemblyAttribute()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Option Strict False
             <Assembly: CLSCompliant(True)> 
-        ]]>,
+        ",
         <errors>
             <error id="30620"/>
         </errors>)
@@ -211,10 +211,10 @@ Public Class VisualBasicParseOptionsTests
 
     <Fact, WorkItem(536067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536067")>
     Public Sub BC30627ERR_OptionStmtWrongOrder()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Imports System
             Option Infer On
-        ]]>,
+        ",
         <errors>
             <error id="30627"/>
         </errors>)
@@ -222,16 +222,16 @@ Public Class VisualBasicParseOptionsTests
 
     <Fact, WorkItem(536362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536362")>
     Public Sub BC30206ERR_ExpectedForOptionStmt_NullReferenceException()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Option
-        ]]>,
+        ",
         <errors>
             <error id="30206"/>
         </errors>)
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Option on
-            ]]>,
+            ",
     <errors>
         <error id="30206"/>
     </errors>)
@@ -239,9 +239,9 @@ Public Class VisualBasicParseOptionsTests
 
     <Fact, WorkItem(536432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536432")>
     Public Sub BC30205ERR_ExpectedEOS_ParseOption_ExtraSyntaxAtEOL()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Option Infer On O
-        ]]>,
+        ",
         <errors>
             <error id="30205"/>
         </errors>)
