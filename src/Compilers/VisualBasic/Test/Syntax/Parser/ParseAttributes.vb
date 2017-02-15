@@ -13,20 +13,22 @@ Public Class Attributes
 
     <Fact>
     Public Sub ParseAssemblyAttribute()
-        ParseModuleOrAssemblyAttribute(<![CDATA[
-            <Assembly:clscompliant(true)>
-            Module Module1
-            End Module
-        ]]>.Value, isFullWidth:=False)
+        ParseModuleOrAssemblyAttribute(
+"
+<Assembly:clscompliant(true)>
+Module Module1
+End Module
+", isFullWidth:=False)
     End Sub
 
     <Fact>
     Public Sub ParseModuleAttribute()
-        ParseModuleOrAssemblyAttribute(<![CDATA[
-            <Module:clscompliant(true)>
-            Module Module1
-            End Module
-        ]]>.Value, isFullWidth:=False)
+        ParseModuleOrAssemblyAttribute(
+"
+<Module:clscompliant(true)>
+Module Module1
+End Module
+", isFullWidth:=False)
     End Sub
 
     <WorkItem(570756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570756")>
@@ -48,26 +50,27 @@ Public Class Attributes
 
     <Fact>
     Public Sub ParseModuleAndAssemblyAttributesWithTrivia()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 <Assembly : A>
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 <Module _
 : _
 A>
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 <Assembly : A>
-]]>.Value.Replace(":"c, FULLWIDTH_COLON))
+".Replace(":"c, FULLWIDTH_COLON))
     End Sub
 
     <Fact>
     Public Sub BC30183ERR_InvalidUseOfKeyword_FileNotAssemblyOrModuleAttribute()
-        Dim tree = ParseAndVerify(<![CDATA[
-            <Dim:clscompliant(true)>
-            Module Module1
-            End Module
-        ]]>,
+        Dim tree = ParseAndVerify(
+"
+<Dim:clscompliant(true)>
+Module Module1
+End Module
+",
             Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "Dim"),
             Diagnostic(ERRID.ERR_ExpectedGreater, ""),
             Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "clscompliant(true)"),
@@ -82,52 +85,57 @@ A>
 
     <Fact>
     Public Sub Bug862162()
-        ParseAndVerify(<![CDATA[
-            Imports System.Runtime.InteropServices
-            Structure Struct1
-              <MarshalAs(UnmanagedType.ByValArray, sizeconst:=4)> Public A() As Integer
-            End Structure
-        ]]>)
+        ParseAndVerify(
+"
+Imports System.Runtime.InteropServices
+Structure Struct1
+  <MarshalAs(UnmanagedType.ByValArray, sizeconst:=4)> Public A() As Integer
+End Structure
+")
     End Sub
 
     <Fact>
     Public Sub Bug862165()
-        ParseAndVerify(<![CDATA[
-            Public Class Attr
-                Inherits Attribute
-            End Class
-            <Attr(CByte(2))> Class Class1
-            End Class
-        ]]>)
+        ParseAndVerify(
+"
+Public Class Attr
+    Inherits Attribute
+End Class
+<Attr(CByte(2))> Class Class1
+End Class
+")
     End Sub
 
     <Fact>
     Public Sub Bug862181()
-        ParseAndVerify(<![CDATA[
-            <AttributeUsageAttribute(System.AttributeTargets.Class), Obsolete()> Public Class Attr
-                                          Inherits Attribute
-                  End Class
-        ]]>)
+        ParseAndVerify(
+"
+<AttributeUsageAttribute(System.AttributeTargets.Class), Obsolete()> Public Class Attr
+                              Inherits Attribute
+      End Class
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug862462()
-        ParseAndVerify(<![CDATA[
-            <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
-            Partial Class UserControl2
-            End Class
-        ]]>)
+        ParseAndVerify(
+"
+                       <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
+    Partial Class UserControl2
+    End Class
+")
     End Sub
 
     <WorkItem(863443, "DevDiv/Personal")>
     <Fact>
     Public Sub BC32017ERR_ArgumentSyntax()
-        ParseAndVerify(<![CDATA[
-            <attr(i+=1)> Class c9
-            <attr(l-=1)> Sub test()
-                         End Sub
-            End Class
-        ]]>,
+        ParseAndVerify(
+"
+<attr(i+=1)> Class c9
+<attr(l-=1)> Sub test()
+             End Sub
+End Class
+",
         <errors>
             <error id="32017"/>
             <error id="32017"/>
@@ -137,23 +145,25 @@ A>
     <WorkItem(877883, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseAssemblyAttributeFollowingComment()
-        ParseAndVerify(<![CDATA[
-            <Assembly: CLSCompliant(True)> 
+        ParseAndVerify(
+"
+<Assembly: CLSCompliant(True)> 
 
-            'The following GUID is for the ID of the typelib if this project is exposed to COM
-            <Assembly: Guid("2AFE637A-E02A-4693-BC30-6FFFAE6B415A")> 
-        ]]>)
+'The following GUID is for the ID of the typelib if this project is exposed to COM
+<Assembly: Guid(""2AFE637A-E02A-4693-BC30-6FFFAE6B415A"")> 
+")
     End Sub
 
     <WorkItem(877924, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30188_ParseAttribute_StandaloneAttribute()
-        ParseAndVerify(<![CDATA[
-            <CLSCompliant(True)> 
+        ParseAndVerify(
+"
+<CLSCompliant(True)> 
 
-            Class Class1
-            End Class
-        ]]>, <errors>
+Class Class1
+End Class
+", <errors>
                  <error id="32035" message="Attribute specifier is not a complete statement. Use a line continuation to apply the attribute to the following statement." start="13" end="33"/>
              </errors>)
     End Sub
@@ -161,14 +171,15 @@ A>
     <WorkItem(779720, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30182ERR_UnrecognizedType_AttributeBeforeInherits()
-        ParseAndVerify(<![CDATA[
-            Interface IMammals : End interface
-            Interface ICarnivore : <SomeAttribute()> Inherits : IMammals : End interface
-            Module Module1
-            Sub Main
-            End Sub
-            End module
-        ]]>,
+        ParseAndVerify(
+"
+Interface IMammals : End interface
+Interface ICarnivore : <SomeAttribute()> Inherits : IMammals : End interface
+Module Module1
+Sub Main
+End Sub
+End module
+",
             Diagnostic(ERRID.ERR_SpecifiersInvalidOnInheritsImplOpt, "<SomeAttribute()>"),
             Diagnostic(ERRID.ERR_UnrecognizedType, ""),
             Diagnostic(ERRID.ERR_ExpectedDeclaration, "IMammals"))
@@ -177,33 +188,35 @@ A>
     <WorkItem(881442, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseAttributeImplicitLineContinuation()
-        ParseAndVerify(<![CDATA[
-            <
-                Assembly: CLSCompliant(
-                True
-            )>
-        ]]>)
+        ParseAndVerify(
+"
+<
+    Assembly: CLSCompliant(
+    True
+)>
+")
     End Sub
 
     <WorkItem(894094, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC32015ERR_FileAttributeNotAssemblyOrModule()
-        ParseAndVerify(<![CDATA[
-            Option Strict On
+        ParseAndVerify(
+"
+Option Strict On
 
-            <Assembly: InternalsVisibleTo("FriendAsmMisc03-ClassLibrary1"), AssemblyName("MyFineAssembly")>
-            
-            Module M1
-            End Module
-        ]]>, Diagnostic(ERRID.ERR_FileAttributeNotAssemblyOrModule, ""))
+<Assembly: InternalsVisibleTo(""FriendAsmMisc03-ClassLibrary1""), AssemblyName(""MyFineAssembly"")>
+
+Module M1
+End Module
+", Diagnostic(ERRID.ERR_FileAttributeNotAssemblyOrModule, ""))
     End Sub
 
     <WorkItem(894094, "DevDiv/Personal")>
     <Fact>
     Public Sub BC32015ERR_FileAttributeNotAssemblyOrModule_ParseIncompleteAssemblyAttrib()
-        ParseAndVerify(<![CDATA[
-<Assembly: InternalsVisibleTo("FriendAsmMisc03-ClassLibrary1"),
-        ]]>, Diagnostic(ERRID.ERR_FileAttributeNotAssemblyOrModule, ""),
+        ParseAndVerify("
+<Assembly: InternalsVisibleTo(""FriendAsmMisc03-ClassLibrary1""),
+        ", Diagnostic(ERRID.ERR_FileAttributeNotAssemblyOrModule, ""),
              Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
              Diagnostic(ERRID.ERR_ExpectedGreater, ""))
     End Sub
@@ -211,12 +224,13 @@ A>
     <WorkItem(527027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527027")>
     <Fact>
     Public Sub BC30203_ParseMoreErrorStandaloneAttribute()
-        ParseAndVerify(<![CDATA[
-                      <Obsolete(),
-                           >
-                      Public Class c6
-                      End Class
-            ]]>,
+        ParseAndVerify(
+"
+<Obsolete(),
+     >
+Public Class c6
+End Class
+",
             <errors>
                 <error id="30203"/>
             </errors>)
@@ -225,11 +239,12 @@ A>
     <WorkItem(887804, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30188_ParseMoreErrorsStandaloneAttributeAndExpectedIdentifier()
-        ParseAndVerify(<![CDATA[
-                       Class c1
-                        <new()>
-                       End Class
-            ]]>,
+        ParseAndVerify(
+"
+Class c1
+ <new()>
+End Class
+",
             <errors>
                 <error id="30183"/>
             </errors>)
@@ -238,7 +253,7 @@ A>
     <WorkItem(537226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537226")>
     <Fact>
     Public Sub BC40008WRN_UseOfObsoleteSymbolNoMessage1()
-        Dim code = <![CDATA[
+        Dim code = "
 Friend Module Obsolete001mod
     
         Sub Obsolete001()
@@ -247,13 +262,13 @@ Friend Module Obsolete001mod
         >
         Static Dim i As Integer
 
-        'COMPILEWARNING : BC40008, "x" 
+        'COMPILEWARNING : BC40008, ""x"" 
         <Obsolete()> Static Dim x As XElement = <x>
                                                     <x><%= Nothing %></x>
                                                 </x>
     End Sub
 End Module
-]]>.Value
+"
 
         ParseAndVerify(code).VerifySpanOfChildWithinSpanOfParent()
     End Sub
@@ -261,7 +276,7 @@ End Module
     <WorkItem(537226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537226")>
     <Fact>
     Public Sub ParseAttributeBeforeStatic()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             <AttributeUsage(AttributeTargets.All)> _
 Class xml
     Inherits Attribute
@@ -283,7 +298,7 @@ Friend Module Attribute004mod
         Static x3 As Object
     End Sub
 End Module
-        ]]>, <errors>
+        ", <errors>
                  <error id="30660"/>
              </errors>)
     End Sub
@@ -291,9 +306,9 @@ End Module
     <WorkItem(569310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569310")>
     <Fact()>
     Public Sub ParseFileLevelAttributesWithExtraColon()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 <Assembly::
-]]>,
+",
             <errors>
                 <error id="30203" message="Identifier expected."/>
                 <error id="30636" message="'>' expected."/>
@@ -323,13 +338,13 @@ End Module
     Public Sub ParseFileLevelAttributesWithExtraColon_2()
         Const bug108689IsFixed = False
 
-        Dim source1 = <![CDATA[
+        Dim source1 = "
 <Assembly::A>
-]]>
+"
 
-        Dim source2 = <![CDATA[
+        Dim source2 = "
 <Module : : A>
-]]>.Value.Replace(":"c, FULLWIDTH_COLON)
+".Replace(":"c, FULLWIDTH_COLON)
 
         If bug108689IsFixed Then
             ParseAndVerify(source1,
@@ -353,9 +368,9 @@ End Module
     <WorkItem(570808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570808")>
     <Fact()>
     Public Sub ParseAttributeTargetOtherContextualKeyword()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 <Assembly:A,Async:B>
-]]>,
+",
             <errors>
                 <error id="32015" message="'Assembly' or 'Module' expected."/>
                 <error id="30636" message="'>' expected."/>
@@ -364,9 +379,9 @@ End Module
                 <error id="30201" message="Expression expected."/>
                 <error id="30201" message="Expression expected."/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 <Assembly:A,Other:B>
-]]>,
+",
             <errors>
                 <error id="32015" message="'Assembly' or 'Module' expected."/>
                 <error id="30636" message="'>' expected."/>
@@ -383,55 +398,55 @@ End Module
     <WorkItem(668159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/668159")>
     <Fact()>
     Public Sub EmptyAttributesList()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 <>
-]]>,
+",
             <errors>
                 <error id="30203" message="Identifier expected."/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 <>
 Friend Class C
 End Class
-]]>,
+",
             <errors>
                 <error id="30203" message="Identifier expected."/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 <
 >
 Class C
 End Class
-]]>,
+",
             <errors>
                 <error id="30203" message="Identifier expected."/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 < >
 Class C
 End Class
-]]>.Value.Replace("<"c, FULLWIDTH_LESS_THAN_SIGN).Replace(">"c, FULLWIDTH_GREATER_THAN_SIGN),
+".Replace("<"c, FULLWIDTH_LESS_THAN_SIGN).Replace(">"c, FULLWIDTH_GREATER_THAN_SIGN),
             <errors>
                 <error id="30203" message="Identifier expected."/>
             </errors>)
-        ParseAndVerify(String.Format(<![CDATA[
+        ParseAndVerify($"
 Class C
 
-    <{0}{1}{2}>
+    <{" "c}{vbTab}{NO_BREAK_SPACE}>
     Sub M()
     End Sub
 End Class
-]]>.Value, " "c, vbTab, NO_BREAK_SPACE),
+",
             <errors>
                 <error id="30203" message="Identifier expected."/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Class C
     Sub M()
         <>
     End Sub
 End Class
-]]>,
+",
             <errors>
                 <error id="30035" message="Syntax error."/>
             </errors>)
