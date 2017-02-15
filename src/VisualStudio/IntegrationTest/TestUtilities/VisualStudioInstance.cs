@@ -29,6 +29,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public Editor_OutOfProc Editor { get; }
 
+        public FindUsagesWindow_OutOfProc FindUsagesWindow { get; }
+
+        public Shell_OutOfProc Shell { get; }
+
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
 
         public VisualStudioWorkspace_OutOfProc VisualStudioWorkspace { get; }
@@ -58,6 +62,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             CSharpInteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
+            FindUsagesWindow = new FindUsagesWindow_OutOfProc(this);
+            Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             VisualStudioWorkspace = new VisualStudioWorkspace_OutOfProc(this);
 
