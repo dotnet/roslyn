@@ -325,6 +325,7 @@ class C
             Assert.Null(model.GetTypeInfo(def).Type);
             Assert.Equal("System.Int32", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.Equal("", model.GetConstantValue(def).Value.ToString()); // crash
         }
 
         [Fact]
