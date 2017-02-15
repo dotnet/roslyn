@@ -51,44 +51,12 @@ Public Class VisualBasicParseOptionsTests
         Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(CType(Nothing, ImmutableArray(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
         Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(DirectCast(Nothing, IEnumerable(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
         Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).WithPreprocessorSymbols(DirectCast(Nothing, KeyValuePair(Of String, Object)())).PreprocessorSymbols.Length)
-
-        Dim syms2 = {New KeyValuePair(Of String, Object)("A", 1),
-                     New KeyValuePair(Of String, Object)("B", New List(Of String)()),
-                     New KeyValuePair(Of String, Object)("C", 3)}
-
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms2))
-        Assert.Throws(Of ArgumentException)(Function() VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms2))
     End Sub
 
     <Fact>
     Public Sub ConstructorValidation()
         Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(kind:=DirectCast(Int32.MaxValue, SourceCodeKind)))
         Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(languageVersion:=DirectCast(1000, LanguageVersion)))
-    End Sub
-
-    <Fact, WorkItem(546206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546206")>
-    Public Sub InvalidDefineSymbols()
-
-        ' Command line: error BC31030: Project-level conditional compilation constant 'xxx' is not valid: Identifier expected
-
-        Dim syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("", 1))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
-
-        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)(" ", 1))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
-
-        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("Good", 1),
-                                     New KeyValuePair(Of String, Object)(Nothing, 2))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
-
-        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("Good", 1),
-                                     New KeyValuePair(Of String, Object)("Bad.Symbol", 2))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
-
-        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("123", 1),
-                                     New KeyValuePair(Of String, Object)("Bad/Symbol", 2),
-                                     New KeyValuePair(Of String, Object)("Good", 3))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
     End Sub
 
     <Fact>
@@ -264,4 +232,42 @@ Public Class VisualBasicParseOptionsTests
                 "PreprocessorSymbols",
                 "SpecifiedLanguageVersion")
     End Sub
+
+    <WorkItem(15900, "https://github.com/dotnet/roslyn/issues/15900")>
+    <Fact>
+    Public Sub ConstructingCSharpParseOptionstWithInvalidPreProcessorSymbolsShouldNotProduceErrors()
+        Dim dict = New Dictionary(Of String, Object)
+        dict.Add("valid1", Nothing)
+        dict.Add("2", Nothing)
+
+        Dim options = New VisualBasicParseOptions(preprocessorSymbols:=dict)
+
+        AssertEx.SetEqual(dict.Keys, options.PreprocessorSymbolNames)
+    End Sub
+
+    <WorkItem(15900, "https://github.com/dotnet/roslyn/issues/15900")>
+    <Fact>
+    Public Sub ConstructingCSharpParseOptionstWithInvalidPreProcessorSymbolsShouldNotProduceErrors_Full()
+        Dim symbols = New Dictionary(Of String, Object)
+        symbols.Add("valid1", Nothing)
+        symbols.Add("2", Nothing)
+
+        Dim features = ImmutableDictionary(Of String, String).Empty
+        Dim options = New VisualBasicParseOptions(LanguageVersion.Latest, DocumentationMode.None, SourceCodeKind.Regular, symbols, features)
+
+        AssertEx.SetEqual(symbols.Keys, options.PreprocessorSymbolNames)
+    End Sub
+
+    <WorkItem(15900, "https://github.com/dotnet/roslyn/issues/15900")>
+    <Fact>
+    Public Sub ConstructingCSharpParseOptionstWithInvalidPreProcessorSymbolsHelperShouldNotProduceErrors()
+        Dim dict = New Dictionary(Of String, Object)
+        dict.Add("valid1", Nothing)
+        dict.Add("2", Nothing)
+
+        Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(dict)
+
+        AssertEx.SetEqual(dict.Keys, options.PreprocessorSymbolNames)
+    End Sub
+
 End Class

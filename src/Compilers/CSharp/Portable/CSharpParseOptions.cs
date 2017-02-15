@@ -65,17 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 throw new ArgumentOutOfRangeException(nameof(kind));
             }
-
-            if (preprocessorSymbols != null)
-            {
-                foreach (var preprocessorSymbol in preprocessorSymbols)
-                {
-                    if (!SyntaxFacts.IsValidIdentifier(preprocessorSymbol))
-                    {
-                        throw new ArgumentException($"{nameof(preprocessorSymbols)} contains a symbol that is not a valid identifier", nameof(preprocessorSymbols));
-                    }
-                }
-            }
         }
 
         internal CSharpParseOptions(

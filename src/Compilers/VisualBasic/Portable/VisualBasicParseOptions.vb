@@ -50,8 +50,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not kind.IsValid Then
                 Throw New ArgumentOutOfRangeException(NameOf(kind))
             End If
-
-            ValidatePreprocessorSymbols(preprocessorSymbols, NameOf(preprocessorSymbols))
         End Sub
 
         Friend Sub New(
@@ -77,33 +75,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentOutOfRangeException(NameOf(kind))
             End If
 
-            ValidatePreprocessorSymbols(preprocessorSymbols, NameOf(preprocessorSymbols))
-
             If features Is Nothing Then
                 Throw New ArgumentException(NameOf(features))
             End If
-        End Sub
-
-        Private Shared Sub ValidatePreprocessorSymbols(preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)),
-                                                       parameterName As String)
-            If preprocessorSymbols Is Nothing Then
-                Return
-            End If
-
-            For Each symbol In preprocessorSymbols
-                If Not IsValidIdentifier(symbol.Key) OrElse
-                   SyntaxFacts.GetKeywordKind(symbol.Key) <> SyntaxKind.None Then
-
-                    Throw New ArgumentException(parameterName)
-                End If
-
-                Debug.Assert(SyntaxFactory.ParseTokens(symbol.Key).Select(Function(t) t.Kind).SequenceEqual({SyntaxKind.IdentifierToken, SyntaxKind.EndOfFileToken}))
-
-                Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
-                If constant Is Nothing Then
-                    Throw New ArgumentException(String.Format(VBResources.IDS_InvalidPreprocessorConstantType, symbol.Key, symbol.Value.GetType()), parameterName)
-                End If
-            Next
         End Sub
 
         ' Does not perform validation.
@@ -272,8 +246,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If symbols.Equals(Me.PreprocessorSymbols) Then
                 Return Me
             End If
-
-            ValidatePreprocessorSymbols(symbols, NameOf(symbols))
 
             Return New VisualBasicParseOptions(Me) With {._preprocessorSymbols = symbols}
         End Function

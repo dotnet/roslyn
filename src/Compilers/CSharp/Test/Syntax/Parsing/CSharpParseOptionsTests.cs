@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -44,15 +45,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             Assert.Throws<ArgumentOutOfRangeException>(() => new CSharpParseOptions(languageVersion: (LanguageVersion)1000));
         }
 
-        [Fact(), WorkItem(546206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546206")]
-        public void InvalidDefineSymbols()
+        [WorkItem(15900, "https://github.com/dotnet/roslyn/issues/15900")]
+        [Fact]
+        public void ConstructingCSharpParseOptionstWithInvalidPreProcessorSymbolsShouldNotProduceErrors()
         {
-            // command line gives CS2029: Invalid value for '/define'; 'xxx' is not a valid identifier
-            Assert.Throws<ArgumentException>(() => new CSharpParseOptions(preprocessorSymbols: ImmutableArray.Create<string>("")));
-            Assert.Throws<ArgumentException>(() => new CSharpParseOptions(preprocessorSymbols: ImmutableArray.Create<string>(" ")));
-            Assert.Throws<ArgumentException>(() => new CSharpParseOptions(preprocessorSymbols: ImmutableArray.Create<string>("Good", "Bad.Symbol")));
-            Assert.Throws<ArgumentException>(() => new CSharpParseOptions(preprocessorSymbols: ImmutableArray.Create<string>("123", "Good")));
-            Assert.Throws<ArgumentException>(() => new CSharpParseOptions(preprocessorSymbols: ImmutableArray.Create<string>("Good", null, @"Bad\Symbol")));
+            var symbols = new string[] { "valid1", "2invalid" };
+            var options = new CSharpParseOptions(preprocessorSymbols: symbols);
+
+            AssertEx.SetEqual(symbols, options.PreprocessorSymbolNames);
+        }
+
+        [WorkItem(15900, "https://github.com/dotnet/roslyn/issues/15900")]
+        [Fact]
+        public void ConstructingCSharpParseOptionstWithInvalidPreProcessorSymbolsHelperShouldNotProduceErrors()
+        {
+            var symbols = new string[] { "valid1", "2invalid" };
+            var options = new CSharpParseOptions().WithPreprocessorSymbols(new string[] { "valid1", "2invalid" });
+
+            AssertEx.SetEqual(symbols, options.PreprocessorSymbolNames);
         }
 
         /// <summary>
