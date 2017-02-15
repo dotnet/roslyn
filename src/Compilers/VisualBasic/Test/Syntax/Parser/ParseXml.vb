@@ -11,16 +11,16 @@ Public Class ParseXml
     <Fact>
     Public Sub ParseElement()
         ' Basic xml literal test
-        ParseAndVerify(<![CDATA[
-                Module m1
-                    dim x  = <a> 
-                                <b>
-                                    aa
-                                </b> 
-                             </a>
-                    Dim x = <a b="1" c=<%= 2 %>>hello<!-- comment --><?pi target ?></a>
-                End Module
-            ]]>)
+        ParseAndVerify(
+"Module m1
+    dim x  = <a> 
+                <b>
+                    aa
+                </b> 
+             </a>
+    Dim x = <a b=""1"" c=<%= 2 %>>hello<!-- comment --><?pi target ?></a>
+End Module
+")
         'Dim x = <a b="1" c=<%= 2 %>></a>
     End Sub
 
@@ -28,9 +28,10 @@ Public Class ParseXml
     Public Sub ParseCDATA()
         ' Basic xml literal test
 
-        ParseAndVerify("Module m1" & vbCrLf &
-            "Dim x = <a><![CDATA[abcde]]></a>" & vbCrLf &
-            "End Module")
+        ParseAndVerify(
+"Module m1
+Dim x = <a><![CDATA[abcde]]></a>
+End Module")
 
     End Sub
 
@@ -38,11 +39,10 @@ Public Class ParseXml
     Public Sub ParseEmbeddedExpression()
         ' Basic xml literal test
 
-        ParseAndVerify(<![CDATA[
-                Module m1
-                    dim y  = <a><%= 1 %></a>
-                End Module
-            ]]>)
+        ParseAndVerify(
+"Module m1
+    dim y  = <a><%= 1 %></a>
+End Module")
 
     End Sub
 
@@ -58,10 +58,10 @@ Module M
     End Sub
 End Module
 
-            ]]>,
-            Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, vbLf),
-            Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "        "),
-            Diagnostic(ERRID.ERR_ExpectedXmlName, "x"))
+]]>,
+            Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, vbLf).WithLocation(4,28),
+            Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "        ").WithLocation(5,1),
+            Diagnostic(ERRID.ERR_ExpectedXmlName, "x").WithLocation(5,9))
 
     End Sub
 
@@ -69,12 +69,11 @@ End Module
     Public Sub ParseFWPercent()
         ' Basic xml literal test
 
-        ParseAndVerify(<![CDATA[
-Module M
-    Dim x = <x y=<%= 1 ]]>.Value & ChrW(65285) & <![CDATA[>/>
-End Module
-
-            ]]>.Value)
+        ParseAndVerify(
+"Module M
+    Dim x = <x y=<%= 1 " & ChrW(65285) & ">/>
+End Module"
+)
 
     End Sub
 
@@ -82,16 +81,14 @@ End Module
     Public Sub ParseAccessorSpaceDisallowed()
         ' Basic xml literal test
 
-        ParseAndVerify(<![CDATA[
-Module M
+        ParseAndVerify(
+"Module M
     Dim x = <x/>.@ _
     x
 
     Dim y = <y/>.@
     y
-End Module
-
-            ]]>,
+End Module",
             <errors>
                 <error id="31146"/>
                 <error id="31146"/>
@@ -113,67 +110,59 @@ Module Program
 End Module
 VB
 
-            ]]>,
-        Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, vbLf),
-        Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "             "),
-        Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, " "),
-        Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "VB"))
+]]>,
+        Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, vbLf).WithLocation(3,19),
+        Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "             ").WithLocation(4,1),
+        Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, " ").WithLocation(6,20),
+        Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "VB").WithLocation(8,1))
 
     End Sub
 
-    <WorkItem(531396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531396")>
-    <Fact()>
+    <Fact(),WorkItem(531396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531396")>
     Public Sub ParseEmbeddedExpressionAttributeNoSpace()
-        ParseAndVerify(<![CDATA[
-Module M
+        ParseAndVerify(
+"Module M
     Private x = <x<%= Nothing %>/>
 End Module
-]]>)
+")
         ' Dev11 does not allow this case.
-        ParseAndVerify(<![CDATA[
-Module M
-    Private x = <x<%="a"%>="b"/>
-End Module
-]]>)
-        ParseAndVerify(<![CDATA[
-Module M
-    Private x = <x a="b"c="d"/>
-End Module
-]]>,
+        ParseAndVerify(
+"Module M
+    Private x = <x<%=""a""%>=""b""/>
+End Module")
+        ParseAndVerify(
+"Module M
+    Private x = <x a=""b""c=""d""/>
+End Module",
             Diagnostic(ERRID.ERR_ExpectedXmlWhiteSpace, "c"))
-        ParseAndVerify(<![CDATA[
-Module M
-    Private x = <x a="b"<%= Nothing %>/>
-End Module
-]]>)
-        ParseAndVerify(<![CDATA[
-Module M
-    Private x = <x <%= Nothing %>a="b"/>
-End Module
-]]>,
+        ParseAndVerify(
+"Module M
+    Private x = <x a=""b""<%= Nothing %>/>
+End Module")
+        ParseAndVerify(
+"Module M
+    Private x = <x <%= Nothing %>a=""b""/>
+End Module",
             Diagnostic(ERRID.ERR_ExpectedXmlWhiteSpace, "a"))
-        ParseAndVerify(<![CDATA[
-Module M
+        ParseAndVerify(
+"Module M
     Private x = <x <%= Nothing %><%= Nothing %>/>
-End Module
-]]>)
+End Module")
         ' Dev11 does not allow this case.
-        ParseAndVerify(<![CDATA[
-Module M
-    Private x = <x <%="a"%>="b"<%="c"%>="d"/>
-End Module
-]]>)
+        ParseAndVerify(
+"Module M
+    Private x = <x <%=""a""%>=""b""<%=""c""%>=""d""/>
+End Module")
     End Sub
 
     <Fact>
     Public Sub ParseEmbeddedExpressionAttributeSpace()
         ' Basic xml literal test
 
-        ParseAndVerify(<![CDATA[
-Module M1
-    Dim x = <x <%= "a" %>=""/>
-End Module
-            ]]>)
+        ParseAndVerify(
+"Module M1
+    Dim x = <x <%= ""a"" %>=""""/>
+End Module")
 
     End Sub
 
@@ -181,13 +170,12 @@ End Module
     Public Sub BC31169ERR_IllegalXmlStartNameChar_ParseMissingGT()
         ' Basic xml literal test
 
-        ParseAndVerify(<![CDATA[
-                Module m1
-                    dim y1  = <a  / >
-                    dim y2 = <a    </a>
-                    dim y3 = <a ? ? ?</a>
-                End Module
-            ]]>, <errors>
+        ParseAndVerify(
+"Module m1
+    dim y1  = <a  / >
+    dim y2 = <a    </a>
+    dim y3 = <a ? ? ?</a>
+End Module", <errors>
                      <error id="31177"/>
                      <error id="30636"/>
                      <error id="31169"/>
@@ -198,20 +186,17 @@ End Module
 
     End Sub
 
-    <WorkItem(641680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641680")>
-    <Fact>
+    <Fact, WorkItem(641680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641680")>
     Public Sub ParseDocumentationComment()
-        ParseAndVerify(<![CDATA[
-''' <summary?
+        ParseAndVerify(
+"''' <summary?
 Class C
-End Class
-            ]]>)
+End Class")
 
-        ParseAndVerify(<![CDATA[
-''' <summary?
+        ParseAndVerify(
+"''' <summary?
 Class C
-End Class
-            ]]>,
+End Class",
             VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
             <errors>
                 <error id="42304"/>
@@ -221,69 +206,59 @@ End Class
             </errors>)
     End Sub
 
-    <WorkItem(641680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641680")>
-    <Fact>
+    <Fact, WorkItem(641680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641680")>
     Public Sub ParseDocumentationComment2()
-        ParseAndVerify(<![CDATA[
-''' <summary/>
+        ParseAndVerify(
+"''' <summary/>
 Class C
-End Class
-            ]]>)
+End Class")
     End Sub
 
-    <WorkItem(551848, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551848")>
-    <Fact()>
+    <Fact, WorkItem(551848, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551848")>
     Public Sub KeywordAndColonInXmlAttributeAccess()
-        ParseAndVerify(<![CDATA[
-Module M
+        ParseAndVerify(
+"Module M
     Sub M(x As Object)
         x = x.@Sub:a
     End Sub
-End Module
-]]>)
-        ParseAndVerify(<![CDATA[
-Module M
+End Module")
+        ParseAndVerify(
+"Module M
     Sub M(x As Object)
         x = x.@p:Sub
     End Sub
-End Module
-]]>)
+End Module"
+)
     End Sub
 
     <Fact>
     Public Sub Regress12668_NoEscapingOfAttrAxis()
         ' Basic xml literal test
 
-        ParseAndVerify(<![CDATA[
-Module M
+        ParseAndVerify(
+"Module M
     Sub M(x As Object)
         x = x.@[Sub]
     End Sub
-End Module
-]]>,
+End Module",
             <errors>
                 <error id="31146"/>
             </errors>)
-        ParseAndVerify(<![CDATA[
-Module M
+        ParseAndVerify(
+"Module M
     Sub M(x As Object)
         x = x.@[Sub]:a
     End Sub
-End Module
-]]>,
+End Module",
             <errors>
                 <error id="31146"/>
             </errors>)
-        ParseAndVerify(<![CDATA[
-Module M
+        ParseAndVerify(
+"Module M
     Sub M(x As Object)
         x = x.@p:[Sub]
     End Sub
-End Module
-]]>,
-            <errors>
-                <error id="31146"/>
-            </errors>)
+End Module", <errors><error id="31146"/></errors>)
 
     End Sub
 
@@ -291,23 +266,19 @@ End Module
     Public Sub Regress12664_IllegalXmlNameChars()
         ' Basic xml literal test
 
-        ParseAndVerify(<![CDATA[
-Module M
+        ParseAndVerify(
+"Module M
     Dim x = <a/>.@豈
     Dim y = <a/>.@a豈
-End Module
-
-            ]]>, <errors>
+End Module", <errors>
                      <error id="31169"/>
                      <error id="31170"/>
                  </errors>)
-        ParseAndVerify(<![CDATA[
-Module M
+        ParseAndVerify(
+"Module M
     Dim x = <a/>.@ｘml:y
     Dim y = <a/>.@xｍl:y
-End Module
-
-            ]]>, <errors>
+End Module", <errors>
                      <error id="31169"/>
                      <error id="31170"/>
                  </errors>)
@@ -318,13 +289,12 @@ End Module
     Public Sub BC31159ERR_ExpectedXmlEndEmbedded_ParseMissingEmbbedErrorRecovery()
         ' Basic xml literal test
 
-        ParseAndVerify(<![CDATA[
-          module m1
-            sub s
-            dim x = <a a1=<%=1 <!-- comment --> </a>
-            end sub
-            end module
-            ]]>, <errors>
+        ParseAndVerify(
+"module m1
+  sub s
+  dim x = <a a1=<%=1 <!-- comment --> </a>
+  end sub
+  end module", <errors>
                      <error id="31159"/>
                  </errors>)
 
@@ -335,11 +305,10 @@ End Module
     Public Sub BC30636ERR_ExpectedGreater_ParseMissingGreaterTokenInEndElement()
         ' Basic xml literal test
 
-        ParseAndVerify(<![CDATA[
-            module m1
-                dim x = <a b="1" c =<%= 2 + 3 %>></a
-            end module
-            ]]>, <errors>
+        ParseAndVerify(
+"module m1
+    dim x = <a b=""1"" c =<%= 2 + 3 %>></a
+end module", <errors>
                      <error id="30636"/>
                  </errors>)
 
@@ -350,14 +319,14 @@ End Module
     Public Sub ParseAttributeMemberAccess()
         ' Test attribute member syntax
 
-        ParseAndVerify(<![CDATA[
-            module m1
-            dim a1=p.@a:b
+        ParseAndVerify(
+"module m1
+dim a1=p.@a:b
 
-            dim a1=p.
-                @a:b
-            end module
-            ]]>)
+dim a1=p.
+    @a:b
+end module"
+)
 
     End Sub
 
@@ -365,14 +334,14 @@ End Module
     Public Sub ParseElementMemberAccess()
         ' Test attribute member syntax
 
-        ParseAndVerify(<![CDATA[
-            module m1
-            dim a1=p.<a:b>
+        ParseAndVerify(
+"module m1
+dim a1=p.<a:b>
 
-            dim a2=p.
-                    <a:b>
-            end module
-            ]]>)
+dim a2=p.
+        <a:b>
+end module"
+)
 
     End Sub
 
@@ -380,14 +349,14 @@ End Module
     Public Sub ParseDescendantMemberAccess()
         ' Test attribute member syntax
 
-        ParseAndVerify(<![CDATA[
-            module m1
-            dim a1=p...<a:b>
+        ParseAndVerify(
+"module m1
+dim a1=p...<a:b>
 
-            dim a2=p...
-                <a:b>
-            end module
-            ]]>)
+dim a2=p...
+    <a:b>
+end module"
+)
 
     End Sub
 
