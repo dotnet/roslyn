@@ -14,22 +14,22 @@ Public Class ParseDirectives
 
     <Fact>
     Public Sub ParseConstDirective()
-        ParseAndVerify(<![CDATA[
-            #const DEBUG=true
-            Module Module1
-            End Module
-        ]]>)
+        ParseAndVerify("
+#const DEBUG=true
+Module Module1
+End Module
+")
     End Sub
 
     <Fact>
     Public Sub ParseReferenceDirective()
-        ParseAndVerify(<![CDATA[
-            #r "reference"
-        ]]>, TestOptions.Script)
+        ParseAndVerify("
+#r ""reference""
+", TestOptions.Script)
 
-        ParseAndVerify(<![CDATA[
-            #r "reference"
-        ]]>,
+        ParseAndVerify("
+#r ""reference""
+",
         <errors>
             <error id="36964" message="#R is only allowed in scripts" start="14" end="15"/>
         </errors>)
@@ -37,7 +37,7 @@ Public Class ParseDirectives
 
     <Fact>
     Public Sub FloatsAndUnaryNot()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Imports System
 Imports Microsoft.VisualBasic
 'Type Types
@@ -159,29 +159,30 @@ Module Module1
     End Sub
 End Module
 
-        ]]>)
+")
     End Sub
 
     <WorkItem(545871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545871")>
     <Fact>
     Public Sub FW_Hash()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify(
+"
 ＃If True Then
 ＃Else
 ＃End If
 
-        ]]>)
+")
     End Sub
 
 
     <WorkItem(679758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679758")>
     <Fact>
     Public Sub TypeCharMismatch()
-        ParseAndVerify(<![CDATA[
-#Const C2 = "."c
+        ParseAndVerify("
+#Const C2 = "".""c
 #If C2% = 1 Then
 #End If
-        ]]>,
+",
         <errors>
             <error id="31427" message="Syntax error in conditional compilation expression." start="18" end="34"/>
         </errors>
@@ -192,7 +193,7 @@ End Module
     <WorkItem(658448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658448")>
     <Fact>
     Public Sub FullWidthDirective()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 
 #Const x = 1
 
@@ -211,18 +212,18 @@ End Module
 #End Ｒｅｇｉｏｎ
 #End If
 
-        ]]>)
+")
     End Sub
 
     <Fact>
     Public Sub PreprocessorSkipped001()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False Then
 ' _
 #End If
 
 #If False Then
-' " _
+' "" _
 #End If
 
 #If False Then
@@ -240,7 +241,7 @@ End Module
 
 #If False Then
 
-#if <!-- %% ~ "garbage ' REM # _
+#if <!-- %% ~ ""garbage ' REM # _
 #End If
 
 #End If
@@ -252,18 +253,18 @@ End Module
   also disabled
 #End If
 #End If
-        ]]>)
+")
     End Sub
 
     <Fact>
     Public Sub PreprocessorSkipped001Err()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False Then
 #Const X = <!--
 #Else
 -->
 #End If
-        ]]>,
+",
         <errors>
             <error id="30035" message="Syntax error." start="38" end="39"/>
         </errors>)
@@ -272,18 +273,18 @@ End Module
     <WorkItem(531493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531493")>
     <Fact>
     Public Sub Repro18189()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False Then
 REM _
 #End If
 
-        ]]>)
+")
     End Sub
 
     <WorkItem(697520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697520")>
     <Fact>
     Public Sub BigShift()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 
 Module Module1
 
@@ -305,7 +306,7 @@ End Module
                 BlahBlah
 #End If
 
-        ]]>,
+",
     Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "BlahBlah"),
     Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "BlahBlah")
 )
@@ -314,20 +315,20 @@ End Module
     <WorkItem(530921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530921")>
     <Fact>
     Public Sub Repro17195()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False Then
 #If _
 _
 #End If
 #End If
 
-        ]]>)
+")
     End Sub
 
     <WorkItem(530679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530679")>
     <Fact>
     Public Sub Repro16694()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False Then
 #If False Then
 #End If ' _ _
@@ -344,15 +345,15 @@ Module M1
 End Module
 #End If ' _ _
 
-        ]]>)
+")
     End Sub
 
     <WorkItem(545871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545871")>
     <Fact>
     Public Sub ParseIfDirectiveWithCChar()
-        ParseAndVerify(<![CDATA[
-            #If CChar("")
-        ]]>,
+        ParseAndVerify("
+#If CChar("""")
+",
         <errors>
             <error id="30311" message="Value of type 'Char' cannot be converted to 'Boolean'." start="13" end="26"/>
             <error id="30012" message="'#If' block must end with a matching '#End If'." start="35" end="35"/>
@@ -362,60 +363,60 @@ End Module
 
     <Fact>
     Public Sub ParseEnabledIfDirective()
-        ParseAndVerify(<![CDATA[
-            #const DEBUG=true
-            #if DEBUG
-            ' This is for debug and will not be skipped
-            class c1
-                Sub s
-                end sub
-            end class
-            #end if
+        ParseAndVerify("
+#const DEBUG=true
+#if DEBUG
+' This is for debug and will not be skipped
+class c1
+    Sub s
+    end sub
+end class
+#end if
 
-            Module Module1
-            End Module
-        ]]>)
+Module Module1
+End Module
+")
     End Sub
 
     <Fact>
     Public Sub ParseDisabledIfDirective()
-        ParseAndVerify(<![CDATA[
-            #const DEBUG=false
-            #if DEBUG
-            ' This should be disabled
-            class c1
-                Sub s
-                end sub
-            end class
-            #end if
+        ParseAndVerify("
+#const DEBUG=false
+#if DEBUG
+' This should be disabled
+class c1
+    Sub s
+    end sub
+end class
+#end if
 
-            Module Module1
-            End Module
-        ]]>)
+Module Module1
+End Module
+")
     End Sub
 
     <WorkItem(538581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538581")>
     <Fact>
     Public Sub ParseDisabledIfDirectiveWithBad()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False Then
 ##EndIf
 #End If
-            Module Module1
-            End Module
-        ]]>)
+Module Module1
+End Module
+")
     End Sub
 
     <WorkItem(528617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528617")>
     <Fact>
     Public Sub LineContinuationInDisabledText()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False
-#Const x = <!--"--> _
+#Const x = <!--""--> _
 #End If
 #End If
 
-        ]]>,
+",
         <errors>
             <error id="30013"/>
         </errors>)
@@ -424,17 +425,17 @@ End Module
     <WorkItem(545211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545211")>
     <Fact>
     Public Sub FunctionKeywordInDisabledText()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False Then
 #Const = Function  
 #End If
-        ]]>)
+")
     End Sub
 
     <WorkItem(586984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586984")>
     <Fact>
     Public Sub DW_Underscore()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module Module1
 
     Sub Main()
@@ -457,13 +458,13 @@ End Module
 Region
 #End If
 #End If
-        ]]>)
+")
     End Sub
 
     <WorkItem(586984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586984")>
     <Fact>
     Public Sub DW_Underscore_001()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module Module1
 
     Sub Main()
@@ -486,7 +487,7 @@ End Module
 Region
 #End If
 #End If
-        ]]>.Value.Replace("_"c, SyntaxFacts.FULLWIDTH_LOW_LINE),
+".Replace("_"c, SyntaxFacts.FULLWIDTH_LOW_LINE),
     Diagnostic(ERRID.ERR_ExpectedEndIf, "If "),
     Diagnostic(ERRID.ERR_ExpectedExpression, ""),
     Diagnostic(ERRID.ERR_ExpectedIdentifier, "＿"),
@@ -501,7 +502,7 @@ Region
     <WorkItem(538578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538578")>
     <Fact>
     Public Sub ParseDisabledIfDirectiveWithUnderscore()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #if true
 Module M
 #If False
@@ -520,49 +521,50 @@ _ _
 
 #End If
 
-        ]]>)
+")
     End Sub
 
     <Fact>
     Public Sub ParseIfElseIfDirective()
-        ParseAndVerify(<![CDATA[
-            #const DEBUG=false
-            #if DEBUG
-            ' This should be disabled
-            class c1
-                Sub s
-                end sub
-            end class
-            #Elseif IDE
-            ' This should also be disabled
-            class c2
-                Sub s2
-                end sub
-            end class
-            #end if
-            Module Module1
-            End Module
-        ]]>)
+        ParseAndVerify(
+"
+#const DEBUG=false
+#if DEBUG
+' This should be disabled
+class c1
+    Sub s
+    end sub
+end class
+#Elseif IDE
+' This should also be disabled
+class c2
+    Sub s2
+    end sub
+end class
+#end if
+Module Module1
+End Module
+")
     End Sub
 
     <Fact>
     Public Sub BC30028ERR_LbElseNoMatchingIf_ParseElseBeforeIfDirective()
-        ParseAndVerify(<![CDATA[
-            #const DEBUG=false
-            class c1
-                Sub s
-                end sub
-            end class
-            ' Else without a preceding #if
-            #Else
-            class c2
-                Sub s2
-                end sub
-            end class
-            #end if
-            Module Module1
-            End Module
-        ]]>,
+        ParseAndVerify("
+#const DEBUG=false
+class c1
+    Sub s
+    end sub
+end class
+' Else without a preceding #if
+#Else
+class c2
+    Sub s2
+    end sub
+end class
+#end if
+Module Module1
+End Module
+",
         <Errors>
             <error id="30028"/>
         </Errors>)
@@ -571,13 +573,13 @@ _ _
     <WorkItem(880778, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30012_ParsePreprocessorIf()
-        ParseAndVerify(<![CDATA[
-            Module Module1
-                Sub Main()
-            #If CONFIG Then
-                End Sub
-            End Module
-        ]]>,
+        ParseAndVerify("
+Module Module1
+    Sub Main()
+#If CONFIG Then
+    End Sub
+End Module
+",
         <errors>
             <error id="30026"/>
             <error id="30625"/>
@@ -588,10 +590,10 @@ _ _
     <WorkItem(542109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542109")>
     <Fact>
     Public Sub BC30277_ParseConstTypeChar()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #Const X% = 1
 #Const Y = X$
-        ]]>,
+",
         <errors>
             <error id="30277"/>
         </errors>)
@@ -600,34 +602,34 @@ _ _
     <WorkItem(541882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541882")>
     <Fact>
     Public Sub ParseConstWithLineContinuation()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False
 #Const x = 1 ' _
 #End If 
 
-        ]]>)
+")
     End Sub
 
     <Fact>
     Public Sub ParseWithLineContinuation()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False
 blah _
 #End If 
 
-        ]]>)
+")
     End Sub
 
     <WorkItem(528617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528617")>
     <Fact()>
     Public Sub ParseConstWithLineContinuation1()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False
-#Const x = <!--"--> _
+#Const x = <!--""--> _
 #End If
 #End If
 
-        ]]>,
+",
         <errors>
             <error id="30013" message="'#ElseIf', '#Else', or '#End If' must be preceded by a matching '#If'." start="41" end="48"/>
         </errors>)
@@ -637,38 +639,38 @@ blah _
     <WorkItem(538488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538488")>
     <Fact>
     Public Sub ParseLiteralIfDirective()
-        ParseAndVerify(<![CDATA[
-            #if 1D < 0
-                blah blah
-            #end if
+        ParseAndVerify("
+#if 1D < 0
+    blah blah
+#end if
 
-            #if 1D > 0
-                Class cls1
-            #end if
+#if 1D > 0
+    Class cls1
+#end if
 
-            End Class
+End Class
 
-            #if 1.1 < 0
-                blah blah
-            #end if
+#if 1.1 < 0
+    blah blah
+#end if
 
-            #Const Scen2 = 1.1D
+#Const Scen2 = 1.1D
 
-            #If Scen2 <> 1.1D Then
-                lala
-            #End IF
+#If Scen2 <> 1.1D Then
+    lala
+#End IF
 
-            Module Module1
-            End Module
-        ]]>)
+Module Module1
+End Module
+")
     End Sub
 
     <WorkItem(538486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538486")>
     <Fact>
     Public Sub ParseNothingStringCompare()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #Const A = Nothing
-#Const B = ""
+#Const B = """"
 #If A = B Then
 Class X
 #End If
@@ -684,20 +686,20 @@ Class Z
 Class Z
 #End If
 End Class
-        ]]>)
+")
     End Sub
 
     <WorkItem(536090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536090")>
     <Fact>
     Public Sub BC30035ERR_Syntax_ParsePreprocessorIfAfterLineTerminator()
-        ParseAndVerify(<![CDATA[
-            Module Module1
-                Sub Main()
-                    Dim x : #If CONFIG Then
-            #End If
-                End Sub
-            End Module
-        ]]>,
+        ParseAndVerify("
+Module Module1
+    Sub Main()
+        Dim x : #If CONFIG Then
+#End If
+    End Sub
+End Module
+",
         <errors>
             <error id="30035"/>
             <error id="30013"/>
@@ -707,14 +709,14 @@ End Class
     <WorkItem(538589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538589")>
     <Fact>
     Public Sub ParsePreprocessorSeparatedWithColon()
-        ParseAndVerify(<![CDATA[
-            Module Module1
-                Sub Main()
+        ParseAndVerify("
+Module Module1
+    Sub Main()
 #If False Then : #Else
 #End If
-                End Sub
-            End Module
-        ]]>,
+    End Sub
+End Module
+",
         <errors>
             <error id="30205"/>
         </errors>)
@@ -723,21 +725,21 @@ End Class
     <WorkItem(881425, "DevDiv/Personal")>
     <Fact>
     Public Sub ParsePreprocessorIfNested()
-        ParseAndVerify(<![CDATA[
-            #If FIRST Then
-            #If SECOND
-            #End If
-            #End If
-        ]]>)
+        ParseAndVerify("
+#If FIRST Then
+#If SECOND
+#End If
+#End If
+")
     End Sub
 
     <WorkItem(881437, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30826ERR_ObsoleteEndIf_ParsePreprocessorIfEndIfNoSpace()
-        ParseAndVerify(<![CDATA[
-            #If true
-            #Endif
-        ]]>,
+        ParseAndVerify("
+#If true
+#Endif
+",
         <errors>
             <error id="30826"/>
         </errors>)
@@ -746,50 +748,50 @@ End Class
     <WorkItem(881560, "DevDiv/Personal")>
     <Fact>
     Public Sub ParsePreprocessorIfParenthesizedExpression()
-        ParseAndVerify(<![CDATA[
-            #If Not (VALUE Or EULAV) Then
-            #End If
-        ]]>)
+        ParseAndVerify("
+#If Not (VALUE Or EULAV) Then
+#End If
+")
     End Sub
 
     <WorkItem(881586, "DevDiv/Personal")>
     <Fact>
     Public Sub ParsePreprocessorIfInLambdaBody()
-        ParseAndVerify(<![CDATA[
-            Module Module1
-                Sub Main()
-                    Dim x = Sub()
-            #If TEST Then
-                                Console.WriteLine("Hi")
-            #End If
-                            End Sub
+        ParseAndVerify("
+Module Module1
+    Sub Main()
+        Dim x = Sub()
+#If TEST Then
+                    Console.WriteLine(""Hi"")
+#End If
                 End Sub
-            End Module
-        ]]>)
+    End Sub
+End Module
+")
     End Sub
 
     <WorkItem(882906, "DevDiv/Personal")>
     <Fact>
     Public Sub ParsePreprocessorIfNestedDate()
-        ParseAndVerify(<![CDATA[
-            Module Module1
-                Sub Main()
-            #If False Then
-                    Dim y2k =
-                    #1/1/2000#
-            #End If
-                End Sub
-            End Module
-        ]]>)
+        ParseAndVerify("
+Module Module1
+    Sub Main()
+#If False Then
+        Dim y2k =
+        #1/1/2000#
+#End If
+    End Sub
+End Module
+")
     End Sub
 
     <WorkItem(883737, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30248ERR_ExpectedConditionalDirective()
-        ParseAndVerify(<![CDATA[
-            #
-            #X
-        ]]>,
+        ParseAndVerify("
+ #
+ #X
+",
         <errors>
             <error id="30248"/>
             <error id="30248"/>
@@ -799,16 +801,16 @@ End Class
     <WorkItem(883744, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30013ERR_LbNoMatchingIf_ParsePreprocessorIfLineContinuation()
-        ParseAndVerify(<![CDATA[
-            #If (
-            True) Then
-            #End If
+        ParseAndVerify("
+#If (
+    True) Then
+    #End If
 
-                #If(true
-                ) then
-                #End If
+    #If(true
+    ) then
+    #End If
 #End If
-        ]]>,
+",
         <errors>
             <error id="30013"/>
             <error id="30198"/>
@@ -819,30 +821,31 @@ End Class
 
     <Fact>
     Public Sub ParsePreprocessorExternalSource()
-        ParseAndVerify(<![CDATA[
-            module module1
-                sub main()
-                    #externalsource("c:\wwwwroot\inetpub\test.aspc", 30)
-                    console.writeline("In test.aspx")
-                    #end Externalsource
-                end sub
-            end module
-        ]]>)
+        ParseAndVerify(
+"
+module module1
+    sub main()
+        #externalsource(""c:\wwwwroot\inetpub\test.aspc"", 30)
+        console.writeline(""In test.aspx"")
+        #end Externalsource
+    end sub
+end module
+")
     End Sub
 
     <Fact>
     Public Sub ParsePreprocessorExternalChecksumBad()
-        ParseAndVerify(<![CDATA[#externalchecksum("c:\wwwwroot\inetpub\test.aspc", _
-"{12345678-1234-1234-1234-12345678901bc}", _
-"1a2b3c4e65f617239a49b9a9c0391849d34950f923fab9484")
+        ParseAndVerify("#externalchecksum(""c:\wwwwroot\inetpub\test.aspc"", _
+""{12345678-1234-1234-1234-12345678901bc}"", _
+""1a2b3c4e65f617239a49b9a9c0391849d34950f923fab9484"")
             module module1
                 sub main()
-                    #externalsource("c:\wwwwroot\inetpub\test.aspc", 30)
-                    console.writeline("In test.aspx")
+                    #externalsource(""c:\wwwwroot\inetpub\test.aspc"", 30)
+                    console.writeline(""In test.aspx"")
                     #end Externalsource
                 end sub
             end module
-        ]]>,
+",
             Diagnostic(ERRID.WRN_BadGUIDFormatExtChecksum, """{12345678-1234-1234-1234-12345678901bc}"""),
             Diagnostic(ERRID.WRN_BadChecksumValExtChecksum, """1a2b3c4e65f617239a49b9a9c0391849d34950f923fab9484""")
         )
@@ -850,42 +853,42 @@ End Class
 
     <Fact>
     Public Sub ParsePreprocessorExternalChecksumBad001()
-        ParseAndVerify(<![CDATA[#externalchecksum("c:\wwwwroot\inetpub\test.aspc", _
-"{406EA660-64CF-4C82-B6F0-42D48172A79A}", _
-"1a2v")
+        ParseAndVerify("#externalchecksum(""c:\wwwwroot\inetpub\test.aspc"", _
+""{406EA660-64CF-4C82-B6F0-42D48172A79A}"", _
+""1a2v"")
             module module1
                 sub main()
-                    #externalsource("c:\wwwwroot\inetpub\test.aspc", 30)
-                    console.writeline("In test.aspx")
+                    #externalsource(""c:\wwwwroot\inetpub\test.aspc"", 30)
+                    console.writeline(""In test.aspx"")
                     #end Externalsource
                 end sub
             end module
-        ]]>,
+        ",
             Diagnostic(ERRID.WRN_BadChecksumValExtChecksum, """1a2v""")
         )
     End Sub
 
     <Fact>
     Public Sub ParsePreprocessorExternalChecksum()
-        ParseAndVerify(<![CDATA[#externalchecksum("c:\wwwwroot\inetpub\test.aspc", _
-"{406EA660-64CF-4C82-B6F0-42D48172A79A}", _
-"1a2b3c4e")
+        ParseAndVerify("#externalchecksum(""c:\wwwwroot\inetpub\test.aspc"", _
+""{406EA660-64CF-4C82-B6F0-42D48172A79A}"", _
+""1a2b3c4e"")
             module module1
                 sub main()
-                    #externalsource("c:\wwwwroot\inetpub\test.aspc", 30)
-                    console.writeline("In test.aspx")
+                    #externalsource(""c:\wwwwroot\inetpub\test.aspc"", 30)
+                    console.writeline(""In test.aspx"")
                     #end Externalsource
                 end sub
             end module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(888306, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30035_ParseEndExternalChecksum()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             #End ExternalChecksum
-        ]]>,
+        ",
         <errors>
             <error id="30035"/>
         </errors>)
@@ -894,10 +897,10 @@ End Class
     <WorkItem(888313, "DevDiv/Personal")>
     <Fact>
     Public Sub BC31427ERR_BadCCExpression_ParsePreProcessorIfGetType()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             #If GetType(x) Then
             #End If
-        ]]>,
+        ",
         <errors>
             <error id="31427"/>
         </errors>)
@@ -906,14 +909,14 @@ End Class
     <WorkItem(893255, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30012_ParsePreProcessorIfWithEnd()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module m1
                 Public Sub foo()
 #If True Then
 #End
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30012"/>
             <error id="30035"/>
@@ -924,12 +927,12 @@ End Class
     <Fact>
     Public Sub TestRecentUnicodeVersion()
         ' Ensure that the characters Ǉ and ǈ are considered matching under case insensitivity
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #Const Ǉ = True
 #if ǈ
 Class MissingEnd
 #end if
-        ]]>,
+        ",
         Diagnostic(ERRID.ERR_ExpectedEndClass, "Class MissingEnd").WithLocation(4, 1)
         )
     End Sub
@@ -937,14 +940,14 @@ Class MissingEnd
     <WorkItem(893259, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30012_ParsePreProcessorIfIncompleteExpression()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module m1
             Public Sub foo()
 #If Not
             End Sub
             End Module
 
-        ]]>,
+        ",
         <errors>
             <error id="30012"/>
             <error id="30201"/>
@@ -954,9 +957,9 @@ Class MissingEnd
     <WorkItem(893956, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30201_ParseDirectiveUnaryOp()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
            #Const Defined = -
-        ]]>,
+        ",
         <errors>
             <error id="30201"/>
         </errors>)
@@ -973,14 +976,14 @@ Class MissingEnd
     <WorkItem(893962, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30625ERR_ExpectedEndModule_ParseIncompleteDirective()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
            Namespace DynLateSetLHS010
 Friend Module DynLateSetLHS010mod
 Sub DynLateSetLHS010()
 #If TestIDOLateBinding Then
 #Else If Not TestOrcasLateBinding
 #End If
-        ]]>,
+        ",
         <errors>
             <error id="30026"/>
             <error id="30625"/>
@@ -991,18 +994,18 @@ Sub DynLateSetLHS010()
     <WorkItem(895828, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseRegionDirective()
-        ParseAndVerify(<![CDATA[
-           #Region "Scen7"
+        ParseAndVerify("
+           #Region ""Scen7""
 #End Region
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(897107, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30201_ParseComparisonOpInIF()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
           #If Not VS7_BETA2 =
-        ]]>,
+        ",
         <errors>
             <error id="30012"/>
             <error id="30201"/>
@@ -1012,12 +1015,12 @@ Sub DynLateSetLHS010()
     <WorkItem(897858, "DevDiv/Personal")>
     <Fact>
     Public Sub BC32030ERR_LbElseifAfterElse_ParsePreProcessorElseIf()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             #If False Then
             #Else
             #ElseIf True Then
             #End If
-        ]]>,
+        ",
         <errors>
             <error id="32030"/>
         </errors>)
@@ -1026,17 +1029,17 @@ Sub DynLateSetLHS010()
     <WorkItem(898733, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30188_ParsePreProcessorIfTrueAndIfFalse()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             #If False Then
                 $
             #End If
-        ]]>)
+        ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             #If True Then
                 $
             #End If
-        ]]>,
+        ",
             Diagnostic(ERRID.ERR_IllegalChar, "$"))
     End Sub
 
@@ -1044,15 +1047,15 @@ Sub DynLateSetLHS010()
     <Fact>
     Public Sub BC30012ERR_LbExpectedEndIf_ParsePreProcessorMissingEndIf()
         'With Then
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             #If False Then
-        ]]>, <errors>
+        ", <errors>
                  <error id="30012"/>
              </errors>)
         'Without Then
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             #If A
-        ]]>, <errors>
+        ", <errors>
                  <error id="30012"/>
              </errors>)
     End Sub
@@ -1060,9 +1063,9 @@ Sub DynLateSetLHS010()
     <WorkItem(899913, "DevDiv/Personal")>
     <Fact>
     Public Sub ParsePreProcWithComment()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
              #If CBool(Win32) Or CBool(Win16) Then 'Just return the input string
-        ]]>, <errors>
+        ", <errors>
                  <error id="30012"/>
              </errors>)
     End Sub
@@ -1070,9 +1073,9 @@ Sub DynLateSetLHS010()
     <WorkItem(899941, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30199ERR_ExpectedLparen_ParseConstDirWithCtype()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
     #Const Scen4Cons = CByte
-        ]]>, <errors>
+        ", <errors>
                  <error id="30198"/>
                  <error id="30201"/>
                  <error id="30199"/>
@@ -1083,37 +1086,37 @@ Sub DynLateSetLHS010()
     <Fact>
     Public Sub BC30188_ParseIfNumber()
         '#if 0 should be equivalent to #if false
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 #if 0 Then
                     $
                 #end if
-        ]]>)
+        ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 #if 0 + 1 -1 Then
                     $
                 #end if
-        ]]>)
+        ")
 
         '#if 1 should be equivalent to #if true
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             #If 1 Then
                 $
             #End If
-        ]]>, Diagnostic(ERRID.ERR_IllegalChar, "$"))
+        ", Diagnostic(ERRID.ERR_IllegalChar, "$"))
 
         '#if -1 should be equivalent to #if true
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             #If -1 Then
                 $
             #End If
-        ]]>, Diagnostic(ERRID.ERR_IllegalChar, "$"))
+        ", Diagnostic(ERRID.ERR_IllegalChar, "$"))
     End Sub
 
     <WorkItem(899913, "DevDiv/Personal")>
     <Fact>
     Public Sub ParsePreProcessorBuiltinCast()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             #If CBool(Win32) Or CBool(Win16) Then 'Just return the input string
                 garbage
             #ElseIf True Then
@@ -1121,7 +1124,7 @@ Sub DynLateSetLHS010()
             #else 
                 garbage
             #End If
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(898448, "DevDiv/Personal")>
@@ -1140,9 +1143,9 @@ Sub DynLateSetLHS010()
     <WorkItem(904877, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30681ERR_ExpectedEndRegion()
-        ParseAndVerify(<![CDATA[
-            #Region "Start"
-        ]]>,
+        ParseAndVerify("
+            #Region ""Start""
+        ",
         Diagnostic(ERRID.ERR_ExpectedEndRegion, "#Region ""Start"""))
     End Sub
 
@@ -1150,14 +1153,14 @@ Sub DynLateSetLHS010()
     <WorkItem(904877, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30681ERR_ExpectedEndRegion2()
-        ParseAndVerify(<![CDATA[
-            #Region "Start"
+        ParseAndVerify("
+            #Region ""Start""
             Class C
-                #Region "Continue"
+                #Region ""Continue""
                 #End Region
             End Class
-            #Region "Tailing"
-        ]]>,
+            #Region ""Tailing""
+        ",
         Diagnostic(ERRID.ERR_ExpectedEndRegion, "#Region ""Start"""),
         Diagnostic(ERRID.ERR_ExpectedEndRegion, "#Region ""Tailing"""))
     End Sub
@@ -1165,9 +1168,9 @@ Sub DynLateSetLHS010()
     <WorkItem(904877, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30680ERR_EndRegionNoRegion()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             #End Region
-        ]]>,
+        ",
         <errors>
             <error id="30680"/>
         </errors>)
@@ -1176,9 +1179,9 @@ Sub DynLateSetLHS010()
     <WorkItem(904899, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30201ERR_ExpectedExpression_ParseMultilineConditionalCompile()
-        ParseAndVerify(<![CDATA[#If CompErrorTest =
+        ParseAndVerify("#If CompErrorTest =
 true Then
-#End IF]]>,
+#End IF",
         <errors>
             <error id="30201"/>
         </errors>)
@@ -1187,13 +1190,13 @@ true Then
     <WorkItem(904912, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30481ERR_ExpectedEndClass_ParseIfDirectiveElseIfDirectiveBothTrue()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             #If True Then
             Class Class1
             #ElseIf True Then
             End Class
             #End If
-        ]]>,
+        ",
         <errors>
             <error id="30481"/>
         </errors>)
@@ -1202,16 +1205,16 @@ true Then
     <WorkItem(905021, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30580ERR_NestedExternalSource()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 class c1
     Sub foo()
-#externalsource("",2)
-#externalsource("",2)
+#externalsource("""",2)
+#externalsource("""",2)
 #end externalsource
 #end externalsource
     End Sub
 End Class
-        ]]>,
+        ",
         <errors>
             <error id="30580"/>
             <error id="30578"/>
@@ -1222,33 +1225,33 @@ End Class
     <WorkItem(927710, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30205ERR_ExpectedEOS()
-        ParseAndVerify(<![CDATA[Module M1
-#region ""#end region
-End Module]]>,
+        ParseAndVerify("Module M1
+#region """"#end region
+End Module",
         Diagnostic(ERRID.ERR_ExpectedEndRegion, "#region """""),
         Diagnostic(ERRID.ERR_ExpectedEOS, "#"))
     End Sub
 
     <Fact>
     Public Sub ParseIfElseIfDirectiveViaOptions()
-        Dim text = <![CDATA[
-            #const DEBUG=false
-            #if DEBUG
-            ' This should be disabled
-            class c1
-                Sub s
-                end sub
-            end class
-            #Elseif IDE
-            ' This should be enabled
-            class c2
-                Sub s2
-                end sub
-            end class
-            #end if
-            Module Module1
-            End Module
-        ]]>.Value
+        Dim text = "
+#const DEBUG=false
+#if DEBUG
+' This should be disabled
+class c1
+    Sub s
+    end sub
+end class
+#Elseif IDE
+' This should be enabled
+class c2
+    Sub s2
+    end sub
+end class
+#end if
+Module Module1
+End Module
+"
 
         ' define DEBUG, IDE, and then undefine DEBUG
         Dim options = VisualBasicParseOptions.Default.WithPreprocessorSymbols({
@@ -1262,7 +1265,7 @@ End Module]]>,
         Assert.Equal(SyntaxKind.ClassKeyword, tk.Kind)
 
         tk = tree.GetRoot().FindToken(text.IndexOf("class c1", StringComparison.Ordinal))
-        Assert.Equal(260, tk.FullWidth)
+        Assert.Equal(150, tk.FullWidth)
 
     End Sub
 
@@ -1270,22 +1273,22 @@ End Module]]>,
     <WorkItem(929947, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseNestedDirectives()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If LANG_OE_JP Then
 #If Not ULTRAVIOLET Then
 #End If 'UV
 #end if
-            ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
+            ").VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
     End Sub
 
 
     <WorkItem(538483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538483")>
     <Fact>
     Public Sub ParseDirectiveWithStatementOnLine()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If True : Module M : End Module
 #End If
-            ]]>,
+            ",
             <error>
                 <error id="30205" message="End of statement expected." start="10" end="11"/>
             </error>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 0)
@@ -1294,34 +1297,34 @@ End Module]]>,
     <WorkItem(538750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538750")>
     <Fact>
     Public Sub ParseDirectiveWithStrings()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False Then
-#Const "c _
+#Const ""c _
 #Else
 Class X
 #End If
 End Class
-            ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
+            ").VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False Then
-#Const """c _
+#Const """"""c _
 #Else
 Class X
 #End If
 End Class
-            ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
+            ").VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False Then
-#Const ""c_
+#Const """"""c_
 #Else
 Class X
 #End If
 End Class
-            ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
+            ").VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Class c1
 #If False Then
 #Const c _
@@ -1330,30 +1333,30 @@ Class X
 #End If
 End Class
 End Class
-            ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
+            ").VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Class c1
 #If False Then
-#Const ""c _
+#Const """"""c _
 #Else
 Class X
 #End If
 End Class
 End Class
-            ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
+            ").VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
     End Sub
 
     <WorkItem(528675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528675")>
     <Fact()>
     Public Sub ParseDirectiveAfterLabel()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Sub Main()
 Label: #Const a = 1
     End Sub
 End Module
-            ]]>,
+",
             <errors>
                 <error id="30035"/>
             </errors>)
@@ -1362,9 +1365,9 @@ End Module
     <WorkItem(552845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552845")>
     <Fact()>
     Public Sub Repro552845()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If comperrortest then
- #: BC30452]]>, <errors>
+ #: BC30452]", <errors>
                     <error id="30012"/>
                 </errors>)
     End Sub
@@ -1372,9 +1375,9 @@ End Module
     <WorkItem(552845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552845")>
     <Fact()>
     Public Sub Repro552845_1()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If comperrortest then
- #10/10/1956#: BC30452]]>, <errors>
+ #10/10/1956#: BC30452", <errors>
                                <error id="30012"/>
                            </errors>)
     End Sub
@@ -1382,10 +1385,10 @@ End Module
     <WorkItem(552845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552845")>
     <Fact()>
     Public Sub Repro552845_2()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If comperrortest then
  #
- BC30452]]>, <errors>
+ BC30452", <errors>
                  <error id="30012"/>
              </errors>)
     End Sub
@@ -1393,10 +1396,10 @@ End Module
     <WorkItem(552845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552845")>
     <Fact()>
     Public Sub Repro552845_3()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If comperrortest then
  #10/10/1956#
- BC30452]]>, <errors>
+ BC30452", <errors>
                  <error id="30012"/>
              </errors>)
     End Sub
@@ -1406,7 +1409,7 @@ End Module
     <WorkItem(542447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542447")>
     <Fact>
     Public Sub ParseConditionalIfElseIfElse()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #Const Win32 = -1
 
 Module Program
@@ -1419,13 +1422,13 @@ Module Program
     Dim MaxLimit As Integer = 33000
 #End If
 
-End Module]]>).VerifyOccurrenceCount(SyntaxKind.FieldDeclaration, 1)
+End Module").VerifyOccurrenceCount(SyntaxKind.FieldDeclaration, 1)
     End Sub
 
     <WorkItem(2914, "DevDiv_Projects/Roslyn")>
     <Fact>
     Public Sub Bug2914()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 
 Namespace CHDIR48
 {
@@ -1442,7 +1445,7 @@ Namespace CHDIR48
         }
     }
 }
-]]>, <errors>
+", <errors>
          <error id="30626" message="'Namespace' statement must end with a matching 'End Namespace'." start="2" end="19"/>
          <error id="30035" message="Syntax error." start="20" end="21"/>
          <error id="30481" message="'Class' statement must end with a matching 'End Class'." start="26" end="42"/>
@@ -1461,39 +1464,39 @@ Namespace CHDIR48
     <Fact()>
     Public Sub BadDateInConditionalCompilation()
         ' Failed to parse.
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If True Then
 #05/01/#
 #End If
-]]>,
+",
             <errors>
                 <error id="31085"/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False Then
 #05/01/#
 #End If
-]]>)
+")
         ' Parsed but invalid.
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If True Then
 #05/01/13#
 #End If
-]]>,
+",
             <errors>
                 <error id="31085"/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False Then
 #05/01/13#
 #End If
-]]>)
+")
         ' Full-width versions of above.
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If True Then
 #05/01/13#
 #End If
-]]>.Value.Replace("#"c, SyntaxFacts.FULLWIDTH_NUMBER_SIGN),
+".Replace("#"c, SyntaxFacts.FULLWIDTH_NUMBER_SIGN),
             <errors>
                 <error id="31085"/>
             </errors>)
@@ -1506,24 +1509,24 @@ Namespace CHDIR48
 
     <Fact()>
     Public Sub EOFInConditionalCompilation()
-        ParseAndVerify(<![CDATA[#If True Then
-#]]>,
+        ParseAndVerify("#If True Then
+#",
             <errors>
                 <error id="30248"/>
                 <error id="30012"/>
             </errors>)
-        ParseAndVerify(<![CDATA[#If False Then
-#]]>,
+        ParseAndVerify("#If False Then
+#",
             <errors>
                 <error id="30012"/>
             </errors>)
-        ParseAndVerify(<![CDATA[#If True Then
-]]>,
+        ParseAndVerify("#If True Then
+",
             <errors>
                 <error id="30012"/>
             </errors>)
-        ParseAndVerify(<![CDATA[#If False Then
-]]>,
+        ParseAndVerify("#If False Then
+",
             <errors>
                 <error id="30012"/>
             </errors>)
@@ -1579,7 +1582,7 @@ BC30059: Constant expression is required.
         Dim options As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithPreprocessorSymbols(psymbols)
 
         ParseAndVerify(
-        <![CDATA[
+"
             Module module1
         Sub main()
 
@@ -1595,7 +1598,7 @@ BC30059: Constant expression is required.
 
         End Sub
     End Module
-        ]]>, options)
+", options)
     End Sub
 
 #Region "#Disable Warning, #Enable Warning"
@@ -1603,11 +1606,11 @@ BC30059: Constant expression is required.
 #Region "Parser Tests"
     <Fact>
     Public Sub ParseWarningDirective_NoErrorCodes()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 # disable warning rem comment
 # _
 enable _
-warning 'comment]]>)
+warning 'comment")
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
         tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
@@ -1629,7 +1632,7 @@ warning 'comment]]>)
 
     <Fact>
     Public Sub ParseWarningDirective_WithErrorCodes()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module Module1
     Sub Main
     # _
@@ -1637,7 +1640,7 @@ enable warning[BC42024], _789 'comment
 #  disable   warning _
 disable , BC41008   rem comment
     End Sub
-End Module]]>)
+End Module")
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
         tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
@@ -1667,7 +1670,7 @@ End Module]]>)
 
     <Fact>
     Public Sub ParseWarningDirective_FullWidth()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module Module1
     Sub Main
 ＃ＤＩＳＡＢＬＥ ＷＡＲＮＩＮＧ ［ＷＡＲＮＩＮＧ］ _
@@ -1676,7 +1679,7 @@ Module Module1
  ｅｎａｂｌｅ     ｗａｒｎｉｎｇ _
 ｅｎａｂｌｅ
     End Sub
-End Module]]>)
+End Module")
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
         tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
@@ -1700,7 +1703,7 @@ End Module]]>)
 
     <Fact>
     Public Sub ParseWarningDirective_BadDisableKeyword1()
-        Dim tree = ParseAndVerify(<![CDATA[#[disable] warning BC42024]]>,
+        Dim tree = ParseAndVerify("#[disable] warning BC42024",
             <errors>
                 <error id="30248" message="'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', or 'End' expected." start="0" end="1"/>
             </errors>)
@@ -1709,7 +1712,7 @@ End Module]]>)
 
     <Fact>
     Public Sub ParseWarningDirective_BadDisableKeyword2()
-        Dim tree = ParseAndVerify(<![CDATA[#disable$ warning BC42025]]>,
+        Dim tree = ParseAndVerify("#disable$ warning BC42025",
             <errors>
                 <error id="30248" message="'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', or 'End' expected." start="0" end="1"/>
             </errors>)
@@ -1718,10 +1721,10 @@ End Module]]>)
 
     <Fact>
     Public Sub ParseWarningDirective_MissingWarningKeyword1()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 #enable 'warning
 Class Class1
-End Class]]>,
+End Class",
             <errors>
                 <error id="31218" message="'Warning' expected." start="20" end="20"/>
             </errors>)
@@ -1740,7 +1743,7 @@ End Class]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_MissingWarningKeyword2()
-        Dim tree = ParseAndVerify(<![CDATA[#disable BC42024]]>,
+        Dim tree = ParseAndVerify("#disable BC42024",
             <errors>
                 <error id="31218" message="'Warning' expected." start="9" end="9"/>
             </errors>)
@@ -1760,7 +1763,7 @@ End Class]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_MissingWarningKeyword3()
-        Dim tree = ParseAndVerify(<![CDATA[#disable , BC42024]]>,
+        Dim tree = ParseAndVerify("#disable , BC42024",
             <errors>
                 <error id="31218" message="'Warning' expected." start="9" end="9"/>
             </errors>)
@@ -1782,11 +1785,11 @@ End Class]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_BadWarningKeyword1()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Enum E
     A
 #disable disable
-End Enum]]>,
+End Enum",
             <errors>
                 <error id="31218" message="'Warning' expected." start="26" end="26"/>
             </errors>)
@@ -1806,7 +1809,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_BadWarningKeyword2()
-        Dim tree = ParseAndVerify(<![CDATA[#enable Const BC42025]]>,
+        Dim tree = ParseAndVerify("#enable Const BC42025",
             <errors>
                 <error id="31218" message="'Warning' expected." start="8" end="8"/>
             </errors>)
@@ -1828,11 +1831,11 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_BadWarningKeyword3()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Enum E
     A
 #Disable enable blah, BC42024 BC41005
-End Enum]]>,
+End Enum",
             <errors>
                 <error id="31218" message="'Warning' expected." start="26" end="26"/>
             </errors>)
@@ -1857,7 +1860,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_BadWarningKeyword4()
-        Dim tree = ParseAndVerify(<![CDATA[#Disable Warning$]]>,
+        Dim tree = ParseAndVerify("#Disable Warning$",
             <errors>
                 <error id="31218" message="'Warning' expected." start="9" end="9"/>
             </errors>)
@@ -1877,7 +1880,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_BadWarningKeyword5()
-        Dim tree = ParseAndVerify(<![CDATA[#disable [warning] BC42024]]>,
+        Dim tree = ParseAndVerify("#disable [warning] BC42024",
             <errors>
                 <error id="31218" message="'Warning' expected." start="9" end="9"/>
             </errors>)
@@ -1899,7 +1902,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_MissingErrorCode1()
-        Dim tree = ParseAndVerify(<![CDATA[#enable warning BC42024,,bc123]]>,
+        Dim tree = ParseAndVerify("#enable warning BC42024,,bc123",
             <errors>
                 <error id="30203" message="Identifier expected." start="26" end="26"/>
             </errors>)
@@ -1924,7 +1927,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_MissingErrorCode2()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc42025, _]]>,
+        Dim tree = ParseAndVerify("#Enable Warning bc42025, _",
             <errors>
                 <error id="30203" message="Identifier expected." start="24" end="24"/>
             </errors>)
@@ -1947,7 +1950,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_BadErrorCode1()
-        Dim tree = ParseAndVerify(<![CDATA[#enable warning @42024, bc42025]]>,
+        Dim tree = ParseAndVerify("#enable warning @42024, bc42025",
             <errors>
                 <error id="30203" message="Identifier expected." start="16" End="16"/>
             </errors>)
@@ -1973,7 +1976,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_BadErrorCode2()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning Dim]]>,
+        Dim tree = ParseAndVerify("#Enable Warning Dim",
             <errors>
                 <error id="30183" message="Keyword is not valid as an identifier." start="16" end="19"/>
             </errors>)
@@ -1994,7 +1997,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_MissingComma1()
-        Dim tree = ParseAndVerify(<![CDATA[#enable warning BC42024 bc42025]]>,
+        Dim tree = ParseAndVerify("#enable warning BC42024 bc42025",
             <errors>
                 <error id="30196" message="Comma expected." start="24" end="24"/>
                 <error id="30203" message="Identifier expected." start="31" end="31"/>
@@ -2019,8 +2022,8 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_MissingComma2()
-        Dim tree = ParseAndVerify(<![CDATA[#enable warning bc42105, bc42024 _
-            SomeId, SomeOtherId]]>,
+        Dim tree = ParseAndVerify("#enable warning bc42105, bc42024 _
+            SomeId, SomeOtherId",
             <errors>
                 <error id="30196" message="Comma expected." start="47" end="47"/>
                 <error id="30203" message="Identifier expected." start="66" end="66"/>
@@ -2050,7 +2053,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_BadComma1()
-        Dim tree = ParseAndVerify(<![CDATA[#enable warning, bc41008, someid]]>,
+        Dim tree = ParseAndVerify("#enable warning, bc41008, someid",
             <errors>
                 <error id="30203" message="Identifier expected." start="15" end="15"/>
             </errors>)
@@ -2075,7 +2078,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_BadComma2()
-        Dim tree = ParseAndVerify(<![CDATA[#enable warning bc42025; someid]]>,
+        Dim tree = ParseAndVerify("#enable warning bc42025; someid",
             <errors>
                 <error id="30196" message="Comma expected." start="23" end="23"/>
                 <error id="30037" message="Character is not valid." start="23" end="24"/>
@@ -2103,7 +2106,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_EscapedKeywords()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning [Dim], [Rem]]]>)
+        Dim tree = ParseAndVerify("#Enable Warning [Dim], [Rem]")
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
@@ -2125,7 +2128,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_NoTypeChars()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning Dim$, BC&]]>,
+        Dim tree = ParseAndVerify("#Enable Warning Dim$, BC&",
             <errors>
                 <error id="30468" message="Type declaration characters are not valid in this context." start="16" end="20"/>
                 <error id="30468" message="Type declaration characters are not valid in this context." start="22" end="25"/>
@@ -2151,7 +2154,7 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_VeryLongIdentifier()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning __123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890, bc42025]]>)
+        Dim tree = ParseAndVerify("#Enable Warning __123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890, bc42025")
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
@@ -2171,12 +2174,12 @@ End Enum]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_NoIntegerLiterals()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module Module1
     Sub Main
 #disable warning 42024, 42024L, 2025UI, &HA428, BC&O122050
     End Sub
-End Module]]>,
+End Module",
             <errors>
                 <error id="30203" message="Identifier expected." start="46" end="46"/>
                 <error id="30203" message="Identifier expected." start="53" end="53"/>
@@ -2220,7 +2223,7 @@ End Module]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_NoStringLiterals()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning "a"c, "b"]]>,
+        Dim tree = ParseAndVerify("#disable warning ""a""c, ""b""",
             <errors>
                 <error id="30203" message="Identifier expected." start="17" end="17"/>
                 <error id="30203" message="Identifier expected." start="23" end="23"/>
@@ -2246,7 +2249,7 @@ End Module]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_NoOtherLiterals()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning True, False, #1/2/2014#, Nothing]]>,
+        Dim tree = ParseAndVerify("#disable warning True, False, #1/2/2014#, Nothing",
             <errors>
                 <error id="30183" message="Keyword is not valid as an identifier." start="17" end="21"/>
                 <error id="30183" message="Keyword is not valid as an identifier." start="23" end="28"/>
@@ -2281,7 +2284,7 @@ End Module]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_NoExpressions1()
-        Dim tree = ParseAndVerify(<![CDATA[#disable warning -bc42024, (bc42025), Chr(42024)]]>,
+        Dim tree = ParseAndVerify("#disable warning -bc42024, (bc42025), Chr(42024)",
             <errors>
                 <error id="30203" message="Identifier expected." start="17" end="17"/>
                 <error id="30203" message="Identifier expected." start="27" end="27"/>
@@ -2310,7 +2313,7 @@ End Module]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_NoExpressions2()
-        Dim tree = ParseAndVerify(<![CDATA[#Disable Warning string.Empty, bc42024 & bc42025 + bc42015]]>,
+        Dim tree = ParseAndVerify("#Disable Warning string.Empty, bc42024 & bc42025 + bc42015",
             <errors>
                 <error id="30183" message="Keyword is not valid as an identifier." start="17" end="23"/>
                 <error id="30196" message="Comma expected." start="39" end="39"/>
@@ -2338,7 +2341,7 @@ End Module]]>,
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation1()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning _]]>)
+        Dim tree = ParseAndVerify("#Enable Warning _")
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
@@ -2356,7 +2359,7 @@ End Module]]>,
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation2()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning _ 'Comment]]>,
+        Dim tree = ParseAndVerify("#Enable Warning _ 'Comment",
             <errors>
                 <error id="30203" message="Identifier expected." start="16" end="17"/>
             </errors>)
@@ -2377,7 +2380,7 @@ End Module]]>,
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation3()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc42025 _]]>)
+        Dim tree = ParseAndVerify("#Enable Warning bc42025 _")
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
@@ -2396,7 +2399,7 @@ End Module]]>,
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation4()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc41007 _ 'Comment]]>,
+        Dim tree = ParseAndVerify("#Enable Warning bc41007 _ 'Comment",
             <errors>
                 <error id="30196" message="Comma expected." start="24" end="24"/>
                 <error id="30999" message="Line continuation character '_' must be preceded by at least one white space and must be the last character on the line." start="24" end="25"/>
@@ -2422,8 +2425,8 @@ End Module]]>,
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation5()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable _
-]]>,
+        Dim tree = ParseAndVerify("#Enable _
+",
             <errors>
                 <error id="31218" message="'Warning' expected." start="11" end="11"/>
             </errors>)
@@ -2443,8 +2446,8 @@ End Module]]>,
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation6()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning [ _
-bc42025]]>,
+        Dim tree = ParseAndVerify("#Enable Warning [ _
+bc42025",
             <errors>
                 <error id="30203" message="Identifier expected." start="16" end="16"/>
                 <error id="30203" message="Identifier expected." start="16" end="17"/>
@@ -2468,13 +2471,13 @@ bc42025]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_NoImplicitLineContinuation()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module Module1
     Sub Main
 #enable warning BC42025, someid, 
 SomeOtherId
     End Sub
-End Module]]>,
+End Module",
             <errors>
                 <error id="30203" message="Identifier expected." start="63" end="63"/>
             </errors>)
@@ -2495,7 +2498,7 @@ End Module]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_StatementSeparator1()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning :]]>,
+        Dim tree = ParseAndVerify("#Enable Warning :",
             <errors>
                 <error id="30205" message="End of statement expected." start="17" end="17"/>
             </errors>)
@@ -2512,7 +2515,7 @@ End Module]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_StatementSeparator2()
-        Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc42024 :'comment]]>,
+        Dim tree = ParseAndVerify("#Enable Warning bc42024 :'comment",
             <errors>
                 <error id="30205" message="End of statement expected." start="23" end="23"/>
             </errors>)
@@ -2530,8 +2533,8 @@ End Module]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_StatementSeparator3()
-        Dim tree = ParseAndVerify(<![CDATA[#Disable :
-]]>,
+        Dim tree = ParseAndVerify("#Disable :
+",
             <errors>
                 <error id="31218" message="'Warning' expected." start="10" end="10"/>
                 <error id="30205" message="End of statement expected." start="10" end="10"/>
@@ -2549,7 +2552,7 @@ End Module]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_InsideNestedIfDirectives()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module Program
     Sub Main()
 #If True Then
@@ -2568,7 +2571,7 @@ End Module
 #Else
 #Enable Warning bc42024, bc42025
 End Module
-#End If]]>)
+#End If")
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
         tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
@@ -2604,12 +2607,12 @@ End Module
 
     <Fact>
     Public Sub ParseWarningDirective_NoCSharpSyntax()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 #restore warning
 #pragma warning disable
 #pragma warning restore
 #pragma restore
-#warning]]>,
+#warning",
             <errors>
                 <error id="30248" message="'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', or 'End' expected." start="1" end="2"/>
                 <error id="30248" message="'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', or 'End' expected." start="18" end="19"/>
@@ -2621,7 +2624,7 @@ End Module
 
     <Fact>
     Public Sub ParseWarningDirective_DisallowInMultilineExpressionContext1()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Class C
     Sub Method(j As Short)
         Dim x = From i As Integer In {}
@@ -2630,7 +2633,7 @@ Class C
 #Enable Warning
                 Select i
     End Sub
-End Class]]>,
+End Class",
             <errors>
                 <error id="30800" message="Method arguments must be enclosed in parentheses." start="123" end="137"/>
                 <error id="30095" message="'Select Case' must end with a matching 'End Select'." start="170" end="178"/>
@@ -2641,7 +2644,7 @@ End Class]]>,
 
     <Fact>
     Public Sub ParseWarningDirective_DisallowInMultilineExpressionContext2()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Class C
     Sub Method(k As Integer, j As Short)
         Dim x = <root>
@@ -2651,7 +2654,7 @@ Class C
                         %>
                 </root>
     End Sub
-End Class]]>,
+End Class",
             <errors>
                 <error id="30201" message="Expression expected." start="97" end="97"/>
                 <error id="30035" message="Syntax error." start="97" end="98"/>
@@ -3303,7 +3306,7 @@ End Module
 
     <Fact>
     Public Sub TestWarningDirective_StateMap1()
-        Dim tree = ParseAndVerify(<![CDATA[#Disable Warning
+        Dim tree = ParseAndVerify("#Disable Warning
 Module Program
 #enable Warning
     Sub Main()
@@ -3316,7 +3319,7 @@ Module Program
 #disable warning BC42024, [bc42104]
     End Sub
 End Module
-#enable Warning]]>)
+#enable Warning")
 
         Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", 0))
         Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", 1))
@@ -3376,7 +3379,7 @@ End Module
 
     <Fact>
     Public Sub TestWarningDirective_StateMap2()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module Program
     Sub Main()
 #If True Then
@@ -3395,7 +3398,7 @@ End Module
 #Else
     #Disable Warning bc42024, bc42025
 End Module
-#End If]]>)
+#End If")
 
         Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", 0))
         Assert.Equal(ReportDiagnostic.Default, tree.GetWarningState("BC42024", 1))
@@ -3483,7 +3486,7 @@ End Module
 
     <Fact>
     Public Sub ParseWarningDirective_UnrecognizedInXmlLiteralContext()
-        Dim code = <![CDATA[
+        Dim code = "
 Module Module1
     Sub Main()
     End Sub
@@ -3498,7 +3501,7 @@ Module Module1
                 </root>
         Dim y = i < j.MaxValue
     End Sub
-End Module]]>
+End Module"
         Dim tree = ParseAndVerify(code)
         tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 0)
         tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 0)
