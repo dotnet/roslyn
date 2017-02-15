@@ -35,7 +35,7 @@ namespace Runner
                 {"ci-test", "mention that we are running in the continuous integration lab", _ => isCiTest = true},
                 {"no-trace-upload", "disable the uploading of traces", _ => shouldUploadTrace = false},
                 {"trace-upload_destination=", "set the trace uploading destination", loc => { traceDestination = loc; } },
-                {"search-directory=", "the directory to recursively search for tests", dir => { searchDirectory = dir; } } 
+                {"search-directory=", "the directory to recursively search for tests", dir => { searchDirectory = dir; } }
             };
 
             parameterOptions.Parse(args);
@@ -158,23 +158,14 @@ namespace Runner
             {
                 var scriptName = Path.GetFileNameWithoutExtension(script);
                 Log($"Collecting tests from {scriptName}");
-                try
+                var state = await RunFileInItsDirectory(script).ConfigureAwait(false);
+                var tests = RuntimeSettings.ResultTests;
+                RuntimeSettings.ResultTests = null;
+                foreach (var test in tests)
                 {
-                    var state = await RunFile(script).ConfigureAwait(false);
-                    var tests = RuntimeSettings.ResultTests;
-                    RuntimeSettings.ResultTests = null;
-                    foreach (var test in tests)
-                    {
-                        test.SetWorkingDirectory(Path.GetDirectoryName(script));
-                    }
-                    testInstances.AddRange(tests);
+                    test.SetWorkingDirectory(Path.GetDirectoryName(script));
                 }
-                catch (Exception e)
-                {
-                    Log($"Encountered exception collecting tests from {scriptName}");
-                    Log(e.Message);
-                    Log(e.StackTrace);
-                }
+                testInstances.AddRange(tests);
             }
 
 
