@@ -54,8 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Overrides Function Equals(obj As Object) As Boolean
-            If obj.GetType() Is GetType(BadSymbolDiagnostic) Then
-                Dim bsd = CType(obj, BadSymbolDiagnostic)
+            Dim bsd = TryCast(obj, BadSymbolDiagnostic)
+            If bsd IsNot Nothing Then
                 Return Me._badSymbol = bsd._badSymbol AndAlso MyBase.Equals(obj)
             End If
             Return False
@@ -111,8 +111,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Overrides Function Equals(obj As Object) As Boolean
-            If obj.GetType() Is GetType(AmbiguousSymbolDiagnostic) Then
-                Dim asd = CType(obj, AmbiguousSymbolDiagnostic)
+            Dim asd = TryCast(obj, AmbiguousSymbolDiagnostic)
+            If asd IsNot Nothing Then
                 Return _symbols.SequenceEqual(asd._symbols) AndAlso
                     MyBase.Equals(obj)
             End If

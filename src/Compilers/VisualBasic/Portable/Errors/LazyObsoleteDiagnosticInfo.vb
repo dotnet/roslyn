@@ -51,7 +51,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If asd IsNot Nothing Then
                 Return Me._symbol = asd._symbol AndAlso
                     Me._containingSymbol = asd._containingSymbol AndAlso
-                    Me.GetResolvedInfo().Equals(asd.GetResolvedInfo()) AndAlso
                     MyBase.Equals(obj)
             End If
             Return False
@@ -60,8 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function GetHashCode() As Integer
             Return Hash.Combine(Me._symbol,
                 Hash.Combine(Me._containingSymbol,
-                Hash.Combine(Me.GetResolvedInfo(),
-                MyBase.GetHashCode())))
+                MyBase.GetHashCode()))
         End Function
     End Class
 End Namespace

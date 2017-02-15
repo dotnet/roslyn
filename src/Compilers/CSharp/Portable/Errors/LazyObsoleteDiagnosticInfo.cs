@@ -60,10 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (obj is LazyObsoleteDiagnosticInfo lod)
             {
-                return this.GetResolvedInfo().Equals(lod.GetResolvedInfo()) &&
-                       this._symbol == lod._symbol &&
-                       this._containingSymbol == lod._containingSymbol &&
-                       this._binderFlags == lod._binderFlags &&
+                return _symbol == lod._symbol &&
+                       _containingSymbol == lod._containingSymbol &&
+                       _binderFlags == lod._binderFlags &&
                        base.Equals(obj);
             }
             else
@@ -75,11 +74,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int GetHashCode()
         {
             return Hash.Combine(
-                this.GetResolvedInfo(),
-                Hash.Combine(this._symbol,
-                Hash.Combine(this._containingSymbol,
+                _symbol,
+                Hash.Combine(_containingSymbol,
                 Hash.Combine(_binderFlags.GetHashCode(),
-                base.GetHashCode()))));
+                base.GetHashCode())));
         }
     }
 }
