@@ -161,11 +161,14 @@ namespace Runner
                 var state = await RunFileInItsDirectory(script).ConfigureAwait(false);
                 var tests = RuntimeSettings.ResultTests;
                 RuntimeSettings.ResultTests = null;
-                foreach (var test in tests)
+                if (tests != null)
                 {
-                    test.SetWorkingDirectory(Path.GetDirectoryName(script));
+                    foreach (var test in tests)
+                    {
+                        test.SetWorkingDirectory(Path.GetDirectoryName(script));
+                    }
+                    testInstances.AddRange(tests);
                 }
-                testInstances.AddRange(tests);
             }
 
 
