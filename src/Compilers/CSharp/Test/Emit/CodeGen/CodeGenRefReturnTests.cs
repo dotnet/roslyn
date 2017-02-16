@@ -3064,6 +3064,49 @@ interface IP3f<out T> { ref Func<T> RefProp{get;} }
         }
 
         [Fact]
+        public void RefReturnVarianceIndexer()
+        {
+            var source = @"
+using System;
+
+interface IP1<T> { ref T this[int i]{get;} }
+interface IP2<in T> { ref T this[int i]{get;} }
+interface IP3<out T> { ref T this[int i]{get;} }
+
+interface IP1a<T> { ref Action<T> this[int i]{get;} }
+interface IP2a<in T> { ref Action<T> this[int i]{get;} }
+interface IP3a<out T> { ref Action<T> this[int i]{get;} }
+
+interface IP1f<T> { ref Func<T> this[int i]{get;} }
+interface IP2f<in T> { ref Func<T> this[int i]{get;} }
+interface IP3f<out T> { ref Func<T> this[int i]{get;} }
+
+";
+
+            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
+                // (6,24): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'IP3<T>.this[int]'. 'T' is covariant.
+                // interface IP3<out T> { ref T this[int i]{get;} }
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "ref T").WithArguments("IP3<T>.this[int]", "T", "covariant", "invariantly").WithLocation(6, 24),
+                // (5,23): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'IP2<T>.this[int]'. 'T' is contravariant.
+                // interface IP2<in T> { ref T this[int i]{get;} }
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "ref T").WithArguments("IP2<T>.this[int]", "T", "contravariant", "invariantly").WithLocation(5, 23),
+                // (9,24): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'IP2a<T>.this[int]'. 'T' is contravariant.
+                // interface IP2a<in T> { ref Action<T> this[int i]{get;} }
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "ref Action<T>").WithArguments("IP2a<T>.this[int]", "T", "contravariant", "invariantly").WithLocation(9, 24),
+                // (10,25): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'IP3a<T>.this[int]'. 'T' is covariant.
+                // interface IP3a<out T> { ref Action<T> this[int i]{get;} }
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "ref Action<T>").WithArguments("IP3a<T>.this[int]", "T", "covariant", "invariantly").WithLocation(10, 25),
+                // (13,24): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'IP2f<T>.this[int]'. 'T' is contravariant.
+                // interface IP2f<in T> { ref Func<T> this[int i]{get;} }
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "ref Func<T>").WithArguments("IP2f<T>.this[int]", "T", "contravariant", "invariantly").WithLocation(13, 24),
+                // (14,25): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'IP3f<T>.this[int]'. 'T' is covariant.
+                // interface IP3f<out T> { ref Func<T> this[int i]{get;} }
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "ref Func<T>").WithArguments("IP3f<T>.this[int]", "T", "covariant", "invariantly").WithLocation(14, 25)
+
+            );
+        }
+
+        [Fact]
         public void RefMethodGroupConversionError()
         {
             var source = @"
@@ -3077,6 +3120,9 @@ class Program
     {
         RefFunc1<object> f = M1;
         f() = 1;
+
+        f = new RefFunc1<object>(M1);
+        f() = 1;
     }
 
     static ref string M1() => ref new string[]{""qq""}[0];
@@ -3087,12 +3133,15 @@ class Program
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
                 // (10,30): error CS0407: 'string Program.M1()' has the wrong return type
                 //         RefFunc1<object> f = M1;
-                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "string").WithLocation(10, 30)
+                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "string"),
+                // (13,34): error CS0407: 'string Program.M1()' has the wrong return type
+                //         f = new RefFunc1<object>(M1);
+                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "string").WithLocation(13, 34)
             );
         }
 
         [Fact]
-        public void RefMethodGroupConversionError_WihResolution()
+        public void RefMethodGroupConversionError_WithResolution()
         {
             var source = @"
 using System;
@@ -3108,10 +3157,6 @@ class Derived1: Base
 }
 
 class Derived2: Derived1
-{
-}
-
-class Derived3: Derived2
 {
 }
 
@@ -3132,14 +3177,14 @@ class Program
 ";
 
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
-                // (28,38): error CS0407: 'Derived1 Program.M1(Derived1)' has the wrong return type
+                // (24,38): error CS0407: 'Derived1 Program.M1(Derived1)' has the wrong return type
                 //         RefFunc1<Derived2, Base> f = M1;
-                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1(Derived1)", "Derived1").WithLocation(28, 38)
+                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1(Derived1)", "Derived1").WithLocation(24, 38)
             );
         }
 
         [Fact]
-        public void RefMethodGroupConversionNoError_WihResolution()
+        public void RefMethodGroupConversionNoError_WithResolution()
         {
             var source = @"
 using System;
@@ -3157,10 +3202,6 @@ class Derived1 : Base
 class Derived2 : Derived1
 {
     public static new Derived2 Instance = new Derived2();
-}
-
-class Derived3 : Derived2
-{
 }
 
 class Program
@@ -3182,7 +3223,7 @@ class Program
         }
 
         [Fact]
-        public void RefMethodGroupOevrloadResolutionErr()
+        public void RefMethodGroupOverloadResolutionErr()
         {
             var source = @"
 using System;
@@ -3200,10 +3241,6 @@ class Derived1: Base
 class Derived2: Derived1
 {
     public static new Derived2 Instance = new Derived2();
-}
-
-class Derived3: Derived2
-{
 }
 
 class Program
@@ -3226,12 +3263,12 @@ class Program
 ";
 
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
-                // (29,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Test(Program.RefFunc1<Derived2, Base>)' and 'Program.Test(Program.RefFunc1<Derived2, Derived1>)'
+                // (25,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Test(Program.RefFunc1<Derived2, Base>)' and 'Program.Test(Program.RefFunc1<Derived2, Derived1>)'
                 //         Test(M1);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Program.Test(Program.RefFunc1<Derived2, Base>)", "Program.Test(Program.RefFunc1<Derived2, Derived1>)").WithLocation(29, 9),
-                // (30,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Test(Program.RefFunc1<Derived2, Base>)' and 'Program.Test(Program.RefFunc1<Derived2, Derived1>)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Program.Test(Program.RefFunc1<Derived2, Base>)", "Program.Test(Program.RefFunc1<Derived2, Derived1>)").WithLocation(25, 9),
+                // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Test(Program.RefFunc1<Derived2, Base>)' and 'Program.Test(Program.RefFunc1<Derived2, Derived1>)'
                 //         Test(M3);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Program.Test(Program.RefFunc1<Derived2, Base>)", "Program.Test(Program.RefFunc1<Derived2, Derived1>)").WithLocation(30, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Program.Test(Program.RefFunc1<Derived2, Base>)", "Program.Test(Program.RefFunc1<Derived2, Derived1>)").WithLocation(26, 9)
             );
         }
 
@@ -3256,10 +3293,6 @@ class Derived2: Derived1
     public static new Derived2 Instance = new Derived2();
 }
 
-class Derived3: Derived2
-{
-}
-
 class Program
 {
     delegate ref TResult RefFunc1<TArg, TResult>(TArg arg);
@@ -3281,7 +3314,7 @@ class Program
         }
 
         [Fact]
-        public void RefLambdaOverloadResolution2()
+        public void RefLambdaOverloadResolution()
         {
             var source = @"
 using System;
