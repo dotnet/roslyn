@@ -4980,61 +4980,122 @@ public class Program
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16696")]
+        [Fact, WorkItem(16696, "https://github.com/dotnet/roslyn/issues/16696")]
         public void TypeParameterSubsumption04()
         {
             var program = @"
+using System;
 using System.Collections.Generic;
 public class Program
 {
-    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
+    private static int Pattern1<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
     {
         switch (thing)
         {
             case IEnumerable<TBase> sequence:
-                break;
+                return 1;
+            // IEnumerable<TBase> does not subsume IEnumerable<TDerived> because TDerived may be a value type.
             case IEnumerable<TDerived> derivedSequence:
-                break;
+                return 2;
+            default:
+                return 3;
         }
     }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case IEnumerable<TDerived> derivedSequence:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<TDerived> derivedSequence").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
-                );
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16696")]
-        public void TypeParameterSubsumption05()
-        {
-            var program = @"
-using System.Collections.Generic;
-public class Program
-{
-    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
+    private static int Pattern2<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
     {
         switch (thing)
         {
             case IEnumerable<object> s:
-                break;
+                return 1;
+            // IEnumerable<object> does not subsume IEnumerable<TDerived> because TDerived may be a value type.
             case IEnumerable<TDerived> derivedSequence:
-                break;
+                return 2;
+            default:
+                return 3;
         }
+    }
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(Pattern1<object, int>(new List<object>()));
+        Console.WriteLine(Pattern1<object, int>(new List<int>()));
+        Console.WriteLine(Pattern1<object, int>(null));
+        Console.WriteLine(Pattern2<object, int>(new List<object>()));
+        Console.WriteLine(Pattern2<object, int>(new List<int>()));
+        Console.WriteLine(Pattern2<object, int>(null));
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case IEnumerable<TDerived> derivedSequence:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<TDerived> derivedSequence").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+            var compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"1
+2
+3
+1
+2
+3");
+        }
+
+        [Fact, WorkItem(17103, "https://github.com/dotnet/roslyn/issues/17103")]
+        public void IsConstantPatternConversion_Positive()
+        {
+            var source =
+@"using System;
+public class Program
+{
+    public static void Main()
+    {
+        {
+            byte b = 12;
+            Console.WriteLine(b is 12); // True
+            Console.WriteLine(b is 13); // False
+            Console.WriteLine(b is (int)12L); // True
+            Console.WriteLine(b is (int)13L); // False
+        }
+        bool Is42(byte b) => b is 42;
+        Console.WriteLine(Is42(42));
+        Console.WriteLine(Is42(43));
+        Console.WriteLine(Is42((int)42L));
+        Console.WriteLine(Is42((int)43L));
+    }
+}";
+            var expectedOutput =
+@"True
+False
+True
+False
+True
+False
+True
+False";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(17103, "https://github.com/dotnet/roslyn/issues/17103")]
+        public void IsConstantPatternConversion_Negative()
+        {
+            var source =
+@"using System;
+public class Program
+{
+    public static void Main()
+    {
+        byte b = 12;
+        Console.WriteLine(b is 12L);
+        Console.WriteLine(1 is null);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (7,32): error CS0266: Cannot implicitly convert type 'long' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                //         Console.WriteLine(b is 12L);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "12L").WithArguments("long", "byte"),
+                // (8,32): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         Console.WriteLine(1 is null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 32)
                 );
         }
 
