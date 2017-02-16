@@ -4918,32 +4918,56 @@ public class Program
         public void TypeParameterSubsumption04()
         {
             var program = @"
+using System;
 using System.Collections.Generic;
 public class Program
 {
-    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
+    private static int Pattern1<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
     {
         switch (thing)
         {
             case IEnumerable<TBase> sequence:
-                break;
+                return 1;
             // IEnumerable<TBase> does not subsume IEnumerable<TDerived> because TDerived may be a value type.
             case IEnumerable<TDerived> derivedSequence:
-                break;
+                return 2;
+            default:
+                return 3;
         }
+    }
+    private static int Pattern2<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
+    {
         switch (thing)
         {
             case IEnumerable<object> s:
-                break;
+                return 1;
             // IEnumerable<object> does not subsume IEnumerable<TDerived> because TDerived may be a value type.
             case IEnumerable<TDerived> derivedSequence:
-                break;
+                return 2;
+            default:
+                return 3;
         }
+    }
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(Pattern1<object, int>(new List<object>()));
+        Console.WriteLine(Pattern1<object, int>(new List<int>()));
+        Console.WriteLine(Pattern1<object, int>(null));
+        Console.WriteLine(Pattern2<object, int>(new List<object>()));
+        Console.WriteLine(Pattern2<object, int>(new List<int>()));
+        Console.WriteLine(Pattern2<object, int>(null));
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
                 );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"1
+2
+3
+1
+2
+3");
         }
 
         [Fact, WorkItem(17103, "https://github.com/dotnet/roslyn/issues/17103")]
