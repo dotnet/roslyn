@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyWellKnownTypeMembers[(int)member];
         }
 
-        internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
+        internal NamedTypeSymbol GetWellKnownType(WellKnownType type, bool ignoreCorLibraryDuplicatedTypes = false)
         {
             Debug.Assert(type.IsValid());
 
@@ -101,7 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     DiagnosticBag legacyWarnings = (type <= WellKnownType.CSharp7Sentinel) ? warnings : null;
 
                     result = this.Assembly.GetTypeByMetadataName(
-                        mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, warnings: legacyWarnings);
+                        mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true,
+                        warnings: legacyWarnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
                 }
 
                 if ((object)result == null)

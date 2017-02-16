@@ -308,6 +308,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (numElements - 1) / (RestPosition - 1) + 1;
         }
 
+        private static bool IgnoreCorLibraryDuplicatedTypes(CSharpCompilation compilation)
+        {
+            return compilation.Options.TopLevelBinderFlags.Includes(BinderFlags.IgnoreCorLibraryDuplicatedTypes);
+        }
+
         /// <summary>
         /// Produces the underlying ValueTuple corresponding to this list of element types.
         ///
@@ -320,7 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int chainLength = NumberOfValueTuples(numElements, out remainder);
 
             NamedTypeSymbol currentSymbol = default(NamedTypeSymbol);
-            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
+            bool ignoreCorLibraryDuplicatedTypes = IgnoreCorLibraryDuplicatedTypes(compilation);
+            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder), ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
 
             if ((object)diagnostics != null && (object)syntax != null)
             {
@@ -332,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int loop = chainLength - 1;
             if (loop > 0)
             {
-                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
+                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition), ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
 
                 if ((object)diagnostics != null && (object)syntax != null)
                 {
@@ -367,13 +373,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             int remainder;
             int chainLength = NumberOfValueTuples(cardinality, out remainder);
+            bool ignoreCorLibraryDuplicatedTypes = IgnoreCorLibraryDuplicatedTypes(compilation);
 
-            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
+            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder), ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
             ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
 
             if (chainLength > 1)
             {
-                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
+                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition), ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
                 ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
             }
         }
