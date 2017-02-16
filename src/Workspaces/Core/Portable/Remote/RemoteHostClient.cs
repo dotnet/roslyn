@@ -115,5 +115,57 @@ namespace Microsoft.CodeAnalysis.Remote
                 PinnedScope.Dispose();
             }
         }
+
+        public class NoOpClient : RemoteHostClient
+        {
+            public NoOpClient(Workspace workspace) :
+                base(workspace)
+            {
+            }
+
+            protected override Task<Session> CreateServiceSessionAsync(
+                string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
+            {
+                return Task.FromResult<Session>(new NoOpSession(snapshot, cancellationToken));
+            }
+
+            protected override void OnConnected()
+            {
+                // do nothing
+            }
+
+            protected override void OnDisconnected()
+            {
+                // do nothing
+            }
+
+            private class NoOpSession : Session
+            {
+                public NoOpSession(PinnedRemotableDataScope scope, CancellationToken cancellationToken) :
+                    base(scope, cancellationToken)
+                {
+                }
+
+                public override Task InvokeAsync(string targetName, params object[] arguments)
+                {
+                    return SpecializedTasks.EmptyTask;
+                }
+
+                public override Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
+                {
+                    return SpecializedTasks.Default<T>();
+                }
+
+                public override Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
+                {
+                    return SpecializedTasks.EmptyTask;
+                }
+
+                public override Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
+                {
+                    return SpecializedTasks.Default<T>();
+                }
+            }
+        }
     }
 }

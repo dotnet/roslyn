@@ -29,5 +29,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         [ExportOption]
         public static readonly Option<bool> RemoteHostTest = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(RemoteHostTest), defaultValue: false);
+
+        // VS behavior options on unintentional OOP shutdown
+        public enum VsBehaviors : int
+        {
+            /// <summary>
+            /// Crash VS
+            /// </summary>
+            CrashVS = 0,
+
+            /// <summary>
+            /// Show info bar and let VS keep running. some features might keep running inproc based on how they are implemented.
+            /// </summary>
+            ShowInfoBarAndRunFeaturesInProcIfPossible = 1,
+
+            /// <summary>
+            /// Show info bar and disable all features.
+            /// </summary>
+            ShowInfoBarAndDisableAllFeatures = 2
+        }
+
+        // Define VS behavior on unintentional OOP shutdown such as user killing OOP process
+        [ExportOption]
+        public static readonly Option<int> VsBehaviorOnUnintentionalRemoteHostShutdown = new Option<int>(
+            nameof(InternalFeatureOnOffOptions), nameof(VsBehaviorOnUnintentionalRemoteHostShutdown), defaultValue: (int)VsBehaviors.ShowInfoBarAndRunFeaturesInProcIfPossible,
+            storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(VsBehaviorOnUnintentionalRemoteHostShutdown)));
     }
 }
