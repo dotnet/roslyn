@@ -318,7 +318,7 @@ namespace N1
 #pragma warning restore CS0618 // Type or member is obsolete
 
             compilation.VerifyDiagnostics(
-                // warning CS8190: Provided Source Code Kind is unsupported or invalid: 'Interactive'.
+                // warning CS8190: Provided Source Code Kind is unsupported or invalid: 'Interactive'
                 Diagnostic(ErrorCode.WRN_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1));
         }
 

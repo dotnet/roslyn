@@ -5474,6 +5474,9 @@
     <value>Provided Language Version is unsupported or invalid: '{0}'.</value>
   </data>
   <data name="WRN_BadSourceCodeKind" xml:space="preserve">
-    <value>Provided Source Code Kind is unsupported or invalid: '{0}'.</value>
+    <value>Provided Source Code Kind is unsupported or invalid: '{0}'</value>
+  </data>
+  <data name="WRN_BadSourceCodeKind_Title" xml:space="preserve">
+    <value>Provided Source Code Kind is unsupported or invalid</value>
   </data>
 </root>

@@ -12784,11 +12784,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Provided Source Code Kind is unsupported or invalid: &apos;{0}&apos;..
+        '''  Looks up a localized string similar to Provided Source Code Kind is unsupported or invalid: &apos;{0}&apos;.
         '''</summary>
         Friend ReadOnly Property WRN_BadSourceCodeKind() As String
             Get
                 Return ResourceManager.GetString("WRN_BadSourceCodeKind", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Provided Source Code Kind is unsupported or invalid.
+        '''</summary>
+        Friend ReadOnly Property WRN_BadSourceCodeKind_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_BadSourceCodeKind_Title", resourceCulture)
             End Get
         End Property
         

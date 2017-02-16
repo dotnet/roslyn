@@ -5021,9 +5021,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Provided Documentation Mode is unsupported or invalid: '{0}'.</value>
   </data>
   <data name="WRN_BadSourceCodeKind" xml:space="preserve">
-    <value>Provided Source Code Kind is unsupported or invalid: '{0}'.</value>
+    <value>Provided Source Code Kind is unsupported or invalid: '{0}'</value>
   </data>
   <data name="ERR_BadLanguageVersion" xml:space="preserve">
     <value>Provided Language Version is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="WRN_BadSourceCodeKind_Title" xml:space="preserve">
+    <value>Provided Source Code Kind is unsupported or invalid</value>
+  </data>
+  <data name="WRN_DefineIdentifierRequired_Title" xml:space="preserve">
+    <value>Invalid value for a preprocessing symbol; not a valid identifier</value>
   </data>
 </root>

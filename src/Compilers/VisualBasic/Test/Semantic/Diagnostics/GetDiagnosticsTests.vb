@@ -242,7 +242,7 @@ BC31030: Project-level conditional compilation constant '1' is not valid: Identi
 #Enable Warning BC40000 ' Type or member is obsolete
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
-BC37284: Provided Source Code Kind is unsupported or invalid: 'Interactive'.
+BC37284: Provided Source Code Kind is unsupported or invalid: 'Interactive'
 </errors>)
         End Sub
 

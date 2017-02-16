@@ -11106,11 +11106,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Provided Source Code Kind is unsupported or invalid: &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Provided Source Code Kind is unsupported or invalid: &apos;{0}&apos;.
         /// </summary>
         internal static string WRN_BadSourceCodeKind {
             get {
                 return ResourceManager.GetString("WRN_BadSourceCodeKind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Provided Source Code Kind is unsupported or invalid.
+        /// </summary>
+        internal static string WRN_BadSourceCodeKind_Title {
+            get {
+                return ResourceManager.GetString("WRN_BadSourceCodeKind_Title", resourceCulture);
             }
         }
         
@@ -12137,6 +12146,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_DefineIdentifierRequired {
             get {
                 return ResourceManager.GetString("WRN_DefineIdentifierRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid value for a preprocessing symbol; not a valid identifier.
+        /// </summary>
+        internal static string WRN_DefineIdentifierRequired_Title {
+            get {
+                return ResourceManager.GetString("WRN_DefineIdentifierRequired_Title", resourceCulture);
             }
         }
         

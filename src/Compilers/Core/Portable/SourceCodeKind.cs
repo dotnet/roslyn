@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis
                 case SourceCodeKind.Regular:
                     return SourceCodeKind.Regular;
 
-#pragma warning disable CS0618 // SourceCodeKind.Interactive is obsolete
                 case SourceCodeKind.Script:
+#pragma warning disable CS0618 // SourceCodeKind.Interactive is obsolete
                 case SourceCodeKind.Interactive:
-                    return SourceCodeKind.Script;
 #pragma warning restore CS0618 // SourceCodeKind.Interactive is obsolete
+                    return SourceCodeKind.Script;
 
                 default:
                     throw new NotSupportedException($"SourceCodeKind {kind} not supported");
