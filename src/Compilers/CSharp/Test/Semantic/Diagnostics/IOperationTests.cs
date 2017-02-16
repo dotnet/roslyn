@@ -87,7 +87,7 @@ public class C
             Assert.Equal(null, model.GetOperation(assignments[1]));
 
             Assert.Equal("var (a, b) = (1, 2)", assignments[2].ToString());
-            Assert.Equal(null, model.GetOperation(assignments[2]));
+            Assert.Null(model.GetOperation(assignments[2]));
         }
     }
 }
