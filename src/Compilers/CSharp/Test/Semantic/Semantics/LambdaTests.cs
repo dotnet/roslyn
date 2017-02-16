@@ -119,7 +119,7 @@ class C
     // (17,18): error CS1660: Cannot convert anonymous method to type 'int' because it is not a delegate type
     //         int q2 = delegate { return 1; };
     Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate { return 1; }").WithArguments("anonymous method", "int").WithLocation(17, 18),
-    // (18,24): error CS1593: Delegate 'System.Func<int>' does not take 1 arguments
+    // (18,24): error CS1593: Delegate 'Func<int>' does not take 1 arguments
     //         Func<int> q3 = x3=>1;
     Diagnostic(ErrorCode.ERR_BadDelArgCount, "x3=>1").WithArguments("System.Func<int>", "1").WithLocation(18, 24),
     // (19,37): error CS0234: The type or namespace name 'Itn23' does not exist in the namespace 'System' (are you missing an assembly reference?)
@@ -128,7 +128,7 @@ class C
     // (20,35): error CS0234: The type or namespace name 'Duobel' does not exist in the namespace 'System' (are you missing an assembly reference?)
     //         Func<double> q5 = (System.Duobel x5)=>1;  // but arity error should not be suppressed on error type
     Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Duobel").WithArguments("Duobel", "System").WithLocation(20, 35),
-    // (20,27): error CS1593: Delegate 'System.Func<double>' does not take 1 arguments
+    // (20,27): error CS1593: Delegate 'Func<double>' does not take 1 arguments
     //         Func<double> q5 = (System.Duobel x5)=>1;  // but arity error should not be suppressed on error type
     Diagnostic(ErrorCode.ERR_BadDelArgCount, "(System.Duobel x5)=>1").WithArguments("System.Func<double>", "1").WithLocation(20, 27),
     // (21,17): error CS1661: Cannot convert lambda expression to delegate type 'C.D1' because the parameter types do not match the delegate parameter types
@@ -167,9 +167,9 @@ class C
     // (56,42): warning CS0162: Unreachable code detected
     //         Func<int> q13 = ()=>{ if (false) return 1; };
     Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(56, 42),
-    // (56,25): error CS1643: Not all code paths return a value in lambda expression of type 'System.Func<int>'
+    // (56,27): error CS1643: Not all code paths return a value in lambda expression of type 'Func<int>'
     //         Func<int> q13 = ()=>{ if (false) return 1; };
-    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "()=>{ if (false) return 1; }").WithArguments("lambda expression", "System.Func<int>").WithLocation(56, 25),
+    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<int>").WithLocation(56, 27),
     // (58,29): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
     //         Func<int> q14 = ()=>123.456;
     Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "123.456").WithArguments("double", "int").WithLocation(58, 29),
@@ -194,10 +194,10 @@ class C
     // (68,45): error CS1670: params is not valid in this context
     //         Action<int, double[]> q18 = (int x, params double[] s)=>{};
     Diagnostic(ErrorCode.ERR_IllegalParams, "params double[] s").WithLocation(68, 45),
-    // (70,34): error CS1593: Delegate 'System.Action' does not take 1 arguments
+    // (70,34): error CS1593: Delegate 'Action' does not take 1 arguments
     //         object q19 = new Action( (int x)=>{} );
     Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int x)=>{}").WithArguments("System.Action", "1").WithLocation(70, 34),
-    // (72,9): warning CS0436: The type 'System.Linq.Expressions.Expression<T>' in '' conflicts with the imported type 'System.Linq.Expressions.Expression<TDelegate>' in 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+    // (72,9): warning CS0436: The type 'Expression<T>' in '' conflicts with the imported type 'Expression<TDelegate>' in 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
     //         Expression<int> ex1 = ()=>1;  
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Expression<int>").WithArguments("", "System.Linq.Expressions.Expression<T>", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Linq.Expressions.Expression<TDelegate>").WithLocation(72, 9),
     // (72,31): error CS0835: Cannot convert lambda to an expression tree whose type argument 'int' is not a delegate type
@@ -554,19 +554,19 @@ class Program
     // (7,39): error CS1662: Cannot convert anonymous method to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
     //         ((Func<int>)delegate { return ""; })();
     Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, @"""""").WithArguments("anonymous method").WithLocation(7, 39),
-    // (8,21): error CS1643: Not all code paths return a value in anonymous method of type 'System.Func<int>'
+    // (8,21): error CS1643: Not all code paths return a value in anonymous method of type 'Func<int>'
     //         ((Func<int>)delegate { })();
-    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate { }").WithArguments("anonymous method", "System.Func<int>").WithLocation(8, 21),
+    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "System.Func<int>").WithLocation(8, 21),
     // (9,32): error CS0020: Division by constant zero
     //         ((Func<int>)delegate { 1 / 0; })();
     Diagnostic(ErrorCode.ERR_IntDivByZero, "1 / 0").WithLocation(9, 32),
     // (9,32): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         ((Func<int>)delegate { 1 / 0; })();
     Diagnostic(ErrorCode.ERR_IllegalStatement, "1 / 0").WithLocation(9, 32),
-    // (9,21): error CS1643: Not all code paths return a value in anonymous method of type 'System.Func<int>'
+    // (9,21): error CS1643: Not all code paths return a value in anonymous method of type 'Func<int>'
     //         ((Func<int>)delegate { 1 / 0; })();
-    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate { 1 / 0; }").WithArguments("anonymous method", "System.Func<int>").WithLocation(9, 21)
-        );
+    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "System.Func<int>").WithLocation(9, 21)
+            );
         }
 
         [WorkItem(540181, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540181")]

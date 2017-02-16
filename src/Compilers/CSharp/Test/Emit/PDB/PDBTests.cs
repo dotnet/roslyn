@@ -2708,7 +2708,6 @@ class Student : Person { public double GPA; }
           <slot kind=""temp"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
-          <slot kind=""temp"" />
           <slot kind=""0"" offset=""59"" />
           <slot kind=""0"" offset=""163"" />
           <slot kind=""0"" offset=""250"" />
@@ -2719,26 +2718,26 @@ class Student : Person { public double GPA; }
       <sequencePoints>
         <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
         <entry offset=""0x1"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
-        <entry offset=""0x8"" hidden=""true"" />
-        <entry offset=""0x36"" hidden=""true"" />
-        <entry offset=""0x39"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" />
-        <entry offset=""0x4d"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" />
-        <entry offset=""0x6e"" hidden=""true"" />
-        <entry offset=""0x73"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" />
-        <entry offset=""0x94"" hidden=""true"" />
-        <entry offset=""0x99"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" />
-        <entry offset=""0xb5"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" />
-        <entry offset=""0xc9"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
+        <entry offset=""0x6"" hidden=""true"" />
+        <entry offset=""0x2a"" hidden=""true"" />
+        <entry offset=""0x2d"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" />
+        <entry offset=""0x41"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" />
+        <entry offset=""0x62"" hidden=""true"" />
+        <entry offset=""0x67"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" />
+        <entry offset=""0x88"" hidden=""true"" />
+        <entry offset=""0x8d"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" />
+        <entry offset=""0xa9"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" />
+        <entry offset=""0xbd"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xcc"">
-        <scope startOffset=""0x36"" endOffset=""0x6e"">
-          <local name=""s"" il_index=""5"" il_start=""0x36"" il_end=""0x6e"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xc0"">
+        <scope startOffset=""0x2a"" endOffset=""0x62"">
+          <local name=""s"" il_index=""4"" il_start=""0x2a"" il_end=""0x62"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x6e"" endOffset=""0x94"">
-          <local name=""s"" il_index=""6"" il_start=""0x6e"" il_end=""0x94"" attributes=""0"" />
+        <scope startOffset=""0x62"" endOffset=""0x88"">
+          <local name=""s"" il_index=""5"" il_start=""0x62"" il_end=""0x88"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x94"" endOffset=""0xb5"">
-          <local name=""t"" il_index=""7"" il_start=""0x94"" il_end=""0xb5"" attributes=""0"" />
+        <scope startOffset=""0x88"" endOffset=""0xa9"">
+          <local name=""t"" il_index=""6"" il_start=""0x88"" il_end=""0xa9"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -2802,7 +2801,6 @@ class Student : Person { public double GPA; }
           <slot kind=""temp"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
-          <slot kind=""temp"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
@@ -2821,20 +2819,20 @@ class Student : Person { public double GPA; }
         <entry offset=""0xd"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
         <entry offset=""0xe"" hidden=""true"" />
         <entry offset=""0x20"" hidden=""true"" />
-        <entry offset=""0x50"" hidden=""true"" />
-        <entry offset=""0x57"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" />
-        <entry offset=""0x6f"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""63"" />
-        <entry offset=""0x7f"" hidden=""true"" />
-        <entry offset=""0x89"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""63"" />
-        <entry offset=""0x99"" hidden=""true"" />
-        <entry offset=""0xa3"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""65"" />
-        <entry offset=""0xb3"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""49"" />
-        <entry offset=""0xc3"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
+        <entry offset=""0x45"" hidden=""true"" />
+        <entry offset=""0x4c"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" />
+        <entry offset=""0x64"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""63"" />
+        <entry offset=""0x74"" hidden=""true"" />
+        <entry offset=""0x7d"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""63"" />
+        <entry offset=""0x8d"" hidden=""true"" />
+        <entry offset=""0x97"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""65"" />
+        <entry offset=""0xa7"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""49"" />
+        <entry offset=""0xb7"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xc6"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xc6"" attributes=""0"" />
-        <scope startOffset=""0xe"" endOffset=""0xc3"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0xc3"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xba"">
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xba"" attributes=""0"" />
+        <scope startOffset=""0xe"" endOffset=""0xb7"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0xb7"" attributes=""0"" />
         </scope>
       </scope>
     </method>
