@@ -8,16 +8,16 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
     /// <summary>
-    /// Supports test interaction with the new (in Dev15) Find References/Go to Implementation window.
+    /// Supports test interaction with the new (in Dev15) Find References/Find Implementation window.
     /// </summary>
-    public class FindUsagesWindow_OutOfProc : OutOfProcComponent
+    public class FindReferencesWindow_OutOfProc : OutOfProcComponent
     {
-        private readonly FindUsagesWindow_InProc _inProc;
+        private readonly FindReferencesWindow_InProc _inProc;
 
-        public FindUsagesWindow_OutOfProc(VisualStudioInstance visualStudioInstance)
-            :base(visualStudioInstance)
+        public FindReferencesWindow_OutOfProc(VisualStudioInstance visualStudioInstance)
+            : base(visualStudioInstance)
         {
-            _inProc = CreateInProcComponent<FindUsagesWindow_InProc>(visualStudioInstance);
+            _inProc = CreateInProcComponent<FindReferencesWindow_InProc>(visualStudioInstance);
         }
 
         /// <summary>

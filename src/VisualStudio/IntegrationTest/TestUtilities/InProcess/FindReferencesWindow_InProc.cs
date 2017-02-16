@@ -8,9 +8,9 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
-    internal class FindUsagesWindow_InProc : InProcComponent
+    internal class FindReferencesWindow_InProc : InProcComponent
     {
-        public static FindUsagesWindow_InProc Create() => new FindUsagesWindow_InProc();
+        public static FindReferencesWindow_InProc Create() => new FindReferencesWindow_InProc();
 
         public string[] GetContents(string windowCaption)
         {

@@ -40,7 +40,7 @@ End Class
             const string localReferencesCaption = "'local' references";
             Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
 
-            var findReferencesResults = VisualStudio.Instance.FindUsagesWindow.GetContents(localReferencesCaption);
+            var findReferencesResults = VisualStudio.Instance.FindReferencesWindow.GetContents(localReferencesCaption);
 
             Assert.Equal(expected: 1, actual: findReferencesResults.Length);
             Assert.Equal(expected: "Console.WriteLine(local)", actual: findReferencesResults[0]);
