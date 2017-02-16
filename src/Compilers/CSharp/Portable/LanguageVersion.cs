@@ -69,6 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp7 = 7,
 
         /// <summary>
+        /// C# language version 7.1
+        /// </summary>
+        CSharp7_1 = 71,
+
+        /// <summary>
         /// The latest version of the language supported.
         /// </summary>
         Latest = int.MaxValue,
@@ -81,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (version)
             {
                 case LanguageVersion.Latest:
+                    return LanguageVersion.CSharp7_1;
                 case LanguageVersion.Default:
                     return LanguageVersion.CSharp7;
                 default:
@@ -90,7 +96,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsValid(this LanguageVersion value)
         {
-            return value >= LanguageVersion.CSharp1 && value <= LanguageVersion.CSharp7;
+            switch (value)
+            {
+                case LanguageVersion.CSharp1:
+                case LanguageVersion.CSharp2:
+                case LanguageVersion.CSharp3:
+                case LanguageVersion.CSharp4:
+                case LanguageVersion.CSharp5:
+                case LanguageVersion.CSharp6:
+                case LanguageVersion.CSharp7:
+                case LanguageVersion.CSharp7_1:
+                    return true;
+            }
+
+            return false;
         }
 
         internal static object Localize(this LanguageVersion value)

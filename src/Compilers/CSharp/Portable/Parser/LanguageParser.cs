@@ -1355,6 +1355,16 @@ tryAgain:
                             }
                             return;
                         }
+                    case SyntaxModifier.ReadOnly:
+                        {
+                            if (PeekToken(1).Kind == SyntaxKind.RefKeyword)
+                            {
+                                // readonly is not a modifier in "readonly ref", since "ref" is not a modifier.
+                                return;
+                            }
+
+                            goto default;
+                        }
                     default:
                         {
                             modTok = this.EatToken();
@@ -6513,16 +6523,24 @@ tryAgain:
             ParseTypeMode mode = ParseTypeMode.Normal,
             bool expectSizes = false)
         {
-            if (mode == ParseTypeMode.Normal && !expectSizes && this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+            if (mode == ParseTypeMode.Normal && !expectSizes)
             {
-                var refKeyword = this.EatToken();
-                var type = ParseTypeCore(mode, expectSizes);
-                return this.CheckFeatureAvailability(_syntaxFactory.RefType(refKeyword, type), MessageID.IDS_FeatureRefLocalsReturns);
+                SyntaxToken readonlyKeyword = null;
+                if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword && this.PeekToken(1).Kind == SyntaxKind.RefKeyword)
+                {
+                    readonlyKeyword = this.EatToken();
+                    readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadonlyReferences);
+                }
+
+                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+                {
+                    var refKeyword = this.EatToken();
+                    var type = ParseTypeCore(mode, expectSizes);
+                    return this.CheckFeatureAvailability(_syntaxFactory.RefType(readonlyKeyword, refKeyword, type), MessageID.IDS_FeatureRefLocalsReturns);
+                }
             }
-            else
-            {
-                return ParseTypeCore(mode, expectSizes);
-            }
+
+            return ParseTypeCore(mode, expectSizes);
         }
 
         private TypeSyntax ParseTypeCore(

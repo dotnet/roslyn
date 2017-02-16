@@ -127,6 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExpressionBodiedAccessor = MessageBase + 12715,
         IDS_FeatureExpressionBodiedDeOrConstructor = MessageBase + 12716,
         IDS_ThrowExpression = MessageBase + 12717,
+
+        IDS_FeatureReadonlyReferences = MessageBase + 12718,
+
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -183,6 +186,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# 7.1 features.
+                case MessageID.IDS_FeatureReadonlyReferences:
+                    return LanguageVersion.CSharp7_1;
+
                 // C# 7 features.
                 case MessageID.IDS_FeatureBinaryLiteral:
                 case MessageID.IDS_FeatureDigitSeparator:
