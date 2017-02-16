@@ -33,6 +33,7 @@
     <Compile Include="VisualBasic\BasicAutomaticBraceCompletion.cs" />
     <Compile Include="VisualBasic\BasicBuild.cs" />
     <Compile Include="VisualBasic\BasicChangeSignatureDialog.cs" />
+    <Compile Include="VisualBasic\BasicFindReferences.cs" />
     <Compile Include="VisualBasic\BasicIntelliSense.cs" />
   </ItemGroup>
   <ItemGroup>
