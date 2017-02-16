@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, inferredType ?? CreateErrorType("var"));
             DeclarationExpressionSyntax declaration = null;
             ExpressionSyntax expression = null;
-            BoundAssignmentOperator deconstruction = BindDeconstruction(
+            BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
                                                         variables,
                                                         variables,
                                                         right: _syntax.Expression,
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
                             DeclarationExpressionSyntax declaration = null;
                             ExpressionSyntax expression = null;
-                            BoundAssignmentOperator deconstruction = BindDeconstruction(
+                            BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
                                                                                     variables,
                                                                                     variables,
                                                                                     right: _syntax.Expression,

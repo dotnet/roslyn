@@ -1858,6 +1858,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
+        {
+            base.VisitDeconstructionAssignmentOperator(node);
+            Assign(node.Left, node.Right);
+            return null;
+        }
+
         public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
         {
             base.VisitIncrementOperator(node);

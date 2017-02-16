@@ -11,6 +11,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
+        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
+        {
+            var right = node.Right;
+            Debug.Assert(right.Kind == BoundKind.Conversion);
+            var conversion = (BoundConversion)right;
+            Debug.Assert(conversion.Conversion.Kind == ConversionKind.Deconstruction);
+
+            return RewriteDeconstruction(node.Left, conversion.Conversion, conversion.Operand);
+        }
+
         /// <summary>
         /// The left represents a tree of L-values. The structure of right can be missing parts of the tree on the left.
         /// The conversion holds nested conversisons and deconstruction information, which matches the tree from the left,

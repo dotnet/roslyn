@@ -388,6 +388,14 @@
     <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
   </Node>
 
+  <Node Name="BoundDeconstructionAssignmentOperator" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+
+    <Field Name="Left" Type="BoundTupleExpression" Null="disallow"/>
+    <Field Name="Right" Type="BoundExpression" Null="disallow"/>
+  </Node>
+
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">
     <Field Name="LeftOperand" Type="BoundExpression"/>
     <Field Name="RightOperand" Type="BoundExpression"/>
@@ -873,7 +881,7 @@
 
   <!-- All the information need to apply a deconstruction at each iteration of a foreach loop involving a deconstruction-declaration. -->
   <Node Name="BoundForEachDeconstructStep" Base="BoundNode">
-    <Field Name="DeconstructionAssignment" Type="BoundAssignmentOperator" Null="disallow"/>
+    <Field Name="DeconstructionAssignment" Type="BoundDeconstructionAssignmentOperator" Null="disallow"/>
     <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
   </Node>
 

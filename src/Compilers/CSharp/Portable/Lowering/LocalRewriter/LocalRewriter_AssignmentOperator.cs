@@ -19,16 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitAssignmentOperator(BoundAssignmentOperator node, bool used)
         {
             var right = node.Right;
-
-            if (right.Kind == BoundKind.Conversion)
-            {
-                var conversion = (BoundConversion)right;
-                if (conversion.Conversion.Kind == ConversionKind.Deconstruction)
-                {
-                    return RewriteDeconstruction((BoundTupleExpression)node.Left, conversion.Conversion, conversion.Operand);
-                }
-            }
-
             var loweredRight = VisitExpression(right);
 
             BoundExpression left = node.Left;

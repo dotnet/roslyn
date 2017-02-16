@@ -968,29 +968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            if (IsDeconstruction(result))
-            {
-                result = null;
-            }
-
             return result as IOperation;
-        }
-
-        private bool IsDeconstruction(BoundNode node)
-        {
-            if (node.Kind == BoundKind.AssignmentOperator)
-            {
-                var assigment = (BoundAssignmentOperator)node;
-                if (assigment.Right.Kind == BoundKind.Conversion)
-                {
-                    var conversion = (BoundConversion)assigment.Right;
-                    if (conversion.Conversion.Kind == ConversionKind.Deconstruction)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="expression">A variable set to the first expression in the left that isn't a declaration or discard</param>
         /// <param name="rightPlaceholder"></param>
         /// <returns></returns>
-        internal BoundAssignmentOperator BindDeconstruction(
+        internal BoundDeconstructionAssignmentOperator BindDeconstruction(
             CSharpSyntaxNode deconstruction,
             ExpressionSyntax left,
             ExpressionSyntax right,
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return assignment;
         }
 
-        private BoundAssignmentOperator BindDeconstructionAssignment(
+        private BoundDeconstructionAssignmentOperator BindDeconstructionAssignment(
                                                         CSharpSyntaxNode node,
                                                         ExpressionSyntax left,
                                                         BoundExpression boundRHS,
@@ -111,11 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we could still not infer a type for the RHS
                 FailRemainingInferences(checkedVariables, diagnostics);
 
-                return new BoundAssignmentOperator(
+                return new BoundDeconstructionAssignmentOperator(
                             node,
                             DeconstructionVariablesAsTuple(node, checkedVariables, diagnostics, hasErrors: true),
                             boundRHS,
-                            RefKind.None,
                             GetSpecialType(SpecialType.System_Void, diagnostics, node),
                             hasErrors: true);
             }
@@ -145,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true };
 
-            return new BoundAssignmentOperator(node, lhsTuple, boundConversion, RefKind.None, returnType);
+            return new BoundDeconstructionAssignmentOperator(node, lhsTuple, boundConversion, returnType);
         }
 
         /// <summary>When boundRHS is a tuple literal, fix it up by inferring its types.</summary>
