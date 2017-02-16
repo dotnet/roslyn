@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -42,8 +43,10 @@ End Class
 
             var findReferencesResults = VisualStudio.Instance.FindReferencesWindow.GetContents(localReferencesCaption);
 
-            Assert.Equal(expected: 1, actual: findReferencesResults.Length);
-            Assert.Equal(expected: "Console.WriteLine(local)", actual: findReferencesResults[0]);
+            var reference = findReferencesResults.Single();
+            Assert.Equal(expected: "Console.WriteLine(local)", actual: reference.Code);
+            Assert.Equal(expected: 4, actual: reference.Line);
+            Assert.Equal(expected: 24, actual: reference.Column);
         }
     }
 }

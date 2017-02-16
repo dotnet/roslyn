@@ -2,6 +2,7 @@
 
 using System.Linq;
 using EnvDTE80;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -12,7 +13,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         public static FindReferencesWindow_InProc Create() => new FindReferencesWindow_InProc();
 
-        public string[] GetContents(string windowCaption)
+        public Reference[] GetContents(string windowCaption)
         {
             return InvokeOnUIThread(() =>
             {
@@ -40,12 +41,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 // Extract the basic text of the results.
                 return forcedUpdateResult.AllEntries.Select(handle =>
                 {
-                    if (handle.TryGetValue(StandardTableKeyNames.Text, out string text))
-                    {
-                        return text;
-                    }
+                    handle.TryGetValue(StandardTableKeyNames.DocumentName, out string filePath);
+                    handle.TryGetValue(StandardTableKeyNames.Line, out int line);
+                    handle.TryGetValue(StandardTableKeyNames.Column, out int column);
+                    handle.TryGetValue(StandardTableKeyNames.Text, out string code);
 
-                    return string.Empty;
+                    var reference = new Reference
+                    {
+                        FilePath = filePath,
+                        Line = line,
+                        Column = column,
+                        Code = code
+                    };
+
+                    return reference;
                 }).ToArray();
             });
         }

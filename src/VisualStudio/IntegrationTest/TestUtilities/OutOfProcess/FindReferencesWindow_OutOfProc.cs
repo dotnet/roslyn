@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// </summary>
         /// <param name="windowCaption">The name of the window. Generally this will be something like
         /// "'Alpha' references" or "'Beta' implementations".</param>
-        public string[] GetContents(string windowCaption)
+        public Reference[] GetContents(string windowCaption)
             => _inProc.GetContents(windowCaption);
     }
 }
