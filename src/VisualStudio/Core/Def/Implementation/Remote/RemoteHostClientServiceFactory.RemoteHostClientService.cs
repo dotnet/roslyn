@@ -24,7 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // OOP killed more info page link
             private const string OOPKilledMoreInfoLink = "https://go.microsoft.com/fwlink/?linkid=842308";
 
-            // this hold onto last remoteHostClient to make debugging easier
+            /// <summary>
+            /// this hold onto last remoteHostClient to make debugging easier
+            /// </summary>
             private static Task<RemoteHostClient> s_lastInstanceTask;
 
             private readonly IAsynchronousOperationListener _listener;
@@ -199,35 +201,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return;
                 }
 
-                var option = (RemoteHostOptions.VsBehaviors)_workspace.Options.GetOption(RemoteHostOptions.VsBehaviorOnUnintentionalRemoteHostShutdown);
-
-                lock (_gate)
+                if (_shutdownCancellationTokenSource.IsCancellationRequested)
                 {
-                    // save last remoteHostClient
-                    s_lastInstanceTask = _instanceTask;
-
-                    if (option == RemoteHostOptions.VsBehaviors.ShowInfoBarAndDisableAllFeatures)
+                    lock (_gate)
                     {
-                        _instanceTask = Task.FromResult<RemoteHostClient>(new RemoteHostClient.NoOpClient(_workspace));
-                    }
-                    else
-                    {
-                        // reset instance to null.
-                        // this basically make all OOP features to believe OOP is not enabled, and they
-                        // will run things in InProc if possible.
+                        // RemoteHost has been disabled
                         _instanceTask = null;
                     }
                 }
-
-                if (!_shutdownCancellationTokenSource.IsCancellationRequested)
+                else
                 {
-                    // s_lastInstanceTask info should be saved in the dump
-                    if (option == RemoteHostOptions.VsBehaviors.CrashVS)
+                    lock (_gate)
                     {
-                        FatalError.Report(new Exception("Connection to remote host closed"));
-                        return;
+                        // save last remoteHostClient
+                        s_lastInstanceTask = _instanceTask;
+
+                        // save NoOpRemoteHostClient to instance so that all RemoteHost call becomes
+                        // No Op. this basically have same effect as disabling all RemoteHost features
+                        _instanceTask = Task.FromResult<RemoteHostClient>(new RemoteHostClient.NoOpClient(_workspace));
                     }
 
+                    // s_lastInstanceTask info should be saved in the dump
                     // report NFW when connection is closed unless it is proper shutdown
                     FatalError.ReportWithoutCrash(new Exception("Connection to remote host closed"));
 

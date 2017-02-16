@@ -87,8 +87,19 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             public abstract Task InvokeAsync(string targetName, params object[] arguments);
+
+            /// <summary>
+            /// All caller must guard itself from it returning default(T) which can happen if OOP is killed
+            /// unintentionally such as user killed OOP process.
+            /// </summary>
             public abstract Task<T> InvokeAsync<T>(string targetName, params object[] arguments);
+
             public abstract Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync);
+
+            /// <summary>
+            /// All caller must guard itself from it returning default(T) which can happen if OOP is killed
+            /// unintentionally such as user killed OOP process.
+            /// </summary>
             public abstract Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync);
 
             public void AddAdditionalAssets(CustomAsset asset)
