@@ -13,6 +13,7 @@ Microsoft.CodeAnalysis.CSharp.Conversion.IsThrow.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsTupleConversion.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsTupleLiteralConversion.get -> bool
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7 = 7 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_1 = 71 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.Default = 0 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax
@@ -111,9 +112,12 @@ Microsoft.CodeAnalysis.CSharp.Syntax.RefExpressionSyntax.Update(Microsoft.CodeAn
 Microsoft.CodeAnalysis.CSharp.Syntax.RefExpressionSyntax.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.RefExpressionSyntax.WithRefKeyword(Microsoft.CodeAnalysis.SyntaxToken refKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.ReadOnlyKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.RefKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.WithReadOnlyKeyword(Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.WithRefKeyword(Microsoft.CodeAnalysis.SyntaxToken refKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SingleVariableDesignationSyntax
@@ -294,6 +298,7 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedVariableDesignat
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RefExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RefExpression(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RefType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RefType(Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RefType(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SingleVariableDesignation(Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.SingleVariableDesignationSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ThrowExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax
