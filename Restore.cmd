@@ -8,9 +8,12 @@ set DevDivPackages=%RoslynRoot%src\Setup\DevDivPackages
 if /I "%1" == "/?" goto :Usage
 if /I "%1" == "/clean" set RestoreClean=true&&shift&& goto :ParseArguments
 if /I "%1" == "/fast" set RestoreFast=true&&shift&& goto :ParseArguments
+if /I "%1" == "/msbuild" set MSBuildCustomPath=%2&&shift&&shift&& goto :ParseArguments
 goto :DoneParsing
 
 :DoneParsing
+
+echo MSBuild build custom path is %MSBuildCustomPath%
 
 REM Allow for alternate solutions to be passed as restore targets.
 set RoslynSolution=%1
@@ -18,6 +21,10 @@ if "%RoslynSolution%" == "" set RoslynSolution=%RoslynRoot%\Roslyn.sln
 
 REM Load in the inforation for NuGet
 call "%RoslynRoot%build\scripts\LoadNuGetInfo.cmd" || goto :LoadNuGetInfoFailed
+
+if NOT "%MSBuildCustomPath%" == "" (
+    set NuGetAdditionalCommandLineArgs=-MSBuildPath %MSBuildCustomPath% %NuGetAdditionalCommandLineArgs%
+)
 
 if "%RestoreClean%" == "true" (
     echo Clearing the NuGet caches

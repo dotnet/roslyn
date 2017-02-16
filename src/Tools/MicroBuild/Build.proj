@@ -22,7 +22,7 @@
   </PropertyGroup>
 
   <Target Name="Build">
-    <Exec Command="Restore.cmd /clean" WorkingDirectory="$(RepoRoot)" Condition="'$(SkipRestore)' != 'true'" />
+    <Exec Command="Restore.cmd /clean /msbuild &quot;$(MSBuildBinPath)&quot;" WorkingDirectory="$(RepoRoot)" Condition="'$(SkipRestore)' != 'true'" />
 
     <MSBuild Projects="$(RepoRoot)Roslyn.sln" BuildInParallel="true" Properties="DeployExtension=false" />
 
