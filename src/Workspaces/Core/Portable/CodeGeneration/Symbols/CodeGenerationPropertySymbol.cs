@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationPropertySymbol : CodeGenerationSymbol, IPropertySymbol
     {
         public ITypeSymbol Type { get; }
+        public bool ReturnsByRef { get; }
         public bool IsIndexer { get; }
 
         public ImmutableArray<IParameterSymbol> Parameters { get; }
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol type,
+            bool returnsByRef,
             IPropertySymbol explicitInterfaceSymbolOpt,
             string name,
             bool isIndexer,
@@ -33,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             : base(containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
+            this.ReturnsByRef = returnsByRef;
             this.IsIndexer = isIndexer;
             this.Parameters = parametersOpt.AsImmutableOrEmpty();
             this.ExplicitInterfaceImplementations = explicitInterfaceSymbolOpt == null
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             var result = new CodeGenerationPropertySymbol(
                 this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
-                this.Modifiers, this.Type, this.ExplicitInterfaceImplementations.FirstOrDefault(),
+                this.Modifiers, this.Type, this.ReturnsByRef, this.ExplicitInterfaceImplementations.FirstOrDefault(),
                 this.Name, this.IsIndexer, this.Parameters.IsDefault ? null : (IList<IParameterSymbol>)this.Parameters,
                 this.GetMethod, this.SetMethod);
             CodeGenerationPropertyInfo.Attach(result,
@@ -57,23 +60,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return result;
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Property;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Property;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitProperty(this);
-        }
+            => visitor.VisitProperty(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitProperty(this);
-        }
+            => visitor.VisitProperty(this);
 
         public bool IsReadOnly
         {
@@ -91,52 +84,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public bool ReturnsByRef
-        {
-            get
-            {
-                return this.GetMethod != null && this.GetMethod.ReturnsByRef;
-            }
-        }
+        public new IPropertySymbol OriginalDefinition => this;
 
-        public new IPropertySymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public IPropertySymbol OverriddenProperty => null;
 
-        public IPropertySymbol OverriddenProperty
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public bool IsWithEvents => false;
 
-        public bool IsWithEvents
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
-        public ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray.Create<CustomModifier>();
-            }
-        }
-
-        public ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray.Create<CustomModifier>();
-            }
-        }
+        public ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray<CustomModifier>.Empty;
     }
 }

@@ -141,6 +141,35 @@ class Class : IInterface
 }");
         }
 
+        [WorkItem(16793, "https://github.com/dotnet/roslyn/issues/16793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestMethodWithValueTupleArity1()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"
+using System;
+interface I
+{
+    ValueTuple<object> F();
+}
+class C : [|I|]
+{
+}",
+@"
+using System;
+interface I
+{
+    ValueTuple<object> F();
+}
+class C : I
+{
+    public ValueTuple<object> F()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExpressionBodiedMethod1()
         {
@@ -6786,6 +6815,44 @@ class Class : IComInterface
     public void X() { throw new NotImplementedException(); }
     public void MOverload(int i) { throw new NotImplementedException(); }
     public int Prop => throw new NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestRefReturns()
+        {
+            await TestAsync(
+@"
+using System;
+
+interface I {
+    ref int IFoo();
+    ref int Foo { get; }
+    ref int this[int i] { get; }
+}
+
+class C : [|I|]
+{
+}",
+@"
+using System;
+
+interface I {
+    ref int IFoo();
+    ref int Foo { get; }
+    ref int this[int i] { get; }
+}
+
+class C : I
+{
+    public ref int this[int i] => throw new NotImplementedException();
+
+    public ref int Foo => throw new NotImplementedException();
+
+    public ref int IFoo()
+    {
+        throw new NotImplementedException();
+    }
 }");
         }
     }

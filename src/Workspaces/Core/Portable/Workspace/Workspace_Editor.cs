@@ -335,7 +335,14 @@ namespace Microsoft.CodeAnalysis
 
             if (container != null)
             {
-                OnDocumentContextUpdated(documentId, container);
+                if (_isProjectUnloading.Value)
+                {
+                    OnDocumentContextUpdated_NoSerializationLock(documentId, container);
+                }
+                else
+                {
+                    OnDocumentContextUpdated(documentId, container);
+                }
             }
         }
 
@@ -346,17 +353,22 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
-                DocumentId oldActiveContextDocumentId;
-
-                using (_stateLock.DisposableWait())
-                {
-                    oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
-                    _bufferToDocumentInCurrentContextMap[container] = documentId;
-                }
-
-                // fire and forget
-                this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
+                OnDocumentContextUpdated_NoSerializationLock(documentId, container);
             }
+        }
+
+        internal void OnDocumentContextUpdated_NoSerializationLock(DocumentId documentId, SourceTextContainer container)
+        {
+            DocumentId oldActiveContextDocumentId;
+
+            using (_stateLock.DisposableWait())
+            {
+                oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
+                _bufferToDocumentInCurrentContextMap[container] = documentId;
+            }
+
+            // fire and forget
+            this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
         }
 
         protected void CheckDocumentIsClosed(DocumentId documentId)

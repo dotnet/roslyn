@@ -95,10 +95,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                     return true;
                 }
             }
-            else if (typeName.IsParentKind(SyntaxKind.ForEachStatement))
+            else if (typeName.Parent is ForEachStatementSyntax foreachStatment)
             {
-                issueSpan = candidateIssueSpan;
-                return true;
+                var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatment);
+                if (foreachStatementInfo.ElementConversion.IsIdentityOrImplicitReference())
+                {
+                    issueSpan = candidateIssueSpan;
+                    return true;
+                }
             }
 
             issueSpan = default(TextSpan);

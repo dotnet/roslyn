@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             AssertIsForeground();
             VerifyNotDismissed();
-            this.ReplacementText = replacementText;
+            this.ReplacementText = _renameInfo.GetFinalSymbolName(replacementText);
 
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(ApplyReplacementText));
 
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     newSolution = previewService.PreviewChanges(
                         string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
                         "vs.csharp.refactoring.rename",
-                        string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, _renameInfo.GetFinalSymbolName(this.ReplacementText)),
+                        string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, this.ReplacementText),
                         _renameInfo.FullDisplayName,
                         _renameInfo.Glyph,
                         _conflictResolutionTask.Result.NewSolution,

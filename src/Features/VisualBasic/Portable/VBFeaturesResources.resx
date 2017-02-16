@@ -1238,4 +1238,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Add_Me" xml:space="preserve">
     <value>Add 'Me.'</value>
   </data>
+  <data name="Convert_If_to_Select_Case" xml:space="preserve">
+    <value>Convert 'If' to 'Select Case'</value>
+  </data>
 </root>

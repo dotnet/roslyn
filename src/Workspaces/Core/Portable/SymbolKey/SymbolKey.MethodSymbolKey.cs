@@ -144,8 +144,13 @@ namespace Microsoft.CodeAnalysis
                 {
                     // We didn't find any candidates.  We still need to stream through this
                     // method signature so the reader is in a proper position.
+
+                    // Push an null-method to our stack so that any method-type-parameters
+                    // can at least be read (if not resolved) properly.
+                    reader.PushMethod(methodOpt: null);
                     var parameterTypeResolutions = reader.ReadSymbolKeyArray();
                     var returnType = GetFirstSymbol<ITypeSymbol>(reader.ReadSymbolKey());
+                    reader.PopMethod(methodOpt: null);
                 }
 
                 return CreateSymbolInfo(result);

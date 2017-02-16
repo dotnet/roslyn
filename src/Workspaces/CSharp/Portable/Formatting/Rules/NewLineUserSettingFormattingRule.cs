@@ -132,6 +132,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
+            // * { - in the local function context
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent.IsKind(SyntaxKind.LocalFunctionStatement))
+            {
+                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInMethods))
+                {
+                    operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
             // * { - in the Lambda context
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null &&
                (currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression) || currentTokenParentParent.IsKind(SyntaxKind.ParenthesizedLambdaExpression)))
@@ -318,6 +327,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLinesIfOnSingleLine);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            // * { - in the local function context
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent.Kind() == SyntaxKind.LocalFunctionStatement)
+            {
+                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInMethods))
+                {
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
                 else
                 {

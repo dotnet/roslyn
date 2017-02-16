@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class PatternMatchingTestBase : CSharpTestBase
     {
         #region helpers
+        protected static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
+
         protected IEnumerable<SingleVariableDesignationSyntax> GetPatternDeclarations(SyntaxTree tree, string v)
         {
             return GetPatternDeclarations(tree).Where(d => d.Identifier.ValueText == v);
@@ -47,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         protected static void VerifyModelForDeclarationPattern(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
+        {
+            VerifyModelForDeclarationPattern(model, decl, false, references);
+        }
+
+        protected static void VerifyModelForDeclarationPatternWithoutDataFlow(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
             VerifyModelForDeclarationPattern(model, decl, false, references);
         }
@@ -114,6 +121,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 Assert.Equal(type, model.GetSymbolInfo(decl.Type).Symbol);
             }
+        }
+
+        protected static void VerifyNotAPatternField(SemanticModel model, IdentifierNameSyntax reference)
+        {
+            var symbol = model.GetSymbolInfo(reference).Symbol;
+
+            Assert.NotEqual(SymbolKind.Field, symbol.Kind);
+
+            Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Single());
+            Assert.True(model.LookupNames(reference.SpanStart).Contains(reference.Identifier.ValueText));
         }
 
         protected static void VerifyNotAPatternLocal(SemanticModel model, IdentifierNameSyntax reference)
@@ -294,6 +311,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.DoesNotContain(reference.Identifier.ValueText, model.LookupNames(reference.SpanStart));
                 Assert.True(((TypeSymbol)model.GetTypeInfo(reference).Type).IsErrorType());
             }
+        }
+
+        protected static void AssertNoGlobalStatements(SyntaxTree tree)
+        {
+            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>());
         }
 
         #endregion helpers

@@ -93,6 +93,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics);
         }
 
+        /// <summary>
+        /// Bind the pattern switch labels, reporting in the process which cases are subsumed. The strategy,
+        /// implemented with the help of <see cref="SubsumptionDiagnosticBuilder"/>, is to start with an empty
+        /// decision tree, and for each case we visit the decision tree to see if the case is subsumed. If it
+        /// is, we report an error. If it is not subsumed and there is no guard expression, we then add it to
+        /// the decision tree.
+        /// </summary>
         private ImmutableArray<BoundPatternSwitchSection> BindPatternSwitchSections(
             BoundExpression boundSwitchExpression,
             SyntaxList<SwitchSectionSyntax> sections,

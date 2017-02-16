@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26020.0
+VisualStudioVersion = 15.0.25920.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "src\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -361,6 +361,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtilities.CoreClr", "src\Test\Utilities\CoreClr\TestUtilities.CoreClr.csproj", "{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSetup.Dependencies", "src\VisualStudio\Setup.Dependencies\VisualStudioSetup.Dependencies.csproj", "{1688E1E5-D510-4E06-86F3-F8DB10B1393D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackDepthTest", "src\Test\Perf\StackDepthTest\StackDepthTest.csproj", "{F040CEC5-5E11-4DBD-9F6A-250478E28177}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -978,6 +980,10 @@ Global
 		{1688E1E5-D510-4E06-86F3-F8DB10B1393D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1688E1E5-D510-4E06-86F3-F8DB10B1393D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1688E1E5-D510-4E06-86F3-F8DB10B1393D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F040CEC5-5E11-4DBD-9F6A-250478E28177}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F040CEC5-5E11-4DBD-9F6A-250478E28177}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F040CEC5-5E11-4DBD-9F6A-250478E28177}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F040CEC5-5E11-4DBD-9F6A-250478E28177}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1149,5 +1155,6 @@ Global
 		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37} = {CAD2965A-19AB-489F-BE2E-7649957F914A}
 		{1688E1E5-D510-4E06-86F3-F8DB10B1393D} = {8DBA5174-B0AA-4561-82B1-A46607697753}
+		{F040CEC5-5E11-4DBD-9F6A-250478E28177} = {DD13507E-D5AF-4B61-B11A-D55D6F4A73A5}
 	EndGlobalSection
 EndGlobal

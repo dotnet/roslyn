@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     let texts = GetDisplayAndInsertionText(item.symbol, context)
                     group item.symbol by texts into g
                     select this.CreateItem(
-                        g.Key.displayText, g.Key.insertionText, g.ToList(), context, 
+                        g.Key.displayText, g.Key.insertionText, g.ToList(), context,
                         invalidProjectMap, totalProjects, preselect);
 
             return q.ToList();
@@ -233,13 +234,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private async Task<ImmutableArray<(ISymbol, CompletionItemRules)>> GetSymbolsWorker(int position, bool preselect, SyntaxContext context, OptionSet options, CancellationToken cancellationToken)
         {
-            if (preselect)
+            try
             {
-                return await GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
+                if (preselect)
+                {
+                    return await GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
+                }
+
+                return (await GetSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false))
+                        .Select(s => (s, CompletionItemRules.Default)).ToImmutableArray();
             }
-            
-            return (await GetSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false))
-                    .Select(s => (s, CompletionItemRules.Default)).ToImmutableArray();
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private HashSet<ISymbol> UnionSymbols(List<Tuple<DocumentId, SyntaxContext, ImmutableArray<ISymbol>>> linkedContextSymbolLists, out Dictionary<ISymbol, SyntaxContext> originDictionary)
@@ -318,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <param name="linkedContextSymbolLists">The symbols recommended in linked documents</param>
         /// <returns>The list of projects each recommended symbol did NOT appear in.</returns>
         protected Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(
-            HashSet<ISymbol> expectedSymbols, 
+            HashSet<ISymbol> expectedSymbols,
             IEnumerable<Tuple<DocumentId, SyntaxContext, ImmutableArray<ISymbol>>> linkedContextSymbolLists)
         {
             var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
