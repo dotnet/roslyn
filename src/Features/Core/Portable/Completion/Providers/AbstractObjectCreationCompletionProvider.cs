@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractObjectCreationCompletionProvider : AbstractSymbolCompletionProvider
     {
+        private static CompletionItemRules HardSelection = CompletionItemRules.Create(
+            selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
+
         /// <summary>
         /// Return null if not in object creation type context.
         /// </summary>
@@ -111,17 +114,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     var typeArguments = type.GetTypeArguments();
 
-                    var constructedImplementations = ArrayBuilder<(ISymbol, CompletionItemRules)>.GetInstance();
+                    var preselectionItems = ArrayBuilder<(ISymbol, CompletionItemRules)>.GetInstance();
 
                     foreach (var impl in matchingImplementations)
                     {
-                        constructedImplementations.Add((impl.Construct(typeArguments.ToArray()), CompletionItemRules.Default));
+                        preselectionItems.Add(CreatePreselectionItem(type, impl.Construct(typeArguments.ToArray())));
                     }
 
-                    return constructedImplementations.ToImmutableAndFree();
+                    return preselectionItems.ToImmutableAndFree();
                 }
 
-                return matchingImplementations.Select(s => ((ISymbol)s, CompletionItemRules.Default)).ToImmutableArray();
+
+                return matchingImplementations.Select(s => CreatePreselectionItem(type, s)).ToImmutableArray();
             }
 
             // Normally the user can't say things like "new IList".  Except for "IList[] x = new |".
@@ -149,6 +153,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return ImmutableArray.Create(((ISymbol)type, CompletionItemRules.Default));
+        }
+
+        private static (ISymbol, CompletionItemRules) CreatePreselectionItem(ITypeSymbol lhsType, INamedTypeSymbol rhsType)
+        {
+            return (rhsType, lhsType.Name.Contains(rhsType.Name) ? HardSelection : CompletionItemRules.Default);
         }
 
         protected override (string displayText, string insertionText) GetDisplayAndInsertionText(
