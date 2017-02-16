@@ -3321,10 +3321,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>'id#' syntax is no longer supported. Use '$id' instead.</value>
   </data>
   <data name="WRN_DefineIdentifierRequired" xml:space="preserve">
-    <value>Invalid value for '/define'; '{0}' is not a valid identifier</value>
-  </data>
-  <data name="WRN_DefineIdentifierRequired_Title" xml:space="preserve">
-    <value>Invalid value for '/define'; not a valid identifier</value>
+    <value>Invalid value for a preprocessing symbol; '{0}' is not a valid identifier</value>
   </data>
   <data name="FTL_OutputFileExists" xml:space="preserve">
     <value>Cannot create short filename '{0}' when a long filename with the same short filename already exists</value>
@@ -5023,7 +5020,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadDocumentationMode" xml:space="preserve">
     <value>Provided Documentation Mode is unsupported or invalid: '{0}'.</value>
   </data>
-  <data name="ERR_BadSourceCodeKind" xml:space="preserve">
+  <data name="WRN_BadSourceCodeKind" xml:space="preserve">
     <value>Provided Source Code Kind is unsupported or invalid: '{0}'.</value>
   </data>
   <data name="ERR_BadLanguageVersion" xml:space="preserve">

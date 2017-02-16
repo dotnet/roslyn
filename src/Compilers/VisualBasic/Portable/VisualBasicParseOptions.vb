@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _specifiedLanguageVersion = languageVersion
             _languageVersion = languageVersion.MapSpecifiedToEffectiveVersion
             _preprocessorSymbols = preprocessorSymbols.ToImmutableArrayOrEmpty
-            _features = features
+            _features = If(features, ImmutableDictionary(Of String, String).Empty)
         End Sub
 
         Private Sub New(other As VisualBasicParseOptions)
@@ -245,20 +245,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Validate LanguageVersion Not SpecifiedLanguageVersion, after Latest/Default has been converted
             If Not LanguageVersion.IsValid Then
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_BadLanguageVersion, LanguageVersion))
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_BadLanguageVersion, LanguageVersion.ToString))
             End If
 
             If Not PreprocessorSymbols.IsDefaultOrEmpty Then
                 For Each symbol In PreprocessorSymbols
                     If Not IsValidIdentifier(symbol.Key) OrElse SyntaxFacts.GetKeywordKind(symbol.Key) <> SyntaxKind.None Then
                         builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_ProjectCCError1, VBResources.ERR_ExpectedIdentifier, symbol.Key))
-                    End If
+                    Else
 
-                    Debug.Assert(SyntaxFactory.ParseTokens(symbol.Key).Select(Function(t) t.Kind).SequenceEqual({SyntaxKind.IdentifierToken, SyntaxKind.EndOfFileToken}))
+                        Debug.Assert(SyntaxFactory.ParseTokens(symbol.Key).Select(Function(t) t.Kind).SequenceEqual({SyntaxKind.IdentifierToken, SyntaxKind.EndOfFileToken}))
 
-                    Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
-                    If constant Is Nothing Then
-                        builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.IDS_InvalidPreprocessorConstantType, symbol.Key, symbol.Value.GetType))
+                        Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
+                        If constant Is Nothing Then
+                            builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.IDS_InvalidPreprocessorConstantType, symbol.Key, symbol.Value.GetType))
+                        End If
                     End If
                 Next
             End If

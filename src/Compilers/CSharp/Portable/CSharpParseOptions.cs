@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             DocumentationMode documentationMode,
             SourceCodeKind kind,
             IEnumerable<string> preprocessorSymbols,
-            ImmutableDictionary<string, string> features)
+            IReadOnlyDictionary<string, string> features)
             : base(kind, documentationMode)
         {
             this.SpecifiedLanguageVersion = languageVersion;
             this.LanguageVersion = languageVersion.MapSpecifiedToEffectiveVersion();
             this.PreprocessorSymbols = preprocessorSymbols.ToImmutableArrayOrEmpty();
-            _features = features ?? ImmutableDictionary<string, string>.Empty;
+            _features = features?.ToImmutableDictionary() ?? ImmutableDictionary<string, string>.Empty;
         }
 
         private CSharpParseOptions(CSharpParseOptions other) : this(
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             documentationMode: other.DocumentationMode,
             kind: other.Kind,
             preprocessorSymbols: other.PreprocessorSymbols,
-            features: other.Features.ToImmutableDictionary())
+            features: other.Features)
         {
         }
         
@@ -180,14 +180,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Validate LanguageVersion not SpecifiedLanguageVersion, after Latest/Default has been converted:
             if (!LanguageVersion.IsValid())
             {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadLanguageVersion, LanguageVersion));
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadLanguageVersion, LanguageVersion.ToString()));
             }
             
             if (!PreprocessorSymbols.IsDefaultOrEmpty)
             {
                 foreach (var symbol in PreprocessorSymbols)
                 {
-                    if (!SyntaxFacts.IsValidIdentifier(symbol))
+                    if (symbol == null)
+                    {
+                        builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_DefineIdentifierRequired, "null"));
+                    }
+                    else if (!SyntaxFacts.IsValidIdentifier(symbol))
                     {
                         builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_DefineIdentifierRequired, symbol));
                     }

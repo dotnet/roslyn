@@ -1504,15 +1504,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Provided Source Code Kind is unsupported or invalid: &apos;{0}&apos;..
-        '''</summary>
-        Friend ReadOnly Property ERR_BadSourceCodeKind() As String
-            Get
-                Return ResourceManager.GetString("ERR_BadSourceCodeKind", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}&apos; and &apos;{1}&apos; cannot be combined..
         '''</summary>
         Friend ReadOnly Property ERR_BadSpecifierCombo2() As String
@@ -12789,6 +12780,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property WRN_BadGUIDFormatExtChecksum_Title() As String
             Get
                 Return ResourceManager.GetString("WRN_BadGUIDFormatExtChecksum_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Provided Source Code Kind is unsupported or invalid: &apos;{0}&apos;..
+        '''</summary>
+        Friend ReadOnly Property WRN_BadSourceCodeKind() As String
+            Get
+                Return ResourceManager.GetString("WRN_BadSourceCodeKind", resourceCulture)
             End Get
         End Property
         

@@ -223,4 +223,154 @@ Public Class VisualBasicParseOptionsTests
                 "PreprocessorSymbols",
                 "SpecifiedLanguageVersion")
     End Sub
+
+    <Fact>
+    Public Sub SpecifiedKindIsMappedCorrectly()
+        Dim options = New VisualBasicParseOptions(kind:=SourceCodeKind.Regular)
+        Assert.Equal(SourceCodeKind.Regular, options.Kind)
+        Assert.Equal(SourceCodeKind.Regular, options.SpecifiedKind)
+
+        options.Errors.Verify()
+
+        options = New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
+        Assert.Equal(SourceCodeKind.Script, options.Kind)
+        Assert.Equal(SourceCodeKind.Script, options.SpecifiedKind)
+
+        options.Errors.Verify()
+
+#Disable Warning BC40000 ' SourceCodeKind.Interactive is obsolete
+        options = New VisualBasicParseOptions(kind:=SourceCodeKind.Interactive)
+        Assert.Equal(SourceCodeKind.Script, options.Kind)
+        Assert.Equal(SourceCodeKind.Interactive, options.SpecifiedKind)
+#Enable Warning BC40000 ' SourceCodeKind.Interactive is obsolete
+
+        options.Errors.Verify(Diagnostic(ERRID.WRN_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1))
+    End Sub
+
+    <Fact>
+    Public Sub TwoOptionsWithDifferentSpecifiedKindShouldNotHaveTheSameHashCodes()
+        Dim options1 = New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
+        Dim options2 = New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
+
+        Assert.Equal(options1.GetHashCode(), options2.GetHashCode())
+
+        ' They both map internally to SourceCodeKind.Script
+#Disable Warning BC40000 ' SourceCodeKind.Interactive is obsolete
+        options1 = New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
+        options2 = New VisualBasicParseOptions(kind:=SourceCodeKind.Interactive)
+#Enable Warning BC40000 ' SourceCodeKind.Interactive Is obsolete
+
+        Assert.NotEqual(options1.GetHashCode(), options2.GetHashCode())
+    End Sub
+
+    <Fact>
+    Public Sub TwoOptionsWithDifferentSpecifiedKindShouldNotBeEqual()
+        Dim options1 = New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
+        Dim options2 = New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
+
+        Assert.True(options1.Equals(options2))
+
+        ' They both map internally to SourceCodeKind.Script
+#Disable Warning BC40000 ' SourceCodeKind.Interactive is obsolete
+        options1 = New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
+        options2 = New VisualBasicParseOptions(kind:=SourceCodeKind.Interactive)
+#Enable Warning BC40000 ' SourceCodeKind.Interactive Is obsolete
+
+        Assert.False(options1.Equals(options2))
+    End Sub
+
+    <Fact>
+    Public Sub BadSourceCodeKindShouldProduceDiagnostics()
+#Disable Warning BC40000 ' Type Or member Is obsolete
+        Dim options = New VisualBasicParseOptions(kind:=SourceCodeKind.Interactive)
+#Enable Warning BC40000 ' Type Or member Is obsolete
+
+        options.Errors.Verify(Diagnostic(ERRID.WRN_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1))
+    End Sub
+
+    <Fact>
+    Public Sub BadDocumentationModeShouldProduceDiagnostics()
+        Dim options = New VisualBasicParseOptions(documentationMode:=DirectCast(CType(100, Byte), DocumentationMode))
+
+        options.Errors.Verify(Diagnostic(ERRID.ERR_BadDocumentationMode).WithArguments("100").WithLocation(1, 1))
+    End Sub
+
+    <Fact>
+    Public Sub BadLanguageVersionShouldProduceDiagnostics()
+        Dim options = New VisualBasicParseOptions(languageVersion:=DirectCast(10000, LanguageVersion))
+
+        options.Errors.Verify(Diagnostic(ERRID.ERR_BadLanguageVersion).WithArguments("10000").WithLocation(1, 1))
+    End Sub
+
+    <Fact>
+    Public Sub BadPreProcessorSymbolsShouldProduceDiagnostics()
+        Dim symbols = New Dictionary(Of String, Object)
+        symbols.Add("test", Nothing)
+        symbols.Add("1", Nothing)
+        Dim options = New VisualBasicParseOptions(preprocessorSymbols:=symbols)
+
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "1").WithLocation(1, 1))
+    End Sub
+
+    <Fact>
+    Public Sub BadSourceCodeKindShouldProduceDiagnostics_WithDimiation()
+#Disable Warning BC40000 ' Type Or member Is obsolete
+        Dim options = New VisualBasicParseOptions().WithKind(SourceCodeKind.Interactive)
+#Enable Warning BC40000 ' Type Or member Is obsolete
+
+        options.Errors.Verify(Diagnostic(ERRID.WRN_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1))
+    End Sub
+
+    <Fact>
+    Public Sub BadDocumentationModeShouldProduceDiagnostics_WithDimiation()
+        Dim options = New VisualBasicParseOptions().WithDocumentationMode(DirectCast(CType(100, Byte), DocumentationMode))
+
+        options.Errors.Verify(Diagnostic(ERRID.ERR_BadDocumentationMode).WithArguments("100").WithLocation(1, 1))
+    End Sub
+
+    <Fact>
+    Public Sub BadLanguageVersionShouldProduceDiagnostics_WithDimiation()
+        Dim options = New VisualBasicParseOptions().WithLanguageVersion(DirectCast(10000, LanguageVersion))
+
+        options.Errors.Verify(Diagnostic(ERRID.ERR_BadLanguageVersion).WithArguments("10000").WithLocation(1, 1))
+    End Sub
+
+    <Fact>
+    Public Sub BadPreProcessorSymbolsShouldProduceDiagnostics_EmptyString()
+        Dim symbols = New Dictionary(Of String, Object)
+        symbols.Add("", Nothing)
+        Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(symbols)
+
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "").WithLocation(1, 1))
+    End Sub
+
+    <Fact>
+    Public Sub BadPreProcessorSymbolsShouldProduceDiagnostics_WhiteSpacetring()
+        Dim symbols = New Dictionary(Of String, Object)
+        symbols.Add(" ", Nothing)
+        Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(symbols)
+
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", " ").WithLocation(1, 1))
+    End Sub
+
+    <Fact>
+    Public Sub BadPreProcessorSymbolsShouldProduceDiagnostics_SymbolWithDots()
+        Dim symbols = New Dictionary(Of String, Object)
+        symbols.Add("Good", Nothing)
+        symbols.Add("Bad.Symbol", Nothing)
+        Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(symbols)
+
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "Bad.Symbol").WithLocation(1, 1))
+    End Sub
+
+    <Fact>
+    Public Sub BadPreProcessorSymbolsShouldProduceDiagnostics_SymbolWithSlashes()
+        Dim symbols = New Dictionary(Of String, Object)
+        symbols.Add("Good", Nothing)
+        symbols.Add("Bad\\Symbol", Nothing)
+        Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(symbols)
+
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "Bad\\Symbol").WithLocation(1, 1))
+    End Sub
+
 End Class

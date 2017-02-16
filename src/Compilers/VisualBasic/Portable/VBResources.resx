@@ -5473,7 +5473,7 @@
   <data name="ERR_BadLanguageVersion" xml:space="preserve">
     <value>Provided Language Version is unsupported or invalid: '{0}'.</value>
   </data>
-  <data name="ERR_BadSourceCodeKind" xml:space="preserve">
+  <data name="WRN_BadSourceCodeKind" xml:space="preserve">
     <value>Provided Source Code Kind is unsupported or invalid: '{0}'.</value>
   </data>
 </root>

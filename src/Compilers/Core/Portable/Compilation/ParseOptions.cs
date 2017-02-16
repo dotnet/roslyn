@@ -78,12 +78,12 @@ namespace Microsoft.CodeAnalysis
             // Validate SpecifiedKind not Kind, to catch deprecated specified kinds:
             if (!SpecifiedKind.IsValid())
             {
-                builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_BadSourceCodeKind, Location.None, SpecifiedKind));
+                builder.Add(messageProvider.CreateDiagnostic(messageProvider.WRN_BadSourceCodeKind, Location.None, SpecifiedKind.ToString()));
             }
 
             if (!DocumentationMode.IsValid())
             {
-                builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_BadDocumentationMode, Location.None, DocumentationMode));
+                builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_BadDocumentationMode, Location.None, DocumentationMode.ToString()));
             }
         }
 

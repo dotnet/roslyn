@@ -52,5 +52,189 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 "PreprocessorSymbols",
                 "SpecifiedLanguageVersion");
         }
+
+        [Fact]
+        public void SpecifiedKindIsMappedCorrectly()
+        {
+            var options = new CSharpParseOptions(kind: SourceCodeKind.Regular);
+            Assert.Equal(SourceCodeKind.Regular, options.Kind);
+            Assert.Equal(SourceCodeKind.Regular, options.SpecifiedKind);
+
+            options.Errors.Verify();
+
+            options = new CSharpParseOptions(kind: SourceCodeKind.Script);
+            Assert.Equal(SourceCodeKind.Script, options.Kind);
+            Assert.Equal(SourceCodeKind.Script, options.SpecifiedKind);
+
+            options.Errors.Verify();
+
+#pragma warning disable CS0618 // SourceCodeKind.Interactive is obsolete
+            options = new CSharpParseOptions(kind: SourceCodeKind.Interactive);
+            Assert.Equal(SourceCodeKind.Script, options.Kind);
+            Assert.Equal(SourceCodeKind.Interactive, options.SpecifiedKind);
+#pragma warning restore CS0618 // SourceCodeKind.Interactive is obsolete
+
+            options.Errors.Verify(
+                // error CS8190: Provided Source Code Kind is unsupported or invalid: 'Interactive'.
+                Diagnostic(ErrorCode.WRN_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TwoOptionsWithDifferentSpecifiedKindShouldNotHaveTheSameHashCodes()
+        {
+            var options1 = new CSharpParseOptions(kind: SourceCodeKind.Script);
+            var options2 = new CSharpParseOptions(kind: SourceCodeKind.Script);
+
+            Assert.Equal(options1.GetHashCode(), options2.GetHashCode());
+
+            // They both map internally to SourceCodeKind.Script
+#pragma warning disable CS0618 // SourceCodeKind.Interactive is obsolete
+            options1 = new CSharpParseOptions(kind: SourceCodeKind.Script);
+            options2 = new CSharpParseOptions(kind: SourceCodeKind.Interactive);
+#pragma warning restore CS0618 // SourceCodeKind.Interactive is obsolete
+
+            Assert.NotEqual(options1.GetHashCode(), options2.GetHashCode());
+        }
+
+        [Fact]
+        public void TwoOptionsWithDifferentSpecifiedKindShouldNotBeEqual()
+        {
+            var options1 = new CSharpParseOptions(kind: SourceCodeKind.Script);
+            var options2 = new CSharpParseOptions(kind: SourceCodeKind.Script);
+
+            Assert.True(options1.Equals(options2));
+
+            // They both map internally to SourceCodeKind.Script
+#pragma warning disable CS0618 // SourceCodeKind.Interactive is obsolete
+            options1 = new CSharpParseOptions(kind: SourceCodeKind.Script);
+            options2 = new CSharpParseOptions(kind: SourceCodeKind.Interactive);
+#pragma warning restore CS0618 // SourceCodeKind.Interactive is obsolete
+
+            Assert.False(options1.Equals(options2));
+        }
+
+        [Fact]
+        public void BadSourceCodeKindShouldProduceDiagnostics()
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            var options = new CSharpParseOptions(kind: SourceCodeKind.Interactive);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            options.Errors.Verify(
+                // error CS8190: Provided Source Code Kind is unsupported or invalid: 'Interactive'.
+                Diagnostic(ErrorCode.WRN_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void BadDocumentationModeShouldProduceDiagnostics()
+        {
+            var options = new CSharpParseOptions(documentationMode: unchecked((DocumentationMode)100));
+
+            options.Errors.Verify(
+                // error CS8191: Provided Documentation Mode is unsupported or invalid: '100'.
+                Diagnostic(ErrorCode.ERR_BadDocumentationMode).WithArguments("100").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void BadLanguageVersionShouldProduceDiagnostics()
+        {
+            var options = new CSharpParseOptions(languageVersion: unchecked((LanguageVersion)10000));
+
+            options.Errors.Verify(
+                // error CS8191: Provided Language Version is unsupported or invalid: '10000'.
+                Diagnostic(ErrorCode.ERR_BadLanguageVersion).WithArguments("10000").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void BadPreProcessorSymbolsShouldProduceDiagnostics()
+        {
+            var options = new CSharpParseOptions(preprocessorSymbols: new[] { "test", "1" });
+
+            options.Errors.Verify(
+                // warning CS2029: Invalid value for a preprocessing symbol; '1' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void BadSourceCodeKindShouldProduceDiagnostics_WithVariation()
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            var options = new CSharpParseOptions().WithKind(SourceCodeKind.Interactive);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            options.Errors.Verify(
+                // error CS8190: Provided Source Code Kind is unsupported or invalid: 'Interactive'.
+                Diagnostic(ErrorCode.WRN_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void BadDocumentationModeShouldProduceDiagnostics_WithVariation()
+        {
+            var options = new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100));
+
+            options.Errors.Verify(
+                // error CS8191: Provided Documentation Mode is unsupported or invalid: '100'.
+                Diagnostic(ErrorCode.ERR_BadDocumentationMode).WithArguments("100").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void BadLanguageVersionShouldProduceDiagnostics_WithVariation()
+        {
+            var options = new CSharpParseOptions().WithLanguageVersion(unchecked((LanguageVersion)10000));
+
+            options.Errors.Verify(
+                // error CS8191: Provided Language Version is unsupported or invalid: '10000'.
+                Diagnostic(ErrorCode.ERR_BadLanguageVersion).WithArguments("10000").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void BadPreProcessorSymbolsShouldProduceDiagnostics_EmptyString()
+        {
+            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "" });
+
+            options.Errors.Verify(
+                // warning CS2029: Invalid value for a preprocessing symbol; '' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void BadPreProcessorSymbolsShouldProduceDiagnostics_WhiteSpacetring()
+        {
+            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { " " });
+
+            options.Errors.Verify(
+                // warning CS2029: Invalid value for a preprocessing symbol; ' ' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments(" ").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void BadPreProcessorSymbolsShouldProduceDiagnostics_SymbolWithDots()
+        {
+            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", "Bad.Symbol" });
+
+            options.Errors.Verify(
+                // warning CS2029: Invalid value for a preprocessing symbol; 'Bad.Symbol' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("Bad.Symbol").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void BadPreProcessorSymbolsShouldProduceDiagnostics_SymbolWithSlashes()
+        {
+            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", "Bad\\Symbol" });
+
+            options.Errors.Verify(
+                // warning CS2029: Invalid value for a preprocessing symbol; 'Bad\Symbol' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("Bad\\Symbol").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void BadPreProcessorSymbolsShouldProduceDiagnostics_NullSymbol()
+        {
+            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", null });
+
+            options.Errors.Verify(
+                // warning CS2029: Invalid value for a preprocessing symbol; 'null' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("null").WithLocation(1, 1));
+        }
     }
 }

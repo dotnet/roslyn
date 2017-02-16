@@ -1726,7 +1726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_Merge_conflict_marker_encountered = 37284
 
-        ERR_BadSourceCodeKind = 37285
+        WRN_BadSourceCodeKind = 37285
         ERR_BadDocumentationMode = 37286
         ERR_BadLanguageVersion = 37287
 

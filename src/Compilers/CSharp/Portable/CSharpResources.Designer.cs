@@ -1880,15 +1880,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Provided Source Code Kind is unsupported or invalid: &apos;{0}&apos;..
-        /// </summary>
-        internal static string ERR_BadSourceCodeKind {
-            get {
-                return ResourceManager.GetString("ERR_BadSourceCodeKind", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Parameters or locals of type &apos;{0}&apos; cannot be declared in async methods or lambda expressions..
         /// </summary>
         internal static string ERR_BadSpecialByRefLocal {
@@ -11115,6 +11106,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Provided Source Code Kind is unsupported or invalid: &apos;{0}&apos;..
+        /// </summary>
+        internal static string WRN_BadSourceCodeKind {
+            get {
+                return ResourceManager.GetString("WRN_BadSourceCodeKind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The language name &apos;{0}&apos; is invalid..
         /// </summary>
         internal static string WRN_BadUILang {
@@ -12132,20 +12132,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid value for &apos;/define&apos;; &apos;{0}&apos; is not a valid identifier.
+        ///   Looks up a localized string similar to Invalid value for a preprocessing symbol; &apos;{0}&apos; is not a valid identifier.
         /// </summary>
         internal static string WRN_DefineIdentifierRequired {
             get {
                 return ResourceManager.GetString("WRN_DefineIdentifierRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid value for &apos;/define&apos;; not a valid identifier.
-        /// </summary>
-        internal static string WRN_DefineIdentifierRequired_Title {
-            get {
-                return ResourceManager.GetString("WRN_DefineIdentifierRequired_Title", resourceCulture);
             }
         }
         

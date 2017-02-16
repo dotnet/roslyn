@@ -234,9 +234,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' parse options:
 
-        Public Overrides ReadOnly Property ERR_BadSourceCodeKind As Integer
+        Public Overrides ReadOnly Property WRN_BadSourceCodeKind As Integer
             Get
-                Return ERRID.ERR_BadSourceCodeKind
+                Return ERRID.WRN_BadSourceCodeKind
             End Get
         End Property
 

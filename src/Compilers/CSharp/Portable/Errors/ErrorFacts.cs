@@ -317,6 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
+                case ErrorCode.WRN_BadSourceCodeKind:
                     return 1;
                 default:
                     return 0;

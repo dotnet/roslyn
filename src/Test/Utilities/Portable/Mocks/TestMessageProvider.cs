@@ -426,7 +426,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public override int ERR_BadSourceCodeKind
+        public override int WRN_BadSourceCodeKind
         {
             get
             {
