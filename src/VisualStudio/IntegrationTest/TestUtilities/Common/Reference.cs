@@ -5,6 +5,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
 {
+    /// <summary>
+    /// Represents a result of a Find References operation.
+    /// </summary>
     [Serializable]
     public class Reference : IEquatable<Reference>
     {
