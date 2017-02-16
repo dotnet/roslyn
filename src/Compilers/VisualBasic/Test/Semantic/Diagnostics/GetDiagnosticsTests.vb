@@ -224,6 +224,70 @@ End Namespace
             Assert.True(completedCompilationUnits.Contains(tree.FilePath))
         End Sub
 
+        <Fact>
+        Public Sub CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
+            Dim dict = New Dictionary(Of String, Object)
+            dict.Add("1", Nothing)
+            Dim compilation = CreateCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
+BC31030: Project-level conditional compilation constant '1' is not valid: Identifier expected.
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub CompilingCodeWithInvalidSourceCodeKindShouldProvideDiagnostics()
+#Disable Warning BC40000 ' Type or member is obsolete
+            Dim compilation = CreateCompilationWithMscorlib45(String.Empty, parseOptions:=New VisualBasicParseOptions().WithKind(SourceCodeKind.Interactive))
+#Enable Warning BC40000 ' Type or member is obsolete
+
+            CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
+BC37284: Provided Source Code Kind is unsupported or invalid: 'Interactive'.
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub CompilingCodeWithInvalidLanguageVersionShouldProvideDiagnostics()
+            Dim compilation = CreateCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithLanguageVersion(DirectCast(10000, LanguageVersion)))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
+BC37286: Provided Language Version is unsupported or invalid: '10000'.
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub CompilingCodeWithInvalidDocumentationModeShouldProvideDiagnostics()
+            Dim compilation = CreateCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithDocumentationMode(DirectCast(CType(100, Byte), DocumentationMode)))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
+BC37285: Provided Documentation Mode is unsupported or invalid: '100'.
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub CompilingCodeWithInvalidParseOptionsInMultipleSyntaxTreesShouldReportThemAll()
+            Dim dict1 = New Dictionary(Of String, Object)
+            dict1.Add("1", Nothing)
+            Dim dict2 = New Dictionary(Of String, Object)
+            dict2.Add("2", Nothing)
+            Dim dict3 = New Dictionary(Of String, Object)
+            dict3.Add("3", Nothing)
+
+            Dim syntaxTree1 = Parse(String.Empty, options:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict1))
+            Dim syntaxTree2 = Parse(String.Empty, options:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict2))
+            Dim syntaxTree3 = Parse(String.Empty, options:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict3).WithDocumentationMode(DirectCast(CType(100, Byte), DocumentationMode)))
+
+            Dim Compilation = CreateCompilation({syntaxTree1, syntaxTree2, syntaxTree3})
+
+            CompilationUtils.AssertTheseDiagnostics(Compilation,
+<errors>
+BC31030: Project-level conditional compilation constant '1' is not valid: Identifier expected.
+BC31030: Project-level conditional compilation constant '2' is not valid: Identifier expected.
+BC31030: Project-level conditional compilation constant '3' is not valid: Identifier expected.
+BC37285: Provided Documentation Mode is unsupported or invalid: '100'.
+</errors>)
+        End Sub
+
         Private Shared Function DequeueCompilationEvents(eventQueue As AsyncQueue(Of CompilationEvent), ByRef compilationStartedFired As Boolean, ByRef declaredSymbolNames As HashSet(Of String), ByRef completedCompilationUnits As HashSet(Of String)) As Boolean
             compilationStartedFired = False
             declaredSymbolNames = New HashSet(Of String)()

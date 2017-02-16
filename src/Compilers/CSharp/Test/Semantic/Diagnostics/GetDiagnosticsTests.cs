@@ -299,5 +299,65 @@ namespace N1
 
             Assert.True(compilation.EventQueue.IsCompleted);
         }
+        
+        [Fact]
+        public void CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
+        {
+            var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
+
+            compilation.VerifyDiagnostics(
+                // warning CS2029: Invalid value for a preprocessing symbol; '1' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void CompilingCodeWithInvalidSourceCodeKindShouldProvideDiagnostics()
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            var compilation = CreateCompilationWithMscorlib45(string.Empty, parseOptions: new CSharpParseOptions().WithKind(SourceCodeKind.Interactive));
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            compilation.VerifyDiagnostics(
+                // warning CS8190: Provided Source Code Kind is unsupported or invalid: 'Interactive'.
+                Diagnostic(ErrorCode.WRN_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void CompilingCodeWithInvalidLanguageVersionShouldProvideDiagnostics()
+        {
+            var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithLanguageVersion((LanguageVersion)10000));
+            compilation.VerifyDiagnostics(
+                // error CS8192: Provided Language Version is unsupported or invalid: '10000'.
+                Diagnostic(ErrorCode.ERR_BadLanguageVersion).WithArguments("10000").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void CompilingCodeWithInvalidDocumentationModeShouldProvideDiagnostics()
+        {
+            var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100)));
+            compilation.VerifyDiagnostics(
+                // error CS8191: Provided Documentation Mode is unsupported or invalid: '100'.
+                Diagnostic(ErrorCode.ERR_BadDocumentationMode).WithArguments("100").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void CompilingCodeWithInvalidParseOptionsInMultipleSyntaxTreesShouldReportThemAll()
+        {
+            var syntaxTree1 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
+            var syntaxTree2 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "2" }));
+            var syntaxTree3 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "3" }).WithDocumentationMode(unchecked((DocumentationMode)100)));
+
+            var compilation = CreateCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
+
+            compilation.VerifyDiagnostics(
+                // warning CS2029: Invalid value for a preprocessing symbol; '1' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("1").WithLocation(1, 1),
+                // warning CS2029: Invalid value for a preprocessing symbol; '2' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("2").WithLocation(1, 1),
+                // warning CS2029: Invalid value for a preprocessing symbol; '3' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("3").WithLocation(1, 1),
+                // error CS8191: Provided Documentation Mode is unsupported or invalid: '100'.
+                Diagnostic(ErrorCode.ERR_BadDocumentationMode).WithArguments("100").WithLocation(1, 1));
+        }
     }
 }

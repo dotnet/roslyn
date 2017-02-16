@@ -8101,6 +8101,18 @@ End Module
             Assert.Equal($"error BC2012: can't open '{sourceLinkPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
         End Sub
 
+        <Fact>
+        Public Sub CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
+            Dim parsedArgs = DefaultParse({"/define:1", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "1 ^^ ^^ ").WithLocation(1, 1))
+        End Sub
+
+        <Fact>
+        Public Sub CompilingCodeWithInvalidLanguageVersionShouldProvideDiagnostics()
+            Dim parsedArgs = DefaultParse({"/langversion:1000", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", "1000").WithLocation(1, 1))
+        End Sub
+
         Private Function MakeTrivialExe(Optional directory As String = Nothing) As String
             Return Temp.CreateFile(directory:=directory, prefix:="", extension:=".vb").WriteAllText("
 Class Program

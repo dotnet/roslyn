@@ -1939,6 +1939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         cancellationToken.ThrowIfCancellationRequested();
                         builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
+                        builder.AddRange(syntaxTree.Options.Errors);
                     }
                 }
             }
