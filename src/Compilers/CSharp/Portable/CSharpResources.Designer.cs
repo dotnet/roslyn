@@ -1718,11 +1718,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to  The parameter modifier &apos;out&apos; cannot be used with &apos;this&apos; .
+        ///   Looks up a localized string similar to  The parameter modifier &apos;{0}&apos; cannot be used with &apos;{1}&apos; .
         /// </summary>
-        internal static string ERR_BadOutWithThis {
+        internal static string ERR_BadParameterModifiers {
             get {
-                return ResourceManager.GetString("ERR_BadOutWithThis", resourceCulture);
+                return ResourceManager.GetString("ERR_BadParameterModifiers", resourceCulture);
             }
         }
         
@@ -1804,15 +1804,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadRefReturnExpressionTree {
             get {
                 return ResourceManager.GetString("ERR_BadRefReturnExpressionTree", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to  The parameter modifier &apos;ref&apos; cannot be used with &apos;this&apos; .
-        /// </summary>
-        internal static string ERR_BadRefWithThis {
-            get {
-                return ResourceManager.GetString("ERR_BadRefWithThis", resourceCulture);
             }
         }
         
@@ -6218,15 +6209,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter.
-        /// </summary>
-        internal static string ERR_MultiParamMod {
-            get {
-                return ResourceManager.GetString("ERR_MultiParamMod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point..
         /// </summary>
         internal static string ERR_MultipleEntryPoints {
@@ -7226,11 +7208,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The params parameter cannot be declared as ref or out.
+        ///   Looks up a localized string similar to The params parameter cannot be declared as {0}.
         /// </summary>
-        internal static string ERR_ParamsCantBeRefOut {
+        internal static string ERR_ParamsCantBeWithModifier {
             get {
-                return ResourceManager.GetString("ERR_ParamsCantBeRefOut", resourceCulture);
+                return ResourceManager.GetString("ERR_ParamsCantBeWithModifier", resourceCulture);
             }
         }
         

@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2605,7 +2606,6 @@ class Program
         [Fact]
         public void CS1101ERR_BadRefWithThis()
         {
-            // No error
             var test = @"
 using System;
 public static class Extensions
@@ -2632,22 +2632,54 @@ public static class GenExtensions<X>
 ";
 
             ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"));
+                // (6,32): error CS81250:  The parameter modifier 'this' cannot be used with 'ref' 
+                //     public static void Foo(ref this int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(6, 32),
+                // (8,35): error CS81250:  The parameter modifier 'this' cannot be used with 'ref' 
+                //     public static void Foo<T>(ref this T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(8, 35),
+                // (10,39): error CS81250:  The parameter modifier 'this' cannot be used with 'ref' 
+                //     public static void Foo<T,U,V>(ref this U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(10, 39),
+                // (15,32): error CS81250:  The parameter modifier 'this' cannot be used with 'ref' 
+                //     public static void Foo(ref this int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(15, 32),
+                // (16,32): error CS81250:  The parameter modifier 'this' cannot be used with 'ref' 
+                //     public static void Foo(ref this X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(16, 32),
+                // (18,35): error CS81250:  The parameter modifier 'this' cannot be used with 'ref' 
+                //     public static void Foo<T>(ref this T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(18, 35),
+                // (19,35): error CS81250:  The parameter modifier 'this' cannot be used with 'ref' 
+                //     public static void Foo<T>(ref this X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(19, 35),
+                // (21,39): error CS81250:  The parameter modifier 'this' cannot be used with 'ref' 
+                //     public static void Foo<T,U,V>(ref this U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(21, 39),
+                // (22,39): error CS81250:  The parameter modifier 'this' cannot be used with 'ref' 
+                //     public static void Foo<T,U,V>(ref this X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(22, 39));
+        }
+
+        [Fact]
+        public void InParametersWouldErrorOutInEarlierCSharpVersions()
+        {
+            var code = @"
+public class Test
+{
+    public void DoSomething(in int x) { }
+}";
+
+            ParseAndValidate(code, new CSharpParseOptions(LanguageVersion.CSharp7),
+                // (4,29): error CS8107: Feature 'temp' is not available in C# 7.  Please use language version 71 or greater.
+                //     public void DoSomething(in int x) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "in").WithArguments("temp", "71").WithLocation(4, 29));
         }
 
         [WorkItem(906072, "DevDiv/Personal")]
         [Fact]
         public void CS1102ERR_BadOutWithThis()
         {
-            // No error
             var test = @"
 using System;
 public static class Extensions
@@ -2674,15 +2706,186 @@ public static class GenExtensions<X>
 ";
 
             ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"));
+                // (6,33): error CS81250:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(6, 33),
+                // (8,36): error CS81250:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(8, 36),
+                // (10,40): error CS81250:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(10, 40),
+                // (15,33): error CS81250:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(15, 33),
+                // (16,33): error CS81250:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(16, 33),
+                // (18,36): error CS81250:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(18, 36),
+                // (19,36): error CS81250:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(19, 36),
+                // (21,40): error CS81250:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(21, 40),
+                // (22,40): error CS81250:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(22, 40));
+        }
+
+        [Fact]
+        public void BadInWithThis()
+        {
+            var test = @"
+public static class Extensions
+{
+    //No type parameters
+    public static void Test(this in int i) {}
+    //Single type parameter
+    public static void Test<T>(this in T t) {}
+    //Multiple type parameters
+    public static void Test<T,U,V>(this in U u) {}
+}
+";
+
+            ParseAndValidate(test,
+                new CSharpParseOptions(LanguageVersion.CSharp7_1),
+                // (5,34): error CS8205:  The parameter modifier 'in' cannot be used with 'this' 
+                //     public static void Test(this in int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "this").WithLocation(5, 34),
+                // (7,37): error CS8205:  The parameter modifier 'in' cannot be used with 'this' 
+                //     public static void Test<T>(this in T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "this").WithLocation(7, 37),
+                // (9,41): error CS8205:  The parameter modifier 'in' cannot be used with 'this' 
+                //     public static void Test<T,U,V>(this in U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "this").WithLocation(9, 41));
+        }
+
+        [Fact]
+        public void BadRefWithInParameterModifiers()
+        {
+            var test = @"
+public class TestType
+{
+    // No type parameters
+    public void Method1(ref in int i) { }
+    public void Method2(in ref int i) { }
+
+    // Single type parameters
+    public void Method3<T>(ref in int i) { }
+    public void Method4<T>(in ref int i) { }
+
+    // Multiple type parameters
+    public void Method5<T, U, V>(ref in int i) { }
+    public  void Method6<T, U, V>(in ref int i) { }
+}
+";
+
+            ParseAndValidate(test,
+                 new CSharpParseOptions(LanguageVersion.CSharp7_1),
+                // (5,29): error CS8205:  The parameter modifier 'in' cannot be used with 'ref' 
+                //     public void Method1(ref in int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(5, 29),
+                // (6,28): error CS8205:  The parameter modifier 'ref' cannot be used with 'in' 
+                //     public void Method2(in ref int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(6, 28),
+                // (9,32): error CS8205:  The parameter modifier 'in' cannot be used with 'ref' 
+                //     public void Method3<T>(ref in int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(9, 32),
+                // (10,31): error CS8205:  The parameter modifier 'ref' cannot be used with 'in' 
+                //     public void Method4<T>(in ref int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(10, 31),
+                // (13,38): error CS8205:  The parameter modifier 'in' cannot be used with 'ref' 
+                //     public void Method5<T, U, V>(ref in int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(13, 38),
+                // (14,38): error CS8205:  The parameter modifier 'ref' cannot be used with 'in' 
+                //     public  void Method6<T, U, V>(in ref int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(14, 38));
+        }
+
+        [Fact]
+        public void BadOutWithInParameterModifiers()
+        {
+            var test = @"
+public class TestType
+{
+    // No type parameters
+    public static void Method1(out in int i) { }
+    public static void Method2(in out int i) { }
+
+    // Single type parameters
+    public static void Method3<T>(out in int i) { }
+    public static void Method4<T>(in out int i) { }
+
+    // Multiple type parameters
+    public static void Method5<T, U, V>(out in int i) { }
+    public static void Method6<T, U, V>(in out int i) { }
+}
+";
+
+            ParseAndValidate(test,
+                new CSharpParseOptions(LanguageVersion.CSharp7_1),
+                // (5,36): error CS8205:  The parameter modifier 'in' cannot be used with 'out' 
+                //     public static void Method1(out in int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "out").WithLocation(5, 36),
+                // (6,35): error CS8205:  The parameter modifier 'out' cannot be used with 'in' 
+                //     public static void Method2(in out int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "in").WithLocation(6, 35),
+                // (9,39): error CS8205:  The parameter modifier 'in' cannot be used with 'out' 
+                //     public static void Method3<T>(out in int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "out").WithLocation(9, 39),
+                // (10,38): error CS8205:  The parameter modifier 'out' cannot be used with 'in' 
+                //     public static void Method4<T>(in out int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "in").WithLocation(10, 38),
+                // (13,45): error CS8205:  The parameter modifier 'in' cannot be used with 'out' 
+                //     public static void Method5<T, U, V>(out in int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "out").WithLocation(13, 45),
+                // (14,44): error CS8205:  The parameter modifier 'out' cannot be used with 'in' 
+                //     public static void Method6<T, U, V>(in out int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "in").WithLocation(14, 44));
+        }
+
+        [Fact]
+        public void BadRefWithOutParameterModifiers()
+        {
+            var test = @"
+public class TestType
+{
+    // No type parameters
+    public static void Method1(ref out int i) { }
+    public static void Method2(out ref int i) { }
+
+    // Single type parameters
+    public static void Method3<T>(ref out int i) { }
+    public static void Method4<T>(out ref int i) { }
+
+    // Multiple type parameters
+    public static void Method5<T, U, V>(ref out int i) { }
+    public static void Method6<T, U, V>(out ref int i) { }
+}
+";
+
+            ParseAndValidate(test,
+                // (5,36): error CS8205:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Method1(ref out int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(5, 36),
+                // (6,36): error CS8205:  The parameter modifier 'ref' cannot be used with 'out' 
+                //     public static void Method2(out ref int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(6, 36),
+                // (9,39): error CS8205:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Method3<T>(ref out int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(9, 39),
+                // (10,39): error CS8205:  The parameter modifier 'ref' cannot be used with 'out' 
+                //     public static void Method4<T>(out ref int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(10, 39),
+                // (13,45): error CS8205:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Method5<T, U, V>(ref out int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(13, 45),
+                // (14,45): error CS8205:  The parameter modifier 'ref' cannot be used with 'out' 
+                //     public static void Method6<T, U, V>(out ref int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(14, 45));
         }
 
         [WorkItem(863402, "DevDiv/Personal")]
@@ -2784,7 +2987,6 @@ public static class Extensions
         [Fact]
         public void CS1108ERR_MultiParamMod()
         {
-            // No error
             var test = @"
 using System;
 public static class Extensions
@@ -2811,15 +3013,108 @@ public static class GenExtensions<X>
 ";
 
             ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"));
+                // (6,32): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo(ref out int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(6, 32),
+                // (8,35): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo<T>(ref out T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(8, 35),
+                // (10,39): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo<T,U,V>(ref out U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(10, 39),
+                // (15,32): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo(ref out int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(15, 32),
+                // (16,32): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(16, 32),
+                // (18,35): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo<T>(ref out T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(18, 35),
+                // (19,35): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo<T>(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(19, 35),
+                // (21,39): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo<T,U,V>(ref out U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(21, 39),
+                // (22,39): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo<T,U,V>(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(22, 39));
+        }
+
+        [Fact]
+        public void DuplicateParameterModifiersWillErrorOut()
+        {
+            var test = @"
+public static class TestType
+{
+    public static void Test(ref ref int i) {}
+    public static void Test(out out int i) {}
+    public static void Test(in in int i) {}
+    public static void Test(this this int i) {}
+    public static void Test(params params int[] i) {}
+}
+";
+
+            ParseAndValidate(test,
+                new CSharpParseOptions(LanguageVersion.CSharp7_1),
+                // (4,33): error CS1107: A parameter can only have one 'ref' modifier
+                //     public static void Test(ref ref int i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(4, 33),
+                // (5,33): error CS1107: A parameter can only have one 'out' modifier
+                //     public static void Test(out out int i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "out").WithArguments("out").WithLocation(5, 33),
+                // (6,32): error CS1107: A parameter can only have one 'in' modifier
+                //     public static void Test(in in int i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "in").WithArguments("in").WithLocation(6, 32),
+                // (7,34): error CS1107: A parameter can only have one 'this' modifier
+                //     public static void Test(this this int i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "this").WithArguments("this").WithLocation(7, 34),
+                // (8,36): error CS1107: A parameter can only have one 'params' modifier
+                //     public static void Test(params params int[] i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "params").WithArguments("params").WithLocation(8, 36));
+        }
+
+        [Fact]
+        public void InParametersAreParsedCorrectly()
+        {
+            var test = @"
+public static class Test
+{
+    public delegate void Delegate(in int a);
+
+    public static void Method(in int b)
+    {
+        void LocalFunc(in int c) { }
+    }
+}
+";
+
+            var tree = ParseTree(test, new CSharpParseOptions(LanguageVersion.CSharp7_1));
+            Assert.Empty(tree.GetDiagnostics());
+
+            var methodDeclaration = (MethodDeclarationSyntax)tree.GetRoot().DescendantNodes().First(node => node is MethodDeclarationSyntax);
+            Assert.Equal("Method", methodDeclaration.Identifier.Text);
+            verifyModifier(methodDeclaration.ParameterList);
+
+            var delegateDeclaration = (DelegateDeclarationSyntax)tree.GetRoot().DescendantNodes().First(node => node is DelegateDeclarationSyntax);
+            Assert.Equal("Delegate", delegateDeclaration.Identifier.Text);
+            verifyModifier(delegateDeclaration.ParameterList);
+
+            var localFunctionStatement = (LocalFunctionStatementSyntax)tree.GetRoot().DescendantNodes().First(node => node is LocalFunctionStatementSyntax);
+            Assert.Equal("LocalFunc", localFunctionStatement.Identifier.Text);
+            verifyModifier(localFunctionStatement.ParameterList);
+
+            void verifyModifier(ParameterListSyntax list)
+            {
+                Assert.Equal(1, list.ParameterCount);
+
+                var parameter = list.Parameters.First();
+                Assert.Equal(1, parameter.Modifiers.Count);
+
+                var modifier = parameter.Modifiers.First();
+                Assert.Equal(SyntaxKind.InKeyword, modifier.Kind());
+            }
         }
 
         [Fact]
@@ -3903,31 +4198,43 @@ public class Test
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public"), Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private"));
         }
 
-        [WorkItem(863423, "DevDiv/Personal")]
         [Fact]
-        public void CS1611ERR_ParamsCantBeRefOut()
+        public void ParamsCantBeUsedWithModifiers()
         {
-            // No error
             var test = @"
 public class Test
 {
-    public static void foo(params ref int[] a) 
+    public static void ParamsWithRef(params ref int[] a) 
     {
     }
-    public static void boo(params out int[] a) 
+    public static void ParamsWithOut(params out int[] a) 
+    {
+    }
+    public static void ParamsWithIn(params in int[] a) 
     {
     }
     public static int Main()
     {
         int i = 10;
-        foo(ref i);
-        boo(out i);
+        ParamsWithRef(ref i);
+        ParamsWithOut(out i);
+        ParamsWithOut(i);
         return 1;
     }
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "ref"), Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "out"));
+            ParseAndValidate(test,
+                new CSharpParseOptions(LanguageVersion.CSharp7_1),
+                // (4,45): error CS1611: The params parameter cannot be declared as ref
+                //     public static void ParamsWithRef(params ref int[] a) 
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(4, 45),
+                // (7,45): error CS1611: The params parameter cannot be declared as out
+                //     public static void ParamsWithOut(params out int[] a) 
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "out").WithArguments("out").WithLocation(7, 45),
+                // (10,44): error CS1611: The params parameter cannot be declared as in
+                //     public static void ParamsWithIn(params in int[] a) 
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "in").WithArguments("in").WithLocation(10, 44));
         }
 
         [Fact]

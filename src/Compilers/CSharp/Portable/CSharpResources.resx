@@ -2341,11 +2341,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadThisParam" xml:space="preserve">
     <value>Method '{0}' has a parameter modifier 'this' which is not on the first parameter</value>
   </data>
-  <data name="ERR_BadRefWithThis" xml:space="preserve">
-    <value> The parameter modifier 'ref' cannot be used with 'this' </value>
-  </data>
-  <data name="ERR_BadOutWithThis" xml:space="preserve">
-    <value> The parameter modifier 'out' cannot be used with 'this' </value>
+  <data name="ERR_BadParameterModifiers" xml:space="preserve">
+    <value> The parameter modifier '{0}' cannot be used with '{1}' </value>
   </data>
   <data name="ERR_BadTypeforThis" xml:space="preserve">
     <value>The first parameter of an extension method cannot be of type '{0}'</value>
@@ -2361,9 +2358,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   </data>
   <data name="ERR_DupParamMod" xml:space="preserve">
     <value>A parameter can only have one '{0}' modifier</value>
-  </data>
-  <data name="ERR_MultiParamMod" xml:space="preserve">
-    <value>A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter</value>
   </data>
   <data name="ERR_ExtensionMethodsDecl" xml:space="preserve">
     <value>Extension methods must be defined in a top level static class; {0} is a nested class</value>
@@ -2662,8 +2656,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_NoModifiersOnAccessor" xml:space="preserve">
     <value>Modifiers cannot be placed on event accessor declarations</value>
   </data>
-  <data name="ERR_ParamsCantBeRefOut" xml:space="preserve">
-    <value>The params parameter cannot be declared as ref or out</value>
+  <data name="ERR_ParamsCantBeWithModifier" xml:space="preserve">
+    <value>The params parameter cannot be declared as {0}</value>
   </data>
   <data name="ERR_ReturnNotLValue" xml:space="preserve">
     <value>Cannot modify the return value of '{0}' because it is not a variable</value>

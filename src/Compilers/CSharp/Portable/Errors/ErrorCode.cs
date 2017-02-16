@@ -655,14 +655,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         // ERR_EOLExpected = 1099, // EE
         // ERR_NotSupportedinEE = 1100, // EE
         ERR_BadThisParam = 1100,
-        ERR_BadRefWithThis = 1101,
-        ERR_BadOutWithThis = 1102,
+        // ERR_BadRefWithThis = 1101, replaced by ERR_BadParameterModifiers
+        // ERR_BadOutWithThis = 1102, replaced by ERR_BadParameterModifiers
         ERR_BadTypeforThis = 1103,
         ERR_BadParamModThis = 1104,
         ERR_BadExtensionMeth = 1105,
         ERR_BadExtensionAgg = 1106,
         ERR_DupParamMod = 1107,
-        ERR_MultiParamMod = 1108,
+        // ERR_MultiParamMod = 1108, replaced by ERR_BadParameterModifiers
         ERR_ExtensionMethodsDecl = 1109,
         ERR_ExtensionAttrNotFound = 1110,
         //ERR_ExtensionTypeParam = 1111,
@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantUseRequiredAttribute = 1608,
         ERR_NoModifiersOnAccessor = 1609,
         // WRN_DeleteAutoResFailed = 1610, // Unused.
-        ERR_ParamsCantBeRefOut = 1611,
+        ERR_ParamsCantBeWithModifier = 1611,
         ERR_ReturnNotLValue = 1612,
         ERR_MissingCoClass = 1613,
         ERR_AmbiguousAttribute = 1614,
@@ -1453,7 +1453,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionVariableInQueryClause = 8201,
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
-        ERR_AttributesInLocalFuncDecl = 8204
-        #endregion more stragglers for C# 7
+        #endregion more stragglers for C# 7,
+
+        ERR_AttributesInLocalFuncDecl = 8204,
+        ERR_BadParameterModifiers = 8205,
+        ERR_FeatureNotAvailableInVersion7_1 = 8206,
     }
 }
