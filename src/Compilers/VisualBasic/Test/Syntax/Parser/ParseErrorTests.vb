@@ -38,8 +38,7 @@ End class",
 "#If True
 #Else
 #
-",
-            Diagnostic(ERRID.ERR_LbExpectedEndIf, "#If True"))
+", Diagnostic(ERRID.ERR_LbExpectedEndIf, "#If True"))
     End Sub
 
     <WorkItem(527211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527211")>
@@ -52,8 +51,7 @@ Class C
 End Class
 
 
-",
-            Diagnostic(ERRID.ERR_LbExpectedEndIf, "#If True Then"))
+", Diagnostic(ERRID.ERR_LbExpectedEndIf, "#If True Then"))
     End Sub
 
     <WorkItem(527211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527211")>
@@ -68,10 +66,9 @@ Class C
 End Class
 
 
-",
-            Diagnostic(ERRID.ERR_LbExpectedEndIf, "#If True ThEn"),
-            Diagnostic(ERRID.ERR_LbExpectedEndIf, "#If True TheN"),
-            Diagnostic(ERRID.ERR_LbExpectedEndIf, "#If True Then"))
+",      Diagnostic(ERRID.ERR_LbExpectedEndIf, "#If True ThEn"),
+        Diagnostic(ERRID.ERR_LbExpectedEndIf, "#If True TheN"),
+        Diagnostic(ERRID.ERR_LbExpectedEndIf, "#If True Then"))
     End Sub
 
     <WorkItem(527211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527211")>
@@ -87,9 +84,8 @@ Class C
 End Class
 
 
-",
-            Diagnostic(ERRID.ERR_LbExpectedEndIf, "#If True TheN"),
-            Diagnostic(ERRID.ERR_LbExpectedEndIf, "#If True Then"))
+",      Diagnostic(ERRID.ERR_LbExpectedEndIf, "#If True TheN"),
+        Diagnostic(ERRID.ERR_LbExpectedEndIf, "#If True Then"))
     End Sub
 
     <WorkItem(527211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527211")>
@@ -101,13 +97,11 @@ End Class
 Class C
 End Class
 
-",
-            Diagnostic(ERRID.ERR_LbElseNoMatchingIf, "#Else"),
-            Diagnostic(ERRID.ERR_LbExpectedEndIf, ""))
+",      Diagnostic(ERRID.ERR_LbElseNoMatchingIf, "#Else"),
+        Diagnostic(ERRID.ERR_LbExpectedEndIf, ""))
     End Sub
 
-    <WorkItem(2908, "DevDiv_Projects/Roslyn")>
-    <Fact()>
+    <Fact, WorkItem(2908, "DevDiv_Projects/Roslyn")>
     Public Sub BC30014ERR_LbBadElseif()
         Dim code = 
 "Module M1
@@ -172,10 +166,7 @@ Public Class D
     delegate sub delegate1() implements I1.foo
 End Class
 "
-
-        ParseAndVerify(code, <errors>
-                                 <error id="30018"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="30018"/> </errors>)
     End Sub
 
     <Fact()>
@@ -188,9 +179,7 @@ Namespace NS1
     End Module
 End Namespace
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="30019"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="30019"/> </errors>)
     End Sub
 
     <Fact()>
@@ -206,9 +195,7 @@ Class class1
     Delegate Sub sub1() Handles evnt.event1
 End Class
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="30019"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="30019"/> </errors>)
     End Sub
 
     <Fact()>
@@ -238,9 +225,7 @@ End Module
 #Else
 #End If
 ",
-        <errors>
-            <error id="30028"/>
-        </errors>)
+        <errors> <error id="30028"/> </errors>)
     End Sub
 
     <Fact()>
@@ -269,10 +254,7 @@ End Class
         Event Event4() as boolean
 End Interface
 "
-
-        ParseAndVerify(code, <errors>
-                                 <error id="30032"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="30032"/> </errors>)
     End Sub
 
     <Fact()>
@@ -280,7 +262,6 @@ End Interface
         Dim code ="
 Event Event() as boolean
 "
-
         ParseAndVerify(code, <errors>
                                  <error id="30183"/>
                                  <error id="30032"/>
@@ -336,12 +317,9 @@ End Module
 
     <Fact()>
     Public Sub BC30034ERR_MissingEndBrack()
-        Dim code = "
-Class C1
+        Dim code = "Class C1
     Dim DynamicArray_1 = new byte[1,2]
-End Class
-"
-
+End Class"
         ParseAndVerify(code, <errors>
                                  <error id="30034"/>
                                  <error id="30037"/>
@@ -350,10 +328,8 @@ End Class
 
     <Fact()>
     Public Sub BC30035ERR_Syntax()
-        ParseAndVerify(
-">Attr()< Class C1
-End Class
-",
+        ParseAndVerify(">Attr()< Class C1
+End Class",
             <errors>
                 <error id="30035"/>
                 <error id="30460"/>
@@ -368,10 +344,7 @@ End Class
         () = 0
     End Sub
 End Module
-",
-            <errors>
-                <error id="30035"/>
-            </errors>)
+",  <errors> <error id="30035"/> </errors>)
     End Sub
 
     <Fact()>
@@ -381,10 +354,7 @@ Class C1
 #ExternalChecksum(""D:\Documents and Settings\USERS1\My Documents\Visual Studio\WebSites\WebSite1\Default.aspx"",""{406ea660-64cf-4c82-b6f0-42d48172a799}"",""44179F2BE2484F26E2C6AFEBAF0EC3CC"")
 #End ExternalChecksum
 End Class
-",
-            <errors>
-                <error id="30035"/>
-            </errors>)
+",  <errors> <error id="30035"/> </errors>)
     End Sub
 
     <Fact()>
@@ -393,10 +363,7 @@ End Class
 "Class C1
     IsNot:
 End Class
-",
-            <errors>
-                <error id="30035"/>
-            </errors>)
+",  <errors> <error id="30035"/> </errors>)
     End Sub
 
     <Fact()>
@@ -407,10 +374,7 @@ Class C1
                     (System.Console.WriteLine(a))
              End Sub
 End Class
-",
-            <errors>
-                <error id="30035"/>
-            </errors>)
+",  <errors> <error id="30035"/> </errors>)
     End Sub
 
     <Fact()>
@@ -419,10 +383,7 @@ End Class
 Class C1
     Dim y = Sub(x) handles 
 End Class
-",
-            <errors>
-                <error id="30035"/>
-            </errors>)
+", <errors> <error id="30035"/> </errors>)
     End Sub
 
     <Fact()>
@@ -458,10 +419,7 @@ End Structure
 Structure S1
     Dim r = Sub() AddressOf Foo
 End Structure
-",
-            <errors>
-                <error id="30035"/>
-            </errors>)
+",  <errors> <error id="30035"/> </errors>)
     End Sub
 
     <Fact()>
@@ -472,11 +430,10 @@ Structure S1
 
          {""hello"", ""world""}
 End Structure
-",
-            <errors>
-                <error id="30035"/>
-                <error id="30987"/>
-            </errors>)
+",  <errors>
+        <error id="30035"/>
+        <error id="30987"/>
+    </errors>)
     End Sub
 
     <Fact()>
@@ -487,13 +444,12 @@ Structure S1
 
        ))
 End Structure
-",
-            <errors>
-                <error id="30182"/>
-                <error id="30035"/>
-                <error id="30198"/>
-                <error id="30198"/>
-            </errors>)
+",  <errors>
+        <error id="30182"/>
+        <error id="30035"/>
+        <error id="30198"/>
+        <error id="30198"/>
+    </errors>)
     End Sub
 
     <Fact()>
@@ -502,11 +458,10 @@ End Structure
 Structure S1
     Dim i As Integer = &O
 End Structure
-",
-            <errors>
-                <error id="30201"/>
-                <error id="30035"/>
-            </errors>)
+",  <errors>
+        <error id="30201"/>
+        <error id="30035"/>
+    </errors>)
     End Sub
 
     <Fact()>
@@ -532,8 +487,7 @@ End Structure
 Class class1
            Global shared c1 as short
 End Class
-",
-        Diagnostic(ERRID.ERR_ExpectedDeclaration, "Global"))
+",      Diagnostic(ERRID.ERR_ExpectedDeclaration, "Global"))
     End Sub
 
     <Fact()>
@@ -646,10 +600,7 @@ End Module
 Module M
     Dim x As Decimal = 1E29D
 End Module
-",
-        <errors>
-            <error id="30036"/>
-        </errors>)
+",  <errors> <error id="30036"/> </errors>)
     End Sub
 
     <Fact>
@@ -707,10 +658,7 @@ class mc(of $)
 Class class1
       Dim obj As New Object`123
 End Class
-",
-           <errors>
-               <error id="30037"/>
-           </errors>)
+", <errors> <error id="30037"/> </errors>)
     End Sub
 
     <Fact()>
@@ -786,10 +734,7 @@ End Structure
         ParseAndVerify("
 Structure S1
 End Structure;
-",
-           <errors>
-               <error id="30037"/>
-           </errors>)
+", <errors> <error id="30037"/> </errors>)
     End Sub
 
     <Fact()>
@@ -816,10 +761,7 @@ Public Class C1
     Sub Foo() : Console.Writeline()
     End Sub
 End Class
-",
-            <errors>
-                <error id="30040"/>
-            </errors>)
+", <errors> <error id="30040"/> </errors>)
     End Sub
 
     <Fact()>
@@ -848,8 +790,8 @@ End Module
                 End Sub
             End Module
                 </file>
-        </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_RequiredConstExpr, "New Integer(1, 1) {{1, 2}, {2, 3}}"),
-            Diagnostic(ERRID.ERR_OverloadWithDefault2, "foo").WithArguments("Public Sub foo([i As Integer(*,*)])", "Public Sub foo([i As Integer(*,*) = Nothing])"))
+        </compilation>).VerifyDiagnostics(  Diagnostic(ERRID.ERR_RequiredConstExpr, "New Integer(1, 1) {{1, 2}, {2, 3}}"),
+                                            Diagnostic(ERRID.ERR_OverloadWithDefault2, "foo").WithArguments("Public Sub foo([i As Integer(*,*)])", "Public Sub foo([i As Integer(*,*) = Nothing])"))
     End Sub
 
     <WorkItem(540174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540174")>
@@ -859,8 +801,7 @@ End Module
 #Const Var = ""-1""
 #If Var Then
 #End If
-",
-        Diagnostic(ERRID.ERR_RequiredConstConversion2, "#If Var Then").WithArguments("String", "Boolean"))
+",      Diagnostic(ERRID.ERR_RequiredConstConversion2, "#If Var Then").WithArguments("String", "Boolean"))
     End Sub
 
     <Fact()>
@@ -905,7 +846,6 @@ End Property
     End Function 
 End Class
 "
-
         ' No errors now.  The check for exit sub is done in the binder and not by the parser.
         ParseAndVerify(code)
     End Sub
@@ -940,7 +880,6 @@ Public Class Distance
     End Function 
 End Class
 "
-
         ParseAndVerify(code, <errors>
                                  <error id="30066"/>
                                  <error id="30066"/>
@@ -960,9 +899,7 @@ lb1:        Exit Property
     End Function
 End Class
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="30066"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="30066"/> </errors>)
     End Sub
 
     <Fact()>
@@ -988,7 +925,6 @@ Class C1
     End Sub
 End Class
 "
-
         ' No errors now.  The check for exit function is done in the binder and not by the parser.
         ParseAndVerify(code)
     End Sub
@@ -1023,10 +959,7 @@ End Class
     End Sub
 End Module
 "
-
-        ParseAndVerify(code, <errors>
-                                 <error id="30081"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="30081"/> </errors>)
     End Sub
 
     <Fact()>
@@ -1042,10 +975,7 @@ Module Program
     End Sub
 End Module
 "
-
-        ParseAndVerify(code, <errors>
-                                 <error id="30081"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="30081"/> </errors>)
     End Sub
 
     <Fact()>
@@ -1066,10 +996,7 @@ Module Module1
     End Sub
 End Module
 "
-
-        ParseAndVerify(code, <errors>
-                                 <error id="30082"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="30082"/> </errors>)
     End Sub
 
     <Fact()>
@@ -1081,11 +1008,7 @@ Public Class C1
     End Sub
 End Class
 "
-
-        ParseAndVerify(code,
-                       <errors>
-                           <error id="30083" message="'Do' must end with a matching 'Loop'."/>
-                       </errors>)
+        ParseAndVerify(code, <errors> <error id="30083" message="'Do' must end with a matching 'Loop'."/> </errors>)
     End Sub
 
     <Fact()>
@@ -1106,7 +1029,6 @@ End Class
     End Module
 End Namespace
 "
-
         ParseAndVerify(code, <errors>
                                  <error id="30087"/>
                                  <error id="30087"/>
@@ -1125,9 +1047,7 @@ Module M
     End Sub
 End Module
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="30087"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="30087"/> </errors>)
     End Sub
     <Fact()>
     Public Sub BC30092ERR_NextNoMatchingFor()
@@ -1142,9 +1062,9 @@ End Module
 "
 
         ParseAndVerify(code,
-            Diagnostic(ERRID.ERR_ExpectedNext, "For Each item As String In collectionObject"),
-            Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next"),
-            Diagnostic(ERRID.ERR_InvalidEndSub, "End Sub"))
+                       Diagnostic(ERRID.ERR_ExpectedNext, "For Each item As String In collectionObject"),
+                       Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next"),
+                       Diagnostic(ERRID.ERR_InvalidEndSub, "End Sub"))
     End Sub
 
     <Fact()>
@@ -1195,7 +1115,6 @@ End Class
     public friend foo1 as integer
 End Class
 "
-
         ' Error is now reported by binding
         ParseAndVerify(code)
     End Sub
@@ -1247,9 +1166,7 @@ Class C
     End Sub
 End Class
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="30180"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="30180"/> </errors>)
     End Sub
 
     <Fact()>
@@ -1263,9 +1180,7 @@ Public Class child
     inherits if(true, base, base)
 End Class
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="30180"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="30180"/> </errors>)
     End Sub
 
     <Fact()>
@@ -1319,8 +1234,8 @@ End Class
 #If True Then
     File: abc
 #End If
-", Diagnostic(ERRID.ERR_InvOutsideProc, "File:"),
-    Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "abc"))
+",      Diagnostic(ERRID.ERR_InvOutsideProc, "File:"),
+        Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "abc"))
     End Sub
 
     <Fact()>
@@ -1332,8 +1247,8 @@ End Class
     End Sub
 End Class
 ",
-            Diagnostic(ERRID.ERR_MethodMustBeFirstStatementOnLine, "Sub sub1()"),
-            Diagnostic(ERRID.ERR_ExpectedDeclaration, "Unicode"))
+        Diagnostic(ERRID.ERR_MethodMustBeFirstStatementOnLine, "Sub sub1()"),
+        Diagnostic(ERRID.ERR_ExpectedDeclaration, "Unicode"))
     End Sub
 
     ' No error during parsing.  Param array errors are reported during binding.
@@ -1351,12 +1266,7 @@ End Class
 
     <Fact()>
     Public Sub BC30193ERR_SpecifiersInvalidOnInheritsImplOpt()
-
-        ParseAndVerify(<![CDATA[
-                readonly imports System.Threading
-            ]]>, <errors>
-                     <error id="30193"/>
-                 </errors>)
+        ParseAndVerify("readonly imports System.Threading", <errors> <error id="30193"/> </errors>)
     End Sub
 
     <Fact()>
@@ -1589,7 +1499,6 @@ End Class
     #End ExternalSource
 End Class
 "
-
         ParseAndVerify(code, <errors>
                                  <error id="30204"/>
                                  <error id="30198"/>
@@ -1632,7 +1541,6 @@ Class C1
     Declare Function functionName Lib libName Alias ""functionName"" (ByVal CompanyName As String, ByVal Options As String, ByVal Key As String) As Integer
 End Class
             "
-
         ParseAndVerify(code, <errors>
                                  <error id="30217"/>
                                  <error id="30217"/>
@@ -1650,7 +1558,6 @@ End Class
     End Sub
 End Class
 "
-
         ParseAndVerify(code, <errors>
                                  <error id="30224"/>
                                  <error id="30182"/>
@@ -1667,7 +1574,6 @@ End Class
     End Function
 End Structure
 "
-
         ParseAndVerify(code, <errors>
                                  <error id="30035"/>
                                  <error id="30238"/>
@@ -1687,7 +1593,6 @@ End Structure
     End Module
 End Namespace
 "
-
         ParseAndVerify(code, <errors> <error id="30240"/> </errors>)
     End Sub
 
@@ -1698,7 +1603,6 @@ End Namespace
 
 End Class
 "
-
         ParseAndVerify(code, <errors> <error id="30241"/> </errors>)
     End Sub
 
@@ -1722,7 +1626,6 @@ Public Interface I1
 End Interface
 End Interface
 "
-
         ParseAndVerify(code, <errors> <error id="30252"/> </errors>)
     End Sub
 
@@ -1882,7 +1785,6 @@ End Namespace
 <scen?()> Public Class C1
 End Class
 "
-
         ParseAndVerify(code, <errors>
                                  <error id="30636"/>
                                  <error id="30460"/>
@@ -1932,9 +1834,7 @@ End Module
     <WorkItem(542117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542117")>
     <Fact()>
     Public Sub BC30579ERR_ExpectedEndExternalSource()
-        Dim code = "
-                #externalsource("""",2)
-"
+        Dim code = "#externalsource("""",2)"
         ParseAndVerify(code, Diagnostic(ERRID.ERR_ExpectedEndExternalSource, "#externalsource("""",2)"))
     End Sub
 
@@ -1944,8 +1844,7 @@ End Module
 Interface I
     Declare Sub Foo Lib ""My""
 End Interface
-",
-            Diagnostic(ERRID.ERR_InvInsideInterface, "Declare Sub Foo Lib ""My"""))
+",      Diagnostic(ERRID.ERR_InvInsideInterface, "Declare Sub Foo Lib ""My"""))
     End Sub
 
     <Fact()>
@@ -2016,7 +1915,6 @@ Namespace NS1
 End Namespace
 End Namespace
 "
-
         ParseAndVerify(code, <errors> <error id="30623"/> </errors>)
     End Sub
 
@@ -2096,8 +1994,7 @@ End Class
 Option Explicit On
 Option Explicit Text
 Option Explicit Binary
-",
-        <errors>
+",        <errors>
             <error id="30640"/>
             <error id="30640"/>
         </errors>)
@@ -2136,8 +2033,7 @@ Namespace NS1
         End Function
     End Module
 End Namespace
-",
-        <errors>
+",        <errors>
             <error id="30642"/>
             <error id="30812"/>
             <error id="30201"/>
@@ -2152,8 +2048,7 @@ Module  M1
     Dim A  As String = ""HGF
     End Sub
 End Module
-",
-        <errors>
+",        <errors>
             <error id="30625"/>
             <error id="30648"/>
         </errors>)
@@ -2226,7 +2121,6 @@ Class C1
     End Sub
 End Class
 "
-
         ParseAndVerify(code, <errors>
                                  <error id="30674"/>
                                  <error id="30675"/>
@@ -2308,8 +2202,7 @@ End Property
     <WorkItem(527211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527211")>
     <Fact()>
     Public Sub BC30681ERR_ExpectedEndRegion()
-        ParseAndVerify("#Region ""Start""",
-            Diagnostic(ERRID.ERR_ExpectedEndRegion, "#Region ""Start"""))
+        ParseAndVerify("#Region ""Start""", Diagnostic(ERRID.ERR_ExpectedEndRegion, "#Region ""Start"""))
     End Sub
 
     <Fact()>
@@ -3149,10 +3042,7 @@ BC31164: Expected matching closing double quote for XML attribute value.
         End Sub
     End Module
 "
-
-        ParseAndVerify(code, <errors>
-                                 <error id="31175"/>
-                             </errors>).VerifySpanOfChildWithinSpanOfParent()
+        ParseAndVerify(code, <errors> <error id="31175"/> </errors>).VerifySpanOfChildWithinSpanOfParent()
     End Sub
 
     <Fact()>
@@ -3571,9 +3461,7 @@ End Module
         End Class
     End Module
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="32065"/>
-                             </errors>).VerifySpanOfChildWithinSpanOfParent()
+        ParseAndVerify(code, <errors> <error id="32065"/> </errors>).VerifySpanOfChildWithinSpanOfParent()
     End Sub
 
     <WorkItem(537988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537988")>
@@ -3586,10 +3474,7 @@ End Module
                     End Class
                 End Module
 "
-
-        ParseAndVerify(code, <errors>
-                                 <error id="32066"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="32066"/> </errors>)
     End Sub
 
     <Fact()>
@@ -3600,10 +3485,7 @@ End Module
                     End Module
                 End Namespace
 "
-
-        ParseAndVerify(code, <errors>
-                                 <error id="32073"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="32073"/> </errors>)
     End Sub
 
     <WorkItem(527337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527337")>
@@ -3616,7 +3498,7 @@ End Module
 "
 
         ParseAndVerify(code, Diagnostic(ERRID.ERR_UnrecognizedType, "").WithLocation(2, 50),
-                            Diagnostic(ERRID.ERR_BadConstraintSyntax, "").WithLocation(2, 50))
+                             Diagnostic(ERRID.ERR_BadConstraintSyntax, "").WithLocation(2, 50))
     End Sub
 
     <Fact()>
@@ -3660,8 +3542,8 @@ End Module
         Public Shared Operator (ByVal x As Integer) As Interaction
         End Operator
     End Class
-", Diagnostic(ERRID.ERR_UnknownOperator, "__"),
-             Diagnostic(ERRID.ERR_UnknownOperator, ""))
+",      Diagnostic(ERRID.ERR_UnknownOperator, "__"),
+        Diagnostic(ERRID.ERR_UnknownOperator, ""))
     End Sub
 
     <WorkItem(3372, "DevDiv_Projects/Roslyn")>
@@ -3710,9 +3592,7 @@ End Module
                 Public Interface ICustomerInfo
                 End Interface
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="33004"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="33004"/> </errors>)
     End Sub
 
     <WorkItem(527308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527308")>
@@ -3805,9 +3685,7 @@ End Module
                         ' Body of the conditional directive.
                 #End If
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="33111"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="33111"/> </errors>)
     End Sub
 
     <Fact()>
@@ -3824,8 +3702,8 @@ End Module
                 End Module
 "
         ParseAndVerify(code, Diagnostic(ERRID.ERR_ExpectedExpression, ""),
-                                Diagnostic(ERRID.ERR_ExpectedExpression, ""),
-                                Diagnostic(ERRID.ERR_ExpectedExpression, ""))
+                             Diagnostic(ERRID.ERR_ExpectedExpression, ""),
+                             Diagnostic(ERRID.ERR_ExpectedExpression, ""))
     End Sub
 
     <Fact()>
@@ -3842,9 +3720,9 @@ End Module
                 End Module
 "
         ParseAndVerify(code, Diagnostic(ERRID.ERR_ExpectedExpression, ""),
-                                Diagnostic(ERRID.ERR_ExpectedExpression, ""),
-                                Diagnostic(ERRID.ERR_ExpectedExpression, ""),
-                                Diagnostic(ERRID.ERR_ExpectedExpression, ""))
+                             Diagnostic(ERRID.ERR_ExpectedExpression, ""),
+                             Diagnostic(ERRID.ERR_ExpectedExpression, ""),
+                             Diagnostic(ERRID.ERR_ExpectedExpression, ""))
     End Sub
 
     <Fact()>
@@ -3856,9 +3734,7 @@ End Module
                     END Sub 
                 End Class 
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="36000"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="36000"/> </errors>)
     End Sub
 
     <Fact()>
@@ -3866,9 +3742,7 @@ End Module
         Dim code = "
                 Imports global = Microsoft.CSharp
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="36001"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="36001"/> </errors>)
     End Sub
 
     <Fact()>
@@ -3931,9 +3805,7 @@ End Module
                     End Sub
                 End Module
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="36575"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="36575"/> </errors>)
     End Sub
 
     <WorkItem(537985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537985")>
@@ -3973,9 +3845,7 @@ End Namespace
                     End Sub
                 End Module
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="36613"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="36613"/> </errors>)
     End Sub
 
     <Fact()>
@@ -3989,9 +3859,7 @@ End Namespace
                     End Module
                 End Namespace
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="36618"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="36618"/> </errors>)
     End Sub
 
     <WorkItem(538492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538492")>
@@ -4050,9 +3918,7 @@ End Namespace
                 End Module
             End Namespace
 ",
-            <errors>
-                <error id="36620"/>
-            </errors>)
+            <errors> <error id="36620"/> </errors>)
     End Sub
 
     <Fact()>
@@ -4068,9 +3934,7 @@ End Namespace
                     End Module
                 End Namespace
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="36629"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="36629"/> </errors>)
     End Sub
 
     <Fact()>
@@ -4083,9 +3947,7 @@ End Namespace
                     End Function
                 End Class
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="36637"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="36637"/> </errors>)
     End Sub
 
     <Fact()>
@@ -4117,9 +3979,7 @@ End Namespace
                                     Into group 
                 End Class
 "
-        ParseAndVerify(code, <errors>
-                                 <error id="36708"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="36708"/> </errors>)
     End Sub
 
     ' old name - ParseProperty_ERR_InitializedExpandedProperty
@@ -4135,9 +3995,7 @@ End Namespace
                     End Property
                 end class
 ",
-        <errors>
-            <error id="36714"/>
-        </errors>)
+        <errors> <error id="36714"/> </errors>)
     End Sub
 
     ' old name - ParseProperty_ERR_AutoPropertyCantHaveParams
@@ -4148,9 +4006,7 @@ End Namespace
                     Public Property P7(i as integer) As New C1 With {._x = 3} 
                 end class
             ",
-        <errors>
-            <error id="36759"/>
-        </errors>)
+        <errors> <error id="36759"/> </errors>)
     End Sub
 
     <Fact()>
@@ -4162,9 +4018,7 @@ End Namespace
                     End Sub
                 End Class
             ",
-        <errors>
-            <error id="36920"/>
-        </errors>)
+        <errors> <error id="36920"/> </errors>)
     End Sub
 
     <Fact()>
@@ -4176,9 +4030,7 @@ End Namespace
                     End Sub
                 End Class
             ",
-        <errors>
-            <error id="36921"/>
-        </errors>)
+        <errors> <error id="36921"/> </errors>)
     End Sub
 
     <Fact()>
@@ -4190,9 +4042,7 @@ End Namespace
                     End Sub
                 End Class
             ",
-        <errors>
-            <error id="36922"/>
-        </errors>)
+        <errors> <error id="36922"/> </errors>)
     End Sub
 
 #End Region
@@ -4218,9 +4068,7 @@ End Namespace
                 End Module
             ",
         VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
-        <errors>
-            <error id="42302" warning="True"/>
-        </errors>)
+        <errors> <error id="42302" warning="True"/> </errors>)
     End Sub
 
     <Fact()>
@@ -4274,9 +4122,7 @@ End Namespace
         ParseAndVerify(code)
         ParseAndVerify(code,
                        VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
-                       <errors>
-                           <error id="42304" warning="True"/>
-                       </errors>)
+                       <errors> <error id="42304" warning="True"/> </errors>)
     End Sub
 
     <Fact()>
@@ -4357,13 +4203,13 @@ End Namespace
     end class
 "
         ParseAndVerify(code, Diagnostic(ERRID.ERR_EmbeddedExpression, "<%= ""utf-16"" %>").WithLocation(3, 64),
-          Diagnostic(ERRID.ERR_IllegalAttributeInXmlDecl, "something = ""?>").WithArguments("", "", "something").WithLocation(4, 37),
-          Diagnostic(ERRID.ERR_ExpectedQuote, "something = ""?>").WithLocation(4, 37),
-          Diagnostic(ERRID.ERR_ExpectedXmlEndPI, "").WithLocation(4, 52),
-          Diagnostic(ERRID.ERR_EmbeddedExpression, "<%= ""encoding"" %>").WithLocation(5, 53),
-          Diagnostic(ERRID.ERR_ExpectedXmlName, "=""utf-16""").WithLocation(5, 70),
-          Diagnostic(ERRID.ERR_EmbeddedExpression, "<%= ""something"" %>").WithLocation(6, 33),
-          Diagnostic(ERRID.ERR_ExpectedXmlName, "=""""").WithLocation(6, 51)).VerifyErrorsOnChildrenAlsoPresentOnParent()
+                             Diagnostic(ERRID.ERR_IllegalAttributeInXmlDecl, "something = ""?>").WithArguments("", "", "something").WithLocation(4, 37),
+                             Diagnostic(ERRID.ERR_ExpectedQuote, "something = ""?>").WithLocation(4, 37),
+                             Diagnostic(ERRID.ERR_ExpectedXmlEndPI, "").WithLocation(4, 52),
+                             Diagnostic(ERRID.ERR_EmbeddedExpression, "<%= ""encoding"" %>").WithLocation(5, 53),
+                             Diagnostic(ERRID.ERR_ExpectedXmlName, "=""utf-16""").WithLocation(5, 70),
+                             Diagnostic(ERRID.ERR_EmbeddedExpression, "<%= ""something"" %>").WithLocation(6, 33),
+                             Diagnostic(ERRID.ERR_ExpectedXmlName, "=""""").WithLocation(6, 51)).VerifyErrorsOnChildrenAlsoPresentOnParent()
     End Sub
 
     <Fact, WorkItem(537131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537131"), WorkItem(527922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527922"), WorkItem(527553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527553")>
@@ -4515,9 +4361,7 @@ BC31042: 'Sub New' cannot implement interface members.
         Dim Keypair = New KeyValuePair(Of String, Object)("CompErrorTest", -1)
         Dim opt = VisualBasicParseOptions.Default.WithPreprocessorSymbols(Keypair)
 
-        Dim code = "
-    Protected Property p As New
-"
+        Dim code = "Protected Property p As New"
         VisualBasicSyntaxTree.ParseText(code, options:=opt, path:="")
     End Sub
 
