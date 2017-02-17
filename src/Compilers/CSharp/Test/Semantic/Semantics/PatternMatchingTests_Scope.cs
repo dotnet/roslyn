@@ -1787,9 +1787,6 @@ public class X
                 // (115,15): error CS0103: The name 'u9' does not exist in the current context
                 //         Dummy(u9); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(115, 15),
-                // (108,50): error CS0165: Use of unassigned local variable 'z9'
-                //                   group x > y9 && 1 is var z9 && z9 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z9").WithArguments("z9").WithLocation(108, 50),
                 // (121,24): error CS1931: The range variable 'y10' conflicts with a previous declaration of 'y10'
                 //                   from y10 in new[] { 1 }
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y10").WithArguments("y10").WithLocation(121, 24),

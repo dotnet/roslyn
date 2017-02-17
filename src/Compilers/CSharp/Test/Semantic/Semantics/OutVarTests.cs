@@ -10925,9 +10925,6 @@ public class X
                 // (115,15): error CS0103: The name 'u9' does not exist in the current context
                 //         Dummy(u9); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(115, 15),
-                // (108,66): error CS0165: Use of unassigned local variable 'z9'
-                //                   group x > y9 && TakeOutParam(1, out var z9) && z9 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z9").WithArguments("z9").WithLocation(108, 66),
                 // (121,24): error CS1931: The range variable 'y10' conflicts with a previous declaration of 'y10'
                 //                   from y10 in new[] { 1 }
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y10").WithArguments("y10").WithLocation(121, 24),
@@ -28972,6 +28969,88 @@ class C
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
                 Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
             }
+        }
+
+        [Fact]
+        [WorkItem(17208, "https://github.com/dotnet/roslyn/issues/17208")]
+        public void ErrorRecoveryShouldIgnoreNonDelegates()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        G(x => x > 0 && F(out var y) && y > 0);
+    }
+    static bool F(out int i)
+    {
+        i = 0;
+        return true;
+    }
+    static void G(Func<int, bool> f, object o) { }
+    static void G(C c, object o) { }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS1501: No overload for method 'G' takes 1 arguments
+                //         G(x => x > 0 && F(out var y) && y > 0);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "G").WithArguments("G", "1").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(17208, "https://github.com/dotnet/roslyn/issues/17208")]
+        public void ErrorRecoveryShouldIgnoreNonDelegates_Expression()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C
+{
+    static void Main()
+    {
+        G(x => x > 0 && F(out var y) && y > 0);
+    }
+    static bool F(out int i)
+    {
+        i = 0;
+        return true;
+    }
+    static void G(Expression<Func<int, bool>> f, object o) { }
+    static void G(C c, object o) { }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS1501: No overload for method 'G' takes 1 arguments
+                //         G(x => x > 0 && F(out var y) && y > 0);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "G").WithArguments("G", "1").WithLocation(7, 9));
+        }
+
+        [Fact]
+        [WorkItem(17208, "https://github.com/dotnet/roslyn/issues/17208")]
+        public void ErrorRecoveryShouldIgnoreNonDelegates_Query()
+        {
+            var source =
+@"using System.Linq;
+class C
+{
+    static void M()
+    {
+        var c = from x in new[] { 1, 2, 3 }
+            group x > 1 && F(out var y) && y == null
+            by x;
+    }
+    static bool F(out object o)
+    {
+        o = null;
+        return true;
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (7,38): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //             group x > 1 && F(out var y) && y == null
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y").WithLocation(7, 38));
         }
     }
 
