@@ -55,6 +55,77 @@ public class Cls
         }
 
         [Fact]
+        [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
+        [WorkItem(16348, "https://github.com/dotnet/roslyn/issues/16348")]
+        public void DiagnosticsDifferenceBetweenLanguageVersions_01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Test1()
+    {
+        Test(out int x1);
+    }
+
+    public static void Test2()
+    {
+        var x = new Cls(out int x2);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            compilation.VerifyDiagnostics(
+                // (6,22): error CS8059: Feature 'out variable declaration' is not available in C# 6.  Please use language version 7 or greater.
+                //         Test(out int x1);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7").WithLocation(6, 22),
+                // (11,33): error CS8059: Feature 'out variable declaration' is not available in C# 6.  Please use language version 7 or greater.
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x2").WithArguments("out variable declaration", "7").WithLocation(11, 33),
+                // (6,9): error CS0103: The name 'Test' does not exist in the current context
+                //         Test(out int x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Test").WithArguments("Test").WithLocation(6, 9),
+                // (11,21): error CS1729: 'Cls' does not contain a constructor that takes 1 arguments
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Cls").WithArguments("Cls", "1").WithLocation(11, 21),
+                // (11,29): error CS0165: Use of unassigned local variable 'x2'
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x2").WithArguments("x2").WithLocation(11, 29)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl);
+
+            var x2Decl = GetOutVarDeclaration(tree, "x2");
+            //VerifyModelForOutVar(model, x2Decl); Probably fails due to https://github.com/dotnet/roslyn/issues/16348
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl);
+
+            compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (6,9): error CS0103: The name 'Test' does not exist in the current context
+                //         Test(out int x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Test").WithArguments("Test").WithLocation(6, 9),
+                // (11,21): error CS1729: 'Cls' does not contain a constructor that takes 1 arguments
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Cls").WithArguments("Cls", "1").WithLocation(11, 21),
+                // (11,29): error CS0165: Use of unassigned local variable 'x2'
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x2").WithArguments("x2").WithLocation(11, 29)
+                );
+
+            tree = compilation.SyntaxTrees.Single();
+            model = compilation.GetSemanticModel(tree);
+
+            x1Decl = GetOutVarDeclaration(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl);
+
+            x2Decl = GetOutVarDeclaration(tree, "x2");
+            //VerifyModelForOutVar(model, x2Decl); Probably fails due to https://github.com/dotnet/roslyn/issues/16348
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl);
+        }
+
+        [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_01()
@@ -125,27 +196,30 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,35): error CS1003: Syntax error, '=>' expected
+                // (6,20): error CS8184: A declaration is not allowed in this context.
                 //         Test1(out (var x1, var x2));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(6, 35),
-                // (6,35): error CS1525: Invalid expression term ')'
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x1").WithLocation(6, 20),
+                // (6,28): error CS8184: A declaration is not allowed in this context.
                 //         Test1(out (var x1, var x2));
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 35),
-                // (6,20): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x2").WithLocation(6, 28),
+                // (6,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         Test1(out (var x1, var x2));
-                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 20),
-                // (6,28): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(var x1, var x2)").WithArguments("System.ValueTuple`2").WithLocation(6, 19),
+                // (6,19): error CS1510: A ref or out value must be an assignable variable
                 //         Test1(out (var x1, var x2));
-                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 28),
-                // (7,34): error CS0103: The name 'x1' does not exist in the current context
-                //         System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 34),
-                // (8,34): error CS0103: The name 'x2' does not exist in the current context
-                //         System.Console.WriteLine(x2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(8, 34)
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(var x1, var x2)").WithLocation(6, 19)
                 );
 
-            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
+            var x2Decl = GetDeclaration(tree, "x2");
+            var x2Ref = GetReference(tree, "x2");
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -172,21 +246,36 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,36): error CS1003: Syntax error, '=>' expected
+                // (6,20): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (int x1, long x2));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(6, 36),
-                // (6,36): error CS1525: Invalid expression term ')'
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x1").WithLocation(6, 20),
+                // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (int x1, long x2));
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 36),
-                // (7,34): error CS0103: The name 'x1' does not exist in the current context
-                //         System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 34),
-                // (8,34): error CS0103: The name 'x2' does not exist in the current context
-                //         System.Console.WriteLine(x2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(8, 34)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "long x2").WithLocation(6, 28),
+                // (6,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         Test1(out (int x1, long x2));
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int x1, long x2)").WithArguments("System.ValueTuple`2").WithLocation(6, 19),
+                // (6,19): error CS1510: A ref or out value must be an assignable variable
+                //         Test1(out (int x1, long x2));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(int x1, long x2)").WithLocation(6, 19),
+                // (6,20): error CS0165: Use of unassigned local variable 'x1'
+                //         Test1(out (int x1, long x2));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x1").WithArguments("x1").WithLocation(6, 20),
+                // (6,28): error CS0165: Use of unassigned local variable 'x2'
+                //         Test1(out (int x1, long x2));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "long x2").WithArguments("x2").WithLocation(6, 28)
                 );
 
-            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
+            var x2Decl = GetDeclaration(tree, "x2");
+            var x2Ref = GetReference(tree, "x2");
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -214,33 +303,49 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,46): error CS1001: Identifier expected
+                // (6,20): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (int x1, (long x2, byte x3)));
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 46),
-                // (6,47): error CS1003: Syntax error, '=>' expected
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x1").WithLocation(6, 20),
+                // (6,29): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (int x1, (long x2, byte x3)));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(6, 47),
-                // (6,47): error CS1525: Invalid expression term ')'
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "long x2").WithLocation(6, 29),
+                // (6,38): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (int x1, (long x2, byte x3)));
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 47),
-                // (6,28): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
-                //         Test1(out (int x1, (long x2, byte x3)));
-                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(long x2, byte x3)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "byte x3").WithLocation(6, 38),
                 // (6,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         Test1(out (int x1, (long x2, byte x3)));
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(long x2, byte x3)").WithArguments("System.ValueTuple`2").WithLocation(6, 28),
-                // (7,34): error CS0103: The name 'x1' does not exist in the current context
-                //         System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 34),
-                // (8,34): error CS0103: The name 'x2' does not exist in the current context
-                //         System.Console.WriteLine(x2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(8, 34),
-                // (9,34): error CS0103: The name 'x3' does not exist in the current context
-                //         System.Console.WriteLine(x3);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(9, 34)
+                // (6,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int x1, (long x2, byte x3))").WithArguments("System.ValueTuple`2").WithLocation(6, 19),
+                // (6,19): error CS1510: A ref or out value must be an assignable variable
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(int x1, (long x2, byte x3))").WithLocation(6, 19),
+                // (6,20): error CS0165: Use of unassigned local variable 'x1'
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x1").WithArguments("x1").WithLocation(6, 20),
+                // (6,29): error CS0165: Use of unassigned local variable 'x2'
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "long x2").WithArguments("x2").WithLocation(6, 29),
+                // (6,38): error CS0165: Use of unassigned local variable 'x3'
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "byte x3").WithArguments("x3").WithLocation(6, 38)
                 );
 
-            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
+            var x2Decl = GetDeclaration(tree, "x2");
+            var x2Ref = GetReference(tree, "x2");
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
+
+            var x3Decl = GetDeclaration(tree, "x3");
+            var x3Ref = GetReference(tree, "x3");
+            VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref);
         }
 
         [Fact]
@@ -734,6 +839,17 @@ public class Cls
             return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == name);
         }
 
+        private static IEnumerable<DeclarationExpressionSyntax> GetDeclarations(SyntaxTree tree, string name)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
+                    .Where(p => p.Identifier().ValueText == name);
+        }
+
+        private static DeclarationExpressionSyntax GetDeclaration(SyntaxTree tree, string name)
+        {
+            return GetDeclarations(tree, name).Single();
+        }
+
         private static DeclarationExpressionSyntax GetOutVarDeclaration(SyntaxTree tree, string name)
         {
             return GetOutVarDeclarations(tree, name).Single();
@@ -742,12 +858,12 @@ public class Cls
         private static IEnumerable<DeclarationExpressionSyntax> GetOutVarDeclarations(SyntaxTree tree, string name)
         {
             return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
-                    .Where(p => IsOutVarDeclaration(p) && p.Identifier().ValueText == name);
+                    .Where(p => p.IsOutVarDeclaration() && p.Identifier().ValueText == name);
         }
 
-        private static IEnumerable<DiscardedDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
+        private static IEnumerable<DiscardDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
         {
-            return tree.GetRoot().DescendantNodes().OfType<DiscardedDesignationSyntax>();
+            return tree.GetRoot().DescendantNodes().OfType<DiscardDesignationSyntax>();
         }
 
         private static IEnumerable<IdentifierNameSyntax> GetDiscardIdentifiers(SyntaxTree tree)
@@ -755,17 +871,10 @@ public class Cls
             return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
         }
 
-        private static bool IsOutVarDeclaration(DeclarationExpressionSyntax p)
-        {
-            return p.Designation.Kind() == SyntaxKind.SingleVariableDesignation
-                && p.Parent.Kind() == SyntaxKind.Argument
-                && ((ArgumentSyntax)p.Parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword;
-        }
-
         private static IEnumerable<DeclarationExpressionSyntax> GetOutVarDeclarations(SyntaxTree tree)
         {
             return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
-                    .Where(p => IsOutVarDeclaration(p));
+                    .Where(p => p.IsOutVarDeclaration());
         }
 
         [Fact]
@@ -815,17 +924,27 @@ public class Cls
 
         private static void VerifyModelForOutVarWithoutDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForOutVar(model, decl, false, true, false, false, references);
+            VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: false, verifyDataFlow: false, references: references);
         }
 
         private static void VerifyModelForOutVar(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForOutVar(model, decl, false, true, false, true, references);
+            VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: false, verifyDataFlow: true, references: references);
         }
 
         private static void VerifyModelForOutVarInNotExecutableCode(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForOutVar(model, decl, false, false, false, true, references);
+            VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: false, isShadowed: false, verifyDataFlow: true, references: references);
+        }
+
+        private static void VerifyModelForOutVarInNotExecutableCode(
+            SemanticModel model,
+            DeclarationExpressionSyntax decl,
+            IdentifierNameSyntax reference)
+        {
+            VerifyModelForOutVar(
+                model, decl, isDelegateCreation: false, isExecutableCode: false, isShadowed: false,
+                verifyDataFlow: true, references: reference);
         }
 
         private static void VerifyModelForOutVar(
@@ -845,13 +964,14 @@ public class Cls
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
 
+            var other = model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single();
             if (isShadowed)
             {
-                Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single());
+                Assert.NotEqual(symbol, other);
             }
             else
             {
-                Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single());
+                Assert.Same(symbol, other);
             }
 
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));
@@ -871,7 +991,7 @@ public class Cls
                 Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
             }
 
-            AssertInfoForDeclarationExpressionSyntax(model, decl);
+            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: local.Type);
 
             foreach (var reference in references)
             {
@@ -887,17 +1007,22 @@ public class Cls
             }
         }
 
-        private static void AssertInfoForDeclarationExpressionSyntax(SemanticModel model, DeclarationExpressionSyntax decl)
+        private static void AssertInfoForDeclarationExpressionSyntax(
+            SemanticModel model,
+            DeclarationExpressionSyntax decl,
+            Symbol expectedSymbol = null,
+            TypeSymbol expectedType = null
+            )
         {
             var symbolInfo = model.GetSymbolInfo(decl);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(expectedSymbol, symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(symbolInfo, ((CSharpSemanticModel)model).GetSymbolInfo(decl));
 
             var typeInfo = model.GetTypeInfo(decl);
-            Assert.Null(typeInfo.Type);
-            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal(expectedType, typeInfo.Type);
+            Assert.Equal(expectedType, typeInfo.ConvertedType);
             Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl));
 
             var conversion = model.ClassifyConversion(decl, model.Compilation.ObjectType, false);
@@ -988,6 +1113,16 @@ public class Cls
             Assert.False(model.LookupNames(reference.SpanStart).Contains(reference.Identifier.ValueText));
         }
 
+        private static void VerifyNotAnOutField(SemanticModel model, IdentifierNameSyntax reference)
+        {
+            var symbol = model.GetSymbolInfo(reference).Symbol;
+
+            Assert.NotEqual(SymbolKind.Field, symbol.Kind);
+
+            Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Single());
+            Assert.True(model.LookupNames(reference.SpanStart).Contains(reference.Identifier.ValueText));
+        }
+
         private static void VerifyNotAnOutLocal(SemanticModel model, IdentifierNameSyntax reference)
         {
             var symbol = model.GetSymbolInfo(reference).Symbol;
@@ -997,7 +1132,7 @@ public class Cls
                 var local = (SourceLocalSymbol)symbol;
                 var parent = local.IdentifierToken.Parent;
 
-                Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>().Where(e => IsOutVarDeclaration(e)));
+                Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>().Where(e => e.IsOutVarDeclaration()));
 
                 if (parent.Kind() == SyntaxKind.VariableDeclarator)
                 {
@@ -1176,6 +1311,12 @@ public class Cls
                         return true;
                     }
                     break;
+
+                case SyntaxKind.PreIncrementExpression:
+                case SyntaxKind.PostIncrementExpression:
+                case SyntaxKind.PreDecrementExpression:
+                case SyntaxKind.PostDecrementExpression:
+                    return true;
 
                 default:
                     return false;
@@ -2251,9 +2392,15 @@ class Test : System.Attribute
                 // (4,19): error CS0103: The name 'x3' does not exist in the current context
                 //     [Test(out var x3)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(4, 19),
+                // (4,6): error CS1729: 'Test' does not contain a constructor that takes 2 arguments
+                //     [Test(out var x3)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(out var x3)").WithArguments("Test", "2").WithLocation(4, 6),
                 // (5,19): error CS0103: The name 'x4' does not exist in the current context
                 //     [Test(out int x4)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(5, 19),
+                // (5,6): error CS1729: 'Test' does not contain a constructor that takes 2 arguments
+                //     [Test(out int x4)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(out int x4)").WithArguments("Test", "2").WithLocation(5, 6),
                 // (6,18): error CS0103: The name 'var' does not exist in the current context
                 //     [Test(p: out var x5)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 18),
@@ -2263,12 +2410,18 @@ class Test : System.Attribute
                 // (6,22): error CS0103: The name 'x5' does not exist in the current context
                 //     [Test(p: out var x5)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(6, 22),
+                // (6,6): error CS1729: 'Test' does not contain a constructor that takes 3 arguments
+                //     [Test(p: out var x5)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(p: out var x5)").WithArguments("Test", "3").WithLocation(6, 6),
                 // (7,18): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
                 //     [Test(p: out int x6)]
                 Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "int").WithLocation(7, 18),
                 // (7,22): error CS0103: The name 'x6' does not exist in the current context
                 //     [Test(p: out int x6)]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(7, 22)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(7, 22),
+                // (7,6): error CS1729: 'Test' does not contain a constructor that takes 3 arguments
+                //     [Test(p: out int x6)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(p: out int x6)").WithArguments("Test", "3").WithLocation(7, 6)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -2749,6 +2902,14 @@ public class X
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -3952,6 +4113,7 @@ True");
         }
 
         [Fact]
+        [WorkItem(14214, "https://github.com/dotnet/roslyn/issues/14214")]
         public void Scope_ExpressionBodiedLocalFunctions_01()
         {
             var source =
@@ -4060,49 +4222,52 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
+            // Data flow for the following disabled due to https://github.com/dotnet/roslyn/issues/14214
+
             var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
             var x3Ref = GetReferences(tree, "x3").Single();
-            VerifyModelForOutVar(model, x3Decl, x3Ref);
+
+            VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref);
 
             var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
             var x4Ref = GetReferences(tree, "x4").Single();
-            VerifyModelForOutVar(model, x4Decl, x4Ref);
+            VerifyModelForOutVarWithoutDataFlow(model, x4Decl, x4Ref);
 
             var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
-            VerifyModelForOutVar(model, x5Decl[0], x5Ref);
+            VerifyModelForOutVarWithoutDataFlow(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
-            VerifyModelForOutVar(model, x6Decl[0], x6Ref[0]);
-            VerifyModelForOutVar(model, x6Decl[1], x6Ref[1]);
+            VerifyModelForOutVarWithoutDataFlow(model, x6Decl[0], x6Ref[0]);
+            VerifyModelForOutVarWithoutDataFlow(model, x6Decl[1], x6Ref[1]);
 
             var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
             var x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyNotInScope(model, x7Ref[0]);
-            VerifyModelForOutVar(model, x7Decl, x7Ref[1]);
+            VerifyModelForOutVarWithoutDataFlow(model, x7Decl, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
 
             var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
             var x11Ref = GetReferences(tree, "x11").ToArray();
             Assert.Equal(2, x11Ref.Length);
             VerifyNotAnOutLocal(model, x11Ref[0]);
-            VerifyModelForOutVar(model, x11Decl, x11Ref[1]);
+            VerifyModelForOutVarWithoutDataFlow(model, x11Decl, x11Ref[1]);
 
             var x12Decl = GetOutVarDeclarations(tree, "x12").Single();
             var x12Ref = GetReferences(tree, "x12").ToArray();
             Assert.Equal(2, x12Ref.Length);
-            VerifyModelForOutVar(model, x12Decl, x12Ref[0]);
+            VerifyModelForOutVarWithoutDataFlow(model, x12Decl, x12Ref[0]);
             VerifyNotAnOutLocal(model, x12Ref[1]);
 
             var x13Decl = GetOutVarDeclarations(tree, "x13").Single();
             var x13Ref = GetReferences(tree, "x13").Single();
-            VerifyModelForOutVar(model, x13Decl, x13Ref);
+            VerifyModelForOutVarWithoutDataFlow(model, x13Decl, x13Ref);
         }
 
         [Fact]
@@ -6103,48 +6268,39 @@ public class X
                 // (109,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var y12 = 12;").WithLocation(109, 13),
-                // (16,19): error CS0165: Use of unassigned local variable 'x1'
+                // (16,19): error CS0103: The name 'x1' does not exist in the current context
                 //             Dummy(x1);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(16, 19),
-                // (25,19): error CS0165: Use of unassigned local variable 'x2'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(16, 19),
+                // (25,19): error CS0103: The name 'x2' does not exist in the current context
                 //             Dummy(x2);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(25, 19),
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(25, 19),
                 // (34,47): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x4) && x4)
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(34, 47),
-                // (36,19): error CS0165: Use of unassigned local variable 'x4'
-                //             Dummy(x4);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x4").WithArguments("x4").WithLocation(36, 19),
                 // (42,20): error CS0841: Cannot use local variable 'x6' before it is declared
                 //              Dummy(x6 && TakeOutParam(true, out var x6))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(42, 20),
-                // (44,19): error CS0165: Use of unassigned local variable 'x6'
+                // (44,19): error CS0103: The name 'x6' does not exist in the current context
                 //             Dummy(x6);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x6").WithArguments("x6").WithLocation(44, 19),
-                // (53,17): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //             var x7 = 12;
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(53, 17),
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(44, 19),
+                // (63,19): error CS0103: The name 'x8' does not exist in the current context
+                //             Dummy(x8);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(63, 19),
                 // (65,34): error CS0103: The name 'x8' does not exist in the current context
                 //         System.Console.WriteLine(x8);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(65, 34),
                 // (65,9): warning CS0162: Unreachable code detected
                 //         System.Console.WriteLine(x8);
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(65, 9),
-                // (63,19): error CS0165: Use of unassigned local variable 'x8'
-                //             Dummy(x8);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x8").WithArguments("x8").WithLocation(63, 19),
-                // (76,51): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //                  Dummy(TakeOutParam(true, out var x9) && x9) // 2
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(76, 51),
+                // (74,19): error CS0103: The name 'x9' does not exist in the current context
+                //             Dummy(x9);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x9").WithArguments("x9").WithLocation(74, 19),
+                // (78,23): error CS0103: The name 'x9' does not exist in the current context
+                //                 Dummy(x9);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x9").WithArguments("x9").WithLocation(78, 23),
                 // (71,14): warning CS0162: Unreachable code detected
                 //              Dummy(TakeOutParam(true, out var x9) && x9)
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "Dummy").WithLocation(71, 14),
-                // (74,19): error CS0165: Use of unassigned local variable 'x9'
-                //             Dummy(x9);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x9").WithArguments("x9").WithLocation(74, 19),
-                // (78,23): error CS0165: Use of unassigned local variable 'x9'
-                //                 Dummy(x9);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x9").WithArguments("x9").WithLocation(78, 23),
                 // (85,33): error CS0103: The name 'y10' does not exist in the current context
                 //              Dummy(TakeOutParam(y10, out var x10))
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "y10").WithArguments("y10").WithLocation(85, 33),
@@ -6154,12 +6310,12 @@ public class X
                 // (109,17): warning CS0219: The variable 'y12' is assigned but its value is never used
                 //             var y12 = 12;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(109, 17),
-                // (124,44): error CS0128: A local variable named 'x14' is already defined in this scope
+                // (124,44): error CS0128: A local variable or function named 'x14' is already defined in this scope
                 //                    TakeOutParam(2, out var x14), 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(124, 44),
-                // (128,19): error CS0165: Use of unassigned local variable 'x14'
+                // (128,19): error CS0103: The name 'x14' does not exist in the current context
                 //             Dummy(x14);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x14").WithArguments("x14").WithLocation(128, 19)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x14").WithArguments("x14").WithLocation(128, 19)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -6168,23 +6324,27 @@ public class X
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForOutVar(model, x1Decl, x1Ref);
+            VerifyModelForOutVar(model, x1Decl, x1Ref[0]);
+            VerifyNotInScope(model, x1Ref[1]);
 
             var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForOutVar(model, x2Decl, x2Ref);
+            VerifyModelForOutVar(model, x2Decl, x2Ref[0]);
+            VerifyNotInScope(model, x2Ref[1]);
 
             var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
             var x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
-            VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
+            VerifyModelForOutVar(model, x4Decl, x4Ref[1]);
+            VerifyNotAnOutLocal(model, x4Ref[2]);
 
             var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
             var x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
-            VerifyModelForOutVar(model, x6Decl, x6Ref);
+            VerifyModelForOutVar(model, x6Decl, x6Ref[0]);
+            VerifyNotInScope(model, x6Ref[1]);
 
             var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
             var x7Ref = GetReferences(tree, "x7").ToArray();
@@ -6195,15 +6355,18 @@ public class X
             var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
             var x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
-            VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
+            VerifyModelForOutVar(model, x8Decl, x8Ref[0]);
+            VerifyNotInScope(model, x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
             var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
             var x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
-            VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
-            VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
+            VerifyModelForOutVar(model, x9Decl[0], x9Ref[0]);
+            VerifyNotInScope(model, x9Ref[1]);
+            VerifyModelForOutVar(model, x9Decl[1], x9Ref[2]);
+            VerifyNotInScope(model, x9Ref[3]);
 
             var y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
@@ -6217,8 +6380,9 @@ public class X
             var x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
-            VerifyModelForOutVar(model, x14Decl[0], x14Ref);
+            VerifyModelForOutVar(model, x14Decl[0], x14Ref[0]);
             VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
+            VerifyNotInScope(model, x14Ref[1]);
         }
 
         [Fact]
@@ -6847,7 +7011,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
-                // (13,47): error CS0128: A local variable named 'x1' is already defined in this scope
+                // (13,47): error CS0128: A local variable or function named 'x1' is already defined in this scope
                 //              Dummy(TakeOutParam(true, out var x1) && x1)
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(13, 47),
                 // (13,54): error CS0841: Cannot use local variable 'x1' before it is declared
@@ -6856,96 +7020,108 @@ public class X
                 // (13,54): error CS0165: Use of unassigned local variable 'x1'
                 //              Dummy(TakeOutParam(true, out var x1) && x1)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 54),
-                // (21,47): error CS0128: A local variable named 'x2' is already defined in this scope
+                // (21,47): error CS0136: A local or parameter named 'x2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x2) && x2)
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(21, 47),
-                // (29,47): error CS0128: A local variable named 'x3' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x2").WithArguments("x2").WithLocation(21, 47),
+                // (20,18): warning CS0219: The variable 'x2' is assigned but its value is never used
+                //         for (var x2 = true;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(20, 18),
+                // (29,47): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x3) && x3)
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x3").WithArguments("x3").WithLocation(29, 47),
-                // (37,47): error CS0128: A local variable named 'x4' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(29, 47),
+                // (28,18): warning CS0219: The variable 'x3' is assigned but its value is never used
+                //         for (var x3 = true;;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x3").WithArguments("x3").WithLocation(28, 18),
+                // (37,47): error CS0128: A local variable or function named 'x4' is already defined in this scope
                 //              Dummy(TakeOutParam(true, out var x4) && x4)
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(37, 47),
                 // (37,54): error CS0165: Use of unassigned local variable 'x4'
                 //              Dummy(TakeOutParam(true, out var x4) && x4)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x4").WithArguments("x4").WithLocation(37, 54),
-                // (45,47): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (45,47): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x5) && x5)
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(45, 47),
-                // (53,47): error CS0128: A local variable named 'x6' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(45, 47),
+                // (44,19): warning CS0219: The variable 'x5' is assigned but its value is never used
+                //         for (bool x5 = true;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(44, 19),
+                // (53,47): error CS0136: A local or parameter named 'x6' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x6) && x6)
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(53, 47),
-                // (61,47): error CS0128: A local variable named 'x7' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x6").WithArguments("x6").WithLocation(53, 47),
+                // (52,19): warning CS0219: The variable 'x6' is assigned but its value is never used
+                //         for (bool x6 = true;;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x6").WithArguments("x6").WithLocation(52, 19),
+                // (61,47): error CS0128: A local variable or function named 'x7' is already defined in this scope
                 //              Dummy(TakeOutParam(true, out var x7) && x7)
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x7").WithArguments("x7").WithLocation(61, 47),
-                // (69,52): error CS0128: A local variable named 'x8' is already defined in this scope
+                // (69,52): error CS0128: A local variable or function named 'x8' is already defined in this scope
                 //              b2 = Dummy(TakeOutParam(true, out var x8) && x8);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(69, 52),
-                // (70,47): error CS0128: A local variable named 'x8' is already defined in this scope
+                // (70,47): error CS0136: A local or parameter named 'x8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x8) && x8);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(70, 47),
-                // (71,47): error CS0128: A local variable named 'x8' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x8").WithArguments("x8").WithLocation(70, 47),
+                // (71,47): error CS0136: A local or parameter named 'x8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x8) && x8))
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(71, 47),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x8").WithArguments("x8").WithLocation(71, 47),
                 // (77,23): error CS0841: Cannot use local variable 'x9' before it is declared
                 //         for (bool b = x9, 
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x9").WithArguments("x9").WithLocation(77, 23),
-                // (79,47): error CS0128: A local variable named 'x9' is already defined in this scope
+                // (79,47): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x9) && x9);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x9").WithArguments("x9").WithLocation(79, 47),
-                // (80,47): error CS0128: A local variable named 'x9' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(79, 47),
+                // (80,47): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x9) && x9))
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x9").WithArguments("x9").WithLocation(80, 47),
-                // (86,22): error CS0841: Cannot use local variable 'x10' before it is declared
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(80, 47),
+                // (86,22): error CS0103: The name 'x10' does not exist in the current context
                 //         for (var b = x10;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x10").WithArguments("x10").WithLocation(86, 22),
-                // (88,47): error CS0128: A local variable named 'x10' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x10").WithArguments("x10").WithLocation(86, 22),
+                // (88,47): error CS0128: A local variable or function named 'x10' is already defined in this scope
                 //              Dummy(TakeOutParam(true, out var x10) && x10);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x10").WithArguments("x10").WithLocation(88, 47),
-                // (89,47): error CS0128: A local variable named 'x10' is already defined in this scope
+                // (89,47): error CS0136: A local or parameter named 'x10' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x10) && x10))
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x10").WithArguments("x10").WithLocation(89, 47),
-                // (95,23): error CS0841: Cannot use local variable 'x11' before it is declared
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x10").WithArguments("x10").WithLocation(89, 47),
+                // (95,23): error CS0103: The name 'x11' does not exist in the current context
                 //         for (bool b = x11;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x11").WithArguments("x11").WithLocation(95, 23),
-                // (97,47): error CS0128: A local variable named 'x11' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x11").WithArguments("x11").WithLocation(95, 23),
+                // (97,47): error CS0128: A local variable or function named 'x11' is already defined in this scope
                 //              Dummy(TakeOutParam(true, out var x11) && x11);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x11").WithArguments("x11").WithLocation(97, 47),
-                // (98,47): error CS0128: A local variable named 'x11' is already defined in this scope
+                // (98,47): error CS0136: A local or parameter named 'x11' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x11) && x11))
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x11").WithArguments("x11").WithLocation(98, 47),
-                // (104,20): error CS0841: Cannot use local variable 'x12' before it is declared
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x11").WithArguments("x11").WithLocation(98, 47),
+                // (104,20): error CS0103: The name 'x12' does not exist in the current context
                 //         for (Dummy(x12);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x12").WithArguments("x12").WithLocation(104, 20),
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x12").WithArguments("x12").WithLocation(104, 20),
                 // (105,20): error CS0841: Cannot use local variable 'x12' before it is declared
                 //              Dummy(x12) &&
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x12").WithArguments("x12").WithLocation(105, 20),
-                // (107,47): error CS0128: A local variable named 'x12' is already defined in this scope
+                // (107,47): error CS0136: A local or parameter named 'x12' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x12) && x12))
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x12").WithArguments("x12").WithLocation(107, 47),
-                // (113,22): error CS0841: Cannot use local variable 'x13' before it is declared
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x12").WithArguments("x12").WithLocation(107, 47),
+                // (113,22): error CS0103: The name 'x13' does not exist in the current context
                 //         for (var b = x13;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x13").WithArguments("x13").WithLocation(113, 22),
-                // (114,20): error CS0841: Cannot use local variable 'x13' before it is declared
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x13").WithArguments("x13").WithLocation(113, 22),
+                // (114,20): error CS0103: The name 'x13' does not exist in the current context
                 //              Dummy(x13);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x13").WithArguments("x13").WithLocation(114, 20),
-                // (116,47): error CS0128: A local variable named 'x13' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x13").WithArguments("x13").WithLocation(114, 20),
+                // (116,47): error CS0128: A local variable or function named 'x13' is already defined in this scope
                 //              Dummy(TakeOutParam(true, out var x13) && x13))
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x13").WithArguments("x13").WithLocation(116, 47),
-                // (122,23): error CS0841: Cannot use local variable 'x14' before it is declared
+                // (122,23): error CS0103: The name 'x14' does not exist in the current context
                 //         for (bool b = x14;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x14").WithArguments("x14").WithLocation(122, 23),
-                // (123,20): error CS0841: Cannot use local variable 'x14' before it is declared
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x14").WithArguments("x14").WithLocation(122, 23),
+                // (123,20): error CS0103: The name 'x14' does not exist in the current context
                 //              Dummy(x14);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x14").WithArguments("x14").WithLocation(123, 20),
-                // (125,47): error CS0128: A local variable named 'x14' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x14").WithArguments("x14").WithLocation(123, 20),
+                // (125,47): error CS0128: A local variable or function named 'x14' is already defined in this scope
                 //              Dummy(TakeOutParam(true, out var x14) && x14))
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(125, 47),
-                // (131,20): error CS0841: Cannot use local variable 'x15' before it is declared
+                // (131,20): error CS0103: The name 'x15' does not exist in the current context
                 //         for (Dummy(x15);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x15").WithArguments("x15").WithLocation(131, 20),
-                // (132,20): error CS0841: Cannot use local variable 'x15' before it is declared
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x15").WithArguments("x15").WithLocation(131, 20),
+                // (132,20): error CS0103: The name 'x15' does not exist in the current context
                 //              Dummy(x15);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x15").WithArguments("x15").WithLocation(132, 20),
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x15").WithArguments("x15").WithLocation(132, 20),
                 // (133,20): error CS0841: Cannot use local variable 'x15' before it is declared
                 //              Dummy(x15),
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x15").WithArguments("x15").WithLocation(133, 20)
@@ -6961,13 +7137,11 @@ public class X
 
             var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").Single();
-            VerifyModelForOutVarDuplicateInSameScope(model, x2Decl);
-            VerifyNotAnOutLocal(model, x2Ref);
+            VerifyModelForOutVar(model, x2Decl, x2Ref);
 
             var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
             var x3Ref = GetReferences(tree, "x3").Single();
-            VerifyModelForOutVarDuplicateInSameScope(model, x3Decl);
-            VerifyNotAnOutLocal(model, x3Ref);
+            VerifyModelForOutVar(model, x3Decl, x3Ref);
 
             var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
             var x4Ref = GetReferences(tree, "x4").Single();
@@ -6976,13 +7150,11 @@ public class X
 
             var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
             var x5Ref = GetReferences(tree, "x5").Single();
-            VerifyModelForOutVarDuplicateInSameScope(model, x5Decl);
-            VerifyNotAnOutLocal(model, x5Ref);
+            VerifyModelForOutVar(model, x5Decl, x5Ref);
 
             var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
             var x6Ref = GetReferences(tree, "x6").Single();
-            VerifyModelForOutVarDuplicateInSameScope(model, x6Decl);
-            VerifyNotAnOutLocal(model, x6Ref);
+            VerifyModelForOutVar(model, x6Decl, x6Ref);
 
             var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
             var x7Ref = GetReferences(tree, "x7").Single();
@@ -6993,60 +7165,131 @@ public class X
             var x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(4, x8Decl.Length);
             Assert.Equal(4, x8Ref.Length);
-            VerifyModelForOutVar(model, x8Decl[0], x8Ref);
+            VerifyModelForOutVar(model, x8Decl[0], x8Ref[0], x8Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x8Decl[1]);
-            VerifyModelForOutVarDuplicateInSameScope(model, x8Decl[2]);
-            VerifyModelForOutVarDuplicateInSameScope(model, x8Decl[3]);
+            VerifyModelForOutVar(model, x8Decl[2], x8Ref[2]);
+            VerifyModelForOutVar(model, x8Decl[3], x8Ref[3]);
 
             var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
             var x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(3, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
-            VerifyModelForOutVar(model, x9Decl[0], x9Ref);
-            VerifyModelForOutVarDuplicateInSameScope(model, x9Decl[1]);
-            VerifyModelForOutVarDuplicateInSameScope(model, x9Decl[2]);
+            VerifyModelForOutVarWithoutDataFlow(model, x9Decl[0], x9Ref[0], x9Ref[1]);
+            VerifyModelForOutVarWithoutDataFlow(model, x9Decl[1], x9Ref[2]);
+            VerifyModelForOutVarWithoutDataFlow(model, x9Decl[2], x9Ref[3]);
 
             var x10Decl = GetOutVarDeclarations(tree, "x10").ToArray();
             var x10Ref = GetReferences(tree, "x10").ToArray();
             Assert.Equal(3, x10Decl.Length);
             Assert.Equal(4, x10Ref.Length);
-            VerifyModelForOutVar(model, x10Decl[0], x10Ref);
+            VerifyNotInScope(model, x10Ref[0]);
+            VerifyModelForOutVar(model, x10Decl[0], x10Ref[1], x10Ref[2]);
             VerifyModelForOutVarDuplicateInSameScope(model, x10Decl[1]);
-            VerifyModelForOutVarDuplicateInSameScope(model, x10Decl[2]);
+            VerifyModelForOutVar(model, x10Decl[2], x10Ref[3]);
 
             var x11Decl = GetOutVarDeclarations(tree, "x11").ToArray();
             var x11Ref = GetReferences(tree, "x11").ToArray();
             Assert.Equal(3, x11Decl.Length);
             Assert.Equal(4, x11Ref.Length);
-            VerifyModelForOutVar(model, x11Decl[0], x11Ref);
+            VerifyNotInScope(model, x11Ref[0]);
+            VerifyModelForOutVar(model, x11Decl[0], x11Ref[1], x11Ref[2]);
             VerifyModelForOutVarDuplicateInSameScope(model, x11Decl[1]);
-            VerifyModelForOutVarDuplicateInSameScope(model, x11Decl[2]);
+            VerifyModelForOutVar(model, x11Decl[2], x11Ref[3]);
 
             var x12Decl = GetOutVarDeclarations(tree, "x12").ToArray();
             var x12Ref = GetReferences(tree, "x12").ToArray();
             Assert.Equal(2, x12Decl.Length);
             Assert.Equal(4, x12Ref.Length);
-            VerifyModelForOutVar(model, x12Decl[0], x12Ref);
-            VerifyModelForOutVarDuplicateInSameScope(model, x12Decl[1]);
+            VerifyNotInScope(model, x12Ref[0]);
+            VerifyModelForOutVar(model, x12Decl[0], x12Ref[1], x12Ref[2]);
+            VerifyModelForOutVar(model, x12Decl[1], x12Ref[3]);
 
             var x13Decl = GetOutVarDeclarations(tree, "x13").ToArray();
             var x13Ref = GetReferences(tree, "x13").ToArray();
             Assert.Equal(2, x13Decl.Length);
             Assert.Equal(4, x13Ref.Length);
-            VerifyModelForOutVar(model, x13Decl[0], x13Ref);
+            VerifyNotInScope(model, x13Ref[0]);
+            VerifyNotInScope(model, x13Ref[1]);
+            VerifyModelForOutVar(model, x13Decl[0], x13Ref[2], x13Ref[3]);
             VerifyModelForOutVarDuplicateInSameScope(model, x13Decl[1]);
 
             var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
             var x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(4, x14Ref.Length);
-            VerifyModelForOutVar(model, x14Decl[0], x14Ref);
+            VerifyNotInScope(model, x14Ref[0]);
+            VerifyNotInScope(model, x14Ref[1]);
+            VerifyModelForOutVar(model, x14Decl[0], x14Ref[2], x14Ref[3]);
             VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
 
             var x15Decl = GetOutVarDeclarations(tree, "x15").Single();
             var x15Ref = GetReferences(tree, "x15").ToArray();
             Assert.Equal(4, x15Ref.Length);
-            VerifyModelForOutVar(model, x15Decl, x15Ref);
+            VerifyNotInScope(model, x15Ref[0]);
+            VerifyNotInScope(model, x15Ref[1]);
+            VerifyModelForOutVar(model, x15Decl, x15Ref[2], x15Ref[3]);
+        }
+
+        [Fact]
+        public void Scope_For_07()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    void Test1()
+    {
+        for (;;
+             Dummy(x1),
+             Dummy(TakeOutParam(true, out var x1) && x1))
+        {}
+    }
+
+    void Test2()
+    {
+        for (;;
+             Dummy(TakeOutParam(true, out var x2) && x2),
+             Dummy(TakeOutParam(true, out var x2) && x2))
+        {}
+    }
+
+    static bool TakeOutParam(object y, out bool x) 
+    {
+        x = true;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (13,20): error CS0841: Cannot use local variable 'x1' before it is declared
+                //              Dummy(x1),
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(13, 20),
+                // (22,47): error CS0128: A local variable or function named 'x2' is already defined in this scope
+                //              Dummy(TakeOutParam(true, out var x2) && x2))
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(22, 47)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(2, x2Decl.Length);
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForOutVar(model, x2Decl[0], x2Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x2Decl[1]);
         }
 
         [Fact]
@@ -7062,7 +7305,7 @@ public class X
 
         for (Dummy(f, TakeOutParam((f ? 10 : 20), out var x0), x0); 
              Dummy(f, TakeOutParam((f ? 1 : 2), out var x1), x1); 
-             Dummy(f, TakeOutParam((f ? 100 : 200), out var x2), x2))
+             Dummy(f, TakeOutParam((f ? 100 : 200), out var x2), x2), Dummy(true, null, x2))
         {
             System.Console.WriteLine(x0);
             System.Console.WriteLine(x1);
@@ -7090,7 +7333,282 @@ public class X
 10
 1
 200
+200
 2");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x0Decl = GetOutVarDeclarations(tree, "x0").Single();
+            var x0Ref = GetReferences(tree, "x0").ToArray();
+            Assert.Equal(2, x0Ref.Length);
+            VerifyModelForOutVar(model, x0Decl, x0Ref);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForOutVar(model, x2Decl, x2Ref);
+        }
+
+        [Fact]
+        public void For_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        bool f = true;
+
+        for (Dummy(f, TakeOutParam((f ? 10 : 20), out var x0), x0); 
+             Dummy(f, TakeOutParam((f ? 1 : 2), out var x1), x1); 
+             f = false, Dummy(f, TakeOutParam((f ? 100 : 200), out var x2), x2), Dummy(true, null, x2))
+        {
+            System.Console.WriteLine(x0);
+            System.Console.WriteLine(x1);
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"10
+1
+10
+1
+200
+200
+2");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x0Decl = GetOutVarDeclarations(tree, "x0").Single();
+            var x0Ref = GetReferences(tree, "x0").ToArray();
+            Assert.Equal(2, x0Ref.Length);
+            VerifyModelForOutVar(model, x0Decl, x0Ref);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForOutVar(model, x2Decl, x2Ref);
+        }
+
+        [Fact]
+        public void For_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        for (TakeOutParam(1, out var x0); Dummy(x0 < 3, TakeOutParam(x0*10, out var x1), x1); x0++)
+        {
+            l.Add(() => System.Console.WriteLine(""{0} {1}"", x0, x1));
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"10
+20
+30
+--
+3 10
+3 20
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x0Decl = GetOutVarDeclarations(tree, "x0").ToArray();
+            var x0Ref = GetReferences(tree, "x0").ToArray();
+            Assert.Equal(1, x0Decl.Length);
+            Assert.Equal(4, x0Ref.Length);
+            VerifyModelForOutVar(model, x0Decl[0], x0Ref);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void For_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        for (TakeOutParam(1, out var x0); Dummy(x0 < 3, TakeOutParam(x0*10, out var x1), x1, l, () => System.Console.WriteLine(""{0} {1}"", x0, x1)); x0++)
+        {
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+        return x;
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"10
+20
+30
+--
+3 10
+3 20
+3 30
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x0Decl = GetOutVarDeclarations(tree, "x0").ToArray();
+            var x0Ref = GetReferences(tree, "x0").ToArray();
+            Assert.Equal(1, x0Decl.Length);
+            Assert.Equal(4, x0Ref.Length);
+            VerifyModelForOutVar(model, x0Decl[0], x0Ref);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void For_05()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        for (TakeOutParam(1, out var x0); Dummy(x0 < 3, TakeOutParam(x0*10, out var x1), x1, l, () => System.Console.WriteLine(""{0} {1}"", x0, x1)); x0++)
+        {
+            l.Add(() => System.Console.WriteLine(""{0} {1}"", x0, x1));
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+        return x;
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"10
+20
+30
+--
+3 10
+3 10
+3 20
+3 20
+3 30
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x0Decl = GetOutVarDeclarations(tree, "x0").ToArray();
+            var x0Ref = GetReferences(tree, "x0").ToArray();
+            Assert.Equal(1, x0Decl.Length);
+            Assert.Equal(5, x0Ref.Length);
+            VerifyModelForOutVar(model, x0Decl[0], x0Ref);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -7360,6 +7878,14 @@ public class X
             CompileAndVerify(compilation, expectedOutput:
 @"3
 3");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -8070,6 +8596,13 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
+            
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -9062,9 +9595,6 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
-                // (11,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                //             var (d, dd) = (TakeOutParam(true, out var x1), x1);
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var (d, dd) = (TakeOutParam(true, out var x1), x1);").WithLocation(11, 13),
                 // (13,9): error CS0103: The name 'x1' does not exist in the current context
                 //         x1++;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(13, 9)
@@ -10288,12 +10818,18 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
+                // (23,63): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   from x2 in new[] { TakeOutParam(x1, out var z2) ? z2 : 0, z2, y2}
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z2").WithLocation(23, 63),
                 // (25,26): error CS0103: The name 'z2' does not exist in the current context
                 //                          z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(25, 26),
                 // (27,15): error CS0103: The name 'z2' does not exist in the current context
                 //         Dummy(z2); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(27, 15),
+                // (33,53): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   let x2 = TakeOutParam(x1, out var z3) && z3 > 0 && y3 < 0 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z3").WithLocation(33, 53),
                 // (35,32): error CS0103: The name 'z3' does not exist in the current context
                 //                                z3};
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(35, 32),
@@ -10303,9 +10839,15 @@ public class X
                 // (45,35): error CS0103: The name 'v4' does not exist in the current context
                 //                                   v4 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(45, 35),
+                // (44,72): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                             on x1 + y4 + z4 + (TakeOutParam(3, out var u4) ? u4 : 0) + 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u4").WithLocation(44, 72),
                 // (47,35): error CS1938: The name 'u4' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
                 //                                   u4 
                 Diagnostic(ErrorCode.ERR_QueryInnerKey, "u4").WithArguments("u4").WithLocation(47, 35),
+                // (46,79): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                                equals x2 + y4 + z4 + (TakeOutParam(4, out var v4) ? v4 : 0) +
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v4").WithLocation(46, 79),
                 // (49,32): error CS0103: The name 'u4' does not exist in the current context
                 //                                u4, v4 };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(49, 32),
@@ -10321,9 +10863,15 @@ public class X
                 // (61,35): error CS0103: The name 'v5' does not exist in the current context
                 //                                   v5 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(61, 35),
+                // (60,72): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                             on x1 + y5 + z5 + (TakeOutParam(3, out var u5) ? u5 : 0) + 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u5").WithLocation(60, 72),
                 // (63,35): error CS1938: The name 'u5' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
                 //                                   u5 
                 Diagnostic(ErrorCode.ERR_QueryInnerKey, "u5").WithArguments("u5").WithLocation(63, 35),
+                // (62,79): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                                equals x2 + y5 + z5 + (TakeOutParam(4, out var v5) ? v5 : 0) +
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v5").WithLocation(62, 79),
                 // (66,32): error CS0103: The name 'u5' does not exist in the current context
                 //                                u5, v5 };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(66, 32),
@@ -10336,6 +10884,9 @@ public class X
                 // (70,15): error CS0103: The name 'v5' does not exist in the current context
                 //         Dummy(v5); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(70, 15),
+                // (76,59): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   where x > y6 && TakeOutParam(1, out var z6) && z6 == 1
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z6").WithLocation(76, 59),
                 // (78,26): error CS0103: The name 'z6' does not exist in the current context
                 //                          z6;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(78, 26),
@@ -10345,15 +10896,21 @@ public class X
                 // (87,27): error CS0103: The name 'u7' does not exist in the current context
                 //                           u7,
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(87, 27),
+                // (86,61): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   orderby x > y7 && TakeOutParam(1, out var z7) && z7 == 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z7").WithLocation(86, 61),
                 // (89,27): error CS0103: The name 'z7' does not exist in the current context
                 //                           z7   
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(89, 27),
-                // (91,31): error CS0103: The name 'u7' does not exist in the current context
-                //                          z7 + u7;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(91, 31),
+                // (88,61): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           x > y7 && TakeOutParam(1, out var u7) && u7 == 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u7").WithLocation(88, 61),
                 // (91,26): error CS0103: The name 'z7' does not exist in the current context
                 //                          z7 + u7;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(91, 26),
+                // (91,31): error CS0103: The name 'u7' does not exist in the current context
+                //                          z7 + u7;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(91, 31),
                 // (93,15): error CS0103: The name 'z7' does not exist in the current context
                 //         Dummy(z7); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(93, 15),
@@ -10363,15 +10920,24 @@ public class X
                 // (88,68): error CS0165: Use of unassigned local variable 'u7'
                 //                           x > y7 && TakeOutParam(1, out var u7) && u7 == 
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(88, 68),
+                // (100,60): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   select x > y8 && TakeOutParam(1, out var z8) && z8 == 1;
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z8").WithLocation(100, 60),
                 // (102,15): error CS0103: The name 'z8' does not exist in the current context
                 //         Dummy(z8); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z8").WithArguments("z8").WithLocation(102, 15),
                 // (112,25): error CS0103: The name 'z9' does not exist in the current context
                 //                         z9;   
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(112, 25),
+                // (111,59): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                         x > y9 && TakeOutParam(1, out var u9) && u9 == 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u9").WithLocation(111, 59),
                 // (109,25): error CS0103: The name 'u9' does not exist in the current context
                 //                         u9
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(109, 25),
+                // (108,59): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   group x > y9 && TakeOutParam(1, out var z9) && z9 == 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z9").WithLocation(108, 59),
                 // (114,15): error CS0103: The name 'z9' does not exist in the current context
                 //         Dummy(z9); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(114, 15),
@@ -10611,9 +11177,15 @@ public class X
                 // (18,35): error CS0103: The name 'v4' does not exist in the current context
                 //                                   v4 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(18, 35),
+                // (17,72): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                             on x1 + y4 + z4 + (TakeOutParam(3, out var u4) ? u4 : 0) + 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u4").WithLocation(17, 72),
                 // (20,35): error CS1938: The name 'u4' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
                 //                                   u4 
                 Diagnostic(ErrorCode.ERR_QueryInnerKey, "u4").WithArguments("u4").WithLocation(20, 35),
+                // (19,79): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                                equals x2 + y4 + z4 + (TakeOutParam(4, out var v4) ? v4 : 0) +
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v4").WithLocation(19, 79),
                 // (22,32): error CS0103: The name 'u4' does not exist in the current context
                 //                                u4, v4 };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(22, 32),
@@ -10629,9 +11201,15 @@ public class X
                 // (35,35): error CS0103: The name 'v5' does not exist in the current context
                 //                                   v5 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(35, 35),
+                // (34,72): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                             on x1 + y5 + z5 + (TakeOutParam(3, out var u5) ? u5 : 0) + 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u5").WithLocation(34, 72),
                 // (37,35): error CS1938: The name 'u5' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
                 //                                   u5 
                 Diagnostic(ErrorCode.ERR_QueryInnerKey, "u5").WithArguments("u5").WithLocation(37, 35),
+                // (36,80): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                                equals x2 + y5 + z5 + (TakeOutParam(4 , out var v5) ? v5 : 0) +
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v5").WithLocation(36, 80),
                 // (40,32): error CS0103: The name 'u5' does not exist in the current context
                 //                                u5, v5 };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(40, 32),
@@ -10750,42 +11328,75 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
-                // (16,62): error CS0128: A local variable named 'y1' is already defined in this scope
+                // (16,62): error CS0128: A local variable or function named 'y1' is already defined in this scope
                 //         var res = from x1 in new[] { TakeOutParam(1, out var y1) ? y1 : 0}
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "y1").WithArguments("y1").WithLocation(16, 62),
                 // (17,62): error CS0136: A local or parameter named 'y2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   from x2 in new[] { TakeOutParam(2, out var y2) ? y2 : 0}
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y2").WithArguments("y2").WithLocation(17, 62),
-                // (18,62): error CS0128: A local variable named 'y3' is already defined in this scope
+                // (17,62): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   from x2 in new[] { TakeOutParam(2, out var y2) ? y2 : 0}
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(17, 62),
+                // (18,62): error CS0128: A local variable or function named 'y3' is already defined in this scope
                 //                   join x3 in new[] { TakeOutParam(3, out var y3) ? y3 : 0}
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "y3").WithArguments("y3").WithLocation(18, 62),
                 // (19,51): error CS0136: A local or parameter named 'y4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                        on TakeOutParam(4, out var y4) ? y4 : 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y4").WithArguments("y4").WithLocation(19, 51),
+                // (19,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                        on TakeOutParam(4, out var y4) ? y4 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(19, 51),
                 // (20,58): error CS0136: A local or parameter named 'y5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           equals TakeOutParam(5, out var y5) ? y5 : 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y5").WithArguments("y5").WithLocation(20, 58),
+                // (20,58): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           equals TakeOutParam(5, out var y5) ? y5 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(20, 58),
                 // (21,49): error CS0136: A local or parameter named 'y6' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   where TakeOutParam(6, out var y6) && y6 == 1
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y6").WithArguments("y6").WithLocation(21, 49),
+                // (21,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   where TakeOutParam(6, out var y6) && y6 == 1
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(21, 49),
                 // (22,51): error CS0136: A local or parameter named 'y7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   orderby TakeOutParam(7, out var y7) && y7 > 0, 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y7").WithArguments("y7").WithLocation(22, 51),
+                // (22,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   orderby TakeOutParam(7, out var y7) && y7 > 0, 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(22, 51),
                 // (23,51): error CS0136: A local or parameter named 'y8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           TakeOutParam(8, out var y8) && y8 > 0 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y8").WithArguments("y8").WithLocation(23, 51),
+                // (23,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           TakeOutParam(8, out var y8) && y8 > 0 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(23, 51),
                 // (25,47): error CS0136: A local or parameter named 'y10' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   by TakeOutParam(10, out var y10) && y10 > 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y10").WithArguments("y10").WithLocation(25, 47),
+                // (25,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   by TakeOutParam(10, out var y10) && y10 > 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(25, 47),
                 // (24,49): error CS0136: A local or parameter named 'y9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   group TakeOutParam(9, out var y9) && y9 > 0 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y9").WithArguments("y9").WithLocation(24, 49),
+                // (24,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   group TakeOutParam(9, out var y9) && y9 > 0 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(24, 49),
                 // (27,54): error CS0136: A local or parameter named 'y11' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   let x11 = TakeOutParam(11, out var y11) && y11 > 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y11").WithArguments("y11").WithLocation(27, 54),
+                // (27,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   let x11 = TakeOutParam(11, out var y11) && y11 > 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y11").WithLocation(27, 54),
                 // (28,51): error CS0136: A local or parameter named 'y12' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   select TakeOutParam(12, out var y12) && y12 > 0
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(28, 51)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(28, 51),
+                // (28,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   select TakeOutParam(12, out var y12) && y12 > 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y12").WithLocation(28, 51),
+                // (30,115): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   select y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8 + y9 + y10 + y11 + y12 + (TakeOutParam(13, out var y13) ? y13 : 0);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y13").WithLocation(30, 115)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -10815,8 +11426,7 @@ public class X
                 switch (i)
                 {
                     case 12:
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAnOutLocal(model, yRef[1]);
+                        VerifyNotAnOutLocal(model, yRef[1]);
                         break;
                     default:
                         VerifyNotAnOutLocal(model, yRef[1]);
@@ -10826,8 +11436,7 @@ public class X
 
             var y13Decl = GetOutVarDeclarations(tree, "y13").Single();
             var y13Ref = GetReference(tree, "y13");
-            // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-            //VerifyModelForOutVar(model, y13Decl, y13Ref);
+            VerifyModelForOutVar(model, y13Decl, y13Ref);
         }
 
         [Fact]
@@ -10892,42 +11501,72 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
-                // (26,62): error CS0128: A local variable named 'y1' is already defined in this scope
+                // (26,62): error CS0128: A local variable or function named 'y1' is already defined in this scope
                 //                   from x1 in new[] { TakeOutParam(1, out var y1) ? y1 : 0}
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "y1").WithArguments("y1").WithLocation(26, 62),
                 // (27,62): error CS0136: A local or parameter named 'y2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   from x2 in new[] { TakeOutParam(2, out var y2) ? y2 : 0}
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y2").WithArguments("y2").WithLocation(27, 62),
-                // (28,62): error CS0128: A local variable named 'y3' is already defined in this scope
+                // (27,62): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   from x2 in new[] { TakeOutParam(2, out var y2) ? y2 : 0}
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(27, 62),
+                // (28,62): error CS0128: A local variable or function named 'y3' is already defined in this scope
                 //                   join x3 in new[] { TakeOutParam(3, out var y3) ? y3 : 0}
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "y3").WithArguments("y3").WithLocation(28, 62),
                 // (29,51): error CS0136: A local or parameter named 'y4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                        on TakeOutParam(4, out var y4) ? y4 : 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y4").WithArguments("y4").WithLocation(29, 51),
+                // (29,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                        on TakeOutParam(4, out var y4) ? y4 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(29, 51),
                 // (30,58): error CS0136: A local or parameter named 'y5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           equals TakeOutParam(5, out var y5) ? y5 : 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y5").WithArguments("y5").WithLocation(30, 58),
+                // (30,58): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           equals TakeOutParam(5, out var y5) ? y5 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(30, 58),
                 // (31,49): error CS0136: A local or parameter named 'y6' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   where TakeOutParam(6, out var y6) && y6 == 1
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y6").WithArguments("y6").WithLocation(31, 49),
+                // (31,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   where TakeOutParam(6, out var y6) && y6 == 1
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(31, 49),
                 // (32,51): error CS0136: A local or parameter named 'y7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   orderby TakeOutParam(7, out var y7) && y7 > 0, 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y7").WithArguments("y7").WithLocation(32, 51),
+                // (32,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   orderby TakeOutParam(7, out var y7) && y7 > 0, 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(32, 51),
                 // (33,51): error CS0136: A local or parameter named 'y8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           TakeOutParam(8, out var y8) && y8 > 0 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y8").WithArguments("y8").WithLocation(33, 51),
+                // (33,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           TakeOutParam(8, out var y8) && y8 > 0 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(33, 51),
                 // (35,47): error CS0136: A local or parameter named 'y10' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   by TakeOutParam(10, out var y10) && y10 > 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y10").WithArguments("y10").WithLocation(35, 47),
+                // (35,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   by TakeOutParam(10, out var y10) && y10 > 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(35, 47),
                 // (34,49): error CS0136: A local or parameter named 'y9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   group TakeOutParam(9, out var y9) && y9 > 0 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y9").WithArguments("y9").WithLocation(34, 49),
+                // (34,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   group TakeOutParam(9, out var y9) && y9 > 0 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(34, 49),
                 // (37,54): error CS0136: A local or parameter named 'y11' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   let x11 = TakeOutParam(11, out var y11) && y11 > 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y11").WithArguments("y11").WithLocation(37, 54),
+                // (37,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   let x11 = TakeOutParam(11, out var y11) && y11 > 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y11").WithLocation(37, 54),
                 // (38,51): error CS0136: A local or parameter named 'y12' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   select TakeOutParam(12, out var y12) && y12 > 0
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(38, 51)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(38, 51),
+                // (38,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   select TakeOutParam(12, out var y12) && y12 > 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y12").WithLocation(38, 51)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -10949,8 +11588,7 @@ public class X
                         VerifyModelForOutVarDuplicateInSameScope(model, yDecl[1]);
                         break;
                     case 12:
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyModelForOutVar(model, yDecl[0], yRef[1]);
+                        VerifyModelForOutVar(model, yDecl[0], yRef[1]);
                         VerifyModelForOutVar(model, yDecl[1], yRef[0]);
                         break;
 
@@ -10963,7 +11601,6 @@ public class X
         }
 
         [Fact]
-        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
         public void Scope_Query_07()
         {
             var source =
@@ -11017,9 +11654,10 @@ public class X
             var yRef = GetReferences(tree, id).ToArray();
             Assert.Equal(2, yDecl.Length);
             Assert.Equal(2, yRef.Length);
-            VerifyModelForOutVar(model, yDecl[0], yRef[1]);
-            // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-            //VerifyModelForOutVar(model, yDecl[1], yRef[0]);
+            // Since the name is declared twice in the same scope,
+            // both references are to the same declaration.
+            VerifyModelForOutVar(model, yDecl[0], yRef);
+            VerifyModelForOutVarDuplicateInSameScope(model, yDecl[1]);
         }
 
         [Fact]
@@ -11165,14 +11803,12 @@ public class X
                 switch (i)
                 {
                     case 4:
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyModelForOutVar(model, yDecl);
+                        VerifyModelForOutVar(model, yDecl);
                         VerifyNotAnOutLocal(model, yRef);
                         break;
                     case 5:
                         VerifyModelForOutVar(model, yDecl);
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAnOutLocal(model, yRef);
+                        VerifyNotAnOutLocal(model, yRef);
                         break;
                     default:
                         VerifyModelForOutVar(model, yDecl);
@@ -11285,36 +11921,66 @@ public class X
 
             // error CS0412 is misleading and reported due to preexisting bug https://github.com/dotnet/roslyn/issues/12052
             compilation.VerifyDiagnostics(
-                // (15,59): error CS0412: 'y1': a parameter or local variable cannot have the same name as a method type parameter
+                // (15,59): error CS0412: 'y1': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                   from x2 in new[] { TakeOutParam(out var y1) ? y1 : 1 }
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y1").WithArguments("y1").WithLocation(15, 59),
-                // (23,48): error CS0412: 'y2': a parameter or local variable cannot have the same name as a method type parameter
+                // (15,59): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   from x2 in new[] { TakeOutParam(out var y1) ? y1 : 1 }
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y1").WithLocation(15, 59),
+                // (23,48): error CS0412: 'y2': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                        on TakeOutParam(out var y2) ? y2 : 0 
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y2").WithArguments("y2").WithLocation(23, 48),
-                // (33,52): error CS0412: 'y3': a parameter or local variable cannot have the same name as a method type parameter
+                // (23,48): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                        on TakeOutParam(out var y2) ? y2 : 0 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(23, 48),
+                // (33,52): error CS0412: 'y3': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                        equals TakeOutParam(out var y3) ? y3 : 0
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y3").WithArguments("y3").WithLocation(33, 52),
-                // (40,46): error CS0412: 'y4': a parameter or local variable cannot have the same name as a method type parameter
+                // (33,52): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                        equals TakeOutParam(out var y3) ? y3 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y3").WithLocation(33, 52),
+                // (40,46): error CS0412: 'y4': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                   where TakeOutParam(out var y4) && y4 == 1
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y4").WithArguments("y4").WithLocation(40, 46),
-                // (47,48): error CS0412: 'y5': a parameter or local variable cannot have the same name as a method type parameter
+                // (40,46): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   where TakeOutParam(out var y4) && y4 == 1
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(40, 46),
+                // (47,48): error CS0412: 'y5': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                   orderby TakeOutParam(out var y5) && y5 > 1, 
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y5").WithArguments("y5").WithLocation(47, 48),
-                // (56,48): error CS0412: 'y6': a parameter or local variable cannot have the same name as a method type parameter
+                // (47,48): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   orderby TakeOutParam(out var y5) && y5 > 1, 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(47, 48),
+                // (56,48): error CS0412: 'y6': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                           TakeOutParam(out var y6) && y6 > 1 
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y6").WithArguments("y6").WithLocation(56, 48),
-                // (63,46): error CS0412: 'y7': a parameter or local variable cannot have the same name as a method type parameter
+                // (56,48): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           TakeOutParam(out var y6) && y6 > 1 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(56, 48),
+                // (63,46): error CS0412: 'y7': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                   group TakeOutParam(out var y7) && y7 == 3 
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y7").WithArguments("y7").WithLocation(63, 46),
-                // (71,43): error CS0412: 'y8': a parameter or local variable cannot have the same name as a method type parameter
+                // (63,46): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   group TakeOutParam(out var y7) && y7 == 3 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(63, 46),
+                // (71,43): error CS0412: 'y8': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                   by TakeOutParam(out var y8) && y8 == 3;
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y8").WithArguments("y8").WithLocation(71, 43),
-                // (77,49): error CS0412: 'y9': a parameter or local variable cannot have the same name as a method type parameter
+                // (71,43): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   by TakeOutParam(out var y8) && y8 == 3;
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(71, 43),
+                // (77,49): error CS0412: 'y9': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                   let x4 = TakeOutParam(out var y9) && y9 > 0
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y9").WithArguments("y9").WithLocation(77, 49),
-                // (84,47): error CS0412: 'y10': a parameter or local variable cannot have the same name as a method type parameter
+                // (77,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   let x4 = TakeOutParam(out var y9) && y9 > 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(77, 49),
+                // (84,47): error CS0412: 'y10': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                   select TakeOutParam(out var y10) && y10 > 0;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y10").WithArguments("y10").WithLocation(84, 47)
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y10").WithArguments("y10").WithLocation(84, 47),
+                // (84,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   select TakeOutParam(out var y10) && y10 > 0;
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(84, 47)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -11332,13 +11998,11 @@ public class X
                     case 4:
                     case 6:
                         VerifyModelForOutVar(model, yDecl, yRef[0]);
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAnOutLocal(model, yRef[1]);
+                        VerifyNotAnOutLocal(model, yRef[1]);
                         break;
                     case 8:
                         VerifyModelForOutVar(model, yDecl, yRef[1]);
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAnOutLocal(model, yRef[0]);
+                        VerifyNotAnOutLocal(model, yRef[0]);
                         break;
                     case 10:
                         VerifyModelForOutVar(model, yDecl, yRef[0]);
@@ -11398,20 +12062,57 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            CompileAndVerify(compilation, expectedOutput:
-@"1
-3
-5
-2
-4
-6
-7
-8
-10
-9
-11
-12
-");
+            compilation.VerifyDiagnostics(
+                // (14,62): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   from x2 in new[] { TakeOutParam(2, out var y2) && Print(y2) ? 1 : 0}
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(14, 62),
+                // (16,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                        on TakeOutParam(4, out var y4) && Print(y4) ? 1 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(16, 51),
+                // (17,58): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           equals TakeOutParam(5, out var y5) && Print(y5) ? 1 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(17, 58),
+                // (18,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   where TakeOutParam(6, out var y6) && Print(y6)
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(18, 49),
+                // (19,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   orderby TakeOutParam(7, out var y7) && Print(y7), 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(19, 51),
+                // (20,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           TakeOutParam(8, out var y8) && Print(y8) 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(20, 51),
+                // (22,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   by TakeOutParam(10, out var y10) && Print(y10)
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(22, 47),
+                // (21,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   group TakeOutParam(9, out var y9) && Print(y9) 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(21, 49),
+                // (24,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   let x11 = TakeOutParam(11, out var y11) && Print(y11)
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y11").WithLocation(24, 54),
+                // (25,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   select TakeOutParam(12, out var y12) && Print(y12);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y12").WithLocation(25, 51)
+                );
+
+            // Because expression variables are not permitted in query clauses (https://github.com/dotnet/roslyn/issues/15910)
+            // this program cannot be run. However, once we allow that (https://github.com/dotnet/roslyn/issues/15619)
+            // the program wil be capable of being run. In that case the following (commented code) would test for the expected output.
+
+            //            CompileAndVerify(compilation, expectedOutput:
+            //@"1
+            //3
+            //5
+            //2
+            //4
+            //6
+            //7
+            //8
+            //10
+            //9
+            //11
+            //12
+            //");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -11423,6 +12124,55 @@ public class X
                 var yRef = GetReferences(tree, id).Single();
                 VerifyModelForOutVar(model, yDecl, yRef);
             }
+        }
+
+        [Fact]
+        public void Query_02()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var res = from x1 in new[] { TakeOutParam(1, out var y1) && Print(y1) ? 2 : 0}
+                  select Print(x1);
+
+        res.ToArray(); 
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+
+    static bool Print(object x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+2");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yDecl = GetOutVarDeclarations(tree, "y1").Single();
+            var yRef = GetReferences(tree, "y1").Single();
+            VerifyModelForOutVar(model, yDecl, yRef);
         }
 
         [Fact]
@@ -12573,7 +13323,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(4, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
-            VerifyModelForOutVar(model, x14Decl[1], false, true, true);
+            VerifyModelForOutVar(model, x14Decl[1], isDelegateCreation: false, isExecutableCode: true, isShadowed: true);
 
             var x15Decl = GetOutVarDeclarations(tree, "x15").ToArray();
             var x15Ref = GetReferences(tree, "x15").ToArray();
@@ -13332,7 +14082,7 @@ public class X
             VerifyNotAnOutLocal(model, x14Ref[1]);
             VerifyNotAnOutLocal(model, x14Ref[2]);
             VerifyNotAnOutLocal(model, x14Ref[3]);
-            VerifyModelForOutVar(model, x14Decl, false, true, true);
+            VerifyModelForOutVar(model, x14Decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: true);
 
             var x16Decl = GetOutVarDeclarations(tree, "x16").Single();
             var x16Ref = GetReferences(tree, "x16").ToArray();
@@ -16758,7 +17508,7 @@ public class Cls
 
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
-            VerifyModelForOutVar(model, x1Decl, true, true, false, true, x1Ref);
+            VerifyModelForOutVar(model, x1Decl, isDelegateCreation: true, isExecutableCode: true, isShadowed: false, verifyDataFlow: true, references: x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
             Assert.Equal("var x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
@@ -17387,12 +18137,12 @@ public class Cls
                 // (7,25): error CS8197: Cannot infer the type of implicitly-typed out variable 'x1'.
                 //         Test2(x[out var x1]);
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithArguments("x1").WithLocation(7, 25),
-                // (9,25): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                // (9,21): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         Test2(x[out var _]);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(9, 25),
-                // (9,25): error CS8183: Cannot infer the type of implicitly-typed discard.
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var _").WithArguments("1", "out").WithLocation(9, 21),
+                // (9,21): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         Test2(x[out var _]);
-                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(9, 25)
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "var _").WithLocation(9, 21)
                 );
         }
 
@@ -17670,6 +18420,84 @@ public class Cls
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
 
+        [Fact]
+        [WorkItem(15732, "https://github.com/dotnet/roslyn/issues/15732")]
+        public void LocalVariableTypeInferenceAndOutVar_06()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(x: 1, out var y);
+        System.Console.WriteLine(y);
+    }
+
+    static void Test1(int x, ref int y)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (6,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
+                //         Test1(x: 1, out var y);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "out var y").WithLocation(6, 21),
+                // (6,25): error CS1620: Argument 2 must be passed with the 'ref' keyword
+                //         Test1(x: 1, out var y);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "var y").WithArguments("2", "ref").WithLocation(6, 25)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yDecl = GetDeclaration(tree, "y");
+            VerifyModelForOutVar(model, yDecl, GetReferences(tree, "y").ToArray());
+        }
+
+        [Fact]
+        [WorkItem(15732, "https://github.com/dotnet/roslyn/issues/15732")]
+        public void LocalVariableTypeInferenceAndOutVar_07()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        int x = 0;
+        Test1(y: ref x, y: out var y);
+        System.Console.WriteLine(y);
+    }
+
+    static void Test1(int x, ref int y)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (7,25): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         Test1(y: ref x, y: out var y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(7, 25),
+                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Cls.Test1(int, ref int)'
+                //         Test1(y: ref x, y: out var y);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test1").WithArguments("x", "Cls.Test1(int, ref int)").WithLocation(7, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yDecl = GetDeclaration(tree, "y");
+            var yRef = GetReferences(tree, "y").ToArray();
+            Assert.Equal(3, yRef.Length);
+            Assert.Equal("System.Console.WriteLine(y)", yRef[2].Parent.Parent.Parent.ToString());
+            VerifyModelForOutVar(model, yDecl, yRef[2]);
+        }
+
         [Fact, WorkItem(13219, "https://github.com/dotnet/roslyn/issues/13219")]
         public void IndexingDynamic()
         {
@@ -17795,9 +18623,9 @@ public class Cls
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
             var comp = CreateCompilationWithMscorlib(text, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics(
-                // (7,27): error CS8183: Cannot infer the type of implicitly-typed discard.
+                // (7,23): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         var x = d[out var _];
-                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(7, 27)
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "var _").WithLocation(7, 23)
                 );
         }
 
@@ -18233,9 +19061,9 @@ public class Cls
                 // (9,18): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //             [out var x1] = 3,
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var x1").WithArguments("1", "out").WithLocation(9, 18),
-                // (10,22): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                // (10,18): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //             [out var _] = 4,
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(10, 22),
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var _").WithArguments("1", "out").WithLocation(10, 18),
                 // (11,18): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //             [out _] = 5
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(11, 18),
@@ -18317,24 +19145,9 @@ public class Cls
                 // (10,17): error CS1003: Syntax error, '[' expected
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(10, 17),
-                // (10,18): error CS1525: Invalid expression term 'out'
-                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(10, 18),
-                // (10,18): error CS1026: ) expected
-                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(10, 18),
-                // (10,18): error CS1003: Syntax error, ',' expected
-                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(10, 18),
                 // (10,28): error CS1003: Syntax error, ']' expected
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(10, 28),
-                // (10,28): error CS1002: ; expected
-                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(10, 28),
-                // (10,28): error CS1513: } expected
-                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(10, 28),
                 // (7,13): error CS0501: 'b(out var)' must declare a body because it is not marked abstract, extern, or partial
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
@@ -18830,6 +19643,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_CloseParenExpected
                                       };
@@ -19190,6 +20004,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_UseDefViolation
                                       };
@@ -19354,41 +20169,39 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_CloseParenExpected
                                       };
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (13,47): error CS0128: A local variable named 'x4' is already defined in this scope
+                // (13,47): error CS0128: A local variable or function named 'x4' is already defined in this scope
                 //              Dummy(TakeOutParam(true, out var x4) && x4)
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 47),
-                // (21,47): error CS0128: A local variable named 'x7' is already defined in this scope
+                // (21,47): error CS0128: A local variable or function named 'x7' is already defined in this scope
                 //              Dummy(TakeOutParam(true, out var x7) && x7)
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x7").WithArguments("x7").WithLocation(21, 47),
                 // (20,19): warning CS0219: The variable 'x7' is assigned but its value is never used
                 //         for (bool x7 = true, b(
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x7").WithArguments("x7").WithLocation(20, 19),
-                // (29,52): error CS0128: A local variable named 'x8' is already defined in this scope
+                // (29,52): error CS0128: A local variable or function named 'x8' is already defined in this scope
                 //                b2(Dummy(TakeOutParam(true, out var x8) && x8));
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(29, 52),
-                // (30,47): error CS0128: A local variable named 'x8' is already defined in this scope
+                // (30,47): error CS0136: A local or parameter named 'x8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x8) && x8);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(30, 47),
-                // (31,47): error CS0128: A local variable named 'x8' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x8").WithArguments("x8").WithLocation(30, 47),
+                // (31,47): error CS0136: A local or parameter named 'x8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x8) && x8))
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(31, 47),
-                // (30,54): error CS0165: Use of unassigned local variable 'x8'
-                //              Dummy(TakeOutParam(true, out var x8) && x8);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x8").WithArguments("x8").WithLocation(30, 54),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x8").WithArguments("x8").WithLocation(31, 47),
                 // (37,23): error CS0841: Cannot use local variable 'x9' before it is declared
                 //         for (bool b = x9, 
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x9").WithArguments("x9").WithLocation(37, 23),
-                // (39,47): error CS0128: A local variable named 'x9' is already defined in this scope
+                // (39,47): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x9) && x9);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x9").WithArguments("x9").WithLocation(39, 47),
-                // (40,47): error CS0128: A local variable named 'x9' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(39, 47),
+                // (40,47): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x9) && x9))
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x9").WithArguments("x9").WithLocation(40, 47)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(40, 47)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -19412,19 +20225,19 @@ public class X
             Assert.Equal(4, x8Ref.Length);
             AssertContainedInDeclaratorArguments(x8Decl[0]);
             AssertContainedInDeclaratorArguments(x8Decl[1]);
-            VerifyModelForOutVarWithoutDataFlow(model, x8Decl[0], x8Ref);
+            VerifyModelForOutVarWithoutDataFlow(model, x8Decl[0], x8Ref[0], x8Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x8Decl[1]);
-            VerifyModelForOutVarDuplicateInSameScope(model, x8Decl[2]);
-            VerifyModelForOutVarDuplicateInSameScope(model, x8Decl[3]);
+            VerifyModelForOutVar(model, x8Decl[2], x8Ref[2]);
+            VerifyModelForOutVar(model, x8Decl[3], x8Ref[3]);
 
             var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
             var x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(3, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             AssertContainedInDeclaratorArguments(x9Decl[0]);
-            VerifyModelForOutVarWithoutDataFlow(model, x9Decl[0], x9Ref);
-            VerifyModelForOutVarDuplicateInSameScope(model, x9Decl[1]);
-            VerifyModelForOutVarDuplicateInSameScope(model, x9Decl[2]);
+            VerifyModelForOutVarWithoutDataFlow(model, x9Decl[0], x9Ref[0], x9Ref[1]);
+            VerifyModelForOutVar(model, x9Decl[1], x9Ref[2]);
+            VerifyModelForOutVar(model, x9Decl[2], x9Ref[3]);
         }
 
         [Fact]
@@ -19546,6 +20359,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator,
                                         (int)ErrorCode.ERR_FixedMustInit,
@@ -19581,7 +20395,7 @@ public class X
                 // (87,17): warning CS0219: The variable 'y12' is assigned but its value is never used
                 //             var y12 = 12;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(87, 17),
-                // (99,54): error CS0128: A local variable named 'x14' is already defined in this scope
+                // (99,54): error CS0128: A local variable or function named 'x14' is already defined in this scope
                 //                              TakeOutParam(2, out var x14), 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 54)
                 );
@@ -19705,10 +20519,10 @@ public class X
                                       };
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (12,58): error CS0128: A local variable named 'x1' is already defined in this scope
+                // (12,58): error CS0128: A local variable or function named 'x1' is already defined in this scope
                 //         using (var d,x1(Dummy(TakeOutParam(true, out var x1), x1)))
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(12, 58),
-                // (20,73): error CS0128: A local variable named 'x2' is already defined in this scope
+                // (20,73): error CS0128: A local variable or function named 'x2' is already defined in this scope
                 //         using (System.IDisposable d,x2(Dummy(TakeOutParam(true, out var x2), x2)))
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 73)
                 );
@@ -19792,6 +20606,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_FixedMustInit,
                                         (int)ErrorCode.ERR_UseDefViolation,
@@ -19959,6 +20774,7 @@ public unsafe class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_FixedMustInit,
                                         (int)ErrorCode.ERR_UseDefViolation
@@ -19992,7 +20808,7 @@ public unsafe class X
                 // (87,17): warning CS0219: The variable 'y12' is assigned but its value is never used
                 //             var y12 = 12;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(87, 17),
-                // (99,55): error CS0128: A local variable named 'x14' is already defined in this scope
+                // (99,55): error CS0128: A local variable or function named 'x14' is already defined in this scope
                 //                               TakeOutParam(2, out var x14), 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 55)
                 );
@@ -20124,6 +20940,7 @@ public unsafe class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_FixedMustInit,
                                         (int)ErrorCode.ERR_UseDefViolation,
@@ -20281,7 +21098,7 @@ public class X
             Assert.False(model.LookupNames(decl.SpanStart).Contains(identifierText));
             Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
 
-            AssertInfoForDeclarationExpressionSyntax(model, decl);
+            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: null, expectedType: null);
 
             VerifyModelNotSupported(model, references);
         }
@@ -20578,24 +21395,12 @@ public unsafe struct X
                 // (8,28): error CS1003: Syntax error, '[' expected
                 //     fixed bool d[2], Test3 (out var x3);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(8, 28),
-                // (8,29): error CS1525: Invalid expression term 'out'
-                //     fixed bool d[2], Test3 (out var x3);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(8, 29),
-                // (8,29): error CS1026: ) expected
-                //     fixed bool d[2], Test3 (out var x3);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(8, 29),
-                // (8,29): error CS1003: Syntax error, ',' expected
-                //     fixed bool d[2], Test3 (out var x3);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(8, 29),
                 // (8,39): error CS1003: Syntax error, ']' expected
                 //     fixed bool d[2], Test3 (out var x3);
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(8, 39),
-                // (8,39): error CS1003: Syntax error, ',' expected
+                // (8,33): error CS8185: A declaration is not allowed in this context.
                 //     fixed bool d[2], Test3 (out var x3);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(8, 39),
-                // (8,28): error CS7092: A fixed buffer may only have one dimension.
-                //     fixed bool d[2], Test3 (out var x3);
-                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "(out var x3").WithLocation(8, 28)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x3").WithLocation(8, 33)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -20671,6 +21476,1980 @@ public class Cls
                 //         Test1(out StaticType x1);
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "StaticType").WithArguments("Cls.StaticType").WithLocation(6, 19)
                 );
+        }
+        
+        [Fact]
+        public void GlobalCode_Catch_01()
+        {
+            var source =
+@"
+bool Dummy(params object[] x) {return true;}
+
+try {}
+catch when (TakeOutParam(out var x1) && x1 > 0)
+{
+    Dummy(x1);
+}
+
+var x4 = 11;
+Dummy(x4);
+
+try {}
+catch when (TakeOutParam(out var x4) && x4 > 0)
+{
+    Dummy(x4);
+}
+
+try {}
+catch when (x6 && TakeOutParam(out var x6))
+{
+    Dummy(x6);
+}
+
+try {}
+catch when (TakeOutParam(out var x7) && x7 > 0)
+{
+    var x7 = 12;
+    Dummy(x7);
+}
+
+try {}
+catch when (TakeOutParam(out var x8) && x8 > 0)
+{
+    Dummy(x8);
+}
+
+System.Console.WriteLine(x8);
+
+try {}
+catch when (TakeOutParam(out var x9) && x9 > 0)
+{   
+    Dummy(x9);
+    try {}
+    catch when (TakeOutParam(out var x9) && x9 > 0) // 2
+    {
+        Dummy(x9);
+    }
+}
+
+try {}
+catch when (TakeOutParam(y10, out var x10))
+{   
+    var y10 = 12;
+    Dummy(y10);
+}
+
+//    try {}
+//    catch when (TakeOutParam(y11, out var x11)
+//    {   
+//        let y11 = 12;
+//        Dummy(y11);
+//    }
+
+try {}
+catch when (Dummy(TakeOutParam(out var x14), 
+                    TakeOutParam(out var x14), // 2
+                    x14))
+{
+    Dummy(x14);
+}
+
+try {}
+catch (System.Exception x15)
+        when (Dummy(TakeOutParam(out var x15), x15))
+{
+    Dummy(x15);
+}
+
+static bool TakeOutParam(out int x) 
+{
+    x = 123;
+    return true;
+}
+static bool TakeOutParam(object y, out int x)
+{
+    x = 123;
+    return true;
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                compilation.VerifyDiagnostics(
+                // (20,13): error CS0841: Cannot use local variable 'x6' before it is declared
+                // catch when (x6 && TakeOutParam(out var x6))
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(20, 13),
+                // (28,9): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     var x7 = 12;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(28, 9),
+                // (38,26): error CS0103: The name 'x8' does not exist in the current context
+                // System.Console.WriteLine(x8);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(38, 26),
+                // (45,38): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     catch when (TakeOutParam(out var x9) && x9 > 0) // 2
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(45, 38),
+                // (52,26): error CS0103: The name 'y10' does not exist in the current context
+                // catch when (TakeOutParam(y10, out var x10))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y10").WithArguments("y10").WithLocation(52, 26),
+                // (67,42): error CS0128: A local variable or function named 'x14' is already defined in this scope
+                //                     TakeOutParam(out var x14), // 2
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(67, 42),
+                // (75,42): error CS0128: A local variable or function named 'x15' is already defined in this scope
+                //         when (Dummy(TakeOutParam(out var x15), x15))
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x15").WithArguments("x15").WithLocation(75, 42)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclaration(tree, "x1");
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+                var x4Decl = GetOutVarDeclaration(tree, "x4");
+                var x4Ref = GetReferences(tree, "x4").ToArray();
+                Assert.Equal(3, x4Ref.Length);
+                VerifyNotAnOutLocal(model, x4Ref[0]);
+                VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
+
+                var x6Decl = GetOutVarDeclaration(tree, "x6");
+                var x6Ref = GetReferences(tree, "x6").ToArray();
+                Assert.Equal(2, x6Ref.Length);
+                VerifyModelForOutVar(model, x6Decl, x6Ref);
+
+                var x7Decl = GetOutVarDeclaration(tree, "x7");
+                var x7Ref = GetReferences(tree, "x7").ToArray();
+                Assert.Equal(2, x7Ref.Length);
+                VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
+                VerifyNotAnOutLocal(model, x7Ref[1]);
+
+                var x8Decl = GetOutVarDeclaration(tree, "x8");
+                var x8Ref = GetReferences(tree, "x8").ToArray();
+                Assert.Equal(3, x8Ref.Length);
+                VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
+                VerifyNotInScope(model, x8Ref[2]);
+
+                var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+                var x9Ref = GetReferences(tree, "x9").ToArray();
+                Assert.Equal(2, x9Decl.Length);
+                Assert.Equal(4, x9Ref.Length);
+                VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
+                VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
+
+                var y10Ref = GetReferences(tree, "y10").ToArray();
+                Assert.Equal(2, y10Ref.Length);
+                VerifyNotInScope(model, y10Ref[0]);
+                VerifyNotAnOutLocal(model, y10Ref[1]);
+
+                var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+                var x14Ref = GetReferences(tree, "x14").ToArray();
+                Assert.Equal(2, x14Decl.Length);
+                Assert.Equal(2, x14Ref.Length);
+                VerifyModelForOutVar(model, x14Decl[0], x14Ref);
+                VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
+
+                var x15Decl = GetOutVarDeclaration(tree, "x15");
+                var x15Ref = GetReferences(tree, "x15").ToArray();
+                Assert.Equal(2, x15Ref.Length);
+                VerifyModelForOutVarDuplicateInSameScope(model, x15Decl);
+                VerifyNotAnOutLocal(model, x15Ref[0]);
+                VerifyNotAnOutLocal(model, x15Ref[1]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements,
+                                        (int)ErrorCode.ERR_MemberNeedsType,
+                                        (int)ErrorCode.ERR_IdentifierExpected,
+                                        (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_SingleTypeNameNotFound,
+                                        (int)ErrorCode.ERR_ConcreteMissingBody,
+                                        (int)ErrorCode.ERR_PredefinedValueTupleTypeNotFound,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleElementNamesAttributeMissing
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (16,5): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                //     Dummy(x4);
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(16, 5),
+                // (47,9): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                //         Dummy(x9);
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(47, 9),
+                // (14,7): error CS0111: Type '<invalid-global-code>' already defines a member called 'when' with the same parameter types
+                // catch when (TakeOutParam(out var x4) && x4 > 0)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "when").WithArguments("when", "<invalid-global-code>").WithLocation(14, 7),
+                // (26,7): error CS0111: Type '<invalid-global-code>' already defines a member called 'when' with the same parameter types
+                // catch when (TakeOutParam(out var x7) && x7 > 0)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "when").WithArguments("when", "<invalid-global-code>").WithLocation(26, 7),
+                // (33,7): error CS0111: Type '<invalid-global-code>' already defines a member called 'when' with the same parameter types
+                // catch when (TakeOutParam(out var x8) && x8 > 0)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "when").WithArguments("when", "<invalid-global-code>").WithLocation(33, 7),
+                // (41,7): error CS0111: Type '<invalid-global-code>' already defines a member called 'when' with the same parameter types
+                // catch when (TakeOutParam(out var x9) && x9 > 0)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "when").WithArguments("when", "<invalid-global-code>").WithLocation(41, 7),
+                // (45,11): error CS0111: Type '<invalid-global-code>' already defines a member called 'when' with the same parameter types
+                //     catch when (TakeOutParam(out var x9) && x9 > 0) // 2
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "when").WithArguments("when", "<invalid-global-code>").WithLocation(45, 11),
+                // (75,9): error CS0111: Type '<invalid-global-code>' already defines a member called 'when' with the same parameter types
+                //         when (Dummy(TakeOutParam(out var x15), x15))
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "when").WithArguments("when", "<invalid-global-code>").WithLocation(75, 9)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_Catch_02()
+        {
+            var source =
+@"
+try
+{
+    throw new System.InvalidOperationException();
+}
+catch (System.Exception e) when (Dummy(TakeOutParam(e, out var x1), x1))
+{
+    System.Console.WriteLine(x1.GetType());
+}
+
+static bool Dummy(object y, object z) 
+{
+    System.Console.WriteLine(z.GetType());
+    return true;
+}
+
+static bool TakeOutParam<T>(T y, out T x) 
+{
+    x = y;
+    return true;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CompileAndVerify(compilation, expectedOutput:
+@"System.InvalidOperationException
+System.InvalidOperationException");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_Block_01()
+        {
+            string source =
+@"
+{
+    H.TakeOutParam(1, out var x1);
+    H.Dummy(x1);
+}
+
+object x2;
+{
+    H.TakeOutParam(2, out var x2);
+    H.Dummy(x2);
+}
+{
+    H.TakeOutParam(3, out var x3);
+}
+H.Dummy(x3);
+
+class H
+{
+    public static bool Dummy(params object[] x) {return true;}
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+                compilation.VerifyDiagnostics(
+                // (15,9): error CS0103: The name 'x3' does not exist in the current context
+                // H.Dummy(x3);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(15, 9)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(1, x1Ref.Length);
+                VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").Single();
+                VerifyModelForOutVar(model, x2Decl, x2Ref);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutVar(model, x3Decl);
+                VerifyNotInScope(model, x3Ref);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements,
+                                        (int)ErrorCode.ERR_TypeVarNotFound
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (9,31): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x2'
+                //     H.TakeOutParam(2, out var x2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(9, 31)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_Block_02()
+        {
+            string source =
+@"
+{
+    H.TakeOutParam(1, out var x1);
+    System.Console.WriteLine(x1);
+    Test();
+
+    void Test()
+    {
+        System.Console.WriteLine(x1);
+    }
+}
+
+class H
+{
+    public static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_For_01()
+        {
+            var source =
+@"
+bool Dummy(params object[] x) {return true;}
+
+for (
+        Dummy(TakeOutParam(true, out var x1) && x1)
+        ;;)
+{
+    Dummy(x1);
+}
+
+for ( // 2
+        Dummy(TakeOutParam(true, out var x2) && x2)
+        ;;)
+    Dummy(x2);
+
+var x4 = 11;
+Dummy(x4);
+
+for (
+        Dummy(TakeOutParam(true, out var x4) && x4)
+        ;;)
+    Dummy(x4);
+
+for (
+        Dummy(x6 && TakeOutParam(true, out var x6))
+        ;;)
+    Dummy(x6);
+
+for (
+        Dummy(TakeOutParam(true, out var x7) && x7)
+        ;;)
+{
+    var x7 = 12;
+    Dummy(x7);
+}
+
+for (
+        Dummy(TakeOutParam(true, out var x8) && x8)
+        ;;)
+    Dummy(x8);
+
+System.Console.WriteLine(x8);
+
+for (
+        Dummy(TakeOutParam(true, out var x9) && x9)
+        ;;)
+{   
+    Dummy(x9);
+    for (
+            Dummy(TakeOutParam(true, out var x9) && x9) // 2
+            ;;)
+        Dummy(x9);
+}
+
+for (
+        Dummy(TakeOutParam(y10, out var x10))
+        ;;)
+{   
+    var y10 = 12;
+    Dummy(y10);
+}
+
+//    for (
+//         Dummy(TakeOutParam(y11, out var x11))
+//         ;;)
+//    {   
+//        let y11 = 12;
+//        Dummy(y11);
+//    }
+
+for (
+        Dummy(TakeOutParam(y12, out var x12))
+        ;;)
+    var y12 = 12;
+
+//    for (
+//         Dummy(TakeOutParam(y13, out var x13))
+//         ;;)
+//        let y13 = 12;
+
+for (
+        Dummy(TakeOutParam(1, out var x14), 
+            TakeOutParam(2, out var x14), 
+            x14)
+        ;;)
+{
+    Dummy(x14);
+}
+
+static bool TakeOutParam(object y, out bool x) 
+{
+    x = true;
+    return true;
+}
+";
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                compilation.VerifyDiagnostics(
+                // (74,5): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //     var y12 = 12;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var y12 = 12;").WithLocation(74, 5),
+                // (25,15): error CS0841: Cannot use local variable 'x6' before it is declared
+                //         Dummy(x6 && TakeOutParam(true, out var x6))
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(25, 15),
+                // (33,9): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     var x7 = 12;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(33, 9),
+                // (42,26): error CS0103: The name 'x8' does not exist in the current context
+                // System.Console.WriteLine(x8);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(42, 26),
+                // (50,46): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             Dummy(TakeOutParam(true, out var x9) && x9) // 2
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(50, 46),
+                // (56,28): error CS0103: The name 'y10' does not exist in the current context
+                //         Dummy(TakeOutParam(y10, out var x10))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y10").WithArguments("y10").WithLocation(56, 28),
+                // (72,28): error CS0103: The name 'y12' does not exist in the current context
+                //         Dummy(TakeOutParam(y12, out var x12))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(72, 28),
+                // (83,37): error CS0128: A local variable or function named 'x14' is already defined in this scope
+                //             TakeOutParam(2, out var x14), 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(83, 37),
+                // (11,1): warning CS0162: Unreachable code detected
+                // for ( // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "for").WithLocation(11, 1),
+                // (74,9): warning CS0219: The variable 'y12' is assigned but its value is never used
+                //     var y12 = 12;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(74, 9)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").ToArray();
+                Assert.Equal(2, x2Ref.Length);
+                VerifyModelForOutVar(model, x2Decl, x2Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+                var x4Ref = GetReferences(tree, "x4").ToArray();
+                Assert.Equal(3, x4Ref.Length);
+                VerifyNotAnOutLocal(model, x4Ref[0]);
+                VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                var x6Ref = GetReferences(tree, "x6").ToArray();
+                Assert.Equal(2, x6Ref.Length);
+                VerifyModelForOutVar(model, x6Decl, x6Ref);
+
+                var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+                var x7Ref = GetReferences(tree, "x7").ToArray();
+                Assert.Equal(2, x7Ref.Length);
+                VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
+                VerifyNotAnOutLocal(model, x7Ref[1]);
+
+                var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+                var x8Ref = GetReferences(tree, "x8").ToArray();
+                Assert.Equal(3, x8Ref.Length);
+                VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
+                VerifyNotInScope(model, x8Ref[2]);
+
+                var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+                var x9Ref = GetReferences(tree, "x9").ToArray();
+                Assert.Equal(2, x9Decl.Length);
+                Assert.Equal(4, x9Ref.Length);
+                VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
+                VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
+
+                var y10Ref = GetReferences(tree, "y10").ToArray();
+                Assert.Equal(2, y10Ref.Length);
+                VerifyNotInScope(model, y10Ref[0]);
+                VerifyNotAnOutLocal(model, y10Ref[1]);
+
+                var y12Ref = GetReferences(tree, "y12").Single();
+                VerifyNotInScope(model, y12Ref);
+
+                var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+                var x14Ref = GetReferences(tree, "x14").ToArray();
+                Assert.Equal(2, x14Decl.Length);
+                Assert.Equal(2, x14Ref.Length);
+                VerifyModelForOutVar(model, x14Decl[0], x14Ref);
+                VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements,
+                                        (int)ErrorCode.ERR_MemberNeedsType,
+                                        (int)ErrorCode.ERR_IdentifierExpected,
+                                        (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_SingleTypeNameNotFound,
+                                        (int)ErrorCode.ERR_ConcreteMissingBody,
+                                        (int)ErrorCode.ERR_PredefinedValueTupleTypeNotFound,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleElementNamesAttributeMissing,
+                                        (int)ErrorCode.ERR_IdentifierExpectedKW
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (22,5): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                //     Dummy(x4);
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(22, 5),
+                // (52,9): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                //         Dummy(x9);
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(52, 9),
+                // (20,42): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
+                //         Dummy(TakeOutParam(true, out var x4) && x4)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(20, 42),
+                // (83,13): error CS0111: Type '<invalid-global-code>' already defines a member called 'TakeOutParam' with the same parameter types
+                //             TakeOutParam(2, out var x14), 
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "TakeOutParam").WithArguments("TakeOutParam", "<invalid-global-code>").WithLocation(83, 13),
+                // (33,9): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x7'
+                //     var x7 = 12;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x7").WithArguments("<invalid-global-code>", "x7").WithLocation(33, 9),
+                // (50,46): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x9'
+                //             Dummy(TakeOutParam(true, out var x9) && x9) // 2
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x9").WithArguments("<invalid-global-code>", "x9").WithLocation(50, 46)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_For_02()
+        {
+            var source =
+@"
+bool f = true;
+
+for (Dummy(f, TakeOutParam((f ? 10 : 20), out var x0), x0); 
+        Dummy(f, TakeOutParam((f ? 1 : 2), out var x1), x1); 
+        Dummy(f, TakeOutParam((f ? 100 : 200), out var x2), x2), Dummy(true, null, x2))
+{
+    System.Console.WriteLine(x0);
+    System.Console.WriteLine(x1);
+    f = false;
+}
+
+static bool Dummy(bool x, object y, object z) 
+{
+    System.Console.WriteLine(z);
+    return x;
+}
+
+static bool TakeOutParam(int y, out int x) 
+{
+    x = y;
+    return true;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CompileAndVerify(compilation, expectedOutput:
+@"10
+1
+10
+1
+200
+200
+2");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x0Decl = GetOutVarDeclarations(tree, "x0").Single();
+            var x0Ref = GetReferences(tree, "x0").ToArray();
+            Assert.Equal(2, x0Ref.Length);
+            VerifyModelForOutVar(model, x0Decl, x0Ref);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForOutVar(model, x2Decl, x2Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_Foreach_01()
+        {
+            var source =
+@"
+System.Collections.IEnumerable Dummy(params object[] x) {return null;}
+
+foreach (var i in Dummy(TakeOutParam(true, out var x1) && x1))
+{
+    Dummy(x1);
+}
+
+foreach (var i in Dummy(TakeOutParam(true, out var x2) && x2))
+    Dummy(x2);
+
+var x4 = 11;
+Dummy(x4);
+
+foreach (var i in Dummy(TakeOutParam(true, out var x4) && x4))
+    Dummy(x4);
+
+foreach (var i in Dummy(x6 && TakeOutParam(true, out var x6)))
+    Dummy(x6);
+
+foreach (var i in Dummy(TakeOutParam(true, out var x7) && x7))
+{
+    var x7 = 12;
+    Dummy(x7);
+}
+
+foreach (var i in Dummy(TakeOutParam(true, out var x8) && x8))
+    Dummy(x8);
+
+System.Console.WriteLine(x8);
+
+foreach (var i1 in Dummy(TakeOutParam(true, out var x9) && x9))
+{   
+    Dummy(x9);
+    foreach (var i2 in Dummy(TakeOutParam(true, out var x9) && x9)) // 2
+        Dummy(x9);
+}
+
+foreach (var i in Dummy(TakeOutParam(y10, out var x10)))
+{   
+    var y10 = 12;
+    Dummy(y10);
+}
+
+//    foreach (var i in Dummy(TakeOutParam(y11, out var x11)))
+//    {   
+//        let y11 = 12;
+//        Dummy(y11);
+//    }
+
+foreach (var i in Dummy(TakeOutParam(y12, out var x12)))
+    var y12 = 12;
+
+//    foreach (var i in Dummy(TakeOutParam(y13, out var x13)))
+//        let y13 = 12;
+
+foreach (var i in Dummy(TakeOutParam(1, out var x14), 
+                        TakeOutParam(2, out var x14), 
+                        x14))
+{
+    Dummy(x14);
+}
+
+foreach (var x15 in 
+                    Dummy(TakeOutParam(1, out var x15), x15))
+{
+    Dummy(x15);
+}
+
+static bool TakeOutParam(int y, out int x) 
+{
+    x = y;
+    return true;
+}
+
+static bool TakeOutParam(bool y, out bool x) 
+{
+    x = y;
+    return true;
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                compilation.VerifyDiagnostics(
+                // (52,5): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //     var y12 = 12;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var y12 = 12;").WithLocation(52, 5),
+                // (18,25): error CS0841: Cannot use local variable 'x6' before it is declared
+                // foreach (var i in Dummy(x6 && TakeOutParam(true, out var x6)))
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(18, 25),
+                // (23,9): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     var x7 = 12;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(23, 9),
+                // (30,26): error CS0103: The name 'x8' does not exist in the current context
+                // System.Console.WriteLine(x8);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(30, 26),
+                // (35,57): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     foreach (var i2 in Dummy(TakeOutParam(true, out var x9) && x9)) // 2
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(35, 57),
+                // (39,38): error CS0103: The name 'y10' does not exist in the current context
+                // foreach (var i in Dummy(TakeOutParam(y10, out var x10)))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y10").WithArguments("y10").WithLocation(39, 38),
+                // (51,38): error CS0103: The name 'y12' does not exist in the current context
+                // foreach (var i in Dummy(TakeOutParam(y12, out var x12)))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(51, 38),
+                // (58,49): error CS0128: A local variable or function named 'x14' is already defined in this scope
+                //                         TakeOutParam(2, out var x14), 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(58, 49),
+                // (64,14): error CS0136: A local or parameter named 'x15' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // foreach (var x15 in 
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x15").WithArguments("x15").WithLocation(64, 14),
+                // (52,9): warning CS0219: The variable 'y12' is assigned but its value is never used
+                //     var y12 = 12;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(52, 9)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").ToArray();
+                Assert.Equal(2, x2Ref.Length);
+                VerifyModelForOutVar(model, x2Decl, x2Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+                var x4Ref = GetReferences(tree, "x4").ToArray();
+                Assert.Equal(3, x4Ref.Length);
+                VerifyNotAnOutLocal(model, x4Ref[0]);
+                VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                var x6Ref = GetReferences(tree, "x6").ToArray();
+                Assert.Equal(2, x6Ref.Length);
+                VerifyModelForOutVar(model, x6Decl, x6Ref);
+
+                var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+                var x7Ref = GetReferences(tree, "x7").ToArray();
+                Assert.Equal(2, x7Ref.Length);
+                VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
+                VerifyNotAnOutLocal(model, x7Ref[1]);
+
+                var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+                var x8Ref = GetReferences(tree, "x8").ToArray();
+                Assert.Equal(3, x8Ref.Length);
+                VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
+                VerifyNotInScope(model, x8Ref[2]);
+
+                var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+                var x9Ref = GetReferences(tree, "x9").ToArray();
+                Assert.Equal(2, x9Decl.Length);
+                Assert.Equal(4, x9Ref.Length);
+                VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
+                VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
+
+                var y10Ref = GetReferences(tree, "y10").ToArray();
+                Assert.Equal(2, y10Ref.Length);
+                VerifyNotInScope(model, y10Ref[0]);
+                VerifyNotAnOutLocal(model, y10Ref[1]);
+
+                var y12Ref = GetReferences(tree, "y12").Single();
+                VerifyNotInScope(model, y12Ref);
+
+                var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+                var x14Ref = GetReferences(tree, "x14").ToArray();
+                Assert.Equal(2, x14Decl.Length);
+                Assert.Equal(2, x14Ref.Length);
+                VerifyModelForOutVar(model, x14Decl[0], x14Ref);
+                VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
+
+                var x15Decl = GetOutVarDeclarations(tree, "x15").Single();
+                var x15Ref = GetReferences(tree, "x15").ToArray();
+                Assert.Equal(2, x15Ref.Length);
+                VerifyModelForOutVar(model, x15Decl, x15Ref[0]);
+                VerifyNotAnOutLocal(model, x15Ref[1]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements,
+                                        (int)ErrorCode.ERR_MemberNeedsType,
+                                        (int)ErrorCode.ERR_IdentifierExpected,
+                                        (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_SingleTypeNameNotFound,
+                                        (int)ErrorCode.ERR_ConcreteMissingBody,
+                                        (int)ErrorCode.ERR_PredefinedValueTupleTypeNotFound,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleElementNamesAttributeMissing,
+                                        (int)ErrorCode.ERR_IdentifierExpectedKW
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (9,19): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                // foreach (var i in Dummy(TakeOutParam(true, out var x2) && x2))
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(9, 19),
+                // (15,19): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                // foreach (var i in Dummy(TakeOutParam(true, out var x4) && x4))
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(15, 19),
+                // (16,5): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                //     Dummy(x4);
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(16, 5),
+                // (21,19): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                // foreach (var i in Dummy(TakeOutParam(true, out var x7) && x7))
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(21, 19),
+                // (27,19): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                // foreach (var i in Dummy(TakeOutParam(true, out var x8) && x8))
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(27, 19),
+                // (32,20): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                // foreach (var i1 in Dummy(TakeOutParam(true, out var x9) && x9))
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(32, 20),
+                // (35,24): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                //     foreach (var i2 in Dummy(TakeOutParam(true, out var x9) && x9)) // 2
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(35, 24),
+                // (36,9): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                //         Dummy(x9);
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(36, 9),
+                // (57,19): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                // foreach (var i in Dummy(TakeOutParam(1, out var x14), 
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(57, 19),
+                // (65,21): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                //                     Dummy(TakeOutParam(1, out var x15), x15))
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(65, 21)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_Foreach_02()
+        {
+            var source =
+@"
+bool f = true;
+
+foreach (var i in Dummy(TakeOutParam(3, out var x1), x1))
+{
+    System.Console.WriteLine(x1);
+}
+
+static System.Collections.IEnumerable Dummy(object y, object z) 
+{
+    System.Console.WriteLine(z);
+    return ""a"";
+}
+
+static bool TakeOutParam(int y, out int x) 
+{
+    x = y;
+    return true;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CompileAndVerify(compilation, expectedOutput:
+@"3
+3");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_Lambda_01()
+        {
+            var source =
+@"
+bool Dummy(params object[] x) {return true;}
+
+Dummy((System.Func<object, bool>) (o => TakeOutParam(o, out var x3) && x3 > 0));
+
+Dummy((System.Func<object, bool>) (o => x4 && TakeOutParam(o, out var x4)));
+
+Dummy((System.Func<object, object, bool>) ((o1, o2) => TakeOutParam(o1, out var x5) && 
+                                                        TakeOutParam(o2, out var x5) && 
+                                                        x5 > 0));
+
+Dummy((System.Func<object, bool>) (o => TakeOutParam(o, out var x6) && x6 > 0), (System.Func<object, bool>) (o => TakeOutParam(o, out var x6) && x6 > 0));
+
+Dummy(x7, 1);
+Dummy(x7, 
+        (System.Func<object, bool>) (o => TakeOutParam(o, out var x7) && x7 > 0), 
+        x7);
+Dummy(x7, 2); 
+
+Dummy(TakeOutParam(true, out var x8) && x8, (System.Func<object, bool>) (o => TakeOutParam(o, out var y8) && x8));
+
+Dummy(TakeOutParam(true, out var x9), 
+        (System.Func<object, bool>) (o => TakeOutParam(o, out var x9) && 
+                                        x9 > 0), x9);
+
+Dummy((System.Func<object, bool>) (o => TakeOutParam(o, out var x10) && 
+                                        x10 > 0),
+        TakeOutParam(true, out var x10), x10);
+
+var x11 = 11;
+Dummy(x11);
+Dummy((System.Func<object, bool>) (o => TakeOutParam(o, out var x11) && 
+                                        x11 > 0), x11);
+
+Dummy((System.Func<object, bool>) (o => TakeOutParam(o, out var x12) && 
+                                        x12 > 0), 
+        x12);
+var x12 = 11;
+Dummy(x12);
+
+static bool TakeOutParam(object y, out int x) 
+{
+    x = 123;
+    return true;
+}
+
+static bool TakeOutParam(bool y, out bool x) 
+{
+    x = true;
+    return true;
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                compilation.VerifyDiagnostics(
+                // (6,41): error CS0841: Cannot use local variable 'x4' before it is declared
+                // Dummy((System.Func<object, bool>) (o => x4 && TakeOutParam(o, out var x4)));
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(6, 41),
+                // (9,82): error CS0128: A local variable or function named 'x5' is already defined in this scope
+                //                                                         TakeOutParam(o2, out var x5) && 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(9, 82),
+                // (14,7): error CS0103: The name 'x7' does not exist in the current context
+                // Dummy(x7, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(14, 7),
+                // (15,7): error CS0103: The name 'x7' does not exist in the current context
+                // Dummy(x7, 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(15, 7),
+                // (17,9): error CS0103: The name 'x7' does not exist in the current context
+                //         x7);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(17, 9),
+                // (18,7): error CS0103: The name 'x7' does not exist in the current context
+                // Dummy(x7, 2); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(18, 7)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").Single();
+                VerifyModelForOutVar(model, x3Decl, x3Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+                var x4Ref = GetReferences(tree, "x4").Single();
+                VerifyModelForOutVar(model, x4Decl, x4Ref);
+
+                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                var x5Ref = GetReferences(tree, "x5").Single();
+                Assert.Equal(2, x5Decl.Length);
+                VerifyModelForOutVar(model, x5Decl[0], x5Ref);
+                VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+                var x6Ref = GetReferences(tree, "x6").ToArray();
+                Assert.Equal(2, x6Decl.Length);
+                Assert.Equal(2, x6Ref.Length);
+                VerifyModelForOutVar(model, x6Decl[0], x6Ref[0]);
+                VerifyModelForOutVar(model, x6Decl[1], x6Ref[1]);
+
+                var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+                var x7Ref = GetReferences(tree, "x7").ToArray();
+                Assert.Equal(5, x7Ref.Length);
+                VerifyNotInScope(model, x7Ref[0]);
+                VerifyNotInScope(model, x7Ref[1]);
+                VerifyModelForOutVar(model, x7Decl, x7Ref[2]);
+                VerifyNotInScope(model, x7Ref[3]);
+                VerifyNotInScope(model, x7Ref[4]);
+
+                var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+                var x8Ref = GetReferences(tree, "x8").ToArray();
+                Assert.Equal(2, x8Ref.Length);
+                VerifyModelForOutField(model, x8Decl, x8Ref);
+
+                var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+                var x9Ref = GetReferences(tree, "x9").ToArray();
+                Assert.Equal(2, x9Decl.Length);
+                Assert.Equal(2, x9Ref.Length);
+                VerifyModelForOutField(model, x9Decl[0], x9Ref[1]);
+                VerifyModelForOutVar(model, x9Decl[1], x9Ref[0]);
+
+                var x10Decl = GetOutVarDeclarations(tree, "x10").ToArray();
+                var x10Ref = GetReferences(tree, "x10").ToArray();
+                Assert.Equal(2, x10Decl.Length);
+                Assert.Equal(2, x10Ref.Length);
+                VerifyModelForOutVar(model, x10Decl[0], x10Ref[0]);
+                VerifyModelForOutField(model, x10Decl[1], x10Ref[1]);
+
+                var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
+                var x11Ref = GetReferences(tree, "x11").ToArray();
+                Assert.Equal(3, x11Ref.Length);
+                VerifyNotAnOutLocal(model, x11Ref[0]);
+                VerifyModelForOutVar(model, x11Decl, x11Ref[1]);
+                VerifyNotAnOutLocal(model, x11Ref[2]);
+
+                var x12Decl = GetOutVarDeclarations(tree, "x12").Single();
+                var x12Ref = GetReferences(tree, "x12").ToArray();
+                Assert.Equal(3, x12Ref.Length);
+                VerifyModelForOutVar(model, x12Decl, x12Ref[0]);
+                VerifyNotAnOutLocal(model, x12Ref[1]);
+                VerifyNotAnOutLocal(model, x12Ref[2]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements,
+                                        (int)ErrorCode.ERR_MemberNeedsType,
+                                        (int)ErrorCode.ERR_IdentifierExpected,
+                                        (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_SingleTypeNameNotFound,
+                                        (int)ErrorCode.ERR_ConcreteMissingBody,
+                                        (int)ErrorCode.ERR_PredefinedValueTupleTypeNotFound,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleElementNamesAttributeMissing,
+                                        (int)ErrorCode.ERR_IdentifierExpectedKW
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (12,1): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                // Dummy((System.Func<object, bool>) (o => TakeOutParam(o, out var x6) && x6 > 0), (System.Func<object, bool>) (o => TakeOutParam(o, out var x6) && x6 > 0));
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(12, 1),
+                // (18,1): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                // Dummy(x7, 2); 
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(18, 1),
+                // (22,1): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                // Dummy(TakeOutParam(true, out var x9), 
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(22, 1),
+                // (26,1): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                // Dummy((System.Func<object, bool>) (o => TakeOutParam(o, out var x10) && 
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(26, 1),
+                // (32,1): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                // Dummy((System.Func<object, bool>) (o => TakeOutParam(o, out var x11) && 
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(32, 1),
+                // (35,1): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                // Dummy((System.Func<object, bool>) (o => TakeOutParam(o, out var x12) && 
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(35, 1),
+                // (20,79): error CS0111: Type '<invalid-global-code>' already defines a member called 'TakeOutParam' with the same parameter types
+                // Dummy(TakeOutParam(true, out var x8) && x8, (System.Func<object, bool>) (o => TakeOutParam(o, out var y8) && x8));
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "TakeOutParam").WithArguments("TakeOutParam", "<invalid-global-code>").WithLocation(20, 79),
+                // (23,43): error CS0111: Type '<invalid-global-code>' already defines a member called 'TakeOutParam' with the same parameter types
+                //         (System.Func<object, bool>) (o => TakeOutParam(o, out var x9) && 
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "TakeOutParam").WithArguments("TakeOutParam", "<invalid-global-code>").WithLocation(23, 43)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16935")]
+        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        public void GlobalCode_Lambda_02()
+        {
+            var source =
+@"
+System.Func<bool> l = () => TakeOutParam(1, out int x1) && Dummy(x1); 
+System.Console.WriteLine(l());
+
+static bool Dummy(int x) 
+{
+    System.Console.WriteLine(x);
+    return true;
+}
+
+static bool TakeOutParam(int y, out int x) 
+{
+    x = y;
+    return true;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CompileAndVerify(compilation, expectedOutput: @"1
+True");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_Lambda_03()
+        {
+            var source =
+@"
+System.Console.WriteLine(((System.Func<bool>)(() => TakeOutParam(1, out int x1) && Dummy(x1)))());
+
+static bool Dummy(int x) 
+{
+    System.Console.WriteLine(x);
+    return true;
+}
+
+static bool TakeOutParam(int y, out int x) 
+{
+    x = y;
+    return true;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CompileAndVerify(compilation, expectedOutput: @"1
+True");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void GlobalCode_Query_01()
+        {
+            var source =
+@"
+using System.Linq;
+
+bool Dummy(params object[] x) {return true;}
+
+var r01 = from x in new[] { TakeOutParam(1, out var y1) ? y1 : 0, y1}
+            select x + y1;
+
+Dummy(y1); 
+
+var r02 = from x1 in new[] { TakeOutParam(1, out var y2) ? y2 : 0}
+            from x2 in new[] { TakeOutParam(x1, out var z2) ? z2 : 0, z2, y2}
+            select x1 + x2 + y2 + 
+                    z2;
+
+Dummy(z2); 
+
+var r03 = from x1 in new[] { TakeOutParam(1, out var y3) ? y3 : 0}
+            let x2 = TakeOutParam(x1, out var z3) && z3 > 0 && y3 < 0 
+            select new { x1, x2, y3,
+                        z3};
+
+Dummy(z3); 
+
+var r04 = from x1 in new[] { TakeOutParam(1, out var y4) ? y4 : 0}
+            join x2 in new[] { TakeOutParam(2, out var z4) ? z4 : 0, z4, y4}
+                    on x1 + y4 + z4 + (TakeOutParam(3, out var u4) ? u4 : 0) + 
+                            v4 
+                        equals x2 + y4 + z4 + (TakeOutParam(4, out var v4) ? v4 : 0) +
+                            u4 
+            select new { x1, x2, y4, z4, 
+                        u4, v4 };
+
+Dummy(z4); 
+Dummy(u4); 
+Dummy(v4); 
+
+var r05 = from x1 in new[] { TakeOutParam(1, out var y5) ? y5 : 0}
+            join x2 in new[] { TakeOutParam(2, out var z5) ? z5 : 0, z5, y5}
+                    on x1 + y5 + z5 + (TakeOutParam(3, out var u5) ? u5 : 0) + 
+                            v5 
+                        equals x2 + y5 + z5 + (TakeOutParam(4, out var v5) ? v5 : 0) +
+                            u5 
+            into g
+            select new { x1, y5, z5, g,
+                        u5, v5 };
+
+Dummy(z5); 
+Dummy(u5); 
+Dummy(v5); 
+
+var r06 = from x in new[] { TakeOutParam(1, out var y6) ? y6 : 0}
+            where x > y6 && TakeOutParam(1, out var z6) && z6 == 1
+            select x + y6 +
+                    z6;
+
+Dummy(z6); 
+
+var r07 = from x in new[] { TakeOutParam(1, out var y7) ? y7 : 0}
+            orderby x > y7 && TakeOutParam(1, out var z7) && z7 == 
+                    u7,
+                    x > y7 && TakeOutParam(1, out var u7) && u7 == 
+                    z7   
+            select x + y7 +
+                    z7 + u7;
+
+Dummy(z7); 
+Dummy(u7); 
+
+var r08 = from x in new[] { TakeOutParam(1, out var y8) ? y8 : 0}
+            select x > y8 && TakeOutParam(1, out var z8) && z8 == 1;
+
+Dummy(z8); 
+
+var r09 = from x in new[] { TakeOutParam(1, out var y9) ? y9 : 0}
+            group x > y9 && TakeOutParam(1, out var z9) && z9 == 
+                u9
+            by
+                x > y9 && TakeOutParam(1, out var u9) && u9 == 
+                z9;   
+
+Dummy(z9); 
+Dummy(u9); 
+
+var r10 = from x1 in new[] { TakeOutParam(1, out var y10) ? y10 : 0}
+            from y10 in new[] { 1 }
+            select x1 + y10;
+
+var r11 = from x1 in new[] { TakeOutParam(1, out var y11) ? y11 : 0}
+            let y11 = x1 + 1
+            select x1 + y11;
+
+static bool TakeOutParam<T>(T y, out T x) 
+{
+    x = y;
+    return true;
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                compilation.VerifyDiagnostics(
+                // (12,57): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //             from x2 in new[] { TakeOutParam(x1, out var z2) ? z2 : 0, z2, y2}
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z2").WithLocation(12, 57),
+                // (14,21): error CS0103: The name 'z2' does not exist in the current context
+                //                     z2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(14, 21),
+                // (19,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //             let x2 = TakeOutParam(x1, out var z3) && z3 > 0 && y3 < 0 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z3").WithLocation(19, 47),
+                // (21,25): error CS0103: The name 'z3' does not exist in the current context
+                //                         z3};
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(21, 25),
+                // (28,29): error CS0103: The name 'v4' does not exist in the current context
+                //                             v4 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(28, 29),
+                // (27,64): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                     on x1 + y4 + z4 + (TakeOutParam(3, out var u4) ? u4 : 0) + 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u4").WithLocation(27, 64),
+                // (30,29): error CS1938: The name 'u4' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
+                //                             u4 
+                Diagnostic(ErrorCode.ERR_QueryInnerKey, "u4").WithArguments("u4").WithLocation(30, 29),
+                // (29,72): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                         equals x2 + y4 + z4 + (TakeOutParam(4, out var v4) ? v4 : 0) +
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v4").WithLocation(29, 72),
+                // (32,25): error CS0103: The name 'u4' does not exist in the current context
+                //                         u4, v4 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(32, 25),
+                // (32,29): error CS0103: The name 'v4' does not exist in the current context
+                //                         u4, v4 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(32, 29),
+                // (41,29): error CS0103: The name 'v5' does not exist in the current context
+                //                             v5 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(41, 29),
+                // (40,64): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                     on x1 + y5 + z5 + (TakeOutParam(3, out var u5) ? u5 : 0) + 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u5").WithLocation(40, 64),
+                // (43,29): error CS1938: The name 'u5' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
+                //                             u5 
+                Diagnostic(ErrorCode.ERR_QueryInnerKey, "u5").WithArguments("u5").WithLocation(43, 29),
+                // (42,72): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                         equals x2 + y5 + z5 + (TakeOutParam(4, out var v5) ? v5 : 0) +
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v5").WithLocation(42, 72),
+                // (46,25): error CS0103: The name 'u5' does not exist in the current context
+                //                         u5, v5 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(46, 25),
+                // (46,29): error CS0103: The name 'v5' does not exist in the current context
+                //                         u5, v5 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(46, 29),
+                // (53,53): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //             where x > y6 && TakeOutParam(1, out var z6) && z6 == 1
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z6").WithLocation(53, 53),
+                // (55,21): error CS0103: The name 'z6' does not exist in the current context
+                //                     z6;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(55, 21),
+                // (61,21): error CS0103: The name 'u7' does not exist in the current context
+                //                     u7,
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(61, 21),
+                // (60,55): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //             orderby x > y7 && TakeOutParam(1, out var z7) && z7 == 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z7").WithLocation(60, 55),
+                // (63,21): error CS0103: The name 'z7' does not exist in the current context
+                //                     z7   
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(63, 21),
+                // (62,55): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                     x > y7 && TakeOutParam(1, out var u7) && u7 == 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u7").WithLocation(62, 55),
+                // (65,21): error CS0103: The name 'z7' does not exist in the current context
+                //                     z7 + u7;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(65, 21),
+                // (65,26): error CS0103: The name 'u7' does not exist in the current context
+                //                     z7 + u7;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(65, 26),
+                // (71,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //             select x > y8 && TakeOutParam(1, out var z8) && z8 == 1;
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z8").WithLocation(71, 54),
+                // (80,17): error CS0103: The name 'z9' does not exist in the current context
+                //                 z9;   
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(80, 17),
+                // (79,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                 x > y9 && TakeOutParam(1, out var u9) && u9 == 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u9").WithLocation(79, 51),
+                // (77,17): error CS0103: The name 'u9' does not exist in the current context
+                //                 u9
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(77, 17),
+                // (76,53): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //             group x > y9 && TakeOutParam(1, out var z9) && z9 == 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z9").WithLocation(76, 53),
+                // (16,7): error CS0103: The name 'z2' does not exist in the current context
+                // Dummy(z2); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(16, 7),
+                // (23,7): error CS0103: The name 'z3' does not exist in the current context
+                // Dummy(z3); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(23, 7),
+                // (35,7): error CS0103: The name 'u4' does not exist in the current context
+                // Dummy(u4); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(35, 7),
+                // (36,7): error CS0103: The name 'v4' does not exist in the current context
+                // Dummy(v4); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(36, 7),
+                // (49,7): error CS0103: The name 'u5' does not exist in the current context
+                // Dummy(u5); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(49, 7),
+                // (50,7): error CS0103: The name 'v5' does not exist in the current context
+                // Dummy(v5); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(50, 7),
+                // (57,7): error CS0103: The name 'z6' does not exist in the current context
+                // Dummy(z6); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(57, 7),
+                // (67,7): error CS0103: The name 'z7' does not exist in the current context
+                // Dummy(z7); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(67, 7),
+                // (68,7): error CS0103: The name 'u7' does not exist in the current context
+                // Dummy(u7); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(68, 7),
+                // (73,7): error CS0103: The name 'z8' does not exist in the current context
+                // Dummy(z8); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z8").WithArguments("z8").WithLocation(73, 7),
+                // (82,7): error CS0103: The name 'z9' does not exist in the current context
+                // Dummy(z9); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(82, 7),
+                // (83,7): error CS0103: The name 'u9' does not exist in the current context
+                // Dummy(u9); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(83, 7),
+                // (62,62): error CS0165: Use of unassigned local variable 'u7'
+                //                     x > y7 && TakeOutParam(1, out var u7) && u7 == 
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 62),
+                // (76,60): error CS0165: Use of unassigned local variable 'z9'
+                //             group x > y9 && TakeOutParam(1, out var z9) && z9 == 
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z9").WithArguments("z9").WithLocation(76, 60)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var y1Decl = GetOutVarDeclarations(tree, "y1").Single();
+                var y1Ref = GetReferences(tree, "y1").ToArray();
+                Assert.Equal(4, y1Ref.Length);
+                VerifyModelForOutField(model, y1Decl, y1Ref);
+
+                var y2Decl = GetOutVarDeclarations(tree, "y2").Single();
+                var y2Ref = GetReferences(tree, "y2").ToArray();
+                Assert.Equal(3, y2Ref.Length);
+                VerifyModelForOutField(model, y2Decl, y2Ref);
+
+                var z2Decl = GetOutVarDeclarations(tree, "z2").Single();
+                var z2Ref = GetReferences(tree, "z2").ToArray();
+                Assert.Equal(4, z2Ref.Length);
+                VerifyModelForOutVar(model, z2Decl, z2Ref[0], z2Ref[1]);
+                VerifyNotInScope(model, z2Ref[2]);
+                VerifyNotInScope(model, z2Ref[3]);
+
+                var y3Decl = GetOutVarDeclarations(tree, "y3").Single();
+                var y3Ref = GetReferences(tree, "y3").ToArray();
+                Assert.Equal(3, y3Ref.Length);
+                VerifyModelForOutField(model, y3Decl, y3Ref);
+
+                var z3Decl = GetOutVarDeclarations(tree, "z3").Single();
+                var z3Ref = GetReferences(tree, "z3").ToArray();
+                Assert.Equal(3, z3Ref.Length);
+                VerifyModelForOutVar(model, z3Decl, z3Ref[0]);
+                VerifyNotInScope(model, z3Ref[1]);
+                VerifyNotInScope(model, z3Ref[2]);
+
+                var y4Decl = GetOutVarDeclarations(tree, "y4").Single();
+                var y4Ref = GetReferences(tree, "y4").ToArray();
+                Assert.Equal(5, y4Ref.Length);
+                VerifyModelForOutField(model, y4Decl, y4Ref);
+
+                var z4Decl = GetOutVarDeclarations(tree, "z4").Single();
+                var z4Ref = GetReferences(tree, "z4").ToArray();
+                Assert.Equal(6, z4Ref.Length);
+                VerifyModelForOutField(model, z4Decl, z4Ref);
+
+                var u4Decl = GetOutVarDeclarations(tree, "u4").Single();
+                var u4Ref = GetReferences(tree, "u4").ToArray();
+                Assert.Equal(4, u4Ref.Length);
+                VerifyModelForOutVar(model, u4Decl, u4Ref[0]);
+                VerifyNotInScope(model, u4Ref[1]);
+                VerifyNotInScope(model, u4Ref[2]);
+                VerifyNotInScope(model, u4Ref[3]);
+
+                var v4Decl = GetOutVarDeclarations(tree, "v4").Single();
+                var v4Ref = GetReferences(tree, "v4").ToArray();
+                Assert.Equal(4, v4Ref.Length);
+                VerifyNotInScope(model, v4Ref[0]);
+                VerifyModelForOutVar(model, v4Decl, v4Ref[1]);
+                VerifyNotInScope(model, v4Ref[2]);
+                VerifyNotInScope(model, v4Ref[3]);
+
+                var y5Decl = GetOutVarDeclarations(tree, "y5").Single();
+                var y5Ref = GetReferences(tree, "y5").ToArray();
+                Assert.Equal(5, y5Ref.Length);
+                VerifyModelForOutField(model, y5Decl, y5Ref);
+
+                var z5Decl = GetOutVarDeclarations(tree, "z5").Single();
+                var z5Ref = GetReferences(tree, "z5").ToArray();
+                Assert.Equal(6, z5Ref.Length);
+                VerifyModelForOutField(model, z5Decl, z5Ref);
+
+                var u5Decl = GetOutVarDeclarations(tree, "u5").Single();
+                var u5Ref = GetReferences(tree, "u5").ToArray();
+                Assert.Equal(4, u5Ref.Length);
+                VerifyModelForOutVar(model, u5Decl, u5Ref[0]);
+                VerifyNotInScope(model, u5Ref[1]);
+                VerifyNotInScope(model, u5Ref[2]);
+                VerifyNotInScope(model, u5Ref[3]);
+
+                var v5Decl = GetOutVarDeclarations(tree, "v5").Single();
+                var v5Ref = GetReferences(tree, "v5").ToArray();
+                Assert.Equal(4, v5Ref.Length);
+                VerifyNotInScope(model, v5Ref[0]);
+                VerifyModelForOutVar(model, v5Decl, v5Ref[1]);
+                VerifyNotInScope(model, v5Ref[2]);
+                VerifyNotInScope(model, v5Ref[3]);
+
+                var y6Decl = GetOutVarDeclarations(tree, "y6").Single();
+                var y6Ref = GetReferences(tree, "y6").ToArray();
+                Assert.Equal(3, y6Ref.Length);
+                VerifyModelForOutField(model, y6Decl, y6Ref);
+
+                var z6Decl = GetOutVarDeclarations(tree, "z6").Single();
+                var z6Ref = GetReferences(tree, "z6").ToArray();
+                Assert.Equal(3, z6Ref.Length);
+                VerifyModelForOutVar(model, z6Decl, z6Ref[0]);
+                VerifyNotInScope(model, z6Ref[1]);
+                VerifyNotInScope(model, z6Ref[2]);
+
+                var y7Decl = GetOutVarDeclarations(tree, "y7").Single();
+                var y7Ref = GetReferences(tree, "y7").ToArray();
+                Assert.Equal(4, y7Ref.Length);
+                VerifyModelForOutField(model, y7Decl, y7Ref);
+
+                var z7Decl = GetOutVarDeclarations(tree, "z7").Single();
+                var z7Ref = GetReferences(tree, "z7").ToArray();
+                Assert.Equal(4, z7Ref.Length);
+                VerifyModelForOutVar(model, z7Decl, z7Ref[0]);
+                VerifyNotInScope(model, z7Ref[1]);
+                VerifyNotInScope(model, z7Ref[2]);
+                VerifyNotInScope(model, z7Ref[3]);
+
+                var u7Decl = GetOutVarDeclarations(tree, "u7").Single();
+                var u7Ref = GetReferences(tree, "u7").ToArray();
+                Assert.Equal(4, u7Ref.Length);
+                VerifyNotInScope(model, u7Ref[0]);
+                VerifyModelForOutVar(model, u7Decl, u7Ref[1]);
+                VerifyNotInScope(model, u7Ref[2]);
+                VerifyNotInScope(model, u7Ref[3]);
+
+                var y8Decl = GetOutVarDeclarations(tree, "y8").Single();
+                var y8Ref = GetReferences(tree, "y8").ToArray();
+                Assert.Equal(2, y8Ref.Length);
+                VerifyModelForOutField(model, y8Decl, y8Ref);
+
+                var z8Decl = GetOutVarDeclarations(tree, "z8").Single();
+                var z8Ref = GetReferences(tree, "z8").ToArray();
+                Assert.Equal(2, z8Ref.Length);
+                VerifyModelForOutVar(model, z8Decl, z8Ref[0]);
+                VerifyNotInScope(model, z8Ref[1]);
+
+                var y9Decl = GetOutVarDeclarations(tree, "y9").Single();
+                var y9Ref = GetReferences(tree, "y9").ToArray();
+                Assert.Equal(3, y9Ref.Length);
+                VerifyModelForOutField(model, y9Decl, y9Ref);
+
+                var z9Decl = GetOutVarDeclarations(tree, "z9").Single();
+                var z9Ref = GetReferences(tree, "z9").ToArray();
+                Assert.Equal(3, z9Ref.Length);
+                VerifyModelForOutVar(model, z9Decl, z9Ref[0]);
+                VerifyNotInScope(model, z9Ref[1]);
+                VerifyNotInScope(model, z9Ref[2]);
+
+                var u9Decl = GetOutVarDeclarations(tree, "u9").Single();
+                var u9Ref = GetReferences(tree, "u9").ToArray();
+                Assert.Equal(3, u9Ref.Length);
+                VerifyNotInScope(model, u9Ref[0]);
+                VerifyModelForOutVar(model, u9Decl, u9Ref[1]);
+                VerifyNotInScope(model, u9Ref[2]);
+
+                var y10Decl = GetOutVarDeclarations(tree, "y10").Single();
+                var y10Ref = GetReferences(tree, "y10").ToArray();
+                Assert.Equal(2, y10Ref.Length);
+                VerifyModelForOutField(model, y10Decl, y10Ref[0]);
+                VerifyNotAnOutField(model, y10Ref[1]);
+
+                var y11Decl = GetOutVarDeclarations(tree, "y11").Single();
+                var y11Ref = GetReferences(tree, "y11").ToArray();
+                Assert.Equal(2, y11Ref.Length);
+                VerifyModelForOutField(model, y11Decl, y11Ref[0]);
+                VerifyNotAnOutField(model, y11Ref[1]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements,
+                                        (int)ErrorCode.ERR_MemberNeedsType,
+                                        (int)ErrorCode.ERR_IdentifierExpected,
+                                        (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_SingleTypeNameNotFound,
+                                        (int)ErrorCode.ERR_ConcreteMissingBody,
+                                        (int)ErrorCode.ERR_PredefinedValueTupleTypeNotFound,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_TupleElementNamesAttributeMissing,
+                                        (int)ErrorCode.ERR_IdentifierExpectedKW,
+                                        (int)ErrorCode.ERR_NameNotInContext,
+                                        (int)ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer,
+                                        (int)ErrorCode.ERR_ExpressionVariableInQueryClause
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (29,48): error CS1938: The name 'TakeOutParam' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
+                //                         equals x2 + y4 + z4 + (TakeOutParam(4, out var v4) ? v4 : 0) +
+                Diagnostic(ErrorCode.ERR_QueryInnerKey, "TakeOutParam").WithArguments("TakeOutParam").WithLocation(29, 48),
+                // (30,29): error CS1938: The name 'u4' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
+                //                             u4 
+                Diagnostic(ErrorCode.ERR_QueryInnerKey, "u4").WithArguments("u4").WithLocation(30, 29),
+                // (42,48): error CS1938: The name 'TakeOutParam' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
+                //                         equals x2 + y5 + z5 + (TakeOutParam(4, out var v5) ? v5 : 0) +
+                Diagnostic(ErrorCode.ERR_QueryInnerKey, "TakeOutParam").WithArguments("TakeOutParam").WithLocation(42, 48),
+                // (43,29): error CS1938: The name 'u5' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
+                //                             u5 
+                Diagnostic(ErrorCode.ERR_QueryInnerKey, "u5").WithArguments("u5").WithLocation(43, 29),
+                // (86,18): error CS1931: The range variable 'y10' conflicts with a previous declaration of 'y10'
+                //             from y10 in new[] { 1 }
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y10").WithArguments("y10").WithLocation(86, 18),
+                // (90,17): error CS1931: The range variable 'y11' conflicts with a previous declaration of 'y11'
+                //             let y11 = x1 + 1
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y11").WithArguments("y11").WithLocation(90, 17)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_Query_02()
+        {
+            var source =
+@"
+using System.Linq;
+
+var res = from x1 in new[] { TakeOutParam(1, out var y1) && Print(y1) ? 2 : 0}
+            select Print(x1);
+
+res.ToArray(); 
+
+static bool TakeOutParam<T>(T y, out T x) 
+{
+    x = y;
+    return true;
+}
+
+static bool Print(object x) 
+{
+    System.Console.WriteLine(x);
+    return true;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+2");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yDecl = GetOutVarDeclarations(tree, "y1").Single();
+            var yRef = GetReferences(tree, "y1").Single();
+            VerifyModelForOutField(model, yDecl, yRef);
+        }
+
+        [Fact]
+        public void GlobalCode_Using_01()
+        {
+            var source =
+@"
+System.IDisposable Dummy(params object[] x) {return null;}
+
+using (Dummy(TakeOutParam(true, out var x1), x1))
+{
+    Dummy(x1);
+}
+ 
+using (Dummy(TakeOutParam(true, out var x2), x2))
+    Dummy(x2);
+ 
+var x4 = 11;
+Dummy(x4);
+
+using (Dummy(TakeOutParam(true, out var x4), x4))
+    Dummy(x4);
+ 
+using (Dummy(x6 && TakeOutParam(true, out var x6)))
+    Dummy(x6);
+ 
+using (Dummy(TakeOutParam(true, out var x7) && x7))
+{
+    var x7 = 12;
+    Dummy(x7);
+}
+ 
+using (Dummy(TakeOutParam(true, out var x8), x8))
+    Dummy(x8);
+
+System.Console.WriteLine(x8);
+ 
+using (Dummy(TakeOutParam(true, out var x9), x9))
+{   
+    Dummy(x9);
+    using (Dummy(TakeOutParam(true, out var x9), x9)) // 2
+        Dummy(x9);
+}
+
+using (Dummy(TakeOutParam(y10, out var x10), x10))
+{   
+    var y10 = 12;
+    Dummy(y10);
+}
+
+//    using (Dummy(TakeOutParam(y11, out var x11), x11))
+//    {   
+//        let y11 = 12;
+//        Dummy(y11);
+//    }
+
+using (Dummy(TakeOutParam(y12, out var x12), x12))
+    var y12 = 12;
+
+//    using (Dummy(TakeOutParam(y13, out var x13), x13))
+//        let y13 = 12;
+ 
+using (Dummy(TakeOutParam(1, out var x14), 
+                TakeOutParam(2, out var x14), 
+                x14))
+{
+    Dummy(x14);
+}
+
+static bool TakeOutParam<T>(T y, out T x) 
+{
+    x = y;
+    return true;
+}
+";
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                compilation.VerifyDiagnostics(
+                // (52,5): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //     var y12 = 12;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var y12 = 12;").WithLocation(52, 5),
+                // (18,14): error CS0841: Cannot use local variable 'x6' before it is declared
+                // using (Dummy(x6 && TakeOutParam(true, out var x6)))
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(18, 14),
+                // (23,9): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     var x7 = 12;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(23, 9),
+                // (30,26): error CS0103: The name 'x8' does not exist in the current context
+                // System.Console.WriteLine(x8);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(30, 26),
+                // (35,45): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     using (Dummy(TakeOutParam(true, out var x9), x9)) // 2
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(35, 45),
+                // (39,27): error CS0103: The name 'y10' does not exist in the current context
+                // using (Dummy(TakeOutParam(y10, out var x10), x10))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y10").WithArguments("y10").WithLocation(39, 27),
+                // (51,27): error CS0103: The name 'y12' does not exist in the current context
+                // using (Dummy(TakeOutParam(y12, out var x12), x12))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(51, 27),
+                // (58,41): error CS0128: A local variable or function named 'x14' is already defined in this scope
+                //                 TakeOutParam(2, out var x14), 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(58, 41),
+                // (52,9): warning CS0219: The variable 'y12' is assigned but its value is never used
+                //     var y12 = 12;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(52, 9)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(2, x1Ref.Length);
+                VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").ToArray();
+                Assert.Equal(2, x2Ref.Length);
+                VerifyModelForOutVar(model, x2Decl, x2Ref);
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+                var x4Ref = GetReferences(tree, "x4").ToArray();
+                Assert.Equal(3, x4Ref.Length);
+                VerifyNotAnOutLocal(model, x4Ref[0]);
+                VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
+
+                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                var x6Ref = GetReferences(tree, "x6").ToArray();
+                Assert.Equal(2, x6Ref.Length);
+                VerifyModelForOutVar(model, x6Decl, x6Ref);
+
+                var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+                var x7Ref = GetReferences(tree, "x7").ToArray();
+                Assert.Equal(2, x7Ref.Length);
+                VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
+                VerifyNotAnOutLocal(model, x7Ref[1]);
+
+                var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+                var x8Ref = GetReferences(tree, "x8").ToArray();
+                Assert.Equal(3, x8Ref.Length);
+                VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
+                VerifyNotInScope(model, x8Ref[2]);
+
+                var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+                var x9Ref = GetReferences(tree, "x9").ToArray();
+                Assert.Equal(2, x9Decl.Length);
+                Assert.Equal(4, x9Ref.Length);
+                VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
+                VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
+
+                var x10Decl = GetOutVarDeclarations(tree, "x10").Single();
+                var x10Ref = GetReferences(tree, "x10").Single();
+                VerifyModelForOutVar(model, x10Decl, x10Ref);
+
+                var y10Ref = GetReferences(tree, "y10").ToArray();
+                Assert.Equal(2, y10Ref.Length);
+                VerifyNotInScope(model, y10Ref[0]);
+                VerifyNotAnOutLocal(model, y10Ref[1]);
+
+                var y12Ref = GetReferences(tree, "y12").Single();
+                VerifyNotInScope(model, y12Ref);
+
+                var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+                var x14Ref = GetReferences(tree, "x14").ToArray();
+                Assert.Equal(2, x14Decl.Length);
+                Assert.Equal(2, x14Ref.Length);
+                VerifyModelForOutVar(model, x14Decl[0], x14Ref);
+                VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
+            }
+
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
+                                        (int)ErrorCode.ERR_CloseParenExpected,
+                                        (int)ErrorCode.ERR_SemicolonExpected,
+                                        (int)ErrorCode.ERR_TypeExpected,
+                                        (int)ErrorCode.ERR_NamespaceUnexpected,
+                                        (int)ErrorCode.ERR_TupleTooFewElements,
+                                        (int)ErrorCode.ERR_IdentifierExpected,
+                                        (int)ErrorCode.ERR_MemberNeedsType,
+                                        (int)ErrorCode.ERR_IdentifierExpectedKW,
+                                        (int)ErrorCode.ERR_SingleTypeNameNotFound,
+                                        (int)ErrorCode.ERR_ConcreteMissingBody,
+                                        (int)ErrorCode.ERR_TypeVarNotFound,
+                                        (int)ErrorCode.ERR_DuplicateNameInClass
+                                      };
+
+                compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (16,5): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                //     Dummy(x4);
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(16, 5),
+                // (36,9): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
+                //         Dummy(x9);
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(36, 9),
+                // (58,17): error CS0111: Type '<invalid-global-code>' already defines a member called 'TakeOutParam' with the same parameter types
+                //                 TakeOutParam(2, out var x14), 
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "TakeOutParam").WithArguments("TakeOutParam", "<invalid-global-code>").WithLocation(58, 17)
+                    );
+
+                var tree = compilation.SyntaxTrees.Single();
+                Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
+            }
+        }
+
+        [Fact]
+        public void GlobalCode_Using_02()
+        {
+            var source =
+@"
+using (System.IDisposable d1 = Dummy(new C(""a""), TakeOutParam(new C(""b""), out var x1)),
+                            d2 = Dummy(new C(""c""), TakeOutParam(new C(""d""), out var x2)))
+{
+    System.Console.WriteLine(d1);
+    System.Console.WriteLine(x1);
+    System.Console.WriteLine(d2);
+    System.Console.WriteLine(x2);
+}
+
+using (Dummy(new C(""e""), TakeOutParam(new C(""f""), out var x1)))
+{
+    System.Console.WriteLine(x1);
+}
+
+static System.IDisposable Dummy(System.IDisposable x, params object[] y) {return x;}
+
+static bool TakeOutParam<T>(T y, out T x) 
+{
+    x = y;
+    return true;
+}
+
+class C : System.IDisposable
+{
+    private readonly string _val;
+
+    public C(string val)
+    {
+        _val = val;
+    }
+
+    public void Dispose()
+    {
+        System.Console.WriteLine(""Disposing {0}"", _val);
+    }
+
+    public override string ToString()
+    {
+        return _val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CompileAndVerify(compilation, expectedOutput:
+@"a
+b
+c
+d
+Disposing c
+Disposing a
+f
+Disposing e");
         }
 
         [Fact]
@@ -22812,7 +25591,7 @@ class H
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            CompileAndVerify(compilation, expectedOutput:@"1").VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"1").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -26630,21 +29409,9 @@ class H
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b(out var x1);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,11): error CS1525: Invalid expression term 'out'
-                // bool a, b(out var x1);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(3, 11),
-                // (3,11): error CS1026: ) expected
-                // bool a, b(out var x1);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(3, 11),
-                // (3,11): error CS1003: Syntax error, ',' expected
-                // bool a, b(out var x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(3, 11),
                 // (3,21): error CS1003: Syntax error, ']' expected
                 // bool a, b(out var x1);
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 21),
-                // (3,21): error CS1003: Syntax error, ',' expected
-                // bool a, b(out var x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(3, 21),
                 // (3,19): error CS8197: Cannot infer the type of implicitly-typed out variable 'x1'.
                 // bool a, b(out var x1);
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithArguments("x1").WithLocation(3, 19)
@@ -26677,12 +29444,6 @@ class H
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b(out var x1);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,11): error CS1525: Invalid expression term 'out'
-                // bool a, b(out var x1);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(3, 11),
-                // (3,11): error CS1003: Syntax error, ',' expected
-                // bool a, b(out var x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(3, 11),
                 // (3,21): error CS1003: Syntax error, ']' expected
                 // bool a, b(out var x1);
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 21),
@@ -26732,13 +29493,13 @@ class H
                 compilation.VerifyDiagnostics(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // bool a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1))").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1)").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b(H.TakeOutParam(1, out var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,41): error CS1003: Syntax error, ']' expected
+                // (3,40): error CS1003: Syntax error, ']' expected
                 // bool a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 41),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 40),
                 // (2,1): warning CS0164: This label has not been referenced
                 // label: 
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(2, 1)
@@ -26767,13 +29528,13 @@ class H
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // bool a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1))").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1)").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b(H.TakeOutParam(1, out var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,41): error CS1003: Syntax error, ']' expected
+                // (3,40): error CS1003: Syntax error, ']' expected
                 // bool a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 41),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 40),
                 // (8,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
@@ -26820,13 +29581,13 @@ class H
                 compilation.VerifyDiagnostics(
                 // (3,25): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // event System.Action a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1))").WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1)").WithLocation(3, 25),
                 // (3,25): error CS1003: Syntax error, '[' expected
                 // event System.Action a, b(H.TakeOutParam(1, out var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 25),
-                // (3,56): error CS1003: Syntax error, ']' expected
+                // (3,55): error CS1003: Syntax error, ']' expected
                 // event System.Action a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 56)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 55)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -26852,13 +29613,13 @@ class H
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (3,25): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // event System.Action a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1))").WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1)").WithLocation(3, 25),
                 // (3,25): error CS1003: Syntax error, '[' expected
                 // event System.Action a, b(H.TakeOutParam(1, out var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 25),
-                // (3,56): error CS1003: Syntax error, ']' expected
+                // (3,55): error CS1003: Syntax error, ']' expected
                 // event System.Action a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 56),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 55),
                 // (8,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
@@ -27572,7 +30333,9 @@ class Program
             var inFieldDeclaratorArgumentlist = declarator != null && declarator.Parent.Parent.Kind() != SyntaxKind.LocalDeclarationStatement &&
                                            (declarator.ArgumentList?.Contains(decl)).GetValueOrDefault();
 
-            AssertInfoForDeclarationExpressionSyntax(model, decl);
+            // We're not able to get type information at such location (out var argument in global code) at this point
+            // Seee https://github.com/dotnet/roslyn/issues/13569
+            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: inFieldDeclaratorArgumentlist ? null : local.Type);
 
             foreach (var reference in references)
             {
@@ -27791,19 +30554,27 @@ public class C
 
             var discard1 = GetDiscardDesignations(tree).ElementAt(0);
             Assert.Null(model.GetDeclaredSymbol(discard1));
+            Assert.Null(model.GetTypeInfo(discard1).Type);
+            Assert.Null(model.GetSymbolInfo(discard1).Symbol);
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
             Assert.Equal("int _", declaration1.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration1).Symbol);
 
             var discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
+            Assert.Null(model.GetTypeInfo(discard2).Type);
+            Assert.Null(model.GetSymbolInfo(discard2).Symbol);
             var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration2).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
 
             var discard3 = GetDiscardIdentifiers(tree).First();
-            var symbol = (IDiscardedSymbol)model.GetSymbolInfo(discard3).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
-            //Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            Assert.Null(model.GetDeclaredSymbol(discard3));
+            var discard3Symbol = (IDiscardSymbol)model.GetSymbolInfo(discard3).Symbol;
+            Assert.Equal("System.Int32", discard3Symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(discard3).Type.ToTestDisplayString());
 
             comp.VerifyIL("C.Main()", @"
 {
@@ -27868,19 +30639,24 @@ public class C
 
             var discard1 = GetDiscardDesignations(tree).ElementAt(0);
             Assert.Null(model.GetDeclaredSymbol(discard1));
+            Assert.Null(model.GetSymbolInfo(discard1).Symbol);
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
             Assert.Equal("int _", declaration1.ToString());
-            //Assert.Equal("System.Int32", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration1).Symbol);
 
             var discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
+            Assert.Null(model.GetSymbolInfo(discard2).Symbol);
             var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
-            //Assert.Equal("System.Int32", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration2).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
 
             var discard3 = GetDiscardIdentifiers(tree).First();
-            var symbol = (IDiscardedSymbol)model.GetSymbolInfo(discard3).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
-            //Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(discard3).Type.ToTestDisplayString());
+            var discard3Symbol = (IDiscardSymbol)model.GetSymbolInfo(discard3).Symbol;
+            Assert.Equal("int _", discard3Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
         }
 
         [Fact]
@@ -28059,9 +30835,9 @@ public class C
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(out object)' and 'C.M(out int)'
                 //         M(out _);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(out object)", "C.M(out int)").WithLocation(9, 9),
-                // (10,20): error CS1503: Argument 1: cannot convert from 'out byte' to 'out object'
+                // (10,15): error CS1503: Argument 1: cannot convert from 'out byte' to 'out object'
                 //         M(out byte _);
-                Diagnostic(ErrorCode.ERR_BadArgType, "_").WithArguments("1", "out byte", "out object").WithLocation(10, 20)
+                Diagnostic(ErrorCode.ERR_BadArgType, "byte _").WithArguments("1", "out byte", "out object").WithLocation(10, 15)
                 );
         }
 
@@ -28088,10 +30864,1156 @@ public static class S
                 // (7,18): error CS1503: Argument 2: cannot convert from 'out A' to 'out B'
                 //         a.M2(out A x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "A x").WithArguments("2", "out A", "out B").WithLocation(7, 18),
-                // (8,20): error CS1503: Argument 2: cannot convert from 'out A' to 'out B'
+                // (8,18): error CS1503: Argument 2: cannot convert from 'out A' to 'out B'
                 //         a.M2(out A _);
-                Diagnostic(ErrorCode.ERR_BadArgType, "_").WithArguments("2", "out A", "out B").WithLocation(8, 20)
+                Diagnostic(ErrorCode.ERR_BadArgType, "A _").WithArguments("2", "out A", "out B").WithLocation(8, 18)
                 );
+        }
+
+        [Fact]
+        [WorkItem(363727, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/363727")]
+        public void FindCorrectBinderOnEmbeddedStatementWithMissingIdentifier()
+        {
+            var source =
+    @"
+public class C
+{
+    static void M(string x)
+    {
+        if(true)
+            && int.TryParse(x, out int y)) id(iVal);
+        // Note that the embedded statement is parsed as a missing identifier, followed by && with many spaces attached as leading trivia
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "x").Single();
+            Assert.Equal("x", x.ToString());
+            Assert.Equal("System.String x", model.GetSymbolInfo(x).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DuplicateDeclarationInSwitchBlock()
+        {
+            var text = @"
+public class C
+{
+    public static void Main(string[] args)
+    {
+        switch (args.Length)
+        {
+            case 0:
+                M(M(out var x1), x1);
+                M(M(out int x1), x1);
+                break;
+            case 1:
+                M(M(out int x1), x1);
+                break;
+        }
+    }
+    static int M(out int z) => z = 1;
+    static int M(int a, int b) => a+b;
+}";
+            var comp = CreateCompilationWithMscorlib45(text);
+            comp.VerifyDiagnostics(
+                // (10,29): error CS0128: A local variable or function named 'x1' is already defined in this scope
+                //                 M(M(out int x1), x1);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(10, 29),
+                // (13,29): error CS0128: A local variable or function named 'x1' is already defined in this scope
+                //                 M(M(out int x1), x1);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(13, 29),
+                // (13,34): error CS0165: Use of unassigned local variable 'x1'
+                //                 M(M(out int x1), x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 34)
+                );
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var x6Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x6Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(3, x6Decl.Length);
+            Assert.Equal(3, x6Ref.Length);
+            VerifyModelForOutVar(model, x6Decl[0], x6Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
+            VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[2]);
+        }
+
+        [Fact]
+        public void DeclarationInLocalFunctionParameterDefault()
+        {
+            var text = @"
+class C
+{
+    public static void Main(int arg)
+    {
+        void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
+        void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
+
+        int x = z1 + z2;
+    }
+    static int M(out int z) => z = 1;
+    static bool M(int a, int b) => a+b == 0;
+}
+";
+            // the scope of an expression variable introduced in the default expression
+            // of a local function parameter is that default expression.
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (6,75): error CS0103: The name 'z1' does not exist in the current context
+                //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 75),
+                // (6,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out int z1), z1)").WithArguments("b").WithLocation(6, 30),
+                // (6,61): error CS0103: The name 'z1' does not exist in the current context
+                //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 61),
+                // (6,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(6, 56),
+                // (7,75): error CS0103: The name 'z2' does not exist in the current context
+                //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 75),
+                // (7,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out var z2), z2)").WithArguments("b").WithLocation(7, 30),
+                // (7,61): error CS0103: The name 'z2' does not exist in the current context
+                //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 61),
+                // (7,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 56),
+                // (9,17): error CS0103: The name 'z1' does not exist in the current context
+                //         int x = z1 + z2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 17),
+                // (9,22): error CS0103: The name 'z2' does not exist in the current context
+                //         int x = z1 + z2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(9, 22),
+                // (6,14): warning CS0168: The variable 'Local2' is declared but never used
+                //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local2").WithArguments("Local2").WithLocation(6, 14),
+                // (7,14): warning CS0168: The variable 'Local5' is declared but never used
+                //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local5").WithArguments("Local5").WithLocation(7, 14)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(4, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, refs[0]);
+                VerifyNotInScope(model, refs[1]);
+                VerifyNotInScope(model, refs[2]);
+                VerifyNotInScope(model, refs[3]);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void DeclarationInAnonymousMethodParameterDefault()
+        {
+            var text = @"
+class C
+{
+    public static void Main(int arg)
+    {
+        System.Action<bool, int> d1 = delegate (
+                                                bool b = M(M(out int z1), z1), 
+                                                int s2 = z1) 
+                                            { var t = z1; };
+        System.Action<bool, int> d2 = delegate (
+                                                bool b = M(M(out var z2), z2), 
+                                                int s2 = z2)  
+                                            { var t = z2; };
+
+        int x = z1 + z2;
+        d1 = d2 = null;
+    }
+    static int M(out int z) => z = 1;
+    static int M(int a, int b) => a+b;
+}
+";
+            // the scope of an expression variable introduced in the default expression
+            // of a lambda parameter is that default expression.
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_DefaultValueNotAllowed).Verify(
+                // (9,55): error CS0103: The name 'z1' does not exist in the current context
+                //                                             { var t = z1; };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 55),
+                // (13,55): error CS0103: The name 'z2' does not exist in the current context
+                //                                             { var t = z2; };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(13, 55),
+                // (15,17): error CS0103: The name 'z1' does not exist in the current context
+                //         int x = z1 + z2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(15, 17),
+                // (15,22): error CS0103: The name 'z2' does not exist in the current context
+                //         int x = z1 + z2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(15, 22)
+                );
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var z1 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z1").First();
+            Assert.Equal("System.Int32", model.GetTypeInfo(z1).Type.ToTestDisplayString());
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(4, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, refs[0]);
+                VerifyNotInScope(model, refs[1]);
+                VerifyNotInScope(model, refs[2]);
+                VerifyNotInScope(model, refs[3]);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void Scope_LocalFunction_Attribute_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        void Local1(
+            [Test(p = TakeOutParam(out int x3) && x3 > 0)]
+            [Test(p = x4 && TakeOutParam(out int x4))]
+            [Test(p = TakeOutParam(51, out int x5) && 
+                      TakeOutParam(52, out int x5) && 
+                      x5 > 0)]
+            [Test(p1 = TakeOutParam(out int x6) && x6 > 0, 
+                  p2 = TakeOutParam(out int x6) && x6 > 0)]
+            [Test(p = TakeOutParam(out int x7) && x7 > 0)]
+            [Test(p = x7 > 2)]
+            int p1)
+        {
+            Dummy(x7, p1);
+        }
+
+        Local1(1);
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    static bool TakeOutParam(out int x) 
+    {
+        x = 123;
+        return true;
+    }
+    static bool TakeOutParam(object y, out int x)
+    {
+        x = 123;
+        return true;
+    }
+}
+
+class Test : System.Attribute
+{
+    public bool p {get; set;}
+    public bool p1 {get; set;}
+    public bool p2 {get; set;}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
+                                                    d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
+                // (18,19): error CS0103: The name 'x7' does not exist in the current context
+                //             Dummy(x7, p1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(18, 19),
+                // (8,23): error CS0841: Cannot use local variable 'x4' before it is declared
+                //             [Test(p = x4 && TakeOutParam(out int x4))]
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(8, 23),
+                // (10,48): error CS0128: A local variable or function named 'x5' is already defined in this scope
+                //                       TakeOutParam(52, out int x5) && 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(10, 48),
+                // (13,45): error CS0128: A local variable or function named 'x6' is already defined in this scope
+                //                   p2 = TakeOutParam(out int x6) && x6 > 0)]
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(13, 45),
+                // (15,23): error CS0103: The name 'x7' does not exist in the current context
+                //             [Test(p = x7 > 2)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(15, 23)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = GetOutVarDeclaration(tree, "x3");
+            var x3Ref = GetReference(tree, "x3");
+            VerifyModelForOutVarInNotExecutableCode(model, x3Decl, x3Ref);
+
+            var x4Decl = GetOutVarDeclaration(tree, "x4");
+            var x4Ref = GetReference(tree, "x4");
+            VerifyModelForOutVarInNotExecutableCode(model, x4Decl, x4Ref);
+
+            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            var x5Ref = GetReference(tree, "x5");
+            Assert.Equal(2, x5Decl.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x5Decl[0], x5Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
+
+            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            var x6Ref = GetReferences(tree, "x6").ToArray();
+            Assert.Equal(2, x6Decl.Length);
+            Assert.Equal(2, x6Ref.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x6Decl[0], x6Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
+
+            var x7Decl = GetOutVarDeclaration(tree, "x7");
+            var x7Ref = GetReferences(tree, "x7").ToArray();
+            Assert.Equal(3, x7Ref.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x7Decl, x7Ref[0]);
+            VerifyNotInScope(model, x7Ref[1]);
+            VerifyNotInScope(model, x7Ref[2]);
+        }
+
+        [Fact]
+        public void Scope_LocalFunction_Attribute_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        void Local1(
+            [Test(TakeOutParam(out int x3) && x3 > 0)]
+            [Test(x4 && TakeOutParam(out int x4))]
+            [Test(TakeOutParam(51, out int x5) && 
+                  TakeOutParam(52, out int x5) && 
+                  x5 > 0)]
+            [Test(TakeOutParam(out int x6) && x6 > 0, 
+                  TakeOutParam(out int x6) && x6 > 0)]
+            [Test(TakeOutParam(out int x7) && x7 > 0)]
+            [Test(x7 > 2)]
+            int p1)
+        {
+            Dummy(x7, p1);
+        }
+
+        Local1(1);
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    static bool TakeOutParam(out int x) 
+    {
+        x = 123;
+        return true;
+    }
+    static bool TakeOutParam(object y, out int x)
+    {
+        x = 123;
+        return true;
+    }
+}
+
+class Test : System.Attribute
+{
+    public Test(bool p) {}
+    public Test(bool p1, bool p2) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
+                                                    d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
+                // (18,19): error CS0103: The name 'x7' does not exist in the current context
+                //             Dummy(x7, p1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(18, 19),
+                // (8,19): error CS0841: Cannot use local variable 'x4' before it is declared
+                //             [Test(x4 && TakeOutParam(out int x4))]
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(8, 19),
+                // (10,44): error CS0128: A local variable or function named 'x5' is already defined in this scope
+                //                   TakeOutParam(52, out int x5) && 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(10, 44),
+                // (13,40): error CS0128: A local variable or function named 'x6' is already defined in this scope
+                //                   TakeOutParam(out int x6) && x6 > 0)]
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(13, 40),
+                // (15,19): error CS0103: The name 'x7' does not exist in the current context
+                //             [Test(x7 > 2)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(15, 19)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = GetOutVarDeclaration(tree, "x3");
+            var x3Ref = GetReference(tree, "x3");
+            VerifyModelForOutVarInNotExecutableCode(model, x3Decl, x3Ref);
+
+            var x4Decl = GetOutVarDeclaration(tree, "x4");
+            var x4Ref = GetReference(tree, "x4");
+            VerifyModelForOutVarInNotExecutableCode(model, x4Decl, x4Ref);
+
+            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            var x5Ref = GetReference(tree, "x5");
+            Assert.Equal(2, x5Decl.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x5Decl[0], x5Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
+
+            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            var x6Ref = GetReferences(tree, "x6").ToArray();
+            Assert.Equal(2, x6Decl.Length);
+            Assert.Equal(2, x6Ref.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x6Decl[0], x6Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
+
+            var x7Decl = GetOutVarDeclaration(tree, "x7");
+            var x7Ref = GetReferences(tree, "x7").ToArray();
+            Assert.Equal(3, x7Ref.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x7Decl, x7Ref[0]);
+            VerifyNotInScope(model, x7Ref[1]);
+            VerifyNotInScope(model, x7Ref[2]);
+        }
+
+        [Fact]
+        public void Scope_LocalFunction_Attribute_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        void Local1(
+            [Test(p = TakeOutParam(out var x3) && x3 > 0)]
+            [Test(p = x4 && TakeOutParam(out var x4))]
+            [Test(p = TakeOutParam(51, out var x5) && 
+                      TakeOutParam(52, out var x5) && 
+                      x5 > 0)]
+            [Test(p1 = TakeOutParam(out var x6) && x6 > 0, 
+                  p2 = TakeOutParam(out var x6) && x6 > 0)]
+            [Test(p = TakeOutParam(out var x7) && x7 > 0)]
+            [Test(p = x7 > 2)]
+            int p1)
+        {
+            Dummy(x7, p1);
+        }
+
+        Local1(1);
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    static bool TakeOutParam(out int x) 
+    {
+        x = 123;
+        return true;
+    }
+    static bool TakeOutParam(object y, out int x)
+    {
+        x = 123;
+        return true;
+    }
+}
+
+class Test : System.Attribute
+{
+    public bool p {get; set;}
+    public bool p1 {get; set;}
+    public bool p2 {get; set;}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
+                                                    d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
+                // (18,19): error CS0103: The name 'x7' does not exist in the current context
+                //             Dummy(x7, p1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(18, 19),
+                // (8,23): error CS0841: Cannot use local variable 'x4' before it is declared
+                //             [Test(p = x4 && TakeOutParam(out var x4))]
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(8, 23),
+                // (10,48): error CS0128: A local variable or function named 'x5' is already defined in this scope
+                //                       TakeOutParam(52, out var x5) && 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(10, 48),
+                // (13,45): error CS0128: A local variable or function named 'x6' is already defined in this scope
+                //                   p2 = TakeOutParam(out var x6) && x6 > 0)]
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(13, 45),
+                // (15,23): error CS0103: The name 'x7' does not exist in the current context
+                //             [Test(p = x7 > 2)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(15, 23)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = GetOutVarDeclaration(tree, "x3");
+            var x3Ref = GetReference(tree, "x3");
+            VerifyModelForOutVarInNotExecutableCode(model, x3Decl, x3Ref);
+
+            var x4Decl = GetOutVarDeclaration(tree, "x4");
+            var x4Ref = GetReference(tree, "x4");
+            VerifyModelForOutVarInNotExecutableCode(model, x4Decl, x4Ref);
+
+            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            var x5Ref = GetReference(tree, "x5");
+            Assert.Equal(2, x5Decl.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x5Decl[0], x5Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
+
+            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            var x6Ref = GetReferences(tree, "x6").ToArray();
+            Assert.Equal(2, x6Decl.Length);
+            Assert.Equal(2, x6Ref.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x6Decl[0], x6Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
+
+            var x7Decl = GetOutVarDeclaration(tree, "x7");
+            var x7Ref = GetReferences(tree, "x7").ToArray();
+            Assert.Equal(3, x7Ref.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x7Decl, x7Ref[0]);
+            VerifyNotInScope(model, x7Ref[1]);
+            VerifyNotInScope(model, x7Ref[2]);
+        }
+
+        [Fact]
+        public void Scope_LocalFunction_Attribute_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        void Local1(
+            [Test(TakeOutParam(out var x3) && x3 > 0)]
+            [Test(x4 && TakeOutParam(out var x4))]
+            [Test(TakeOutParam(51, out var x5) && 
+                  TakeOutParam(52, out var x5) && 
+                  x5 > 0)]
+            [Test(TakeOutParam(out var x6) && x6 > 0, 
+                  TakeOutParam(out var x6) && x6 > 0)]
+            [Test(TakeOutParam(out var x7) && x7 > 0)]
+            [Test(x7 > 2)]
+            int p1)
+        {
+            Dummy(x7, p1);
+        }
+
+        Local1(1);
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    static bool TakeOutParam(out int x) 
+    {
+        x = 123;
+        return true;
+    }
+    static bool TakeOutParam(object y, out int x)
+    {
+        x = 123;
+        return true;
+    }
+}
+
+class Test : System.Attribute
+{
+    public Test(bool p) {}
+    public Test(bool p1, bool p2) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
+                                                    d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
+                // (18,19): error CS0103: The name 'x7' does not exist in the current context
+                //             Dummy(x7, p1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(18, 19),
+                // (8,19): error CS0841: Cannot use local variable 'x4' before it is declared
+                //             [Test(x4 && TakeOutParam(out var x4))]
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(8, 19),
+                // (10,44): error CS0128: A local variable or function named 'x5' is already defined in this scope
+                //                   TakeOutParam(52, out var x5) && 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(10, 44),
+                // (13,40): error CS0128: A local variable or function named 'x6' is already defined in this scope
+                //                   TakeOutParam(out var x6) && x6 > 0)]
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(13, 40),
+                // (15,19): error CS0103: The name 'x7' does not exist in the current context
+                //             [Test(x7 > 2)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(15, 19)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = GetOutVarDeclaration(tree, "x3");
+            var x3Ref = GetReference(tree, "x3");
+            VerifyModelForOutVarInNotExecutableCode(model, x3Decl, x3Ref);
+
+            var x4Decl = GetOutVarDeclaration(tree, "x4");
+            var x4Ref = GetReference(tree, "x4");
+            VerifyModelForOutVarInNotExecutableCode(model, x4Decl, x4Ref);
+
+            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            var x5Ref = GetReference(tree, "x5");
+            Assert.Equal(2, x5Decl.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x5Decl[0], x5Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
+
+            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            var x6Ref = GetReferences(tree, "x6").ToArray();
+            Assert.Equal(2, x6Decl.Length);
+            Assert.Equal(2, x6Ref.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x6Decl[0], x6Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
+
+            var x7Decl = GetOutVarDeclaration(tree, "x7");
+            var x7Ref = GetReferences(tree, "x7").ToArray();
+            Assert.Equal(3, x7Ref.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x7Decl, x7Ref[0]);
+            VerifyNotInScope(model, x7Ref[1]);
+            VerifyNotInScope(model, x7Ref[2]);
+        }
+
+        [Fact]
+        public void Scope_LocalFunction_Attribute_05()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        TakeOutParam(out var x1);
+        TakeOutParam(out var x2);
+
+        void Local1(
+            [Test(p = TakeOutParam(out int x2) && x1 > 0 && x2 > 0)]
+            int p1)
+        {
+            p1 = 0;
+        }
+
+        Local1(x2);
+    }
+
+    static bool TakeOutParam(out int x) 
+    {
+        x = 123;
+        return true;
+    }
+}
+
+class Test : System.Attribute
+{
+    public bool p {get; set;}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
+                                                    d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
+                // (10,44): error CS0136: A local or parameter named 'x2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             [Test(p = TakeOutParam(out int x2) && x1 > 0 && x2 > 0)]
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x2").WithArguments("x2").WithLocation(10, 44)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarInNotExecutableCode(model, x1Decl, x1Ref);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(2, x2Decl.Length);
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForOutVar(model, x2Decl[0], x2Ref[1]);
+            VerifyModelForOutVarInNotExecutableCode(model, x2Decl[1], x2Ref[0]);
+        }
+
+        [Fact]
+        public void Scope_LocalFunction_Attribute_06()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        TakeOutParam(out var x1);
+        TakeOutParam(out var x2);
+
+        void Local1(
+            [Test(TakeOutParam(out int x2) && x1 > 0 && x2 > 0)]
+            int p1)
+        {
+            p1 = 0;
+        }
+
+        Local1(x2);
+    }
+
+    static bool TakeOutParam(out int x) 
+    {
+        x = 123;
+        return true;
+    }
+}
+
+class Test : System.Attribute
+{
+    public Test(bool p) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
+                                                    d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
+                // (10,40): error CS0136: A local or parameter named 'x2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             [Test(TakeOutParam(out int x2) && x1 > 0 && x2 > 0)]
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x2").WithArguments("x2").WithLocation(10, 40)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarInNotExecutableCode(model, x1Decl, x1Ref);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(2, x2Decl.Length);
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForOutVar(model, x2Decl[0], x2Ref[1]);
+            VerifyModelForOutVarInNotExecutableCode(model, x2Decl[1], x2Ref[0]);
+        }
+
+        [Fact]
+        public void DeclarationInNameof_00()
+        {
+            var text = @"
+class C
+{
+    public static void Main()
+    {
+        var x = nameof(M2(M1(out var x1), x1)).ToString();
+    }
+    static int M1(out int z) => z = 1;
+    static int M2(int a, int b) => 2;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (6,24): error CS8081: Expression does not have a name.
+                //         var x = nameof(M2(M1(out var x1), x1)).ToString();
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M2(M1(out var x1), x1)").WithLocation(6, 24)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var name = "x1";
+            var decl = GetOutVarDeclaration(tree, name);
+            var refs = GetReferences(tree, name).ToArray();
+            Assert.Equal(1, refs.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DeclarationInNameof_01()
+        {
+            var text = @"
+class C
+{
+    public static void Main(int arg)
+    {
+        void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+        void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+
+        int x = z1 + z2;
+    }
+    static int M(out int z) => z = 1;
+    static bool M(object a, int b) => b == 0;
+}
+";
+            // the scope of an expression variable introduced in the default expression
+            // of a local function parameter is that default expression.
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (6,83): error CS0103: The name 'z1' does not exist in the current context
+                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 83),
+                // (6,39): error CS8081: Expression does not have a name.
+                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(6, 39),
+                // (6,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(nameof(M(out int z1)), z1)").WithArguments("b").WithLocation(6, 30),
+                // (6,69): error CS0103: The name 'z1' does not exist in the current context
+                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 69),
+                // (6,64): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(6, 64),
+                // (7,83): error CS0103: The name 'z2' does not exist in the current context
+                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 83),
+                // (7,39): error CS8081: Expression does not have a name.
+                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(7, 39),
+                // (7,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(nameof(M(out var z2)), z2)").WithArguments("b").WithLocation(7, 30),
+                // (7,69): error CS0103: The name 'z2' does not exist in the current context
+                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 69),
+                // (7,64): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 64),
+                // (9,17): error CS0103: The name 'z1' does not exist in the current context
+                //         int x = z1 + z2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 17),
+                // (9,22): error CS0103: The name 'z2' does not exist in the current context
+                //         int x = z1 + z2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(9, 22),
+                // (6,14): warning CS0168: The variable 'Local2' is declared but never used
+                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local2").WithArguments("Local2").WithLocation(6, 14),
+                // (7,14): warning CS0168: The variable 'Local5' is declared but never used
+                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local5").WithArguments("Local5").WithLocation(7, 14)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(4, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, reference: refs[0]);
+                VerifyNotInScope(model, refs[1]);
+                VerifyNotInScope(model, refs[2]);
+                VerifyNotInScope(model, refs[3]);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void DeclarationInNameof_02a()
+        {
+            var text = @"
+[My(C.M(nameof(C.M(out int z1)), z1), z1)]
+[My(C.M(nameof(C.M(out var z2)), z2), z2)]
+class C
+{
+    public static int M(out int z) => z = 1;
+    public static bool M(object a, int b) => b == 0;
+}
+class MyAttribute: System.Attribute
+{
+    public MyAttribute(bool x, int y) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (2,16): error CS8081: Expression does not have a name.
+                // [My(C.M(nameof(C.M(out int z1)), z1), z1)]
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "C.M(out int z1)").WithLocation(2, 16),
+                // (2,5): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [My(C.M(nameof(C.M(out int z1)), z1), z1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out int z1)), z1)").WithLocation(2, 5),
+                // (2,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [My(C.M(nameof(C.M(out int z1)), z1), z1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z1").WithLocation(2, 39),
+                // (3,16): error CS8081: Expression does not have a name.
+                // [My(C.M(nameof(C.M(out var z2)), z2), z2)]
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "C.M(out var z2)").WithLocation(3, 16),
+                // (3,5): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [My(C.M(nameof(C.M(out var z2)), z2), z2)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out var z2)), z2)").WithLocation(3, 5),
+                // (3,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [My(C.M(nameof(C.M(out var z2)), z2), z2)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z2").WithLocation(3, 39)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(2, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void DeclarationInNameof_02b()
+        {
+            var text1 = @"
+[assembly: My(C.M(nameof(C.M(out int z1)), z1), z1)]
+[assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
+";
+            var text2 = @"
+class C
+{
+    public static int M(out int z) => z = 1;
+    public static bool M(object a, int b) => b == 0;
+}
+class MyAttribute: System.Attribute
+{
+    public MyAttribute(bool x, int y) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(new[] { text1, text2 });
+            compilation.VerifyDiagnostics(
+                // (2,26): error CS8081: Expression does not have a name.
+                // [assembly: My(C.M(nameof(C.M(out int z1)), z1), z1)]
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "C.M(out int z1)").WithLocation(2, 26),
+                // (2,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [assembly: My(C.M(nameof(C.M(out int z1)), z1), z1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out int z1)), z1)").WithLocation(2, 15),
+                // (2,49): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [assembly: My(C.M(nameof(C.M(out int z1)), z1), z1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z1").WithLocation(2, 49),
+                // (3,26): error CS8081: Expression does not have a name.
+                // [assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "C.M(out var z2)").WithLocation(3, 26),
+                // (3,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out var z2)), z2)").WithLocation(3, 15),
+                // (3,49): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z2").WithLocation(3, 49)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(2, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void DeclarationInNameof_03()
+        {
+            var text = @"
+class C
+{
+    public static void Main(string[] args)
+    {
+        switch ((object)args.Length)
+        {
+            case M(nameof(M(out int z1)), z1):
+                System.Console.WriteLine(z1);
+                break;
+            case M(nameof(M(out var z2)), z2):
+                System.Console.WriteLine(z2);
+                break;
+        }
+    }
+    public static int M(out int z) => z = 1;
+    public static bool M(object a, int b) => b == 0;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (8,27): error CS8081: Expression does not have a name.
+                //             case M(nameof(M(out int z1)), z1):
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(8, 27),
+                // (8,18): error CS0150: A constant value is expected
+                //             case M(nameof(M(out int z1)), z1):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M(nameof(M(out int z1)), z1)").WithLocation(8, 18),
+                // (11,27): error CS8081: Expression does not have a name.
+                //             case M(nameof(M(out var z2)), z2):
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(11, 27),
+                // (11,18): error CS0150: A constant value is expected
+                //             case M(nameof(M(out var z2)), z2):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M(nameof(M(out var z2)), z2)").WithLocation(11, 18),
+                // (8,43): error CS0165: Use of unassigned local variable 'z1'
+                //             case M(nameof(M(out int z1)), z1):
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(8, 43),
+                // (11,43): error CS0165: Use of unassigned local variable 'z2'
+                //             case M(nameof(M(out var z2)), z2):
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z2").WithArguments("z2").WithLocation(11, 43)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(2, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void DeclarationInNameof_04()
+        {
+            var text = @"
+class C
+{
+    const bool a = M(nameof(M(out int z1)), z1);
+    const bool b = M(nameof(M(out var z2)), z2);
+    const bool c = (z1 + z2) == 0;
+
+    public static int M(out int z) => z = 1;
+    public static bool M(object a, int b) => b == 0;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (5,35): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //     const bool b = M(nameof(M(out var z2)), z2);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var z2").WithLocation(5, 35),
+                // (5,29): error CS8081: Expression does not have a name.
+                //     const bool b = M(nameof(M(out var z2)), z2);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(5, 29),
+                // (5,20): error CS0133: The expression being assigned to 'C.b' must be constant
+                //     const bool b = M(nameof(M(out var z2)), z2);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "M(nameof(M(out var z2)), z2)").WithArguments("C.b").WithLocation(5, 20),
+                // (6,21): error CS0103: The name 'z1' does not exist in the current context
+                //     const bool c = (z1 + z2) == 0;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 21),
+                // (6,26): error CS0103: The name 'z2' does not exist in the current context
+                //     const bool c = (z1 + z2) == 0;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(6, 26),
+                // (4,35): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //     const bool a = M(nameof(M(out int z1)), z1);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int z1").WithLocation(4, 35),
+                // (4,29): error CS8081: Expression does not have a name.
+                //     const bool a = M(nameof(M(out int z1)), z1);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(4, 29),
+                // (4,20): error CS0133: The expression being assigned to 'C.a' must be constant
+                //     const bool a = M(nameof(M(out int z1)), z1);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "M(nameof(M(out int z1)), z1)").WithArguments("C.a").WithLocation(4, 20)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(2, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, refs[0]);
+                VerifyNotInScope(model, refs[1]);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void DeclarationInNameof_05()
+        {
+            var text = @"
+class C
+{
+    public static void Main(string[] args)
+    {
+        const bool a = M(nameof(M(out int z1)), z1);
+        const bool b = M(nameof(M(out var z2)), z2);
+        bool c = (z1 + z2) == 0;
+    }
+
+    public static int M(out int z) => z = 1;
+    public static bool M(object a, int b) => b == 0;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (6,33): error CS8081: Expression does not have a name.
+                //         const bool a = M(nameof(M(out int z1)), z1);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(6, 33),
+                // (6,24): error CS0133: The expression being assigned to 'a' must be constant
+                //         const bool a = M(nameof(M(out int z1)), z1);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "M(nameof(M(out int z1)), z1)").WithArguments("a").WithLocation(6, 24),
+                // (7,33): error CS8081: Expression does not have a name.
+                //         const bool b = M(nameof(M(out var z2)), z2);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(7, 33),
+                // (7,24): error CS0133: The expression being assigned to 'b' must be constant
+                //         const bool b = M(nameof(M(out var z2)), z2);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "M(nameof(M(out var z2)), z2)").WithArguments("b").WithLocation(7, 24),
+                // (6,49): error CS0165: Use of unassigned local variable 'z1'
+                //         const bool a = M(nameof(M(out int z1)), z1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(6, 49),
+                // (7,49): error CS0165: Use of unassigned local variable 'z2'
+                //         const bool b = M(nameof(M(out var z2)), z2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z2").WithArguments("z2").WithLocation(7, 49)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            for (int i = 1; i <= 2; i++)
+            {
+                var name = $"z{i}";
+                var decl = GetOutVarDeclaration(tree, name);
+                var refs = GetReferences(tree, name).ToArray();
+                Assert.Equal(2, refs.Length);
+                VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void DeclarationInNameof_06()
+        {
+            var text = @"
+class C
+{
+    public static void Main(string[] args)
+    {
+        string s = nameof((System.Action)(() => M(M(out var z1), z1))).ToString();
+        bool c = z1 == 0;
+    }
+
+    public static int M(out int z) => z = 1;
+    public static bool M(object a, int b) => b == 0;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (6,27): error CS8081: Expression does not have a name.
+                //         string s = nameof((System.Action)(() => M(M(out var z1), z1))).ToString();
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "(System.Action)(() => M(M(out var z1), z1))").WithLocation(6, 27),
+                // (7,18): error CS0103: The name 'z1' does not exist in the current context
+                //         bool c = z1 == 0;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(7, 18)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var name = "z1";
+            var decl = GetOutVarDeclaration(tree, name);
+            var refs = GetReferences(tree, name).ToArray();
+            Assert.Equal(2, refs.Length);
+            VerifyModelForOutVar(model, decl, refs[0]);
+            VerifyNotInScope(model, refs[1]);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
         }
     }
 

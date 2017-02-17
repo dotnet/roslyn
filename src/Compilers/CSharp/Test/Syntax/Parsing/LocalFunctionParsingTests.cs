@@ -6,12 +6,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionParsingTests : ParsingTests
     {
+        public LocalFunctionParsingTests(ITestOutputHelper output) : base(output) { }
+
         [Fact]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public void IncompleteLocalFunc()
@@ -49,7 +52,7 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -78,8 +81,8 @@ class C
                                     {
                                         N(SyntaxKind.IdentifierToken, "L");
                                     }
-                                    M(SyntaxKind.SemicolonToken);
                                 }
+                                M(SyntaxKind.SemicolonToken);
                             }
                             N(SyntaxKind.ExpressionStatement);
                             {
@@ -94,8 +97,8 @@ class C
                                     {
                                         M(SyntaxKind.IdentifierToken);
                                     }
-                                    M(SyntaxKind.SemicolonToken);
                                 }
+                                M(SyntaxKind.SemicolonToken);
                             }
                             N(SyntaxKind.CloseBraceToken);
                         }
@@ -126,7 +129,9 @@ class C
                                 {
                                     N(SyntaxKind.LessThanToken);
                                     M(SyntaxKind.TypeParameter);
-                                    M(SyntaxKind.IdentifierToken);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
                                     M(SyntaxKind.GreaterThanToken);
                                 }
                                 M(SyntaxKind.ParameterList);
@@ -169,7 +174,9 @@ class C
                                 {
                                     N(SyntaxKind.LessThanToken);
                                     M(SyntaxKind.TypeParameter);
-                                    M(SyntaxKind.IdentifierToken);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
                                     M(SyntaxKind.GreaterThanToken);
                                 }
                                 M(SyntaxKind.ParameterList);
@@ -208,26 +215,14 @@ class C
                                     N(SyntaxKind.VariableDeclarator);
                                     {
                                         N(SyntaxKind.IdentifierToken, "L");
-                                    }
-                                    N(SyntaxKind.BracketedArgumentList);
-                                    {
-                                        M(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.Argument);
+                                        M(SyntaxKind.BracketedArgumentList);
                                         {
-                                            N(SyntaxKind.ParenthesizedExpression);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                M(SyntaxKind.IdentifierName);
-                                                {
-                                                    M(SyntaxKind.IdentifierToken);
-                                                }
-                                                M(SyntaxKind.CloseParenToken);
-                                            }
+                                            M(SyntaxKind.OpenBracketToken);
+                                            M(SyntaxKind.CloseBracketToken);
                                         }
-                                        M(SyntaxKind.CloseBracketToken);
                                     }
-                                    M(SyntaxKind.SemicolonToken);
                                 }
+                                M(SyntaxKind.SemicolonToken);
                             }
                             N(SyntaxKind.CloseBraceToken);
                         }
@@ -252,14 +247,14 @@ class C
                                 N(SyntaxKind.PredefinedType);
                                 {
                                     N(SyntaxKind.IntKeyword);
-                                    N(SyntaxKind.IdentifierToken, "L");
-                                    N(SyntaxKind.ParameterList);
-                                    {
-                                        N(SyntaxKind.OpenParenToken);
-                                        M(SyntaxKind.CloseParenToken);
-                                    }
-                                    M(SyntaxKind.SemicolonToken);
                                 }
+                                N(SyntaxKind.IdentifierToken, "L");
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    M(SyntaxKind.CloseParenToken);
+                                }
+                                M(SyntaxKind.SemicolonToken);
                             }
                             N(SyntaxKind.CloseBraceToken);
                         }
@@ -300,8 +295,11 @@ class C
                             N(SyntaxKind.CloseBraceToken);
                         }
                     }
+                    N(SyntaxKind.CloseBraceToken);
                 }
+                N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -335,7 +333,7 @@ class C
             Assert.NotNull(file);
             file.SyntaxTree.GetDiagnostics().Verify();
 
-            file = ParseFile(@"
+            var errorText = @"
 class C
 {
     void M()
@@ -347,17 +345,37 @@ class C
         int
             foo<T>) { }
     }
-}");
-            file.SyntaxTree.GetDiagnostics().Verify(
+}";
+            file = ParseFile(errorText);
+
+            CreateCompilationWithMscorlib(errorText).VerifyDiagnostics(
+                // (11,19): error CS1003: Syntax error, '(' expected
+                //             foo<T>) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(11, 19),
                 // (7,19): error CS0080: Constraints are not allowed on non-generic declarations
                 //             foo() where T : IFace => 5;
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(7, 19),
+                // (9,13): error CS0128: A local variable or function named 'foo' is already defined in this scope
+                //             foo() where T : IFace { return 5; }
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "foo").WithArguments("foo").WithLocation(9, 13),
                 // (9,19): error CS0080: Constraints are not allowed on non-generic declarations
                 //             foo() where T : IFace { return 5; }
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(9, 19),
-                // (11,19): error CS1003: Syntax error, '(' expected
+                // (11,13): error CS0128: A local variable or function named 'foo' is already defined in this scope
                 //             foo<T>) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(11, 19));
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "foo").WithArguments("foo").WithLocation(11, 13),
+                // (11,13): error CS0161: 'foo<T>()': not all code paths return a value
+                //             foo<T>) { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "foo").WithArguments("foo<T>()").WithLocation(11, 13),
+                // (7,13): warning CS0168: The variable 'foo' is declared but never used
+                //             foo() where T : IFace => 5;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "foo").WithArguments("foo").WithLocation(7, 13),
+                // (9,13): warning CS0168: The variable 'foo' is declared but never used
+                //             foo() where T : IFace { return 5; }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "foo").WithArguments("foo").WithLocation(9, 13),
+                // (11,13): warning CS0168: The variable 'foo' is declared but never used
+                //             foo<T>) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "foo").WithArguments("foo").WithLocation(11, 13));
 
             var m = Assert.IsType<MethodDeclarationSyntax>(file.DescendantNodes()
                 .Where(n => n.Kind() == SyntaxKind.MethodDeclaration)

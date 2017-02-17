@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     /// expressions as well.
     /// </summary>
     internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
-        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+        AbstractCodeStyleDiagnosticAnalyzer
     {
         protected AbstractUseThrowExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
@@ -42,13 +41,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         {
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        public bool OpenFileOnly(Workspace workspace) => false;
+        public override bool OpenFileOnly(Workspace workspace) => false;
 
         private static MethodInfo s_registerOperationActionInfo =
-            typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
+            typeof(CompilationStartAnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
 
         private static MethodInfo s_getOperationInfo =
             typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
@@ -56,13 +55,19 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         protected abstract bool IsSupported(ParseOptions options);
 
         protected override void InitializeWorker(AnalysisContext context)
-            => s_registerOperationActionInfo.Invoke(context, new object[]
-               {
-                   new Action<OperationAnalysisContext>(AnalyzeOperation),
-                   ImmutableArray.Create(OperationKind.ThrowStatement)
-               });
+        {
+            context.RegisterCompilationStartAction(startContext =>
+            {
+                var expressionTypeOpt = startContext.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+                s_registerOperationActionInfo.Invoke(startContext, new object[]
+                {
+                    new Action<OperationAnalysisContext>(operationContext => AnalyzeOperation(operationContext, expressionTypeOpt)),
+                    ImmutableArray.Create(OperationKind.ThrowStatement)
+                });
+            });
+        }
 
-        private void AnalyzeOperation(OperationAnalysisContext context)
+        private void AnalyzeOperation(OperationAnalysisContext context, INamedTypeSymbol expressionTypeOpt)
         {
             var syntaxTree = context.Operation.Syntax.SyntaxTree;
             if (!IsSupported(syntaxTree.Options))
@@ -89,6 +94,11 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             var compilation = context.Compilation;
             var semanticModel = compilation.GetSemanticModel(throwStatement.SyntaxTree);
+
+            if (IsInExpressionTree(throwStatement, semanticModel, expressionTypeOpt, cancellationToken))
+            {
+                return;
+            }
 
             var ifOperation = GetContainingIfOperation(
                 semanticModel, throwOperation, cancellationToken);
@@ -172,6 +182,10 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                         additionalLocations: allLocations));
             }
         }
+
+        protected abstract bool IsInExpressionTree(
+            SyntaxNode node, SemanticModel semanticModel,
+            INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken);
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
 

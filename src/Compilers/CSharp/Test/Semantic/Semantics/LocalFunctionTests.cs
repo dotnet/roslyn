@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -29,6 +30,412 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
+        [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
+        public void RecursiveDefaultParameter()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public static void Main()
+    {
+        int Local(int j = Local()) => 0;
+        Local();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,27): error CS1736: Default parameter value for 'j' must be a compile-time constant
+                //         int Local(int j = Local()) => 0;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Local()").WithArguments("j").WithLocation(6, 27));
+            comp.DeclarationDiagnostics.Verify();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
+        [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
+        public void RecursiveDefaultParameter2()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+class C
+{
+    void M()
+    {
+        int Local(Action a = Local) => 0;
+        Local();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,30): error CS1736: Default parameter value for 'a' must be a compile-time constant
+                //         int Local(Action a = Local) => 0;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Local").WithArguments("a").WithLocation(7, 30));
+            comp.DeclarationDiagnostics.Verify();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
+        [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
+        public void MutuallyRecursiveDefaultParameters()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    void M()
+    {
+        int Local1(int p = Local2()) => 0;
+        int Local2(int p = Local1()) => 0;
+        Local1();
+        Local2();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,28): error CS1736: Default parameter value for 'p' must be a compile-time constant
+                //         int Local1(int p = Local2()) => 0;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Local2()").WithArguments("p").WithLocation(6, 28),
+                // (7,28): error CS1736: Default parameter value for 'p' must be a compile-time constant
+                //         int Local2(int p = Local1()) => 0;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Local1()").WithArguments("p").WithLocation(7, 28));
+            comp.DeclarationDiagnostics.Verify();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16652")]
+        public void FetchLocalFunctionSymbolThroughLocal()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+class C
+{
+    public void M()
+    {
+        void Local<[A, B, CLSCompliant, D]T>() 
+        {
+            var x = new object(); 
+        }
+        Local<int>();
+    }
+}");
+            var comp = CreateCompilationWithMscorlib(tree);
+            comp.DeclarationDiagnostics.Verify();
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A, B, CLSCompliant, D]").WithLocation(7, 20),
+                // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
+                // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
+                // (7,24): error CS0246: The type or namespace name 'BAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("BAttribute").WithLocation(7, 24),
+                // (7,24): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 24),
+                // (7,41): error CS0246: The type or namespace name 'DAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("DAttribute").WithLocation(7, 41),
+                // (7,41): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(7, 41),
+                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
+
+
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.ValueText == "x").Single();
+            var localSymbol = (LocalFunctionSymbol)model.GetDeclaredSymbol(x).ContainingSymbol;
+            var typeParam = localSymbol.TypeParameters.Single();
+            var attrs = typeParam.GetAttributes();
+
+            Assert.True(attrs[0].AttributeClass.IsErrorType());
+            Assert.True(attrs[1].AttributeClass.IsErrorType());
+            Assert.False(attrs[2].AttributeClass.IsErrorType());
+            Assert.Equal(comp.GlobalNamespace
+                             .GetMember<NamespaceSymbol>("System")
+                             .GetMember<NamedTypeSymbol>("CLSCompliantAttribute"),
+                attrs[2].AttributeClass);
+            Assert.True(attrs[3].AttributeClass.IsErrorType());
+            comp.DeclarationDiagnostics.Verify();
+        }
+
+        [Fact]
+        public void TypeParameterAttributesInSemanticModel()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+class C
+{
+    public void M()
+    {
+        void Local<[A]T, [CLSCompliant]U>() { }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A]T, [CLSCompliant]U>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
+                // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A]T, [CLSCompliant]U>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
+                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                //         void Local<[A]T, [CLSCompliant]U>() { }
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27),
+                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local<[A]T, [CLSCompliant]U>() { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A]").WithLocation(7, 20),
+                // (7,26): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local<[A]T, [CLSCompliant]U>() { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CLSCompliant]").WithLocation(7, 26),
+                // (7,14): warning CS0168: The variable 'Local' is declared but never used
+                //         void Local<[A]T, [CLSCompliant]U>() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(7, 14));
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+
+            var model = comp.GetSemanticModel(tree);
+
+            var a = root.DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(id => id.Identifier.ValueText == "A")
+                .Single();
+
+            Assert.Null(model.GetDeclaredSymbol(a));
+
+            var aSymbolInfo = model.GetSymbolInfo(a);
+            Assert.Equal(0, aSymbolInfo.CandidateSymbols.Length);
+            Assert.Null(aSymbolInfo.Symbol);
+
+            var aTypeInfo = model.GetTypeInfo(a);
+            Assert.Equal(TypeKind.Error, aTypeInfo.Type.TypeKind);
+
+            Assert.Null(model.GetAliasInfo(a));
+
+            Assert.Empty(model.LookupNamespacesAndTypes(a.SpanStart, name: "A"));
+
+            var clsCompliant = root.DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(id => id.Identifier.ValueText == "CLSCompliant")
+                .Single();
+            var clsCompliantSymbol = comp.GlobalNamespace
+                .GetMember<NamespaceSymbol>("System")
+                .GetTypeMember("CLSCompliantAttribute");
+
+            Assert.Null(model.GetDeclaredSymbol(clsCompliant));
+
+            // This should be null because there is no CLSCompliant ctor with no args
+            var clsCompliantSymbolInfo = model.GetSymbolInfo(clsCompliant);
+            Assert.Null(clsCompliantSymbolInfo.Symbol);
+            Assert.Equal(clsCompliantSymbol.GetMember<MethodSymbol>(".ctor"),
+                clsCompliantSymbolInfo.CandidateSymbols.Single());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, clsCompliantSymbolInfo.CandidateReason);
+
+            Assert.Equal(clsCompliantSymbol, model.GetTypeInfo(clsCompliant).Type);
+
+            Assert.Null(model.GetAliasInfo(clsCompliant));
+
+            Assert.Equal(clsCompliantSymbol,
+                model.LookupNamespacesAndTypes(clsCompliant.SpanStart, name: "CLSCompliantAttribute").Single());
+            comp.DeclarationDiagnostics.Verify();
+        }
+
+        [Fact]
+        public void ParameterAttributesInSemanticModel()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+class C
+{
+    public void M()
+    {
+        void Local([A]int x, [CLSCompliant]int y) { }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local([A]int x, [CLSCompliant]int y) { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A]").WithLocation(7, 20),
+                // (7,30): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local([A]int x, [CLSCompliant]int y) { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CLSCompliant]").WithLocation(7, 30),
+                // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local([A]int x, [CLSCompliant]int y) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
+                // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local([A]int x, [CLSCompliant]int y) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
+                // (7,31): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                //         void Local([A]int x, [CLSCompliant]int y) { }
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 31),
+                // (7,14): warning CS0168: The variable 'Local' is declared but never used
+                //         void Local([A]int x, [CLSCompliant]int y) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(7, 14));
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+
+            var model = comp.GetSemanticModel(tree);
+
+            var a = root.DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(id => id.Identifier.ValueText == "A")
+                .Single();
+
+            Assert.Null(model.GetDeclaredSymbol(a));
+
+            var aSymbolInfo = model.GetSymbolInfo(a);
+            Assert.Equal(0, aSymbolInfo.CandidateSymbols.Length);
+            Assert.Null(aSymbolInfo.Symbol);
+
+            var aTypeInfo = model.GetTypeInfo(a);
+            Assert.Equal(TypeKind.Error, aTypeInfo.Type.TypeKind);
+
+            Assert.Null(model.GetAliasInfo(a));
+
+            Assert.Empty(model.LookupNamespacesAndTypes(a.SpanStart, name: "A"));
+
+            var clsCompliant = root.DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(id => id.Identifier.ValueText == "CLSCompliant")
+                .Single();
+            var clsCompliantSymbol = comp.GlobalNamespace
+                .GetMember<NamespaceSymbol>("System")
+                .GetTypeMember("CLSCompliantAttribute");
+
+            Assert.Null(model.GetDeclaredSymbol(clsCompliant));
+
+            // This should be null because there is no CLSCompliant ctor with no args
+            var clsCompliantSymbolInfo = model.GetSymbolInfo(clsCompliant);
+            Assert.Null(clsCompliantSymbolInfo.Symbol);
+            Assert.Equal(clsCompliantSymbol.GetMember<MethodSymbol>(".ctor"),
+                clsCompliantSymbolInfo.CandidateSymbols.Single());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, clsCompliantSymbolInfo.CandidateReason);
+
+            Assert.Equal(clsCompliantSymbol, model.GetTypeInfo(clsCompliant).Type);
+
+            Assert.Null(model.GetAliasInfo(clsCompliant));
+
+            Assert.Equal(clsCompliantSymbol,
+                model.LookupNamespacesAndTypes(clsCompliant.SpanStart, name: "CLSCompliantAttribute").Single());
+            comp.DeclarationDiagnostics.Verify();
+        }
+
+        [Fact]
+        public void LocalFunctionAttributeOnTypeParameter()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+class C
+{
+    public void M()
+    {
+        void Local<[A, B, CLSCompliant, D]T>() { }
+        Local<int>();
+    }
+}");
+            var comp = CreateCompilationWithMscorlib(tree);
+            comp.DeclarationDiagnostics.Verify();
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A, B, CLSCompliant, D]").WithLocation(7, 20),
+                // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
+                // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
+                // (7,24): error CS0246: The type or namespace name 'BAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("BAttribute").WithLocation(7, 24),
+                // (7,24): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 24),
+                // (7,41): error CS0246: The type or namespace name 'DAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("DAttribute").WithLocation(7, 41),
+                // (7,41): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(7, 41),
+                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
+
+
+            var localDecl = tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement);
+            var model = comp.GetSemanticModel(tree);
+            var localSymbol = Assert.IsType<LocalFunctionSymbol>(model.GetDeclaredSymbol(localDecl.AsNode()));
+            var typeParam = localSymbol.TypeParameters.Single();
+            var attrs = typeParam.GetAttributes();
+
+            Assert.True(attrs[0].AttributeClass.IsErrorType());
+            Assert.True(attrs[1].AttributeClass.IsErrorType());
+            Assert.False(attrs[2].AttributeClass.IsErrorType());
+            Assert.Equal(comp.GlobalNamespace
+                             .GetMember<NamespaceSymbol>("System")
+                             .GetMember<NamedTypeSymbol>("CLSCompliantAttribute"),
+                attrs[2].AttributeClass);
+            Assert.True(attrs[3].AttributeClass.IsErrorType());
+            comp.DeclarationDiagnostics.Verify();
+        }
+
+        [Fact]
+        public void LocalFunctionAttributeOnParameters()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+class C
+{
+    public void M()
+    {
+        void Local([A, B]int x, [CLSCompliant]string s = """") { }
+        Local(0);
+    }
+}");
+            var comp = CreateCompilationWithMscorlib(tree);
+            comp.DeclarationDiagnostics.Verify();
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A, B]").WithLocation(7, 20),
+                // (7,33): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CLSCompliant]").WithLocation(7, 33),
+                // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
+                // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
+                // (7,24): error CS0246: The type or namespace name 'BAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("BAttribute").WithLocation(7, 24),
+                // (7,24): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 24),
+                // (7,34): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 34));
+
+            var localDecl = tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement);
+            var model = comp.GetSemanticModel(tree);
+            var localSymbol = Assert.IsType<LocalFunctionSymbol>(model.GetDeclaredSymbol(localDecl.AsNode()));
+            var param = localSymbol.Parameters[0];
+            var attrs = param.GetAttributes();
+
+            Assert.True(attrs[0].AttributeClass.IsErrorType());
+            Assert.True(attrs[1].AttributeClass.IsErrorType());
+
+            param = localSymbol.Parameters[1];
+            attrs = param.GetAttributes();
+            Assert.Equal(comp.GlobalNamespace
+                             .GetMember<NamespaceSymbol>("System")
+                             .GetMember<NamedTypeSymbol>("CLSCompliantAttribute"),
+                attrs[0].AttributeClass);
+            comp.DeclarationDiagnostics.Verify();
+        }
+
         [Fact]
         public void TypeParameterBindingScope()
         {
@@ -318,9 +725,6 @@ class C
                 // (33,36): error CS1629: Unsafe code may not appear in iterators
                 //     public unsafe IEnumerable<int> M4(int* a)
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "M4").WithLocation(33, 36),
-                // (37,45): error CS1637: Iterators cannot have unsafe parameters or yield types
-                //                 IEnumerable<int> Local(int* b) { yield break; }
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45),
                 // (37,40): error CS1629: Unsafe code may not appear in iterators
                 //                 IEnumerable<int> Local(int* b) { yield break; }
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "int*").WithLocation(37, 40),
@@ -329,7 +733,10 @@ class C
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "&x").WithLocation(39, 23),
                 // (39,17): error CS1629: Unsafe code may not appear in iterators
                 //                 Local(&x);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17));
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17),
+                // (37,45): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45));
         }
 
         [Fact]
@@ -528,6 +935,35 @@ class Program
         }
 
         [Fact]
+        public void CallerMemberName()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Runtime.CompilerServices;
+class C
+{
+    static void Main()
+    {
+        void CallerMemberName([CallerMemberName] string s = null)
+        {
+            Console.Write(s);
+        }
+        void LocalFuncName()
+        {
+            CallerMemberName();
+        }
+        LocalFuncName();
+        Console.Write(' ');
+        CallerMemberName();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,31): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void CallerMemberName([CallerMemberName] string s = null)
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CallerMemberName]").WithLocation(8, 31));
+        }
+
+        [Fact]
         public void BadCallerMemberName()
         {
             var source = @"
@@ -547,9 +983,12 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (9,32): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
-    //         void CallerMemberName([CallerMemberName] int s = 2)
-    Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32)
+                // (9,31): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void CallerMemberName([CallerMemberName] int s = 2)
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CallerMemberName]").WithLocation(9, 31),
+                // (9,32): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
+                //         void CallerMemberName([CallerMemberName] int s = 2)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32)
     );
         }
         [WorkItem(10708, "https://github.com/dotnet/roslyn/issues/10708")]
@@ -939,11 +1378,7 @@ class Program
     }
 }
 ";
-            VerifyDiagnostics(source, TestOptions.ReleaseExe.WithAllowUnsafe(true),
-    // (11,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-    //             Console.WriteLine(*&x);
-    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(11, 32)
-    );
+            VerifyDiagnostics(source, TestOptions.ReleaseExe.WithAllowUnsafe(true));
         }
 
         [Fact]
@@ -1246,18 +1681,24 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (10,31): error CS0190: The __arglist construct is valid only within a variable argument method
-    //             Console.WriteLine(__arglist);
-    Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(10, 31),
-    // (18,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
-    //             Console.WriteLine(__arglist);
-    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(18, 31),
-    // (26,31): error CS0190: The __arglist construct is valid only within a variable argument method
-    //             Console.WriteLine(__arglist);
-    Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(26, 31),
-    // (34,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
-    //             Console.WriteLine(__arglist);
-    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(34, 31)
+                // (10,31): error CS0190: The __arglist construct is valid only within a variable argument method
+                //             Console.WriteLine(__arglist);
+                Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(10, 31),
+                // (18,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                //             Console.WriteLine(__arglist);
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(18, 31),
+                // (24,20): error CS1669: __arglist is not valid in this context
+                //         void Local(__arglist)
+                Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(24, 20),
+                // (26,31): error CS0190: The __arglist construct is valid only within a variable argument method
+                //             Console.WriteLine(__arglist);
+                Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(26, 31),
+                // (32,20): error CS1669: __arglist is not valid in this context
+                //         void Local(__arglist)
+                Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(32, 20),
+                // (34,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                //             Console.WriteLine(__arglist);
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(34, 31)
     );
         }
 
@@ -1431,10 +1872,12 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (9,26): error CS1636: __arglist is not allowed in the parameter list of iterators
-    //         IEnumerable<int> Local(__arglist)
-    Diagnostic(ErrorCode.ERR_VarargsIterator, "Local").WithLocation(9, 26)
-    );
+                // (9,26): error CS1636: __arglist is not allowed in the parameter list of iterators
+                //         IEnumerable<int> Local(__arglist)
+                Diagnostic(ErrorCode.ERR_VarargsIterator, "Local").WithLocation(9, 26),
+                // (9,32): error CS1669: __arglist is not valid in this context
+                //         IEnumerable<int> Local(__arglist)
+                Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(9, 32));
         }
 
         [Fact]
@@ -1577,49 +2020,40 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (6,17): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "operator").WithLocation(6, 17),
-    // (6,17): error CS1513: } expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_RbraceExpected, "operator").WithLocation(6, 17),
-    // (6,36): error CS1026: ) expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "left").WithLocation(6, 36),
-    // (6,36): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "left").WithLocation(6, 36),
-    // (6,40): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 40),
-    // (6,40): error CS1513: } expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 40),
-    // (6,55): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 55),
-    // (6,55): error CS1513: } expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 55),
-    // (6,9): error CS0119: 'Program' is a type, which is not valid in the given context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 9),
-    // (6,28): error CS0119: 'Program' is a type, which is not valid in the given context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 28),
-    // (6,28): error CS0119: 'Program' is a type, which is not valid in the given context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 28),
-    // (6,36): error CS0103: The name 'left' does not exist in the current context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "left").WithArguments("left").WithLocation(6, 36),
-    // (8,20): error CS0103: The name 'left' does not exist in the current context
-    //             return left;
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "left").WithArguments("left").WithLocation(8, 20),
-    // (6,50): warning CS0168: The variable 'right' is declared but never used
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "right").WithArguments("right").WithLocation(6, 50)
-    );
+                // (6,17): error CS1002: ; expected
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "operator").WithLocation(6, 17),
+                // (6,17): error CS1513: } expected
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "operator").WithLocation(6, 17),
+                // (6,56): error CS1002: ; expected
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 56),
+                // (6,9): error CS0119: 'Program' is a type, which is not valid in the given context
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 9),
+                // (6,28): error CS8185: A declaration is not allowed in this context.
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "Program left").WithLocation(6, 28),
+                // (6,42): error CS8185: A declaration is not allowed in this context.
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "Program right").WithLocation(6, 42),
+                // (6,27): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(Program left, Program right)").WithArguments("System.ValueTuple`2").WithLocation(6, 27),
+                // (6,26): error CS0023: Operator '+' cannot be applied to operand of type '(Program, Program)'
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+(Program left, Program right)").WithArguments("+", "(Program, Program)").WithLocation(6, 26),
+                // (8,13): error CS0127: Since 'Program.Main(string[])' returns void, a return keyword must not be followed by an object expression
+                //             return left;
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.Main(string[])").WithLocation(8, 13),
+                // (6,28): error CS0165: Use of unassigned local variable 'left'
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Program left").WithArguments("left").WithLocation(6, 28),
+                // (6,42): error CS0165: Use of unassigned local variable 'right'
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Program right").WithArguments("right").WithLocation(6, 42)
+                );
         }
 
         [Fact]
@@ -2081,6 +2515,536 @@ class C
                 //             return 2;
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "return 2;").WithArguments("x").WithLocation(17, 13)
                 );
+        }
+
+        [Fact]
+        [WorkItem(13172, "https://github.com/dotnet/roslyn/issues/13172")]
+        public void InheritUnsafeContext()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Threading.Tasks;
+class C
+{
+    public void M1()
+    {
+        async Task<IntPtr> Local()
+        {
+            await Task.Delay(0);
+            return (IntPtr)(void*)null;
+        }
+        var _ = Local();
+    }
+
+    public void M2()
+    {
+        unsafe
+        {
+            async Task<IntPtr> Local()
+            {
+                await Task.Delay(1);
+                return (IntPtr)(void*)null;
+            }
+            var _ = Local();
+        }
+    }
+
+    public unsafe void M3()
+    {
+        async Task<IntPtr> Local()
+        {
+            await Task.Delay(2);
+            return (IntPtr)(void*)null;
+        }
+        var _ = Local();
+    }
+}
+
+unsafe class D
+{
+    int* p = null;
+    public void M()
+    {
+        async Task<IntPtr> Local()
+        {
+            await Task.Delay(3);
+            return (IntPtr)p;
+        }
+        var _ = Local();
+    }
+
+    public unsafe void M2()
+    {
+        unsafe
+        {
+            async Task<IntPtr> Local()
+            {
+                await Task.Delay(4);
+                return (IntPtr)(void*)null;
+            }
+            var _ = Local();
+        }
+    }
+}", options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(                
+                // (11,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //             return (IntPtr)(void*)null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(11, 29),
+                // (11,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //             return (IntPtr)(void*)null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(void*)null").WithLocation(11, 28),
+                // (47,13): error CS4004: Cannot await in an unsafe context
+                //             await Task.Delay(3);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(3)").WithLocation(47, 13),
+                // (22,17): error CS4004: Cannot await in an unsafe context
+                //                 await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(1)").WithLocation(22, 17),
+                // (59,17): error CS4004: Cannot await in an unsafe context
+                //                 await Task.Delay(4);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(4)").WithLocation(59, 17),
+                // (33,13): error CS4004: Cannot await in an unsafe context
+                //             await Task.Delay(2);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(2)").WithLocation(33, 13));
+        }
+
+        [Fact, WorkItem(16167, "https://github.com/dotnet/roslyn/issues/16167")]
+        public void DeclarationInLocalFuncionParameterDefault()
+        {
+            var text = @"
+class C
+{
+    public static void Main(int arg)
+    {
+        void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
+        void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
+        void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
+
+        void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
+        void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
+        void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
+
+        int t = z1 + z2 + z3 + z4 + z5 + z6;
+    }
+    static bool M(out int z) // needed to infer type of z5
+    {
+        z = 1;
+        return true;
+    }
+    static bool M(params object[] args) => true;
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            Item1 = item1;
+            Item2 = item2;
+        }
+    }
+}
+";
+            // the scope of an expression variable introduced in the default expression
+            // of a local function parameter is that default expression.
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (6,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(arg is int z1, z1)").WithArguments("b").WithLocation(6, 30),
+                // (6,61): error CS0103: The name 'z1' does not exist in the current context
+                //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 61),
+                // (6,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s1").WithArguments("?", "int").WithLocation(6, 56),
+                // (7,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out int z2), z2)").WithArguments("b").WithLocation(7, 30),
+                // (7,61): error CS0103: The name 'z2' does not exist in the current context
+                //         void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 61),
+                // (7,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 56),
+                // (8,35): error CS8185: A declaration is not allowed in this context.
+                //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int z3").WithLocation(8, 35),
+                // (8,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M((int z3, int a2) = (1, 2)), z3)").WithArguments("b").WithLocation(8, 30),
+                // (8,76): error CS0103: The name 'z3' does not exist in the current context
+                //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(8, 76),
+                // (8,71): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "a3").WithArguments("?", "int").WithLocation(8, 71),
+                // (10,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(arg is var z4, z4)").WithArguments("b").WithLocation(10, 30),
+                // (10,61): error CS0103: The name 'z4' does not exist in the current context
+                //         void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z4").WithArguments("z4").WithLocation(10, 61),
+                // (10,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s1").WithArguments("?", "int").WithLocation(10, 56),
+                // (11,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out var z5), z5)").WithArguments("b").WithLocation(11, 30),
+                // (11,61): error CS0103: The name 'z5' does not exist in the current context
+                //         void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z5").WithArguments("z5").WithLocation(11, 61),
+                // (11,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(11, 56),
+                // (12,35): error CS8185: A declaration is not allowed in this context.
+                //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var z6").WithLocation(12, 35),
+                // (12,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M((var z6, int a2) = (1, 2)), z6)").WithArguments("b").WithLocation(12, 30),
+                // (12,76): error CS0103: The name 'z6' does not exist in the current context
+                //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(12, 76),
+                // (12,71): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "a3").WithArguments("?", "int").WithLocation(12, 71),
+                // (14,17): error CS0103: The name 'z1' does not exist in the current context
+                //         int t = z1 + z2 + z3 + z4 + z5 + z6;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(14, 17),
+                // (14,22): error CS0103: The name 'z2' does not exist in the current context
+                //         int t = z1 + z2 + z3 + z4 + z5 + z6;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(14, 22),
+                // (14,27): error CS0103: The name 'z3' does not exist in the current context
+                //         int t = z1 + z2 + z3 + z4 + z5 + z6;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(14, 27),
+                // (14,32): error CS0103: The name 'z4' does not exist in the current context
+                //         int t = z1 + z2 + z3 + z4 + z5 + z6;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z4").WithArguments("z4").WithLocation(14, 32),
+                // (14,37): error CS0103: The name 'z5' does not exist in the current context
+                //         int t = z1 + z2 + z3 + z4 + z5 + z6;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z5").WithArguments("z5").WithLocation(14, 37),
+                // (14,42): error CS0103: The name 'z6' does not exist in the current context
+                //         int t = z1 + z2 + z3 + z4 + z5 + z6;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(14, 42),
+                // (6,14): warning CS0168: The variable 'Local1' is declared but never used
+                //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local1").WithArguments("Local1").WithLocation(6, 14),
+                // (7,14): warning CS0168: The variable 'Local2' is declared but never used
+                //         void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local2").WithArguments("Local2").WithLocation(7, 14),
+                // (8,14): warning CS0168: The variable 'Local3' is declared but never used
+                //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local3").WithArguments("Local3").WithLocation(8, 14),
+                // (10,14): warning CS0168: The variable 'Local4' is declared but never used
+                //         void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local4").WithArguments("Local4").WithLocation(10, 14),
+                // (11,14): warning CS0168: The variable 'Local5' is declared but never used
+                //         void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local5").WithArguments("Local5").WithLocation(11, 14),
+                // (12,14): warning CS0168: The variable 'Local6' is declared but never used
+                //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local6").WithArguments("Local6").WithLocation(12, 14)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var descendents = tree.GetRoot().DescendantNodes();
+            for (int i = 1; i <= 6; i++)
+            {
+                var name = $"z{i}";
+                var designation = descendents.OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == name).Single();
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(designation);
+                Assert.NotNull(symbol);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+                var refs = descendents.OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == name).ToArray();
+                Assert.Equal(3, refs.Length);
+                Assert.Equal(symbol, model.GetSymbolInfo(refs[0]).Symbol);
+                Assert.Null(model.GetSymbolInfo(refs[1]).Symbol);
+                Assert.Null(model.GetSymbolInfo(refs[2]).Symbol);
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
+        public void RecursiveParameterDefault()
+        {
+            var text = @"
+class C
+{
+    public static void Main(int arg)
+    {
+        int Local(int x = Local()) => 2;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        [WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")]
+        public void LocalFunctionParameterDefaultUsingConst()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        const int N = 2;
+        void Local1(int n = N) { System.Console.Write(n); }
+        Local1();
+        Local1(3);
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "23", sourceSymbolValidator: m =>
+            {
+                var compilation = m.DeclaringCompilation;
+                // See https://github.com/dotnet/roslyn/issues/16454; this should actually produce no errors
+                compilation.VerifyDiagnostics(
+                    // (6,19): warning CS0219: The variable 'N' is assigned but its value is never used
+                    //         const int N = 2;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "N").WithArguments("N").WithLocation(6, 19)
+                    );
+                var tree = compilation.SyntaxTrees[0];
+                var model = compilation.GetSemanticModel(tree);
+                var descendents = tree.GetRoot().DescendantNodes();
+
+                var parameter = descendents.OfType<ParameterSyntax>().Single();
+                Assert.Equal("int n = N", parameter.ToString());
+                Assert.Equal("[System.Int32 n = 2]", model.GetDeclaredSymbol(parameter).ToTestDisplayString());
+
+                var name = "N";
+                var declarator = descendents.OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == name).Single();
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(declarator);
+                Assert.NotNull(symbol);
+                Assert.Equal("System.Int32 N", symbol.ToTestDisplayString());
+                var refs = descendents.OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == name).ToArray();
+                Assert.Equal(1, refs.Length);
+                Assert.Same(symbol, model.GetSymbolInfo(refs[0]).Symbol);
+            });
+        }
+
+        [Fact]
+        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        public void CallFromDifferentSwitchSection_01()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        Test(string.Empty);
+    }
+
+    static void Test(object o)
+    {
+        switch (o)
+        {
+            case string x:
+                Assign();
+                Print();
+                break;
+            case int x:
+                void Assign() { x = 5; }
+                void Print() => System.Console.WriteLine(x);
+                break;
+        }
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "5");
+        }
+
+        [Fact]
+        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        public void CallFromDifferentSwitchSection_02()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        Test(string.Empty);
+    }
+
+    static void Test(object o)
+    {
+        switch (o)
+        {
+            case int x:
+                void Assign() { x = 5; }
+                void Print() => System.Console.WriteLine(x);
+                break;
+            case string x:
+                Assign();
+                Print();
+                break;
+        }
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "5");
+        }
+
+        [Fact]
+        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        public void CallFromDifferentSwitchSection_03()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        Test(string.Empty);
+    }
+
+    static void Test(object o)
+    {
+        switch (o)
+        {
+            case string x:
+                Assign();
+                System.Action p = Print;
+                p();
+                break;
+            case int x:
+                void Assign() { x = 5; }
+                void Print() => System.Console.WriteLine(x);
+                break;
+        }
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "5");
+        }
+
+        [Fact]
+        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        public void CallFromDifferentSwitchSection_04()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        Test(string.Empty);
+    }
+
+    static void Test(object o)
+    {
+        switch (o)
+        {
+            case int x:
+                void Assign() { x = 5; }
+                void Print() => System.Console.WriteLine(x);
+                break;
+            case string x:
+                Assign();
+                System.Action p = Print;
+                p();
+                break;
+        }
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "5");
+        }
+
+        [Fact]
+        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        public void CallFromDifferentSwitchSection_05()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        Test(string.Empty);
+    }
+
+    static void Test(object o)
+    {
+        switch (o)
+        {
+            case string x:
+                Local1();
+                break;
+             case int x:
+                void Local1() => Local2(x = 5);
+                break;
+             case char x:
+                void Local2(int y)
+                {
+                    System.Console.WriteLine(x = 'a');
+                    System.Console.WriteLine(y);
+                }
+                break;
+        }
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: 
+@"a
+5");
+        }
+
+        [Fact]
+        [WorkItem(16751, "https://github.com/dotnet/roslyn/issues/16751")]
+        public void SemanticModelInAttribute_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        const bool b1 = true;
+
+        void Local1(
+            [Test(p = b1)]
+            [Test(p = b2)]
+            int p1)
+        {
+        }
+
+        Local1(1);
+    }
+}
+
+class b1 {}
+
+class Test : System.Attribute
+{
+    public bool p {get; set;}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl).Verify(
+                // (10,23): error CS0103: The name 'b2' does not exist in the current context
+                //             [Test(p = b2)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(10, 23),
+                // (6,20): warning CS0219: The variable 'b1' is assigned but its value is never used
+                //         const bool b1 = true;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1").WithLocation(6, 20)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var b2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b2").Single();
+            Assert.Null(model.GetSymbolInfo(b2).Symbol);
+
+            var b1 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b1").Single();
+            var b1Symbol = model.GetSymbolInfo(b1).Symbol;
+            Assert.Equal("System.Boolean b1", b1Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, b1Symbol.Kind);
         }
     }
 }

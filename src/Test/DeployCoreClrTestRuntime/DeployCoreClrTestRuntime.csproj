@@ -1,9 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <PlatformTarget>x64</PlatformTarget>
+    <!-- Misspelling, bug in NuGet targets -->
+    <RuntimeIndentifier>x64</RuntimeIndentifier>
+    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
     <ProjectGuid>{59BABFC3-C19B-4472-A93D-3DD3835BC219}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AssemblyName>DeployCoreClrTestRuntime_DoNotUse</AssemblyName>
@@ -13,12 +17,8 @@
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <!-- Misspelling, bug in NuGet targets -->
-    <RuntimeIndentifier>x64</RuntimeIndentifier>
-    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
     <NoStdLib>true</NoStdLib>
     <RoslynProjectType>DeploymentTest</RoslynProjectType>
-    <OutDir>$(OutDir)CoreClrTest</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" />
@@ -65,6 +65,10 @@
       <Project>{12a68549-4e8c-42d6-8703-a09335f97997}</Project>
       <Name>Scripting</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\CSharpTest\CSharpScriptingTest.csproj">
+      <Project>{2dae4406-7a89-4b5f-95c3-bc5422ce47ce}</Project>
+      <Name>CSharpScriptingTest</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
       <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
       <Name>CSharpScripting</Name>
@@ -72,10 +76,6 @@
     <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj">
       <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
       <Name>BasicScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Tools\CommonNetCoreReferences\CommonNetCoreReferences.csproj">
-      <Project>{b5a6057a-eb4c-49fb-987d-943137e72e47}</Project>
-      <Name>CommonNetCoreReferences</Name>
     </ProjectReference>
     <ProjectReference Include="..\PdbUtilities\PdbUtilities.csproj">
       <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>

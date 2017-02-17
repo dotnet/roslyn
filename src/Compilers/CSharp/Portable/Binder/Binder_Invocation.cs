@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var analyzedArguments = AnalyzedArguments.GetInstance();
             Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVariablePendingInference ||
                                         e.Kind == BoundKind.OutDeconstructVarPendingInference ||
-                                        e.Kind == BoundKind.DiscardedExpression && !e.HasExpressionType()));
+                                        e.Kind == BoundKind.DiscardExpression && !e.HasExpressionType()));
             analyzedArguments.Arguments.AddRange(args);
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(arguments.Arguments[i].Kind != BoundKind.OutDeconstructVarPendingInference);
 
                 if (arguments.Arguments[i].Kind == BoundKind.OutVariablePendingInference ||
-                    arguments.Arguments[i].Kind == BoundKind.DiscardedExpression && !arguments.Arguments[i].HasExpressionType())
+                    arguments.Arguments[i].Kind == BoundKind.DiscardExpression && !arguments.Arguments[i].HasExpressionType())
                 {
                     var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Arguments.Count);
                     builder.AddRange(arguments.Arguments);
@@ -352,9 +352,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             builder[i] = ((OutVariablePendingInference)argument).FailInference(this, diagnostics);
                         }
-                        else if (argument.Kind == BoundKind.DiscardedExpression && !argument.HasExpressionType())
+                        else if (argument.Kind == BoundKind.DiscardExpression && !argument.HasExpressionType())
                         {
-                            builder[i] = ((BoundDiscardedExpression)argument).FailInference(this, diagnostics);
+                            builder[i] = ((BoundDiscardExpression)argument).FailInference(this, diagnostics);
                         }
 
                         i++;
@@ -1192,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         }
                     case BoundKind.OutVariablePendingInference:
-                    case BoundKind.DiscardedExpression:
+                    case BoundKind.DiscardExpression:
                         {
                             if (argument.HasExpressionType())
                             {
@@ -1230,15 +1230,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     newArguments[i] = ((OutVariablePendingInference)argument).SetInferredType(candidateType, null);
                                 }
                             }
-                            else if (argument.Kind == BoundKind.DiscardedExpression)
+                            else if (argument.Kind == BoundKind.DiscardExpression)
                             {
                                 if ((object)candidateType == null)
                                 {
-                                    newArguments[i] = ((BoundDiscardedExpression)argument).FailInference(this, null);
+                                    newArguments[i] = ((BoundDiscardExpression)argument).FailInference(this, null);
                                 }
                                 else
                                 {
-                                    newArguments[i] = ((BoundDiscardedExpression)argument).SetInferredType(candidateType);
+                                    newArguments[i] = ((BoundDiscardExpression)argument).SetInferredType(candidateType);
                                 }
                             }
 

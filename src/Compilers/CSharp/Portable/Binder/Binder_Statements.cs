@@ -487,7 +487,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            localSymbol.GrabDiagnostics(diagnostics);
+            localSymbol.GetDeclarationDiagnostics(diagnostics);
+
+            Symbol.CheckForBlockAndExpressionBody(
+                node.Body, node.ExpressionBody, node, diagnostics);
 
             return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
         }
@@ -547,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var typeSyntax = node.Declaration.Type;
+            var typeSyntax = node.Declaration.Type.SkipRef(out RefKind _);
             bool isConst = node.IsConst;
 
             bool isVar;
@@ -589,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declarationNode is VariableDesignationSyntax ||
                 declarationNode.Kind() == SyntaxKind.VariableDeclaration ||
                 declarationNode.Kind() == SyntaxKind.DeclarationExpression ||
-                declarationNode.Kind() == SyntaxKind.DiscardedDesignation);
+                declarationNode.Kind() == SyntaxKind.DiscardDesignation);
 
             // If the type is "var" then suppress errors when binding it. "var" might be a legal type
             // or it might not; if it is not then we do not want to report an error. If it is, then
@@ -1711,15 +1714,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var op1 = BindValue(node.Left, diagnostics, BindValueKind.Assignment); // , BIND_MEMBERSET);
             var op2 = BindValue(node.Right, diagnostics, BindValueKind.RValue); // , BIND_RVALUEREQUIRED);
 
-            if (op1.Kind == BoundKind.DiscardedExpression)
+            if (op1.Kind == BoundKind.DiscardExpression)
             {
-                op1 = InferTypeForDiscard((BoundDiscardedExpression)op1, op2, diagnostics);
+                op1 = InferTypeForDiscard((BoundDiscardExpression)op1, op2, diagnostics);
             }
 
             return BindAssignment(node, op1, op2, diagnostics);
         }
 
-        private BoundExpression InferTypeForDiscard(BoundDiscardedExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
+        private BoundExpression InferTypeForDiscard(BoundDiscardExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
         {
             if (op2.Type == null)
             {
@@ -1863,7 +1866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(valueKind == BindValueKind.RefOrOut);
                     return expr;
 
-                case BoundKind.DiscardedExpression:
+                case BoundKind.DiscardExpression:
                     Debug.Assert(valueKind == BindValueKind.Assignment || valueKind == BindValueKind.RefOrOut);
                     return expr;
             }
@@ -1950,7 +1953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
                 case BoundKind.DynamicMemberAccess:
                 case BoundKind.DynamicIndexerAccess:
-                    return true;
+                    return CheckDynamicValueKind(expr, valueKind, diagnostics);
                 default:
                     {
                         if (RequiresSettingValue(valueKind))
@@ -1972,6 +1975,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
             }
+        }
+
+        private static bool CheckDynamicValueKind(BoundExpression expr, BindValueKind valueKind, DiagnosticBag diagnostics)
+        {
+            // dynamic expressions can be read and written to
+            // can even be passed by reference (which is implemented via a temp)
+            // it is not valid to return by reference though.
+            if (valueKind == BindValueKind.RefReturn)
+            {
+                Error(diagnostics, ErrorCode.ERR_RefReturnLvalueExpected, expr.Syntax);
+                return false;
+            }
+
+            return true;
         }
 
         private bool CheckEventValueKind(BoundEventAccess boundEvent, BindValueKind valueKind, DiagnosticBag diagnostics)
@@ -3371,11 +3388,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var catchBlocks = ArrayBuilder<BoundCatchBlock>.GetInstance(n);
+            var hasCatchAll = false;
+
             foreach (var catchSyntax in catchClauses)
             {
+                if (hasCatchAll)
+                {
+                    diagnostics.Add(ErrorCode.ERR_TooManyCatches, catchSyntax.CatchKeyword.GetLocation());
+                }
+
                 var catchBinder = this.GetBinder(catchSyntax);
                 var catchBlock = catchBinder.BindCatchBlock(catchSyntax, catchBlocks, diagnostics);
                 catchBlocks.Add(catchBlock);
+
+                hasCatchAll |= catchSyntax.Declaration == null && catchSyntax.Filter == null;
             }
             return catchBlocks.ToImmutableAndFree();
         }
@@ -3565,7 +3591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((object)returnType != null)
             {
-                if ((refKind != RefKind.None) != (returnRefKind != RefKind.None))
+                if ((refKind != RefKind.None) != (returnRefKind != RefKind.None) && expression.Kind != BoundKind.ThrowExpression)
                 {
                     var errorCode = refKind != RefKind.None
                         ? ErrorCode.ERR_MustNotHaveRefReturn

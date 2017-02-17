@@ -290,7 +290,7 @@ class Variable
 }]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=False)
             End Using
         End Function
 
@@ -307,7 +307,7 @@ class Variable
 }]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=False)
             End Using
         End Function
 
@@ -430,14 +430,14 @@ class Variable
                 Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
 
                 state.SendTypeChars(", va")
-                Await state.AssertSelectedCompletionItem(displayText:="var", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="var", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Await state.AssertNoCompletionSession()
 
                 state.SendTypeChars("a")
-                Await state.AssertSelectedCompletionItem(displayText:="bool", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
                 state.SendTypeChars(")")
-                Assert.Contains("(var a, va a)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(var a, var a)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
@@ -463,14 +463,14 @@ class Variable
                 Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
 
                 state.SendTypeChars(", va")
-                Await state.AssertSelectedCompletionItem(displayText:="var", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="var", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Await state.AssertNoCompletionSession()
 
                 state.SendTypeChars("a")
-                Await state.AssertSelectedCompletionItem(displayText:="bool", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
                 state.SendReturn()
-                Assert.Contains("(var a, va a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(var a, var a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -2730,6 +2730,7 @@ class C
             End Function
         End Class
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function Filters_EmptyList1() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -2762,6 +2763,7 @@ class C
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function Filters_EmptyList2() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -2796,6 +2798,7 @@ class C
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function Filters_EmptyList3() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -2830,6 +2833,7 @@ class C
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function Filters_EmptyList4() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -2860,9 +2864,122 @@ class C
                 Assert.Null(state.CurrentCompletionPresenterSession.SelectedItem)
                 state.SendTypeChars(".")
                 Await state.AssertNoCompletionSession()
-
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(15881, "https://github.com/dotnet/roslyn/issues/15881")>
+        Public Async Function CompletionAfterDotBeforeAwaitTask() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+class C
+{
+    async Task Moo()
+    {
+        Task.$$
+        await Task.Delay(50);
+    }
+}
+            ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+            End Using
+        End Function
+
+        <WorkItem(14704, "https://github.com/dotnet/roslyn/issues/14704")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function BackspaceTriggerSubstringMatching() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        if (Environment$$
+    }
+}
+                              </Document>)
+
+                Dim key = New OptionKey(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(key, True)
+
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem(displayText:="Environment", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WorkItem(16236, "https://github.com/dotnet/roslyn/issues/16236")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeNamedParameterEqualsItemCommittedOnSpace() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+[A($$)]
+class AAttribute: Attribute
+{
+    public string Skip { get; set; }
+} </Document>)
+                state.SendTypeChars("Skip")
+                Await state.AssertCompletionSession()
+                state.SendTypeChars(" ")
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("[A(Skip )]", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(362890, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=362890")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFilteringAfterSimpleInvokeShowsAllItemsMatchingFilter() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+
+enum Color
+{
+    Red,
+    Green,
+    Blue
+}
+
+class C
+{
+    void M()
+    {
+        Color.Re$$d
+    }
+}
+            ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("Red")
+                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue", "Equals"})
+
+                Dim filters = state.CurrentCompletionPresenterSession.CompletionItemFilters
+                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
+                For Each f In filters
+                    dict(f) = False
+                Next
+
+                dict(CompletionItemFilter.EnumFilter) = True
+
+                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
+                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
+                Await state.AssertSelectedCompletionItem("Red")
+                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue"})
+                Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "Equals"))
+
+                For Each f In filters
+                    dict(f) = False
+                Next
+
+                args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
+                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
+                Await state.AssertSelectedCompletionItem("Red")
+                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue", "Equals"})
+
+            End Using
+        End Function
     End Class
 End Namespace

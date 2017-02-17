@@ -120,7 +120,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Dim delegateType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
                 attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,
                 returnType:=semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
-                name:=eventHandlerName, parameters:=delegateSymbol.GetParameters())
+                returnsByRef:=False, name:=eventHandlerName,
+                parameters:=delegateSymbol.GetParameters())
 
             Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
                 attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
@@ -270,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
                 Dim eventHandlerType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
                     eventType.GetAttributes(), eventType.DeclaredAccessibility,
-                    modifiers:=Nothing, returnType:=returnType,
+                    modifiers:=Nothing, returnType:=returnType, returnsByRef:=false,
                     name:=actualEventName + "EventHandler",
                     typeParameters:=eventType.TypeParameters, parameters:=parameters)
 
@@ -374,7 +375,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Dim delegateType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
                 attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,
                 returnType:=semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
-                name:=actualEventName + "Handler", parameters:=boundMethod.GetParameters())
+                returnsByRef:=False, name:=actualEventName + "Handler",
+                parameters:=boundMethod.GetParameters())
 
             Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
                 attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,

@@ -36,10 +36,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
-        bool IsDocumentationComment(SyntaxNode node);
         bool IsUsingOrExternOrImport(SyntaxNode node);
         bool IsGlobalAttribute(SyntaxNode node);
         bool IsDeclaration(SyntaxNode node);
+
+        bool IsRegularComment(SyntaxTrivia trivia);
+        bool IsDocumentationComment(SyntaxTrivia trivia);
+
+        bool IsDocumentationComment(SyntaxNode node);
 
         bool IsNumericLiteralExpression(SyntaxNode node);
         bool IsNullLiteralExpression(SyntaxNode node);
@@ -117,6 +121,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNamedParameter(SyntaxNode node);
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
+
+        bool IsWhitespaceTrivia(SyntaxTrivia trivia);
+        bool IsEndOfLineTrivia(SyntaxTrivia trivia);
 
         SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
 
@@ -255,6 +262,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void AddFirstMissingCloseBrace(
             SyntaxNode root, SyntaxNode contextNode, 
             out SyntaxNode newRoot, out SyntaxNode newContextNode);
+
+        SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
     }
 
     [Flags]

@@ -68,14 +68,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeIsDeclarationPattern(BoundDeclarationPattern loweredPattern, BoundExpression loweredInput)
         {
-            Debug.Assert(((object)loweredPattern.Variable == null && loweredPattern.VariableAccess.Kind == BoundKind.DiscardedExpression) ||
+            Debug.Assert(((object)loweredPattern.Variable == null && loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression) ||
                          loweredPattern.Variable.GetTypeOrReturnType() == loweredPattern.DeclaredType.Type);
 
             if (loweredPattern.IsVar)
             {
                 var result = _factory.Literal(true);
 
-                if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardedExpression)
+                if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression)
                 {
                     return result;
                 }
@@ -86,10 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _factory.MakeSequence(assignment, result);
             }
 
-            if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardedExpression)
+            if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression)
             {
                 LocalSymbol temp;
-                BoundLocal discard = _factory.MakeTempForDiscard((BoundDiscardedExpression)loweredPattern.VariableAccess, out temp);
+                BoundLocal discard = _factory.MakeTempForDiscard((BoundDiscardExpression)loweredPattern.VariableAccess, out temp);
 
                 return _factory.Sequence(ImmutableArray.Create(temp),
                          sideEffects: ImmutableArray<BoundExpression>.Empty,
@@ -136,8 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _factory.StaticCall(
                 _factory.SpecialType(SpecialType.System_Object),
                 "Equals",
-                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), input),
-                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), boundConstant)
+                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), boundConstant),
+                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), input)
                 );
         }
 

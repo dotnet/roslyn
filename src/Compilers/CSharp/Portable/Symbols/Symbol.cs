@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -465,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SymbolKind.Assembly:
                     case SymbolKind.DynamicType:
                     case SymbolKind.NetModule:
-                    case SymbolKind.Discarded:
+                    case SymbolKind.Discard:
                         return false;
 
                     default:
@@ -1087,6 +1086,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat format = null)
         {
             return SymbolDisplay.ToMinimalDisplayParts(this, semanticModel, position, format);
+        }
+
+        protected static void ReportErrorIfHasConstraints(
+            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, DiagnosticBag diagnostics)
+        {
+            if (constraintClauses.Count > 0)
+            {
+                diagnostics.Add(
+                    ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl,
+                    constraintClauses[0].WhereKeyword.GetLocation());
+            }
+        }
+
+        internal static void CheckForBlockAndExpressionBody(
+            CSharpSyntaxNode block,
+            CSharpSyntaxNode expression,
+            CSharpSyntaxNode syntax,
+            DiagnosticBag diagnostics)
+        {
+            if (block != null && expression != null)
+            {
+                diagnostics.Add(ErrorCode.ERR_BlockBodyAndExpressionBody, syntax.GetLocation());
+            }
         }
 
         #region ISymbol Members

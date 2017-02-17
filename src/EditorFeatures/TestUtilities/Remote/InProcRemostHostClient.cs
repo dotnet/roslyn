@@ -16,14 +16,14 @@ using StreamJsonRpc;
 
 namespace Roslyn.Test.Utilities.Remote
 {
-    internal class InProcRemoteHostClient : RemoteHostClient
+    internal sealed class InProcRemoteHostClient : RemoteHostClient
     {
         private readonly InProcRemoteServices _inprocServices;
         private readonly JsonRpc _rpc;
 
-        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup, CancellationToken cancellationToken)
         {
-            var inprocServices = new InProcRemoteServices();
+            var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
 
@@ -47,10 +47,13 @@ namespace Roslyn.Test.Utilities.Remote
         {
             _inprocServices = inprocServices;
 
-            _rpc = JsonRpc.Attach(stream, target: this);
+            _rpc = new JsonRpc(stream, stream, target: this);
+            _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
             // handle disconnected situation
             _rpc.Disconnected += OnRpcDisconnected;
+
+            _rpc.StartListening();
         }
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
@@ -65,7 +68,7 @@ namespace Roslyn.Test.Utilities.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
 
-            return await JsonRpcSession.CreateAsync(snapshot, snapshotStream, callbackTarget, serviceStream, cancellationToken).ConfigureAwait(false);
+            return await JsonRpcSession.CreateAsync(snapshot, callbackTarget, serviceStream, snapshotStream, cancellationToken).ConfigureAwait(false);
         }
 
         protected override void OnConnected()
@@ -88,9 +91,11 @@ namespace Roslyn.Test.Utilities.Remote
 
             private readonly AssetStorage _storage;
 
-            public ServiceProvider()
+            public ServiceProvider(bool runCacheCleanup)
             {
-                _storage = new AssetStorage(enableCleanup: false);
+                _storage = runCacheCleanup ?
+                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1)) :
+                    new AssetStorage();
             }
 
             public AssetStorage AssetStorage => _storage;
@@ -115,9 +120,9 @@ namespace Roslyn.Test.Utilities.Remote
         {
             private readonly ServiceProvider _serviceProvider;
 
-            public InProcRemoteServices()
+            public InProcRemoteServices(bool runCacheCleanup)
             {
-                _serviceProvider = new ServiceProvider();
+                _serviceProvider = new ServiceProvider(runCacheCleanup);
             }
 
             public AssetStorage AssetStorage => _serviceProvider.AssetStorage;

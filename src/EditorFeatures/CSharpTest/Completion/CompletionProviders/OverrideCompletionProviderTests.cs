@@ -2125,7 +2125,7 @@ End Class
                 var solution = testWorkspace.CurrentSolution;
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
                 var document = solution.GetDocument(documentId);
-                var triggerInfo = CompletionTrigger.Default;
+                var triggerInfo = CompletionTrigger.Invoke;
 
                 var service = GetCompletionService(testWorkspace);
                 var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
@@ -2382,7 +2382,7 @@ int bar;
                 var solution = testWorkspace.CurrentSolution;
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").Id;
                 var document = solution.GetDocument(documentId);
-                var triggerInfo = CompletionTrigger.Default;
+                var triggerInfo = CompletionTrigger.Invoke;
 
                 var service = GetCompletionService(testWorkspace);
                 var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
@@ -2438,7 +2438,7 @@ int bar;
                 var solution = testWorkspace.CurrentSolution;
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
                 var document = solution.GetDocument(documentId);
-                var triggerInfo = CompletionTrigger.Default;
+                var triggerInfo = CompletionTrigger.Invoke;
 
                 var service = GetCompletionService(testWorkspace);
                 var completionList = await GetCompletionListAsync(service, document, cursorPosition, triggerInfo);
@@ -2543,7 +2543,7 @@ namespace ConsoleApplication46
                 var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
                 var service = GetCompletionService(workspace);
-                var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Default);
+                var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
 
                 var oldTree = await document.GetSyntaxTreeAsync();
 

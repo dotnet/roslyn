@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LambdaParameterParsingTests : ParsingTests
     {
+        public LambdaParameterParsingTests(ITestOutputHelper output) : base(output) { }
+
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
             return SyntaxFactory.ParseSyntaxTree(text, options: options);
@@ -543,54 +543,43 @@ class C {
         public void HangingLambdaParsing_Bug14167()
         {
             var tree = UsingNode(@"(int a, int b Main();");
-            N(SyntaxKind.ParenthesizedLambdaExpression);
+            tree.GetDiagnostics().Verify(
+                // (1,1): error CS1073: Unexpected token 'b'
+                // (int a, int b Main();
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int a, int ").WithArguments("b").WithLocation(1, 1),
+                // (1,9): error CS1525: Invalid expression term 'int'
+                // (int a, int b Main();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 9),
+                // (1,13): error CS1026: ) expected
+                // (int a, int b Main();
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "b").WithLocation(1, 13)
+                );
+            N(SyntaxKind.TupleExpression);
             {
-                N(SyntaxKind.ParameterList);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.Argument);
                 {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.DeclarationExpression);
                     {
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "a");
-                    }
-                    N(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.SingleVariableDesignation);
                         {
-                            N(SyntaxKind.IntKeyword);
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
-                        N(SyntaxKind.IdentifierToken, "b");
                     }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Main");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.TupleType);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.EqualsGreaterThanToken);
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
                 }
+                M(SyntaxKind.CloseParenToken);
             }
             EOF();
         }

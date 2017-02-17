@@ -105,6 +105,35 @@ class Program : Foo
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [WorkItem(16434, "https://github.com/dotnet/roslyn/issues/16434")]
+        public async Task TestMethodWithTupleNames()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class Base
+{
+    protected abstract (int a, int b) Method((string, string d) x);
+}
+
+class [|Program|] : Base
+{
+}",
+@"using System;
+
+abstract class Base
+{
+    protected abstract (int a, int b) Method((string, string d) x);
+}
+
+class Program : Base
+{
+    protected override (int a, int b) Method((string, string d) x)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
         [WorkItem(543234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543234")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestNotAvailableForStruct()

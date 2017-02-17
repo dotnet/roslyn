@@ -31,19 +31,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function TryCreate(method As MethodSymbol, methodBody As BoundStatement, methodBodyFactory As SyntheticBoundNodeFactory, diagnostics As DiagnosticBag, debugDocumentProvider As DebugDocumentProvider, previous As Instrumenter) As DynamicAnalysisInjector
             ' Do not instrument implicitly-declared methods, except for constructors.
             ' Instrument implicit constructors in order to instrument member initializers.
-            If Not method.IsImplicitlyDeclared OrElse method.IsAnyConstructor Then
-                Dim createPayload As MethodSymbol = GetCreatePayload(methodBodyFactory.Compilation, methodBody.Syntax, diagnostics)
-
-                ' Do not instrument any methods if CreatePayload is not present.
-                ' Do not instrument CreatePayload if it is part of the current compilation (which occurs only during testing).
-                ' Do not instrument if the syntax node does not have a valid mapped line span.
-                ' CreatePayload will fail at run time with an infinite recursion if it Is instrumented.
-                If createPayload IsNot Nothing AndAlso Not method.Equals(createPayload) AndAlso HasValidMappedLineSpan(methodBody.Syntax) Then
-                    Return New DynamicAnalysisInjector(method, methodBody, methodBodyFactory, createPayload, diagnostics, debugDocumentProvider, previous)
-                End If
+            If method.IsImplicitlyDeclared AndAlso Not method.IsAnyConstructor Then
+                Return Nothing
             End If
 
-            Return Nothing
+            ' Do not instrument if the syntax node does not have a valid mapped line span.
+            If Not HasValidMappedLineSpan(methodBody.Syntax) Then
+                Return Nothing
+            End If
+
+            ' Do not instrument methods marked with or in scope of ExcludeFromCodeCoverageAttribute
+            If IsExcludedFromCodeCoverage(method) Then
+                Return Nothing
+            End If
+
+            Dim createPayload As MethodSymbol = GetCreatePayload(methodBodyFactory.Compilation, methodBody.Syntax, diagnostics)
+
+            ' Do not instrument any methods if CreatePayload is not present.
+            If createPayload Is Nothing Then
+                Return Nothing
+            End If
+
+            ' Do not instrument CreatePayload if it is part of the current compilation (which occurs only during testing).
+            ' CreatePayload will fail at run time with an infinite recursion if it is instrumented.
+            If method.Equals(createPayload) Then
+                Return Nothing
+            End If
+
+            Return New DynamicAnalysisInjector(method, methodBody, methodBodyFactory, createPayload, diagnostics, debugDocumentProvider, previous)
         End Function
 
         Private Shared Function HasValidMappedLineSpan(syntax As SyntaxNode) As Boolean
@@ -76,6 +91,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        Private Shared Function IsExcludedFromCodeCoverage(method As MethodSymbol) As Boolean
+            Dim containingType = method.ContainingType
+
+            While containingType IsNot Nothing
+                If containingType.IsDirectlyExcludedFromCodeCoverage Then
+                    Return True
+                End If
+
+                containingType = containingType.ContainingType
+            End While
+
+            ' Skip lambdas. They can't have custom attributes.
+            Dim nonLambda = method.ContainingNonLambdaMember()
+            If nonLambda?.Kind = SymbolKind.Method Then
+                method = DirectCast(nonLambda, MethodSymbol)
+
+                If method.IsDirectlyExcludedFromCodeCoverage Then
+                    Return True
+                End If
+
+                Dim associatedSymbol = method.AssociatedSymbol
+                Select Case associatedSymbol?.Kind
+                    Case SymbolKind.Property
+                        If DirectCast(associatedSymbol, PropertySymbol).IsDirectlyExcludedFromCodeCoverage Then
+                            Return True
+                        End If
+
+                    Case SymbolKind.Event
+                        If DirectCast(associatedSymbol, EventSymbol).IsDirectlyExcludedFromCodeCoverage Then
+                            Return True
+                        End If
+                End Select
+            End If
+
+            Return False
+        End Function
+
+
         Public Overrides Function CreateBlockPrologue(trueOriginal As BoundBlock, original As BoundBlock, ByRef synthesizedLocal As LocalSymbol) As BoundStatement
             Dim previousPrologue As BoundStatement = MyBase.CreateBlockPrologue(trueOriginal, original, synthesizedLocal)
 
@@ -97,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim mvid As BoundExpression = _methodBodyFactory.ModuleVersionId(isLValue:=False)
                 Dim methodToken As BoundExpression = _methodBodyFactory.MethodDefIndex(_method)
                 Dim fileIndex As BoundExpression = _methodBodyFactory.SourceDocumentIndex(GetSourceDocument(_methodBody.Syntax))
-                Dim payloadSlot As BoundExpression = _methodBodyFactory.ArrayAccess(_methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False), isLValue:=False, indices:=ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method)))
+                Dim payloadSlot As BoundExpression = _methodBodyFactory.ArrayAccess(_methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False), isLValue:=True, indices:=ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method)))
                 Dim createPayloadCall As BoundStatement = _methodBodyFactory.Assignment(_methodBodyFactory.Local(_methodPayload, isLValue:=True), _methodBodyFactory.Call(Nothing, _createPayload, mvid, methodToken, fileIndex, payloadSlot, _methodBodyFactory.Literal(_dynamicAnalysisSpans.Length)))
 
                 Dim payloadNullTest As BoundExpression = _methodBodyFactory.Binary(BinaryOperatorKind.Equals, _methodBodyFactory.SpecialType(SpecialType.System_Boolean), _methodBodyFactory.Local(_methodPayload, False), _methodBodyFactory.Null(_payloadType))

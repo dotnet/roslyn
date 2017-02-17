@@ -5499,5 +5499,99 @@ class C
             var description = symbol.ToMinimalDisplayParts(model, position, SymbolDisplayFormat.MinimallyQualifiedFormat);
             Verify(description, "A.B", SymbolDisplayPartKind.AliasName, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName);
         }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
+        public void LocalFunction()
+        {
+            var srcTree = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        void Local() {}
+    }
+}");
+            var root = srcTree.GetRoot();
+            var comp = CreateCompilationWithMscorlib(srcTree);
+
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var local = root.DescendantNodes()
+                .Where(n => n.Kind() == SyntaxKind.LocalFunctionStatement)
+                .Single();
+            var localSymbol = Assert.IsType<LocalFunctionSymbol>(
+                semanticModel.GetDeclaredSymbol(local));
+
+            Verify(localSymbol.ToDisplayParts(SymbolDisplayFormat.TestFormat),
+                "void Local()",
+                SymbolDisplayPartKind.Keyword, // void
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName, // Local
+                SymbolDisplayPartKind.Punctuation, // (
+                SymbolDisplayPartKind.Punctuation); // )
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
+        public void LocalFunction2()
+        {
+            var srcTree = SyntaxFactory.ParseSyntaxTree(@"
+using System.Threading.Tasks;
+class C
+{
+    void M()
+    {
+        async unsafe Task<int> Local(ref int* x, out char? c)
+        {
+        }
+    }
+}");
+            var root = srcTree.GetRoot();
+            var comp = CreateCompilationWithMscorlib45(new[] { srcTree });
+
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var local = root.DescendantNodes()
+                .Where(n => n.Kind() == SyntaxKind.LocalFunctionStatement)
+                .Single();
+            var localSymbol = Assert.IsType<LocalFunctionSymbol>(
+                semanticModel.GetDeclaredSymbol(local));
+
+            Verify(localSymbol.ToDisplayParts(SymbolDisplayFormat.TestFormat),
+                "System.Threading.Tasks.Task<System.Int32> Local(ref System.Int32* x, out System.Char? c)",
+                SymbolDisplayPartKind.NamespaceName, // System
+                SymbolDisplayPartKind.Punctuation, // .
+                SymbolDisplayPartKind.NamespaceName, // Threading
+                SymbolDisplayPartKind.Punctuation, // .
+                SymbolDisplayPartKind.NamespaceName, // Tasks
+                SymbolDisplayPartKind.Punctuation, // .
+                SymbolDisplayPartKind.ClassName, // Task
+                SymbolDisplayPartKind.Punctuation, // <
+                SymbolDisplayPartKind.NamespaceName, // System
+                SymbolDisplayPartKind.Punctuation, // .
+                SymbolDisplayPartKind.StructName, // Int32
+                SymbolDisplayPartKind.Punctuation, // >
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName, // Local
+                SymbolDisplayPartKind.Punctuation, // (
+                SymbolDisplayPartKind.Keyword, // ref
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName, // System
+                SymbolDisplayPartKind.Punctuation, // .
+                SymbolDisplayPartKind.StructName, // Int32
+                SymbolDisplayPartKind.Punctuation, // *
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName, // x
+                SymbolDisplayPartKind.Punctuation, // ,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // out
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName, // System
+                SymbolDisplayPartKind.Punctuation, // .
+                SymbolDisplayPartKind.StructName, // Char
+                SymbolDisplayPartKind.Punctuation, // ?
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName, // c
+                SymbolDisplayPartKind.Punctuation); // )
+        }
     }
 }

@@ -2102,10 +2102,12 @@ namespace CrashTest
 }";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-    // (2,30): warning CS0612: 'Class2' is obsolete
-    // using static CrashTest.Crash<CrashTest.Class2>; 
-    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "CrashTest.Class2").WithArguments("CrashTest.Class2").WithLocation(2, 30)
-                );
+                // (2,30): warning CS0612: 'Class2' is obsolete
+                // using static CrashTest.Crash<CrashTest.Class2>; 
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "CrashTest.Class2").WithArguments("CrashTest.Class2").WithLocation(2, 30),
+                // (2,14): warning CS0612: 'Crash<Class2>' is obsolete
+                // using static CrashTest.Crash<CrashTest.Class2>; 
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "CrashTest.Crash<CrashTest.Class2>").WithArguments("CrashTest.Crash<CrashTest.Class2>").WithLocation(2, 14));
         }
 
         [Fact, WorkItem(5697, "https://github.com/dotnet/roslyn/issues/5697")]

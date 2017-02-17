@@ -2135,7 +2135,12 @@ namespace System.ServiceModel
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (7,13): error CS1740: Named argument 'arg' cannot be specified multiple times
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "arg").WithArguments("arg").WithLocation(7, 13));
+                //             arg: null);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "arg").WithArguments("arg").WithLocation(7, 13),
+                // (5,9): error CS1501: No overload for method 'M' takes 3 arguments
+                //         M("",
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "3").WithLocation(5, 9)
+                );
         }
 
         [WorkItem(543820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543820")]
@@ -2404,7 +2409,11 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (15,15): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
+                //         new D(M)();
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(15, 15)
+                );
         }
 
         [Fact]
@@ -2462,7 +2471,11 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (19,11): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
+                //         M(M);
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(19, 11)
+                );
         }
 
         [Fact, WorkItem(1078958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078958")]
@@ -3420,27 +3433,122 @@ class Program
 @"
 public static class FooExtensions
 {
-    public static T Foo<T>(this object obj) => default(T);
+    public static object ExtensionMethod0(this object obj) => default(object);
+    public static T ExtensionMethod1<T>(this object obj) => default(T);
+    public static T1 ExtensionMethod2<T1, T2>(this object obj) => default(T1);
 }
 
 public class Class1
 {
     public void Test()
     {
-        var defaultA = ""a"".Foo<>();
-        var defaultB = FooExtensions.Foo<>(""b"");
+        var omittedArg0 = ""string literal"".ExtensionMethod0<>();
+        var omittedArg1 = ""string literal"".ExtensionMethod1<>();
+        var omittedArg2 = ""string literal"".ExtensionMethod2<>();
+
+        var omittedArgFunc0 = ""string literal"".ExtensionMethod0<>;
+        var omittedArgFunc1 = ""string literal"".ExtensionMethod1<>;
+        var omittedArgFunc2 = ""string literal"".ExtensionMethod2<>;
+
+        var moreArgs0 = ""string literal"".ExtensionMethod0<int>();
+        var moreArgs1 = ""string literal"".ExtensionMethod1<int, bool>();
+        var moreArgs2 = ""string literal"".ExtensionMethod2<int, bool, string>();
+
+        var lessArgs1 = ""string literal"".ExtensionMethod1();
+        var lessArgs2 = ""string literal"".ExtensionMethod2<int>();
+
+        var nonExistingMethod0 = ""string literal"".ExtensionMethodNotFound0();
+        var nonExistingMethod1 = ""string literal"".ExtensionMethodNotFound1<int>();
+        var nonExistingMethod2 = ""string literal"".ExtensionMethodNotFound2<int, string>();
+
+        System.Func<object> delegateConversion0 = ""string literal"".ExtensionMethod0<>;
+        System.Func<object> delegateConversion1 = ""string literal"".ExtensionMethod1<>;
+        System.Func<object> delegateConversion2 = ""string literal"".ExtensionMethod2<>;
+
+        var exactArgs0 = ""string literal"".ExtensionMethod0();
+        var exactArgs1 = ""string literal"".ExtensionMethod1<int>();
+        var exactArgs2 = ""string literal"".ExtensionMethod2<int, bool>();
     }
 }
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
 
             compilation.VerifyDiagnostics(
-                // (11,24): error CS0305: Using the generic method group 'Foo' requires 1 type arguments
-                //         var defaultA = "a".Foo<>();
-                Diagnostic(ErrorCode.ERR_BadArity, @"""a"".Foo<>").WithArguments("Foo", "method group", "1").WithLocation(11, 24),
-                // (12,24): error CS0305: Using the generic method group 'Foo' requires 1 type arguments
-                //         var defaultB = FooExtensions.Foo<>("b");
-                Diagnostic(ErrorCode.ERR_BadArity, "FooExtensions.Foo<>").WithArguments("Foo", "method group", "1").WithLocation(12, 24));
+                // (13,27): error CS0305: Using the generic method group 'ExtensionMethod0' requires 1 type arguments
+                //         var omittedArg0 = "string literal".ExtensionMethod0<>();
+                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod0<>").WithArguments("ExtensionMethod0", "method group", "1").WithLocation(13, 27),
+                // (13,44): error CS1061: 'string' does not contain a definition for 'ExtensionMethod0' and no extension method 'ExtensionMethod0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var omittedArg0 = "string literal".ExtensionMethod0<>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod0<>").WithArguments("string", "ExtensionMethod0").WithLocation(13, 44),
+                // (14,27): error CS0305: Using the generic method group 'ExtensionMethod1' requires 1 type arguments
+                //         var omittedArg1 = "string literal".ExtensionMethod1<>();
+                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod1<>").WithArguments("ExtensionMethod1", "method group", "1").WithLocation(14, 27),
+                // (15,27): error CS0305: Using the generic method group 'ExtensionMethod2' requires 1 type arguments
+                //         var omittedArg2 = "string literal".ExtensionMethod2<>();
+                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod2<>").WithArguments("ExtensionMethod2", "method group", "1").WithLocation(15, 27),
+                // (15,44): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var omittedArg2 = "string literal".ExtensionMethod2<>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<>").WithArguments("string", "ExtensionMethod2").WithLocation(15, 44),
+                // (17,31): error CS0305: Using the generic method group 'ExtensionMethod0' requires 1 type arguments
+                //         var omittedArgFunc0 = "string literal".ExtensionMethod0<>;
+                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod0<>").WithArguments("ExtensionMethod0", "method group", "1").WithLocation(17, 31),
+                // (17,48): error CS1061: 'string' does not contain a definition for 'ExtensionMethod0' and no extension method 'ExtensionMethod0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var omittedArgFunc0 = "string literal".ExtensionMethod0<>;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod0<>").WithArguments("string", "ExtensionMethod0").WithLocation(17, 48),
+                // (18,31): error CS0305: Using the generic method group 'ExtensionMethod1' requires 1 type arguments
+                //         var omittedArgFunc1 = "string literal".ExtensionMethod1<>;
+                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod1<>").WithArguments("ExtensionMethod1", "method group", "1").WithLocation(18, 31),
+                // (18,13): error CS0815: Cannot assign method group to an implicitly-typed variable
+                //         var omittedArgFunc1 = "string literal".ExtensionMethod1<>;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, @"omittedArgFunc1 = ""string literal"".ExtensionMethod1<>").WithArguments("method group").WithLocation(18, 13),
+                // (19,31): error CS0305: Using the generic method group 'ExtensionMethod2' requires 1 type arguments
+                //         var omittedArgFunc2 = "string literal".ExtensionMethod2<>;
+                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod2<>").WithArguments("ExtensionMethod2", "method group", "1").WithLocation(19, 31),
+                // (19,48): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var omittedArgFunc2 = "string literal".ExtensionMethod2<>;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<>").WithArguments("string", "ExtensionMethod2").WithLocation(19, 48),
+                // (21,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod0' and no extension method 'ExtensionMethod0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var moreArgs0 = "string literal".ExtensionMethod0<int>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod0<int>").WithArguments("string", "ExtensionMethod0").WithLocation(21, 42),
+                // (22,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod1' and no extension method 'ExtensionMethod1' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var moreArgs1 = "string literal".ExtensionMethod1<int, bool>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod1<int, bool>").WithArguments("string", "ExtensionMethod1").WithLocation(22, 42),
+                // (23,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var moreArgs2 = "string literal".ExtensionMethod2<int, bool, string>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<int, bool, string>").WithArguments("string", "ExtensionMethod2").WithLocation(23, 42),
+                // (25,42): error CS0411: The type arguments for method 'FooExtensions.ExtensionMethod1<T>(object)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var lessArgs1 = "string literal".ExtensionMethod1();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "ExtensionMethod1").WithArguments("FooExtensions.ExtensionMethod1<T>(object)").WithLocation(25, 42),
+                // (26,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var lessArgs2 = "string literal".ExtensionMethod2<int>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<int>").WithArguments("string", "ExtensionMethod2").WithLocation(26, 42),
+                // (28,51): error CS1061: 'string' does not contain a definition for 'ExtensionMethodNotFound0' and no extension method 'ExtensionMethodNotFound0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var nonExistingMethod0 = "string literal".ExtensionMethodNotFound0();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethodNotFound0").WithArguments("string", "ExtensionMethodNotFound0").WithLocation(28, 51),
+                // (29,51): error CS1061: 'string' does not contain a definition for 'ExtensionMethodNotFound1' and no extension method 'ExtensionMethodNotFound1' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var nonExistingMethod1 = "string literal".ExtensionMethodNotFound1<int>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethodNotFound1<int>").WithArguments("string", "ExtensionMethodNotFound1").WithLocation(29, 51),
+                // (30,51): error CS1061: 'string' does not contain a definition for 'ExtensionMethodNotFound2' and no extension method 'ExtensionMethodNotFound2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var nonExistingMethod2 = "string literal".ExtensionMethodNotFound2<int, string>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethodNotFound2<int, string>").WithArguments("string", "ExtensionMethodNotFound2").WithLocation(30, 51),
+                // (32,51): error CS0305: Using the generic method group 'ExtensionMethod0' requires 1 type arguments
+                //         System.Func<object> delegateConversion0 = "string literal".ExtensionMethod0<>;
+                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod0<>").WithArguments("ExtensionMethod0", "method group", "1").WithLocation(32, 51),
+                // (32,68): error CS1061: 'string' does not contain a definition for 'ExtensionMethod0' and no extension method 'ExtensionMethod0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Func<object> delegateConversion0 = "string literal".ExtensionMethod0<>;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod0<>").WithArguments("string", "ExtensionMethod0").WithLocation(32, 68),
+                // (33,51): error CS0305: Using the generic method group 'ExtensionMethod1' requires 1 type arguments
+                //         System.Func<object> delegateConversion1 = "string literal".ExtensionMethod1<>;
+                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod1<>").WithArguments("ExtensionMethod1", "method group", "1").WithLocation(33, 51),
+                // (33,51): error CS0407: '? FooExtensions.ExtensionMethod1<?>(object)' has the wrong return type
+                //         System.Func<object> delegateConversion1 = "string literal".ExtensionMethod1<>;
+                Diagnostic(ErrorCode.ERR_BadRetType, @"""string literal"".ExtensionMethod1<>").WithArguments("FooExtensions.ExtensionMethod1<?>(object)", "?").WithLocation(33, 51),
+                // (34,51): error CS0305: Using the generic method group 'ExtensionMethod2' requires 1 type arguments
+                //         System.Func<object> delegateConversion2 = "string literal".ExtensionMethod2<>;
+                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod2<>").WithArguments("ExtensionMethod2", "method group", "1").WithLocation(34, 51),
+                // (34,68): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Func<object> delegateConversion2 = "string literal".ExtensionMethod2<>;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<>").WithArguments("string", "ExtensionMethod2").WithLocation(34, 68));
         }
     }
 }

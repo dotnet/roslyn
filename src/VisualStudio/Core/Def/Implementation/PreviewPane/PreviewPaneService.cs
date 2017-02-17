@@ -81,9 +81,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url displayed in the tooltip stays human readable.
             if (helpLink != null)
             {
-                helpLinkToolTipText =
-                    string.Format(ServicesVSResources.Get_help_for_0_1_2_3, diagnostic.Id,
-                        isBing ? ServicesVSResources.from_Bing : null, Environment.NewLine, helpLink);
+                var prefix = isBing
+                    ? string.Format(ServicesVSResources.Get_help_for_0_from_Bing, diagnostic.Id)
+                    : string.Format(ServicesVSResources.Get_help_for_0, diagnostic.Id);
+
+                helpLinkToolTipText = $"{prefix}\r\n{helpLink}";
             }
 
             return helpLink;

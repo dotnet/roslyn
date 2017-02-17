@@ -35,6 +35,28 @@ Class C
 End Class")
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Async Function TestInterfaceWithTuple() As Task
+            Await TestAsync(
+"Imports System
+Class Foo
+    Implements [|IFoo|]
+End Class
+Interface IFoo
+    Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String)
+End Interface",
+"Imports System
+Class Foo
+    Implements IFoo
+    Public Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String) Implements IFoo.Method
+        Throw New NotImplementedException()
+    End Function
+End Class
+Interface IFoo
+    Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String)
+End Interface")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMethodConflict1() As Task
             Await TestAsync(
@@ -4491,6 +4513,41 @@ Public MustInherit Class C
     Public MustOverride Sub IFace_M() Implements IFace.M
 End Class",
 index:=1)
+        End Function
+
+        <WorkItem(16793, "https://github.com/dotnet/roslyn/issues/16793")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Async Function TestMethodWithValueTupleArity1() As Task
+            Await TestAsync(
+"
+Imports System
+interface I
+    Function F() As ValueTuple(Of Object)
+end interface
+class C
+    Implements [|I|]
+
+end class
+Namespace System
+    Structure ValueTuple(Of T1)
+    End Structure
+End Namespace",
+"
+Imports System
+interface I
+    Function F() As ValueTuple(Of Object)
+end interface
+class C 
+    Implements I
+
+Public Function F() As ValueTuple(Of Object) Implements I.F
+        Throw New NotImplementedException()
+    End Function
+end class
+Namespace System
+    Structure ValueTuple(Of T1)
+    End Structure
+End Namespace")
         End Function
     End Class
 End Namespace

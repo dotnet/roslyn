@@ -40,8 +40,9 @@ try
 
     switch ($branchName)
     {
-        "dev15-rc2" { } 
+        "dev15-rc3" { } 
         "master" { } 
+        "post-dev15" { } 
         default
         {
             if (-not $test)

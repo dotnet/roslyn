@@ -305,5 +305,34 @@ class C
     }
 }");
         }
+
+        [WorkItem(16025, "https://github.com/dotnet/roslyn/issues/16025")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestTrivia1()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    public Program()
+    {
+        string x = "";
+
+        string y = [|x|] == null ? string.Empty : x;
+    }
+}",
+@"using System;
+
+class Program
+{
+    public Program()
+    {
+        string x = "";
+
+        string y = x ?? string.Empty;
+    }
+}", compareTokens: false);
+        }
     }
 }

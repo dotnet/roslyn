@@ -31,10 +31,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _workspace = workspace;
                 _client = client;
                 _currentSolutionId = workspace.CurrentSolution.Id;
+            }
 
+            public Task InitializeAsync()
+            {
                 // Ensure that we populate the remote service with the initial state of
                 // the workspace's solution.
-                RegisterPrimarySolutionAsync().Wait();
+                return RegisterPrimarySolutionAsync();
             }
 
             public void OnAfterWorkingFolderChange()
@@ -58,14 +61,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 {
                     await session.InvokeAsync(
                         WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_RegisterPrimarySolutionId,
-                        solutionId.Id.ToByteArray(),
-                        solutionId.DebugName).ConfigureAwait(false);
+                        solutionId).ConfigureAwait(false);
 
                     await session.InvokeAsync(
                         WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_UpdateSolutionIdStorageLocation,
-                        solutionId.Id.ToByteArray(),
-                        solutionId.DebugName,
-                        _workspace.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
+                        solutionId,
+                        _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
                 }
             }
 
@@ -99,8 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     // ask remote host to sync initial asset
                     await session.InvokeAsync(
                         WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_UnregisterPrimarySolutionId,
-                        solutionId.Id.ToByteArray(),
-                        solutionId.DebugName,
+                        solutionId,
                         synchronousShutdown).ConfigureAwait(false);
                 }
             }

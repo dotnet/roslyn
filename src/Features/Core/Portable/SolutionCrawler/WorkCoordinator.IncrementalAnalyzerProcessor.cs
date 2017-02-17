@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -323,10 +323,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             if (!_analyzerMap.TryGetValue(workspace, out var analyzers))
                             {
-                                // Sort list so BaseDiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
+                                // Sort list so DiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
                                 analyzers = _analyzerProviders.Select(p => ValueTuple.Create(p.Value.CreateIncrementalAnalyzer(workspace), p.Metadata.HighPriorityForActiveFile))
                                                 .Where(t => t.Item1 != null)
-                                                .OrderBy(t => !(t.Item1 is BaseDiagnosticIncrementalAnalyzer))
+                                                .OrderBy(t => !(t.Item1 is DiagnosticIncrementalAnalyzer))
                                                 .ToImmutableArray();
 
                                 _analyzerMap[workspace] = analyzers;

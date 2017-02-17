@@ -1627,9 +1627,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_PartialMethodParamArrayMismatch2 = 37204
 
         ERR_NetModuleNameMismatch = 37205
-        ERR_BadCompilationOption = 37206
+        ERR_BadModuleName = 37206
         ERR_CmdOptionConflictsSource = 37207
-        ' unused 37208   
+        ERR_TypeForwardedToMultipleAssemblies = 37208
         ERR_InvalidSignaturePublicKey = 37209
         ERR_CollisionWithPublicTypeInModule = 37210
         ERR_ExportedTypeConflictsWithDeclaration = 37211
@@ -1721,8 +1721,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_NewWithTupleTypeSyntax = 37280
         ERR_PredefinedValueTupleTypeMustBeStruct = 37281
+        ERR_PublicSignNetModule = 37282
+        ERR_BadAssemblyName = 37283
 
-        ERR_Merge_conflict_marker_encountered = 37282
+        ERR_Merge_conflict_marker_encountered = 37284
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -1943,7 +1945,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_NoAnalyzerInAssembly = 42377
         WRN_UnableToLoadAnalyzer = 42378
 
-        ' // AVAILABLE                             42379 - 49998
+        WRN_AttributeIgnoredWhenPublicSigning = 42379
+
+        ' // AVAILABLE                             42380 - 49998
         ERRWRN_Last = WRN_UnableToLoadAnalyzer + 1
 
         '// HIDDENS AND INFOS BEGIN HERE

@@ -8948,8 +8948,8 @@ class C
         await Local<$$";
 
             await VerifyAnyItemExistsAsync(markup);
-		}
-			
+        }
+
         [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TupleTypeAtMemberLevel1()
@@ -9035,6 +9035,47 @@ class C
         var x = nameof((C, $$
     }
 }", "C");
+        }
+
+        [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task LocalFunctionDescription()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    void M()
+    {
+        void Local() { }
+        
+        $$
+    }
+}", "Local", "void Local()");
+        }
+
+        [WorkItem(14163, "https://github.com/dotnet/roslyn/issues/14163")]
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task LocalFunctionDescription2()
+        {
+            await VerifyItemExistsAsync(@"
+using System;
+class C
+{
+    class var { }
+    void M()
+    {
+        Action<int> Local(string x, ref var @class, params Func<int, string> f)
+        {
+            return () => 0;
+        }
+
+        $$
+    }
+}", "Local", "Action<int> Local(string x, ref var @class, params Func<int, string> f)");
         }
     }
 }

@@ -16,8 +16,7 @@ public class RoslynSDKAnalyzerTemplateWizard : RoslynSDKChildTemplateWizard
         // included in the VSIX. The only way to solve this is to have th wizard mark the
         // assemblies as copy local false.
         Project = project;
-        var vsProject = project.Object as VSProject;
-        if (vsProject != null)
+        if (project.Object is VSProject vsProject)
         {
             if (vsProject.References != null)
             {

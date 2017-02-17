@@ -893,6 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 explicitInterfaceSymbol: null,
                 name: propertyName.Identifier.ValueText,
                 type: propertyType,
+                returnsByRef: false,
                 parameters: null,
                 getMethod: s_accessor,
                 setMethod: s_accessor,

@@ -610,7 +610,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         public static TypeInfo GetTypeInfo(this SemanticModel semanticModel, SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
@@ -1201,6 +1200,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given a syntax node of anonymous object creation expression, get the anonymous object type symbol.
         /// </summary>
         public static INamedTypeSymbol GetDeclaredSymbol(this SemanticModel semanticModel, AnonymousObjectCreationExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a syntax node of tuple expression, get the tuple type symbol.
+        /// </summary>
+        public static INamedTypeSymbol GetDeclaredSymbol(this SemanticModel semanticModel, TupleExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a syntax node of a tuple argument, get the tuple element symbol.
+        /// </summary>
+        public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, ArgumentSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);

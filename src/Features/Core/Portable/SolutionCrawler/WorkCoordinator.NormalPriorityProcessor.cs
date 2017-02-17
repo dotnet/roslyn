@@ -330,6 +330,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 var cancellationToken = source.Token;
                                 var document = _processingSolution.GetDocument(documentId);
+
                                 if (document != null)
                                 {
                                     await TrackSemanticVersionsAsync(document, workItem, cancellationToken).ConfigureAwait(false);

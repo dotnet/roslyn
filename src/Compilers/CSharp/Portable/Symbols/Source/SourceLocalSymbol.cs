@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _scopeBinder; }
         }
 
+        internal override SyntaxNode ScopeDesignatorOpt
+        {
+            get { return _scopeBinder.ScopeDesignator; }
+        }
+
         /// <summary>
         /// Binder that should be used to bind type syntax for the local.
         /// </summary>
@@ -658,7 +663,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SyntaxKind.SimpleAssignmentExpression:
                         var assignment = (AssignmentExpressionSyntax)_deconstruction;
-                        _nodeBinder.BindDeconstruction(assignment, assignment.Left, assignment.Right, diagnostics, isDeclaration: true);
+                        Debug.Assert(assignment.IsDeconstruction());
+                        DeclarationExpressionSyntax declaration = null;
+                        ExpressionSyntax expression = null;
+                        _nodeBinder.BindDeconstruction(assignment, assignment.Left, assignment.Right, diagnostics, ref declaration, ref expression);
                         break;
 
                     case SyntaxKind.ForEachVariableStatement:
@@ -670,9 +678,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
                 }
 
-                TypeSymbol result = this._type;
-                Debug.Assert((object)result != null);
-                return result;
+                Debug.Assert((object)this._type != null);
+                return this._type;
             }
 
             internal override SyntaxNode ForbiddenZone
@@ -682,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (_deconstruction.Kind())
                     {
                         case SyntaxKind.SimpleAssignmentExpression:
-                            return ((AssignmentExpressionSyntax)_deconstruction).Right;
+                            return _deconstruction;
 
                         case SyntaxKind.ForEachVariableStatement:
                             // There is no forbidden zone for a foreach statement, because the
@@ -752,8 +759,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                Debug.Assert((object)this._type != null);
+                if ((object)this._type == null)
+                {
+                    AssertNoOutOrPatternVariable();
+                    SetType(_nodeBinder.CreateErrorType("var"));
+                }
+
                 return this._type;
+            }
+
+            [Conditional("DEBUG")]
+            private void AssertNoOutOrPatternVariable()
+            {
+                var parent = this._typeSyntax.Parent;
+
+                if (parent?.Kind() == SyntaxKind.DeclarationExpression && ((DeclarationExpressionSyntax)parent).IsOutVarDeclaration())
+                {
+                    Debug.Assert(false);
+                }
+                else if (parent?.Kind() == SyntaxKind.DeclarationPattern)
+                {
+                    Debug.Assert(false);
+                }
             }
         }
     }

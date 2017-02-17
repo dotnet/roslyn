@@ -279,6 +279,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations;
             }
 
+            if (node.ConstraintClauses.Count > 0)
+            {
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasConstraints;
+            }
+
             var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
                                                     ref declFlags);
 
@@ -316,9 +321,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SingleNamespaceOrTypeDeclaration VisitDelegateDeclaration(DelegateDeclarationSyntax node)
         {
-            SingleTypeDeclaration.TypeDeclarationFlags declFlags = node.AttributeLists.Any() ?
-                    SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes :
-                    SingleTypeDeclaration.TypeDeclarationFlags.None;
+            var declFlags = node.AttributeLists.Any()
+                ? SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes 
+                : SingleTypeDeclaration.TypeDeclarationFlags.None;
+
+            if (node.ConstraintClauses.Count > 0)
+            {
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasConstraints;
+            }
 
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
 

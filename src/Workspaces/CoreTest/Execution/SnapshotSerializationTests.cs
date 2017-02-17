@@ -6,6 +6,7 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -138,6 +139,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
+            var firstProjectChecksum = await solution.GetProject(solution.ProjectIds[0]).State.GetChecksumAsync(CancellationToken.None);
+            var secondProjectChecksum = await solution.GetProject(solution.ProjectIds[1]).State.GetChecksumAsync(CancellationToken.None);
+
             var snapshotService = (new SolutionSynchronizationServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSynchronizationService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
@@ -151,8 +155,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal(solutionObject.Projects.Count, 2);
 
                 var projects = solutionObject.Projects.ToProjectObjects(snapshotService);
-                VerifySnapshotInService(snapshotService, projects[0], 1, 1, 1, 1, 1);
-                VerifySnapshotInService(snapshotService, projects[1], 1, 0, 0, 0, 0);
+                VerifySnapshotInService(snapshotService, projects.Where(p => p.Checksum == firstProjectChecksum).First(), 1, 1, 1, 1, 1);
+                VerifySnapshotInService(snapshotService, projects.Where(p => p.Checksum == secondProjectChecksum).First(), 1, 0, 0, 0, 0);
             }
         }
 
@@ -389,6 +393,37 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task RoundTrip_Analyzer_Serailization_Test()
+        {
+            var workspace = new AdhocWorkspace();
+            var serializer = new Serializer(workspace);
+
+            var reference = new AnalyzerFileReference(typeof(object).Assembly.Location, new MockShadowCopyAnalyzerAssemblyLoader());
+
+            // make sure this doesn't throw
+            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+            var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
+            var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task RoundTrip_Analyzer_Serailization_Desktop_Test()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var workspace = new AdhocWorkspace(hostServices);
+            var serializer = new Serializer(workspace);
+
+            var reference = new AnalyzerFileReference(typeof(object).Assembly.Location, new MockShadowCopyAnalyzerAssemblyLoader());
+
+            // make sure this doesn't throw
+            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+            var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
+            var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task SnapshotWithMissingReferencesTest()
         {
             var hostServices = MefHostServices.Create(
@@ -452,6 +487,52 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotNull(checksum);
         }
 
+        [Fact]
+        public void TestEncodingSerialization()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var workspace = new AdhocWorkspace(hostServices);
+            var serializer = new Serializer(workspace);
+
+            // test with right serializable encoding
+            var sourceText = SourceText.From("Hello", Encoding.UTF8);
+            using (var stream = SerializableBytes.CreateWritableStream())
+            {
+                using (var objectWriter = new ObjectWriter(stream))
+                {
+                    serializer.Serialize(sourceText, objectWriter, CancellationToken.None);
+                }
+
+                stream.Position = 0;
+
+                using (var objectReader = ObjectReader.TryGetReader(stream))
+                {
+                    var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                    Assert.Equal(sourceText.ToString(), newText.ToString());
+                }
+            }
+
+            // test with wrong encoding that doesn't support serialization
+            sourceText = SourceText.From("Hello", new NotSerializableEncoding());
+            using (var stream = SerializableBytes.CreateWritableStream())
+            {
+                using (var objectWriter = new ObjectWriter(stream))
+                {
+                    serializer.Serialize(sourceText, objectWriter, CancellationToken.None);
+                }
+
+                stream.Position = 0;
+
+                using (var objectReader = ObjectReader.TryGetReader(stream))
+                {
+                    var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                    Assert.Equal(sourceText.ToString(), newText.ToString());
+                }
+            }
+        }
+
         private static async Task VerifyOptionSetsAsync(Workspace workspace, string language)
         {
             var assetBuilder = new CustomAssetBuilder(workspace);
@@ -460,12 +541,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var asset = assetBuilder.Build(workspace.Options, language, CancellationToken.None);
 
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream))
+            using (var writer = new ObjectWriter(stream))
             {
                 await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     var recovered = serializer.Deserialize<OptionSet>(asset.Kind, reader, CancellationToken.None);
                     var assetFromStorage = assetBuilder.Build(recovered, language, CancellationToken.None);
@@ -568,12 +649,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static async Task<RemotableData> CloneAssetAsync(Serializer serializer, RemotableData asset)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream))
+            using (var writer = new ObjectWriter(stream))
             {
                 await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     var recovered = serializer.Deserialize<object>(asset.Kind, reader, CancellationToken.None);
                     var assetFromStorage = SolutionAsset.Create(serializer.CreateChecksum(recovered, CancellationToken.None), recovered, serializer);
@@ -623,6 +704,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 return this;
             }
+        }
+
+        private class MockShadowCopyAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
+        {
+            public void AddDependencyLocation(string fullPath)
+            {
+            }
+
+            public Assembly LoadFromPath(string fullPath)
+            {
+                // return something other than given one. mimicing behavior of shadow copy 
+                return typeof(SharedAttribute).Assembly;
+            }
+        }
+
+        private class NotSerializableEncoding : Encoding
+        {
+            private readonly Encoding _real = Encoding.UTF8;
+
+            public override string WebName => _real.WebName;
+            public override int GetByteCount(char[] chars, int index, int count) => _real.GetByteCount(chars, index, count);
+            public override int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex) => GetBytes(chars, charIndex, charCount, bytes, byteIndex);
+            public override int GetCharCount(byte[] bytes, int index, int count) => GetCharCount(bytes, index, count);
+            public override int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex) => GetChars(bytes, byteIndex, byteCount, chars, charIndex);
+            public override int GetMaxByteCount(int charCount) => GetMaxByteCount(charCount);
+            public override int GetMaxCharCount(int byteCount) => GetMaxCharCount(byteCount);
         }
     }
 }

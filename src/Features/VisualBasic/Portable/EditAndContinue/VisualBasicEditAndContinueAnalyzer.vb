@@ -1437,7 +1437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         endToken = header.DeclarationKeyword
 
                     Case Else
-                        Throw ExceptionUtilities.Unreachable
+                        Throw ExceptionUtilities.UnexpectedValue(header.Kind)
                 End Select
             End If
 
@@ -1786,7 +1786,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case Else
-                        Throw ExceptionUtilities.Unreachable
+                        Throw ExceptionUtilities.UnexpectedValue(_kind)
                 End Select
             End Sub
 
@@ -1865,7 +1865,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case Else
-                        Throw ExceptionUtilities.Unreachable
+                        Throw ExceptionUtilities.UnexpectedValue(newNode.Kind)
                 End Select
             End Sub
 
@@ -2167,7 +2167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case Else
-                        Throw ExceptionUtilities.Unreachable
+                        Throw ExceptionUtilities.UnexpectedValue(oldNode.Kind)
                 End Select
             End Sub
 
@@ -2339,7 +2339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case Else
-                        Throw ExceptionUtilities.Unreachable
+                        Throw ExceptionUtilities.UnexpectedValue(newNode.Kind)
                 End Select
             End Sub
 
@@ -3093,7 +3093,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return DirectCast(statement, ReturnStatementSyntax).Expression
 
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(statement.Kind())
             End Select
         End Function
 
