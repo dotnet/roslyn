@@ -24,6 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' those should come from the user's code.
         Private _suppressEmbeddedDeclarations As Boolean
 
+        Private _ignoreCorLibraryDuplicatedTypes As Boolean
+
         ''' <summary>
         ''' Initializes a new instance of the VisualBasicCompilationOptions type with various options.
         ''' </summary>
@@ -360,6 +362,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
+        ''' Gets the setting to ignore corlib types when duplicates are found.
+        ''' </summary>
+        Friend ReadOnly Property IgnoreCorLibraryDuplicatedTypes As Boolean
+            Get
+                Return _ignoreCorLibraryDuplicatedTypes
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Gets the Parse Options setting.
         ''' Compilation level parse options.  Used when compiling synthetic embedded code such as My template
         ''' </summary>
@@ -603,6 +614,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New VisualBasicCompilationOptions(Me) With {._suppressEmbeddedDeclarations = suppressEmbeddedDeclarations}
+        End Function
+
+        ''' <summary>
+        ''' Creates a new VisualBasicCompilationOptions instance with different ignoreCorLibraryDuplicatedTypes setting specified.
+        ''' </summary>
+        ''' <param name="ignoreCorLibraryDuplicatedTypes">The ignoreCorLibraryDuplicatedTypes setting. </param>
+        ''' <remarks>Only expected to be called from the expression compiler and interactive.</remarks>
+        Friend Function WithIgnoreCorLibraryDuplicatedTypes(ignoreCorLibraryDuplicatedTypes As Boolean) As VisualBasicCompilationOptions
+            If ignoreCorLibraryDuplicatedTypes = _ignoreCorLibraryDuplicatedTypes Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {._ignoreCorLibraryDuplicatedTypes = ignoreCorLibraryDuplicatedTypes}
         End Function
 
         ''' <summary>
