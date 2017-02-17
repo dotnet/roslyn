@@ -61,9 +61,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Private Function ITypeReferenceTypeCode(context As EmitContext) As Cci.PrimitiveTypeCode Implements Cci.ITypeReference.TypeCode
-            Return Cci.PrimitiveTypeCode.NotPrimitive
-        End Function
+        Private ReadOnly Property ITypeReferenceTypeCode As Cci.PrimitiveTypeCode Implements Cci.ITypeReference.TypeCode
+            Get
+                Return Cci.PrimitiveTypeCode.NotPrimitive
+            End Get
+        End Property
 
         Private ReadOnly Property ITypeReferenceTypeDef As TypeDefinitionHandle Implements Cci.ITypeReference.TypeDef
             Get

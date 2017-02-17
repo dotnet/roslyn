@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -21,6 +22,9 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         private const int MetadataFailed = int.MaxValue;
 
+        protected const byte NoEncodingSerialization = 0;
+        protected const byte EncodingSerialization = 1;
+
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new ConditionalWeakTable<Metadata, object>();
 
         private readonly ITemporaryStorageService _storageService;
@@ -28,6 +32,38 @@ namespace Microsoft.CodeAnalysis.Execution
         protected AbstractReferenceSerializationService(ITemporaryStorageService storageService)
         {
             _storageService = storageService;
+        }
+
+        public virtual void WriteTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            writer.WriteByte(NoEncodingSerialization);
+            writer.WriteString(encoding?.WebName);
+        }
+
+        public virtual Encoding ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var serialized = reader.ReadByte();
+
+            // portable layer doesn't support serialization
+            Contract.ThrowIfFalse(serialized == NoEncodingSerialization);
+            return ReadEncodingFrom(serialized, reader, cancellationToken);
+        }
+
+        protected Encoding ReadEncodingFrom(byte serialized, ObjectReader reader, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (serialized != NoEncodingSerialization)
+            {
+                return null;
+            }
+
+            var webName = reader.ReadString();
+            return webName == null ? null : Encoding.GetEncoding(webName);
         }
 
         protected abstract string GetAnalyzerAssemblyPath(AnalyzerFileReference reference);
@@ -47,9 +83,9 @@ namespace Microsoft.CodeAnalysis.Execution
         public Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
-                WriteTo(reference, writer, cancellationToken);
+                WriteTo(reference, writer, checksum: true, cancellationToken: cancellationToken);
 
                 stream.Position = 0;
                 return Checksum.Create(stream);
@@ -90,50 +126,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public void WriteTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var file = reference as AnalyzerFileReference;
-            if (file != null)
-            {
-                // fail to load analyzer assembly
-                var assemblyPath = TryGetAnalyzerAssemblyPath(file);
-                if (assemblyPath == null)
-                {
-                    WriteUnresolvedAnalyzerReferenceTo(reference, writer);
-                    return;
-                }
-
-                writer.WriteString(nameof(AnalyzerFileReference));
-                writer.WriteInt32((int)SerializationKinds.FilePath);
-
-                writer.WriteString(file.FullPath);
-
-                // TODO: remove this kind of host specific knowledge from common layer.
-                //       but think moving it to host layer where this implementation detail actually exist.
-                //
-                // analyzer assembly path to load analyzer acts like
-                // snapshot version for analyzer (since it is based on shadow copy)
-                // we can't send over bits and load analyer from memory (image) due to CLR not being able
-                // to find satellite dlls for analyzers.
-                writer.WriteString(assemblyPath);
-                return;
-            }
-
-            var unresolved = reference as UnresolvedAnalyzerReference;
-            if (unresolved != null)
-            {
-                WriteUnresolvedAnalyzerReferenceTo(reference, writer);
-                return;
-            }
-
-            var image = reference as AnalyzerImageReference;
-            if (image != null)
-            {
-                // TODO: think a way to support this or a way to deal with this kind of situation.
-                throw new NotSupportedException(nameof(AnalyzerImageReference));
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(reference.GetType());
+            WriteTo(reference, writer, checksum: false, cancellationToken: cancellationToken);
         }
 
         public AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
@@ -180,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
                 WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
@@ -264,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 // TODO: deal with xml document provider properly
                 //       should we shadow copy xml doc comment?
                 return new SerializedMetadataReference(
-                    properties, filePath, tuple.Value.metadata, tuple.Value.storages, 
+                    properties, filePath, tuple.Value.metadata, tuple.Value.storages,
                     XmlDocumentationProvider.Default);
             }
 
@@ -505,6 +498,63 @@ namespace Microsoft.CodeAnalysis.Execution
             Marshal.Copy((IntPtr)reader.MetadataPointer, bytes, 0, length);
 
             writer.WriteValue(bytes);
+        }
+
+        private void WriteTo(AnalyzerReference reference, ObjectWriter writer, bool checksum, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var file = reference as AnalyzerFileReference;
+            if (file != null)
+            {
+                // fail to load analyzer assembly
+                var assemblyPath = TryGetAnalyzerAssemblyPath(file);
+                if (assemblyPath == null)
+                {
+                    WriteUnresolvedAnalyzerReferenceTo(reference, writer);
+                    return;
+                }
+
+                writer.WriteString(nameof(AnalyzerFileReference));
+                writer.WriteInt32((int)SerializationKinds.FilePath);
+
+                if (checksum)
+                {
+                    // we don't write full path when creating checksum
+                    // make sure we always normalize assemblyPath to lower case since it comes from Assembly.Location
+                    // unlike FullPath which comes from string
+                    writer.WriteString(assemblyPath.ToLowerInvariant());
+                    return;
+                }
+
+                // TODO: remove this kind of host specific knowledge from common layer.
+                //       but think moving it to host layer where this implementation detail actually exist.
+                //
+                // analyzer assembly path to load analyzer acts like
+                // snapshot version for analyzer (since it is based on shadow copy)
+                // we can't send over bits and load analyer from memory (image) due to CLR not being able
+                // to find satellite dlls for analyzers.
+                writer.WriteString(file.FullPath);
+                writer.WriteString(assemblyPath);
+                return;
+            }
+
+            var unresolved = reference as UnresolvedAnalyzerReference;
+            if (unresolved != null)
+            {
+                WriteUnresolvedAnalyzerReferenceTo(reference, writer);
+                return;
+            }
+
+            var image = reference as AnalyzerImageReference;
+            if (image != null)
+            {
+                // TODO: think a way to support this or a way to deal with this kind of situation.
+                // https://github.com/dotnet/roslyn/issues/15783
+                throw new NotSupportedException(nameof(AnalyzerImageReference));
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(reference.GetType());
         }
 
         private static void WriteUnresolvedAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)

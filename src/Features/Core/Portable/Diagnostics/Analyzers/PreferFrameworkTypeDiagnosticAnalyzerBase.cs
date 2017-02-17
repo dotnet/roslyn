@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
@@ -67,9 +68,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         protected abstract bool IsPredefinedTypeReplaceableWithFrameworkType(TPredefinedTypeSyntax node);
         protected abstract bool IsInMemberAccessOrCrefReferenceContext(TExpressionSyntax node);
 
-        public override void Initialize(AnalysisContext context)
+        public sealed override void Initialize(AnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest);
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         }
 
         protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
@@ -77,11 +79,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-            
+
             var semanticModel = context.SemanticModel;
             var language = semanticModel.Language;
 

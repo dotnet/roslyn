@@ -182,7 +182,7 @@ namespace Microsoft.Cci
 
         public override void Visit(INamespaceTypeReference namespaceTypeReference)
         {
-            if (!this.typeReferenceNeedsToken && namespaceTypeReference.TypeCode(Context) != PrimitiveTypeCode.NotPrimitive)
+            if (!this.typeReferenceNeedsToken && namespaceTypeReference.TypeCode != PrimitiveTypeCode.NotPrimitive)
             {
                 return;
             }
@@ -416,7 +416,7 @@ namespace Microsoft.Cci
 
             INestedTypeReference/*?*/ nestedTypeReference = typeReference.AsNestedTypeReference;
             if (this.typeReferenceNeedsToken || nestedTypeReference != null ||
-              (typeReference.TypeCode(Context) == PrimitiveTypeCode.NotPrimitive && typeReference.AsNamespaceTypeReference != null))
+              (typeReference.TypeCode == PrimitiveTypeCode.NotPrimitive && typeReference.AsNamespaceTypeReference != null))
             {
                 ISpecializedNestedTypeReference/*?*/ specializedNestedTypeReference = nestedTypeReference?.AsSpecializedNestedTypeReference;
                 if (specializedNestedTypeReference != null)
@@ -451,11 +451,6 @@ namespace Microsoft.Cci
 
             this.typeReferenceNeedsToken = false;
             return true;
-        }
-
-        public override void Visit(IManagedPointerTypeReference managedPointerTypeReference)
-        {
-            Debug.Assert(false, "Unexpected ref type!");
         }
     }
 }

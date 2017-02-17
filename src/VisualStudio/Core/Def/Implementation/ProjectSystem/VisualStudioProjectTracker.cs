@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
@@ -64,13 +65,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// the same output path. It makes state tracking notably easier.
         /// </summary>
         private readonly Dictionary<string, ImmutableArray<AbstractProject>> _projectsByBinPath = new Dictionary<string, ImmutableArray<AbstractProject>>(StringComparer.OrdinalIgnoreCase);
-
-        /// <summary>
-        /// Holds the task with continuations to sequentially execute all the foreground affinitized actions on the foreground task scheduler.
-        /// More specifically, all the notifications to workspace hosts are executed on the foreground thread. However, the project system might make project state changes
-        /// and request notifications to workspace hosts on background thread. So we queue up all the notifications for project state changes onto this task and execute them on the foreground thread.
-        /// </summary>
-        private Task _taskForForegroundAffinitizedActions = Task.CompletedTask;
 
         private readonly Dictionary<ProjectId, AbstractProject> _projectMap;
         private readonly Dictionary<string, ProjectId> _projectPathToIdMap;
@@ -133,35 +127,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void ScheduleForegroundAffinitizedAction(Action action)
-        {
-            AssertIsBackground();
-
-            lock (_gate)
-            {
-                _taskForForegroundAffinitizedActions = _taskForForegroundAffinitizedActions.SafeContinueWith(_ => action(), ForegroundTaskScheduler);
-            }
-        }
-
-        /// <summary>
-        /// If invoked on the foreground thread, the action is executed right away.
-        /// Otherwise, the action is scheduled on foreground task scheduler.
-        /// </summary>
-        /// <param name="action">Action that needs to be executed on a foreground thread.</param>
-        private void ExecuteOrScheduleForegroundAffinitizedAction(Action action)
-        {
-            if (IsForeground())
-            {
-                // We are already on the foreground thread, execute the given action.
-                action();
-            }
-            else
-            {
-                // Schedule the update on the foreground task scheduler.
-                ScheduleForegroundAffinitizedAction(action);
-            }
-        }
-
         public void RegisterSolutionProperties(SolutionId solutionId)
         {
             AssertIsForeground();
@@ -204,12 +169,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public void RegisterWorkspaceHost(IVisualStudioWorkspaceHost host)
-        {
-            ExecuteOrScheduleForegroundAffinitizedAction(
-                () => RegisterWorkspaceHostOnForeground(host));
-        }
-
-        private void RegisterWorkspaceHostOnForeground(IVisualStudioWorkspaceHost host)
         {
             this.AssertIsForeground();
 
@@ -298,16 +257,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// Add a project to the workspace.
-        /// If invoked on the foreground thread, the add is executed right away.
-        /// Otherwise, the add is scheduled on foreground task scheduler.
         /// </summary>
-        /// <remarks>This method may be called on a background thread.</remarks>
+        /// <remarks>This method must be called on the foreground thread.</remarks>
         internal void AddProject(AbstractProject project)
-        {
-            ExecuteOrScheduleForegroundAffinitizedAction(() => AddProject_Foreground(project));
-        }
-
-        private void AddProject_Foreground(AbstractProject project)
         {
             AssertIsForeground();
 
@@ -317,11 +269,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // UpdateProjectBinPath is defensively executed on the foreground thread as it calls back into referencing projects to perform metadata to P2P reference conversions.
-            UpdateProjectBinPath_Foreground(project, null, project.BinOutputPath);
+            UpdateProjectBinPath(project, null, project.BinOutputPath);
 
             if (_solutionLoadComplete)
             {
-                StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(SpecializedCollections.SingletonEnumerable(project));
+                StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(project));
             }
             else
             {
@@ -331,24 +283,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// Starts pushing events from the given projects to the workspace hosts and notifies about open documents.
-        /// If invoked on the foreground thread, it is executed right away.
-        /// Otherwise, it is scheduled on foreground task scheduler.
         /// </summary>
-        /// <remarks>This method may be called on a background thread.</remarks>
+        /// <remarks>This method must be called on the foreground thread.</remarks>
         internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects)
         {
-            ExecuteOrScheduleForegroundAffinitizedAction(() => StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(projects));
-        }
-
-        private void StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(IEnumerable<AbstractProject> projects)
-        {
             AssertIsForeground();
-
-            // StartPushingToWorkspaceAndNotifyOfOpenDocuments might be invoked from a background thread,
-            // and hence StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground scheduled to be executed later on the foreground task scheduler.
-            // By the time it gets scheduled, we might have removed some project(s) from the tracker on the UI thread.
-            // So, we filter out the projects that have been removed from the tracker.
-            projects = projects.Where(p => this.ContainsProject(p));
 
             using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
@@ -364,14 +303,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         internal void RemoveProject(AbstractProject project)
         {
-            ExecuteOrScheduleForegroundAffinitizedAction(() => RemoveProject_Foreground(project));
-        }
-
-        /// <summary>
-        /// Remove a project from the workspace.
-        /// </summary>
-        private void RemoveProject_Foreground(AbstractProject project)
-        {
             AssertIsForeground();
 
             lock (_gate)
@@ -379,7 +310,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 Contract.ThrowIfFalse(_projectMap.Remove(project.Id));
             }
 
-            UpdateProjectBinPath_Foreground(project, project.BinOutputPath, null);
+            UpdateProjectBinPath(project, project.BinOutputPath, null);
 
             using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
@@ -392,16 +323,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// Updates the project tracker and referencing projects for binary output path change for the given project.
-        /// If invoked on the foreground thread, the update is executed right away.
-        /// Otherwise, update is scheduled on foreground task scheduler.
         /// </summary>
-        /// <remarks>This method may be called on a background thread.</remarks>
         internal void UpdateProjectBinPath(AbstractProject project, string oldBinPathOpt, string newBinPathOpt)
-        {
-            ExecuteOrScheduleForegroundAffinitizedAction(() => UpdateProjectBinPath_Foreground(project, oldBinPathOpt, newBinPathOpt));
-        }
-
-        internal void UpdateProjectBinPath_Foreground(AbstractProject project, string oldBinPathOpt, string newBinPathOpt)
         {
             // UpdateProjectBinPath is defensively executed on the foreground thread as it calls back into referencing projects to perform metadata to P2P reference conversions.
             AssertIsForeground();
@@ -473,16 +396,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// Notifies the workspace host about the given action.
-        /// If invoked on the foreground thread, the action is executed right away.
-        /// Otherwise, the action is scheduled on foreground task scheduler.
         /// </summary>
-        /// <remarks>This method may be called on a background thread.</remarks>
+        /// <remarks>This method must be called on the foreground thread.</remarks>
         internal void NotifyWorkspaceHosts(Action<IVisualStudioWorkspaceHost> action)
-        {
-            ExecuteOrScheduleForegroundAffinitizedAction(() => NotifyWorkspaceHosts_Foreground(action));
-        }
-
-        internal void NotifyWorkspaceHosts_Foreground(Action<IVisualStudioWorkspaceHost> action)
         {
             AssertIsForeground();
 

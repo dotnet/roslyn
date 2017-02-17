@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class PatternMatchingTestBase : CSharpTestBase
     {
         #region helpers
+        protected static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
+
         protected IEnumerable<SingleVariableDesignationSyntax> GetPatternDeclarations(SyntaxTree tree, string v)
         {
             return GetPatternDeclarations(tree).Where(d => d.Identifier.ValueText == v);
@@ -31,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Parent.Kind() == SyntaxKind.DeclarationPattern);
         }
 
-        protected static IEnumerable<DiscardedDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
+        protected static IEnumerable<DiscardDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
         {
-            return tree.GetRoot().DescendantNodes().OfType<DiscardedDesignationSyntax>();
+            return tree.GetRoot().DescendantNodes().OfType<DiscardDesignationSyntax>();
         }
 
         protected static IdentifierNameSyntax GetReference(SyntaxTree tree, string name)
@@ -51,6 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyModelForDeclarationPattern(model, decl, false, references);
         }
 
+        protected static void VerifyModelForDeclarationPatternWithoutDataFlow(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
+        {
+            VerifyModelForDeclarationPattern(model, decl, false, references);
+        }
+
         protected static void VerifyModelForDeclarationPattern(
             SemanticModel model,
             SingleVariableDesignationSyntax designation,
@@ -63,13 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)designation));
 
+            var other = model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single();
             if (isShadowed)
             {
-                Assert.NotEqual(symbol, model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single());
+                Assert.NotEqual(symbol, other);
             }
             else
             {
-                Assert.Same(symbol, model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single());
+                Assert.Same(symbol, other);
             }
 
             Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
@@ -115,6 +123,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        protected static void VerifyNotAPatternField(SemanticModel model, IdentifierNameSyntax reference)
+        {
+            var symbol = model.GetSymbolInfo(reference).Symbol;
+
+            Assert.NotEqual(SymbolKind.Field, symbol.Kind);
+
+            Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Single());
+            Assert.True(model.LookupNames(reference.SpanStart).Contains(reference.Identifier.ValueText));
+        }
+
         protected static void VerifyNotAPatternLocal(SemanticModel model, IdentifierNameSyntax reference)
         {
             var symbol = model.GetSymbolInfo(reference).Symbol;
@@ -124,7 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.NotEqual(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
             }
 
-            Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Single());
+            var other = model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Single();
+            Assert.Same(symbol, other);
             Assert.True(model.LookupNames(reference.SpanStart).Contains(reference.Identifier.ValueText));
         }
 
@@ -292,6 +311,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.DoesNotContain(reference.Identifier.ValueText, model.LookupNames(reference.SpanStart));
                 Assert.True(((TypeSymbol)model.GetTypeInfo(reference).Type).IsErrorType());
             }
+        }
+
+        protected static void AssertNoGlobalStatements(SyntaxTree tree)
+        {
+            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>());
         }
 
         #endregion helpers

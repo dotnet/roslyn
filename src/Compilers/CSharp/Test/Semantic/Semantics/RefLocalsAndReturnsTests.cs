@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -997,6 +998,383 @@ class C
             CompileAndVerify(text,
                 expectedOutput: "frog",
                 additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefQueryClause()
+        {
+            // a "ref" may not precede the expression of a query clause...
+            // simply because the grammar doesn't permit it. Here we check
+            // that the situation is diagnosed, either syntactically or semantically.
+            // The precise diagnostics are not important for the purposes of this test.
+            var text = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        var a = new[] { 1, 2, 3, 4 };
+        bool b = true;
+        int i = 0;
+        { var za = from x in a select ref x; } // error 1
+        { var zc = from x in a from y in ref a select x; } // error2
+        { var zd = from x in a from int y in ref a select x; } // error 3
+        { var ze = from x in a from y in ref a where true select x; } // error 4
+        { var zf = from x in a from int y in ref a where true select x; } // error 5
+        { var zg = from x in a let y = ref a select x; } // error 6
+        { var zh = from x in a where ref b select x; } // error 7
+        { var zi = from x in a join y in ref a on x equals y select x; } // error 8 (not lambda case)
+        { var zj = from x in a join y in a on ref i equals y select x; } // error 9
+        { var zk = from x in a join y in a on x equals ref i select x; } // error 10
+        { var zl = from x in a orderby ref i select x; } // error 11
+        { var zm = from x in a orderby x, ref i select x; } // error 12
+        { var zn = from x in a group ref i by x; } // error 13
+        { var zo = from x in a group x by ref i; } // error 14
+    }
+    public static T M<T>(T x, out T z) => z = x;
+
+    public C Select(RefFunc<C, C> c1) => this;
+    public C SelectMany(RefFunc<C, C> c1, RefFunc<C, C, C> c2) => this;
+    public C Cast<T>() => this;
+}
+public delegate ref TR RefFunc<T1, TR>(T1 t1);
+public delegate ref TR RefFunc<T1, T2, TR>(T1 t1, T2 t2);
+";
+            CreateCompilationWithMscorlibAndSystemCore(text)
+                .GetDiagnostics()
+                // It turns out each of them is diagnosed with ErrorCode.ERR_InvalidExprTerm in the midst
+                // of a flurry of other syntax errors.
+                .Where(d => d.Code == (int)ErrorCode.ERR_InvalidExprTerm)
+                .Verify(
+                // (9,39): error CS1525: Invalid expression term 'ref'
+                //         { var za = from x in a select ref x; } // error 1
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(9, 39),
+                // (10,42): error CS1525: Invalid expression term 'ref'
+                //         { var zc = from x in a from y in ref a select x; } // error2
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(10, 42),
+                // (11,46): error CS1525: Invalid expression term 'ref'
+                //         { var zd = from x in a from int y in ref a select x; } // error 3
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(11, 46),
+                // (12,42): error CS1525: Invalid expression term 'ref'
+                //         { var ze = from x in a from y in ref a where true select x; } // error 4
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(12, 42),
+                // (13,46): error CS1525: Invalid expression term 'ref'
+                //         { var zf = from x in a from int y in ref a where true select x; } // error 5
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(13, 46),
+                // (14,40): error CS1525: Invalid expression term 'ref'
+                //         { var zg = from x in a let y = ref a select x; } // error 6
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(14, 40),
+                // (15,38): error CS1525: Invalid expression term 'ref'
+                //         { var zh = from x in a where ref b select x; } // error 7
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(15, 38),
+                // (16,42): error CS1525: Invalid expression term 'ref'
+                //         { var zi = from x in a join y in ref a on x equals y select x; } // error 8 (not lambda case)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(16, 42),
+                // (16,42): error CS1525: Invalid expression term 'ref'
+                //         { var zi = from x in a join y in ref a on x equals y select x; } // error 8 (not lambda case)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(16, 42),
+                // (16,42): error CS1525: Invalid expression term 'ref'
+                //         { var zi = from x in a join y in ref a on x equals y select x; } // error 8 (not lambda case)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(16, 42),
+                // (17,47): error CS1525: Invalid expression term 'ref'
+                //         { var zj = from x in a join y in a on ref i equals y select x; } // error 9
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(17, 47),
+                // (17,47): error CS1525: Invalid expression term 'ref'
+                //         { var zj = from x in a join y in a on ref i equals y select x; } // error 9
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(17, 47),
+                // (18,56): error CS1525: Invalid expression term 'ref'
+                //         { var zk = from x in a join y in a on x equals ref i select x; } // error 10
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(18, 56),
+                // (19,40): error CS1525: Invalid expression term 'ref'
+                //         { var zl = from x in a orderby ref i select x; } // error 11
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(19, 40),
+                // (20,43): error CS1525: Invalid expression term 'ref'
+                //         { var zm = from x in a orderby x, ref i select x; } // error 12
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(20, 43),
+                // (21,38): error CS1525: Invalid expression term 'ref'
+                //         { var zn = from x in a group ref i by x; } // error 13
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(21, 38),
+                // (21,38): error CS1525: Invalid expression term 'ref'
+                //         { var zn = from x in a group ref i by x; } // error 13
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(21, 38),
+                // (22,43): error CS1525: Invalid expression term 'ref'
+                //         { var zo = from x in a group x by ref i; } // error 14
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(22, 43)
+                );
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void CannotUseYieldReturnInAReturnByRefFunction()
+        {
+            var code = @"
+class TestClass
+{
+    int x = 0;
+    ref int TestFunction()
+    {
+        yield return x;
+
+        ref int localFunction()
+        {
+            yield return x;
+        }
+
+        yield return localFunction();
+    }
+}";
+
+            CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (9,17): error CS8154: The body of 'localFunction()' cannot be an iterator block because 'localFunction()' returns by reference
+                //         ref int localFunction()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "localFunction").WithArguments("localFunction()").WithLocation(9, 17),
+                // (5,13): error CS8154: The body of 'TestClass.TestFunction()' cannot be an iterator block because 'TestClass.TestFunction()' returns by reference
+                //     ref int TestFunction()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "TestFunction").WithArguments("TestClass.TestFunction()").WithLocation(5, 13));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void CannotUseRefReturnInExpressionTree_ParenthesizedLambdaExpression()
+        {
+            var code = @"
+using System.Linq.Expressions;
+class TestClass
+{
+    int x = 0;
+
+    delegate ref int RefReturnIntDelegate(int y);
+
+    void TestFunction()
+    {
+        Expression<RefReturnIntDelegate> lambda = (y) => ref x;
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+                // (11,51): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
+                //         Expression<RefReturnIntDelegate> lambda = (y) => ref x;
+                Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "(y) => ref x").WithLocation(11, 51));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void CannotUseRefReturnInExpressionTree_SimpleLambdaExpression()
+        {
+            var code = @"
+using System.Linq.Expressions;
+class TestClass
+{
+    int x = 0;
+
+    delegate ref int RefReturnIntDelegate(int y);
+
+    void TestFunction()
+    {
+        Expression<RefReturnIntDelegate> lambda = y => ref x;
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+                // (11,51): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
+                //         Expression<RefReturnIntDelegate> lambda = y => ref x;
+                Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "y => ref x").WithLocation(11, 51));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void CannotCallExpressionThatReturnsByRefInExpressionTree()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+namespace TestRefReturns
+{
+    class TestClass
+    {
+        int x = 0;
+
+        ref int RefReturnFunction()
+        {
+            return ref x;
+        }
+
+        ref int RefReturnProperty
+        {
+            get { return ref x; }
+        }
+
+        ref int this[int y]
+        {
+            get { return ref x; }
+        }
+
+        int TakeRefFunction(ref int y)
+        {
+            return y;
+        }
+
+        void TestFunction()
+        {
+            Expression<Func<int>> lambda1 = () => TakeRefFunction(ref RefReturnFunction());
+            Expression<Func<int>> lambda2 = () => TakeRefFunction(ref RefReturnProperty);
+            Expression<Func<int>> lambda3 = () => TakeRefFunction(ref this[0]);
+        }
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+                // (32,71): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //             Expression<Func<int>> lambda1 = () => TakeRefFunction(ref RefReturnFunction());
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "RefReturnFunction()").WithLocation(32, 71),
+                // (33,71): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //             Expression<Func<int>> lambda2 = () => TakeRefFunction(ref RefReturnProperty);
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "RefReturnProperty").WithLocation(33, 71),
+                // (34,71): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //             Expression<Func<int>> lambda3 = () => TakeRefFunction(ref this[0]);
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "this[0]").WithLocation(34, 71));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void CannotRefReturnQueryRangeVariable()
+        {
+            var code = @"
+using System.Linq;
+class TestClass
+{
+    delegate ref char RefCharDelegate();
+    void TestMethod()
+    {
+        var x = from c in ""TestValue"" select (RefCharDelegate)(() => ref c);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+                // (8,74): error CS8159: Cannot return the range variable 'c' by reference
+                //         var x = from c in "TestValue" select (RefCharDelegate)(() => ref c);
+                Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "c").WithArguments("c").WithLocation(8, 74));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void CannotAssignRefInNonIdentityConversion()
+        {
+            var code = @"
+using System;
+using System.Collections.Generic;
+
+class TestClass
+{
+    int intVar = 0;
+    string stringVar = ""TEST"";
+
+    void TestMethod()
+    {
+        ref int? nullableConversion = ref intVar;
+        ref dynamic dynamicConversion = ref intVar;
+        ref IEnumerable<char> enumerableConversion = ref stringVar;
+        ref IFormattable interpolatedStringConversion = ref stringVar;
+    }
+}";
+
+            CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (12,43): error CS8173: The expression must be of type 'int?' because it is being assigned by reference
+                //         ref int? nullableConversion = ref intVar;
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "intVar").WithArguments("int?").WithLocation(12, 43),
+                // (13,45): error CS8173: The expression must be of type 'dynamic' because it is being assigned by reference
+                //         ref dynamic dynamicConversion = ref intVar;
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "intVar").WithArguments("dynamic").WithLocation(13, 45),
+                // (14,58): error CS8173: The expression must be of type 'IEnumerable<char>' because it is being assigned by reference
+                //         ref IEnumerable<char> enumerableConversion = ref stringVar;
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "stringVar").WithArguments("System.Collections.Generic.IEnumerable<char>").WithLocation(14, 58),
+                // (15,61): error CS8173: The expression must be of type 'IFormattable' because it is being assigned by reference
+                //         ref IFormattable interpolatedStringConversion = ref stringVar;
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "stringVar").WithArguments("System.IFormattable").WithLocation(15, 61));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void IteratorMethodsCannotHaveRefLocals()
+        {
+            var code = @"
+using System.Collections.Generic;
+class TestClass
+{
+    int x = 0;
+    IEnumerable<int> TestMethod()
+    {
+        ref int y = ref x;
+        yield return y;
+
+        IEnumerable<int> localFunction()
+        {
+            ref int z = ref x;
+            yield return z;
+        }
+
+        foreach(var item in localFunction())
+        {
+            yield return item;
+        }
+    }
+}";
+
+            CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (13,21): error CS8176: Iterators cannot have by reference locals
+                //             ref int z = ref x;
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "z").WithLocation(13, 21),
+                // (8,17): error CS8176: Iterators cannot have by reference locals
+                //         ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "y").WithLocation(8, 17));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void AsyncMethodsCannotHaveRefLocals()
+        {
+            var code = @"
+using System.Threading.Tasks;
+class TestClass
+{
+    int x = 0;
+    async Task TestMethod()
+    {
+        ref int y = ref x;
+        await Task.Run(async () =>
+        {
+            ref int z = ref x;
+            await Task.Delay(0);
+        });
+    }
+}";
+            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+                // (8,17): error CS8177: Async methods cannot have by reference locals
+                //         ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "y = ref x").WithLocation(8, 17),
+                // (11,21): error CS8177: Async methods cannot have by reference locals
+                //             ref int z = ref x;
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "z = ref x").WithLocation(11, 21));
+        }
+
+        [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
+        public void CannotUseAwaitExpressionInACallToAFunctionThatReturnsByRef()
+        {
+            var code = @"
+using System;
+using System.Threading.Tasks;
+class TestClass
+{
+    int x = 0;
+    ref int Save(int y)
+    {
+        x = y;
+        return ref x;
+    }
+    void Write(ref int y)
+    {
+        Console.WriteLine(y);
+    }
+    async Task TestMethod()
+    {
+        Write(ref Save(await Task.FromResult(0)));
+    }
+}";
+            CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics(
+                // (18,24): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
+                //         Write(ref Save(await Task.FromResult(0)));
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(0)").WithArguments("TestClass.Save(int)").WithLocation(18, 24));
         }
     }
 }

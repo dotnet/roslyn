@@ -11,19 +11,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 {
     internal class NamingStyleViewModel : AbstractNotifyPropertyChanged, INamingStylesInfoDialogViewModel
     {
-        private NamingStyle _style;
+        private MutableNamingStyle _style;
         private readonly INotificationService _notificationService;
 
-        public NamingStyleViewModel(NamingStyle style, bool canBeDeleted, INotificationService notificationService)
+        public NamingStyleViewModel(MutableNamingStyle style, bool canBeDeleted, INotificationService notificationService)
         {
             _notificationService = notificationService;
             _style = style;
-            this.ID = style.ID;
-            this.RequiredPrefix = style.Prefix;
-            this.RequiredSuffix = style.Suffix;
-            this.WordSeparator = style.WordSeparator;
-            this.ItemName = style.Name;
-            this.CanBeDeleted = canBeDeleted;
+            ID = style.ID;
+            RequiredPrefix = style.Prefix;
+            RequiredSuffix = style.Suffix;
+            WordSeparator = style.WordSeparator;
+            ItemName = style.Name;
+            CanBeDeleted = canBeDeleted;
 
             CapitalizationSchemes = new List<CapitalizationDisplay>
                 {
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             }
         }
 
-        public Guid ID { get; internal set; }
+        public Guid ID { get; }
 
         private string _itemName;
         public string ItemName
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         {
             get
             {
-                return _style.CreateName(new[] { ServicesVSResources.example, ServicesVSResources.identifier });
+                return _style.NamingStyle.CreateName(new[] { ServicesVSResources.example, ServicesVSResources.identifier });
             }
             set
             {
@@ -142,10 +142,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             return true;
         }
 
-        internal NamingStyle GetNamingStyle()
+        internal MutableNamingStyle GetNamingStyle()
         {
             _style.Name = ItemName;
-            _style.ID = ID;
             return _style;
         }
 
@@ -156,8 +155,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
             public CapitalizationDisplay(Capitalization capitalization, string name)
             {
-                this.Capitalization = capitalization;
-                this.Name = name;
+                Capitalization = capitalization;
+                Name = name;
             }
         }
     }

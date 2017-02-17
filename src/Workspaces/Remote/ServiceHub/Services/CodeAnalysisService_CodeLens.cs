@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class CodeAnalysisService
     {
-        public async Task<ReferenceCount> GetReferenceCountAsync(CodeLensArguments arguments, int maxResultCount, byte[] solutionChecksum)
+        public async Task<ReferenceCount> GetReferenceCountAsync(CodeLensArguments arguments, int maxResultCount)
         {
             try
             {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(CodeLensArguments arguments, byte[] solutionChecksum)
+        public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(CodeLensArguments arguments)
         {
             try
             {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(CodeLensArguments arguments, byte[] solutionChecksum)
+        public async Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(CodeLensArguments arguments)
         {
             try
             {
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async Task<string> GetFullyQualifiedName(CodeLensArguments arguments, byte[] solutionChecksum)
+        public async Task<string> GetFullyQualifiedName(CodeLensArguments arguments)
         {
             try
             {

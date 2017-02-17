@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
 
   <PropertyGroup>
     <FinalizeManifest>true</FinalizeManifest>
     <FinalizeSkipLayout>true</FinalizeSkipLayout>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <OutputPath>$(OutDir)Insertion</OutputPath>
     <IsPackage>true</IsPackage>
     <FinalizeValidate>false</FinalizeValidate>
@@ -26,7 +26,7 @@
     <RoslynVsixFileToCopy Include="$(OutputPath)..\Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix" />
   </ItemGroup>
 
-  <Target Name="BeforeBuild"> 
+  <Target Name="BeforeBuild">
     <Copy SourceFiles="@(RoslynVsixFileToCopy)" DestinationFolder="$(OutputPath)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
   </Target>
 

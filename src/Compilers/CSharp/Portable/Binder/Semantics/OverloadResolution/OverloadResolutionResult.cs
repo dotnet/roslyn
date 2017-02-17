@@ -894,6 +894,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             int arg)
         {
             BoundExpression argument = arguments.Argument(arg);
+            if (argument.HasAnyErrors)
+            {
+                // If the argument had an error reported then do not report further errors for 
+                // overload resolution failure.
+                return;
+            }
+
             int parm = badArg.Result.ParameterFromArgument(arg);
             SourceLocation sourceLocation = new SourceLocation(argument.Syntax);
 
@@ -924,7 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!argument.HasExpressionType() &&
                 argument.Kind != BoundKind.OutDeconstructVarPendingInference &&
                 argument.Kind != BoundKind.OutVariablePendingInference &&
-                argument.Kind != BoundKind.DiscardedExpression)
+                argument.Kind != BoundKind.DiscardExpression)
             {
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 // The argument and parameter type might match, but may not have same in/out modifiers
@@ -973,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(argument.Kind != BoundKind.OutDeconstructVarPendingInference);
                 Debug.Assert(argument.Kind != BoundKind.OutVariablePendingInference);
-                Debug.Assert(argument.Kind != BoundKind.DiscardedExpression || argument.HasExpressionType());
+                Debug.Assert(argument.Kind != BoundKind.DiscardExpression || argument.HasExpressionType());
                 Debug.Assert(argument.Display != null);
 
                 if (arguments.IsExtensionMethodThisArgument(arg))

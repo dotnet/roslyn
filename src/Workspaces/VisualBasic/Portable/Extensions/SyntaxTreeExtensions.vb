@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module SyntaxTreeExtensions
@@ -254,7 +255,7 @@ recurse:
         Public Function GetMembersInSpan(
             syntaxTree As SyntaxTree,
             textSpan As TextSpan,
-            cancellationToken As CancellationToken) As IList(Of StatementSyntax)
+            cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
 
             Dim token = syntaxTree.GetRoot(cancellationToken).FindToken(textSpan.Start)
             Dim firstMember = token.GetAncestors(Of StatementSyntax).
@@ -265,41 +266,41 @@ recurse:
                 If containingType IsNot Nothing AndAlso
                    firstMember IsNot containingType.BlockStatement AndAlso
                    firstMember IsNot containingType.EndBlockStatement Then
-                    Dim members = GetMembersInSpan(textSpan, containingType, firstMember)
-                    If members IsNot Nothing Then
-                        Return members
-                    End If
+                    Return GetMembersInSpan(textSpan, containingType, firstMember)
                 End If
             End If
 
-            Return SpecializedCollections.EmptyList(Of StatementSyntax)()
+            Return ImmutableArray(Of StatementSyntax).Empty
         End Function
 
         Private Function GetMembersInSpan(
             textSpan As TextSpan,
             containingType As TypeBlockSyntax,
-            firstMember As StatementSyntax) As List(Of StatementSyntax)
-            Dim selectedMembers As List(Of StatementSyntax) = Nothing
+            firstMember As StatementSyntax) As ImmutableArray(Of StatementSyntax)
+            Dim selectedMembers = ArrayBuilder(Of StatementSyntax).GetInstance()
 
-            Dim members = containingType.Members
-            Dim fieldIndex = members.IndexOf(firstMember)
-            If fieldIndex < 0 Then
-                Return Nothing
-            End If
-
-            For i = fieldIndex To members.Count - 1
-                Dim member = members(i)
-                If textSpan.Contains(member.Span) Then
-                    selectedMembers = If(selectedMembers, New List(Of StatementSyntax))
-                    selectedMembers.Add(member)
-                ElseIf (textSpan.OverlapsWith(member.Span)) Then
-                    Return Nothing
-                Else
-                    Exit For
+            Try
+                Dim members = containingType.Members
+                Dim fieldIndex = members.IndexOf(firstMember)
+                If fieldIndex < 0 Then
+                    Return ImmutableArray(Of StatementSyntax).Empty
                 End If
-            Next
 
-            Return selectedMembers
+                For i = fieldIndex To members.Count - 1
+                    Dim member = members(i)
+                    If textSpan.Contains(member.Span) Then
+                        selectedMembers.Add(member)
+                    ElseIf (textSpan.OverlapsWith(member.Span)) Then
+                        Return ImmutableArray(Of StatementSyntax).Empty
+                    Else
+                        Exit For
+                    End If
+                Next
+
+                Return selectedMembers.ToImmutable()
+            Finally
+                selectedMembers.Free()
+            End Try
         End Function
 
         <Extension()>

@@ -1,12 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
 Imports System.Collections.Immutable
-Imports System.Linq
-Imports System.Reflection.PortableExecutable
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Test.Utilities.VBInstrumentationChecker
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
@@ -16,54 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DynamicAnalysis.UnitTests
 
     Public Class DynamicInstrumentationTests
         Inherits BasicTestBase
-
-        ReadOnly InstrumentationHelperSource As XElement = <file name="c.vb">
-                                                               <![CDATA[
-Namespace Microsoft.CodeAnalysis.Runtime
-
-    Public Class Instrumentation
-    
-        Private Shared _payloads As Boolean()()
-        Private Shared _fileIndices As Integer()
-        Private Shared _mvid As System.Guid
-
-        Public Shared Function CreatePayload(mvid As System.Guid, methodIndex As Integer, fileIndex As Integer, ByRef payload As Boolean(), payloadLength As Integer) As Boolean()
-            If _mvid <> mvid Then
-                _payloads = New Boolean(100)() {}
-                _fileIndices = New Integer(100) {}
-                _mvid = mvid
-            End If
-
-            If System.Threading.Interlocked.CompareExchange(payload, new Boolean(payloadLength - 1) {}, Nothing) Is Nothing Then
-                _payloads(methodIndex) = payload
-                _fileIndices(methodIndex) = fileIndex
-                Return payload
-            End If
-
-            Return _payloads(methodIndex)
-        End Function
-
-        Public Shared Sub FlushPayload()
-            System.Console.WriteLine("Flushing")
-            If _payloads Is Nothing Then
-                Return
-            End If
-            For i As Integer = 0 To _payloads.Length - 1
-                Dim payload As Boolean() = _payloads(i)
-                if payload IsNot Nothing
-                    System.Console.WriteLine("Method " & i.ToString())
-                    System.Console.WriteLine("File " & _fileIndices(i).ToString())
-                    For j As Integer = 0 To payload.Length - 1
-                        System.Console.WriteLine(payload(j))
-                        payload(j) = False
-                    Next
-                End If
-            Next
-        End Sub
-    End Class
-End Namespace
-]]>
-                                                           </file>
 
         <Fact>
         Public Sub SimpleCoverage()
@@ -85,33 +35,26 @@ End Module
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
 
-            Dim expectedOutput As XCData = <![CDATA[
-Flushing
-Method 1
-File 1
-True
-True
-True
-Method 2
-File 1
-True
-Method 5
-File 1
-True
-True
-False
-True
-True
-True
-True
-True
-True
-True
-True
-True
-]]>
+            Dim checker = New VBInstrumentationChecker()
+            checker.Method(1, 1, "Public Sub Main").
+                True("TestMain()").
+                True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()")
+            checker.Method(2, 1, "Sub TestMain()")
+            checker.Method(5, 1).
+                True().
+                False().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True()
 
-            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, checker.ExpectedOutput)
+            checker.CompleteCheck(verifier.Compilation, testSource)
 
             verifier.VerifyIL(
                 "Program.TestMain",
@@ -514,6 +457,165 @@ True
         End Sub
 
         <Fact>
+        Public Sub IteratorCoverage()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Public Sub Main(args As String())                                   ' Method 1
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub TestMain()                                                      ' Method 2
+        For Each number In Foo()
+            System.Console.WriteLine(number)
+        Next                                                     
+        For Each number In Foo()
+            System.Console.WriteLine(number)
+        Next
+    End Sub
+
+    Public Iterator Function Foo() As System.Collections.Generic.IEnumerable(Of Integer)      ' Method 3
+        For counter = 1 To 5
+            Yield counter
+        Next
+    End Function
+End Module
+]]>
+                                         </file>
+
+            Dim source As XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[1
+2
+3
+4
+5
+1
+2
+3
+4
+5
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+True
+True
+Method 3
+File 1
+True
+True
+Method 6
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+
+            verifier.VerifyIL(
+                "Program.VB$StateMachine_2_Foo.MoveNext()",
+            <![CDATA[
+{
+  // Code size      149 (0x95)
+  .maxstack  5
+  .locals init (Integer V_0,
+                Boolean() V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Foo.$State As Integer"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0010
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  beq.s      IL_0073
+  IL_000e:  ldc.i4.0
+  IL_000f:  ret
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.i4.m1
+  IL_0012:  dup
+  IL_0013:  stloc.0
+  IL_0014:  stfld      "Program.VB$StateMachine_2_Foo.$State As Integer"
+  IL_0019:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
+  IL_001e:  ldtoken    "Function Program.Foo() As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_0023:  ldelem.ref
+  IL_0024:  stloc.1
+  IL_0025:  ldloc.1
+  IL_0026:  brtrue.s   IL_004d
+  IL_0028:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
+  IL_002d:  ldtoken    "Function Program.Foo() As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_0032:  ldtoken    Source Document 0
+  IL_0037:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
+  IL_003c:  ldtoken    "Function Program.Foo() As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_0041:  ldelema    "Boolean()"
+  IL_0046:  ldc.i4.2
+  IL_0047:  call       "Function Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, Integer, Integer, ByRef Boolean(), Integer) As Boolean()"
+  IL_004c:  stloc.1
+  IL_004d:  ldloc.1
+  IL_004e:  ldc.i4.0
+  IL_004f:  ldc.i4.1
+  IL_0050:  stelem.i1
+  IL_0051:  ldloc.1
+  IL_0052:  ldc.i4.1
+  IL_0053:  ldc.i4.1
+  IL_0054:  stelem.i1
+  IL_0055:  ldarg.0
+  IL_0056:  ldc.i4.1
+  IL_0057:  stfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_005c:  ldarg.0
+  IL_005d:  ldarg.0
+  IL_005e:  ldfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_0063:  stfld      "Program.VB$StateMachine_2_Foo.$Current As Integer"
+  IL_0068:  ldarg.0
+  IL_0069:  ldc.i4.1
+  IL_006a:  dup
+  IL_006b:  stloc.0
+  IL_006c:  stfld      "Program.VB$StateMachine_2_Foo.$State As Integer"
+  IL_0071:  ldc.i4.1
+  IL_0072:  ret
+  IL_0073:  ldarg.0
+  IL_0074:  ldc.i4.m1
+  IL_0075:  dup
+  IL_0076:  stloc.0
+  IL_0077:  stfld      "Program.VB$StateMachine_2_Foo.$State As Integer"
+  IL_007c:  ldarg.0
+  IL_007d:  ldarg.0
+  IL_007e:  ldfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_0083:  ldc.i4.1
+  IL_0084:  add.ovf
+  IL_0085:  stfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_008a:  ldarg.0
+  IL_008b:  ldfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_0090:  ldc.i4.5
+  IL_0091:  ble.s      IL_005c
+  IL_0093:  ldc.i4.0
+  IL_0094:  ret
+}
+                ]]>.Value)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
         Public Sub AsyncCoverage()
             Dim testSource As XElement = <file name="c.vb">
                                              <![CDATA[
@@ -533,7 +635,7 @@ Module Program
     Async Function Outer(s As String) As Task(Of String)                ' Method 3
         Dim s1 As String = Await First(s)
         Dim s2 As String = Await Second(s)
-
+        
         Return s1 + s2
     End Function
 
@@ -613,6 +715,163 @@ True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+
+            verifier.VerifyIL(
+                "Program.VB$StateMachine_4_Second.MoveNext()",
+            <![CDATA[
+{
+  // Code size      375 (0x177)
+  .maxstack  6
+  .locals init (String V_0,
+                Integer V_1,
+                Program._Closure$__4-0 V_2, //$VB$Closure_0
+                System.Runtime.CompilerServices.TaskAwaiter(Of String) V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_4_Second.$State As Integer"
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  ldloc.1
+    IL_0008:  brfalse    IL_010e
+    IL_000d:  newobj     "Sub Program._Closure$__4-0..ctor()"
+    IL_0012:  stloc.2
+    IL_0013:  ldloc.2
+    IL_0014:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
+    IL_0019:  ldtoken    "Function Program.Second(String) As System.Threading.Tasks.Task(Of String)"
+    IL_001e:  ldelem.ref
+    IL_001f:  stfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_0024:  ldloc.2
+    IL_0025:  ldfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_002a:  brtrue.s   IL_0056
+    IL_002c:  ldloc.2
+    IL_002d:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
+    IL_0032:  ldtoken    "Function Program.Second(String) As System.Threading.Tasks.Task(Of String)"
+    IL_0037:  ldtoken    Source Document 0
+    IL_003c:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
+    IL_0041:  ldtoken    "Function Program.Second(String) As System.Threading.Tasks.Task(Of String)"
+    IL_0046:  ldelema    "Boolean()"
+    IL_004b:  ldc.i4.7
+    IL_004c:  call       "Function Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, Integer, Integer, ByRef Boolean(), Integer) As Boolean()"
+    IL_0051:  stfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_0056:  ldloc.2
+    IL_0057:  ldfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_005c:  ldc.i4.0
+    IL_005d:  ldc.i4.1
+    IL_005e:  stelem.i1
+    IL_005f:  ldloc.2
+    IL_0060:  ldfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_0065:  ldc.i4.1
+    IL_0066:  ldc.i4.1
+    IL_0067:  stelem.i1
+    IL_0068:  ldloc.2
+    IL_0069:  ldstr      ""
+    IL_006e:  stfld      "Program._Closure$__4-0.$VB$Local_doubled As String"
+    IL_0073:  ldloc.2
+    IL_0074:  ldfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_0079:  ldc.i4.4
+    IL_007a:  ldc.i4.1
+    IL_007b:  stelem.i1
+    IL_007c:  ldarg.0
+    IL_007d:  ldfld      "Program.VB$StateMachine_4_Second.$VB$Local_s As String"
+    IL_0082:  callvirt   "Function String.get_Length() As Integer"
+    IL_0087:  ldc.i4.2
+    IL_0088:  ble.s      IL_00ac
+    IL_008a:  ldloc.2
+    IL_008b:  ldfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_0090:  ldc.i4.2
+    IL_0091:  ldc.i4.1
+    IL_0092:  stelem.i1
+    IL_0093:  ldloc.2
+    IL_0094:  ldarg.0
+    IL_0095:  ldfld      "Program.VB$StateMachine_4_Second.$VB$Local_s As String"
+    IL_009a:  ldarg.0
+    IL_009b:  ldfld      "Program.VB$StateMachine_4_Second.$VB$Local_s As String"
+    IL_00a0:  call       "Function String.Concat(String, String) As String"
+    IL_00a5:  stfld      "Program._Closure$__4-0.$VB$Local_doubled As String"
+    IL_00aa:  br.s       IL_00c0
+    IL_00ac:  ldloc.2
+    IL_00ad:  ldfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_00b2:  ldc.i4.3
+    IL_00b3:  ldc.i4.1
+    IL_00b4:  stelem.i1
+    IL_00b5:  ldloc.2
+    IL_00b6:  ldstr      "HuhHuh"
+    IL_00bb:  stfld      "Program._Closure$__4-0.$VB$Local_doubled As String"
+    IL_00c0:  ldloc.2
+    IL_00c1:  ldfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_00c6:  ldc.i4.6
+    IL_00c7:  ldc.i4.1
+    IL_00c8:  stelem.i1
+    IL_00c9:  call       "Function System.Threading.Tasks.Task.get_Factory() As System.Threading.Tasks.TaskFactory"
+    IL_00ce:  ldloc.2
+    IL_00cf:  ldftn      "Function Program._Closure$__4-0._Lambda$__0() As String"
+    IL_00d5:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
+    IL_00da:  callvirt   "Function System.Threading.Tasks.TaskFactory.StartNew(Of String)(System.Func(Of String)) As System.Threading.Tasks.Task(Of String)"
+    IL_00df:  callvirt   "Function System.Threading.Tasks.Task(Of String).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_00e4:  stloc.3
+    IL_00e5:  ldloca.s   V_3
+    IL_00e7:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of String).get_IsCompleted() As Boolean"
+    IL_00ec:  brtrue.s   IL_012a
+    IL_00ee:  ldarg.0
+    IL_00ef:  ldc.i4.0
+    IL_00f0:  dup
+    IL_00f1:  stloc.1
+    IL_00f2:  stfld      "Program.VB$StateMachine_4_Second.$State As Integer"
+    IL_00f7:  ldarg.0
+    IL_00f8:  ldloc.3
+    IL_00f9:  stfld      "Program.VB$StateMachine_4_Second.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_00fe:  ldarg.0
+    IL_00ff:  ldflda     "Program.VB$StateMachine_4_Second.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
+    IL_0104:  ldloca.s   V_3
+    IL_0106:  ldarg.0
+    IL_0107:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of String), Program.VB$StateMachine_4_Second)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of String), ByRef Program.VB$StateMachine_4_Second)"
+    IL_010c:  leave.s    IL_0176
+    IL_010e:  ldarg.0
+    IL_010f:  ldc.i4.m1
+    IL_0110:  dup
+    IL_0111:  stloc.1
+    IL_0112:  stfld      "Program.VB$StateMachine_4_Second.$State As Integer"
+    IL_0117:  ldarg.0
+    IL_0118:  ldfld      "Program.VB$StateMachine_4_Second.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_011d:  stloc.3
+    IL_011e:  ldarg.0
+    IL_011f:  ldflda     "Program.VB$StateMachine_4_Second.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_0124:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_012a:  ldloca.s   V_3
+    IL_012c:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of String).GetResult() As String"
+    IL_0131:  ldloca.s   V_3
+    IL_0133:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_0139:  stloc.0
+    IL_013a:  leave.s    IL_0160
+  }
+  catch System.Exception
+  {
+    IL_013c:  dup
+    IL_013d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0142:  stloc.s    V_4
+    IL_0144:  ldarg.0
+    IL_0145:  ldc.i4.s   -2
+    IL_0147:  stfld      "Program.VB$StateMachine_4_Second.$State As Integer"
+    IL_014c:  ldarg.0
+    IL_014d:  ldflda     "Program.VB$StateMachine_4_Second.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
+    IL_0152:  ldloc.s    V_4
+    IL_0154:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String).SetException(System.Exception)"
+    IL_0159:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_015e:  leave.s    IL_0176
+  }
+  IL_0160:  ldarg.0
+  IL_0161:  ldc.i4.s   -2
+  IL_0163:  dup
+  IL_0164:  stloc.1
+  IL_0165:  stfld      "Program.VB$StateMachine_4_Second.$State As Integer"
+  IL_016a:  ldarg.0
+  IL_016b:  ldflda     "Program.VB$StateMachine_4_Second.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
+  IL_0170:  ldloc.0
+  IL_0171:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String).SetResult(String)"
+  IL_0176:  ret
+}
+                ]]>.Value)
             verifier.VerifyDiagnostics()
         End Sub
 
@@ -1645,14 +1904,502 @@ End Class
             Assert.True(False)
         End Sub
 
+        <Fact>
+        Public Sub ExcludeFromCodeCoverageAttribute_Method()
+            Dim source = "
+Imports System
+Imports System.Diagnostics.CodeAnalysis
+
+Class C
+    <ExcludeFromCodeCoverage>
+    Sub M1()
+        Console.WriteLine(1)
+    End Sub
+
+    Sub M2()
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim verifier = CompileAndVerify(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+            AssertNotInstrumented(verifier, "C.M1")
+            AssertInstrumented(verifier, "C.M2")
+        End Sub
+
+        <Fact>
+        Public Sub ExcludeFromCodeCoverageAttribute_Ctor()
+            Dim source = "
+Imports System
+Imports System.Diagnostics.CodeAnalysis
+
+Class C
+    Dim a As Integer = 1
+
+    <ExcludeFromCodeCoverage>
+    Public Sub New()
+        Console.WriteLine(3)
+    End Sub
+End Class
+"
+            Dim verifier = CompileAndVerify(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+            AssertNotInstrumented(verifier, "C..ctor")
+        End Sub
+
+        <Fact>
+        Public Sub ExcludeFromCodeCoverageAttribute_Cctor()
+            Dim source = "
+Imports System
+Imports System.Diagnostics.CodeAnalysis
+
+Class C
+    Shared a As Integer = 1
+
+    <ExcludeFromCodeCoverage>
+    Shared Sub New()
+        Console.WriteLine(3)
+    End Sub
+End Class
+"
+            Dim verifier = CompileAndVerify(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+            AssertNotInstrumented(verifier, "C..cctor")
+        End Sub
+
+        <Fact>
+        Public Sub ExcludeFromCodeCoverageAttribute_Lambdas_InMethod()
+            Dim source = "
+Imports System
+Imports System.Diagnostics.CodeAnalysis
+
+Class C
+    <ExcludeFromCodeCoverage>
+    Shared Sub M1()
+        Dim s = New Action(Sub() Console.WriteLine(1))
+        s.Invoke()
+    End Sub
+
+    Shared Sub M2()
+        Dim s = New Action(Sub() Console.WriteLine(2))
+        s.Invoke()
+    End Sub
+End Class
+"
+            Dim verifier = CompileAndVerify(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+
+            AssertNotInstrumented(verifier, "C.M1")
+            AssertNotInstrumented(verifier, "C._Closure$__._Lambda$__1-0")
+
+            AssertInstrumented(verifier, "C.M2")
+            AssertInstrumented(verifier, "C._Closure$__2-0._Lambda$__0")
+        End Sub
+
+        <Fact>
+        Public Sub ExcludeFromCodeCoverageAttribute_Lambdas_InInitializers()
+            Dim source = "
+Imports System
+Imports System.Diagnostics.CodeAnalysis
+
+Class C
+    Dim [IF] As Action = Sub() Console.WriteLine(1)
+
+    ReadOnly Property IP As Action = Sub() Console.WriteLine(2)
+
+    Shared SF As Action = Sub() Console.WriteLine(3)
+
+    Shared ReadOnly Property SP As Action = Sub() Console.WriteLine(4)
+
+    <ExcludeFromCodeCoverage>
+    Sub New()
+    End Sub
+
+    Shared Sub New()
+    End Sub
+End Class
+"
+            Dim verifier = CompileAndVerify(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+            verifier.VerifyDiagnostics()
+
+            AssertNotInstrumented(verifier, "C..ctor")
+            AssertNotInstrumented(verifier, "C._Closure$__._Lambda$__8-0")
+            AssertNotInstrumented(verifier, "C._Closure$__._Lambda$__8-1")
+
+            AssertInstrumented(verifier, "C..cctor")
+            AssertInstrumented(verifier, "C._Closure$__9-0._Lambda$__0")
+            AssertInstrumented(verifier, "C._Closure$__9-0._Lambda$__1")
+        End Sub
+
+        <Fact>
+        Public Sub ExcludeFromCodeCoverageAttribute_Lambdas_InAccessors()
+            Dim source = "
+Imports System
+Imports System.Diagnostics.CodeAnalysis
+
+Class C
+
+    <ExcludeFromCodeCoverage>
+    Property P1 As Integer
+        Get
+            Dim s = Sub() Console.WriteLine(1)
+            s()
+            Return 1
+        End Get
+
+        Set
+            Dim s = Sub() Console.WriteLine(2)
+            s()
+        End Set
+    End Property
+
+    Property P2 As Integer
+        Get
+            Dim s = Sub() Console.WriteLine(3)
+            s()
+            Return 3
+        End Get
+
+        Set
+            Dim s = Sub() Console.WriteLine(4)
+            s()
+        End Set
+    End Property
+End Class
+"
+            Dim verifier = CompileAndVerify(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+
+            AssertNotInstrumented(verifier, "C.get_P1")
+            AssertNotInstrumented(verifier, "C.set_P1")
+            AssertNotInstrumented(verifier, "C._Closure$__._Lambda$__2-0")
+            AssertNotInstrumented(verifier, "C._Closure$__._Lambda$__3-0")
+
+            AssertInstrumented(verifier, "C.get_P2")
+            AssertInstrumented(verifier, "C.set_P2")
+            AssertInstrumented(verifier, "C._Closure$__6-0._Lambda$__0")
+            AssertInstrumented(verifier, "C._Closure$__5-0._Lambda$__0")
+        End Sub
+
+        <Fact>
+        Public Sub ExcludeFromCodeCoverageAttribute_Type()
+            Dim source = "
+Imports System
+Imports System.Diagnostics.CodeAnalysis
+
+<ExcludeFromCodeCoverage>
+Class C
+    Dim x As Integer = 1
+
+    Shared Sub New()
+    End Sub
+
+    Sub M1()
+        Console.WriteLine(1)
+    End Sub
+
+    Property P As Integer
+        Get
+            Return 1
+        End Get
+        Set
+        End Set
+    End Property
+
+    Custom Event E As Action
+        AddHandler(v As Action)
+        End AddHandler
+
+        RemoveHandler(v As Action)
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+
+Class D
+    Dim x As Integer = 1
+
+    Shared Sub New()
+    End Sub
+
+    Sub M1()
+        Console.WriteLine(1)
+    End Sub
+
+    Property P As Integer
+        Get
+            Return 1
+        End Get
+        Set
+        End Set
+    End Property
+
+    Custom Event E As Action
+        AddHandler(v As Action)
+        End AddHandler
+
+        RemoveHandler(v As Action)
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+"
+            Dim verifier = CompileAndVerify(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+
+            AssertNotInstrumented(verifier, "C..ctor")
+            AssertNotInstrumented(verifier, "C..cctor")
+            AssertNotInstrumented(verifier, "C.M1")
+            AssertNotInstrumented(verifier, "C.get_P")
+            AssertNotInstrumented(verifier, "C.set_P")
+            AssertNotInstrumented(verifier, "C.add_E")
+            AssertNotInstrumented(verifier, "C.remove_E")
+            AssertNotInstrumented(verifier, "C.raise_E")
+
+            AssertInstrumented(verifier, "D..ctor")
+            AssertInstrumented(verifier, "D..cctor")
+            AssertInstrumented(verifier, "D.M1")
+            AssertInstrumented(verifier, "D.get_P")
+            AssertInstrumented(verifier, "D.set_P")
+            AssertInstrumented(verifier, "D.add_E")
+            AssertInstrumented(verifier, "D.remove_E")
+            AssertInstrumented(verifier, "D.raise_E")
+        End Sub
+
+        <Fact>
+        Public Sub ExcludeFromCodeCoverageAttribute_NestedType()
+            Dim source = "
+Imports System
+Imports System.Diagnostics.CodeAnalysis
+
+Class A
+    Class B1
+        <ExcludeFromCodeCoverage>
+        Class C
+            Sub M1()
+                Console.WriteLine(1)
+            End Sub
+        End Class
+
+        Sub M2()
+            Console.WriteLine(2)
+        End Sub
+    End Class
+
+    <ExcludeFromCodeCoverage>
+    Partial Class B2
+        Partial Class C1
+            Sub M3()
+                Console.WriteLine(3)
+            End Sub
+        End Class
+
+        Class C2
+            Sub M4()
+                Console.WriteLine(4)
+            End Sub
+        End Class
+
+        Sub M5()
+            Console.WriteLine(5)
+        End Sub
+    End Class
+
+    Partial Class B2
+        <ExcludeFromCodeCoverage>
+        Partial Class C1
+            Sub M6()
+                Console.WriteLine(6)
+            End Sub
+        End Class
+
+        Sub M7()
+            Console.WriteLine(7)
+        End Sub
+    End Class
+
+    Sub M8()
+        Console.WriteLine(8)
+    End Sub
+End Class
+"
+            Dim verifier = CompileAndVerify(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+            AssertNotInstrumented(verifier, "A.B1.C.M1")
+            AssertInstrumented(verifier, "A.B1.M2")
+            AssertNotInstrumented(verifier, "A.B2.C1.M3")
+            AssertNotInstrumented(verifier, "A.B2.C2.M4")
+            AssertNotInstrumented(verifier, "A.B2.C1.M6")
+            AssertNotInstrumented(verifier, "A.B2.M7")
+            AssertInstrumented(verifier, "A.M8")
+        End Sub
+
+        <Fact>
+        Public Sub ExcludeFromCodeCoverageAttribute_Accessors()
+            Dim source = "
+Imports System
+Imports System.Diagnostics.CodeAnalysis
+
+Class C
+    <ExcludeFromCodeCoverage>
+    Property P1 As Integer
+        Get
+            Return 1
+        End Get
+        Set
+        End Set
+    End Property
+          
+    <ExcludeFromCodeCoverage>
+    Custom Event E1 As Action
+        AddHandler(v As Action)
+        End AddHandler
+
+        RemoveHandler(v As Action)
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+                                            
+    Property P2 As Integer
+        Get
+            Return 2
+        End Get
+        Set
+        End Set
+    End Property
+
+    Custom Event E2 As Action
+        AddHandler(v As Action)
+        End AddHandler
+
+        RemoveHandler(v As Action)
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+"
+            Dim verifier = CompileAndVerify(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+
+            AssertNotInstrumented(verifier, "C.get_P1")
+            AssertNotInstrumented(verifier, "C.set_P1")
+            AssertNotInstrumented(verifier, "C.add_E1")
+            AssertNotInstrumented(verifier, "C.remove_E1")
+            AssertNotInstrumented(verifier, "C.raise_E1")
+
+            AssertInstrumented(verifier, "C.get_P2")
+            AssertInstrumented(verifier, "C.set_P2")
+            AssertInstrumented(verifier, "C.add_E2")
+            AssertInstrumented(verifier, "C.remove_E2")
+            AssertInstrumented(verifier, "C.raise_E2")
+        End Sub
+
+        <Fact>
+        Public Sub ExcludeFromCodeCoverageAttribute_CustomDefinition_Good()
+            Dim source = "
+Imports System.Diagnostics.CodeAnalysis
+
+Namespace System.Diagnostics.CodeAnalysis
+
+    <AttributeUsage(AttributeTargets.Class)>
+    Public Class ExcludeFromCodeCoverageAttribute
+        Inherits Attribute
+
+        Public Sub New()
+        End Sub
+    End Class
+End Namespace
+
+<ExcludeFromCodeCoverage>
+Class C
+    Sub M()
+    End Sub
+End Class
+
+Class D
+    Sub M()
+    End Sub
+End Class
+"
+            Dim c = CreateCompilationWithMscorlib(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+            c.VerifyDiagnostics()
+
+            Dim verifier = CompileAndVerify(c, emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
+            c.VerifyEmitDiagnostics()
+
+            AssertNotInstrumented(verifier, "C.M")
+            AssertInstrumented(verifier, "D.M")
+        End Sub
+
+        <Fact>
+        Public Sub ExcludeFromCodeCoverageAttribute_CustomDefinition_Bad()
+            Dim source = "
+Imports System.Diagnostics.CodeAnalysis
+
+Namespace System.Diagnostics.CodeAnalysis
+
+    <AttributeUsage(AttributeTargets.Class)>
+    Public Class ExcludeFromCodeCoverageAttribute
+        Inherits Attribute
+
+        Public Sub New(x As Integer)
+        End Sub
+    End Class
+End Namespace
+
+<ExcludeFromCodeCoverage(1)>
+Class C
+    Sub M()
+    End Sub
+End Class
+
+Class D
+    Sub M()
+    End Sub
+End Class
+"
+            Dim c = CreateCompilationWithMscorlib(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+            c.VerifyDiagnostics()
+
+            Dim verifier = CompileAndVerify(c, emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
+            c.VerifyEmitDiagnostics()
+
+            AssertInstrumented(verifier, "C.M")
+            AssertInstrumented(verifier, "D.M")
+        End Sub
+
+        Private Shared Sub AssertNotInstrumented(verifier As CompilationVerifier, qualifiedMethodName As String)
+            AssertInstrumented(verifier, qualifiedMethodName, expected:=False)
+        End Sub
+
+        Private Shared Sub AssertInstrumented(verifier As CompilationVerifier, qualifiedMethodName As String, Optional expected As Boolean = True)
+            Dim il = verifier.VisualizeIL(qualifiedMethodName)
+
+            ' Tests using this helper are constructed such that instrumented methods contain a call to CreatePayload, 
+            ' lambdas a reference to payload Boolean array.
+            Dim instrumented = il.Contains("CreatePayload") OrElse il.Contains("As Boolean()")
+
+            Assert.True(expected = instrumented, $"Method '{qualifiedMethodName}' should {If(expected, "be", "not be")} instrumented. Actual IL:{Environment.NewLine}{il}")
+        End Sub
+
         Private Function CreateCompilation(source As XElement) As Compilation
-            Return CompilationUtils.CreateCompilationWithReferences(source, references:=New MetadataReference() {}, options:=TestOptions.ReleaseExe.WithDeterministic(True))
+            Return CreateCompilationWithReferences(source, references:=New MetadataReference() {}, options:=TestOptions.ReleaseExe.WithDeterministic(True))
         End Function
 
-        Private Overloads Function CompileAndVerify(source As XElement, expectedOutput As XCData, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
-            Return MyBase.CompileAndVerify(source, expectedOutput:=expectedOutput, additionalRefs:=s_refs, options:=If(options IsNot Nothing, options, TestOptions.ReleaseExe).WithDeterministic(True), emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
+        Private Overloads Function CompileAndVerify(source As XElement, Optional expectedOutput As XCData = Nothing, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
+            Return CompileAndVerify(source,
+                                    LatestVbReferences,
+                                    XCDataToString(expectedOutput),
+                                    options:=If(options, TestOptions.ReleaseExe).WithDeterministic(True),
+                                    emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
         End Function
 
-        Private Shared ReadOnly s_refs As MetadataReference() = New MetadataReference() {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}
+        Private Overloads Function CompileAndVerify(source As String, Optional expectedOutput As String = Nothing, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
+            Return CompileAndVerify(source,
+                                    LatestVbReferences,
+                                    expectedOutput,
+                                    options:=If(options, TestOptions.ReleaseExe).WithDeterministic(True),
+                                    emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
+        End Function
     End Class
 End Namespace

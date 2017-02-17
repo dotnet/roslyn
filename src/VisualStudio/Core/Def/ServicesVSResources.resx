@@ -447,12 +447,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="No_Changes" xml:space="preserve">
     <value>No Changes</value>
   </data>
-  <data name="Get_help_for_0_1_2_3" xml:space="preserve">
-    <value>Get help for '{0}'{1}{2}{3}</value>
-  </data>
-  <data name="from_Bing" xml:space="preserve">
-    <value> from Bing</value>
-  </data>
   <data name="Current_block" xml:space="preserve">
     <value>Current block</value>
   </data>
@@ -857,5 +851,20 @@ Additional information: {1}</value>
   </data>
   <data name="type_is_apparent_from_assignment_expression" xml:space="preserve">
     <value>type is apparent from assignment expression</value>
+  </data>
+  <data name="Get_help_for_0" xml:space="preserve">
+    <value>Get help for '{0}'</value>
+  </data>
+  <data name="Get_help_for_0_from_Bing" xml:space="preserve">
+    <value>Get help for '{0}' from Bing</value>
+  </data>
+  <data name="Move_down" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="Move_up" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
   </data>
 </root>

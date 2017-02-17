@@ -1,12 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindReferences;
-using Microsoft.CodeAnalysis.Editor.GoToImplementation;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 
@@ -32,8 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 return;
             }
 
-            var project = tuple.Value.project;
+            context.SetSearchTitle(string.Format(EditorFeaturesResources._0_implementations,
+                FindUsagesHelpers.GetDisplayName(tuple.Value.symbol)));
 
+            var project = tuple.Value.project;
             foreach (var implementation in tuple.Value.implementations)
             {
                 var definitionItem = implementation.ToDefinitionItem(
@@ -59,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             // After the FAR engine is done call into any third party extensions to see
             // if they want to add results.
-            await findReferencesProgress.CallThirdPartyExtensionsAsync().ConfigureAwait(true);
+            await findReferencesProgress.CallThirdPartyExtensionsAsync(
+                context.CancellationToken).ConfigureAwait(true);
         }
 
         private async Task<ProgressAdapter> FindReferencesWorkerAsync(
@@ -79,8 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var symbol = symbolAndProject?.symbol;
             var project = symbolAndProject?.project;
 
-            var displayName = AbstractFindReferencesService.GetDisplayName(symbol);
-            context.SetSearchLabel(displayName);
+            context.SetSearchTitle(string.Format(EditorFeaturesResources._0_references,
+                FindUsagesHelpers.GetDisplayName(symbol)));
 
             var progressAdapter = new ProgressAdapter(project.Solution, context);
 

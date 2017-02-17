@@ -2971,7 +2971,7 @@ parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12182"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped_CSharp6()
         {
@@ -2999,7 +2999,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
 withScriptOption: true);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12182"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument_CSharp6()
         {
@@ -3027,7 +3027,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
 withScriptOption: true);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12182"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped_CSharp6()
         {
@@ -3055,7 +3055,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
 withScriptOption: true);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12182"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument_CSharp6()
         {

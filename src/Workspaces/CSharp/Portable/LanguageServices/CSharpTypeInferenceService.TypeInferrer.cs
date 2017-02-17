@@ -87,7 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> GetTypesSimple(ExpressionSyntax expression)
             {
-                if (expression != null)
+                if (expression is RefTypeSyntax refType)
+                {
+                    return GetTypes(refType.Type);
+                }
+                else if (expression != null)
                 {
                     var typeInfo = SemanticModel.GetTypeInfo(expression, CancellationToken);
                     var symbolInfo = SemanticModel.GetSymbolInfo(expression, CancellationToken);
@@ -154,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression: return InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression);
                     case PostfixUnaryExpressionSyntax postfixUnary: return InferTypeInPostfixUnaryExpression(postfixUnary);
                     case PrefixUnaryExpressionSyntax prefixUnary: return InferTypeInPrefixUnaryExpression(prefixUnary);
+                    case RefExpressionSyntax refExpression: return InferTypeInRefExpression(refExpression);
                     case ReturnStatementSyntax returnStatement: return InferTypeForReturnStatement(returnStatement);
                     case SimpleLambdaExpressionSyntax simpleLambdaExpression: return InferTypeInSimpleLambdaExpression(simpleLambdaExpression);
                     case SwitchLabelSyntax switchLabel: return InferTypeInSwitchLabel(switchLabel);
@@ -191,6 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (parent)
                 {
+                    case AnonymousObjectCreationExpressionSyntax anonymousObjectCreation: return InferTypeInAnonymousObjectCreation(anonymousObjectCreation, token);
                     case AnonymousObjectMemberDeclaratorSyntax memberDeclarator: return InferTypeInMemberDeclarator(memberDeclarator, token);
                     case ArgumentListSyntax argument: return InferTypeInArgumentList(argument, token);
                     case ArgumentSyntax argument: return InferTypeInArgument(argument, token);
@@ -218,6 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ForEachStatementSyntax forEachStatement: return InferTypeInForEachStatement(forEachStatement, previousToken: token);
                     case ForStatementSyntax forStatement: return InferTypeInForStatement(forStatement, previousToken: token);
                     case IfStatementSyntax ifStatement: return InferTypeInIfStatement(ifStatement, token);
+                    case ImplicitArrayCreationExpressionSyntax implicitArray: return InferTypeInImplicitArrayCreation(implicitArray, token);
                     case InitializerExpressionSyntax initializerExpression: return InferTypeInInitializerExpression(initializerExpression, previousToken: token);
                     case LockStatementSyntax lockStatement: return InferTypeInLockStatement(lockStatement, token);
                     case MemberAccessExpressionSyntax memberAccessExpression: return InferTypeInMemberAccessExpression(memberAccessExpression, previousToken: token);
@@ -237,6 +244,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case YieldStatementSyntax yieldStatement: return InferTypeInYieldStatement(yieldStatement, token);
                     default: return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInAnonymousObjectCreation(AnonymousObjectCreationExpressionSyntax expression, SyntaxToken previousToken)
+            {
+                if (previousToken == expression.NewKeyword)
+                {
+                    return InferTypes(expression.SpanStart);
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArgument(
@@ -367,8 +384,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //
                 // In both these cases, we simply back up before the 'new' if it follows an equals
                 // and start the inference again.
+                //
+                // Analogously, but in a method call:
+                //      Test(new $$
+                //      o = s
+                // or:
+                //      Test(1, new $$
+                //      o = s
+                // The new is part of the assignment to o but the user is really trying to 
+                // add a parameter to the method call.
                 if (previousToken.Kind() == SyntaxKind.NewKeyword &&
-                    previousToken.GetPreviousToken().Kind() == SyntaxKind.EqualsToken)
+                    previousToken.GetPreviousToken().IsKind(SyntaxKind.EqualsToken, SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
                 {
                     return InferTypes(previousToken.SpanStart);
                 }
@@ -894,6 +920,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var otherSideTypes = GetTypes(otherSide);
                 if (otherSideTypes.Any())
                 {
+                    // Don't infer delegate types except in assignments. They're unlikely to be what the
+                    // user needs and can cause lambda suggestion mode while
+                    // typing type arguments:
+                    // https://github.com/dotnet/roslyn/issues/14492
+                    if (!(binop is AssignmentExpressionSyntax))
+                    {
+                        otherSideTypes = otherSideTypes.Where(t => !t.InferredType.IsDelegateType());
+                    }
+
                     return otherSideTypes;
                 }
 
@@ -1196,6 +1231,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInImplicitArrayCreation(ImplicitArrayCreationExpressionSyntax implicitArray, SyntaxToken previousToken)
+            {
+                return InferTypes(implicitArray.SpanStart);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInInitializerExpression(
@@ -1760,12 +1800,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (memberSymbol)
                 {
-                    case IMethodSymbol method: return method.ReturnType; 
-                    case IPropertySymbol property: return property.Type; 
+                    case IMethodSymbol method: return method.ReturnType;
+                    case IPropertySymbol property: return property.Type;
                 }
 
                 return null;
             }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInRefExpression(RefExpressionSyntax refExpression)
+                => InferTypes(refExpression);
 
             private IEnumerable<TypeInferenceInfo> InferTypeForReturnStatement(ReturnStatementSyntax returnStatement, SyntaxToken? previousToken = null)
             {
@@ -2027,6 +2070,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else if (expr.IsKind(SyntaxKind.TupleExpression))
                         {
                             AddTypeAndName((TupleExpressionSyntax)expr, elementTypesBuilder, elementNamesBuilder);
+                        }
+                        else
+                        {
+                            return false;
                         }
                     }
 

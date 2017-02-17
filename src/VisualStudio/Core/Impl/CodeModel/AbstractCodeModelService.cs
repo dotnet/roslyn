@@ -521,7 +521,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // Save the node keys.
             var nodeKeyValidation = new NodeKeyValidation();
-            foreach (var project in workspace.ProjectTracker.ImmutableProjects)
+            foreach (var project in workspace.DeferredState.ProjectTracker.ImmutableProjects)
             {
                 nodeKeyValidation.AddProject(project);
             }
@@ -600,7 +600,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
-        protected bool TryGetElementFromSource(CodeModelState state, Project project, ITypeSymbol typeSymbol, out EnvDTE.CodeElement element)
+        protected bool TryGetElementFromSource(
+            CodeModelState state, Project project, ITypeSymbol typeSymbol, out EnvDTE.CodeElement element)
         {
             element = null;
 
@@ -629,7 +630,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     {
                         var document = project.GetDocument(location.SourceTree);
 
-                        if (document.IsGeneratedCode() == false)
+                        if (!document.IsGeneratedCode(CancellationToken.None))
                         {
                             chosenLocation = location;
                             chosenDocumentId = document.Id;

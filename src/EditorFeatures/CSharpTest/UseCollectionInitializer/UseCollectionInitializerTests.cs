@@ -644,5 +644,62 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(16158, "https://github.com/dotnet/roslyn/issues/16158")]
+        public async Task TestIncorrectAddName()
+        {
+            await TestAsync(
+@"using System.Collections.Generic;
+
+public class Foo
+{
+    public static void Bar()
+    {
+        string item = null;
+        var items = new List<string>();
+
+        var values = new [||]List<string>(); // Collection initialization can be simplified
+        values.Add(item);
+        values.AddRange(items);
+    }
+}",
+@"using System.Collections.Generic;
+
+public class Foo
+{
+    public static void Bar()
+    {
+        string item = null;
+        var items = new List<string>();
+
+        var values = new List<string>
+        {
+            item
+        }; // Collection initialization can be simplified
+        values.AddRange(items);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(16241, "https://github.com/dotnet/roslyn/issues/16241")]
+        public async Task TestNestedCollectionInitializer()
+        {
+            await TestMissingAsync(
+@"
+        using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var myStringArray = new string[] { ""Test"", ""123"", ""ABC"" };
+        var myStringList = myStringArray?.ToList() ?? new [||]List<string>();
+        myStringList.Add(""Done"");
+    }
+}");
+        }
     }
 }

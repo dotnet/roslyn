@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitBlock((BoundBlock)statement);
                     break;
 
+                case BoundKind.Scope:
+                    EmitScope((BoundScope)statement);
+                    break;
+
                 case BoundKind.SequencePoint:
                     this.EmitSequencePointStatement((BoundSequencePoint)statement);
                     break;
@@ -609,10 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
-            foreach (var statement in block.Statements)
-            {
-                EmitStatement(statement);
-            }
+            EmitStatements(block.Statements);
 
             if (_indirectReturnState == IndirectReturnState.Needed &&
                 IsLastBlockInMethod(block))
@@ -629,6 +630,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 _builder.CloseLocalScope();
             }
+        }
+
+        private void EmitStatements(ImmutableArray<BoundStatement> statements)
+        {
+            foreach (var statement in statements)
+            {
+                EmitStatement(statement);
+            }
+        }
+
+        private void EmitScope(BoundScope block)
+        {
+            Debug.Assert(!block.Locals.IsEmpty);
+
+            _builder.OpenLocalScope();
+
+            foreach (var local in block.Locals)
+            {
+                Debug.Assert(local.Name != null);
+                Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
+                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection);
+                if (!local.IsConst && !IsStackLocal(local))
+                {
+                    _builder.AddLocalToScope(_builder.LocalSlotManager.GetLocal(local));
+                }
+            }
+
+            EmitStatements(block.Statements);
+
+            _builder.CloseLocalScope();
         }
 
         private void EmitStateMachineScope(BoundStateMachineScope scope)
@@ -1075,11 +1106,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSwitchBody(switchStatement.InnerLocals, switchSections, breakLabel, switchStatement.Syntax);
         }
 
-        private static KeyValuePair<ConstantValue, object>[] GetSwitchCaseLabels(ImmutableArray<BoundSwitchSection> sections, ref LabelSymbol fallThroughLabel)
+        private KeyValuePair<ConstantValue, object>[] GetSwitchCaseLabels(ImmutableArray<BoundSwitchSection> sections, ref LabelSymbol fallThroughLabel)
         {
             var labelsBuilder = ArrayBuilder<KeyValuePair<ConstantValue, object>>.GetInstance();
             foreach (var section in sections)
             {
+                // all labels in a section are labeling the same region of code, 
+                // so we could use just the first one for a better codegen
+                object firstLabelInSection = null;
+
                 foreach (BoundSwitchLabel boundLabel in section.SwitchLabels)
                 {
                     var label = boundLabel.Label;
@@ -1092,7 +1127,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var value = boundLabel.ConstantValueOpt;
                         Debug.Assert(value != null
                             && SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(value));
-                        labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, label));
+
+                        if (firstLabelInSection == null)
+                        {
+                            firstLabelInSection = label;
+                        }
+
+                        labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, firstLabelInSection));
                     }
                 }
             }
@@ -1454,7 +1495,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 isSlotReusable: local.SynthesizedKind.IsSlotReusable(_ilEmitStyle != ILEmitStyle.Release));
 
             // If named, add it to the local debug scope.
-            if (localDef.Name != null)
+            if (localDef.Name != null &&
+                !(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
+                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection)) // Visibility scope of such locals is represented by BoundScope node.
             {
                 _builder.AddLocalToScope(localDef);
             }

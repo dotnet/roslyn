@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly LocalFunctionStatementSyntax _syntax;
         private readonly Symbol _containingSymbol;
         private readonly DeclarationModifiers _declarationModifiers;
-        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
+        private readonly ImmutableArray<LocalFunctionTypeParameterSymbol> _typeParameters;
         private readonly RefKind _refKind;
         private ParametersAndDiagnostics _lazyParametersAndDiagnostics;
         private TypeParameterConstraintsAndDiagnostics _lazyTypeParameterConstraintsAndDiagnostics;
@@ -78,6 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnostics = DiagnosticBag.GetInstance();
 
+            ScopeBinder = binder;
+
+            binder = binder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
+
             if (_syntax.TypeParameterList != null)
             {
                 binder = new WithMethodTypeParametersBinder(this, binder);
@@ -85,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+                _typeParameters = ImmutableArray<LocalFunctionTypeParameterSymbol>.Empty;
+                ReportErrorIfHasConstraints(_syntax.ConstraintClauses, diagnostics);
             }
 
             if (IsExtensionMethod)
@@ -102,15 +107,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Binder that owns the scope for the local function symbol, namely the scope where the
         /// local function is declared.
         /// </summary>
-        internal Binder ScopeBinder => _syntax.TypeParameterList == null
-            ? _binder
-            : _binder.Next; // If there are type parameters, this binder is wrapped
-                            // in a WithMethodTypeParametersBinder
+        internal Binder ScopeBinder { get; }
 
-        internal void GrabDiagnostics(DiagnosticBag addTo)
+        internal void GetDeclarationDiagnostics(DiagnosticBag addTo)
         {
+            // Force attribute binding for diagnostics
+            foreach (var typeParam in _typeParameters)
+            {
+                typeParam.GetAttributesBag(addTo);
+            }
+
             // force lazy init
             ComputeParameters();
+
+            foreach (var p in _syntax.ParameterList.Parameters)
+            {
+                if (p.IsArgList)
+                {
+                    addTo.Add(ErrorCode.ERR_IllegalVarArgs, p.Location);
+                }
+            }
+
             ComputeReturnType();
 
             var diags = ImmutableInterlocked.InterlockedExchange(ref _diagnostics, default(ImmutableArray<Diagnostic>));
@@ -156,7 +173,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnostics = DiagnosticBag.GetInstance();
             SyntaxToken arglistToken;
-            var parameters = ParameterHelpers.MakeParameters(_binder, this, _syntax.ParameterList, true, out arglistToken, diagnostics, true);
+
+            foreach (var param in _syntax.ParameterList.Parameters)
+            {
+                ReportAnyAttributes(diagnostics, param.AttributeLists);
+            }
+
+            var parameters = ParameterHelpers.MakeParameters(
+                _binder,
+                this,
+                _syntax.ParameterList,
+                arglistToken: out arglistToken,
+                diagnostics: diagnostics,
+                allowRefOrOut: true,
+                allowThis: true,
+                beStrict: true);
+
             var isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             if (IsAsync && diagnostics.IsEmptyWithoutResolution)
             {
@@ -164,6 +196,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             var value = new ParametersAndDiagnostics(parameters, isVararg, diagnostics.ToReadOnlyAndFree());
             Interlocked.CompareExchange(ref _lazyParametersAndDiagnostics, value, null);
+        }
+
+        private static void ReportAnyAttributes(DiagnosticBag diagnostics, SyntaxList<AttributeListSyntax> attributes)
+        {
+            foreach (var attrList in attributes)
+            {
+                diagnostics.Add(ErrorCode.ERR_AttributesInLocalFuncDecl, attrList.Location);
+            }
         }
 
         public override TypeSymbol ReturnType
@@ -218,7 +258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeSymbol> TypeArguments => TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters => _typeParameters;
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters 
+            => _typeParameters.Cast<LocalFunctionTypeParameterSymbol, TypeParameterSymbol>();
 
         public override bool IsExtensionMethod
         {
@@ -328,16 +369,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)
+        private ImmutableArray<LocalFunctionTypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)
         {
-            var result = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+            var result = ArrayBuilder<LocalFunctionTypeParameterSymbol>.GetInstance();
             var typeParameters = _syntax.TypeParameterList.Parameters;
             for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
             {
                 var parameter = typeParameters[ordinal];
+                if (parameter.VarianceKeyword.Kind() != SyntaxKind.None)
+                {
+                    diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
+                }
+
                 var identifier = parameter.Identifier;
                 var location = identifier.GetLocation();
                 var name = identifier.ValueText;
+
+                ReportAnyAttributes(diagnostics, parameter.AttributeLists);
 
                 foreach (var @param in result)
                 {

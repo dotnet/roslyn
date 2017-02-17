@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
             switch (args[1].Trim())
             {
-                case "silent": return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.None);
-                case "suggestion": return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Suggestion);
-                case "warning": return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Warning);
-                case "error": return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Error);
+                case EditorConfigSeverityStrings.Silent: return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.None);
+                case EditorConfigSeverityStrings.Suggestion: return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Suggestion);
+                case EditorConfigSeverityStrings.Warning: return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Warning);
+                case EditorConfigSeverityStrings.Error: return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Error);
                 default: return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.None);
             }
         }

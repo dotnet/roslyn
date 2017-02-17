@@ -123,17 +123,19 @@ namespace RunTests
                 Logger.Log($"Command line {assemblyInfo.DisplayName}: {commandLine}");
                 var standardOutput = string.Join(Environment.NewLine, processOutput.OutputLines) ?? "";
                 var errorOutput = string.Join(Environment.NewLine, processOutput.ErrorLines) ?? "";
-
-                return new TestResult(
+                var testResultInfo = new TestResultInfo(
                     exitCode: processOutput.ExitCode,
-                    assemblyInfo: assemblyInfo,
-                    resultDir: resultsDir,
+                    resultsDirectory: resultsDir,
                     resultsFilePath: resultsFilePath,
-                    commandLine: commandLine,
                     elapsed: span,
                     standardOutput: standardOutput,
-                    errorOutput: errorOutput,
-                    isResultFromCache: false);
+                    errorOutput: errorOutput);
+
+                return new TestResult(
+                    assemblyInfo,
+                    testResultInfo,
+                    commandLine,
+                    isFromCache: false);
             }
             catch (Exception ex)
             {

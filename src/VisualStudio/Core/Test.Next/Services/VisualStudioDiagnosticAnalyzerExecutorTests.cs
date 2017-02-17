@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -12,13 +11,13 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Moq;
 using Roslyn.Test.Utilities;
@@ -155,7 +154,7 @@ End Class";
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First();
 
-                var executor = new VisualStudioDiagnosticAnalyzerExecutor(mockAnalyzerService, new MyUpdateSource(workspace));
+                var executor = (ICodeAnalysisDiagnosticAnalyzerExecutor)new DiagnosticAnalyzerExecutor(mockAnalyzerService, new MyUpdateSource(workspace)).CreateService(workspace.Services);
                 var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray());
                 var result = await executor.AnalyzeAsync(analyzerDriver, project, CancellationToken.None);
 
@@ -170,7 +169,7 @@ End Class";
         private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, CancellationToken cancellationToken = default(CancellationToken))
         {
             var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
-            var executor = new VisualStudioDiagnosticAnalyzerExecutor(diagnosticService, new MyUpdateSource(workspace));
+            var executor = (ICodeAnalysisDiagnosticAnalyzerExecutor)new DiagnosticAnalyzerExecutor(diagnosticService, new MyUpdateSource(workspace)).CreateService(workspace.Services);
 
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
             var project = workspace.CurrentSolution.GetProject(projectId).AddAnalyzerReference(analyzerReference);
@@ -231,18 +230,6 @@ End Class";
             }
 
             public override Workspace Workspace => _workspace;
-        }
-
-        private class TestAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
-        {
-            public void AddDependencyLocation(string fullPath)
-            {
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-            {
-                return Assembly.LoadFrom(fullPath);
-            }
         }
     }
 }

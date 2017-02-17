@@ -166,6 +166,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
+        ''' True if the type itself Is excluded from code covarage instrumentation.
+        ''' True for source types marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
+        ''' </summary>
+        Friend Overridable ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Should the name returned by Name property be mangled with [`arity] suffix in order to get metadata name.
         ''' Must return False for a type with Arity == 0.
         ''' </summary>

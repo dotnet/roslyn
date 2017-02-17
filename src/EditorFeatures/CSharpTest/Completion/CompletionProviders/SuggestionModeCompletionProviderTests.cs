@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
@@ -718,6 +719,49 @@ class C {
             await VerifyNotBuilderAsync(markup);
         }
 
+        [WorkItem(15443, "https://github.com/dotnet/roslyn/issues/15443")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotBuilderWhenDelegateInferredRightOfDotInInvocation()
+        {
+            var markup = @"
+class C {
+	Action a = Task.$$
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(15443, "https://github.com/dotnet/roslyn/issues/15443")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotBuilderInTypeArgument()
+        {
+            var markup = @"
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        class N { }
+        static void Main(string[] args)
+        {
+            Program.N n = Load<Program.$$
+        }
+
+        static T Load<T>() => default(T);
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(16176, "https://github.com/dotnet/roslyn/issues/16176")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotBuilderForLambdaAfterNew()
+        {
+            var markup = @"
+class C {
+	Action a = new $$
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
         {
             await VerifyWorkerAsync(markup, isBuilder: false);
@@ -747,22 +791,30 @@ class C {
 
         private async Task CheckResultsAsync(Document document, int position, bool isBuilder)
         {
-            var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
-            var service = GetCompletionService(document.Project.Solution.Workspace);
-            var completionList = await service.GetContextAsync(
-                service.ExclusiveProviders?[0], document, position, triggerInfo,
-                options: null, cancellationToken: CancellationToken.None);
+            var triggerInfos = new List<CompletionTrigger>();
+            triggerInfos.Add(CompletionTrigger.CreateInsertionTrigger('a'));
+            triggerInfos.Add(CompletionTrigger.Invoke);
+            triggerInfos.Add(CompletionTrigger.CreateDeletionTrigger('z'));
 
-            if (isBuilder)
+            var service = GetCompletionService(document.Project.Solution.Workspace);
+
+            foreach (var triggerInfo in triggerInfos)
             {
-                Assert.NotNull(completionList);
-                Assert.NotNull(completionList.SuggestionModeItem);
-            }
-            else
-            {
-                if (completionList != null)
+                var completionList = await service.GetContextAsync(
+                    service.ExclusiveProviders?[0], document, position, triggerInfo,
+                    options: null, cancellationToken: CancellationToken.None);
+
+                if (isBuilder)
                 {
-                    Assert.True(completionList.SuggestionModeItem == null, "group.Builder == " + (completionList.SuggestionModeItem != null ? completionList.SuggestionModeItem.DisplayText : "null"));
+                    Assert.NotNull(completionList);
+                    Assert.NotNull(completionList.SuggestionModeItem);
+                }
+                else
+                {
+                    if (completionList != null)
+                    {
+                        Assert.True(completionList.SuggestionModeItem == null, "group.Builder == " + (completionList.SuggestionModeItem != null ? completionList.SuggestionModeItem.DisplayText : "null"));
+                    }
                 }
             }
         }

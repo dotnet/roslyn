@@ -668,5 +668,74 @@ class Test
 
             CompileAndVerify(comp, expectedOutput: "2");
         }
+
+        [WorkItem(294553, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=294553")]
+        [Fact]
+        public void VoidPointerWithCustomModifiers()
+        {
+            var ilSource =
+@".class public A
+{
+  // F1(void* p)
+  .method public static void F1(void* p) { ret }
+  // F2(const void* p)
+  .method public static void F2(void modopt([mscorlib]System.Runtime.CompilerServices.IsConst)* p) { ret }
+  // F3(void* const p)
+  .method public static void F3(void* modopt([mscorlib]System.Runtime.CompilerServices.IsConst) p) { ret }
+  // F4(const void* const p)
+  .method public static void F4(void modopt([mscorlib]System.Runtime.CompilerServices.IsConst)* modopt([mscorlib]System.Runtime.CompilerServices.IsConst) p) { ret }
+}";
+            var source =
+@"class B
+{
+    static void Main()
+    {
+        unsafe
+        {
+            A.F1(null);
+            A.F2(null);
+            A.F3(null);
+            A.F4(null);
+        }
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.UnsafeReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation);
+        }
+
+        [Fact]
+        public void IntPointerWithCustomModifiers()
+        {
+            var ilSource =
+@".class public A
+{
+  // F1(int* p)
+  .method public static void F1(int32* p) { ret }
+  // F2(const int* p)
+  .method public static void F2(int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)* p) { ret }
+  // F3(int* const p)
+  .method public static void F3(int32* modopt([mscorlib]System.Runtime.CompilerServices.IsConst) p) { ret }
+  // F4(const int* const p)
+  .method public static void F4(int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)* modopt([mscorlib]System.Runtime.CompilerServices.IsConst) p) { ret }
+}";
+            var source =
+@"class B
+{
+    static void Main()
+    {
+        unsafe
+        {
+            A.F1(null);
+            A.F2(null);
+            A.F3(null);
+            A.F4(null);
+        }
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.UnsafeReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation);
+        }
     }
 }

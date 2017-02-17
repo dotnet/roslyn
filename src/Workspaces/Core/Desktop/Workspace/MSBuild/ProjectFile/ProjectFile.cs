@@ -8,6 +8,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Execution;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -87,19 +89,71 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // connect the host "callback" object with the host services, so we get called back with the exact inputs to the compiler task.
             hostServices.RegisterHostObject(_loadedProject.FullPath, "CoreCompile", taskName, taskHost);
 
-            var buildParameters = new MSB.Execution.BuildParameters(_loadedProject.ProjectCollection);
+            var buildParameters = new BuildParameters(_loadedProject.ProjectCollection);
 
-            var buildRequestData = new MSB.Execution.BuildRequestData(executedProject, new string[] { "Compile" }, hostServices);
+            // capture errors that are output in the build log
+            var errorBuilder = new StringWriter();
+            var errorLogger = new ErrorLogger(errorBuilder) { Verbosity = LoggerVerbosity.Normal };
+            buildParameters.Loggers = new ILogger[] { errorLogger };
+
+            var buildRequestData = new BuildRequestData(executedProject, new string[] { "Compile" }, hostServices);
 
             BuildResult result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
 
             if (result.OverallResult == BuildResultCode.Failure)
             {
-                return new BuildInfo(executedProject, result.Exception?.Message ?? "");
+                if (result.Exception != null)
+                {
+                    return new BuildInfo(executedProject, result.Exception.Message);
+                }
+                else
+                {
+                    return new BuildInfo(executedProject, errorBuilder.ToString());
+                }
             }
             else
             {
                 return new BuildInfo(executedProject, null);
+            }
+        }
+
+        private class ErrorLogger : ILogger
+        {
+            private readonly TextWriter _writer;
+            private bool _hasError;
+            private IEventSource _eventSource;
+
+            public string Parameters { get; set; }
+            public LoggerVerbosity Verbosity { get; set; }
+
+            public ErrorLogger(TextWriter writer)
+            {
+                _writer = writer;
+            }
+
+            public void Initialize(IEventSource eventSource)
+            {
+                _eventSource = eventSource;
+                _eventSource.ErrorRaised += OnErrorRaised;
+            }
+
+            private void OnErrorRaised(object sender, BuildErrorEventArgs e)
+            {
+                if (_hasError)
+                {
+                    _writer.WriteLine();
+                }
+
+                _writer.Write($"{e.File}: ({e.LineNumber}, {e.ColumnNumber}): {e.Message}");
+                _hasError = true;
+            }
+
+            public void Shutdown()
+            {
+                if (_eventSource != null)
+                {
+                    _eventSource.ErrorRaised -= OnErrorRaised;
+                }
             }
         }
 
@@ -497,19 +551,49 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 if (IsInGAC(peRef.FilePath) && identity != null)
                 {
+                    // Since the location of the reference is in GAC, need to use full identity name to find it again.
+                    // This typically happens when you base the reference off of a reflection assembly location.
                     _loadedProject.AddItem("Reference", identity.GetDisplayName(), metadata);
                 }
-                else
+                else if (IsFrameworkReferenceAssembly(peRef.FilePath))
+                {
+                    // just use short name since this will be resolved by msbuild relative to the known framework reference assemblies.
+                    var fileName = identity != null ? identity.Name : Path.GetFileNameWithoutExtension(peRef.FilePath);
+                    _loadedProject.AddItem("Reference", fileName, metadata);
+                }
+                else // other location -- need hint to find correct assembly
                 {
                     string relativePath = FilePathUtilities.GetRelativePath(_loadedProject.DirectoryPath, peRef.FilePath);
-                    _loadedProject.AddItem("Reference", relativePath, metadata);
+                    var fileName = Path.GetFileNameWithoutExtension(peRef.FilePath);
+                    metadata.Add("HintPath", relativePath);
+                    _loadedProject.AddItem("Reference", fileName, metadata);
                 }
             }
         }
 
         private bool IsInGAC(string filePath)
         {
-            return filePath.Contains(@"\GAC_MSIL\");
+            return GlobalAssemblyCacheLocation.RootLocations.Any(gloc => FilePathUtilities.IsNestedPath(gloc, filePath));
+        }
+
+        private static string s_frameworkRoot;
+        private static string FrameworkRoot
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(s_frameworkRoot))
+                {
+                    var runtimeDir = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
+                    s_frameworkRoot = Path.GetDirectoryName(runtimeDir); // back out one directory level to be root path of all framework versions
+                }
+
+                return s_frameworkRoot;
+            }
+        }
+
+        private bool IsFrameworkReferenceAssembly(string filePath)
+        {
+            return FilePathUtilities.IsNestedPath(FrameworkRoot, filePath);
         }
 
         public void RemoveMetadataReference(MetadataReference reference, AssemblyIdentity identity)
@@ -529,6 +613,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             var references = _loadedProject.GetItems("Reference");
             MSB.Evaluation.ProjectItem item = null;
+
+            var fileName = Path.GetFileNameWithoutExtension(filePath);
 
             if (identity != null)
             {
@@ -551,7 +637,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 string relativePath = FilePathUtilities.GetRelativePath(_loadedProject.DirectoryPath, filePath);
 
                 item = references.FirstOrDefault(it => FilePathUtilities.PathsEqual(it.EvaluatedInclude, filePath)
-                                                    || FilePathUtilities.PathsEqual(it.EvaluatedInclude, relativePath));
+                                                    || FilePathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
+                                                    || FilePathUtilities.PathsEqual(GetHintPath(it), filePath)
+                                                    || FilePathUtilities.PathsEqual(GetHintPath(it), relativePath));
             }
 
             // check for partial name match
@@ -566,6 +654,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             return item;
+        }
+
+        private string GetHintPath(MSB.Evaluation.ProjectItem item)
+        {
+            return item.Metadata.FirstOrDefault(m => m.Name == "HintPath")?.EvaluatedValue ?? "";
         }
 
         public void AddProjectReference(string projectName, ProjectFileReference reference)

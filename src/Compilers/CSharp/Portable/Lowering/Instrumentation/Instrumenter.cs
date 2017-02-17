@@ -155,20 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return iterationVarDecl;
         }
 
-        public virtual BoundStatement InstrumentForStatementGotoEnd(BoundForStatement original, BoundStatement gotoEnd)
-        {
-            Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForStatement);
-            return gotoEnd;
-        }
-
-        public virtual BoundStatement InstrumentForEachStatementGotoEnd(BoundForEachStatement original, BoundStatement gotoEnd)
-        {
-            Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax is CommonForEachStatementSyntax);
-            return gotoEnd;
-        }
-
         public virtual BoundStatement InstrumentForEachStatementConditionalGotoStart(BoundForEachStatement original, BoundStatement branchBack)
         {
             Debug.Assert(!original.WasCompilerGenerated);
@@ -176,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return branchBack;
         }
 
-        public virtual BoundStatement InstrumentForStatementConditionalGotoStart(BoundForStatement original, BoundStatement branchBack)
+        public virtual BoundStatement InstrumentForStatementConditionalGotoStartOrBreak(BoundForStatement original, BoundStatement branchBack)
         {
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForStatement);

@@ -46,9 +46,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         options.Accessibility,
                         DetermineModifiers(),
                         DetermineReturnType(options),
-                        options.TypeName,
-                        DetermineTypeParameters(options),
-                        DetermineParameters(options));
+                        returnsByRef: false,
+                        name: options.TypeName,
+                        typeParameters: DetermineTypeParameters(options),
+                        parameters: DetermineParameters(options));
                 }
 
                 return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(

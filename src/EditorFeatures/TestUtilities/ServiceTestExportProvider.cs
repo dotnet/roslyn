@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification.ForegroundNotificationService),
                 typeof(IncrementalCaches.SymbolTreeInfoIncrementalAnalyzerProvider),
-                typeof(CodeAnalysis.Diagnostics.EngineV2.InProcCodeAnalysisDiagnosticAnalyzerExecutor)
+                typeof(CodeAnalysis.Diagnostics.EngineV2.DiagnosticAnalyzerExecutor)
             };
 
             return MinimalTestExportProvider.GetLanguageNeutralTypes().Concat(types).Distinct().ToArray();

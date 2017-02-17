@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     tagKind = FixupTag.Instance;
                     break;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(type);
             }
 
             tagSpan = new TagSpan<ITextMarkerTag>(span, tagKind);

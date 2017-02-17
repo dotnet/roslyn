@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             // we wait for global operation, higher and normal priority processor to finish its working
                             await WaitForHigherPriorityOperationsAsync().ConfigureAwait(false);
+
                             // process any available project work, preferring the active project.
                             if (_workItemQueue.TryTakeAnyWork(
                                 this.Processor.GetActiveProject(), this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService,
@@ -149,9 +150,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                                     RemoveProject(projectId);
                                 }
-                            }
 
-                            processedEverything = true;
+                                if (!cancellationToken.IsCancellationRequested)
+                                {
+                                    processedEverything = true;
+                                }
+                            }
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             foreach (var link in linkedDocumentIds)
             {
                 var linkedDocument = document.Project.Solution.GetDocument(link);
-                var linkedToken = await FindTokenInLinkedDocument(token, linkedDocument, cancellationToken).ConfigureAwait(false);
+                var linkedToken = await FindTokenInLinkedDocument(token, document, linkedDocument, cancellationToken).ConfigureAwait(false);
 
                 if (linkedToken != default(SyntaxToken))
                 {
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return await CreateContentAsync(document.Project.Solution.Workspace, token, bestBinding.Item2, bestBinding.Item3, supportedPlatforms, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<SyntaxToken> FindTokenInLinkedDocument(SyntaxToken token, Document linkedDocument, CancellationToken cancellationToken)
+        private async Task<SyntaxToken> FindTokenInLinkedDocument(SyntaxToken token, Document originalDocument, Document linkedDocument, CancellationToken cancellationToken)
         {
             if (!linkedDocument.SupportsSyntaxTree)
             {
@@ -125,13 +126,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             var root = await linkedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            // Don't search trivia because we want to ignore inactive regions
-            var linkedToken = root.FindToken(token.SpanStart);
-
-            // The new and old tokens should have the same span?
-            if (token.Span == linkedToken.Span)
+            try
             {
-                return linkedToken;
+                // Don't search trivia because we want to ignore inactive regions
+                var linkedToken = root.FindToken(token.SpanStart);
+
+                // The new and old tokens should have the same span?
+                if (token.Span == linkedToken.Span)
+                {
+                    return linkedToken;
+                }
+            }
+            catch (Exception e)
+            {
+                // We are seeing linked files with different spans cause FindToken to crash.
+                // Capturing more information for https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299
+                var originalText = await originalDocument.GetTextAsync().ConfigureAwait(false);
+                var linkedText = await linkedDocument.GetTextAsync().ConfigureAwait(false);
+                FatalError.Report(e);
             }
 
             return default(SyntaxToken);

@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     ///     if (o is Type x) ...
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+    internal class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
-        public bool OpenFileOnly(Workspace workspace) => false;
+        public override bool OpenFileOnly(Workspace workspace) => false;
 
         public CSharpAsAndNullCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineAsTypeCheckId,
@@ -240,9 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private bool IsNullCheckExpression(ExpressionSyntax left, ExpressionSyntax right) =>
             left.IsKind(SyntaxKind.IdentifierName) && right.IsKind(SyntaxKind.NullLiteralExpression);
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
     }
 }

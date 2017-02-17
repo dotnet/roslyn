@@ -3,13 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
@@ -38,10 +37,15 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // We can't go to the definition of the alias, so use the target type.
 
             var solution = project.Solution;
-            if (symbol is IAliasSymbol &&
-                NavigableItemFactory.GetPreferredSourceLocations(solution, symbol).All(l => project.Solution.GetDocument(l.SourceTree) == null))
+            if (symbol is IAliasSymbol)
             {
-                symbol = ((IAliasSymbol)symbol).Target;
+                var sourceLocations = NavigableItemFactory.GetPreferredSourceLocations(
+                    solution, symbol, cancellationToken);
+
+                if (sourceLocations.All(l => project.Solution.GetDocument(l.SourceTree) == null))
+                {
+                    symbol = ((IAliasSymbol)symbol).Target;
+                }
             }
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).WaitAndGetResult(cancellationToken);
@@ -50,10 +54,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             symbol = definition ?? symbol;
 
             var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
-            if (thirdPartyNavigationAllowed )
+            if (thirdPartyNavigationAllowed)
             {
                 var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, symbol);
+                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, symbol, cancellationToken);
                 definitions.AddIfNotNull(thirdPartyItem);
             }
 
@@ -69,10 +73,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             definitions.Add(symbol.ToDefinitionItem(solution, includeHiddenLocations: true));
 
             var presenter = GetFindUsagesPresenter(streamingPresenters);
+            var title = string.Format(EditorFeaturesResources._0_declarations,
+                FindUsagesHelpers.GetDisplayName(symbol));
+
             return presenter.TryNavigateToOrPresentItemsAsync(
-                EditorFeaturesResources.Go_to_Definition,
-                definitions.ToImmutableAndFree(),
-                alwaysShowDeclarations: true).WaitAndGetResult(cancellationToken);
+                title, definitions.ToImmutableAndFree()).WaitAndGetResult(cancellationToken);
         }
 
         private static IStreamingFindUsagesPresenter GetFindUsagesPresenter(
@@ -88,12 +93,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             }
         }
 
-        private static bool TryThirdPartyNavigation(ISymbol symbol, Solution solution)
+        private static bool TryThirdPartyNavigation(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
 
             // Notify of navigation so third parties can intercept the navigation
-            return symbolNavigationService.TrySymbolNavigationNotify(symbol, solution);
+            return symbolNavigationService.TrySymbolNavigationNotify(symbol, solution, cancellationToken);
         }
     }
 }

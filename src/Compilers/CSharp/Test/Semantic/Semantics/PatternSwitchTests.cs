@@ -1477,12 +1477,6 @@ class Program
                 // (21,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int):
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(21, 24),
-                // (22,32): error CS1003: Syntax error, '=>' expected
-                //             case (int x, int y):
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>", ":").WithLocation(22, 32),
-                // (22,32): error CS1525: Invalid expression term ':'
-                //             case (int x, int y):
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(22, 32),
                 // (23,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(23, 19),
@@ -1498,9 +1492,15 @@ class Program
                 // (23,31): error CS1002: ; expected
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(23, 31),
-                // (24,33): error CS1003: Syntax error, '=>' expected
+                // (24,33): error CS1003: Syntax error, ':' expected
                 //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments("=>", "").WithLocation(24, 33),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(":", "").WithLocation(24, 33),
+                // (24,35): error CS1525: Invalid expression term 'case'
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("case").WithLocation(24, 35),
+                // (24,35): error CS1002: ; expected
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(24, 35),
                 // (25,19): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(25, 19),
@@ -1540,12 +1540,6 @@ class Program
                 // (43,28): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(43, 28),
-                // (44,36): error CS1003: Syntax error, '=>' expected
-                //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(44, 36),
-                // (44,36): error CS1525: Invalid expression term ')'
-                //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(44, 36),
                 // (45,23): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int) z)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(45, 23),
@@ -1561,15 +1555,15 @@ class Program
                 // (45,34): error CS1513: } expected
                 //             if (o is (int, int) z)) {}
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(45, 34),
-                // (46,37): error CS1003: Syntax error, '=>' expected
+                // (46,37): error CS1026: ) expected
                 //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments("=>", "").WithLocation(46, 37),
-                // (50,54): error CS1003: Syntax error, '=>' expected
-                //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(50, 54),
-                // (50,54): error CS1525: Invalid expression term ')'
-                //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(50, 54),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "c").WithLocation(46, 37),
+                // (46,38): error CS1002: ; expected
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(46, 38),
+                // (46,38): error CS1513: } expected
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(46, 38),
                 // (51,51): error CS1026: ) expected
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "z").WithLocation(51, 51),
@@ -1579,21 +1573,39 @@ class Program
                 // (51,52): error CS1513: } expected
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(51, 52),
-                // (52,55): error CS1003: Syntax error, '=>' expected
+                // (52,55): error CS1026: ) expected
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments("=>", "").WithLocation(52, 55),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "c").WithLocation(52, 55),
+                // (52,56): error CS1002: ; expected
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(52, 56),
+                // (52,56): error CS1513: } expected
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(52, 56),
                 // (21,18): error CS0150: A constant value is expected
                 //             case (int, int):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(21, 18),
-                // (22,18): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (22,19): error CS8185: A declaration is not allowed in this context.
                 //             case (int x, int y):
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(int x, int y)").WithArguments("lambda expression", "object").WithLocation(22, 18),
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(22, 19),
+                // (22,26): error CS8185: A declaration is not allowed in this context.
+                //             case (int x, int y):
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(22, 26),
+                // (22,18): error CS0150: A constant value is expected
+                //             case (int x, int y):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int x, int y)").WithLocation(22, 18),
                 // (23,18): error CS0150: A constant value is expected
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(23, 18),
-                // (24,18): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (24,19): error CS8185: A declaration is not allowed in this context.
                 //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(int a, int b) c").WithArguments("lambda expression", "object").WithLocation(24, 18),
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(24, 19),
+                // (24,26): error CS8185: A declaration is not allowed in this context.
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int b").WithLocation(24, 26),
+                // (24,18): error CS0150: A constant value is expected
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int a, int b)").WithLocation(24, 18),
                 // (25,18): error CS0150: A constant value is expected
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(long, long)").WithLocation(25, 18),
@@ -1618,27 +1630,48 @@ class Program
                 // (43,22): error CS0150: A constant value is expected
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(43, 22),
-                // (44,22): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (44,23): error CS8185: A declaration is not allowed in this context.
                 //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(int x, int y)").WithArguments("lambda expression", "object").WithLocation(44, 22),
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(44, 23),
+                // (44,30): error CS8185: A declaration is not allowed in this context.
+                //             if (o is (int x, int y)) {}
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(44, 30),
+                // (44,22): error CS0150: A constant value is expected
+                //             if (o is (int x, int y)) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int x, int y)").WithLocation(44, 22),
                 // (45,22): error CS0150: A constant value is expected
                 //             if (o is (int, int) z)) {}
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(45, 22),
                 // (45,33): error CS0103: The name 'z' does not exist in the current context
                 //             if (o is (int, int) z)) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(45, 33),
-                // (46,22): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (46,23): error CS8185: A declaration is not allowed in this context.
                 //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(int a, int b) c").WithArguments("lambda expression", "object").WithLocation(46, 22),
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(46, 23),
+                // (46,30): error CS8185: A declaration is not allowed in this context.
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int b").WithLocation(46, 30),
+                // (46,22): error CS0150: A constant value is expected
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int a, int b)").WithLocation(46, 22),
+                // (46,37): error CS0103: The name 'c' does not exist in the current context
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(46, 37),
                 // (49,23): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 23),
                 // (49,37): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 37),
-                // (50,22): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (50,23): error CS8185: A declaration is not allowed in this context.
                 //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(System.Int32 x, System.Int32 y)").WithArguments("lambda expression", "object").WithLocation(50, 22),
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 x").WithLocation(50, 23),
+                // (50,39): error CS8185: A declaration is not allowed in this context.
+                //             if (o is (System.Int32 x, System.Int32 y)) {}
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 y").WithLocation(50, 39),
+                // (50,22): error CS0150: A constant value is expected
+                //             if (o is (System.Int32 x, System.Int32 y)) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.Int32 x, System.Int32 y)").WithLocation(50, 22),
                 // (51,23): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(51, 23),
@@ -1648,15 +1681,30 @@ class Program
                 // (51,51): error CS0103: The name 'z' does not exist in the current context
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(51, 51),
-                // (52,22): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (52,23): error CS8185: A declaration is not allowed in this context.
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(System.Int32 a, System.Int32 b) c").WithArguments("lambda expression", "object").WithLocation(52, 22),
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 a").WithLocation(52, 23),
+                // (52,39): error CS8185: A declaration is not allowed in this context.
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 b").WithLocation(52, 39),
+                // (52,22): error CS0150: A constant value is expected
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.Int32 a, System.Int32 b)").WithLocation(52, 22),
+                // (52,55): error CS0103: The name 'c' does not exist in the current context
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(52, 55),
                 // (23,13): error CS0163: Control cannot fall through from one case label ('case (int, int) ') to another
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (int, int) ").WithArguments("case (int, int) ").WithLocation(23, 13),
+                // (24,13): error CS0163: Control cannot fall through from one case label ('case (int a, int b) ') to another
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (int a, int b) ").WithArguments("case (int a, int b) ").WithLocation(24, 13),
                 // (23,29): warning CS0164: This label has not been referenced
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(23, 29),
+                // (24,33): warning CS0164: This label has not been referenced
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(24, 33),
                 // (25,31): warning CS0164: This label has not been referenced
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(25, 31),
@@ -1671,7 +1719,31 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(37, 47),
                 // (39,47): warning CS0164: This label has not been referenced
                 //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(39, 47)
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(39, 47),
+                // (44,23): error CS0165: Use of unassigned local variable 'x'
+                //             if (o is (int x, int y)) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(44, 23),
+                // (44,30): error CS0165: Use of unassigned local variable 'y'
+                //             if (o is (int x, int y)) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(44, 30),
+                // (46,23): error CS0165: Use of unassigned local variable 'a'
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int a").WithArguments("a").WithLocation(46, 23),
+                // (46,30): error CS0165: Use of unassigned local variable 'b'
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int b").WithArguments("b").WithLocation(46, 30),
+                // (50,23): error CS0165: Use of unassigned local variable 'x'
+                //             if (o is (System.Int32 x, System.Int32 y)) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 x").WithArguments("x").WithLocation(50, 23),
+                // (50,39): error CS0165: Use of unassigned local variable 'y'
+                //             if (o is (System.Int32 x, System.Int32 y)) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 y").WithArguments("y").WithLocation(50, 39),
+                // (52,23): error CS0165: Use of unassigned local variable 'a'
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 a").WithArguments("a").WithLocation(52, 23),
+                // (52,39): error CS0165: Use of unassigned local variable 'b'
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 b").WithArguments("b").WithLocation(52, 39)
                 );
         }
 
@@ -1924,6 +1996,794 @@ static class Program {
             CompileAndVerify(compilation, expectedOutput:
 @"not null
 null");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithLambda_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        switch((object)new A())
+        {
+            case A a:
+                System.Action print = () => System.Console.WriteLine(a);
+                print();
+                break;
+        }
+    }
+}
+
+class A{}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = "A";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithLambda_02()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        int val = 3;
+        var l = new System.Collections.Generic.List<System.Action>();
+        int i = 1;
+        switch(val)
+        {
+            case int a when a == 3:
+            case 1:
+                System.Console.WriteLine(""case 1: {0}"", i);
+                a = i++;
+                l.Add(() => System.Console.WriteLine(a));
+                goto case 2;
+            case int a when a == 4:
+            case 2:
+                System.Console.WriteLine(""case 2: {0}"", i);
+                a = i++;
+                l.Add(() => System.Console.WriteLine(a));
+
+                if (i < 4)
+                {
+                    goto case 1;
+                }
+                break;
+        }
+
+        foreach (var a in l)
+        {
+            a();
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case 1: 1
+case 2: 2
+case 1: 3
+case 2: 4
+3
+4
+3
+4");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithYield_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        foreach (var a in Test())
+        {
+            System.Console.WriteLine(a);
+        }
+    }
+
+    static System.Collections.Generic.IEnumerable<string> Test()
+    {
+        int val = 3;
+        var l = new System.Collections.Generic.List<System.Action>();
+        int i = 1;
+        switch(val)
+        {
+            case int a when a == 3:
+            case 1:
+                yield return string.Format(""case 1: {0}"", i);
+                a = i++;
+                l.Add(() => System.Console.WriteLine(a));
+                goto case 2;
+            case int a when a == 4:
+            case 2:
+                yield return string.Format(""case 2: {0}"", i);
+                a = i++;
+                l.Add(() => System.Console.WriteLine(a));
+
+                if (i < 4)
+                {
+                    goto case 1;
+                }
+                break;
+        }
+
+        foreach (var a in l)
+        {
+            a();
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case 1: 1
+case 2: 2
+case 1: 3
+case 2: 4
+3
+4
+3
+4");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithYield_02()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        foreach (var a in Test())
+        {
+            System.Console.WriteLine(a);
+        }
+    }
+
+    static System.Collections.Generic.IEnumerable<string> Test()
+    {
+        int val = 3;
+        int i = 1;
+        switch(val)
+        {
+            case int a when a == 3:
+            case 1:
+                yield return string.Format(""case 1: {0}"", i);
+                a = i++;
+                System.Console.WriteLine(a);
+                goto case 2;
+            case int a when a == 4:
+            case 2:
+                yield return string.Format(""case 2: {0}"", i);
+                a = i++;
+                System.Console.WriteLine(a);
+
+                if (i < 4)
+                {
+                    goto case 1;
+                }
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case 1: 1
+1
+case 2: 2
+2
+case 1: 3
+3
+case 2: 4
+4");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithYield_03()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        foreach (var a in Test())
+        {
+            System.Console.WriteLine(a);
+        }
+    }
+
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        int val = 3;
+        int i = 1;
+        switch(val)
+        {
+            case int a when a == 3:
+            case 1:
+                System.Console.WriteLine(""case 1: {0}"", i);
+                a = i++;
+                System.Console.WriteLine(a);
+                goto case 2;
+            case int a when a == 4:
+            case 2:
+                System.Console.WriteLine(""case 2: {0}"", i);
+                a = i++;
+                System.Console.WriteLine(a);
+
+                if (i < 4)
+                {
+                    goto case 1;
+                }
+                break;
+        }
+
+        yield return i;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case 1: 1
+1
+case 2: 2
+2
+case 1: 3
+3
+case 2: 4
+4
+5");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithYield_04()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        foreach (var a in Test())
+        {
+            System.Console.WriteLine(a);
+        }
+    }
+
+    static System.Collections.Generic.IEnumerable<string> Test()
+    {
+        int val = 3;
+        switch(val)
+        {
+            case int a when TakeOutVar(out var b) && a == b:
+                yield return string.Format(""case: {0}"", val);
+                System.Console.WriteLine(a);
+                break;
+        }
+    }
+
+    static bool TakeOutVar(out int x)
+    {
+        x = 3;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case: 3
+3");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithAwait_01()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(Test().Result);
+    }
+
+    static async Task<int> Test()
+    {
+        int val = 3;
+        var l = new System.Collections.Generic.List<System.Action>();
+        int i = 1;
+        switch(val)
+        {
+            case int a when a == 3:
+            case 1:
+                System.Console.WriteLine(await GetTask(string.Format(""case 1: {0}"", i)));
+                a = i++;
+                l.Add(() => System.Console.WriteLine(a));
+                goto case 2;
+            case int a when a == 4:
+            case 2:
+                System.Console.WriteLine(await GetTask(string.Format(""case 2: {0}"", i)));
+                a = i++;
+                l.Add(() => System.Console.WriteLine(a));
+
+                if (i < 4)
+                {
+                    goto case 1;
+                }
+                break;
+        }
+
+        foreach (var a in l)
+        {
+            a();
+        }
+
+        return i;
+    }
+
+    static async Task<string> GetTask(string val)
+    {
+        await Task.Yield();
+        return val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case 1: 1
+case 2: 2
+case 1: 3
+case 2: 4
+3
+4
+3
+4
+5");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithAwait_02()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(Test().Result);
+    }
+
+    static async Task<int> Test()
+    {
+        int val = 3;
+        int i = 1;
+        switch(val)
+        {
+            case int a when a == 3:
+            case 1:
+                System.Console.WriteLine(await GetTask(string.Format(""case 1: {0}"", i)));
+                a = i++;
+                System.Console.WriteLine(a);
+                goto case 2;
+            case int a when a == 4:
+            case 2:
+                System.Console.WriteLine(await GetTask(string.Format(""case 2: {0}"", i)));
+                a = i++;
+                System.Console.WriteLine(a);
+
+                if (i < 4)
+                {
+                    goto case 1;
+                }
+                break;
+        }
+
+        return i;
+    }
+
+    static async Task<string> GetTask(string val)
+    {
+        await Task.Yield();
+        return val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case 1: 1
+1
+case 2: 2
+2
+case 1: 3
+3
+case 2: 4
+4
+5");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithAwait_03()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(Test().Result);
+    }
+
+    static async Task<int> Test()
+    {
+        int val = 3;
+        int i = 1;
+        switch(val)
+        {
+            case int a when a == 3:
+            case 1:
+                System.Console.WriteLine(""case 1: {0}"", i);
+                a = i++;
+                System.Console.WriteLine(a);
+                goto case 2;
+            case int a when a == 4:
+            case 2:
+                System.Console.WriteLine(""case 2: {0}"", i);
+                a = i++;
+                System.Console.WriteLine(a);
+
+                if (i < 4)
+                {
+                    goto case 1;
+                }
+                break;
+        }
+
+        await Task.Yield();
+        return i;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case 1: 1
+1
+case 2: 2
+2
+case 1: 3
+3
+case 2: 4
+4
+5");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithAwait_04()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(Test().Result);
+    }
+
+    static async Task<int> Test()
+    {
+        int val = 3;
+        switch(val)
+        {
+            case int a when TakeOutVar(out var b) && a == b:
+                System.Console.WriteLine(await GetTask(string.Format(""case: {0}"", val)));
+                return a;
+        }
+
+        return 0;
+    }
+
+    static bool TakeOutVar(out int x)
+    {
+        x = 3;
+        return true;
+    }
+
+    static async Task<string> GetTask(string val)
+    {
+        await Task.Yield();
+        return val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case: 3
+3");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_01()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<(int a, int b)>();
+        switch (list)
+        {
+            case List<(int x, int y)> list1:
+                break;
+            case List<(int z, int w)> list2: // subsumed
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case List<(int z, int w)> list2: // subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "List<(int z, int w)> list2").WithLocation(13, 18),
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_02()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<(int a, int b)>();
+        switch (list)
+        {
+            case List<(int x, int y)> list1:
+                Console.WriteLine(""pass"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_03()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var t = (a: 1, b: 2);
+        switch (t)
+        {
+            case ValueTuple<int, int> x:
+                Console.WriteLine(""pass"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_04()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var t = (a: 1, b: 2);
+        switch (t)
+        {
+            case var x:
+                Console.WriteLine(x.a);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"1");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_05()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var t = (a: 1, b: 2);
+        switch (t)
+        {
+            case ValueTuple<int, int> x:
+                break;
+            case var x:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var x:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var x").WithLocation(13, 18),
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void DynamicDifferences_01()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<dynamic>();
+        switch (list)
+        {
+            case List<object> list1:
+                break;
+            case List<dynamic> list2: // subsumed
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case List<dynamic> list2: // subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "List<dynamic> list2").WithLocation(13, 18),
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break")
+                );
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void DynamicDifferences_02()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<dynamic>();
+        switch (list)
+        {
+            case List<object> list1:
+                Console.WriteLine(""pass"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17089")]
+        [WorkItem(17089, "https://github.com/dotnet/roslyn/issues/17089")]
+        public void Dynamic_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        switch (d)
+        {
+            case dynamic x: // should be an error
+                break;
+        }
+        switch (d)
+        {
+            case int i: // should not be an error
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // Per https://github.com/dotnet/roslyn/issues/17089, the compiler does not produce correct diagnostics for this.
+                );
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -8,9 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Moq;
 using Roslyn.Test.Utilities;
@@ -103,6 +107,23 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             service.Disable();
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestSessionWithNoSolution()
+        {
+            var service = CreateRemoteHostClientService();
+
+            service.Enable();
+
+            var mock = new MockLogService();
+            var client = await service.GetRemoteHostClientAsync(CancellationToken.None);
+            using (var session = await client.CreateServiceSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, mock, CancellationToken.None))
+            {
+                await session.InvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), "emptySource", Path.GetTempPath());
+            }
+
+            service.Disable();
+        }
+
         private RemoteHostClientServiceFactory.RemoteHostClientService CreateRemoteHostClientService(
             Workspace workspace = null,
             IEnumerable<AnalyzerReference> hostAnalyzerReferences = null,
@@ -141,6 +162,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 // doesn't matter what it returns
                 return typeof(object).Assembly;
             }
+        }
+
+        private class MockLogService : ISymbolSearchLogService
+        {
+            public Task LogExceptionAsync(string exception, string text) => SpecializedTasks.EmptyTask;
+            public Task LogInfoAsync(string text) => SpecializedTasks.EmptyTask;
         }
     }
 }

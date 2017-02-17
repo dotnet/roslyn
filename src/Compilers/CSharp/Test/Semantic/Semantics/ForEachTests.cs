@@ -1149,10 +1149,11 @@ class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (6,18): error CS1547: Keyword 'void' cannot be used in this context
                 //         foreach (void element in new int[1])
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 18),
                 // (6,9): error CS0030: Cannot convert type 'int' to 'void'
                 //         foreach (void element in new int[1])
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("int", "void"));
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("int", "void").WithLocation(6, 9)
+                );
         }
 
         [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
@@ -1203,7 +1204,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal("System.Int32 x", boundNode.IterationVariableOpt.ToTestDisplayString());
+            Assert.Equal("System.Int32 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal(SpecialType.System_Collections_IEnumerable, boundNode.Expression.Type.SpecialType);
             Assert.Equal(SymbolKind.ArrayType, ((BoundConversion)boundNode.Expression).Operand.Type.Kind);
         }
@@ -1235,7 +1236,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal("System.Char c", boundNode.IterationVariableOpt.ToTestDisplayString());
+            Assert.Equal("System.Char c", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal(SpecialType.System_String, boundNode.Expression.Type.SpecialType);
             Assert.Equal(SpecialType.System_String, ((BoundConversion)boundNode.Expression).Operand.Type.SpecialType);
         }
@@ -1278,7 +1279,7 @@ class Enumerator
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.ImplicitNumeric, boundNode.ElementConversion.Kind);
-            Assert.Equal("System.Int64 x", boundNode.IterationVariableOpt.ToTestDisplayString());
+            Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("Enumerable", boundNode.Expression.Type.ToTestDisplayString());
             Assert.Equal("Enumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
         }
@@ -1321,7 +1322,7 @@ struct Enumerator
             Assert.Equal(ConversionKind.Boxing, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.ImplicitNumeric, boundNode.ElementConversion.Kind);
-            Assert.Equal("System.Int64 x", boundNode.IterationVariableOpt.ToTestDisplayString());
+            Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("Enumerable", boundNode.Expression.Type.ToTestDisplayString());
             Assert.Equal("Enumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
         }
@@ -1353,7 +1354,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Unboxing, boundNode.ElementConversion.Kind);
-            Assert.Equal("System.Int64 x", boundNode.IterationVariableOpt.ToTestDisplayString());
+            Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("System.Collections.IEnumerable", boundNode.Expression.Type.ToTestDisplayString());
             Assert.Equal("System.Collections.IEnumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
         }
@@ -1392,7 +1393,7 @@ class Enumerable : System.Collections.Generic.IEnumerable<int>
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.ImplicitNumeric, boundNode.ElementConversion.Kind);
-            Assert.Equal("System.Int64 x", boundNode.IterationVariableOpt.ToTestDisplayString());
+            Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Int32>", boundNode.Expression.Type.ToTestDisplayString());
             Assert.Equal("Enumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
         }
@@ -1433,7 +1434,7 @@ class Enumerable : System.Collections.Generic.IEnumerable<Enumerable.Hidden>
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal("System.Object x", boundNode.IterationVariableOpt.ToTestDisplayString());
+            Assert.Equal("System.Object x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal(SpecialType.System_Collections_IEnumerable, boundNode.Expression.Type.SpecialType);
             Assert.Equal("Enumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
         }
@@ -1471,7 +1472,7 @@ class Enumerable : System.Collections.IEnumerable
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Unboxing, boundNode.ElementConversion.Kind);
-            Assert.Equal("System.Int64 x", boundNode.IterationVariableOpt.ToTestDisplayString());
+            Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal(SpecialType.System_Collections_IEnumerable, boundNode.Expression.Type.SpecialType);
             Assert.Equal("Enumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
         }
@@ -1503,7 +1504,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal(SpecialType.System_Int32, boundNode.IterationVariableOpt.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, boundNode.IterationVariables.Single().Type.SpecialType);
         }
 
         [Fact]
@@ -1533,7 +1534,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal(SpecialType.System_Char, boundNode.IterationVariableOpt.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Char, boundNode.IterationVariables.Single().Type.SpecialType);
         }
 
         [Fact]
@@ -1562,7 +1563,7 @@ class Enumerator
             var boundNode = GetBoundForEachStatement(text);
             Assert.NotNull(boundNode.EnumeratorInfoOpt);
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal(SpecialType.System_Int32, boundNode.IterationVariableOpt.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, boundNode.IterationVariables.Single().Type.SpecialType);
         }
 
         [Fact]
@@ -1586,7 +1587,7 @@ class Enumerable : System.Collections.IEnumerable
             var boundNode = GetBoundForEachStatement(text);
             Assert.NotNull(boundNode.EnumeratorInfoOpt);
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal(SpecialType.System_Object, boundNode.IterationVariableOpt.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Object, boundNode.IterationVariables.Single().Type.SpecialType);
         }
 
         [Fact]
@@ -1618,7 +1619,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal("C.var", boundNode.IterationVariableOpt.Type.ToTestDisplayString());
+            Assert.Equal("C.var", boundNode.IterationVariables.Single().Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -1648,7 +1649,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.ExplicitDynamic, boundNode.ElementConversion.Kind);
-            Assert.Equal("System.Int32 x", boundNode.IterationVariableOpt.ToTestDisplayString());
+            Assert.Equal("System.Int32 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal(SpecialType.System_Collections_IEnumerable, boundNode.Expression.Type.SpecialType);
             Assert.Equal(TypeKind.Dynamic, ((BoundConversion)boundNode.Expression).Operand.Type.TypeKind);
         }
@@ -1680,7 +1681,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind); //NB: differs from explicit case
-            Assert.Equal("dynamic x", boundNode.IterationVariableOpt.ToTestDisplayString());
+            Assert.Equal("dynamic x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal(SpecialType.System_Collections_IEnumerable, boundNode.Expression.Type.SpecialType);
             Assert.Equal(SymbolKind.DynamicType, ((BoundConversion)boundNode.Expression).Operand.Type.Kind);
         }
@@ -1720,7 +1721,7 @@ public class Enumerable<T>
             Assert.Equal(ConversionKind.Boxing, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal("System.Object x", boundNode.IterationVariableOpt.ToTestDisplayString());
+            Assert.Equal("System.Object x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("Enumerable<T>", boundNode.Expression.Type.ToTestDisplayString());
             Assert.Equal("Enumerable<T>", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
         }
@@ -1803,7 +1804,7 @@ interface MyEnumerator
             Assert.Equal(ConversionKind.Boxing, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal("System.Object x", boundNode.IterationVariableOpt.ToTestDisplayString());
+            Assert.Equal("System.Object x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("Enumerable<T>", boundNode.Expression.Type.ToTestDisplayString());
             Assert.Equal("Enumerable<T>", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
         }
@@ -1849,7 +1850,7 @@ struct Enumerator
             Assert.Equal(ConversionKind.Boxing, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.ImplicitNumeric, boundNode.ElementConversion.Kind);
-            Assert.Equal("System.Int64 x", boundNode.IterationVariableOpt.ToTestDisplayString());
+            Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
             Assert.Equal("Enumerable", boundNode.Expression.Type.ToTestDisplayString());
             Assert.Equal("Enumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
         }
@@ -1870,25 +1871,37 @@ public class Test
 }
 ";
             var boundNode = GetBoundForEachStatement(text,
-                // (6,16): error CS1001: Identifier expected
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";"),
+                // (6,13): error CS1525: Invalid expression term 'int'
+                //     foreach(int; i < 5; i++)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 13),
                 // (6,16): error CS1515: 'in' expected
-                Diagnostic(ErrorCode.ERR_InExpected, ";"),
+                //     foreach(int; i < 5; i++)
+                Diagnostic(ErrorCode.ERR_InExpected, ";").WithLocation(6, 16),
+                // (6,16): error CS0230: Type and identifier are both required in a foreach statement
+                //     foreach(int; i < 5; i++)
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, ";").WithLocation(6, 16),
                 // (6,16): error CS1525: Invalid expression term ';'
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";"),
+                //     foreach(int; i < 5; i++)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 16),
                 // (6,16): error CS1026: ) expected
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";"),
+                //     foreach(int; i < 5; i++)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 16),
                 // (6,28): error CS1002: ; expected
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
+                //     foreach(int; i < 5; i++)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 28),
                 // (6,28): error CS1513: } expected
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")"),
+                //     foreach(int; i < 5; i++)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 28),
                 // (6,18): error CS0103: The name 'i' does not exist in the current context
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i"),
+                //     foreach(int; i < 5; i++)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 18),
                 // (6,18): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "i < 5"),
+                //     foreach(int; i < 5; i++)
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "i < 5").WithLocation(6, 18),
                 // (6,25): error CS0103: The name 'i' does not exist in the current context
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i"));
-
+                //     foreach(int; i < 5; i++)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 25)
+                );
             Assert.Null(boundNode.EnumeratorInfoOpt);
         }
 
@@ -2991,7 +3004,7 @@ namespace System.Collections
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal(SpecialType.System_Char, boundNode.IterationVariableOpt.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Char, boundNode.IterationVariables.Single().Type.SpecialType);
         }
 
 
@@ -3003,7 +3016,9 @@ namespace System.Collections
 
             comp.VerifyDiagnostics(diagnostics);
 
-            var syntaxNode = (ForEachStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ForEachStatement).AsNode();
+            var syntaxNode =
+                (CommonForEachStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ForEachStatement).AsNode() ??
+                (CommonForEachStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ForEachVariableStatement).AsNode();
             var treeModel = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree);
             var memberModel = treeModel.GetMemberModel(syntaxNode);
 

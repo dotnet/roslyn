@@ -56,11 +56,11 @@ namespace RepoUtil
         /// state of the repo and add in the current data.  If any conflicting package definitions are detected this method 
         /// will throw.
         /// </summary>
-        internal static RepoData Create(RepoConfig config, string sourcesDir)
+        internal static RepoData Create(RepoConfig config, string sourcesDir, bool ignoreConflicts)
         {
             List<NuGetPackageConflict> conflicts;
             var repoData = Create(config, sourcesDir, out conflicts);
-            if (conflicts?.Count > 0)
+            if (conflicts?.Count > 0 && !ignoreConflicts)
             {
                 throw new ConflictingPackagesException(conflicts);
             }

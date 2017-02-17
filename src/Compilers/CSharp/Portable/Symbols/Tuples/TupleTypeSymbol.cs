@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SmallDictionary<Symbol, Symbol> _lazyUnderlyingDefinitionToMemberMap;
 
         internal const int RestPosition = 8; // The Rest field is in 8th position
+        internal const int RestIndex = RestPosition - 1;
         internal const string TupleTypeName = "ValueTuple";
         internal const string RestFieldName = "Rest";
 
@@ -74,10 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Location> elementLocations,
             ImmutableArray<string> elementNames,
             CSharpCompilation compilation,
+            bool shouldCheckConstraints,
             CSharpSyntaxNode syntax = null,
-            DiagnosticBag diagnostics = null
-            )
+            DiagnosticBag diagnostics = null)
         {
+            Debug.Assert(!shouldCheckConstraints || (object)syntax != null);
             Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
 
             int numElements = elementTypes.Length;
@@ -89,13 +91,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, compilation, diagnostics);
 
-            if (((SourceModuleSymbol)compilation.SourceModule).AnyReferencedAssembliesAreLinked)
+            if (diagnostics != null && ((SourceModuleSymbol)compilation.SourceModule).AnyReferencedAssembliesAreLinked)
             {
                 // Complain about unembeddable types from linked assemblies.
                 Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(underlyingType, syntax, diagnostics);
             }
 
-            return Create(underlyingType, elementNames, locationOpt, elementLocations);
+            var constructedType = Create(underlyingType, elementNames, locationOpt, elementLocations);
+            if (shouldCheckConstraints)
+            {
+                constructedType.CheckConstraints(compilation.Conversions, syntax, elementLocations, compilation, diagnostics);
+            }
+
+            return constructedType;
         }
 
         public static TupleTypeSymbol Create(NamedTypeSymbol tupleCompatibleType,
@@ -208,24 +216,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Copy this tuple, but modify it to use the new element names.
+        /// Also applies new location of the whole tuple as well as each element.
         /// </summary>
-        internal TupleTypeSymbol WithElementNames(ImmutableArray<string> newElementNames)
+        internal TupleTypeSymbol WithElementNames(ImmutableArray<string> newElementNames,
+                                                  Location newLocation,
+                                                  ImmutableArray<Location> newElementLocations)
         {
             Debug.Assert(newElementNames.IsDefault || this._elementTypes.Length == newElementNames.Length);
 
-            if (this._elementNames.IsDefault)
-            {
-                if (newElementNames.IsDefault)
-                {
-                    return this;
-                }
-            }
-            else if (!newElementNames.IsDefault && this._elementNames.SequenceEqual(newElementNames))
-            {
-                return this;
-            }
-
-            return new TupleTypeSymbol(null, _underlyingType, default(ImmutableArray<Location>), newElementNames, _elementTypes);
+            return new TupleTypeSymbol(newLocation, _underlyingType, newElementLocations, newElementNames, _elementTypes);
         }
 
         /// <summary>
