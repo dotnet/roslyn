@@ -11,7 +11,7 @@ Public Class ParseIteratorTests
 
     <Fact>
     Public Sub ParseIteratorModifier()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports Iterator = System.Collections.Generic.IEnumerable(Of Integer)
 
 Module Program
@@ -71,7 +71,7 @@ Class IteratorAttribute
 
     Sub New(p)
     End Sub
-End Class]]>)
+End Class")
 
         Assert.Equal(6, Aggregate t In tree.GetRoot().DescendantTokens Where t.Kind = SyntaxKind.IteratorKeyword Into Count())
 
@@ -79,7 +79,7 @@ End Class]]>)
 
     <Fact>
     Public Sub ParseYieldStatements()
-        Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
+        Dim tree = VisualBasicSyntaxTree.ParseText("
 Module Program
 
     Iterator Function M()
@@ -145,7 +145,7 @@ Module Program
         End Get
     End Property
 
-End Module]]>.Value)
+End Module")
 
         Dim yieldStatements = tree.GetRoot().DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
 
@@ -210,14 +210,14 @@ End Module]]>.Value)
 
     <Fact>
     Public Sub ParseYieldStatementsWithPrecedence()
-        Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
+        Dim tree = VisualBasicSyntaxTree.ParseText("
 Module Program
     Iterator Function M(a As Task(Of Integer), x As Task(Of Integer), y As Task(Of Integer), b As Task(Of Integer)) As Task(Of Integer)
 
         Yield a * Yield x ^ Yield y + Yield b
         
     End Function
-End Module]]>.Value)
+End Module")
 
         Dim yieldStatements = tree.GetRoot().DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
 
@@ -227,7 +227,7 @@ End Module]]>.Value)
 
     <Fact>
     Public Sub ParseIteratorLambdas()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module Program
 
     Private t1 As Task
@@ -250,7 +250,7 @@ Module Program
                                  End Function
 
     End Sub
-End Module]]>)
+End Module")
 
         Dim lambdas = tree.GetRoot().DescendantNodes.OfType(Of LambdaExpressionSyntax)().ToArray()
 
@@ -270,7 +270,7 @@ End Module]]>)
 
     <Fact>
     Public Sub ParseIteratorWithNesting()
-        Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
+        Dim tree = VisualBasicSyntaxTree.ParseText("
 Imports Iterator = System.Threading.Tasks.Task
 
 Class C
@@ -334,7 +334,7 @@ Class IteratorAttribute
     Sub New(p)
 
     End Sub
-End Class]]>.Value)
+End Class")
 
         Dim expected = {SyntaxKind.YieldStatement,
                         SyntaxKind.IdentifierName,

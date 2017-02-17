@@ -11,7 +11,7 @@ Public Class ParseLanguageVersionTests
     <[Fact]>
     Public Sub AsyncMethodDeclaration()
         ParseAndVerify(
-        <![CDATA[
+        "
 Class C1
     Async Sub M1()
 
@@ -21,7 +21,7 @@ Class C1
 
     End Function
 End Class
-        ]]>.Value,
+        ",
             LanguageVersion.VisualBasic9,
             Diagnostic(ERRID.ERR_LanguageVersion, "Async").WithArguments("9.0", "async methods or lambdas").WithLocation(3, 5),
             Diagnostic(ERRID.ERR_LanguageVersion, "Async").WithArguments("9.0", "async methods or lambdas").WithLocation(7, 5))
@@ -30,7 +30,7 @@ End Class
     <[Fact]>
     Public Sub Iterator()
         ParseAndVerify(
-        <![CDATA[
+        "
 Module M1
     Private Iterator Function SomeNumbers() As System.Collections.IEnumerable
         Yield 3
@@ -38,7 +38,7 @@ Module M1
         Yield 8
     End Function
 End Module
-        ]]>.Value,
+        ",
             LanguageVersion.VisualBasic9,
             Diagnostic(ERRID.ERR_LanguageVersion, "Iterator").WithArguments("9.0", "iterators").WithLocation(3, 13),
             Diagnostic(ERRID.ERR_LanguageVersion, "Yield").WithArguments("9.0", "iterators").WithLocation(4, 9),
@@ -49,13 +49,13 @@ End Module
     <[Fact]>
     Public Sub CollectionInitializers()
         ParseAndVerify(
-        <![CDATA[
+        "
 Module M1
     Sub Test()
-        Dim menuOptions = New List(Of MenuOption) From {{1, "Home"}, {2, "Products"}, {3, "News"}, {4, "Contact Us"}}
+        Dim menuOptions = New List(Of MenuOption) From {{1, ""Home""}, {2, ""Products""}, {3, ""News""}, {4, ""Contact Us""}}
     End Sub
 End Module
-        ]]>.Value,
+        ",
             LanguageVersion.VisualBasic9,
             Diagnostic(ERRID.ERR_LanguageVersion, "From").WithArguments("9.0", "collection initializers").WithLocation(4, 51))
     End Sub
@@ -63,13 +63,13 @@ End Module
     <[Fact]>
     Public Sub CoAndContraVariance()
         ParseAndVerify(
-        <![CDATA[
+        "
 Interface IVariant(Of Out R, In A)
     Function GetSomething() As R
     Sub SetSomething(ByVal sampleArg As A)
     Function GetSetSomething(ByVal sampleArg As A) As R
 End Interface
-        ]]>.Value,
+        ",
             LanguageVersion.VisualBasic9,
             Diagnostic(ERRID.ERR_LanguageVersion, "Out").WithArguments("9.0", "variance").WithLocation(2, 23),
             Diagnostic(ERRID.ERR_LanguageVersion, "In").WithArguments("9.0", "variance").WithLocation(2, 30))
@@ -78,7 +78,7 @@ End Interface
     <[Fact]>
     Public Sub AwaitExpressions()
         ParseAndVerify(
-        <![CDATA[
+        "
 Module M1
     Private Async Function SumPageSizesAsync() As Task
 
@@ -93,7 +93,7 @@ Module M1
         'Dim urlContents As Byte() = Await client.GetByteArrayAsync(url)
     End Function
 End Module
-        ]]>.Value,
+        ",
             LanguageVersion.VisualBasic9,
             Diagnostic(ERRID.ERR_LanguageVersion, "Async").WithArguments("9.0", "async methods or lambdas").WithLocation(3, 13))
     End Sub
@@ -101,7 +101,7 @@ End Module
     <[Fact]>
     Public Sub StatementLambdas()
         ParseAndVerify(
-        <![CDATA[
+        "
 Module M1
     Sub Test()
         Dim l1 = Sub()
@@ -112,7 +112,7 @@ Module M1
                  End Function
     End Sub
 End Module
-        ]]>.Value,
+        ",
             LanguageVersion.VisualBasic9,
             True,
             Diagnostic(ERRID.ERR_LanguageVersion),
@@ -122,10 +122,10 @@ End Module
     <Fact>
     Public Sub AutoProperties()
         ParseAndVerify(
-        <![CDATA[
+        "
 Class C1
     Public Property Name As String 
-    Public Property Owner As String = "DefaultName" 
+    Public Property Owner As String = ""DefaultName"" 
     Public Property Id As Integer
         Get
             Return 0
@@ -135,7 +135,7 @@ Class C1
         End Set
     End Property
 End Class
-        ]]>.Value,
+        ",
             LanguageVersion.VisualBasic9,
             Diagnostic(ERRID.ERR_LanguageVersion, "Public Property Name As String").WithArguments("9.0", "auto-implemented properties").WithLocation(3, 5),
             Diagnostic(ERRID.ERR_LanguageVersion, "Public Property Owner As String = ""DefaultName""").WithArguments("9.0", "auto-implemented properties").WithLocation(4, 5))
@@ -144,7 +144,7 @@ End Class
     <[Fact]>
     Public Sub ImplicitLineContinuationNonQuery()
         ParseAndVerify(
-        <![CDATA[
+        "
 Class C1
     Sub Test(args As String())
         M1(1,
@@ -165,7 +165,7 @@ Class C1
     Sub M2(x)
     End Sub 
 End Class
-        ]]>.Value,
+        ",
             LanguageVersion.VisualBasic9,
             True,
             Diagnostic(ERRID.ERR_LanguageVersion),
@@ -178,7 +178,7 @@ End Class
     <[Fact]>
     Public Sub ImplicitLineContinuationQuery()
         ParseAndVerify(
-        <![CDATA[
+        "
 Class C1
     Sub Test(args As String())
         Dim e1 = From x in args
@@ -195,7 +195,7 @@ Class C1
                  Into x
     End Sub
 End Class
-        ]]>.Value,
+        ",
             LanguageVersion.VisualBasic9,
             True,
             Diagnostic(ERRID.ERR_LanguageVersion),
@@ -205,7 +205,7 @@ End Class
     <[Fact]>
     Public Sub NameOfExpression()
         ParseAndVerify(
-        <![CDATA[
+        "
 Class C1
     Sub Test(args As String())
         If args Is Nothing Then
@@ -213,7 +213,7 @@ Class C1
         End If
     End Sub
 End Class
-        ]]>.Value,
+        ",
             LanguageVersion.VisualBasic9,
             Diagnostic(ERRID.ERR_LanguageVersion, "NameOf").WithArguments("9.0", "'nameof' expressions").WithLocation(5, 41))
     End Sub
@@ -222,14 +222,14 @@ End Class
     Public Sub NullConditionalOperation()
         Dim x = Nothing
         ParseAndVerify(
-        <![CDATA[
+        "
 Class C1
     Sub Test(args As String)
         Dim y As String = args?.ToString()
         Dim x1 = args?(0)
     End Sub
 End Class
-        ]]>.Value,
+        ",
             LanguageVersion.VisualBasic9,
             Diagnostic(ERRID.ERR_LanguageVersion, "?").WithArguments("9.0", "null conditional operations").WithLocation(4, 31),
             Diagnostic(ERRID.ERR_LanguageVersion, "?").WithArguments("9.0", "null conditional operations").WithLocation(5, 22))
@@ -305,15 +305,15 @@ End Namespace"
     Public Sub InterpolatedStrings()
         Dim x = Nothing
         ParseAndVerify(
-        <![CDATA[
+        "
 Module Module1
     Function M() As String
-        Dim x1 = $"world"
-        Dim x2 = $"hello {x1}"
+        Dim x1 = $""world""
+        Dim x2 = $""hello {x1}""
         Return x2
     End Function
 End Module
-        ]]>.Value,
+        ",
             LanguageVersion.VisualBasic12,
             Diagnostic(ERRID.ERR_LanguageVersion, "$""world""").WithArguments("12.0", "interpolated strings").WithLocation(4, 18),
             Diagnostic(ERRID.ERR_LanguageVersion, "$""hello {x1}""").WithArguments("12.0", "interpolated strings").WithLocation(5, 18))
@@ -323,7 +323,7 @@ End Module
     Public Sub TupleExpression()
         Dim x = Nothing
         ParseAndVerify(
-        <![CDATA[
+        "
 Module Module1
     Function M() As String
         Dim x1 = (1, 2)
@@ -332,7 +332,7 @@ Module Module1
         Return nothing
     End Function
 End Module
-        ]]>.Value,
+        ",
             LanguageVersion.VisualBasic14,
             Diagnostic(ERRID.ERR_LanguageVersion, "(1, 2)").WithArguments("14.0", "tuples").WithLocation(4, 18),
             Diagnostic(ERRID.ERR_LanguageVersion, "(A:=1, B:=2)").WithArguments("14.0", "tuples").WithLocation(5, 18))
@@ -342,7 +342,7 @@ End Module
     Public Sub TupleType()
         Dim x = Nothing
         ParseAndVerify(
-        <![CDATA[
+        "
 Module Module1
     Function M() As String
         Dim x1 As (Integer, Integer) = Nothing
@@ -351,7 +351,7 @@ Module Module1
         Return Nothing
     End Function
 End Module
-        ]]>.Value,
+        ",
             LanguageVersion.VisualBasic14,
             Diagnostic(ERRID.ERR_LanguageVersion, "(Integer, Integer)").WithArguments("14.0", "tuples").WithLocation(4, 19),
             Diagnostic(ERRID.ERR_LanguageVersion, "(A As Integer, B As Integer)").WithArguments("14.0", "tuples").WithLocation(5, 19))
