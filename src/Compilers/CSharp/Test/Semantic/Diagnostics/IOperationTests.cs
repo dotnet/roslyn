@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Linq;
+using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -81,13 +82,19 @@ public class C
 
             var assignments = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().ToArray();
             Assert.Equal("(x, y, z) = (1, 2, 3)", assignments[0].ToString());
-            Assert.Equal(null, model.GetOperation(assignments[0]));
+            IOperation operation1 = model.GetOperation(assignments[0]);
+            Assert.NotNull(operation1);
+            Assert.False(operation1 is IAssignmentExpression);
 
             Assert.Equal("(x, y, z) = new C()", assignments[1].ToString());
-            Assert.Equal(null, model.GetOperation(assignments[1]));
+            IOperation operation2 = model.GetOperation(assignments[1]);
+            Assert.NotNull(operation2);
+            Assert.False(operation2 is IAssignmentExpression);
 
             Assert.Equal("var (a, b) = (1, 2)", assignments[2].ToString());
-            Assert.Null(model.GetOperation(assignments[2]));
+            IOperation operation3 = model.GetOperation(assignments[2]);
+            Assert.NotNull(operation3);
+            Assert.False(operation3 is IAssignmentExpression);
         }
     }
 }
