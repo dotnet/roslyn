@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             nodeBinder: _enclosingBinder,
                             typeSyntax: node.Type,
                             identifierToken: designation.Identifier,
-                            kind: LocalDeclarationKind.RegularVariable,
+                            kind: LocalDeclarationKind.OutVariable,
                             nodeToBind: nodeToBind,
                             forbiddenZone: argumentListSyntax);
         }
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                       nodeBinder: _enclosingBinder,
                                       closestTypeSyntax: closestTypeSyntax,
                                       identifierToken: designation.Identifier,
-                                      kind: LocalDeclarationKind.RegularVariable,
+                                      kind: LocalDeclarationKind.Deconstruction,
                                       deconstruction: deconstruction);
         }
 

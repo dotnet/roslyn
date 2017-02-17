@@ -2491,7 +2491,7 @@ Deconstructing (1, hello)
 
         private static void VerifyModelForDeconstructionLocal(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.RegularVariable, references);
+            VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.Deconstruction, references);
         }
 
         private static void VerifyModelForLocal(SemanticModel model, SingleVariableDesignationSyntax decl, LocalDeclarationKind kind, params IdentifierNameSyntax[] references)
@@ -5933,7 +5933,7 @@ class Program
             var x2Ref = GetReference(tree, "x2");
             Assert.Equal("string[]", model.GetTypeInfo(x2Ref).Type.ToDisplayString());
 
-            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref);
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.OutVariable, x1Ref);
             VerifyModelForLocal(model, x2, LocalDeclarationKind.PatternVariable, x2Ref);
         }
 
@@ -5967,7 +5967,7 @@ class Program
             var x1Ref = GetReference(tree, "x1");
             Assert.Equal("int", model.GetTypeInfo(x1Ref).Type.ToDisplayString());
 
-            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref);
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.OutVariable, x1Ref);
         }
 
         [Fact]
@@ -6008,7 +6008,7 @@ class Program
             var x2Ref = GetReferences(tree, "x2");
             Assert.Equal("string[]", model.GetTypeInfo(x2Ref.First()).Type.ToDisplayString());
 
-            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref.ToArray());
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.OutVariable, x1Ref.ToArray());
             VerifyModelForLocal(model, x2, LocalDeclarationKind.PatternVariable, x2Ref.ToArray());
         }
 
@@ -6057,8 +6057,8 @@ class C
             var x2Ref = GetReference(tree, "x2");
             Assert.Equal("string", model.GetTypeInfo(x2Ref).Type.ToDisplayString());
 
-            VerifyModelForDeconstructionLocal(model, x1, x1Ref);
-            VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+            VerifyModelForDeconstruction(model, x1, LocalDeclarationKind.OutVariable, x1Ref);
+            VerifyModelForDeconstruction(model, x2, LocalDeclarationKind.OutVariable, x2Ref);
         }
 
         [Fact]

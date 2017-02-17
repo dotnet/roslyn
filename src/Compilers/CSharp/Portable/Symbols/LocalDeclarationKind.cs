@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Specifies the syntax that a user defined variable comes from.
+    /// Specifies the syntactic construct that a user defined variable comes from.
     /// </summary>
     internal enum LocalDeclarationKind : byte
     {
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         None,
 
         /// <summary>
-        /// User defined local variable declared by <see cref="LocalDeclarationStatementSyntax"/> (including deconstruction-declaration), or by "out var" argument.
+        /// User defined local variable declared by <see cref="LocalDeclarationStatementSyntax"/>.
         /// </summary>
         RegularVariable,
 
@@ -49,5 +49,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The variable that captures the result of a pattern matching operation like "i" in "expr is int i"
         /// </summary>
         PatternVariable,
+
+        /// <summary>
+        /// User variable declared in the left-hand-side of a deconstruction assignment.
+        /// </summary>
+        Deconstruction,
+
+        /// <summary>
+        /// User variable declared in an out argument.
+        /// </summary>
+        OutVariable,
     }
 }

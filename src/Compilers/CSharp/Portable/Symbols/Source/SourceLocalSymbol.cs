@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (_declarationKind)
                 {
                     case LocalDeclarationKind.RegularVariable:
-                        Debug.Assert(node is VariableDeclaratorSyntax || node is SingleVariableDesignationSyntax);
+                        Debug.Assert(node is VariableDeclaratorSyntax);
                         break;
 
                     case LocalDeclarationKind.Constant:
@@ -428,6 +428,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(node is CatchDeclarationSyntax);
                         break;
 
+                    case LocalDeclarationKind.OutVariable:
+                    case LocalDeclarationKind.Deconstruction:
                     case LocalDeclarationKind.PatternVariable:
                         Debug.Assert(node is SingleVariableDesignationSyntax);
                         break;
@@ -761,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)this._type == null)
                 {
-                    AssertNoOutOrPatternVariable();
+                    AssertNoOutOrPatternVariableSyntax();
                     SetType(_nodeBinder.CreateErrorType("var"));
                 }
 
@@ -769,10 +771,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             [Conditional("DEBUG")]
-            private void AssertNoOutOrPatternVariable()
+            private void AssertNoOutOrPatternVariableSyntax()
             {
-                var parent = this._typeSyntax.Parent;
+                // The following assertion
+                //   Debug.Assert(DeclarationKind != LocalDeclarationKind.OutVariable && DeclarationKind != LocalDeclarationKind.PatternVariable);
+                // would not be correct because, for example, the declarations in the erroneous code `M(out (var x, var y))` are treated as out variables.
 
+                var parent = this._typeSyntax.Parent;
                 if (parent?.Kind() == SyntaxKind.DeclarationExpression && ((DeclarationExpressionSyntax)parent).IsOutVarDeclaration())
                 {
                     Debug.Assert(false);
