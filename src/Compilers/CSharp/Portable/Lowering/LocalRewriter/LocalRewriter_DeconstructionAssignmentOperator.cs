@@ -14,11 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
             var right = node.Right;
-            Debug.Assert(right.Kind == BoundKind.Conversion);
-            var conversion = (BoundConversion)right;
-            Debug.Assert(conversion.Conversion.Kind == ConversionKind.Deconstruction);
+            Debug.Assert(right.Conversion.Kind == ConversionKind.Deconstruction);
 
-            return RewriteDeconstruction(node.Left, conversion.Conversion, conversion.Operand);
+            return RewriteDeconstruction(node.Left, right.Conversion, right.Operand);
         }
 
         /// <summary>
@@ -34,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - the assignment phase
         /// </summary>
         private BoundExpression RewriteDeconstruction(BoundTupleExpression left, Conversion conversion, BoundExpression right)
+
         {
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var effects = DeconstructionSideEffects.GetInstance();

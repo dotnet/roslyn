@@ -393,7 +393,7 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="Left" Type="BoundTupleExpression" Null="disallow"/>
-    <Field Name="Right" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Right" Type="BoundConversion" Null="disallow"/>
   </Node>
 
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">

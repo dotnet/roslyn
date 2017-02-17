@@ -110,12 +110,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // we could still not infer a type for the RHS
                 FailRemainingInferences(checkedVariables, diagnostics);
+                var voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
 
+                var type = boundRHS.Type ?? voidType;
                 return new BoundDeconstructionAssignmentOperator(
                             node,
                             DeconstructionVariablesAsTuple(node, checkedVariables, diagnostics, hasErrors: true),
-                            boundRHS,
-                            GetSpecialType(SpecialType.System_Void, diagnostics, node),
+                            new BoundConversion(boundRHS.Syntax, boundRHS, Conversion.Deconstruction, @checked: false, explicitCastInCode: false,
+                                constantValueOpt: null, type: type, hasErrors: true),
+                            voidType,
                             hasErrors: true);
             }
 
