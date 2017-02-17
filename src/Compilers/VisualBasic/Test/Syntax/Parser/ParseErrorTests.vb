@@ -2627,52 +2627,52 @@ End Module
     ''' </summary>
     <Fact()>
     Public Sub BC30999_XML()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Dim x = <x>_
 _
 _ _
         </>
-    Dim y = <y _=""/>
+    Dim y = <y _=""""/>
 End Module
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 Module M
     Dim x = GetXmlNamespace( _ )
     Dim y = GetXmlNamespace(_
         )
 End Module
-]]>)
+")
     End Sub
 
     <Fact()>
     Public Sub BC30999_MultipleSameLine()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
-    Dim x = From c in "" _ _
+    Dim x = From c in """" _ _
 
 End Module
-]]>,
+",
             <errors>
                 <error id="30203" message="Identifier expected."/>
             </errors>)
         ' As above, but with tabs instead of spaces.
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
-    Dim x = From c in "" _ _
+    Dim x = From c in """" _ _
 
 End Module
-]]>.Value.Replace(" ", vbTab),
+".Replace(" ", vbTab),
             <errors>
                 <error id="30203" message="Identifier expected."/>
             </errors>)
         ' As above, but with full-width underscore characters.
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
-    Dim x = From c in "" _ _
+    Dim x = From c in """" _ _
 
 End Module
-]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
+".Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
     Diagnostic(ERRID.ERR_ExpectedIdentifier, "＿"),
     Diagnostic(ERRID.ERR_ExpectedIdentifier, "＿"))
     End Sub
@@ -2680,66 +2680,66 @@ End Module
     <WorkItem(630127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/630127")>
     <Fact()>
     Public Sub BC30999_AtLineStart()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
 _
 
 End Module
-]]>,
+",
             <errors>
                 <error id="30999"/>
             </errors>)
         ' As above, but with full-width underscore characters.
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
 _
 
 End Module
-]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
+".Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
             <errors>
                 <error id="30203" message="Identifier expected."/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
-    Dim x = From c in "" _
+    Dim x = From c in """" _
 _
 
 End Module
-]]>,
+",
             <errors>
                 <error id="30999"/>
             </errors>)
         ' As above, but with full-width underscore characters.
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
-    Dim x = From c in "" _
+    Dim x = From c in """" _
 _
 
 End Module
-]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
+".Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
             <errors>
                 <error id="30203" message="Identifier expected."/>
                 <error id="30203" message="Identifier expected."/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Dim x = 
 _
 
 End Module
-]]>,
+",
             <errors>
                 <error id="30201"/>
                 <error id="30999"/>
             </errors>)
         ' As above, but with full-width underscore characters.
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Dim x = 
 _
 
 End Module
-]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
+".Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
             <errors>
                 <error id="30201"/>
                 <error id="30203" message="Identifier expected."/>
@@ -2748,53 +2748,48 @@ End Module
 
     <Fact()>
     Public Sub BC31001ERR_InvInsideEnum()
-        Dim code = <![CDATA[
-                Public Enum e
-                    e1
-                    'COMPILEERROR: BC30619, "if"
-                    if(true,3,4)
-                'COMPILEERROR: BC30184,"End Enum"
-                End Enum
-            ]]>.Value
-        ParseAndVerify(code,
-            Diagnostic(ERRID.ERR_InvInsideEnum, "if(true,3,4)").WithLocation(5, 21))
+        Dim code = "
+Public Enum e
+    e1
+    'COMPILEERROR: BC30619, ""if""
+    if(true,3,4)
+'COMPILEERROR: BC30184,""End Enum""
+End Enum
+"
+        ParseAndVerify(code, Diagnostic(ERRID.ERR_InvInsideEnum, "if(true,3,4)").WithLocation(5, 5))
     End Sub
 
     <Fact()>
     Public Sub BC31002ERR_InvInsideBlock_If_Class()
-        Dim source = <text>
+        Dim source = "
 If True
     Class Foo
     
     End Class
 End If
-</text>.Value
-
-        ParseAndVerify(source, TestOptions.Script,
-            Diagnostic(ERRID.ERR_InvInsideBlock, "Class Foo").WithArguments("If"))
+"
+        ParseAndVerify(source, TestOptions.Script, Diagnostic(ERRID.ERR_InvInsideBlock, "Class Foo").WithArguments("If"))
     End Sub
 
     <Fact()>
     Public Sub BC31002ERR_InvInsideBlock_Do_Function()
-        Dim source = <text>
+        Dim source = "
 Do
     Function Foo
     End Function
 Loop
-</text>.Value
-
-        ParseAndVerify(source, TestOptions.Script,
-            Diagnostic(ERRID.ERR_InvInsideBlock, "Function Foo").WithArguments("Do Loop"))
+"
+        ParseAndVerify(source, TestOptions.Script, Diagnostic(ERRID.ERR_InvInsideBlock, "Function Foo").WithArguments("Do Loop"))
     End Sub
 
     <Fact()>
     Public Sub BC31002ERR_InvInsideBlock_While_Sub()
-        Dim source = <text>
+        Dim source = "
 While True
     Sub Foo
     End Sub
 End While
-</text>.Value
+"
 
         ParseAndVerify(source, TestOptions.Script,
             Diagnostic(ERRID.ERR_InvInsideBlock, "Sub Foo").WithArguments("While"))
@@ -2803,16 +2798,16 @@ End While
     <WorkItem(527330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527330")>
     <Fact()>
     Public Sub BC31085ERR_InvalidDate()
-        Dim code = <![CDATA[
-                Class C1
-                    Dim d2 As Date
-                    Dim someDateAndTime As Date = #8/13/2002 29:14:00 PM#
-                    Sub foo()
-                        d2 = #23/04/2002#
-                        Dim da As Date = #02/29/2009#
-                    End Sub
-                End Class
-            ]]>.Value
+        Dim code = "
+Class C1
+    Dim d2 As Date
+    Dim someDateAndTime As Date = #8/13/2002 29:14:00 PM#
+    Sub foo()
+        d2 = #23/04/2002#
+        Dim da As Date = #02/29/2009#
+    End Sub
+End Class
+"
         ParseAndVerify(code,
             Diagnostic(ERRID.ERR_ExpectedExpression, ""),
             Diagnostic(ERRID.ERR_InvalidDate, "#8/13/2002 29:14:00 PM#"),
@@ -2826,18 +2821,18 @@ End While
     <WorkItem(527344, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527344")>
     <Fact()>
     Public Sub BC31118ERR_EndAddHandlerNotAtLineStart()
-        Dim code = <![CDATA[
-                Class TimerState
-                    Public Delegate Sub MyEventHandler(ByVal sender As Object, ByVal e As EventArgs)
-                    Private m_MyEvent As MyEventHandler
-                    Public Custom Event MyEvent As MyEventHandler
-                        AddHandler(ByVal value As MyEventHandler)
-                            m_MyEvent = DirectCast ( _
-                            [Delegate].Combine(m_MyEvent, value), _
-                            MyEventHandler) : End addHandler
-                    End Event
-                End Class
-            ]]>.Value
+        Dim code = "
+Class TimerState
+    Public Delegate Sub MyEventHandler(ByVal sender As Object, ByVal e As EventArgs)
+    Private m_MyEvent As MyEventHandler
+    Public Custom Event MyEvent As MyEventHandler
+        AddHandler(ByVal value As MyEventHandler)
+            m_MyEvent = DirectCast ( _
+            [Delegate].Combine(m_MyEvent, value), _
+            MyEventHandler) : End addHandler
+    End Event
+End Class
+"
         ParseAndVerify(code)
     End Sub
 
@@ -2845,24 +2840,25 @@ End While
     <WorkItem(527310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527310")>
     <Fact()>
     Public Sub BC31119ERR_EndRemoveHandlerNotAtLineStart()
-        Dim code = <![CDATA[
-                Class C1
-                    Public Delegate Sub MyEventHandler(ByVal sender As Object, ByVal e As EventArgs)
-                    Private m_MyEvent As MyEventHandler
-                    Public Custom Event MyEvent As MyEventHandler
-                        RemoveHandler(ByVal value As MyEventHandler)
-                            m_MyEvent = DirectCast ( _
-                            [Delegate].RemoveAll(m_MyEvent, value), _
-                            MyEventHandler) : End RemoveHandler
-                        RemoveHandler(ByVal value As MyEventHandler)
-                            m_MyEvent = DirectCast ( _
-                            [Delegate].RemoveAll(m_MyEvent, value),
-                            MyEventHandler)
-                 :
-                        End RemoveHandler
-                    End Event
-                End Class
-            ]]>.Value
+        Dim code = "
+Class C1
+    Public Delegate Sub MyEventHandler(ByVal sender As Object, ByVal e As EventArgs)
+    Private m_MyEvent As MyEventHandler
+    Public Custom Event MyEvent As MyEventHandler
+        RemoveHandler(ByVal value As MyEventHandler)
+            m_MyEvent = DirectCast ( _
+            [Delegate].RemoveAll(m_MyEvent, value), _
+            MyEventHandler) : End RemoveHandler
+        RemoveHandler(ByVal value As MyEventHandler)
+            m_MyEvent = DirectCast ( _
+            [Delegate].RemoveAll(m_MyEvent, value),
+            MyEventHandler)
+ :
+        End RemoveHandler
+    End Event
+End Class
+
+"
         ParseAndVerify(code)
     End Sub
 
@@ -2870,62 +2866,56 @@ End While
     <WorkItem(527309, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527309")>
     <Fact()>
     Public Sub BC31120ERR_EndRaiseEventNotAtLineStart()
-        Dim code = <![CDATA[
-                Class C1
-                    Public Delegate Sub MyEventHandler(ByVal sender As Object, ByVal e As EventArgs)
-                    Private m_MyEvent As MyEventHandler
-                    Public Custom Event MyEvent As MyEventHandler
-                        RaiseEvent(ByVal sender As Object, ByVal e As System.EventArgs)
-                            m_MyEvent.Invoke(sender, e) : End RaiseEvent
-                        RaiseEvent(ByVal sender As Object, ByVal e As System.EventArgs)
-                            m_MyEvent.Invoke(sender, e)
-                 :
-                        End RaiseEvent
-                    End Event
-                End Class
-            ]]>.Value
+        Dim code = "
+Class C1
+    Public Delegate Sub MyEventHandler(ByVal sender As Object, ByVal e As EventArgs)
+    Private m_MyEvent As MyEventHandler
+    Public Custom Event MyEvent As MyEventHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As System.EventArgs)
+            m_MyEvent.Invoke(sender, e) : End RaiseEvent
+        RaiseEvent(ByVal sender As Object, ByVal e As System.EventArgs)
+            m_MyEvent.Invoke(sender, e)
+ :
+        End RaiseEvent
+    End Event
+End Class
+"
         ParseAndVerify(code)
     End Sub
 
     <WorkItem(887848, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC31122ERR_CustomEventRequiresAs()
-        ParseAndVerify(<![CDATA[
-    Class c1
-       Public Custom Event sc2()
-    End Class
-    ]]>,
-<errors>
-    <error id="31122"/>
-</errors>)
+        ParseAndVerify("
+Class c1
+   Public Custom Event sc2()
+End Class
+", <errors> <error id="31122"/> </errors>)
     End Sub
 
     <Fact()>
     Public Sub BC31123ERR_InvalidEndEvent()
-        Dim code = <![CDATA[
-                Class Sender
-                    End Event
-                End Class
-            ]]>.Value
-
-        ParseAndVerify(code, <errors>
-                                 <error id="31123"/>
-                             </errors>)
+        Dim code = "
+Class Sender
+    End Event
+End Class
+"
+        ParseAndVerify(code, <errors> <error id="31123"/> </errors>)
     End Sub
 
     <Fact()>
     Public Sub BC31124ERR_InvalidEndAddHandler()
-        Dim code = <![CDATA[
-                Class C1
-                    Public Custom Event Fire As EventHandler
-                        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
-                        End RaiseEvent
-                                    End AddHandler
-                        RemoveHandler(ByVal newValue As EventHandler)
-                        End RemoveHandler
-                    End Event
-                End Class
-    ]]>.Value
+        Dim code = "
+Class C1
+    Public Custom Event Fire As EventHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+        End RaiseEvent
+                    End AddHandler
+        RemoveHandler(ByVal newValue As EventHandler)
+        End RemoveHandler
+    End Event
+End Class
+"
         ParseAndVerify(code, <errors>
                                  <error id="31114"/>
                                  <error id="31124"/>
@@ -2938,16 +2928,16 @@ End While
 
     <Fact()>
     Public Sub BC31125ERR_InvalidEndRemoveHandler()
-        Dim code = <![CDATA[
-                Module module1
-                    End removehandler
-                    Public Structure S1
-                        End removehandler
-                    End Structure
-                    Sub Main()
-                    End Sub
-                End Module
-    ]]>.Value
+        Dim code = "
+Module module1
+    End removehandler
+    Public Structure S1
+        End removehandler
+    End Structure
+    Sub Main()
+    End Sub
+End Module
+"
 
         ParseAndVerify(code, <errors>
                                  <error id="31125"/>
@@ -2957,16 +2947,16 @@ End While
 
     <Fact()>
     Public Sub BC31126ERR_InvalidEndRaiseEvent()
-        Dim code = <![CDATA[
-                Module module1
-                    End raiseevent
-                    Public Structure digit
-                        End raiseevent
-                    End Structure
-                    Sub Main()
-                    End Sub
-                End Module
-    ]]>.Value
+        Dim code = "
+Module module1
+    End raiseevent
+    Public Structure digit
+        End raiseevent
+    End Structure
+    Sub Main()
+    End Sub
+End Module
+"
 
         ParseAndVerify(code, <errors>
                                  <error id="31126"/>
@@ -2976,13 +2966,13 @@ End While
 
     <Fact()>
     Public Sub BC31149ERR_DuplicateXmlAttribute()
-        Dim tree = Parse(<![CDATA[
+        Dim tree = Parse("
 Module M
-    Dim x = <?xml version="1.0" version="1.0"?><root/>
-    Dim y = <?xml version="1.0" encoding="utf-8" encoding="unicode"?><root/>
-    Dim z = <?xml version="1.0" standalone="yes" standalone="yes"?><root/>
+    Dim x = <?xml version=""1.0"" version=""1.0""?><root/>
+    Dim y = <?xml version=""1.0"" encoding=""utf-8"" encoding=""unicode""?><root/>
+    Dim z = <?xml version=""1.0"" standalone=""yes"" standalone=""yes""?><root/>
 End Module
-            ]]>)
+")
         tree.AssertTheseDiagnostics(<errors><![CDATA[
 BC31149: Duplicate XML attribute 'version'.
     Dim x = <?xml version="1.0" version="1.0"?><root/>
@@ -2998,11 +2988,11 @@ BC31149: Duplicate XML attribute 'standalone'.
 
     <Fact()>
     Public Sub BC31153ERR_MissingVersionInXmlDecl()
-        Dim tree = Parse(<![CDATA[
+        Dim tree = Parse("
 Module M
     Private F = <?xml?><root/>
 End Module
-                ]]>)
+")
         tree.AssertTheseDiagnostics(<errors><![CDATA[
 BC31153: Required attribute 'version' missing from XML declaration.
     Private F = <?xml?><root/>
@@ -3012,12 +3002,12 @@ BC31153: Required attribute 'version' missing from XML declaration.
 
     <Fact()>
     Public Sub BC31154ERR_IllegalAttributeInXmlDecl()
-        Dim tree = Parse(<![CDATA[
+        Dim tree = Parse("
 Module M
-    Private F1 = <?xml version="1.0" a="b"?><x/>
-    Private F2 = <?xml version="1.0" xmlns:p="http://roslyn"?><x/>
+    Private F1 = <?xml version=""1.0"" a=""b""?><x/>
+    Private F2 = <?xml version=""1.0"" xmlns:p=""http://roslyn""?><x/>
 End Module
-            ]]>)
+")
         tree.AssertTheseDiagnostics(<errors><![CDATA[
 BC31154: XML declaration does not allow attribute 'a'.
     Private F1 = <?xml version="1.0" a="b"?><x/>
@@ -3034,16 +3024,16 @@ BC31154: XML declaration does not allow attribute 'xmlns'.
     <WorkItem(537222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537222")>
     <Fact()>
     Public Sub BC31156ERR_VersionMustBeFirstInXmlDecl()
-        Dim code = <![CDATA[
-    Module M1
-        Sub DocumentErrs()
-            'COMPILEERROR : BC31156, "version" 
-            Dim x = <?xml encoding="utf-8" version="1.0"?><root/>
-            'COMPILEERROR : BC31156, "version" 
-            Dim x4 = <e><%= <?xml encoding="utf-8" version="1.0"?><root/> %></e>
-        End Sub
-    End Module
-    ]]>.Value
+        Dim code = "
+Module M1
+    Sub DocumentErrs()
+        'COMPILEERROR : BC31156, ""version"" 
+        Dim x = <?xml encoding=""utf-8"" version=""1.0""?><root/>
+        'COMPILEERROR : BC31156, ""version"" 
+        Dim x4 = <e><%= <?xml encoding=""utf-8"" version=""1.0""?><root/> %></e>
+    End Sub
+End Module
+"
 
         ParseAndVerify(code, <errors>
                                  <error id="31156"/>
@@ -3053,14 +3043,14 @@ BC31154: XML declaration does not allow attribute 'xmlns'.
 
     <Fact()>
     Public Sub BC31157ERR_AttributeOrder()
-        Dim code = <![CDATA[
-                Imports System.Xml.Linq
-                Imports System.Collections.Generic
-                Imports System.Linq
-                Module M
-                    Dim y = <?xml standalone="yes" encoding="utf-8"?><root/>
-                End Module
-    ]]>.Value
+        Dim code = "
+Imports System.Xml.Linq
+Imports System.Collections.Generic
+Imports System.Linq
+Module M
+    Dim y = <?xml standalone=""yes"" encoding=""utf-8""?><root/>
+End Module
+"
 
         ParseAndVerify(code, <errors>
                                  <error id="31157"/>
@@ -3071,29 +3061,27 @@ BC31154: XML declaration does not allow attribute 'xmlns'.
     <WorkItem(538964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538964")>
     <Fact()>
     Public Sub BC31157ERR_AttributeOrder_1()
-        Dim code = <![CDATA[
-                Imports System.Xml.Linq
-                Imports System.Collections.Generic
-                Imports System.Linq
-                Module M
-                    Dim y = <?xml version="1.0" standalone="yes" encoding="utf-8"?><root/>
-                End Module
-    ]]>.Value
+        Dim code = "
+Imports System.Xml.Linq
+Imports System.Collections.Generic
+Imports System.Linq
+Module M
+    Dim y = <?xml version=""1.0"" standalone=""yes"" encoding=""utf-8""?><root/>
+End Module
+"
 
-        ParseAndVerify(code, <errors>
-                                 <error id="31157"/>
-                             </errors>)
+        ParseAndVerify(code, <errors> <error id="31157"/> </errors>)
     End Sub
 
     <Fact()>
     Public Sub BC31161ERR_ExpectedXmlEndComment()
-        Dim code = <![CDATA[
-                Module M1
-                    Sub Foo
-                        Dim x = <!--hello
-                    End Sub
-                End Module
-            ]]>.Value
+        Dim code = "
+Module M1
+    Sub Foo
+        Dim x = <!--hello
+    End Sub
+End Module
+"
 
         ParseAndVerify(code, <errors>
                                  <error id="31161"/>
@@ -3104,14 +3092,14 @@ BC31154: XML declaration does not allow attribute 'xmlns'.
 
     <Fact()>
     Public Sub BC31162ERR_ExpectedXmlEndCData()
-        Dim code = <![CDATA[
-                Module M1
-                    Sub Foo()
-                        'COMPILEERROR : L3, BC31162, "e" 
-	                         Dim x = <![CDATA[
-                    End Sub
-                End Module
-            ]]>.Value
+        Dim code = "
+Module M1
+    Sub Foo()
+        'COMPILEERROR : L3, BC31162, ""e"" 
+           Dim x = <![CDATA[
+    End Sub
+End Module
+"
 
         ParseAndVerify(code, <errors>
                                  <error id="31162"/>
@@ -3122,11 +3110,11 @@ BC31154: XML declaration does not allow attribute 'xmlns'.
 
     <Fact()>
     Public Sub BC31163ERR_ExpectedSQuote()
-        Dim tree = Parse(<![CDATA[
+        Dim tree = Parse("
 Module M
     Private F = <x a='b</>
 End Module
-                    ]]>)
+")
         tree.AssertTheseDiagnostics(<errors><![CDATA[
 BC31163: Expected matching closing single quote for XML attribute value.
     Private F = <x a='b</>
@@ -3136,31 +3124,31 @@ BC31163: Expected matching closing single quote for XML attribute value.
 
     <Fact()>
     Public Sub BC31164ERR_ExpectedQuote()
-        Dim tree = Parse(<![CDATA[
+        Dim tree = Parse("
 Module M
-    Private F = <x a="b</>
+    Private F = <x a=""b</>
 End Module
-                    ]]>)
+")
         tree.AssertTheseDiagnostics(<errors><![CDATA[
 BC31164: Expected matching closing double quote for XML attribute value.
     Private F = <x a="b</>
                        ~
-        ]]></errors>)
+]]></errors>)
     End Sub
 
     <WorkItem(537218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537218")>
     <Fact()>
     Public Sub BC31175ERR_DTDNotSupported()
-        Dim code = <![CDATA[
+        Dim code = "
     Module DTDErrmod
         Sub DTDErr()
 
-            'COMPILEERROR : BC31175, "DOCTYPE" 
-            Dim a = <?xml version="1.0"?><!DOCTYPE Order SYSTEM "dxx_install/samples/db2xml/dtd/getstart.dtd"><e/>
+            'COMPILEERROR : BC31175, ""DOCTYPE"" 
+            Dim a = <?xml version=""1.0""?><!DOCTYPE Order SYSTEM ""dxx_install/samples/db2xml/dtd/getstart.dtd""><e/>
 
         End Sub
     End Module
-    ]]>.Value
+"
 
         ParseAndVerify(code, <errors>
                                  <error id="31175"/>
@@ -3169,13 +3157,13 @@ BC31164: Expected matching closing double quote for XML attribute value.
 
     <Fact()>
     Public Sub BC31180ERR_XmlEntityReference()
-        Dim code = <![CDATA[
-                Class a
-                    Dim test = <test>
-                                 This is a test. &amp; &copy; &nbsp;
-                             </test>
-                End Class 
-            ]]>.Value
+        Dim code = "
+Class a
+    Dim test = <test>
+                 This is a test. &amp; &copy; &nbsp;
+             </test>
+End Class 
+"
         ParseAndVerify(code, <errors>
                                  <error id="31180"/>
                                  <error id="31180"/>
@@ -3185,13 +3173,13 @@ BC31164: Expected matching closing double quote for XML attribute value.
     <WorkItem(542975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542975")>
     <Fact()>
     Public Sub BC31207ERR_XmlEndElementNoMatchingStart()
-        Dim tree = Parse(<![CDATA[
+        Dim tree = Parse("
 Module M
     Private F1 = </x1>
-    Private F2 = <?xml version="1.0"?></x2>
-    Private F3 = <?xml version="1.0"?><?p?></x3>
+    Private F2 = <?xml version=""1.0""?></x2>
+    Private F3 = <?xml version=""1.0""?><?p?></x3>
 End Module
-            ]]>)
+")
         tree.AssertTheseDiagnostics(<errors><![CDATA[
 BC31207: XML end element must be preceded by a matching start element.
     Private F1 = </x1>
@@ -3207,13 +3195,13 @@ BC31207: XML end element must be preceded by a matching start element.
 
     <Fact()>
     Public Sub BC31426ERR_BadTypeInCCExpression()
-        Dim code = <![CDATA[
-                Module Module1
-                    Sub Main()
-                         #Const A = CType(1, System.Int32)
-                    End Sub
-                End Module
-            ]]>.Value
+        Dim code = "
+Module Module1
+    Sub Main()
+         #Const A = CType(1, System.Int32)
+    End Sub
+End Module
+"
         ParseAndVerify(code, <errors>
                                  <error id="31426"/>
                                  <error id="30198"/>
@@ -3224,66 +3212,57 @@ BC31207: XML end element must be preceded by a matching start element.
     <WorkItem(888313, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC31427ERR_BadCCExpression()
-        ParseAndVerify(<![CDATA[
-                #If GetType(x) Then
-                #End If
-            ]]>,
-        <errors>
-            <error id="31427"/>
-        </errors>)
+        ParseAndVerify("
+#If GetType(x) Then
+#End If
+", <errors> <error id="31427"/> </errors>)
     End Sub
 
     <Fact()>
     Public Sub BC32009ERR_MethodMustBeFirstStatementOnLine()
-        ParseAndVerify(<![CDATA[
-                Namespace NS1
-                    Interface IVariance(Of Out T) : Function Foo() As T : End Interface
-                    Public Class Variance(Of T As New) : Implements IVariance(Of T) : Public Function Foo() As T Implements IVariance(Of T).Foo
-                            Return New T
-                        End Function
-                    End Class
-                    Module M1 : Sub IF001()
-                        End Sub
-                    End Module
-                End Namespace
-]]>,
+        ParseAndVerify("
+Namespace NS1
+    Interface IVariance(Of Out T) : Function Foo() As T : End Interface
+    Public Class Variance(Of T As New) : Implements IVariance(Of T) : Public Function Foo() As T Implements IVariance(Of T).Foo
+            Return New T
+        End Function
+    End Class
+    Module M1 : Sub IF001()
+        End Sub
+    End Module
+End Namespace
+",
             <errors>
                 <error id="32009"/>
                 <error id="32009"/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Interface I
     Function F():Function G():Sub M()
 End Interface
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 Module M
     Function F()
     End Function:Function G()
     End Function
 End Module
-]]>,
-            <errors>
-                <error id="32009"/>
-            </errors>)
-        ParseAndVerify(<![CDATA[
+", <errors> <error id="32009"/> </errors>)
+        ParseAndVerify("
 Module M
     Function F()
     End Function:Function G(
 )
     End Function
 End Module
-]]>,
-            <errors>
-                <error id="32009"/>
-            </errors>)
-        ParseAndVerify(<![CDATA[
+", <errors> <error id="32009"/> </errors>)
+        ParseAndVerify("
 Class C
     Function F()
     End Function:Sub New()
     End Sub
 End Class
-]]>,
+",
             <errors>
                 <error id="32009"/>
             </errors>)
@@ -3291,18 +3270,18 @@ End Class
 
     <Fact()>
     Public Sub BC32019ERR_ExpectedResumeOrGoto()
-        Dim code = <![CDATA[
-                Class C1
-                    Public Sub OnErrorDemo()
-                        On Error    
-                        GoTo ErrorHandler
-                        On Error 
-                        Resume Next
-                        On Error 
-                ErrorHandler: Exit Sub
-                    End Sub
-                End Class
-            ]]>.Value
+        Dim code = "
+Class C1
+    Public Sub OnErrorDemo()
+        On Error    
+        GoTo ErrorHandler
+        On Error 
+        Resume Next
+        On Error 
+ErrorHandler: Exit Sub
+    End Sub
+End Class
+"
 
         ParseAndVerify(code, <errors>
                                  <error id="32019"/>
@@ -3313,21 +3292,21 @@ End Class
 
     <Fact()>
     Public Sub BC32024ERR_DefaultValueForNonOptionalParam()
-        Dim code = <![CDATA[
-                Class A
-                    Private newPropertyValue As String = Nothing
-                    Public Property NewProperty() As String = Nothing
-                        Get
-                            Return newPropertyValue
-                        End Get
-                        Set(ByVal value As String = Nothing)
-                            newPropertyValue = value
-                        End Set
-                    End Property
-                    Sub Foo(Dt As Date = Nothing) 
-                    End Sub
-                End Class
-            ]]>.Value
+        Dim code = "
+Class A
+    Private newPropertyValue As String = Nothing
+    Public Property NewProperty() As String = Nothing
+        Get
+            Return newPropertyValue
+        End Get
+        Set(ByVal value As String = Nothing)
+            newPropertyValue = value
+        End Set
+    End Property
+    Sub Foo(Dt As Date = Nothing) 
+    End Sub
+End Class
+"
 
         ParseAndVerify(code, <errors>
                                  <error id="36714"/>
@@ -3340,66 +3319,60 @@ End Class
     <WorkItem(527338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527338")>
     <Fact()>
     Public Sub BC32025ERR_RegionWithinMethod()
-        ParseAndVerify(<![CDATA[
-                       Public Module MyModule
-                            Sub RunSnippet()
-                                Dim a As A = New A(Int32.MaxValue)
-                        #region          
-                                Console.WriteLine("")
-                         #end region 
-                            End Sub
-                        End Module
-                        Class A
-                            Public Sub New(ByVal sum As Integer)
-                        #region "Foo"
-                        #end region
-                            End Sub
-                        End Class
-                ]]>,
-            <errors>
-                <error id="30217"/>
-            </errors>)
+        ParseAndVerify("
+Public Module MyModule
+     Sub RunSnippet()
+         Dim a As A = New A(Int32.MaxValue)
+ #region          
+         Console.WriteLine("""")
+  #end region 
+     End Sub
+ End Module
+ Class A
+     Public Sub New(ByVal sum As Integer)
+ #region ""Foo""
+ #end region
+     End Sub
+ End Class
+",  <errors> <error id="30217"/> </errors>)
     End Sub
 
     ' bc32026 is removed in roslyn
     <Fact()>
     Public Sub BC32026ERR_SpecifiersInvalidOnNamespace()
-        ParseAndVerify(<![CDATA[
-                       <C1>
-                        Namespace NS1
-                        End Namespace
-                        Class C1
-                            Inherits Attribute
-                        End Class
-                ]]>,
-            <errors>
-                <error id="30193"/>
-            </errors>)
+        ParseAndVerify("
+<C1>
+Namespace NS1
+End Namespace
+Class C1
+    Inherits Attribute
+End Class
+", <errors> <error id="30193"/> </errors>)
     End Sub
 
     <WorkItem(527316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527316")>
     <Fact()>
     Public Sub BC32027ERR_ExpectedDotAfterMyBase()
-        Dim code = <![CDATA[
-                Namespace NS1
-                    Class C1
-                        Private Str As String
-                        Public Sub S1()
-                            MyBase
-                            MyBase()
-                            If MyBase Is MyBase Then Str = "Yup"
-                            If MyBase Is Nothing Then Str = "Yup"
-                        End Sub
-                        Function F2(ByRef arg1 As Short) As Object
-                            F2 = MyBase
-                        End Function
-                        Sub S3()
-                            With MyBase
-                            End With
-                        End Sub
-                    End Class
-                End Namespace
-            ]]>.Value
+        Dim code = "
+Namespace NS1
+    Class C1
+        Private Str As String
+        Public Sub S1()
+            MyBase
+            MyBase()
+            If MyBase Is MyBase Then Str = ""Yup""
+            If MyBase Is Nothing Then Str = ""Yup""
+        End Sub
+        Function F2(ByRef arg1 As Short) As Object
+            F2 = MyBase
+        End Function
+        Sub S3()
+            With MyBase
+            End With
+        End Sub
+    End Class
+End Namespace
+"
 
         ParseAndVerify(code, <errors>
                                  <error id="32027"/>
@@ -3414,24 +3387,23 @@ End Class
 
     <Fact()>
     Public Sub BC32028ERR_ExpectedDotAfterMyClass()
-        Dim code = <![CDATA[
-                Namespace NS1
-                    Class C1
-                        Sub S1()
-                            Dim Str As String
-                            MyClass = "Test"
-                            Str = MyClass
-                        End Sub
+        Dim code = "
+Namespace NS1
+    Class C1
+        Sub S1()
+            Dim Str As String
+            MyClass = ""Test""
+            Str = MyClass
+        End Sub
 
-                        Sub S2()
-                            Dim Str As String
-                            Str = MyClass()
-                            MyClass()
-                        End Sub
-                    End Class
-                End Namespace
-            ]]>.Value
-
+        Sub S2()
+            Dim Str As String
+            Str = MyClass()
+            MyClass()
+        End Sub
+    End Class
+End Namespace
+"
         ParseAndVerify(code, <errors>
                                  <error id="32028"/>
                                  <error id="32028"/>
@@ -3444,49 +3416,45 @@ End Class
     <WorkItem(897858, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC32030ERR_LbElseifAfterElse()
-        ParseAndVerify(<![CDATA[
-                #If False Then
-                #Else
-                #ElseIf True Then
-                #End If
-            ]]>,
-        <errors>
-            <error id="32030"/>
-        </errors>)
+        ParseAndVerify("
+#If False Then
+#Else
+#ElseIf True Then
+#End If
+", <errors> <error id="32030"/> </errors>)
     End Sub
 
     ' not repro 32031 in this case for Roslyn
     <WorkItem(527312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527312")>
     <Fact()>
     Public Sub BC32031ERR_EndSubNotAtLineStart()
-        Dim code = <![CDATA[
-                Namespace NS1
-                    Module M1
-                        Sub main()
-                            Dim  s As string:        End Sub
-                        Sub AAA()
+        Dim code = "
+Namespace NS1
+    Module M1
+        Sub main()
+            Dim  s As string:        End Sub
+        Sub AAA()
 
-                        :End Sub
-                    End Module
-                End Namespace
-            ]]>.Value
-
-        ParseAndVerify(code)
+        :End Sub
+    End Module
+End Namespace
+"
+    ParseAndVerify(code)
     End Sub
 
     ' not report 32032 in this case for Roslyn
     <WorkItem(527341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527341")>
     <Fact()>
     Public Sub BC32032ERR_EndFunctionNotAtLineStart()
-        Dim code = <![CDATA[
-                Module M1
-                    Function  B As string
-                        Dim x = <!--hello-->:  End Function
-                    Function  C As string
-                        Dim x = <!--hello-->
-                    :End Function
-                End Module
-            ]]>.Value
+        Dim code = "
+Module M1
+    Function  B As string
+        Dim x = <!--hello-->:  End Function
+    Function  C As string
+        Dim x = <!--hello-->
+    :End Function
+End Module
+"
 
         ParseAndVerify(code)
     End Sub
@@ -3495,24 +3463,24 @@ End Class
     <WorkItem(527342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527342")>
     <Fact()>
     Public Sub BC32033ERR_EndGetNotAtLineStart()
-        Dim code = <![CDATA[
-                Class C1
-    
-                    Private _name As String
-                    Public READONLY Property Name() As String
-                        Get
-                            Return _name:    End Get
-                    End Property
-    
-                    Private _age As String
-                    Public readonly Property Age() As String
-                        Get
-                            Return _age
- 
-                        :End Get
-                    End Property
-                    End Class
-            ]]>.Value
+        Dim code = "
+Class C1
+
+    Private _name As String
+    Public READONLY Property Name() As String
+        Get
+            Return _name:    End Get
+    End Property
+
+    Private _age As String
+    Public readonly Property Age() As String
+        Get
+            Return _age
+
+        :End Get
+    End Property
+End Class
+"
 
         ParseAndVerify(code)
     End Sub
@@ -3521,58 +3489,56 @@ End Class
     <WorkItem(527311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527311")>
     <Fact()>
     Public Sub BC32034ERR_EndSetNotAtLineStart()
-        Dim code = <![CDATA[
-                Class C1
-                    Private propVal As Integer
-                    WriteOnly Property prop1() As Integer
-                        Set(ByVal value As Integer)
-                            propVal = value:        End Set
-                    End Property
+        Dim code = "
+Class C1
+    Private propVal As Integer
+    WriteOnly Property prop1() As Integer
+        Set(ByVal value As Integer)
+            propVal = value:        End Set
+    End Property
 
-                    Private newPropertyValue As String
-                    Public Property NewProperty() As String
-                        Get
-                            Return newPropertyValue
-                        End Get
-                        Set(ByVal value As String)
-                            newPropertyValue = value
-                :        End Set
-                    End Property
-                End Class
-            ]]>.Value
+    Private newPropertyValue As String
+    Public Property NewProperty() As String
+        Get
+            Return newPropertyValue
+        End Get
+        Set(ByVal value As String)
+            newPropertyValue = value
+:        End Set
+    End Property
+End Class
+"
         ParseAndVerify(code)
     End Sub
 
     <Fact()>
     Public Sub BC32035ERR_StandaloneAttribute()
-        Dim code = <![CDATA[
-                Module M1
-                    <AttributeUsage(AttributeTargets.All)> Class clsTest
-                        Inherits Attribute
-                    End Class
-                        <clsTest()> ArgI as Integer
-                    Sub Main()
-                        Exit Sub
-                    End Sub
-                End Module
-            ]]>.Value
-        ParseAndVerify(code, <errors>
-                                 <error id="32035"/>
-                             </errors>)
+        Dim code = "
+Module M1
+    <AttributeUsage(AttributeTargets.All)> Class clsTest
+        Inherits Attribute
+    End Class
+        <clsTest()> ArgI as Integer
+    Sub Main()
+        Exit Sub
+    End Sub
+End Module
+"
+        ParseAndVerify(code, <errors> <error id="32035"/> </errors>)
     End Sub
 
     <WorkItem(527311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527311")>
     <Fact()>
     Public Sub BC32037ERR_ExtraNextVariable()
-        Dim code = <![CDATA[
-                Class A
-                    Sub AAA()
-                        For I = 1 To 10
-                            For J = 1 To 5
-                            Next J, I, K   
-                    End Sub
-                End Class
-            ]]>.Value
+        Dim code = "
+Class A
+    Sub AAA()
+        For I = 1 To 10
+            For J = 1 To 5
+            Next J, I, K   
+    End Sub
+End Class
+"
         ParseAndVerify(code, <errors>
                                  <error id="32037"/>
                              </errors>)
@@ -3581,31 +3547,30 @@ End Class
     <WorkItem(537219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537219")>
     <Fact()>
     Public Sub BC32059ERR_OnlyNullLowerBound()
-        Dim code = <![CDATA[
-    Module M1
-        Sub S1()
-            Dim x1() As Single
-            ' COMPILEERROR: BC32059, "0!"
-    	    ReDim x1(0! To 5)
-        End Sub
-    End Module
-    ]]>.Value
+        Dim code = "
+Module M1
+    Sub S1()
+        Dim x1() As Single
+        ' COMPILEERROR: BC32059, ""0!""
+        ReDim x1(0! To 5)
+    End Sub
+End Module
+"
         ParseAndVerify(code).VerifySpanOfChildWithinSpanOfParent()
     End Sub
 
     <WorkItem(537223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537223")>
     <Fact()>
     Public Sub BC32065ERR_GenericParamsOnInvalidMember()
-        Dim code = <![CDATA[
+        Dim code = "
      Module M1
         Class c2(Of T1)
-            'COMPILEERROR: BC32065, "(Of T1)"
+            'COMPILEERROR: BC32065, ""(Of T1)""
             Sub New(Of T1)()
             End Sub
         End Class
     End Module
-    ]]>.Value
-
+"
         ParseAndVerify(code, <errors>
                                  <error id="32065"/>
                              </errors>).VerifySpanOfChildWithinSpanOfParent()
@@ -3614,13 +3579,13 @@ End Class
     <WorkItem(537988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537988")>
     <Fact()>
     Public Sub BC32066ERR_GenericArgsOnAttributeSpecifier()
-        Dim code = <![CDATA[
+        Dim code = "
                 Module M1
                     <test(of integer)>
                     Class c2 
                     End Class
                 End Module
-    ]]>.Value
+"
 
         ParseAndVerify(code, <errors>
                                  <error id="32066"/>
@@ -3629,12 +3594,12 @@ End Class
 
     <Fact()>
     Public Sub BC32073ERR_ModulesCannotBeGeneric()
-        Dim code = <![CDATA[
+        Dim code = "
                 Namespace NS1
                     Module Module1(of T)
                     End Module
                 End Namespace
-            ]]>.Value
+"
 
         ParseAndVerify(code, <errors>
                                  <error id="32073"/>
@@ -3644,11 +3609,11 @@ End Class
     <WorkItem(527337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527337")>
     <Fact()>
     Public Sub BC32092ERR_BadConstraintSyntax()
-        Dim code = <![CDATA[
+        Dim code = "
                 Public Class itemManager(Of t As )
                     ' Insert code that defines class members.
                 End Class
-            ]]>.Value
+"
 
         ParseAndVerify(code, Diagnostic(ERRID.ERR_UnrecognizedType, "").WithLocation(2, 50),
                             Diagnostic(ERRID.ERR_BadConstraintSyntax, "").WithLocation(2, 50))
@@ -3656,7 +3621,7 @@ End Class
 
     <Fact()>
     Public Sub BC32099ERR_TypeParamMissingCommaOrRParen()
-        Dim code = <![CDATA[
+        Dim code = "
                 Namespace NS1
                     Module M1
                         Class GenCls(of T as new with{})	
@@ -3675,7 +3640,7 @@ End Class
                         End Class
                     End Module
                 End Namespace
-            ]]>.Value
+"
 
         ParseAndVerify(code, Diagnostic(ERRID.ERR_TypeParamMissingCommaOrRParen, ""),
                              Diagnostic(ERRID.ERR_TypeParamMissingCommaOrRParen, ""),
@@ -3685,7 +3650,7 @@ End Class
 
     <Fact()>
     Public Sub BC33000_UnknownOperator()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
     Class c1
         Public Shared Operator __ (ByVal x As Integer) As Interaction
         End Operator
@@ -3695,28 +3660,28 @@ End Class
         Public Shared Operator (ByVal x As Integer) As Interaction
         End Operator
     End Class
-            ]]>, Diagnostic(ERRID.ERR_UnknownOperator, "__"),
+", Diagnostic(ERRID.ERR_UnknownOperator, "__"),
              Diagnostic(ERRID.ERR_UnknownOperator, ""))
     End Sub
 
     <WorkItem(3372, "DevDiv_Projects/Roslyn")>
     <Fact()>
     Public Sub BC33001ERR_DuplicateConversionCategoryUsed()
-        Dim code = <![CDATA[
+        Dim code = "
                 Public Structure digit
                     Private dig As Byte
                     Public Shared Widening Narrowing Operator CType(ByVal d As digit) As Byte
                         Return d.dig
                     End Operator
                 End Structure
-            ]]>.Value
+"
         ' Error is now reported in binding not the parser
         ParseAndVerify(code)
     End Sub
 
     <Fact()>
     Public Sub BC33003ERR_InvalidHandles()
-        Dim code = <![CDATA[
+        Dim code = "
                 Public Structure abc
                     Dim d As Date
                     Public Shared Operator And(ByVal x As abc, ByVal y As abc) Handles global.Obj.Ev_Event
@@ -3727,7 +3692,7 @@ End Class
                         Return 1
                     End Operator
                 End Structure
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="33003"/>
                                  <error id="33003"/>
@@ -3736,7 +3701,7 @@ End Class
 
     <Fact()>
     Public Sub BC33004ERR_InvalidImplements()
-        Dim code = <![CDATA[
+        Dim code = "
                 Public Structure S1
                     Public Shared Operator +(ByVal v As S1, _
                                ByVal w As S1) Implements ICustomerInfo
@@ -3744,7 +3709,7 @@ End Class
                 End Structure
                 Public Interface ICustomerInfo
                 End Interface
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="33004"/>
                              </errors>)
@@ -3753,7 +3718,7 @@ End Class
     <WorkItem(527308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527308")>
     <Fact()>
     Public Sub BC33006ERR_EndOperatorNotAtLineStart()
-        Dim code = <![CDATA[
+        Dim code = "
                 Public Structure abc
                     Dim d As Date
                     Public Shared Operator And(ByVal x As abc, ByVal y As abc) As abc
@@ -3771,13 +3736,13 @@ End Class
                         Return b
                     End Operator
                 End Structure
-            ]]>.Value
+"
         ParseAndVerify(code)
     End Sub
 
     <Fact()>
     Public Sub BC33007ERR_InvalidEndOperator()
-        Dim code = <![CDATA[
+        Dim code = "
                 Module module1
                     End Operator
                     Public Structure digit
@@ -3787,7 +3752,7 @@ End Class
                     Sub Main()
                     End Sub
                 End Module
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="33007"/>
                                  <error id="33007"/>
@@ -3796,7 +3761,7 @@ End Class
 
     <Fact()>
     Public Sub BC33008ERR_ExitOperatorNotValid()
-        Dim code = <![CDATA[
+        Dim code = "
                 Public Class Distance
                     Public Property Number() As Double
 
@@ -3822,7 +3787,7 @@ End Class
                         Exit  operator
                     End Operator
                 End Class
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="33008"/>
                                  <error id="33008"/>
@@ -3833,13 +3798,13 @@ End Class
 
     <Fact()>
     Public Sub BC33111ERR_BadNullTypeInCCExpression()
-        Dim code = <![CDATA[
+        Dim code = "
                 #Const triggerPoint = 0
                 ' Not valid.
                 #If CType(triggerpoint, Boolean?) = True Then
                         ' Body of the conditional directive.
                 #End If
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="33111"/>
                              </errors>)
@@ -3847,7 +3812,7 @@ End Class
 
     <Fact()>
     Public Sub BC33201ERR_ExpectedExpression()
-        Dim code = <![CDATA[
+        Dim code = "
                 Module Program
                     Sub Main(args As String())
                         Dim X = 1
@@ -3857,7 +3822,7 @@ End Class
                         S = If(, X = X + 1, Y = Y + 1)
                     End Sub
                 End Module
-            ]]>.Value
+"
         ParseAndVerify(code, Diagnostic(ERRID.ERR_ExpectedExpression, ""),
                                 Diagnostic(ERRID.ERR_ExpectedExpression, ""),
                                 Diagnostic(ERRID.ERR_ExpectedExpression, ""))
@@ -3865,7 +3830,7 @@ End Class
 
     <Fact()>
     Public Sub BC33201ERR_ExpectedExpression_1()
-        Dim code = <![CDATA[
+        Dim code = "
                 Module Program
                     Sub Main(args As String())
                         Dim X = 1
@@ -3875,7 +3840,7 @@ End Class
                         Dim S3 = If(True, X = 2,dim y1 = 3)
                     End Sub
                 End Module
-            ]]>.Value
+"
         ParseAndVerify(code, Diagnostic(ERRID.ERR_ExpectedExpression, ""),
                                 Diagnostic(ERRID.ERR_ExpectedExpression, ""),
                                 Diagnostic(ERRID.ERR_ExpectedExpression, ""),
@@ -3884,13 +3849,13 @@ End Class
 
     <Fact()>
     Public Sub BC36000ERR_ExpectedDotAfterGlobalNameSpace()
-        Dim code = <![CDATA[
+        Dim code = "
                 Class AAA
                     Sub BBB
-                    Global IDPage  As Long = CLng("123")
+                    Global IDPage  As Long = CLng(""123"")
                     END Sub 
                 End Class 
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="36000"/>
                              </errors>)
@@ -3898,9 +3863,9 @@ End Class
 
     <Fact()>
     Public Sub BC36001ERR_NoGlobalExpectedIdentifier()
-        Dim code = <![CDATA[
+        Dim code = "
                 Imports global = Microsoft.CSharp
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="36001"/>
                              </errors>)
@@ -3908,13 +3873,13 @@ End Class
 
     <Fact()>
     Public Sub BC36002ERR_NoGlobalInHandles()
-        Dim code = <![CDATA[
+        Dim code = "
                 Public Class C1
                     Sub EventHandler() Handles global.Obj.Ev_Event 
-                         MsgBox("EventHandler caught event.")
+                         MsgBox(""EventHandler caught event."")
                     End Sub
                 End Class
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="36002"/>
                                  <error id="30287"/>
@@ -3923,7 +3888,7 @@ End Class
 
     <Fact()>
     Public Sub BC36007ERR_EndUsingWithoutUsing()
-        Dim code = <![CDATA[
+        Dim code = "
                 Class AAA
                     Using stream As New IO.MemoryStream()
                     End Using
@@ -3931,7 +3896,7 @@ End Class
                         End  USING 
                     End Sub
                 End Class
-            ]]>.Value
+"
         ParseAndVerify(code,
             Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Using stream As New IO.MemoryStream()"),
             Diagnostic(ERRID.ERR_EndUsingWithoutUsing, "End Using"),
@@ -3940,7 +3905,7 @@ End Class
 
     <Fact()>
     Public Sub BC36556ERR_AnonymousTypeFieldNameInference()
-        Dim code = <![CDATA[
+        Dim code = "
                 Module M 
                     Sub Main()
                         Dim x = New With {Foo(Of String)} 
@@ -3950,7 +3915,7 @@ End Class
                         Return 1
                     End Function
                 End Module
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="36556"/>
                                  <error id="36556"/>
@@ -3959,13 +3924,13 @@ End Class
 
     <Fact()>
     Public Sub BC36575ERR_AnonymousTypeNameWithoutPeriod()
-        Dim code = <![CDATA[
+        Dim code = "
                 Module M 
                     Sub Main()
                          Dim instanceName2 = New With {memberName = 10}
                     End Sub
                 End Module
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="36575"/>
                              </errors>)
@@ -3974,19 +3939,19 @@ End Class
     <WorkItem(537985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537985")>
     <Fact()>
     Public Sub BC36605ERR_ExpectedBy()
-        Dim code = <![CDATA[
+        Dim code = "
                 Option Explicit On
 Namespace NS1
     Module M1
         Sub GBInValidGroup()
-                Dim cole = {"a","b","c"}
+                Dim cole = {""a"",""b"",""c""}
                 Dim q2 = From x In col let y = x Group x Group y By x y Into group
                 Dim q3 = From x In col let y = x Group x y By x Into group
                 Dim q5 = From x In col let y = x Group i as integer = x, y By x Into group
         End Sub
     End Module
 End Namespace
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="36605"/>
                                  <error id="36615"/>
@@ -4000,14 +3965,14 @@ End Namespace
 
     <Fact()>
     Public Sub BC36613ERR_AnonTypeFieldXMLNameInference()
-        Dim code = <![CDATA[
+        Dim code = "
                 Module M 
                     Sub Main()
-                                'COMPILEERROR:BC36613,"Elem-4"
+                                'COMPILEERROR:BC36613,""Elem-4""
                                 Dim y1 = New With {<e/>.@<a-a-a>}
                     End Sub
                 End Module
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="36613"/>
                              </errors>)
@@ -4015,7 +3980,7 @@ End Namespace
 
     <Fact()>
     Public Sub BC36618ERR_ExpectedOn()
-        Dim code = <![CDATA[
+        Dim code = "
                 Namespace JoinRhsInvalid
                     Module JoinRhsInvalidmod
                         Sub JoinRhsInvalid()
@@ -4023,7 +3988,7 @@ End Namespace
                         End Sub
                     End Module
                 End Namespace
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="36618"/>
                              </errors>)
@@ -4032,7 +3997,7 @@ End Namespace
     <WorkItem(538492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538492")>
     <Fact()>
     Public Sub BC36618ERR_ExpectedOn_1()
-        Dim code = <![CDATA[
+        Dim code = "
                  Module M
                     Sub FOO()
                         Dim col1l = New List(Of Int16) From {1, 2, 3}
@@ -4044,27 +4009,26 @@ End Namespace
                         On i * j Equals l * k And ll + kk Equals ii + jj Select i
                     End Sub
                 End Module  
-
-            ]]>.Value
+"
         ParseAndVerify(code)
     End Sub
 
     <WorkItem(527317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527317")>
     <Fact()>
     Public Sub BC36619ERR_ExpectedEquals()
-        Dim code = <![CDATA[
+        Dim code = "
                 Option Explicit On
                 Namespace JoinOnInvalid
                     Module JoinOnInvalidmod
                         Sub JoinOnInvalid()
-                                Dim col1 = {"a", "b", "c"}
+                                Dim col1 = {""a"", ""b"", ""c""}
                                 Dim q0 = From i In col1 Join j In col1 On i Equals j
                                 Dim q1 = From i In col1 Join j In col1 On i = j
                                 Dim q2 = From i In col1 Join j In col1 On i And j
                         End Sub
                     End Module
                 End Namespace
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="36619"/>
                                  <error id="36619"/>
@@ -4076,7 +4040,7 @@ End Namespace
     <WorkItem(921279, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC36620ERR_ExpectedAnd()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Namespace JoinOnInvalid
                 Module JoinOnInvalidmod
                     Sub JoinOnInvalid()
@@ -4085,7 +4049,7 @@ End Namespace
                     End Sub
                 End Module
             End Namespace
-                ]]>,
+",
             <errors>
                 <error id="36620"/>
             </errors>)
@@ -4093,7 +4057,7 @@ End Namespace
 
     <Fact()>
     Public Sub BC36629ERR_NullableTypeInferenceNotSupported()
-        Dim code = <![CDATA[
+        Dim code = "
                 Namespace A
                     Friend Module B
                         Sub C()
@@ -4103,7 +4067,7 @@ End Namespace
                         End Sub
                     End Module
                 End Namespace
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="36629"/>
                              </errors>)
@@ -4111,14 +4075,14 @@ End Namespace
 
     <Fact()>
     Public Sub BC36637ERR_NullableCharNotSupported()
-        Dim code = <![CDATA[
+        Dim code = "
                 Class C1
                     Public Function foo() As Short
                         Dim local As Short
                         return local?
                     End Function
                 End Class
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="36637"/>
                              </errors>)
@@ -4126,7 +4090,7 @@ End Namespace
 
     <Fact()>
     Public Sub BC36707ERR_ExpectedIdentifierOrGroup()
-        Dim code = <![CDATA[
+        Dim code = "
                 Namespace IntoInvalid
                     Module IntoInvalidmod
                         Sub IntoInvalid()
@@ -4136,7 +4100,7 @@ End Namespace
                         End Sub
                     End Module
                 End Namespace
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="36707"/>
                                  <error id="36707"/>
@@ -4145,14 +4109,14 @@ End Namespace
 
     <Fact()>
     Public Sub BC36708ERR_UnexpectedGroup()
-        Dim code = <![CDATA[
+        Dim code = "
                 Class C
-                    Dim customers As new List(of string) from {"aaa", "bbb"}
+                    Dim customers As new List(of string) from {""aaa"", ""bbb""}
                     Dim customerList2 = From cust In customers _
                                     Aggregate order In cust.ToString() _
                                     Into group 
                 End Class
-            ]]>.Value
+"
         ParseAndVerify(code, <errors>
                                  <error id="36708"/>
                              </errors>)
@@ -4162,7 +4126,7 @@ End Namespace
     <WorkItem(880151, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC36714ERR_InitializedExpandedProperty()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 class c
                     Public WriteOnly Property P7() As New C1 With {._x = 3} 
                         Set(ByVal value As C1)
@@ -4170,7 +4134,7 @@ End Namespace
                         End Set
                     End Property
                 end class
-            ]]>,
+",
         <errors>
             <error id="36714"/>
         </errors>)
@@ -4179,11 +4143,11 @@ End Namespace
     ' old name - ParseProperty_ERR_AutoPropertyCantHaveParams
     <Fact()>
     Public Sub BC36759ERR_AutoPropertyCantHaveParams()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 class c
                     Public Property P7(i as integer) As New C1 With {._x = 3} 
                 end class
-            ]]>,
+            ",
         <errors>
             <error id="36759"/>
         </errors>)
@@ -4191,13 +4155,13 @@ End Namespace
 
     <Fact()>
     Public Sub BC36920ERR_SubRequiresParenthesesLParen()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Public Class MyTest
                     Public Sub Test2(ByVal myArray() As String)
                         Dim yyy = Sub() RaiseEvent cc()()
                     End Sub
                 End Class
-            ]]>,
+            ",
         <errors>
             <error id="36920"/>
         </errors>)
@@ -4205,13 +4169,13 @@ End Namespace
 
     <Fact()>
     Public Sub BC36921ERR_SubRequiresParenthesesDot()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Public Class MyTest
                     Public Sub Test2(ByVal myArray() As String)
                         Dim yyy = Sub() RaiseEvent cc().Invoke()
                     End Sub
                 End Class
-            ]]>,
+            ",
         <errors>
             <error id="36921"/>
         </errors>)
@@ -4219,13 +4183,13 @@ End Namespace
 
     <Fact()>
     Public Sub BC36922ERR_SubRequiresParenthesesBang()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Public Class MyTest
                     Public Sub Test2(ByVal myArray() As String)
                         Dim yyy = Sub() RaiseEvent cc()!key
                     End Sub
                 End Class
-            ]]>,
+            ",
         <errors>
             <error id="36922"/>
         </errors>)
@@ -4239,20 +4203,20 @@ End Namespace
     <WorkItem(527096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527096")>
     <Fact()>
     Public Sub BC42302WRN_XMLDocNotFirstOnLine()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Main()
                         Dim x = 42 ''' <test />
                     End Sub
                 End Module
-            ]]>)
-        ParseAndVerify(<![CDATA[
+            ")
+        ParseAndVerify("
                 Module Module1
                     Sub Main()
                         Dim x = 42 ''' <test />
                     End Sub
                 End Module
-            ]]>,
+            ",
         VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42302" warning="True"/>
@@ -4262,33 +4226,33 @@ End Namespace
     <Fact()>
     Public Sub BC42302WRN_XMLDocNotFirstOnLine_NoError()
         ' NOTE: this error is not reported by parser
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Main()
                         Dim x = 42 ''' <test />
                     End Sub
                 End Module
-            ]]>)
+            ")
     End Sub
 
     <WorkItem(530052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530052")>
     <Fact()>
     Public Sub BC42303WRN_XMLDocInsideMethod_NoError()
         ' NOTE: this error is not reported by parser
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                  Module M1
                     Sub test()
                         '''
                     End Sub
                 End Module
-            ]]>)
-        ParseAndVerify(<![CDATA[
+            ")
+        ParseAndVerify("
                  Module M1
                     Sub test()
                         '''
                     End Sub
                 End Module
-            ]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+            ", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
     End Sub
 
     ' old name -ParseNestedCDATA_ERR_ExpectedLT
@@ -4337,12 +4301,12 @@ End Namespace
     <WorkItem(887998, "DevDiv/Personal")>
     <Fact()>
     Public Sub ParseMoreErrorExpectedIdentifier()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                          Class c1
                             Dim x1 = New List(Of Integer) with {.capacity=2} FROM {2,3} 
                          End Class
 
-                ]]>,
+",
             <errors>
                 <error id="36720"/>
                 <error id="30203"/>
@@ -4353,7 +4317,7 @@ End Namespace
     <WorkItem(921273, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC31053ERR_ImplementsStmtWrongOrder_NoAssertForInvalidOptionImport()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                          Class c1
         Class cn1
     option Compare Binary 
@@ -4368,7 +4332,7 @@ End Namespace
             Sub foo()
         End Class
     End Class
-                ]]>,
+",
             Diagnostic(ERRID.ERR_OptionStmtWrongOrder, "option Compare Binary"),
             Diagnostic(ERRID.ERR_OptionStmtWrongOrder, "option Explicit Off"),
             Diagnostic(ERRID.ERR_OptionStmtWrongOrder, "option Strict off"),
@@ -4384,37 +4348,36 @@ End Namespace
     <WorkItem(930036, "DevDiv/Personal")>
     <Fact()>
     Public Sub TestErrorsOnChildAlsoPresentOnParent()
-        Dim code = <![CDATA[
+        Dim code = "
     class c1
-                        Dim x = <?xml version='1.0' encoding = <%= "utf-16" %> 
+                        Dim x = <?xml version='1.0' encoding = <%= ""utf-16"" %> 
                                     something = ""?><e/>
-                        Dim x = <?xml version='1.0' <%= "encoding" %>="utf-16"
-                                <%= "something" %>=""?><e/>
+                        Dim x = <?xml version='1.0' <%= ""encoding"" %>=""utf-16""
+                                <%= ""something"" %>=""""?><e/>
     end class
-    ]]>.Value
-
-        ParseAndVerify(code, <errors>
-                                 <error id="31172"/>
-                                 <error id="31154"/>
-                                 <error id="31146"/>
-                                 <error id="31172"/>
-                                 <error id="31146"/>
-                                 <error id="31172"/>
-                             </errors>).VerifyErrorsOnChildrenAlsoPresentOnParent()
+"
+        ParseAndVerify(code, Diagnostic(ERRID.ERR_EmbeddedExpression, "<%= ""utf-16"" %>").WithLocation(3, 64),
+          Diagnostic(ERRID.ERR_IllegalAttributeInXmlDecl, "something = ""?>").WithArguments("", "", "something").WithLocation(4, 37),
+          Diagnostic(ERRID.ERR_ExpectedQuote, "something = ""?>").WithLocation(4, 37),
+          Diagnostic(ERRID.ERR_ExpectedXmlEndPI, "").WithLocation(4, 52),
+          Diagnostic(ERRID.ERR_EmbeddedExpression, "<%= ""encoding"" %>").WithLocation(5, 53),
+          Diagnostic(ERRID.ERR_ExpectedXmlName, "=""utf-16""").WithLocation(5, 70),
+          Diagnostic(ERRID.ERR_EmbeddedExpression, "<%= ""something"" %>").WithLocation(6, 33),
+          Diagnostic(ERRID.ERR_ExpectedXmlName, "=""""").WithLocation(6, 51)).VerifyErrorsOnChildrenAlsoPresentOnParent()
     End Sub
 
     <Fact, WorkItem(537131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537131"), WorkItem(527922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527922"), WorkItem(527553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527553")>
     Public Sub TestNoAdjacentTriviaWithSameKind()
-        Dim code = <![CDATA[
+        Dim code = "
     module m1
     sub foo
-    Dim x43 = <?xml version="1.0"?>
+    Dim x43 = <?xml version=""1.0""?>
                               <?xmlspec abcd?>
                               <!-- <%= %= -->
-                    <Obsolete("<%=")> Static x as Integer = 5
+                    <Obsolete(""<%="")> Static x as Integer = 5
     end sub
     end module
-    ]]>.Value
+"
 
         ParseAndVerify(code, <errors>
                                  <error id="30625"/>
@@ -4431,19 +4394,18 @@ End Namespace
     <WorkItem(537131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537131")>
     <Fact()>
     Public Sub TestNoAdjacentTriviaWithSameKind2()
-        Dim code = <![CDATA[class c1
-end c#@1]]>.Value
+        Dim code = "class c1
+end c#@1"
 
-        ParseAndVerify(code,
-            Diagnostic(ERRID.ERR_ExpectedEndClass, "class c1"),
-            Diagnostic(ERRID.ERR_UnrecognizedEnd, "end")).VerifyNoAdjacentTriviaHaveSameKind()
+        ParseAndVerify(code, Diagnostic(ERRID.ERR_ExpectedEndClass, "class c1"),
+                             Diagnostic(ERRID.ERR_UnrecognizedEnd, "end")).VerifyNoAdjacentTriviaHaveSameKind()
     End Sub
 
     <WorkItem(538861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538861")>
     <WorkItem(539509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539509")>
     <Fact>
     Public Sub TestIllegalTypeParams()
-        Dim code = <![CDATA[Module Program(Of T)
+        Dim code = "Module Program(Of T)
     Sub Main(args As String())
     End Sub
 End Module
@@ -4459,7 +4421,7 @@ Structure S
     Shared Operator +(Of T)(x As S, y As S) As S
         Return New S
     End Operator
-End Structure]]>
+End Structure"
 
         ParseAndVerify(code, <errors>
                                  <error id="32073"/>
@@ -4476,28 +4438,28 @@ End Structure]]>
     <WorkItem(929948, "DevDiv/Personal")>
     <Fact()>
     Public Sub TestChildSpanWithinParentSpan()
-        Dim code = <![CDATA[
+        Dim code = "
     class c1
-    Dim x = <?xml version='1.0' encoding = <%= "utf-16" %> 
+    Dim x = <?xml version='1.0' encoding = <%= ""utf-16"" %> 
     something = ""?><e/>
-    Dim x = <?xml version='1.0' <%= "encoding" %>="utf-16"
-    <%= "something" %>=""?><e/>
+    Dim x = <?xml version='1.0' <%= ""encoding"" %>=""utf-16""
+    <%= ""something"" %>=""""?><e/>
     end class
-    ]]>.Value
+"
 
-        ParseAndVerify(code, <errors>
-                                 <error id="31172"/>
-                                 <error id="31154"/>
-                                 <error id="31146"/>
-                                 <error id="31172"/>
-                                 <error id="31146"/>
-                                 <error id="31172"/>
-                             </errors>).VerifySpanOfChildWithinSpanOfParent()
+        ParseAndVerify(code,           Diagnostic(ERRID.ERR_EmbeddedExpression, "<%= ""utf-16"" %>").WithLocation(3, 44),
+          Diagnostic(ERRID.ERR_IllegalAttributeInXmlDecl, "something = ""?>").WithArguments("", "", "something").WithLocation(4, 5),
+          Diagnostic(ERRID.ERR_ExpectedQuote, "something = ""?>").WithLocation(4, 5),
+          Diagnostic(ERRID.ERR_ExpectedXmlEndPI, "").WithLocation(4, 20),
+          Diagnostic(ERRID.ERR_EmbeddedExpression, "<%= ""encoding"" %>").WithLocation(5, 33),
+          Diagnostic(ERRID.ERR_ExpectedXmlName, "=""utf-16""").WithLocation(5, 50),
+          Diagnostic(ERRID.ERR_EmbeddedExpression, "<%= ""something"" %>").WithLocation(6, 5),
+          Diagnostic(ERRID.ERR_ExpectedXmlName, "=""""").WithLocation(6, 23)).VerifySpanOfChildWithinSpanOfParent()
     End Sub
 
     <Fact()>
     Public Sub BC31042ERR_ImplementsOnNew()
-        Dim tree = Parse(<![CDATA[
+        Dim tree = Parse("
 Interface I
     Sub M()
 End Interface
@@ -4506,7 +4468,7 @@ Class C
     Sub New() Implements I.M
     End Sub
 End Class
-            ]]>)
+")
         tree.AssertTheseDiagnostics(<errors><![CDATA[
 BC31042: 'Sub New' cannot implement interface members.
     Sub New() Implements I.M
@@ -4514,13 +4476,13 @@ BC31042: 'Sub New' cannot implement interface members.
         ]]></errors>)
     End Sub
 
-    <WorkItem(1905, "DevDiv_Projects/Roslyn")>
-    <Fact()>
+    
+    <Fact, WorkItem(1905, "DevDiv_Projects/Roslyn")>
     Public Sub BC31042ERR_ImplementsOnNew_TestRoundTripHandlesAfterNew()
-        Dim code = <![CDATA[
+        Dim code = "
     Module EventError004mod
         Class scenario12
-            'COMPILEERROR: BC30497, "New"
+            'COMPILEERROR: BC30497, ""New""
             Shared Sub New() Handles var1.event1
 
             End Sub
@@ -4530,15 +4492,15 @@ BC31042: 'Sub New' cannot implement interface members.
         Sub foo(ByVal x As Integer)
     End Interface
     Class C
-        'COMPILEERROR: BC30149, "I1"   <- not a parser error
+        'COMPILEERROR: BC30149, ""I1""   <- not a parser error
         Implements I1
-        'COMPILEERROR: BC31042, "new"
+        'COMPILEERROR: BC31042, ""new""
         Private Sub New(ByVal x As Integer) Implements I1.foo
         End Sub
 
     End Class
     End Module
-    ]]>.Value
+"
 
         ParseAndVerify(code, <errors>
                                  <error id="30497"/>
@@ -4553,22 +4515,20 @@ BC31042: 'Sub New' cannot implement interface members.
         Dim Keypair = New KeyValuePair(Of String, Object)("CompErrorTest", -1)
         Dim opt = VisualBasicParseOptions.Default.WithPreprocessorSymbols(Keypair)
 
-        Dim code = <![CDATA[
+        Dim code = "
     Protected Property p As New
-    ]]>.Value
+"
         VisualBasicSyntaxTree.ParseText(code, options:=opt, path:="")
     End Sub
 
     <WorkItem(541284, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541284")>
     <Fact()>
     Public Sub ParseWithChrw0()
-
-        Dim code = <![CDATA[
+        Dim code = "
     Sub SUB0113 ()
 I<
  
-    ]]>.Value
-        code = code & ChrW(0)
+" & ChrW(0)
         VisualBasicSyntaxTree.ParseText(code)
     End Sub
 
@@ -4576,22 +4536,22 @@ I<
     <Fact()>
     Public Sub BC33002ERR_OperatorNotOverloadable_ParseNotOverloadableOperators1()
 
-        Dim code = <![CDATA[
+        Dim code = "
     Class c1
-    'COMPILEERROR: BC33002, "."
+    'COMPILEERROR: BC33002, "".""
     Shared Operator.(ByVal x As c1, ByVal y As c1) As Integer
     End Operator
 End Class
-    ]]>.Value
+"
         VisualBasicSyntaxTree.ParseText(code)
     End Sub
 
     <WorkItem(541291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541291")>
     <Fact()>
     Public Sub RoundTrip()
-        Dim code = <![CDATA[Dim=<><%=">
+        Dim code = "Dim=<><%="""">
 <
-    ]]>.Value
+    "
         Dim tree = VisualBasicSyntaxTree.ParseText(code)
         Assert.Equal(code, tree.GetRoot().ToString())
     End Sub
@@ -4599,7 +4559,7 @@ End Class
     <WorkItem(541293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541293")>
     <Fact()>
     Public Sub RoundTrip_1()
-        Dim code = <![CDATA[Property)As new t(Of Integer) FROM {1, 2, 3}]]>.Value
+        Dim code = "Property)As new t(Of Integer) FROM {1, 2, 3}"
         Dim tree = VisualBasicSyntaxTree.ParseText(code)
         Assert.Equal(code, tree.GetRoot().ToString())
     End Sub
@@ -4607,9 +4567,9 @@ End Class
     <WorkItem(541291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541291")>
     <Fact()>
     Public Sub RoundTrip_2()
-        Dim code = <![CDATA[Dim=<><%={%>
+        Dim code = "Dim=<><%={%>
 <
-    ]]>.Value
+    "
         Dim tree = VisualBasicSyntaxTree.ParseText(code)
         Assert.Equal(code, tree.GetRoot().ToString())
     End Sub
