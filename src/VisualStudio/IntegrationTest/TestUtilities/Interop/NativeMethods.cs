@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -10,6 +11,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
 {
     internal static class NativeMethods
     {
+        private const string Gdi32 = "gdi32.dll";
         private const string Kernel32 = "kernel32.dll";
         private const string Ole32 = "ole32.dll";
         private const string User32 = "User32.dll";
@@ -22,6 +24,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
             [Out, MarshalAs(UnmanagedType.Interface)] out ISetupConfiguration setupConfiguration,
             [In] IntPtr pReserved
         );
+
+        [DllImport(Gdi32)]
+        public static extern bool BitBlt(IntPtr hdcDest, int xDest, int yDest, int wDest, int hDest, IntPtr hdcSource, int xSrc, int ySrc, CopyPixelOperation rop);
+
+        [DllImport(Gdi32)]
+        public static extern IntPtr CreateCompatibleBitmap(IntPtr hdc, int nWidth, int nHeight);
+
+        [DllImport(Gdi32)]
+        public static extern IntPtr CreateCompatibleDC(IntPtr hdc);
+
+        [DllImport(Gdi32)]
+        public static extern IntPtr DeleteDC(IntPtr hdc);
+
+        [DllImport(Gdi32)]
+        public static extern IntPtr DeleteObject(IntPtr hdc);
+
+        [DllImport(Gdi32)]
+        public static extern bool ReleaseDC(IntPtr hWnd, IntPtr hDc);
+
+        [DllImport(Gdi32)]
+        public static extern IntPtr SelectObject(IntPtr hdc, IntPtr bmp);
 
         [DllImport(Kernel32)]
         public static extern uint GetCurrentThreadId();
@@ -145,6 +168,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
         public static extern IntPtr GetAncestor(IntPtr hWnd, uint gaFlags);
 
         [DllImport(User32)]
+        public static extern IntPtr GetDesktopWindow();
+
+        [DllImport(User32)]
         public static extern IntPtr GetForegroundWindow();
 
         [DllImport(User32, SetLastError = true)]
@@ -152,6 +178,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
 
         [DllImport(User32, SetLastError = true)]
         public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+        [DllImport(User32)]
+        public static extern IntPtr GetWindowDC(IntPtr hWnd);
 
         [DllImport(User32)]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, [Optional] IntPtr lpdwProcessId);
