@@ -2717,7 +2717,7 @@ System.Diagnostics.Process.GetCurrentProcess();
 ", options: TestOptions.Script),
                 SyntaxFactory.ParseSyntaxTree(@"
 #r ""System.Core""
-")
+", TestOptions.Regular)
                 };
 
             var compilation = CreateCompilationWithMscorlib45(
@@ -2800,7 +2800,7 @@ class C
 { 
     void Foo() { Console.WriteLine(3); }
 }
-")
+", TestOptions.Regular)
             };
 
             var compilation = CreateCompilationWithMscorlib45(

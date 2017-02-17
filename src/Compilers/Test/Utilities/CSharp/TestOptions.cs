@@ -11,15 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         // Disable documentation comments by default so that we don't need to
         // document every public member of every test input.
-        public static readonly CSharpParseOptions Script = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.None);
-        public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None);
+        public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None).WithLanguageVersion(LanguageVersion.Latest);
+        public static readonly CSharpParseOptions Script = Regular.WithKind(SourceCodeKind.Script);
         public static readonly CSharpParseOptions Regular6 = Regular.WithLanguageVersion(LanguageVersion.CSharp6);
-        public static readonly CSharpParseOptions RegularWithDocumentationComments = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Diagnose);
-
-        public static readonly CSharpParseOptions Latest = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None).WithLanguageVersion(LanguageVersion.Latest);
+        public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
 
         private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { };
-        public static readonly CSharpParseOptions ExperimentalParseOptions = Latest.WithFeatures(s_experimentalFeatures);
+        public static readonly CSharpParseOptions ExperimentalParseOptions = Regular.WithFeatures(s_experimentalFeatures);
 
         // Enable pattern-switch translation even for switches that use no new syntax. This is used
         // to help ensure compatibility of the semantics of the new switch binder with the old switch
