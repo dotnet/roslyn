@@ -5,6 +5,7 @@ Imports System.Collections.ObjectModel
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.VisualStudio.Debugger.Clr
@@ -62,6 +63,95 @@ End Class"
 }")
                 End Sub)
         End Sub
+
+        <Fact>
+        Public Sub DuplicateValueTupleBetweenMscorlibAndLibrary()
+            Const versionTemplate = "<Assembly: System.Reflection.AssemblyVersion(""{0}.0.0.0"")>"
+
+            Const corlib_vb = "
+Namespace System
+    Public Class [Object]
+    End Class
+    Public Structure Void
+    End Structure
+    Public Class ValueType
+    End Class
+    Public Structure IntPtr
+    End Structure
+    Public Structure Int32
+    End Structure
+    Public Class [String]
+    End Class
+    Public Class Attribute
+    End Class
+End Namespace
+
+Namespace System.Reflection
+    Public Class AssemblyVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(version As String)
+        End Sub
+    End Class
+End Namespace
+"
+
+            Dim corlibWithoutVT = CreateCompilation({String.Format(versionTemplate, "1") + corlib_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
+            corlibWithoutVT.AssertTheseDiagnostics()
+            Dim corlibWithoutVTRef = corlibWithoutVT.EmitToImageReference()
+
+            Const valuetuple_vb As String = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+        End Sub
+    End Structure
+End Namespace
+"
+
+            Dim corlibWithVT = CreateCompilation({String.Format(versionTemplate, "2") + corlib_vb + valuetuple_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
+            corlibWithVT.AssertTheseDiagnostics()
+
+            Const source As String =
+"Class C
+    Shared Function M() As (Integer, Integer)
+        Dim o = (1, 2)
+        Return o
+    End Function
+End Class"
+
+            Dim app = CreateCompilation(source + valuetuple_vb, references:={corlibWithoutVTRef}, options:=TestOptions.DebugDll)
+            app.AssertTheseDiagnostics()
+
+            Dim runtime = CreateRuntimeInstance({app.ToModuleInstance(), corlibWithVT.ToModuleInstance()})
+            ' Create EE context with app assembly (including ValueTuple) And a more recent corlib (also including ValueTuple)
+            Dim evalContext = CreateMethodContext(runtime, "C.M")
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+
+            Dim compileResult = evalContext.CompileExpression("(1, 2)", errorMessage, testData)
+            Assert.Null(errorMessage)
+
+        End Sub
+
+
+        '            Using (ModuleMetadata block = ModuleMetadata.CreateFromStream(New MemoryStream(compileResult.Assembly)))
+        '            {
+        '                var reader = block.MetadataReader;
+
+        '                var appRef = app.Assembly.Identity.Name;
+        '                AssertEx.SetEqual(New[] { "corlib 2.0", appRef + " 0.0" }, reader.DumpAssemblyReferences());
+
+        '                AssertEx.SetEqual(New[] {
+        '                        "Object, System, AssemblyRef:corlib",
+        '                        "ValueTuple`2, System, AssemblyRef:" + appRef, // ValueTuple comes from app, Not corlib
+        '                        ", System, AssemblyRef:" + appRef },
+        '                    reader.DumpTypeReferences());
+        '            }
+        '        }
 
         <Fact>
         Public Sub TupleElementNamesAttribute_NotAvailable()
