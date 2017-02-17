@@ -77,7 +77,6 @@ namespace System
     public struct Boolean { }
     public class String { }
     public class ValueType { }
-    public class Enum { }
     public struct Void { }
     public class Attribute { }
 }

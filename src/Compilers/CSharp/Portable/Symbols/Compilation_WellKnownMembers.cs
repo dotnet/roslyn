@@ -75,9 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyWellKnownTypeMembers[(int)member];
         }
 
-        internal NamedTypeSymbol GetWellKnownType(WellKnownType type, bool ignoreCorLibraryDuplicatedTypes = false)
+        internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
         {
             Debug.Assert(type.IsValid());
+
+            bool ignoreCorLibraryDuplicatedTypes = this.Options.TopLevelBinderFlags.Includes(BinderFlags.IgnoreCorLibraryDuplicatedTypes);
 
             int index = (int)type - (int)WellKnownType.First;
             if (_lazyWellKnownTypes == null || (object)_lazyWellKnownTypes[index] == null)

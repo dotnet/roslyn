@@ -541,7 +541,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
-        Private Function IsInCorLib(type As NamedTypeSymbol) As Boolean
+        Private Shared Function IsInCorLib(type As NamedTypeSymbol) As Boolean
             Return type.ContainingAssembly = type.ContainingAssembly.CorLibrary
         End Function
 
