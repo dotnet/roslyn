@@ -14,17 +14,13 @@ Imports Roslyn.Test.Utilities
 Public Class ParseExpressionTest
     Inherits BasicTestBase
 
-    'Private Function ParseExpressionAsRhs(text As XElement) As ExpressionSyntax
-    '    Return ParseExpressionAsRhs(text.Value)
-    'End Function
-
     Private Function ParseExpressionAsRhs(text As String, Optional expectsErrors As Boolean = False) As ExpressionSyntax
         Dim modText =
-    <Module>
-        Module M1
-            Dim x =<%= text %>
-        End Module
-    </Module>.Value
+$"
+Module M1
+    Dim x = {text} 
+End Module
+ "
 
         Dim prog = SyntaxFactory.ParseCompilationUnit(modText)
         Assert.Equal(modText, prog.ToFullString)
@@ -35,10 +31,6 @@ Public Class ParseExpressionTest
 
         Return varDecl.Declarators(0).Initializer.Value
     End Function
-
-    'Private Function ParseExpression(text As XElement) As ExpressionSyntax
-    '    Return ParseExpression(text.Value)
-    'End Function
 
     Private Function ParseExpression(text As String, Optional expectsErrors As Boolean = False) As ExpressionSyntax
         Dim modText = text.Trim(" "c, CChar(vbTab), CChar(vbCr), CChar(vbLf))
@@ -453,20 +445,20 @@ ToString")
 </errors>
         )
 
-        ParseAndVerify(<![CDATA[
-            Module Module1
-                Sub Main()
-                    Dim x As New (A, B)
-                    Dim y As New (A, B)()
-                    Dim y As New (A As Integer, B$)
-                End Sub
+        ParseAndVerify("
+Module Module1
+    Sub Main()
+        Dim x As New (A, B)
+        Dim y As New (A, B)()
+        Dim y As New (A As Integer, B$)
+    End Sub
 
-                Public Function Bar() As (Alice As (Alice As Integer, Bob As Integer)(), Bob As Integer)
-                    ' this is actually ok, since it is an array
-                    Return (New(Integer, Integer)() {(4, 5)}, 5)
-                End Function
-            End Module
-        ]]>,
+    Public Function Bar() As (Alice As (Alice As Integer, Bob As Integer)(), Bob As Integer)
+        ' this is actually ok, since it is an array
+        Return (New(Integer, Integer)() {(4, 5)}, 5)
+    End Function
+End Module
+",
                        <errors>
                            <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="88" end="94"/>
                            <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="128" end="134"/>
@@ -620,19 +612,19 @@ From a in B
 
         expr = ParseExpression(
 "
-        From x as integer in Blah
-        Take
-        2
-        ")
+From x as integer in Blah
+Take
+2
+")
         Assert.Equal(SyntaxKind.TakeClause, GetOperator(expr, 1).Kind)
 
         expr = ParseExpression(
 "
-        From x as integer in Blah
-        Take While
-        true
-        From x as integer in Blah, x in Boo
-        ")
+From x as integer in Blah
+Take While
+true
+From x as integer in Blah, x in Boo
+")
         Assert.Equal(SyntaxKind.FromClause, GetOperator(expr, 2).Kind)
 
     End Sub
@@ -647,12 +639,12 @@ From a in B
 
         expr = ParseExpression(
 "
-        From x as integer in Blah
-        Skip
-        2
-        Skip While
-        true
-        ")
+From x as integer in Blah
+Skip
+2
+Skip While
+true
+")
         Assert.Equal(SyntaxKind.SkipWhileClause, GetOperator(expr, 2).Kind)
 
         expr = ParseExpression(
@@ -676,18 +668,18 @@ From a in B
 
         expr = ParseExpression(
 "
-        From x as integer in Blah
-        Distinct
-        Distinct
-        ")
+From x as integer in Blah
+Distinct
+Distinct
+")
         Assert.Equal(SyntaxKind.DistinctClause, GetOperator(expr, 2).Kind)
 
         expr = ParseExpression(
 "
-        From x as integer in Blah
-        Distinct
-        Skip 2
-        ")
+From x as integer in Blah
+Distinct
+Skip 2
+")
         Assert.Equal(SyntaxKind.SkipClause, GetOperator(expr, 2).Kind)
 
     End Sub
@@ -706,10 +698,10 @@ From a in B
 
         expr = ParseExpression(
 "
-        From x as integer in Blah
-        Aggregate x In ""qqq"" Into Sum(10), Any(), x = Count
-        Skip 2
-        ")
+From x as integer in Blah
+Aggregate x In ""qqq"" Into Sum(10), Any(), x = Count
+Skip 2
+")
         Assert.Equal(SyntaxKind.SkipClause, GetOperator(expr, 2).Kind)
 
         expr = ParseExpression(
@@ -723,7 +715,7 @@ Aggregate x
     Any(), 
     x = Count
 Skip 2
-        ")
+")
         Assert.Equal(SyntaxKind.SkipClause, GetOperator(expr, 2).Kind)
 
     End Sub
@@ -747,7 +739,7 @@ x
 Ascending,
 y Descending
 Skip 2
-        ")
+")
         Assert.Equal(SyntaxKind.SkipClause, GetOperator(expr, 2).Kind)
 
     End Sub
@@ -769,24 +761,24 @@ Skip 2
 
         expr = ParseExpression(
 "
-                From x as integer in Blah
-                From x In ""qqq"" Select Sum(10), Any(), x = Count
-                Skip 2
-                ")
+From x as integer in Blah
+From x In ""qqq"" Select Sum(10), Any(), x = Count
+Skip 2
+")
         Assert.Equal(SyntaxKind.SkipClause, GetOperator(expr, 3).Kind)
 
         expr = ParseExpression(
 "
-        From x as integer in Blah
-        From x 
-            In 
-            ""qqq"" 
-            Select 
-            Sum(10), 
-            Any(), 
-            x = Count
-        Skip 2
-                ")
+From x as integer in Blah
+From x 
+    In 
+    ""qqq"" 
+    Select 
+    Sum(10), 
+    Any(), 
+    x = Count
+Skip 2
+")
         Assert.Equal(SyntaxKind.SkipClause, GetOperator(expr, 3).Kind)
 
     End Sub
@@ -803,31 +795,31 @@ Skip 2
         Assert.Equal(SyntaxKind.GroupByClause, GetOperator(expr, 1).Kind)
 
         expr = ParseExpression("
-        From x As Char In ""Blah""
-                Group x, y
-                By
-                x,
-                y
-                Into
-                Sum(10),
-                Any(),
-                e = Count()
-                Skip 2
-                ")
+From x As Char In ""Blah""
+        Group x, y
+        By
+        x,
+        y
+        Into
+        Sum(10),
+        Any(),
+        e = Count()
+        Skip 2
+        ")
 
         Assert.Equal(SyntaxKind.SkipClause, GetOperator(expr, 2).Kind)
 
         expr = ParseExpression("
-        From x As Char In ""Blah""
-                Group
-                By
-                x,
-                y
-                Into
-                Sum(10),
-                Any(),
-                e = Count
-        ")
+From x As Char In ""Blah""
+        Group
+        By
+        x,
+        y
+        Into
+        Sum(10),
+        Any(),
+        e = Count
+")
 
         Assert.Equal(SyntaxKind.GroupByClause, GetOperator(expr, 1).Kind)
 
@@ -846,51 +838,51 @@ Skip 2
         Assert.Equal(SyntaxKind.SimpleJoinClause, GetOperator(expr, 1).Kind)
 
         expr = ParseExpression("
-                From x In ""qq""
-                Join
-                   y
-                   In
-                   ""www""
-                   Join
-                   z
-                   In
-                   {1, 2}
-                   On
-                   y Equals
-                   z.
-                   ToString And
-                   AscW(y) Equals
-                   z
-                   On
-                   x Equals
-                   y And AscW(x) Equals
-                   z
-                Skip 2
-                ")
+From x In ""qq""
+Join
+   y
+   In
+   ""www""
+   Join
+   z
+   In
+   {1, 2}
+   On
+   y Equals
+   z.
+   ToString And
+   AscW(y) Equals
+   z
+   On
+   x Equals
+   y And AscW(x) Equals
+   z
+Skip 2
+")
 
         Assert.Equal(SyntaxKind.SkipClause, GetOperator(expr, 2).Kind)
 
         expr = ParseExpression("
-                From x In ""qq""
-                Join
-                   y
-                   In
-                   ""www""
-                   Join
-                   z
-                   In
-                   {1, 2}
-                   On
-                   y Equals
-                   z.
-                   ToString And
-                   AscW(y) Equals
-                   z
-                   On
-                   x Equals
-                   y And AscW(x) Equals
-                   z
-                ")
+From x In ""qq""
+Join
+   y
+   In
+   ""www""
+   Join
+   z
+   In
+   {1, 2}
+   On
+   y Equals
+   z.
+   ToString And
+   AscW(y) Equals
+   z
+   On
+   x Equals
+   y And AscW(x) Equals
+   z
+")
 
         Assert.Equal(SyntaxKind.SimpleJoinClause, GetOperator(expr, 1).Kind)
     End Sub
@@ -914,49 +906,49 @@ Skip 2
         Assert.Equal(SyntaxKind.GroupJoinClause, GetOperator(expr, 1).Kind)
 
         expr = ParseExpression("
-                From x In {1, 2}
-                  Group Join
-                  y
-                  In
-                  {1, 2}
-                  On
-                  x Equals
-                  y And
-                  x + 1 Equals
-                  y + 1
-                  Into
-                  g =
-                  Group,
-                  m =
-                  Max(x)
-                Skip 2
-                ")
+From x In {1, 2}
+  Group Join
+  y
+  In
+  {1, 2}
+  On
+  x Equals
+  y And
+  x + 1 Equals
+  y + 1
+  Into
+  g =
+  Group,
+  m =
+  Max(x)
+Skip 2
+")
 
         Assert.Equal(SyntaxKind.SkipClause, GetOperator(expr, 2).Kind)
 
         expr = ParseExpression("
-                From x In {1, 2}
-                  Join z In {1, 2}
-                  Group Join
-                  y
-                  In
-                  {1, 2}
-                  On
-                  z Equals
-                  y And
-                  z + 1 Equals
-                  y + 1
-                  Into
-                  g =
-                  Group,
-                  m =
-                  Max(z)
-                  On
-                  x Equals
-                  z And
-                  g.Count Equals
-                  x
-                ")
+From x In {1, 2}
+  Join z In {1, 2}
+  Group Join
+  y
+  In
+  {1, 2}
+  On
+  z Equals
+  y And
+  z + 1 Equals
+  y + 1
+  Into
+  g =
+  Group,
+  m =
+  Max(z)
+  On
+  x Equals
+  z And
+  g.Count Equals
+  x
+")
 
         Assert.Equal(SyntaxKind.SimpleJoinClause, GetOperator(expr, 1).Kind)
     End Sub
@@ -981,27 +973,26 @@ Skip 2
 
     <Fact>
     Public Sub Bug869112()
-        Dim code = "
-            Enum enum1
-                e1
-                e2
-                e3
-                e4
-            End Enum
-            Class myattr9
-                Inherits Attribute
-         
-                Sub New(ByVal o() As enum1)
-                End Sub
-         
-                Property prop() As enum1()
-         
-                Public o() As enum1
-                Private p() As enum1
-            End Class
-            <myattr9(New enum1(0 To 3) {enum1.e1, enum1.e3, enum1.e2, enum1.e4}, prop:=New enum1(0 To 3) {enum1.e1, enum1.e3, enum1.e2, enum1.e4})> Class Scen23
-            End Class
-        "
+        Dim code = 
+"Enum enum1
+    e1
+    e2
+    e3
+    e4
+End Enum
+Class myattr9
+    Inherits Attribute
+
+    Sub New(ByVal o() As enum1)
+    End Sub
+
+    Property prop() As enum1()
+
+    Public o() As enum1
+    Private p() As enum1
+End Class
+<myattr9(New enum1(0 To 3) {enum1.e1, enum1.e3, enum1.e2, enum1.e4}, prop:=New enum1(0 To 3) {enum1.e1, enum1.e3, enum1.e2, enum1.e4})> Class Scen23
+End Class"
 
         Dim tree = SyntaxFactory.ParseCompilationUnit(code)
         Assert.Equal(code, tree.ToFullString)
@@ -1038,64 +1029,58 @@ Skip 2
 
     <Fact>
     Public Sub TestSingleLineLambdaFunction()
-        ParseAndVerify("
-            Module Module1
-                Sub Main()
-                    Dim a = function() 1
-                End Sub
-            End Module
-        ")
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
+        Dim a = function() 1
+    End Sub
+End Module")
     End Sub
 
     <Fact>
     Public Sub TestSingleLineLambdaSub()
-        ParseAndVerify("
-            Module Module1
-                Sub Main()
-                    Dim a = sub() console.WriteLine(""hello world"")
-                End Sub
-            End Module
-        ")
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
+        Dim a = sub() console.WriteLine(""hello world"")
+    End Sub
+End Module")
     End Sub
 
     <Fact>
     Public Sub BC30088ERR_EndSelectNoSelect_TestSingleLineLambdaFunctionWithColon()
-        ParseAndVerify("
-            Module Module1
-                Sub Main()
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
 
-                    Dim a =  sub () select case 0 : case 0 : end select
+        Dim a =  sub () select case 0 : case 0 : end select
 
-                End Sub
-            End Module
-        ",
-        Diagnostic(ERRID.ERR_SubRequiresSingleStatement, "sub () select case 0 : case 0 : end select"))
+    End Sub
+End Module",    Diagnostic(ERRID.ERR_SubRequiresSingleStatement, "sub () select case 0 : case 0 : end select"))
     End Sub
 
 
     <Fact>
     Public Sub TestLambdaInModule1()
-        ParseAndVerify("
-           Module Module1
+        ParseAndVerify(
+"Module Module1
 
-                Dim y = Sub ()
-                        Console.WriteLine(""hello world"")
-                    End Sub
+     Dim y = Sub ()
+             Console.WriteLine(""hello world"")
+         End Sub
 
-           End Module
-        ")
+End Module")
     End Sub
 
     <Fact>
     Public Sub TestEmptyFunctionLambdaNewLineTriviaAdjustment1()
         ' Ensure that new line trivia is attached correctly
-        Dim tree = ParseAndVerify("
-           Module Module1
+        Dim tree = ParseAndVerify(
+"Module Module1
 
-                Dim y = Function() :
+     Dim y = Function() :
 
-           End Module
-        ", Diagnostic(ERRID.ERR_ExpectedExpression, ""))
+End Module", Diagnostic(ERRID.ERR_ExpectedExpression, ""))
         Dim root = tree.GetRoot()
         Dim module1 = DirectCast(root.ChildNodes(0), ModuleBlockSyntax)
         Dim stmt = module1.Members(0)
@@ -1110,12 +1095,12 @@ Skip 2
     Public Sub TestEmptyFunctionLambdaNewLineTriviaAdjustment2()
         ' Ensure that new line trivia is attached correctly
         Dim tree = ParseAndVerify("
-           Module Module1
+Module Module1
 
-                Dim y = Function() 
+        Dim y = Function() 
 
 
-        ",
+",
         Diagnostic(ERRID.ERR_ExpectedEndModule, "Module Module1"),
         Diagnostic(ERRID.ERR_MultilineLambdaMissingFunction, "Function()"))
 
@@ -1132,16 +1117,15 @@ Skip 2
 
     <Fact>
     Public Sub TestLambdaStatementFollowedByColonAndLabel()
-        Dim tree = ParseAndVerify("
-        Module Program
-              Sub Main()
-                  Dim x = Sub()
-                              GoTo label1 :
-                              label1:
-                          End Sub
-              End Sub
-        End Module
-        ")
+        Dim tree = ParseAndVerify(
+"Module Program
+    Sub Main()
+        Dim x = Sub()
+                    GoTo label1 :
+                    label1:
+                End Sub
+    End Sub
+End Module")
 
         Dim root = tree.GetRoot()
         Dim module1 = DirectCast(root.ChildNodes(0), ModuleBlockSyntax)
@@ -1157,31 +1141,29 @@ Skip 2
 
     <Fact>
     Public Sub TestLambdaWithEmptySingleLineIf()
-        Dim tree = ParseAndVerify("
-        Module Program
-              Sub Main()
-                  Dim x = Sub()
-                              if true then else
-                          End Sub
-              End Sub
-        End Module
-        ")
+        Dim tree = ParseAndVerify(
+"Module Program
+      Sub Main()
+          Dim x = Sub()
+                      if true then else
+                  End Sub
+      End Sub
+End Module")
     End Sub
 
     <WorkItem(537571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537571")>
     <Fact>
     Public Sub TestLambdaInModule2()
         ' Test that a declaration with an attribute terminates the lambda.
-        ParseAndVerify("
-           Module Module1
-            
-            Dim method4ParamTypes = m4.Parameters.Select(Function(p) 
-                return p
-            <Fact>
-        Public Sub Fields() 
+        ParseAndVerify(
+"Module Module1
+    
+    Dim method4ParamTypes = m4.Parameters.Select(Function(p) 
+        return p
+    <Fact>
+    Public Sub Fields() 
 
-           End Module
-        ",
+End Module",
          <errors>
              <error id="36674"/>
              <error id="30198"/>
@@ -1192,46 +1174,41 @@ Skip 2
 
     <Fact>
     Public Sub TestMultiLineLambdaSub()
-        ParseAndVerify("
-            Module Module1
-                Sub Main()
-                    Dim a = sub()
-                        console.WriteLine(""hello world"")
-                    end sub                  
-                End Sub
-            End Module
-        ")
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
+        Dim a = sub()
+            console.WriteLine(""hello world"")
+        end sub                  
+    End Sub
+End Module")
     End Sub
 
     <Fact>
     Public Sub TestMultiLineLambdaSubNoEndSub1()
-        ParseAndVerify("
-            Module Module1
-                Sub Main()
-                    do 
-                        Dim a = sub()
-                            console.WriteLine(""hello world"")
-                    loop                 
-                End Sub
-            End Module
-        ", <errors>
-                 <error id="36673"/>
-             </errors>)
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
+        do 
+            Dim a = sub()
+                console.WriteLine(""hello world"")
+        loop                 
+    End Sub
+End Module", <errors><error id="36673"/></errors>)
     End Sub
 
     <Fact>
     Public Sub TestMultiLineLambdaSubNoEndSub2()
-        ParseAndVerify("
-            Module Module1
-                Sub Main()
-                    do 
-                        Dim a = sub()
-                            if true then
-                                    console.WriteLine(""hello world"")
-                    loop                 
-                End Sub
-            End Module
-        ", <errors>
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
+        do 
+            Dim a = sub()
+                if true then
+                        console.WriteLine(""hello world"")
+        loop                 
+    End Sub
+End Module", <errors>
                  <error id="36673"/>
                  <error id="30081"/>
              </errors>)
@@ -1240,64 +1217,54 @@ Skip 2
 
     <Fact>
     Public Sub TestMultiLineLambdaFunction()
-        ParseAndVerify("
-            Module Module1
-                Sub Main()
-                    Dim a = function(i as integer, j as integer) as integer
-                        dim x = i + j
-                        return x
-                    end function                
-                End Sub
-            End Module
-        ")
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
+        Dim a = function(i as integer, j as integer) as integer
+            dim x = i + j
+            return x
+        end function                
+    End Sub
+End Module")
     End Sub
 
     <Fact>
     Public Sub TestMultiLineLambdaFunctionNoEndFunction()
-        ParseAndVerify("
-            Module Module1
-                Sub Main()
-                    Dim a = function(i as integer, j as integer) as integer
-                        dim x = i + j
-                        return x
-                                
-                End Sub
-            End Module
-        ",
-        <errors>
-            <error id="36674"/>
-        </errors>)
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
+        Dim a = function(i as integer, j as integer) as integer
+            dim x = i + j
+            return x
+                    
+    End Sub
+End Module",<errors><error id="36674"/></errors>)
     End Sub
 
     <Fact>
     Public Sub BC36677ERR_AttributeOnLambdaReturnType_TestMultiLineLambdaFunctionWithAttribute()
-        ParseAndVerify("
-            Module Module1
-                Sub Main()
-                    Dim a = function(i as integer, j as integer) as <clscompliant(true)> integer
-                        dim x = i + j
-                        return x
-                    end function
-                                
-                End Sub
-            End Module
-        ",
-        <errors>
-            <error id="36677"/>
-        </errors>)
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
+        Dim a = function(i as integer, j as integer) as <clscompliant(true)> integer
+            dim x = i + j
+            return x
+        end function
+                    
+    End Sub
+End Module",<errors><error id="36677"/></errors>)
     End Sub
 
 
     <Fact>
     Public Sub TestMultiLineLambdaFunctionClosedWithEndModule()
-        ParseAndVerify("
-            Module Module1
-                Sub Main()
-                    Dim a = function(i as integer, j as integer) as integer
-                        dim x = i + j
-                        return x
-                End Module
-        ",
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
+        Dim a = function(i as integer, j as integer) as integer
+            dim x = i + j
+            return x
+End Module",
         <errors>
             <error id="36674"/>
             <error id="30026"/>
@@ -1306,18 +1273,18 @@ Skip 2
 
     <Fact>
     Public Sub TestMultiLineLambdaFunctionClosedWithFunctionDeclaration()
-        ParseAndVerify("
-                Module Module1
-                    Sub Main()
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
 
-                        Dim a = function(i as integer, j as integer)
-                                    Return i + j
-                           
-                function f
-                end function
+        Dim a = function(i as integer, j as integer)
+                    Return i + j
+           
+function f
+end function
 
-                End Module
-        ",
+End Module
+",
         <errors>
             <error id="36674"/>
             <error id="30026"/>
@@ -1327,12 +1294,11 @@ Skip 2
 
     <Fact>
     Public Sub TestMultiLineLambdaFunctionWithOutBody()
-        ParseAndVerify("
-                Module Module1
-                    Sub Main()
-                        Dim a = function(i as integer, j as integer)
-                End Module
-        ", <errors>
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
+        Dim a = function(i as integer, j as integer)
+End Module", <errors>
                  <error id="36674"/>
                  <error id="30026"/>
              </errors>)
@@ -1341,25 +1307,21 @@ Skip 2
 
     <Fact>
     Public Sub TestMultiLineLambdaFunctionWithOutBody1()
-        ParseAndVerify("
-            Module m1
-                Sub Main()
-                    Dim s6 = Function (x) 
-                End Sub
-            End Module
-        ", <errors>
-                 <error id="36674"/>
-             </errors>)
+        ParseAndVerify(
+"Module m1
+    Sub Main()
+        Dim s6 = Function (x) 
+    End Sub
+End Module", <errors><error id="36674"/></errors>)
     End Sub
 
     <Fact>
     Public Sub TestMultiLineLambdaSubWithOutStatement()
-        ParseAndVerify("
-                Module Module1
-                    Sub Main()
-                        Dim a = sub(i as integer, j as integer)
-                End Module
-        ", <errors>
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
+        Dim a = sub(i as integer, j as integer)
+End Module", <errors>
                  <error id="36673"/>
                  <error id="30026"/>
              </errors>)
@@ -1367,31 +1329,27 @@ Skip 2
 
     <Fact>
     Public Sub TestMultiLineLambdaFunctionWithEmptyStatementBody()
-        ParseAndVerify("
-                Module Module1
-                    Sub Main()
-                        Dim a = function(i as integer, j as integer)
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
+        Dim a = function(i as integer, j as integer)
 
-                    End Sub
-                End Module
-        ",
-        <errors>
-            <error id="36674"/>
-        </errors>)
+    End Sub
+End Module
+",<errors><error id="36674"/></errors>)
     End Sub
 
     <WorkItem(880474, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseBadRelationalOperators()
-        ParseAndVerify("
-            Module Module1
-                Sub Main()
-                    Dim x = 1 >< 2
-                    dim x = 1 => 2
-                    dim x = 1 =< 2
-                End Sub
-            End Module
-        ",
+        ParseAndVerify(
+"Module Module1
+    Sub Main()
+        Dim x = 1 >< 2
+        dim x = 1 => 2
+        dim x = 1 =< 2
+    End Sub
+End Module",
         <errors>
             <error id="30239"/>
             <error id="30239"/>
@@ -1402,16 +1360,15 @@ Skip 2
     <WorkItem(794247, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseBadlyTerminatedLambdaScenario1()
-        ParseAndVerify("
-            module A
+        ParseAndVerify(
+"module A
 
-            dim x = function() as integer
-                with new object()
-                    return nothing
-                end sub
+dim x = function() as integer
+    with new object()
+        return nothing
+    end sub
 
-            end module
-        ",
+end module",
         <errors>
             <error id="30429"/>
             <error id="30085"/>
@@ -1423,14 +1380,14 @@ Skip 2
     <Fact>
     Public Sub ParseBadlyTerminatedLambdaScenario2()
         ParseAndVerify("
-            module BBB
+module BBB
 
-            dim x = Sub()
-            with new object()
-            end fu
+dim x = Sub()
+with new object()
+end fu
 
-            end module
-        ", <errors>
+end module
+", <errors>
                  <error id="36673"/>
                  <error id="30085"/>
                  <error id="30678"/>
@@ -1440,38 +1397,33 @@ Skip 2
 
     <Fact>
     Public Sub ParseBadlyTerminatedLambdaScenario3()
-        ParseAndVerify("
-            module BBB
+        ParseAndVerify(
+"module BBB
 
-                Sub Foo
-                    if True
-                        dim x=Sub()
+    Sub Foo
+        if True
+            dim x=Sub()
 
-                    End if
-                end Sub
+        End if
+    end Sub
 
-            end module
-        ",
-        <errors>
-            <error id="36673"/>
-        </errors>)
+end module",<errors><error id="36673"/></errors>)
     End Sub
 
     <Fact>
     Public Sub BC30085ERR_ExpectedEndWith_ParseBadlyTerminatedLambdaScenario4()
-        ParseAndVerify("
-            module BBB
+        ParseAndVerify(
+"module BBB
 
-                Sub Foo
-                    if True
-                        dim x=Sub()
-                            With new Object()
+    Sub Foo
+        if True
+            dim x=Sub()
+                With new Object()
 
-                    End if
-                end Sub
+        End if
+    end Sub
 
-            end module
-        ",
+end module",
         <errors>
             <error id="30085"/>
             <error id="36673"/>
@@ -1480,16 +1432,15 @@ Skip 2
 
     <Fact>
     Public Sub ParseBadlyTerminatedLambdaScenario5()
-        ParseAndVerify("
-            module BBB
+        ParseAndVerify(
+"module BBB
 
-                Sub Foo
-                        dim x=Function()
-                            With new Object()
-                end Sub
+    Sub Foo
+            dim x=Function()
+                With new Object()
+    end Sub
 
-            end module
-        ",
+end module",
         <errors>
             <error id="30085"/>
             <error id="36674"/>
@@ -1498,45 +1449,40 @@ Skip 2
 
     <Fact>
     Public Sub ParseLambdaScenario6()
-        ParseAndVerify("
-            module BBB
+        ParseAndVerify(
+"module BBB
 
-                Sub Foo
-                        dim x=Sub() if true then while true : Dim z=Function()
+    Sub Foo
+            dim x=Sub() if true then while true : Dim z=Function()
 
-                                                              End Function : end while
-                        end sub
-            end module
-        ")
+                                                  End Function : end while
+            end sub
+end module")
     End Sub
 
     <Fact>
     Public Sub ParseBadlyTerminateLambdaScenario6MissingEndSub()
-        ParseAndVerify("
-            module BBB
+        ParseAndVerify(
+"module BBB
 
-                Sub Foo
-                        dim x=Sub() if true then while true : Dim z=Function()
+    Sub Foo
+            dim x=Sub() if true then while true : Dim z=Function()
 
-                                                              End Function : end while
-            end module
-        ",
-        <errors>
-            <error id="30026"/>
-        </errors>)
+                                                  End Function : end while
+end module",
+        <errors><error id="30026"/></errors>)
     End Sub
 
     <Fact>
     Public Sub BC30090ERR_EndWhileNoWhile_ParseBadlyTerminateLambdaScenario6ExtraEndWhile()
         ParseAndVerify("
-            module BBB
+module BBB
 
-                Sub Foo
-                        dim x=Sub() if true then while true : Dim z=Function()
-                                                                end while
-                                                              End Function : end while
-            end module
-        ",
+    Sub Foo
+            dim x=Sub() if true then while true : Dim z=Function()
+                                                    end while
+                                                  End Function : end while
+end module",
         <errors>
             <error id="30026"/>
             <error id="30082"/>
@@ -1549,12 +1495,11 @@ Skip 2
 
     <Fact>
     Public Sub ParseBadlyTerminateLambdaScenario7()
-        ParseAndVerify("
-            module BBB
-                        dim x=Sub() call Sub()
-                                       synclock x
-            end module
-        ",
+        ParseAndVerify(
+"module BBB
+            dim x=Sub() call Sub()
+                           synclock x
+end module",
         <errors>
             <error id="30675"/>
             <error id="36673 "/>
@@ -1564,15 +1509,15 @@ Skip 2
     <Fact>
     Public Sub ParseBadlyTerminateLambdaScenario8()
         ParseAndVerify("
-            module BBB
-                friend e = Foo(Function()
-                                if true then
-                                    dim x=Sub() Call Sub()
-                                                    end if
-                                                end sub
-                                end function)
-            end module
-        ",
+module BBB
+    friend e = Foo(Function()
+                    if true then
+                        dim x=Sub() Call Sub()
+                                        end if
+                                    end sub
+                    end function)
+end module
+",
         <errors>
             <error id="30429"/>
             <error id="36673"/>
@@ -1581,43 +1526,35 @@ Skip 2
 
     <Fact>
     Public Sub ParseBadlyTerminateLambdaScenario9()
-        ParseAndVerify("
-            module BBB
-                friend e = Function()
-                                if true then
-                                    Dim x=Sub() End : End if
-                                end function
-            end module
-        ",
-        <errors>
-            <error id="36918"/>
-        </errors>)
+        ParseAndVerify(
+"module BBB
+    friend e = Function()
+                    if true then
+                        Dim x=Sub() End : End if
+                    end function
+end module",<errors><error id="36918"/></errors>)
     End Sub
 
     <Fact>
     Public Sub ParseBadlyTerminateLambdaScenario10()
         ParseAndVerify("
-            module BBB
-                Sub Foo()
-                  Dim x  = Function()
-                End Sub
-            end module
-        ",
-            <errors>
-                <error id="36674"/>
-            </errors>)
+module BBB
+    Sub Foo()
+        Dim x  = Function()
+    End Sub
+end module
+",  <errors><error id="36674"/></errors>)
     End Sub
 
     <WorkItem(890852, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseBadlyTerminateLambdaScenario11()
-        ParseAndVerify("
-            Module foo    
-                sub main     
-                    Dim x = function         
-                End sub    
-            End Module
-        ",
+        ParseAndVerify(
+"Module foo    
+    sub main     
+        Dim x = function         
+    End sub    
+End Module",
         <errors>
             <error id="30198"/>
             <error id="30199"/>
@@ -1627,24 +1564,22 @@ Skip 2
 
     <Fact>
     Public Sub ParseSingleLineLambdaWithSingleLineIf()
-        ParseAndVerify("
-            module m1
-                Sub Foo
-                        dim x=Sub() if true then console.writeline
-                end sub
-            end module
-        ")
+        ParseAndVerify(
+"module m1
+    Sub Foo
+            dim x=Sub() if true then console.writeline
+    end sub
+end module")
     End Sub
 
     <Fact>
     Public Sub ParseSingleLineLambdaWithMultipleStatements()
-        ParseAndVerify("
-            module m1
-                Sub Foo
-                        dim x=Sub() console.writeline : console.writeline : end sub
-                end sub
-            end module
-        ",
+        ParseAndVerify(
+"module m1
+    Sub Foo
+            dim x=Sub() console.writeline : console.writeline : end sub
+    end sub
+end module",
         <errors>
             <error id="30429"/>
             <error id="36918"/>
@@ -1653,29 +1588,25 @@ Skip 2
 
     <Fact>
     Public Sub ParseSingleLineLambdaEndingWithColon()
-        ParseAndVerify("
-            module m1
-                Sub Foo
-                        dim x=Sub() console.writeline : console() :
-                end sub
-            end module
-        ",
-        <errors>
-            <error id="36918"/>
-        </errors>)
+        ParseAndVerify(
+"module m1
+    Sub Foo
+            dim x=Sub() console.writeline : console() :
+    end sub
+end module
+",  <errors><error id="36918"/></errors>)
     End Sub
 
     <WorkItem(887486, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseTryCastErrorExpectedRparen()
-        ParseAndVerify("
-                Module Module1
-                  Sub Foo()
-                   Dim o As Object
-                   TryCast(o,Nothing)
-                  End Sub
-                End Module
-            ",
+        ParseAndVerify(
+"Module Module1
+    Sub Foo()
+        Dim o As Object
+        TryCast(o,Nothing)
+    End Sub
+End Module",
             <errors>
                 <error id="30198"/>
                 <error id="30180"/>
@@ -1685,115 +1616,96 @@ Skip 2
     <WorkItem(888998, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseMoreErrorsMultilineLambdaMissingFunctionAndSyntax()
-        ParseAndVerify("
-                      #const COMPERRORTEST = true
-                      Class Class1
-                       #If COMPERRORTEST Then
-                        Dim x7 = Function()
-                                   Return =
-                                 End Function
-                       #End If
-                      End Class
-            ",
+        ParseAndVerify(
+"#const COMPERRORTEST = true
+Class Class1
+ #If COMPERRORTEST Then
+  Dim x7 = Function()
+             Return =
+           End Function
+ #End If
+End Class",
             <errors>
                 <error id="30201"/>
                 <error id="30201"/>
             </errors>)
-
     End Sub
 
     ''' Lambda with a label
     <Fact>
     Public Sub ParseEmptyLambdaWithLabelSyntax()
-        ParseAndVerify("
-                      Class Class1
-                        Dim x7 = Sub()
-                                l1:
-                                 End Sub
-                      End Class
-            ")
-
+        ParseAndVerify(
+"Class Class1
+  Dim x7 = Sub()
+          l1:
+           End Sub
+End Class")
     End Sub
 
     <WorkItem(887861, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseMoreErrorExpectedExpression30241()
-        ParseAndVerify("
-                      <myattr2(1, ""abc"", prop:=42,true)> Class Scen15
-                      End Class
-            ",
-            <errors>
-                <error id="30241"/>
-            </errors>)
+        ParseAndVerify(
+"<myattr2(1, ""abc"", prop:=42,true)> Class Scen15
+End Class",<errors><error id="30241"/></errors>)
     End Sub
 
     <WorkItem(887741, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseMoreErrorExpectedExpression()
         ParseAndVerify("
-                     Module Module1
-                        Sub Foo()
-                         Dim c = <></>
-                        End Sub
-                     End Module
+Module Module1
+   Sub Foo()
+    Dim c = <></>
+   End Sub
+End Module
 
-            ",
-            <errors>
-                <error id="31146"/>
-            </errors>)
+",            <errors><error id="31146"/></errors>)
     End Sub
 
     <WorkItem(527019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527019")>
     <Fact>
     Public Sub ParseErrorMismatchExpectedEOSVSBadCCExpression()
-        ParseAndVerify("
-                      Class Class1
-                     'COMPILEERROR: BC31427, ""global""
-                      #if global.ns1 then
-                      #End If
-                      End Class
-            ",
-            <errors>
-                <error id="31427"/>
-            </errors>)
+        ParseAndVerify(
+"Class Class1
+'COMPILEERROR: BC31427, ""global""
+#if global.ns1 then
+#End If
+End Class", <errors><error id="31427"/></errors>)
     End Sub
 
     <WorkItem(897351, "DevDiv/Personal")>
     <Fact>
     Public Sub MissingExpressionShouldNotEatTokenOnNextLine()
         ParseAndVerify(
-            "Class C
-            Sub main()
-            dim x =  
-            end sub
-            Sub bar
-            End sub
-            End Class",
-        <errors>
-            <error id="30201"/>
-        </errors>).
+"Class C
+Sub main()
+dim x =  
+end sub
+Sub bar
+End sub
+End Class",
+        <errors><error id="30201"/></errors>).
         VerifyOccurrenceCount(SyntaxKind.EndSubStatement, 2)
     End Sub
 
     <WorkItem(929944, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseQueryWithSelectClause()
-        ParseAndVerify("
-class C1
+        ParseAndVerify(
+"class C1
     Dim scen2 = From c In """" Select s
-End Class
-            ").VerifyNoMissingChildren()
+End Class").VerifyNoMissingChildren()
     End Sub
 
     <WorkItem(929944, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseQueryWithSelectAndLetClause()
-        ParseAndVerify("
-class C1
+        ParseAndVerify(
+"class C1
     Dim scen2 = From c In """" Let x Select s
     Dim scen3 = From c In """" Let = Select s
- End Class
-            ",
+ End Class",
             <errors>
                 <error id="32020"/>
                 <error id="30203"/>
@@ -1804,8 +1716,8 @@ class C1
     <WorkItem(929945, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseMethodInvocationWithMissingParens()
-        ParseAndVerify("
-class C1
+        ParseAndVerify(
+"class C1
 sub foo
 foo
 end sub
@@ -1822,17 +1734,14 @@ Dim x2 = Sub()
 Dim x21 = Sub(y) y > _
 1 End Sub
 End Sub
-end class
-            ", <errors>
-                     <error id="30205"/>
-                 </errors>).VerifyNoMissingChildren()
+end class", <errors><error id="30205"/></errors>).VerifyNoMissingChildren()
     End Sub
 
     <WorkItem(537225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537225")>
     <Fact>
     Public Sub TestNewWithAnonymousExpression()
-        ParseAndVerify("
-           Friend Module RegressDDB17220
+        ParseAndVerify(
+"Friend Module RegressDDB17220
     Sub RegressDDB17220()
 
         Dim y = New With {Foo()}
@@ -1842,16 +1751,15 @@ end class
     Function foo() As String
         Return Nothing
     End Function
-End Module
-        ")
+End Module")
     End Sub
 
 
     <WorkItem(538492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538492")>
     <Fact>
     Public Sub TestMultipleConditionValid002()
-        ParseAndVerify("
-Friend Module MultipleConditionValid002mod
+        ParseAndVerify(
+"Friend Module MultipleConditionValid002mod
     Sub MultipleConditionValid002()
         Dim col1l = New List(Of Int16) From {1, 2, 3}
         Dim col1la = New List(Of Int16) From {1, 2, 3}
@@ -1861,57 +1769,50 @@ Friend Module MultipleConditionValid002mod
         Join l In col1ra On k Equals l Join kk In col1r On kk Equals k Join ll In col1ra On l Equals ll _
         On i * j Equals l * k And ll + kk Equals ii + jj Select i
     End Sub
-End Module
-        ")
+End Module")
     End Sub
 
     <Fact>
     Public Sub NullableTypeInQueries()
-        Dim code = "
-                Namespace X
-                    Friend Module Y
-                        Sub A()
-                                Dim col2() As Integer = New Integer() {1, 2, 3, 4}
-                                Dim q = From a? As Integer In col2
-                                Dim r = From a In col2 Join b? As Integer In col2 On a Equals b 
-                                Dim w = From a In col2 Let b? as Integer = a * a Select b 
-                        End Sub
-                    End Module
-                End Namespace
-            "
+        Dim code =
+"Namespace X
+    Friend Module Y
+        Sub A()
+                Dim col2() As Integer = New Integer() {1, 2, 3, 4}
+                Dim q = From a? As Integer In col2
+                Dim r = From a In col2 Join b? As Integer In col2 On a Equals b 
+                Dim w = From a In col2 Let b? as Integer = a * a Select b 
+        End Sub
+    End Module
+End Namespace
+"
         ParseAndVerify(code)
     End Sub
 
     <Fact>
     Public Sub Bug4120()
-        Dim code = "
-Friend Module RegressDDB78254mod
+        Dim code = 
+"Friend Module RegressDDB78254mod
     Sub RegressDDB78254()
         Dim col As New Collections.ArrayList()
         col.Add(1)
         col.Add(2)
         Dim w3 = From i? As Integer In col
     End Sub
-End Module
-            "
+End Module"
         ParseAndVerify(code)
     End Sub
 
     <WorkItem(537003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537003")>
     <Fact>
     Public Sub ParseFromFollowedById()
-        Dim code = "
-Friend Module M
+        Dim code = 
+"Friend Module M
     Sub S()
         Dim i = From x
     End Sub
-End Module
-            "
-        ParseAndVerify(code,
-                       <errors>
-                           <error id="36607"/>
-                       </errors>)
-
+End Module"
+        ParseAndVerify(code,<errors><error id="36607"/></errors>)
         Dim expr = ParseExpression("From x", expectsErrors:=True)
         Assert.Equal(SyntaxKind.QueryExpression, expr.Kind)
         Assert.Equal(SyntaxKind.FromClause, expr.ChildNodesAndTokens()(0).Kind())
@@ -1920,26 +1821,22 @@ End Module
     <WorkItem(537003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537003")>
     <Fact>
     Public Sub ParseFromFollowedByAndAlso()
-        Dim code = "
-Module Module1
+        Dim code =
+"Module Module1
     Sub Main()
         Dim from As Boolean
         Dim x = from AndAlso from
         Dim y = from class in ""abc""
     End Sub
-End Module
-            "
-        ParseAndVerify(code,
-                      <errors>
-                          <error id="30183" message="Keyword is not valid as an identifier." start="114" end="119"/>
-                      </errors>)
+End Module"
+        ParseAndVerify(code,<errors><error id="30183" message="Keyword is not valid as an identifier." start="114" end="119"/></errors>)
     End Sub
 
     <WorkItem(527765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527765")>
     <Fact>
     Public Sub NumericLiteralLongMinValue()
-        Dim code = "
-Imports System
+        Dim code =
+"Imports System
 Imports Microsoft.VisualBasic
 
 Module Program
@@ -1956,54 +1853,50 @@ Module Program
 
     Sub DoubleMaxMin(x As Double, y As Double)
     End Sub
-End Module
-            "
+End Module"
         ParseAndVerify(code)
     End Sub
 
     <WorkItem(541324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541324")>
     <Fact>
     Public Sub ParsingIntoClauseShouldNotCreateMissingTokens()
-        Dim code = "
-Imports System
+        Dim code = 
+"Imports System
 Module Module1
     Sub Main()
         Dim x(9) As Integer
         x(0) = 1 : x(1) = 2 : x(2) = 3 : x(3) = 4 : x(4) = 5 : x(5) = 6 : x(6) = 7 : x(7) = 8 : x(8) = 9 : x(9) = 10
         Dim q1 = Aggregate i In x Into Sum(i)
     End Sub
-End Module
-            "
+End Module"
         ParseAndVerify(code)
     End Sub
 
     <Fact>
     Public Sub ParsingIntoClause()
-        Dim code = "
-Imports System
+        Dim code =
+"Imports System
 Module Module1
     Sub Main()
         Dim x(9) As Integer
         x(0) = 1 : x(1) = 2 : x(2) = 3 : x(3) = 4 : x(4) = 5 : x(5) = 6 : x(6) = 7 : x(7) = 8 : x(8) = 9 : x(9) = 10
         Dim q1 = Aggregate i In x Into foo = Sum(i)
     End Sub
-End Module
-            "
+End Module"
         ParseAndVerify(code)
     End Sub
 
     <WorkItem(542057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542057")>
     <Fact>
     Public Sub ParsingImplicitLineContinuationAfterDistinct()
-        Dim code = "
-Imports System.Linq
+        Dim code =
+"Imports System.Linq
 Module M
     Sub Main
         Dim y = From z In ""ABC"" Distinct
         .ToArray()
     End Sub
-End Module
-            "
+End Module"
         ParseAndVerify(code)
     End Sub
 
@@ -2019,31 +1912,29 @@ End Module
     <WorkItem(542686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542686")>
     <Fact>
     Public Sub FromAsIdentifierInRangeQuery_1()
-        Dim code = "
-Module Program
+        Dim code = 
+"Module Program
     Sub Main()
         Dim q = From From In ""qq"" Join y In ""www"" On From Equals y
         Dim r = From From In ""qq"" Join y In ""www"" On 
                                                   From Equals 
                                                   y
     End Sub
-End Module
-            "
+End Module"
         ParseAndVerify(code)
     End Sub
 
     <WorkItem(542686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542686")>
     <Fact>
     Public Sub FromAsIdentifierInRangeQuery_2()
-        Dim code = "
-Module Program
+        Dim code = 
+"Module Program
     Sub Main()
         Dim t = From g
         Dim s = from Equals
         Dim f = from Class
     End Sub
-End Module
-            "
+End Module"
         ParseAndVerify(code, Diagnostic(ERRID.ERR_ExpectedIn, ""),
                              Diagnostic(ERRID.ERR_ExpectedEOS, "Equals"),
                              Diagnostic(ERRID.ERR_ExpectedEOS, "Class"))
@@ -2053,16 +1944,15 @@ End Module
     <Fact()>
     Public Sub ParseExpressionRangeVariableDeclarationList_1()
 
-        ParseAndVerify("
-Imports System.Linq
+        ParseAndVerify(
+"Imports System.Linq
  
 Module Program
     Sub Main()
         Dim y = Aggregate x In New Integer() {}
                 Into Count, Sum.All
     End Sub
-End Module
-", Diagnostic(ERRID.ERR_ExpectedEndOfExpression, "Sum"))
+End Module", Diagnostic(ERRID.ERR_ExpectedEndOfExpression, "Sum"))
     End Sub
 
 
@@ -2070,41 +1960,37 @@ End Module
     <Fact()>
     Public Sub ParseMemberAccessExpressionWithDotDot()
 
-        ParseAndVerify("
-Imports System.Linq
+        ParseAndVerify(
+"Imports System.Linq
 
 Module Program
     Sub Main()
          Dim i = Integer..MaxValue
     End Sub
-End Module
-", Diagnostic(ERRID.ERR_ExpectedIdentifier, ""))
+End Module", Diagnostic(ERRID.ERR_ExpectedIdentifier, ""))
     End Sub
 
     <WorkItem(545515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545515")>
     <Fact>
     Public Sub FromAsNewInQuery()
-        Dim code = "
-Module M
+        Dim code =
+"Module M
     Sub Main()
         Dim q = From x As New Char In """"
     End Sub
-End Module
-            "
+End Module"
         ParseAndVerify(code, Diagnostic(ERRID.ERR_UnrecognizedTypeKeyword, ""))
     End Sub
 
     <WorkItem(545584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545584")>
     <Fact>
     Public Sub ParseNullableAfterOpenGeneric()
-        Dim code = "
-Class C
+        Dim code = 
+"Class C
    Dim x1 = GetType(List(Of )?)
    Dim x2 = GetType(List(Of ).?)
    Dim x3 = GetType(List(Of ).x.y?)
-End Class
-
-            "
+End Class"
         ParseAndVerify(code, Diagnostic(ERRID.ERR_UnrecognizedType, ")"),
     Diagnostic(ERRID.ERR_UnrecognizedType, ")"),
     Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
@@ -2114,8 +2000,8 @@ End Class
     <WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
     <Fact>
     Public Sub ParseNullableWithQuestionMark()
-        Dim code = "
-Imports System
+        Dim code =
+"Imports System
  
 Module M
     Sub Main()
@@ -2123,24 +2009,21 @@ Module M
 
         Dim y = (System.Nullable(Of Integer)).op_Implicit(1) 
     End Sub
-End Module
-            "
+End Module"
         ParseAndVerify(code)
     End Sub
 
     <WorkItem(546514, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546514")>
     <Fact>
     Public Sub XmlMemberAccessWithInvalidWhitespace()
-        Dim tree = ParseAndVerify("
-Imports <xmlns:db=""http://example.org/database"">
+        Dim tree = ParseAndVerify(
+"Imports <xmlns:db=""http://example.org/database"">
 Module Test
   Sub Main()
     Dim x = <db:customer><db:Name>Bob</db:Name></db:customer>
     Console.WriteLine(x.< db : Name >.Value)
   End Sub
-End Module
-
-        ",
+End Module",
     Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, " "),
     Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, " "),
     Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, " "),
@@ -2162,8 +2045,8 @@ End Module
     <WorkItem(546378, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546378")>
     <Fact>
     Public Sub SpuriousLineContinuationAtBeginningOfStatement()
-        Dim tree = ParseAndVerify("
-Class C
+        Dim tree = ParseAndVerify(
+"Class C
     _
     Friend Shared Function SendInput() As Integer
         Return 0
@@ -2172,24 +2055,20 @@ End Class
 Module Module1
     Sub Main
     End Sub
-End Module
-
-        ")
+End Module")
 
     End Sub
 
     <WorkItem(531567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531567")>
     <Fact>
     Public Sub ColonAfterQuery()
-        Dim tree = ParseAndVerify("
-Friend Module Program
+        Dim tree = ParseAndVerify(
+"Friend Module Program
     Sub Main()
         Dim q = From y In {1, 2, 3} Select y
 :
     End Sub
-End Module
-
-        ")
+End Module")
 
     End Sub
 
@@ -2248,8 +2127,8 @@ End Module
 
     <Fact()>
     Public Sub Bug16626_2()
-        Dim source = "
-Module M
+        Dim source = 
+"Module M
     Sub M()
         Dim q = From c In """"
                 Let a As Class C, b = 2 Select a
@@ -2302,13 +2181,10 @@ End Module
     <WorkItem(601108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601108")>
     <Fact>
     Public Sub DistinctAfterOctal()
-        Dim tree = ParseAndVerify("
-
-Module M
+        Dim tree = ParseAndVerify(
+"Module M
     Dim q = From x In """" Select &O7Distinct
-End Module
-
-        ")
+End Module")
     End Sub
 
     <Fact>
@@ -2326,10 +2202,7 @@ Module M
         Order 
         c
 End Module
-",
-            <errors>
-                <error id="36605" message="'By' expected."/>
-            </errors>)
+",  <errors> <error id="36605" message="'By' expected."/> </errors>)
         ParseAndVerify("
 Module M
     Dim o = From c in """"
@@ -2343,10 +2216,8 @@ Module M
         Group c Into
         F
 End Module
-",
-            <errors>
-                <error id="36605" message="'By' expected."/>
-            </errors>)
+",  <errors><error id="36605" message="'By' expected."/></errors>)
+
         ParseAndVerify("
 Module M
     Dim o = From c in """"
@@ -2532,10 +2403,8 @@ Module M
             Nothing,
         )
 End Module
-",
-            <errors>
-                <error id="30182"/>
-            </errors>)
+",  <errors><error id="30182"/></errors>)
+
         ParseAndVerify("
 Module M
     Dim x = New C(
@@ -2550,10 +2419,8 @@ Module M
             Of
         )
 End Module
-",
-            <errors>
-                <error id="30182"/>
-            </errors>)
+",  <errors><error id="30182"/></errors>)
+
         ParseAndVerify("
 Module M
     Dim x As Object(
@@ -2569,10 +2436,8 @@ Module M
             1
         )
 End Module
-",
-            <errors>
-                <error id="30638"/>
-            </errors>)
+",  <errors><error id="30638"/></errors>)
+
         ParseAndVerify("
 Module M
     Dim x(
@@ -2604,6 +2469,7 @@ End Module
                 <error id="30196"/>
                 <error id="30201"/>
             </errors>)
+
         ParseAndVerify("
 Module M
     Sub M()
@@ -2614,8 +2480,9 @@ Module M
     End Sub
 End Module
 ")
-        ParseAndVerify("
-Module M
+
+        ParseAndVerify(
+"Module M
     Sub M()
         For Each
             In
@@ -2623,22 +2490,17 @@ Module M
         Next
     End Sub
 End Module
-",
-            <errors>
-                <error id="30201"/>
-            </errors>)
-        ParseAndVerify("
-Module M
+", <errors> <error id="30201"/> </errors>)
+
+        ParseAndVerify(
+"Module M
     Sub M()
         For Each c
             In
         Next
     End Sub
 End Module
-",
-            <errors>
-                <error id="30201"/>
-            </errors>)
+",  <errors> <error id="30201"/> </errors>)
     End Sub
 
     ''' <summary>
