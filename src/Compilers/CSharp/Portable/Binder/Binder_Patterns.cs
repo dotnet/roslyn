@@ -128,6 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return convertedExpression;
         }
 
+        /// <summary>
+        /// Check that the pattern type is valid for the operand. Return true if an error was reported.
+        /// </summary>
         private bool CheckValidPatternType(
             CSharpSyntaxNode typeSyntax,
             BoundExpression operand,
@@ -139,6 +142,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)operandType != null);
             Debug.Assert((object)patternType != null);
+
+            // Because we do not support recursive patterns, we always have an operand
+            Debug.Assert((object)operand != null);
+            // Once we support recursive patterns that will be relaxed.
+
             if (operandType.IsErrorType() || patternType.IsErrorType())
             {
                 return false;
@@ -156,6 +164,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (!isVar)
             {
+                if (patternType.IsDynamic())
+                {
+                    Error(diagnostics, ErrorCode.ERR_PatternDynamicType, typeSyntax);
+                    return true;
+                }
+
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 Conversion conversion =
                     operand != null
@@ -164,6 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(typeSyntax, useSiteDiagnostics);
                 switch (conversion.Kind)
                 {
+                    case ConversionKind.ExplicitDynamic:
+                    case ConversionKind.ImplicitDynamic:
+                        // Since the input was `dynamic`, which is equivalent to `object`, there must also
+                        // exist some unboxing, identity, or reference conversion as well, making the conversion legal.
                     case ConversionKind.Boxing:
                     case ConversionKind.ExplicitNullable:
                     case ConversionKind.ExplicitReference:
