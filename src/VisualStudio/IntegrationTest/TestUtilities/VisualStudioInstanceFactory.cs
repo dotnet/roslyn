@@ -79,6 +79,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             if (!canReuse)
             {
+                _currentlyRunningInstance?.Close();
                 _currentlyRunningInstance = null;
             }
         }
@@ -204,6 +205,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
 
+            // BUG: Currently building with /p:DeployExtension=true does not always cause the MEF cache to recompose...
+            //      So, run clearcache and updateconfiguration to workaround https://devdiv.visualstudio.com/DevDiv/_workitems?id=385351.
+            Process.Start(vsExeFile, $"/clearcache {VsLaunchArgs}").WaitForExit();
+            Process.Start(vsExeFile, $"/updateconfiguration {VsLaunchArgs}").WaitForExit();
             Process.Start(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {VsLaunchArgs}").WaitForExit();
 
             // Make sure we kill any leftover processes spawned by the host
@@ -221,6 +226,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public void Dispose()
         {
             _currentlyRunningInstance?.Close();
+            _currentlyRunningInstance = null;
 
             // We want to make sure everybody cleaned up their contexts by the end of everything
             ThrowExceptionIfAlreadyHasActiveContext();
