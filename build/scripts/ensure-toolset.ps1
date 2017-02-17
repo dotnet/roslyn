@@ -3,7 +3,7 @@ set-strictmode -version 2.0
 $ErrorActionPreference="Stop"
 
 $nugetVersion = "3.6.0-beta1"
-$msbuildToolsetVersion = "0.1.2-alpha"
+$msbuildToolsetVersion = "0.1.3-alpha"
 $repoDir = [IO.Path]::GetFullPath((join-path $PSScriptroot "..\.."))
 $toolsDir = join-path $repoDir "Binaries\Toolset"
 
@@ -42,6 +42,7 @@ try {
 
     $msbuildUrl = "https://jdashstorage.blob.core.windows.net/msbuild/msbuild-$msbuildToolsetVersion.zip" 
     if (download-tool $msbuildUrl "msbuild.zip" "msbuild-$msbuildToolsetVersion.zip") { 
+        rm -re (join-path $toolsDir "msbuild") -ErrorAction SilentlyContinue
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         [IO.Compression.ZipFile]::ExtractToDirectory((join-path $toolsDir "msbuild.zip"), $toolsDir)
     }
