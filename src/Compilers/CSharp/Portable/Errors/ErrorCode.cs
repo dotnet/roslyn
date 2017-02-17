@@ -1374,7 +1374,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable = 8130,
         ERR_DeconstructRequiresExpression = 8131,
         ERR_DeconstructWrongCardinality = 8132,
-        ERR_CannotDeconstructDynamic = 8133,        ERR_DeconstructTooFewElements = 8134,
+        ERR_CannotDeconstructDynamic = 8133,        
+        ERR_DeconstructTooFewElements = 8134,
         ERR_ConversionNotTupleCompatible = 8135,
         ERR_DeconstructionVarFormDisallowsSpecificType = 8136,
         ERR_TupleElementNamesAttributeMissing = 8137,
@@ -1384,7 +1385,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplBadTupleNames = 8141,
         ERR_PartialMethodInconsistentTupleNames = 8142,
         ERR_ExpressionTreeContainsTupleLiteral = 8143,
-        ERR_ExpressionTreeContainsTupleConversion = 8144,        #endregion tuple diagnostics introduced in C# 7
+        ERR_ExpressionTreeContainsTupleConversion = 8144,        
+        #endregion tuple diagnostics introduced in C# 7
 
         #region diagnostics for ref locals and ref returns introduced in C# 7
         ERR_AutoPropertyCannotBeRefReturning = 8145,
@@ -1444,19 +1446,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
         ERR_ExpressionTreeContainsOutVariable = 8198,
         #endregion diagnostics for out var
-
-        #region more stragglers for C# 7
         
+        #region more stragglers for C# 7
         ERR_VarInvocationLvalueReserved = 8199,
         ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
         ERR_ExpressionVariableInQueryClause = 8201,
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
-        ERR_AttributesInLocalFuncDecl = 8204,
-        ERR_ExpressionTreeContainsDiscard = 8205,
-        ERR_BadAsyncMethodBuilderTaskProperty = 8206,
-        ERR_AttributesInLocalFuncDecl = 8207,
-        ERR_TypeForwardedToMultipleAssemblies = 8208,
+        ERR_BadAsyncMethodBuilderTaskProperty = 8204,
+        ERR_AttributesInLocalFuncDecl = 8205,
+        ERR_TypeForwardedToMultipleAssemblies = 8206,
+        ERR_ExpressionTreeContainsDiscard = 8207,
 
         #endregion more stragglers for C# 7
     }
