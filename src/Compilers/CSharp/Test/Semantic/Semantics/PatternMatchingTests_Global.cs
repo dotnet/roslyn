@@ -7196,7 +7196,7 @@ Dummy(x12);
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16935")]
+        [Fact]
         [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
         public void GlobalCode_Lambda_02()
         {
