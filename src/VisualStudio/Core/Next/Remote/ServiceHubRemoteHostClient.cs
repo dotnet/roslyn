@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -41,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, remoteHostStream);
 
                 // make sure connection is done right
-                var host = await instance._rpc.InvokeAsync<string>(WellKnownRemoteHostServices.RemoteHostService_Connect, current).ConfigureAwait(false);
+                var host = await instance._rpc.InvokeAsync<string>(WellKnownRemoteHostServices.RemoteHostService_Connect, current, TelemetryService.DefaultSession.SerializeSettings()).ConfigureAwait(false);
 
                 // TODO: change this to non fatal watson and make VS to use inproc implementation
                 Contract.ThrowIfFalse(host == current.ToString());
