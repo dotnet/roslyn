@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -3079,37 +3080,60 @@ public static class TestType
         public void InParametersAreParsedCorrectly()
         {
             var test = @"
-public static class Test
+public class Test
 {
-    public delegate void Delegate(in int a);
+    public delegate int Delegate(in int a);
 
-    public static void Method(in int b)
+    public void Method(in int b)
     {
-        void LocalFunc(in int c) { }
+        void localFunc(in int c) { }
+
+        Delegate lambda = (in int d) => d;
+
+        Delegate anonymousDelegate = delegate (in int e) { return e; };
+    }
+
+    public int this [in int f]
+    {
+        get { return f; }
+    }
+
+    public static bool operator ! (in Test g)
+    {
+        return false;
     }
 }
 ";
 
             var tree = ParseTree(test, new CSharpParseOptions(LanguageVersion.CSharp7_1));
-            Assert.Empty(tree.GetDiagnostics());
+            tree.GetDiagnostics().Verify();
 
-            var methodDeclaration = (MethodDeclarationSyntax)tree.GetRoot().DescendantNodes().First(node => node is MethodDeclarationSyntax);
-            Assert.Equal("Method", methodDeclaration.Identifier.Text);
-            verifyModifier(methodDeclaration.ParameterList);
+            var methodDeclaration = (MethodDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is MethodDeclarationSyntax);
+            verifyModifier(methodDeclaration.ParameterList.Parameters);
 
-            var delegateDeclaration = (DelegateDeclarationSyntax)tree.GetRoot().DescendantNodes().First(node => node is DelegateDeclarationSyntax);
-            Assert.Equal("Delegate", delegateDeclaration.Identifier.Text);
-            verifyModifier(delegateDeclaration.ParameterList);
+            var delegateDeclaration = (DelegateDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is DelegateDeclarationSyntax);
+            verifyModifier(delegateDeclaration.ParameterList.Parameters);
 
-            var localFunctionStatement = (LocalFunctionStatementSyntax)tree.GetRoot().DescendantNodes().First(node => node is LocalFunctionStatementSyntax);
-            Assert.Equal("LocalFunc", localFunctionStatement.Identifier.Text);
-            verifyModifier(localFunctionStatement.ParameterList);
+            var localFunctionStatement = (LocalFunctionStatementSyntax)tree.GetRoot().DescendantNodes().Single(node => node is LocalFunctionStatementSyntax);
+            verifyModifier(localFunctionStatement.ParameterList.Parameters);
 
-            void verifyModifier(ParameterListSyntax list)
+            var lambdaExpression = (ParenthesizedLambdaExpressionSyntax)tree.GetRoot().DescendantNodes().Single(node => node is ParenthesizedLambdaExpressionSyntax);
+            verifyModifier(lambdaExpression.ParameterList.Parameters);
+
+            var anonymousMethodExpression = (AnonymousMethodExpressionSyntax)tree.GetRoot().DescendantNodes().Single(node => node is AnonymousMethodExpressionSyntax);
+            verifyModifier(anonymousMethodExpression.ParameterList.Parameters);
+
+            var indexerDeclaration = (IndexerDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is IndexerDeclarationSyntax);
+            verifyModifier(indexerDeclaration.ParameterList.Parameters);
+
+            var operatorDeclaration = (OperatorDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is OperatorDeclarationSyntax);
+            verifyModifier(operatorDeclaration.ParameterList.Parameters);
+
+            void verifyModifier(SeparatedSyntaxList<ParameterSyntax> list)
             {
-                Assert.Equal(1, list.ParameterCount);
+                Assert.Equal(1, list.Count);
 
-                var parameter = list.Parameters.First();
+                var parameter = list.First();
                 Assert.Equal(1, parameter.Modifiers.Count);
 
                 var modifier = parameter.Modifiers.First();

@@ -10288,6 +10288,7 @@ tryAgain:
                 //   case 4: ( ref T x,
                 //   case 5: ( out T x ) =>
                 //   case 6: ( ref T x ) =>
+                //   case 7: ( in T x ) =>
                 //
                 // if so then parse it as a lambda
 
@@ -10305,6 +10306,7 @@ tryAgain:
                     {
                         case SyntaxKind.RefKeyword:
                         case SyntaxKind.OutKeyword:
+                        case SyntaxKind.InKeyword:
                         case SyntaxKind.ParamsKeyword:
                             this.EatToken();
                             foundParameterModifier = true;
@@ -11362,6 +11364,7 @@ tryAgain:
                 // recovery purposes and then give an error during semantic analysis.
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
+                case SyntaxKind.InKeyword:
                 case SyntaxKind.OpenParenToken:   // tuple
                     return true;
 
@@ -11385,20 +11388,25 @@ tryAgain:
         {
             TypeSyntax paramType = null;
             SyntaxToken paramName = null;
-            SyntaxToken refOrOutOrParams = null;
+            SyntaxToken modifier = null;
 
             // Params are actually illegal in a lambda, but we'll allow it for error recovery purposes and
             // give the "params unexpected" error at semantic analysis time.
-            bool isRefOrOutOrParams = this.CurrentToken.Kind == SyntaxKind.RefKeyword || this.CurrentToken.Kind == SyntaxKind.OutKeyword || this.CurrentToken.Kind == SyntaxKind.ParamsKeyword;
+            bool hasModifier =
+                this.CurrentToken.Kind == SyntaxKind.RefKeyword ||
+                this.CurrentToken.Kind == SyntaxKind.OutKeyword ||
+                this.CurrentToken.Kind == SyntaxKind.InKeyword ||
+                this.CurrentToken.Kind == SyntaxKind.ParamsKeyword;
+
             var pk = this.PeekToken(1).Kind;
-            if (isRefOrOutOrParams
+            if (hasModifier
                 || (pk != SyntaxKind.CommaToken && pk != SyntaxKind.CloseParenToken && (hasTypes || isFirst))
                 || (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && pk == SyntaxKind.CloseParenToken && (hasTypes || isFirst))
                 || IsPredefinedType(this.CurrentToken.Kind))
             {
-                if (isRefOrOutOrParams)
+                if (hasModifier)
                 {
-                    refOrOutOrParams = this.EatToken();
+                    modifier = this.EatToken();
                 }
 
                 paramType = this.ParseType(ParseTypeMode.Parameter);
@@ -11419,7 +11427,7 @@ tryAgain:
                 paramName = this.AddError(paramName, ErrorCode.ERR_InconsistentLambdaParameterUsage);
             }
 
-            return _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), refOrOutOrParams, paramType, paramName, null);
+            return _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifier, paramType, paramName, null);
         }
 
         private bool IsCurrentTokenQueryContextualKeyword
