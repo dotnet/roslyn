@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.Setup.Configuration;
@@ -37,23 +38,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 15.0 and later.");
             }
 
-            // This looks like it is pointless (since we are returning an assembly that is already loaded) but it is actually required.
-            // The BinaryFormatter, when invoking 'HandleReturnMessage', will end up attempting to call 'BinaryAssemblyInfo.GetAssembly()',
-            // which will itself attempt to call 'Assembly.Load()' using the full name of the assembly for the type that is being deserialized.
-            // Depending on the manner in which the assembly was originally loaded, this may end up actually trying to load the assembly a second
-            // time and it can fail if the standard assembly resolution logic fails. This ensures that we 'succeed' this secondary load by returning
-            // the assembly that is already loaded.
-            AppDomain.CurrentDomain.AssemblyResolve += (sender, eventArgs) => {
-                Debug.WriteLine($"'{eventArgs.RequestingAssembly}' is attempting to resolve '{eventArgs.Name}'");
-                var resolvedAssembly = AppDomain.CurrentDomain.GetAssemblies().Where((assembly) => assembly.FullName.Equals(eventArgs.Name)).SingleOrDefault();
+            AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolveHandler;
+        }
 
-                if (resolvedAssembly != null)
-                {
-                    Debug.WriteLine("The assembly was already loaded!");
-                }
+        // This looks like it is pointless (since we are returning an assembly that is already loaded) but it is actually required.
+        // The BinaryFormatter, when invoking 'HandleReturnMessage', will end up attempting to call 'BinaryAssemblyInfo.GetAssembly()',
+        // which will itself attempt to call 'Assembly.Load()' using the full name of the assembly for the type that is being deserialized.
+        // Depending on the manner in which the assembly was originally loaded, this may end up actually trying to load the assembly a second
+        // time and it can fail if the standard assembly resolution logic fails. This ensures that we 'succeed' this secondary load by returning
+        // the assembly that is already loaded.
+        private static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs eventArgs)
+        {
+            Debug.WriteLine($"'{eventArgs.RequestingAssembly}' is attempting to resolve '{eventArgs.Name}'");
+            var resolvedAssembly = AppDomain.CurrentDomain.GetAssemblies().Where((assembly) => assembly.FullName.Equals(eventArgs.Name)).SingleOrDefault();
 
-                return resolvedAssembly;
-            };
+            if (resolvedAssembly != null)
+            {
+                Debug.WriteLine("The assembly was already loaded!");
+            }
+
+            return resolvedAssembly;
         }
 
         /// <summary>
@@ -230,6 +234,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             // We want to make sure everybody cleaned up their contexts by the end of everything
             ThrowExceptionIfAlreadyHasActiveContext();
+
+            AppDomain.CurrentDomain.AssemblyResolve -= AssemblyResolveHandler;
         }
     }
 }
