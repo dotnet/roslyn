@@ -1724,7 +1724,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_PublicSignNetModule = 37282
         ERR_BadAssemblyName = 37283
 
-        ERR_Merge_conflict_marker_encountered = 37282
+        ERR_Merge_conflict_marker_encountered = 37284
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
