@@ -4347,6 +4347,77 @@ public class C
         }
 
         [Fact]
+        public void ShortDiscardInPattern()
+        {
+            var source =
+@"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int i = 3;
+        Write($""is _: {i is _}, "");
+        switch (3)
+        {
+            case _:
+                Write(""case _"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29),
+                // (11,18): error CS0103: The name '_' does not exist in the current context
+                //             case _:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 Write("case _");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(12, 17)
+                );
+        }
+
+        [Fact]
+        public void UnderscoreInPattern2()
+        {
+            var source =
+@"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int i = 3;
+        int _ = 4;
+        Write($""is _: {i is _}, "");
+        switch (3)
+        {
+            case _:
+                Write(""case _"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (9,29): error CS0150: A constant value is expected
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(9, 29),
+                // (12,18): error CS0150: A constant value is expected
+                //             case _:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 Write("case _");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(13, 17)
+                );
+        }
+
+        [Fact]
         public void UnderscoreInPattern()
         {
             var source =
@@ -5012,61 +5083,513 @@ public class Program
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16696")]
+        [Fact, WorkItem(16696, "https://github.com/dotnet/roslyn/issues/16696")]
         public void TypeParameterSubsumption04()
         {
             var program = @"
+using System;
 using System.Collections.Generic;
 public class Program
 {
-    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
+    private static int Pattern1<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
     {
         switch (thing)
         {
             case IEnumerable<TBase> sequence:
-                break;
+                return 1;
+            // IEnumerable<TBase> does not subsume IEnumerable<TDerived> because TDerived may be a value type.
             case IEnumerable<TDerived> derivedSequence:
-                break;
+                return 2;
+            default:
+                return 3;
         }
     }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case IEnumerable<TDerived> derivedSequence:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<TDerived> derivedSequence").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
-                );
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16696")]
-        public void TypeParameterSubsumption05()
-        {
-            var program = @"
-using System.Collections.Generic;
-public class Program
-{
-    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
+    private static int Pattern2<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
     {
         switch (thing)
         {
             case IEnumerable<object> s:
-                break;
+                return 1;
+            // IEnumerable<object> does not subsume IEnumerable<TDerived> because TDerived may be a value type.
             case IEnumerable<TDerived> derivedSequence:
+                return 2;
+            default:
+                return 3;
+        }
+    }
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(Pattern1<object, int>(new List<object>()));
+        Console.WriteLine(Pattern1<object, int>(new List<int>()));
+        Console.WriteLine(Pattern1<object, int>(null));
+        Console.WriteLine(Pattern2<object, int>(new List<object>()));
+        Console.WriteLine(Pattern2<object, int>(new List<int>()));
+        Console.WriteLine(Pattern2<object, int>(null));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"1
+2
+3
+1
+2
+3");
+        }
+
+        [Fact, WorkItem(17103, "https://github.com/dotnet/roslyn/issues/17103")]
+        public void IsConstantPatternConversion_Positive()
+        {
+            var source =
+@"using System;
+public class Program
+{
+    public static void Main()
+    {
+        {
+            byte b = 12;
+            Console.WriteLine(b is 12); // True
+            Console.WriteLine(b is 13); // False
+            Console.WriteLine(b is (int)12L); // True
+            Console.WriteLine(b is (int)13L); // False
+        }
+        bool Is42(byte b) => b is 42;
+        Console.WriteLine(Is42(42));
+        Console.WriteLine(Is42(43));
+        Console.WriteLine(Is42((int)42L));
+        Console.WriteLine(Is42((int)43L));
+    }
+}";
+            var expectedOutput =
+@"True
+False
+True
+False
+True
+False
+True
+False";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(17103, "https://github.com/dotnet/roslyn/issues/17103")]
+        public void IsConstantPatternConversion_Negative()
+        {
+            var source =
+@"using System;
+public class Program
+{
+    public static void Main()
+    {
+        byte b = 12;
+        Console.WriteLine(b is 12L);
+        Console.WriteLine(1 is null);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (7,32): error CS0266: Cannot implicitly convert type 'long' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                //         Console.WriteLine(b is 12L);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "12L").WithArguments("long", "byte"),
+                // (8,32): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         Console.WriteLine(1 is null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem(9542, "https://github.com/dotnet/roslyn/issues/9542")]
+        [WorkItem(16876, "https://github.com/dotnet/roslyn/issues/16876")]
+        public void DecisionTreeCoverage_Positive()
+        {
+            // tests added to complete coverage of the decision tree and pattern-matching implementation
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        void M1(int i, bool b)
+        {
+            switch (i)
+            {
+                case 1 when b:
+                    Console.WriteLine(""M1a""); break;
+                case 1:
+                    Console.WriteLine(""M1b""); break;
+                case 2:
+                    Console.WriteLine(""M1c""); break;
+            }
+        }
+        M1(1, true);
+        M1(1, false);
+        M1(2, false);
+        M1(3, false);
+
+        void M2(object o, bool b)
+        {
+            switch (o)
+            {
+                case null:
+                    Console.WriteLine(""M2a""); break;
+                case var _ when b:
+                    Console.WriteLine(""M2b""); break;
+                case 1:
+                    Console.WriteLine(""M2c""); break;
+            }
+        }
+        M2(null, true);
+        M2(1, true);
+        M2(1, false);
+
+        void M3(bool? b1, bool b2)
+        {
+            switch (b1)
+            {
+                case null:
+                    Console.WriteLine(""M3a""); break;
+                case var _ when b2:
+                    Console.WriteLine(""M3b""); break;
+                case true:
+                    Console.WriteLine(""M3c""); break;
+                case false:
+                    Console.WriteLine(""M3d""); break;
+            }
+        }
+        M3(null, true);
+        M3(true, true);
+        M3(true, false);
+        M3(false, false);
+
+        void M4(object o, bool b)
+        {
+            switch (o)
+            {
+                case var _ when b:
+                    Console.WriteLine(""M4a""); break;
+                case int i:
+                    Console.WriteLine(""M4b""); break;
+            }
+        }
+        M4(1, true);
+        M4(1, false);
+
+        void M5(int? i, bool b)
+        {
+            switch (i)
+            {
+                case var _ when b:
+                    Console.WriteLine(""M5a""); break;
+                case null:
+                    Console.WriteLine(""M5b""); break;
+                case int q:
+                    Console.WriteLine(""M5c""); break;
+            }
+        }
+        M5(1, true);
+        M5(null, false);
+        M5(1, false);
+
+        void M6(object o, bool b)
+        {
+            switch (o)
+            {
+                case var _ when b:
+                    Console.WriteLine(""M6a""); break;
+                case object q:
+                    Console.WriteLine(""M6b""); break;
+                case null:
+                    Console.WriteLine(""M6c""); break;
+            }
+        }
+        M6(null, true);
+        M6(1, false);
+        M6(null, false);
+
+        void M7(object o, bool b)
+        {
+            switch (o)
+            {
+                case null when b:
+                    Console.WriteLine(""M7a""); break;
+                case object q:
+                    Console.WriteLine(""M7b""); break;
+                case null:
+                    Console.WriteLine(""M7c""); break;
+            }
+        }
+        M7(null, true);
+        M7(1, false);
+        M7(null, false);
+
+        void M8(object o)
+        {
+            switch (o)
+            {
+                case null when false:
+                    throw null;
+                case null:
+                    Console.WriteLine(""M8a""); break;
+            }
+        }
+        M8(null);
+
+        void M9(object o, bool b1, bool b2)
+        {
+            switch (o)
+            {
+                case var _ when b1:
+                    Console.WriteLine(""M9a""); break;
+                case var _ when b2:
+                    Console.WriteLine(""M9b""); break;
+                case var _:
+                    Console.WriteLine(""M9c""); break;
+            }
+        }
+        M9(1, true, false);
+        M9(1, false, true);
+        M9(1, false, false);
+
+        void M10(bool b)
+        {
+            const string nullString = null;
+            switch (nullString)
+            {
+                case null when b:
+                    Console.WriteLine(""M10a""); break;
+                case var _:
+                    Console.WriteLine(""M10b""); break;
+            }
+        }
+        M10(true);
+        M10(false);
+
+        void M11()
+        {
+            const string s = """";
+            switch (s)
+            {
+                case string _:
+                    Console.WriteLine(""M11a""); break;
+            }
+        }
+        M11();
+
+        void M12(bool cond)
+        {
+            const string s = """";
+            switch (s)
+            {
+                case string _ when cond:
+                    Console.WriteLine(""M12a""); break;
+                case var _:
+                    Console.WriteLine(""M12b""); break;
+            }
+        }
+        M12(true);
+        M12(false);
+
+        void M13(bool cond)
+        {
+            string s = """";
+            switch (s)
+            {
+                case string _ when cond:
+                    Console.WriteLine(""M13a""); break;
+                case string _:
+                    Console.WriteLine(""M13b""); break;
+            }
+        }
+        M13(true);
+        M13(false);
+
+        void M14()
+        {
+            const string s = """";
+            switch (s)
+            {
+                case s:
+                    Console.WriteLine(""M14a""); break;
+            }
+        }
+        M14();
+
+        void M15()
+        {
+            const int i = 3;
+            switch (i)
+            {
+                case 3:
+                case 4:
+                case 5:
+                    Console.WriteLine(""M15a""); break;
+            }
+        }
+        M15();
+
+    }
+}";
+            var expectedOutput =
+@"M1a
+M1b
+M1c
+M2a
+M2b
+M2c
+M3a
+M3b
+M3c
+M3d
+M4a
+M4b
+M5a
+M5b
+M5c
+M6a
+M6b
+M6c
+M7a
+M7b
+M7c
+M8a
+M9a
+M9b
+M9c
+M10a
+M10b
+M11a
+M12a
+M12b
+M13a
+M13b
+M14a
+M15a
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(9542, "https://github.com/dotnet/roslyn/issues/9542")]
+        public void DecisionTreeCoverage_BadEquals()
+        {
+            // tests added to complete coverage of the decision tree and pattern-matching implementation
+            var source =
+@"public class X
+{
+    static void M1(float o)
+    {
+        switch (o)
+        {
+            case 1.1F: break;
+        }
+    }
+}
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { private Boolean m_value; Boolean Use(Boolean b) { m_value = b; return m_value; } }
+    public struct Int32 { private Int32 m_value; Int32 Use(Int32 b) { m_value = b; return m_value; } }
+    public struct Char { }
+    public class String { }
+}
+namespace System
+{
+    public struct Single
+    {
+        private Single m_value;
+        public /*note bad return type*/ void Equals(Single other) { m_value = m_value + 1; }
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            compilation.GetEmitDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Warning).Verify(
+                // (5,9): error CS0407: 'void float.Equals(float)' has the wrong return type
+                //         switch (o)
+                Diagnostic(ErrorCode.ERR_BadRetType, @"switch (o)
+        {
+            case 1.1F: break;
+        }").WithArguments("float.Equals(float)", "void").WithLocation(5, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(9542, "https://github.com/dotnet/roslyn/issues/9542")]
+        public void DecisionTreeCoverage_DuplicateDefault()
+        {
+            // tests added to complete coverage of the decision tree and pattern-matching implementation
+            var source =
+@"public class X
+{
+    static void M1(object o)
+    {
+        switch (o)
+        {
+            case int x:
+            default:
+            default:
                 break;
         }
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case IEnumerable<TDerived> derivedSequence:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<TDerived> derivedSequence").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics(
+                // (9,13): error CS0152: The switch statement contains multiple cases with the label value 'default:'
+                //             default:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default:").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(9542, "https://github.com/dotnet/roslyn/issues/9542")]
+        public void DecisionTreeCoverage_Negative()
+        {
+            // tests added to complete coverage of the decision tree and pattern-matching implementation
+            var source =
+@"public class X
+{
+    static void M1(object o)
+    {
+        switch (o)
+        {
+            case 1:
+            case int _:
+            case 2:
+                break;
+        }
+    }
+    static void M2(object o)
+    {
+        switch (o)
+        {
+            case 1:
+            case int _:
+            case int _:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics(
+                // (9,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case 2:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 2:").WithLocation(9, 13),
+                // (19,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case int _:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int _").WithLocation(19, 18)
                 );
         }
     }

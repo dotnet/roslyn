@@ -14637,13 +14637,11 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).
-                VerifyDiagnostics(Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, @"delegate
-        {                 // CS1643
-            int i = 0;
-            if (i == 0)
-                return 1;
-        }").WithArguments("anonymous method", "MyDelegate"));
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (8,24): error CS1643: Not all code paths return a value in anonymous method of type 'MyDelegate'
+                //         MyDelegate d = delegate
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "MyDelegate").WithLocation(8, 24)
+                );
         }
 
         [Fact]
@@ -14668,9 +14666,9 @@ public class Test
     // (8,61): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
     //         Func<int> f = () => { foreach (var x in arr) return x; };
     Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "x").WithArguments("lambda expression").WithLocation(8, 61),
-    // (8,23): error CS1643: Not all code paths return a value in lambda expression of type 'System.Func<int>'
+    // (8,26): error CS1643: Not all code paths return a value in lambda expression of type 'Func<int>'
     //         Func<int> f = () => { foreach (var x in arr) return x; };
-    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "() => { foreach (var x in arr) return x; }").WithArguments("lambda expression", "System.Func<int>").WithLocation(8, 23)
+    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<int>").WithLocation(8, 26)
                 );
         }
 
@@ -22433,10 +22431,7 @@ class Program
     Diagnostic(ErrorCode.ERR_ObjectRequired, "ToString").WithArguments("object.ToString()").WithLocation(9, 14),
     // (7,15): error CS1643: Not all code paths return a value in anonymous method of type 'Program.D'
     //         D d = delegate
-    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, @"delegate
-        {
-            .ToString();
-        }").WithArguments("anonymous method", "Program.D").WithLocation(7, 15)
+    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "Program.D").WithLocation(7, 15)
                 );
         }
 

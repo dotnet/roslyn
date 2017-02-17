@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            internal override Func<ObjectReader, object> GetReader()
+            static SyntaxIdentifierWithTrailingTrivia()
             {
-                return r => new SyntaxIdentifierWithTrailingTrivia(r);
+                ObjectBinder.RegisterTypeReader(typeof(SyntaxIdentifierWithTrailingTrivia), r => new SyntaxIdentifierWithTrailingTrivia(r));
             }
 
             internal override void WriteTo(ObjectWriter writer)

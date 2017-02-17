@@ -109,7 +109,7 @@ End Class"
                         errorMessage,
                         testData)
 
-                    Assert.Equal(testData.Methods.Count, 2)
+                    Assert.Equal(testData.Methods.Count, 1)
                     testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       78 (0x4e)

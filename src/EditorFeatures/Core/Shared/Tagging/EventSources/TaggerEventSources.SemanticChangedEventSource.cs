@@ -48,7 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             {
                 // Whenever this subject buffer has changed, we always consider that to be a 
                 // semantic change.
-                this.RaiseChanged();
+                if (e.Changes.Any())
+                {
+                    RaiseChanged();
+                }
             }
 
             private void OnOpenedDocumentSemanticChanged(object sender, Document document)

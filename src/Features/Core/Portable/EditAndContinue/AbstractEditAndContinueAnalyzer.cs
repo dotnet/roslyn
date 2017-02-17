@@ -2117,7 +2117,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     case EditKind.Move:
                         // Move is always a Rude Edit.
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(edit.Kind);
 
                     case EditKind.Delete:
                         {
@@ -2382,7 +2382,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(edit.Kind);
                 }
 
                 semanticEdits.Add(new SemanticEdit(editKind, oldSymbol, newSymbol, syntaxMapOpt, preserveLocalVariables: syntaxMapOpt != null));

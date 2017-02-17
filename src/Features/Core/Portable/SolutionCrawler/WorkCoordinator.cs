@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         ProcessDocumentEvent(args, asyncToken);
                         break;
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(args.Kind);
                 }
             }
 
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(e.Kind);
                 }
             }
 
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         EnqueueEvent(e.OldSolution, e.NewSolution, e.ProjectId, asyncToken);
                         break;
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(e.Kind);
                 }
             }
 
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         EnqueueEvent(e.OldSolution, e.NewSolution, asyncToken);
                         break;
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(e.Kind);
                 }
             }
 

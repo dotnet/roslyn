@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken = _cancellationTokenSource.Token;
 
             Rpc = JsonRpc.Attach(stream, this);
+            Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+
             Rpc.Disconnected += OnRpcDisconnected;
         }
 
@@ -64,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // all sub type must explicitly start JsonRpc once everything is
             // setup
             Rpc = new JsonRpc(stream, stream, this);
+            Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
             Rpc.Disconnected += OnRpcDisconnected;
         }
 

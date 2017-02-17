@@ -151,7 +151,8 @@ using System.Threading;
 
                 Dim factory = workspace.Services.GetService(Of IDefinitionsAndReferencesFactory)
                 Dim definitionsAndReferences = factory.CreateDefinitionsAndReferences(
-                    workspace.CurrentSolution, result, includeHiddenLocations:=False)
+                    workspace.CurrentSolution, result,
+                    includeHiddenLocations:=False, cancellationToken:=CancellationToken.None)
                 Dim findReferencesTree = libraryManager.CreateFindReferencesItems(definitionsAndReferences)
 
                 ' We cannot control the ordering of top-level nodes in the Find Symbol References window, so do not consider ordering of these items here.

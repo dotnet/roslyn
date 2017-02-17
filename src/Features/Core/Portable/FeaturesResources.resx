@@ -213,11 +213,11 @@
   <data name="Generate_all" xml:space="preserve">
     <value>Generate all</value>
   </data>
-  <data name="Generate_enum_member_0_in_1" xml:space="preserve">
-    <value>Generate enum member '{0}' in '{1}'</value>
+  <data name="Generate_enum_member_1_0" xml:space="preserve">
+    <value>Generate enum member '{1}.{0}'</value>
   </data>
-  <data name="Generate_constant_0_in_1" xml:space="preserve">
-    <value>Generate constant '{0}' in '{1}'</value>
+  <data name="Generate_constant_1_0" xml:space="preserve">
+    <value>Generate constant '{1}.{0}'</value>
   </data>
   <data name="Generate_read_only_property_1_0" xml:space="preserve">
     <value>Generate read-only property '{1}.{0}'</value>
@@ -228,8 +228,8 @@
   <data name="Generate_read_only_field_1_0" xml:space="preserve">
     <value>Generate read-only field '{1}.{0}'</value>
   </data>
-  <data name="Generate_field_0_in_1" xml:space="preserve">
-    <value>Generate field '{0}' in '{1}'</value>
+  <data name="Generate_field_1_0" xml:space="preserve">
+    <value>Generate field '{1}.{0}'</value>
   </data>
   <data name="Generate_local_0" xml:space="preserve">
     <value>Generate local '{0}'</value>
@@ -583,11 +583,11 @@
   <data name="Unknown_symbol_kind" xml:space="preserve">
     <value>Unknown symbol kind</value>
   </data>
-  <data name="Generate_abstract_property_0_in_1" xml:space="preserve">
-    <value>Generate abstract property '{0}' in '{1}'</value>
+  <data name="Generate_abstract_property_1_0" xml:space="preserve">
+    <value>Generate abstract property '{1}.{0}'</value>
   </data>
-  <data name="Generate_abstract_method_0_in_1" xml:space="preserve">
-    <value>Generate abstract method '{0}' in '{1}'</value>
+  <data name="Generate_abstract_method_1_0" xml:space="preserve">
+    <value>Generate abstract method '{1}.{0}'</value>
   </data>
   <data name="Generate_method_1_0" xml:space="preserve">
     <value>Generate method '{1}.{0}'</value>
@@ -1150,5 +1150,32 @@ This version used in: {2}</value>
   </data>
   <data name="Add_document_0" xml:space="preserve">
     <value>Add document '{0}'</value>
+  </data>
+  <data name="Add_argument_name_0" xml:space="preserve">
+    <value>Add argument name '{0}'</value>
+  </data>
+  <data name="Remove_unused_variable" xml:space="preserve">
+    <value>Remove unused variable</value>
+  </data>
+  <data name="Convert_to_binary" xml:space="preserve">
+    <value>Convert to binary</value>
+  </data>
+  <data name="Convert_to_decimal" xml:space="preserve">
+    <value>Convert to decimal</value>
+  </data>
+  <data name="Convert_to_hex" xml:space="preserve">
+    <value>Convert to hex</value>
+  </data>
+  <data name="Separate_thousands" xml:space="preserve">
+    <value>Separate thousands</value>
+  </data>
+  <data name="Separate_words" xml:space="preserve">
+    <value>Separate words</value>
+  </data>
+  <data name="Separate_nibbles" xml:space="preserve">
+    <value>Separate nibbles</value>
+  </data>
+  <data name="Remove_separators" xml:space="preserve">
+    <value>Remove separators</value>
   </data>
 </root>

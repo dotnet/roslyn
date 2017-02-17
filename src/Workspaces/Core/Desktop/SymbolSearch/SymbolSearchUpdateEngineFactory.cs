@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 var client = await workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var emptySolution = workspace.CreateSolution(workspace.CurrentSolution.Id);
-
                     // We create a single session and use it for the entire lifetime of this process.
                     // That single session will be used to do all communication with the remote process.
                     // This is because each session will cause a new instance of the RemoteSymbolSearchUpdateEngine
@@ -34,7 +32,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // much less clean and would make some of the state management much more complex.
                     var session = await client.CreateServiceSessionAsync(
                         WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine,
-                        emptySolution, logService, cancellationToken).ConfigureAwait(false);
+                        logService,
+                        cancellationToken).ConfigureAwait(false);
 
                     return new RemoteUpdateEngine(session);
                 }
