@@ -10,40 +10,40 @@ Public Class ParseXmlDocComments
 
     <Fact()>
     Public Sub ParseOneLineText()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 ''' hello doc comments!
                 Module m1
                 End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseImmediateXmlDocText()
-        ParseAndVerify(<![CDATA['''hello doc comments!
+        ParseAndVerify("'''hello doc comments!
                 Module m1
                 End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseImmediateXmlDocElement()
-        ParseAndVerify(<![CDATA['''<qqq> blah </qqq>
+        ParseAndVerify("'''<qqq> blah </qqq>
                 Module m1
                 End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseImmediateXmlDocComment()
-        ParseAndVerify(<![CDATA['''<!-- qqqqq -->
+        ParseAndVerify("'''<!-- qqqqq -->
                 Module m1
                 End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseMultilineXmlDocElement()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 '''
                 '''<qqq> 
                 '''<aaa>blah 
@@ -52,17 +52,17 @@ Public Class ParseXmlDocComments
 
                 Module m1
                 End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseMultiLineText()
-        Dim multiline = ParseAndVerify(<![CDATA[
+        Dim multiline = ParseAndVerify("
                 ''' hello doc comments!
                 ''' hello doc comments!
                 Module m1
                 End Module
-            ]]>).GetRoot()
+            ").GetRoot()
 
         Dim comments = multiline.GetFirstToken.LeadingTrivia
 
@@ -77,11 +77,11 @@ Public Class ParseXmlDocComments
 
     <Fact>
     Public Sub ParseOneLineTextAndMarkup()
-        Dim node = ParseAndVerify(<![CDATA[
+        Dim node = ParseAndVerify("
                 ''' hello doc comments! <!-- qqqqq --> <qqq> blah </qqq> 
                 Module m1
                 End Module
-            ]]>)
+            ")
 
         Dim tk = node.GetRoot().FindToken(25)
 
@@ -93,12 +93,12 @@ Public Class ParseXmlDocComments
 
     <Fact()>
     Public Sub ParseTwoLineTextAndMarkup()
-        Dim node = ParseAndVerify(<![CDATA[
+        Dim node = ParseAndVerify("
                 ''' hello doc comments! <!-- qqqqq --> <qqq> blah </qqq> 
                 ''' hello doc comments! <!-- qqqqq --> <qqq> blah </qqq>
                 Module m1
                 End Module
-            ]]>)
+            ")
 
 
         Dim tk = node.GetRoot().FindToken(25)
@@ -116,30 +116,30 @@ Public Class ParseXmlDocComments
 
     <Fact>
     Public Sub XmlDocCommentsSpanLines()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 ''' hello doc comments! <!-- qqqqq 
                 '''--> <qqq> blah </qqq> 
                 ''' hello doc comments! <!--
                 ''' qqqqq --> <qqq> blah </qqq>
                 Module m1
                 End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub XmlDocCommentsAttrSpanLines()
-        ParseAndVerify(<![CDATA[
-                ''' <qqq a
-                '''=
-                '''
-                '''"
-                '''h
-                ''' &lt;
-                ''' "
-                '''> blah </qqq>
-                Module m1
-                End Module
-            ]]>)
+        ParseAndVerify("
+''' <qqq a
+'''=
+'''
+'''""
+'''h
+''' <
+''' ""
+'''> blah </qqq>
+Module m1
+End Module
+")
     End Sub
 
     <WorkItem(893656, "DevDiv/Personal")>
@@ -147,9 +147,9 @@ Public Class ParseXmlDocComments
     <Fact>
     Public Sub TickTickTickKind()
         ParseAndVerify(
-            " '''<qqq> blah </qqq>" & vbCrLf &
-            "Module m1" & vbCrLf &
-            "End Module"
+"'''<qqq> blah </qqq>
+Module m1
+End Module"
         ).
         FindNodeOrTokenByKind(SyntaxKind.XmlElementStartTag).VerifyPrecedingCommentIsTrivia()
     End Sub
@@ -157,10 +157,10 @@ Public Class ParseXmlDocComments
     <Fact>
     Public Sub TickTickTickString()
         ParseAndVerify(
-             "'''<qqq aa=""qq" & vbCrLf &
-             "'''qqqqqqqqqqqqqqqqqq""> </qqq>" & vbCrLf &
-             "Module m1" & vbCrLf &
-             "End Module"
+"'''<qqq aa=""qq
+'''qqqqqqqqqqqqqqqqqq""""> </qqq>
+Module m1
+End Module"
          ).
          FindNodeOrTokenByKind(SyntaxKind.XmlTextLiteralToken, 2).VerifyPrecedingCommentIsTrivia()
     End Sub
@@ -168,10 +168,10 @@ Public Class ParseXmlDocComments
     <Fact>
     Public Sub TickTickTickSpaceString()
         ParseAndVerify(
-             "'''<qqq aa=""qq" & vbCrLf &
-             " '''qqqqqqqqqqqqqqqqqq""> </qqq>" & vbCrLf &
-             "Module m1" & vbCrLf &
-             "End Module"
+"'''<qqq aa=""qq
+ '''qqqqqqqqqqqqqqqqqq""""> </qqq>
+Module m1
+End Module"
          ).
          FindNodeOrTokenByKind(SyntaxKind.XmlTextLiteralToken, 2).VerifyPrecedingCommentIsTrivia()
     End Sub
@@ -179,11 +179,11 @@ Public Class ParseXmlDocComments
     <Fact>
     Public Sub TickTickTickMarkup()
         ParseAndVerify(
-            "'''<qqq " & vbCrLf &
-            "'''aaaaaaaaaaaaaaa=""qq""> " & vbCrLf &
-            "'''</qqq>" & vbCrLf &
-            "Module m1" & vbCrLf &
-            "End Module"
+"'''<qqq 
+'''aaaaaaaaaaaaaaa=""""qq""""> 
+'''</qqq>
+Module m1
+End Module"
         ).
         FindNodeOrTokenByKind(SyntaxKind.XmlNameToken, 2).VerifyPrecedingCommentIsTrivia()
     End Sub
@@ -191,11 +191,11 @@ Public Class ParseXmlDocComments
     <Fact>
     Public Sub TickTickTickSpaceMarkup()
         ParseAndVerify(
-            "'''<qqq " & vbCrLf &
-            " '''aaaaaaaaaaaaaaa=""qq""> " & vbCrLf &
-            "'''</qqq>" & vbCrLf &
-            "Module m1" & vbCrLf &
-            "End Module"
+"'''<qqq 
+'''aaaaaaaaaaaaaaa=""""qq""""> 
+'''</qqq>""
+Module m1
+End Module"
         ).
         FindNodeOrTokenByKind(SyntaxKind.XmlNameToken, 2).VerifyPrecedingCommentIsTrivia()
     End Sub
@@ -203,7 +203,7 @@ Public Class ParseXmlDocComments
     <WorkItem(900384, "DevDiv/Personal")>
     <Fact>
     Public Sub InvalidCastExceptionWithEvent()
-        ParseAndVerify(<![CDATA[Class Foo
+        ParseAndVerify("Class Foo
     ''' <summary>
     ''' Foo
     ''' </summary>
@@ -216,13 +216,13 @@ Public Class ParseXmlDocComments
         End RaiseEvent
     End Event
 End Class
-            ]]>)
+            ")
     End Sub
 
     <WorkItem(904414, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseMalformedDocComments()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M1
 '''<doc>
 '''    <></>
@@ -239,7 +239,7 @@ Module M2
 Sub Foo()
 End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
     <errors>
         <error id="42304" warning="True"/>
         <error id="42304" warning="True"/>
@@ -251,29 +251,29 @@ End Module
     <WorkItem(904903, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseShortEndTag()
-        ParseAndVerify(<![CDATA[
-                '''<qqq> 
-                '''<a><b></></>
-                '''</>
-                Module m1
-                End Module
-            ]]>)
+        ParseAndVerify("
+'''<qqq> 
+'''<a><b></></>
+'''</>
+Module m1
+End Module
+")
     End Sub
 
     <WorkItem(927580, "DevDiv/Personal")>
     <WorkItem(927696, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseXmlDocBadNamespacePrefix()
-        ParseAndVerify(<![CDATA[Module M1
-'''<doc xmlns:a:b="abc"/>
+        ParseAndVerify("Module M1
+'''<doc xmlns:a:b=""abc""/>
 Sub Main()
 End Sub
-End Module]]>)
-        ParseAndVerify(<![CDATA[Module M1
-'''<doc xmlns:a:b="abc"/>
+End Module")
+        ParseAndVerify("Module M1
+'''<doc xmlns:a:b=""abc""/>
 Sub Main()
 End Sub
-End Module]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+End Module", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
@@ -283,7 +283,7 @@ End Module]]>, VisualBasicParseOptions.Default.WithDocumentationMode(Documentati
     <WorkItem(927781, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseXmlDocCommentMalformedEndTag()
-        ParseAndVerify(<![CDATA[Module M1
+        ParseAndVerify("Module M1
 '''<test>
 '''</test
 Sub Main()
@@ -292,7 +292,7 @@ End Sub
 Sub Foo()
 End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
@@ -302,7 +302,7 @@ End Module
     <WorkItem(927785, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseXmlDocCommentMalformedPI()
-        ParseAndVerify(<![CDATA[Module M1
+        ParseAndVerify("Module M1
 '''<doc><? ?></doc>
 Sub Main()
 End Sub
@@ -311,12 +311,12 @@ End Module
 Sub Foo()
 End Sub
 End Module
-]]>,
+",
         <errors>
             <error id="30622"/>
         </errors>)
 
-        ParseAndVerify(<![CDATA[Module M1
+        ParseAndVerify("Module M1
 '''<doc><? ?></doc>
 Sub Main()
 End Sub
@@ -325,7 +325,7 @@ End Module
 Sub Foo()
 End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
@@ -338,23 +338,23 @@ End Module
     <WorkItem(929684, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseDTDInXmlDoc()
-        ParseAndVerify(<![CDATA[Module Module1
+        ParseAndVerify("Module Module1
     '''<!DOCTYPE Foo []>
     '''<summary>
     '''</summary>
     Sub Main()
     End Sub
 End Module
-]]>)
+")
 
-        ParseAndVerify(<![CDATA[Module Module1
+        ParseAndVerify("Module Module1
     '''<!DOCTYPE Foo []>
     '''<summary>
     '''</summary>
     Sub Main()
     End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
         </errors>)
@@ -432,31 +432,31 @@ End Module
     <WorkItem(530663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
     <Fact()>
     Public Sub ParseXmlNameWithLeadingSpaces()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 ''' < summary/>
 Module M
 End Module
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 ''' < summary/>
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
         </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 ''' < 
 ''' summary/>
 Module M
 End Module
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 ''' < 
 ''' summary/>
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
@@ -464,28 +464,28 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(530663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
+    <WorkItem(530663, "http:    //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
     <WorkItem(547297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547297")>
     <Fact>
     Public Sub ParseOpenBracket()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 ''' < 
 Module M
 End Module
-]]>)
+")
     End Sub
 
     <WorkItem(697115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697115")>
     <Fact()>
     Public Sub Bug697115()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Dim x = <x><%= Function()
     ''' <summary/>
     Sub M()
     End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None),
         <errors>
             <error id="30625"/>
             <error id="31151"/>
@@ -494,14 +494,14 @@ End Module
             <error id="31165"/>
             <error id="30636"/>
         </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Dim x = <x><%= Function()
     ''' <summary/>
     Sub M()
     End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse),
         <errors>
             <error id="30625"/>
             <error id="31151"/>
@@ -512,31 +512,31 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(697269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697269")>
+    <WorkItem(697269, "http: //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697269")>
     <Fact()>
     Public Sub Bug697269()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 '''<?a
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304"/>
         </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 '''<?a
 '''b c<x/>
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304"/>
         </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 '''<x><?
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304"/>
             <error id="42304"/>
