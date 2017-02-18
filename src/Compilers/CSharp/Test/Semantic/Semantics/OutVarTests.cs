@@ -23051,10 +23051,7 @@ static bool TakeOutParam<T>(T y, out T x)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(83, 7),
                 // (62,62): error CS0165: Use of unassigned local variable 'u7'
                 //                     x > y7 && TakeOutParam(1, out var u7) && u7 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 62),
-                // (76,60): error CS0165: Use of unassigned local variable 'z9'
-                //             group x > y9 && TakeOutParam(1, out var z9) && z9 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z9").WithArguments("z9").WithLocation(76, 60)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 62)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
