@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitAssignmentOperator(BoundAssignmentOperator node, bool used)
         {
-            var right = node.Right;
-            var loweredRight = VisitExpression(right);
+            var loweredRight = VisitExpression(node.Right);
 
             BoundExpression left = node.Left;
             BoundExpression loweredLeft;
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (eventAccess.EventSymbol.IsWindowsRuntimeEvent)
                         {
                             Debug.Assert(node.RefKind == RefKind.None);
-                            return VisitWindowsRuntimeEventFieldAssignmentOperator(node.Syntax, eventAccess, right);
+                            return VisitWindowsRuntimeEventFieldAssignmentOperator(node.Syntax, eventAccess, loweredRight);
                         }
                         goto default;
                     }
@@ -104,6 +103,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenRight,
                         isCompoundAssignment,
                         isChecked).ToExpression();
+
+                case BoundKind.EventAccess:
+                    var eventAccess = (BoundEventAccess)rewrittenLeft;
+                    Debug.Assert(eventAccess.IsUsableAsField);
+                    if (eventAccess.EventSymbol.IsWindowsRuntimeEvent)
+                    {
+                        const bool isDynamic = false;
+                        return RewriteWindowsRuntimeEventAssignmentOperator(eventAccess.Syntax,
+                                                                            eventAccess.EventSymbol,
+                                                                            EventAssignmentKind.Assignment,
+                                                                            isDynamic,
+                                                                            eventAccess.ReceiverOpt,
+                                                                            rewrittenRight);
+                    }
+
+                    // Only Windows Runtime field-like events can come through here:
+                    // - Assignment operation is not supported for custom (non-field like) events.
+                    // - Access to regular field-like events is expected to be lowered to at least a field access
+                    //   when we reach here.
+                    throw ExceptionUtilities.Unreachable;
 
                 default:
                     return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, RefKind.None, type, used);
