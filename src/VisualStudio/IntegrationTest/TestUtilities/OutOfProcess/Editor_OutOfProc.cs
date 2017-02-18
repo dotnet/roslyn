@@ -43,6 +43,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void MoveCaret(int position)
             => _inProc.MoveCaret(position);
 
+        public void PlaceCaret(string marker, int charsOffset, int occurrence, bool extendSelection, bool selectBlock)
+            => _inProc.PlaceCaret(marker, charsOffset, occurrence, extendSelection, selectBlock);
+
         public string[] GetCompletionItems()
         {
             WaitForCompletionSet();
@@ -99,6 +102,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public bool IsCaretOnScreen()
             => _inProc.IsCaretOnScreen();
+
+        public void AddWinFormButton(string buttonName)
+            => _inProc.AddWinFormButton(buttonName);
+
+        public void DeleteWinFormButton(string buttonName)
+            => _inProc.DeleteWinFormButton(buttonName);
+
+        public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string propertyTypeName = null)
+            => _inProc.EditWinFormButtonProperty(buttonName, propertyName, propertyValue, propertyTypeName);
+
+        public void EditWinFormButtonEvent(string buttonName, string eventName, string eventHandlerName)
+            => _inProc.EditWinFormButtonEvent(buttonName, eventName, eventHandlerName);
+
+        public void VerifyWinFormButtonPropertySet(string buttonName, string propertyName, string expectedPropertyValue)
+            => _inProc.VerifyWinFormButtonPropertySet(buttonName, propertyName, expectedPropertyValue);
 
         /// <summary>
         /// Sends key strokes to the active editor in Visual Studio. Various types are supported by this method:

@@ -47,8 +47,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void BuildSolution(bool waitForBuildToFinish = false)
             => _inProc.BuildSolution(waitForBuildToFinish);
 
+        public void OpenFileWithDesigner(string projectName, string fileName)
+            => _inProc.OpenFileWithDesigner(projectName, fileName);
+
         public void OpenFile(string projectName, string fileName)
             => _inProc.OpenFile(projectName, fileName);
+
+        public void CloseFile(string projectName, string fileName, bool saveFile)
+            => _inProc.CloseFile(projectName, fileName, saveFile);
+
+        public void SaveFile(string projectName, string fileName)
+            => _inProc.SaveFile(projectName, fileName);
 
         public void ReloadProject(string projectName)
             => _inProc.ReloadProject(projectName);
