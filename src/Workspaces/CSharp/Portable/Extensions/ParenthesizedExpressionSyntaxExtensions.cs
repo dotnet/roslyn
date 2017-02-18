@@ -252,8 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return false;
                 }
 
-                var parentBinaryExpression = parentExpression as BinaryExpressionSyntax;
-                if (parentBinaryExpression != null)
+                if (parentExpression is BinaryExpressionSyntax parentBinaryExpression)
                 {
                     // If both the expression and its parent are binary expressions and their kinds
                     // are the same, check to see if they are commutative (e.g. + or *).
@@ -269,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         // necessary -- even if they could be removed depending on whether the parenthesized expression
                         // appears on the left or right side of the parent binary expression.
 
-                        // First, does the parenthesized binary expression result in an operator overload being called?
+                        // First, does the binary expression result in an operator overload being called?
                         var symbolInfo = semanticModel.GetSymbolInfo(binaryExpression);
                         if (symbolInfo.Symbol != null)
                         {
@@ -280,8 +279,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             }
                         }
 
-                        // Second, check the type and converted type of the parenthesized expression. Are they the same?
-                        var typeInfo = semanticModel.GetTypeInfo(node);
+                        // Second, check the type and converted type of the binary expression. Are they the same?
+                        var typeInfo = semanticModel.GetTypeInfo(binaryExpression);
                         if (typeInfo.Type != null && typeInfo.ConvertedType != null)
                         {
                             if (!typeInfo.Type.Equals(typeInfo.ConvertedType))
@@ -303,8 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return parentBinaryExpression.Right == node;
                 }
 
-                var parentAssignmentExpression = parentExpression as AssignmentExpressionSyntax;
-                if (parentAssignmentExpression != null)
+                if (parentExpression is AssignmentExpressionSyntax parentAssignmentExpression)
                 {
                     // Assignment expressions are right associative; removing parens from the LHS changes the association.
                     return parentAssignmentExpression.Left == node;
@@ -362,8 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 //   {x < (x), x > (1 + 2)}
                 //   {x < x, (x) > (1 + 2)}
 
-                var binaryExpression = node.Parent as BinaryExpressionSyntax;
-                if (binaryExpression != null &&
+                if (node.Parent is BinaryExpressionSyntax binaryExpression &&
                     binaryExpression.IsKind(SyntaxKind.LessThanExpression, SyntaxKind.GreaterThanExpression) &&
                     (binaryExpression.IsParentKind(SyntaxKind.Argument) || binaryExpression.Parent is InitializerExpressionSyntax))
                 {
@@ -434,8 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (node.IsParentKind(SyntaxKind.Argument))
             {
                 var argument = (ArgumentSyntax)node.Parent;
-                var argumentList = argument.Parent as ArgumentListSyntax;
-                if (argumentList != null)
+                if (argument.Parent is ArgumentListSyntax argumentList)
                 {
                     var argumentIndex = argumentList.Arguments.IndexOf(argument);
                     if (argumentIndex > 0)
@@ -444,9 +440,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                 }
             }
-            else if (node.Parent is InitializerExpressionSyntax)
+            else if (node.Parent is InitializerExpressionSyntax initializer)
             {
-                var initializer = (InitializerExpressionSyntax)node.Parent;
                 var expressionIndex = initializer.Expressions.IndexOf(node);
                 if (expressionIndex > 0)
                 {
@@ -474,8 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (node.IsParentKind(SyntaxKind.Argument))
             {
                 var argument = (ArgumentSyntax)node.Parent;
-                var argumentList = argument.Parent as ArgumentListSyntax;
-                if (argumentList != null)
+                if (argument.Parent is ArgumentListSyntax argumentList)
                 {
                     var argumentIndex = argumentList.Arguments.IndexOf(argument);
                     if (argumentIndex >= 0 && argumentIndex < argumentList.Arguments.Count - 1)
@@ -484,9 +478,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                 }
             }
-            else if (node.Parent is InitializerExpressionSyntax)
+            else if (node.Parent is InitializerExpressionSyntax initializer)
             {
-                var initializer = (InitializerExpressionSyntax)node.Parent;
                 var expressionIndex = initializer.Expressions.IndexOf(node);
                 if (expressionIndex >= 0 && expressionIndex < initializer.Expressions.Count - 1)
                 {
