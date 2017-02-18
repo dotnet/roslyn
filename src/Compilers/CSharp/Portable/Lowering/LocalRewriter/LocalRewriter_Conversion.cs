@@ -332,6 +332,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         explicitCastInCode: explicitCastInCode,
                         rewrittenType: (NamedTypeSymbol)rewrittenType);
 
+                case ConversionKind.MethodGroup:
+                    {
+                        // we eliminate the method group conversion entirely from the bound nodes following local lowering
+                        var mg = (BoundMethodGroup)rewrittenOperand;
+                        return new BoundDelegateCreationExpression(syntax, argument: mg.ReceiverOpt, methodOpt: oldNode.SymbolOpt, isExtensionMethod: oldNode.IsExtensionMethod, type: rewrittenType);
+                    }
                 default:
                     break;
             }
