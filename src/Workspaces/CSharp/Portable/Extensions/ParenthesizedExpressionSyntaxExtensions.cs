@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class ParenthesizedExpressionSyntaxExtensions
     {
-        public static bool CanRemoveParentheses(this ParenthesizedExpressionSyntax node)
+        public static bool CanRemoveParentheses(this ParenthesizedExpressionSyntax node, SemanticModel semanticModel)
         {
             var expression = node.Expression;
             var parentExpression = node.Parent as ExpressionSyntax;
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // - If the parent is not an expression, do not remove parentheses
             // - Otherwise, parentheses may be removed if doing so does not change operator associations.
             return parentExpression != null
-                ? !RemovalChangesAssociation(node, expression, parentExpression)
+                ? !RemovalChangesAssociation(node, expression, parentExpression, semanticModel)
                 : false;
         }
 
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool RemovalChangesAssociation(ParenthesizedExpressionSyntax node, ExpressionSyntax expression, ExpressionSyntax parentExpression)
+        private static bool RemovalChangesAssociation(ParenthesizedExpressionSyntax node, ExpressionSyntax expression, ExpressionSyntax parentExpression, SemanticModel semanticModel)
         {
             var precedence = expression.GetOperatorPrecedence();
             var parentPrecedence = parentExpression.GetOperatorPrecedence();
@@ -260,6 +260,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     if (parentBinaryExpression.IsKind(SyntaxKind.AddExpression, SyntaxKind.MultiplyExpression) &&
                         node.Expression.Kind() == parentBinaryExpression.Kind())
                     {
+                        // At this point, we know our parenthesized expression contains a binary expression.
+                        var binaryExpression = (BinaryExpressionSyntax)node.Expression;
+
+                        // Now we'll perform a few semantic checks to determine whether removal of the parentheses
+                        // might break semantics. Note that we'll try and be fairly conservative with these. For example,
+                        // we'll assume that failing any of these checks results in the parentheses being declared as
+                        // necessary -- even if they could be removed depending on whether the parenthesized expression
+                        // appears on the left or right side of the parent binary expression.
+
+                        // First, does the parenthesized binary expression result in an operator overload being called?
+                        var symbolInfo = semanticModel.GetSymbolInfo(binaryExpression);
+                        if (symbolInfo.Symbol != null)
+                        {
+                            if (symbolInfo.Symbol is IMethodSymbol methodSymbol &&
+                                methodSymbol.MethodKind == MethodKind.UserDefinedOperator)
+                            {
+                                return true;
+                            }
+                        }
+
+                        // Second, check the type and converted type of the parenthesized expression. Are they the same?
+                        var typeInfo = semanticModel.GetTypeInfo(node);
+                        if (typeInfo.Type != null && typeInfo.ConvertedType != null)
+                        {
+                            if (!typeInfo.Type.Equals(typeInfo.ConvertedType))
+                            {
+                                return true;
+                            }
+                        }
+
                         return false;
                     }
 
