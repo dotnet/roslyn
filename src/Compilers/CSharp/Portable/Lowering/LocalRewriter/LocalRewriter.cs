@@ -268,17 +268,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(removed);
         }
 
-        /// <summary>
-        /// Remove all the listed placeholders.
-        /// </summary>
-        private void RemovePlaceholderReplacements(ArrayBuilder<BoundValuePlaceholderBase> placeholders)
-        {
-            foreach (var placeholder in placeholders)
-            {
-                RemovePlaceholderReplacement(placeholder);
-            }
-        }
-
         public override sealed BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
             // OutDeconstructVarPendingInference nodes are only used within initial binding, but don't survive past that stage

@@ -546,6 +546,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.TupleLiteral:
+                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.VisitLvalue(x), this);
+                    break;
+
                 default:
                     VisitRvalue(node);
                     break;
@@ -1675,9 +1679,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
-            node.Left.VisitAllElements((x, self) => self.VisitLvalue(x), this);
+            VisitLvalue(node.Left);
             VisitRvalue(node.Right);
-
             return null;
         }
 

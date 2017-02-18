@@ -1517,7 +1517,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(1, 2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(14, 16),
                 // (19,9): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(x, y) = new C()").WithArguments("System.ValueTuple<T1, T2>").WithLocation(19, 9)
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(x, y)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(19, 9)
             };
 
             var comp1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll,
