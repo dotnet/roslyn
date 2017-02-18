@@ -14,7 +14,7 @@ Public Class ParseStatements
 
     <Fact>
     Public Sub ParseIf()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
 
@@ -44,12 +44,12 @@ Public Class ParseStatements
                     if true then else :
                     end sub
                End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseDo()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
 
@@ -67,12 +67,12 @@ Public Class ParseStatements
 
                     end sub
                End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseWhile()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         dim x = 1
@@ -88,36 +88,36 @@ Public Class ParseStatements
 
                     end sub
                 End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseFor()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         for i = 0 to 100
                         next
                     end sub
                End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseForEach()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
-                        for each c in "hello"
+                        for each c in ""hello""
                         next
                     end sub
                End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseSelect()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         select i
@@ -128,12 +128,12 @@ Public Class ParseStatements
                         end select
                     end sub
                End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseTry()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         try
@@ -142,12 +142,12 @@ Public Class ParseStatements
                         end try
                     end sub
                End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseUsing()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         using e0
@@ -156,16 +156,16 @@ Public Class ParseStatements
                         using e1 as new C, e2 as new C
                         end using
 
-                        using e3 as new with {.foo="bar"}
+                        using e3 as new with {.foo=""bar""}
                         end using
                     end sub
                End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseUsingMultipleVariablesInAsNew()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         dim a, b as new C
@@ -173,12 +173,12 @@ Public Class ParseStatements
                         end using
                     end sub
                End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseContinue()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         do
@@ -194,12 +194,12 @@ Public Class ParseStatements
                         next
                     end sub
                End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseExit()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub s1()
                         do
@@ -237,13 +237,13 @@ Public Class ParseStatements
                    end get
                    end property
                End Module
-            ]]>)
+            ")
     End Sub
 
     <WorkItem(538594, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538594")>
     <Fact>
     Public Sub ParseOnErrorGoto()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub s1()
                         on error goto 0
@@ -253,35 +253,35 @@ Public Class ParseStatements
                         on error goto mylabel
                     end sub
                End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseResume()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub s1()
                         resume next
                         resume mylabel
                     end sub
                End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseCallStatement()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub s1()
                         call mysub(of string)(1,2,3,4)
                     end sub
                End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseRedim()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Class c1
                     Dim a(,) As Integer
                     Sub s()
@@ -295,37 +295,37 @@ Public Class ParseStatements
                         ReDim Preserve a(0 To 10).a(0 To 10, 0 To 20)
                     End Sub
                 End Class
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseReturn_Bug868414()
         'Bug 868414 - Exception when return is missing expression.
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Class Class1
                     Function Foo() As Integer
                         Return
                     End Function
                 End Class
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseAssignmentOrCall()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 class c1
                     sub s
                         i = 1
                         i(10)
                     end sub
                 end class
-            ]]>)
+            ")
     End Sub
 
     <WorkItem(871360, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLineIfThen()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
                 Function Foo() As Boolean
                     Return True
@@ -338,14 +338,14 @@ Public Class ParseStatements
                     End If
                 End Sub
             End Class
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(539194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539194")>
     <Fact>
     Public Sub ParseSingleLineIfThenWithColon()
         ' Foo should be a call statement and not a label
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module M
   Sub Main()
     If True Then Foo: Else 
@@ -354,7 +354,7 @@ Module M
   Sub Foo()
   End Sub
 End Module
-        ]]>)
+        ")
 
         Dim compUnit = tree.GetRoot()
         Dim moduleM = TryCast(compUnit.ChildNodesAndTokens()(0).AsNode, TypeBlockSyntax)
@@ -367,14 +367,14 @@ End Module
 
     <Fact>
     Public Sub ParseSingleLineIfThenWithElseIf()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module M
   Sub Main()
     If True Then ElseIf True Then x = 2 end if
     If True Then x = 1 elseIf true then x = 2 end if
   End Sub
 End Module
-        ]]>,
+        ",
             Diagnostic(ERRID.ERR_ExpectedEOS, "ElseIf True Then").WithLocation(4, 18),
             Diagnostic(ERRID.ERR_ExpectedEOS, "x").WithLocation(4, 35),
             Diagnostic(ERRID.ERR_ExpectedEOS, "elseIf").WithLocation(5, 24)
@@ -385,7 +385,7 @@ End Module
     <Fact>
     Public Sub ParseColonLineCont()
         ' 2nd Else and ElseIf are dangling in the line ifs
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module M
     Sub Main()
         ' not an error
@@ -401,7 +401,7 @@ Module M2
 
     End Sub
 End Module
-        ]]>,
+        ",
         Diagnostic(ERRID.ERR_LineContWithCommentOrNoPrecSpace, "_"))
     End Sub
 
@@ -409,7 +409,7 @@ End Module
     <Fact>
     Public Sub ParseSingleLineIfThenExtraElse()
         ' 2nd Else and ElseIf are dangling in the line ifs
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System
 Module M
     Sub Main()
@@ -418,7 +418,7 @@ Module M
         If True Then Console.WriteLine Else ElseIf Console.WriteLine
     End Sub
 End Module
-        ]]>,
+        ",
         <errors>
             <error id="30205" message="End of statement expected." start="84" end="88"/>
             <error id="36005" message="'ElseIf' must be preceded by a matching 'If' or 'ElseIf'." start="152" end="176"/>
@@ -429,27 +429,27 @@ End Module
     <Fact>
     Public Sub ParseSingleLineIfWithNestedSingleLineIf()
         ' This is a valid nested line if in a line if
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System
 Module M
     Sub Main()
         If False Then If True Then Else  Else Console.WriteLine(1)
   End Sub
 End Module
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub ParseSingleLineIfWithNestedMultiLineIf1()
         ' This is a single line if that contains an invalid multi line if.  
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System
 Module M
     Sub Main()
         If False Then If True Console.WriteLine(1)
   End Sub
 End Module
-        ]]>,
+        ",
         <errors>
             <error id="30081" message="'If' must end with a matching 'End If'." start="62" end="69"/>
             <error id="30205" message="End of statement expected." start="70" end="77"/>
@@ -459,14 +459,14 @@ End Module
     <Fact>
     Public Sub ParseSingleLineIfWithNestedMultiLineIf2()
         ' This is a single line if that contains an invalid multi line if/then/else. 
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System
 Module M
     Sub Main()
         If False Then If True  Else  Else Console.WriteLine(1)
   End Sub
 End Module
-        ]]>,
+        ",
         <errors>
             <error id="30081" message="'If' must end with a matching 'End If'." start="62" end="69"/>
             <error id="30205" message="End of statement expected."/>
@@ -476,7 +476,7 @@ End Module
     <Fact>
     Public Sub ParseSingleLineIfWithNestedMultiLineIf3()
         ' This is a single line if that contains an invalid multi line if. 
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System
 Module M
     Sub Main()
@@ -485,7 +485,7 @@ Module M
         end if
   End Sub
 End Module
-        ]]>,
+        ",
         <errors>
             <error id="30081" message="'If' must end with a matching 'End If'." start="61" end="68"/>
             <error id="30087" message="'End If' must be preceded by a matching 'If'." start="112" end="118"/>
@@ -496,14 +496,14 @@ End Module
     <Fact>
     Public Sub ParseSingleLineIfWithNestedDoLoop1()
         ' This is a single line if that contains an invalid do .. loop 
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System
 Module M
     Sub Main()
         If true Then do
     End Sub
 End Module
-        ]]>,
+        ",
         <errors>
             <error id="30083" message="'Do' must end with a matching 'Loop'." start="61" end="63"/>
         </errors>)
@@ -512,7 +512,7 @@ End Module
     <Fact>
     Public Sub ParseSingleLineIfWithNestedDoLoop2()
         ' This is a single line if that contains an invalid do .. loop 
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System
 Module M
     Sub Main()
@@ -521,7 +521,7 @@ Module M
         loop
   End Sub
 End Module
-        ]]>,
+        ",
         <errors>
             <error id="30083" message="'Do' must end with a matching 'Loop'." start="61" end="63"/>
             <error id="30091" message="'Loop' must be preceded by a matching 'Do'." start="105" end="109"/>
@@ -531,28 +531,28 @@ End Module
     <Fact>
     Public Sub ParseSingleLineIfWithNestedDoLoop3()
         ' This is a single line if that contains a valid do loop
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System
 Module M
     Sub Main()
         If true Then do : Console.WriteLine(1) : loop
   End Sub
 End Module
-        ]]>)
+        ")
     End Sub
 
 
     <WorkItem(539209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539209")>
     <Fact>
     Public Sub ParseSingleLineSubWithSingleLineIfFollowedByColonComma()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System
 Module Program
     Sub Main()
         Dim a = Sub() If True Then Dim b = 1 :, c = 2
     End Sub
 End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(539210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539210")>
@@ -562,7 +562,7 @@ End Module
         ' the single line if. This regression was caused by scanner change
         ' to scan ":" after trivia. The scanner now scans in new statement state after
         ' the colon and eats up new lines.
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module M
     Sub Main()
         If True Then Console.WriteLine(1) :
@@ -570,7 +570,7 @@ Module M
         Console.WriteLine(2)
   End Sub
 End Module
-        ]]>)
+        ")
 
         Dim compUnit = tree.GetRoot()
         Dim moduleM = TryCast(compUnit.ChildNodesAndTokens()(0).AsNode, TypeBlockSyntax)
@@ -583,7 +583,7 @@ End Module
 
     <Fact>
     Public Sub ParseSingleLineIfFollowedByColonNewLine1()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module M
     Sub Main()
         dim s1 = sub () If True Then Console.WriteLine(1) :
@@ -593,40 +593,40 @@ Module M
         Console.WriteLine(2)
   End Sub
 End Module
-        ]]>)
+        ")
 
     End Sub
 
     <WorkItem(539211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539211")>
     <Fact>
     Public Sub ParseSingleLineSubWithSingleLineIfFollowedByComma()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System
 Module Program
     Sub Main()
         Dim a = Sub() If True Then Console.WriteLine, b = 2
     End Sub
 End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(539211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539211")>
     <Fact>
     Public Sub ParseSingleLineSubWithSingleLineIfFollowedByParen()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System
 Module Program
     Sub Main()
         Dim a = (Sub() If True Then Console.WriteLine), b = 2
     End Sub
 End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(530904, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530904")>
     <Fact>
     Public Sub SingleLineLambdaComma()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -638,7 +638,7 @@ Module Program
             Return
     End Sub
 End Module
-        ]]>,
+        ",
 <errors>
     <error id="30201" message="Expression expected." start="153" end="153"/>
 </errors>)
@@ -648,41 +648,41 @@ End Module
     <Fact>
     Public Sub ParseSingleLineSubWithSingleLineIfWithAnotherSingleLineSub()
         ' The second single line sub is within a var declaration after the end statement in the then clause!
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module Program
   Sub Main()
     Dim a = Sub() If True Then End _
      : Dim b = Sub() If True Then End Else End Else 
   End Sub
 End Module
-]]>)
+")
     End Sub
 
     <WorkItem(539212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539212")>
     <Fact>
     Public Sub ParseSingleLineSubWithIncompleteSingleLineIf()
         ' Dev10 reports single line if must contain one statement.
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module Program
   Sub Main()
     Dim a = Sub() If True Then 
   End Sub
 End Module
-]]>, Diagnostic(ERRID.ERR_ExpectedEndIf, "If True Then"))
+", Diagnostic(ERRID.ERR_ExpectedEndIf, "If True Then"))
     End Sub
 
     <WorkItem(539212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539212")>
     <Fact>
     Public Sub ParseSubLambdaWithIncompleteSingleLineIf()
         ' The single line if actually gets parsed as a block if in both dev10 and roslyn
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module Program
   Sub Main()
     Dim a = Sub() 
         If True Then 
   End Sub
 End Module
-]]>,
+",
 <errors>
     <error id="30026" message="'End Sub' expected." start="18" end="28"/>
     <error id="30081" message="'If' must end with a matching 'End If'." start="56" end="68"/>
@@ -692,44 +692,44 @@ End Module
     <WorkItem(871931, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseErase()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
                 Public vobja() As Object
                 Public Sub Foo()
                     Erase vobja
                 End Sub                
             End Class
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(872003, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseError()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
                 Public Sub Foo()
                     Error 5
                 End Sub                
             End Class
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(872005, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLabel()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
                 Public Sub Foo()
             10:     Dim x = 42
                 End Sub                
             End Class
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(538606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538606")>
     <Fact>
     Public Sub LabelFollowedByMethodInvocation()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module M
               Sub Main()
                 Foo : Foo : Foo()
@@ -738,13 +738,13 @@ End Module
               Sub Foo()
               End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(541358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541358")>
     <Fact>
     Public Sub LabelRelatedToBug8037()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module M
               Sub Main()
 #if 1 < 2
@@ -762,7 +762,7 @@ End Module
               End Sub
 
 ::
-#region "foo" 
+#region ""foo"" 
               Sub Foo()
               End Sub
 ::
@@ -803,11 +803,11 @@ End Module
     Sub Foo7()
     End Sub
             End Module
-        ]]>, <errors>
-                 <error id="32009" message="Method declaration statements must be the first statement on a logical line." start="441" end="451"/>
-                 <error id="32009" message="Method declaration statements must be the first statement on a logical line." start="599" end="635"/>
-                 <error id="30248" message="'If', 'ElseIf', 'Else', 'End If', 'Const', or 'Region' expected." start="853" end="854"/>
-             </errors>)
+        ", <errors>
+               <error id="32009" message="Method declaration statements must be the first statement on a logical line." start="441" end="451"/>
+               <error id="32009" message="Method declaration statements must be the first statement on a logical line." start="599" end="635"/>
+               <error id="30248" message="'If', 'ElseIf', 'Else', 'End If', 'Const', or 'Region' expected." start="853" end="854"/>
+           </errors>)
 
         ' doesn't work, most probably because of the line break ...
         'Diagnostic(ERRID.ERR_MethodMustBeFirstStatementOnLine, "Sub Foo2()"),
@@ -818,20 +818,20 @@ End Module
     <WorkItem(872013, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseMid()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
                 Public Sub Foo(ByRef r As aType)
-                    Mid$(r.S(2, 2), 1, 1) = "-"
-                    Mid(r.S(2, 2), 1, 1) = "-"
+                    Mid$(r.S(2, 2), 1, 1) = "" - ""
+                    Mid(r.S(2, 2), 1, 1) = "" - ""
                 End Sub                
             End Class
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(542623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542623")>
     <Fact>
     Public Sub ParseMidIdentifier1()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Mid
                 Public Sub Foo(ByRef r As aType)
                     Mid.Foo(nothing) ' Roslyn will now recognize this correctly as a member access
@@ -844,7 +844,7 @@ End Module
                 Public Sub Mid(p as Integer)
                 End Sub
             End Class
-        ]]>, Diagnostic(ERRID.ERR_ExpectedComma, ""),
+        ", Diagnostic(ERRID.ERR_ExpectedComma, ""),
              Diagnostic(ERRID.ERR_ExpectedExpression, "")
         )
     End Sub
@@ -852,7 +852,7 @@ End Module
     <WorkItem(542623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542623")>
     <Fact>
     Public Sub ParseMidIdentifier2()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Mid
                 Public Sub Foo(ByRef r As aType)
                 End Sub                
@@ -862,7 +862,7 @@ End Module
                     [Mid](23)
                 End Sub
             End Class
-        ]]>, Diagnostic(ERRID.ERR_ExpectedComma, ""),
+        ", Diagnostic(ERRID.ERR_ExpectedComma, ""),
              Diagnostic(ERRID.ERR_ExpectedExpression, ""),
              Diagnostic(ERRID.ERR_ExpectedEQ, ""),
              Diagnostic(ERRID.ERR_ExpectedExpression, "")
@@ -871,14 +871,14 @@ End Module
 
     <Fact>
     Public Sub ParseMidIdentifier3()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Mid
                 Public Sub Mid(p as Integer)
                     Mid(23, 24,) 
                     [Mid](23)
                 End Sub
             End Class
-        ]]>, Diagnostic(ERRID.ERR_ExpectedExpression, ""),
+        ", Diagnostic(ERRID.ERR_ExpectedExpression, ""),
              Diagnostic(ERRID.ERR_ExpectedEQ, ""),
              Diagnostic(ERRID.ERR_ExpectedExpression, "")
         )
@@ -886,13 +886,13 @@ End Module
 
     <Fact>
     Public Sub ParseMidIdentifier4()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Mid
                 Public Sub Mid(p as Integer)
                     Mid(23, 24, 
                 End Sub
             End Class
-        ]]>, Diagnostic(ERRID.ERR_ExpectedExpression, ""),
+        ", Diagnostic(ERRID.ERR_ExpectedExpression, ""),
              Diagnostic(ERRID.ERR_ExpectedRparen, ""),
              Diagnostic(ERRID.ERR_ExpectedEQ, ""),
              Diagnostic(ERRID.ERR_ExpectedExpression, "")
@@ -902,33 +902,33 @@ End Module
     <WorkItem(872018, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLineIfThenElse()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
                 Sub Method1()
                     Dim IsSA As Short
                     If True Then IsSA = True Else IsSA = False
                 End Sub
             End Class
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(872030, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseRedimClauses()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Function FUN1%()
                     Dim C21#(), C22#(,), C23#()
                     ReDim C21#(1), C22#(2, 1), C23#(2)
                 End Function
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(872034, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseForNext()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     For i = 0 To 1
@@ -936,13 +936,13 @@ End Module
                     Next j, i
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(872042, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseWhen()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Try
@@ -950,13 +950,13 @@ End Module
                     End Try
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(873525, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseAndAlsoInOrElseArgumentList()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Foo(ByVal x As Boolean)
                 End Sub
@@ -967,9 +967,9 @@ End Module
                     Foo(True AndAlso Bar())
                 End Sub
             End Module
-        ]]>)
+        ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Foo(ByVal x As Boolean)
                 End Sub
@@ -980,65 +980,65 @@ End Module
                     Foo(False OrElse Bar())
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(873526, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLineIfThenWithFollowingStatement()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
         Class c1
             Sub foo()
                 If True Then foo()
                 bar()
             End Sub
         End Class
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(874045, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseEnd()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     End
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(874054, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseForEachControlVariableArray()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
-                    Dim files()() As String = {New String() {"Template0.bmp", "Template0.txt"}}
+                    Dim files()() As String = {New String() {""Template0.bmp"", ""Template0.txt""}}
 
                     For Each fs() As String In files
                     Next fs
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(874067, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseQuerySelectWithInitializerFollowedByFrom()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim q = From i In {} Select p = New Object From j In {} Select j
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(874074, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseExtensionMethodInvokeOnLiteral()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             <System.Runtime.CompilerServices.Extension()>
             Module Module1
                 Sub Main()
@@ -1051,13 +1051,13 @@ End Module
                     Return True
                 End Function
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(874120, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseDoUntilNested()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Do Until True
@@ -1066,19 +1066,19 @@ End Module
                     Loop
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(874355, "DevDiv/Personal")>
     <Fact>
     Public Sub BC31151ERR_MissingXmlEndTag_ParseLessThan()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim a = ( < 13)
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30198"/>
             <error id="30636"/>
@@ -1093,7 +1093,7 @@ End Module
     <WorkItem(875188, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseSelectCaseClauses()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main() 
                     Dim bytevar                                        
@@ -1102,7 +1102,7 @@ End Module
                     End Select                                           
                 End Sub
             End Module    
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(875194, "DevDiv/Personal")>
@@ -1119,95 +1119,95 @@ End Module
     <WorkItem(879296, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseRightShiftEquals()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim i = &H1000
                     i >>= 1
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(879373, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLambdaFollowedByColon()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim x = Function() 3 :
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(879385, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseQueryGroupByIntoWithXmlLiteral()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim col1 As IQueryable = Nothing
                     Dim q3 = From i In col1 Group el1.<moo>.@attr1, el1.<moo> By el1...<moo> Into G=Group
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(879690, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseThrow()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Throw
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(536076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536076")>
     <Fact>
     Public Sub ParseQueryFromNullableRangeVariable()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim col As New Collections.ArrayList()
                     Dim w3 = From i? As Integer In col
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(880312, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseEmptyMultilineFunctionLambda()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim f = Function()
                             End Function
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub ParseEmptyMultilineSubLambda()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     dim s = Sub()
                             End Sub
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(881451, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseQueryIntoAllImplicitLineContinuation()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim i10 = Aggregate el In coll1 Into All(
@@ -1215,13 +1215,13 @@ End Module
                         )
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(881528, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseMethodInvocationNestedImplicitLineContinuation()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Foo(
@@ -1231,13 +1231,13 @@ End Module
                     )
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(881570, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLambdaInvokeDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim x = Function()
@@ -1245,52 +1245,52 @@ End Module
                             End Function()
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(881585, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLambdaBodyWithLineIfForEach()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim m1, list2() As Integer
                     Dim x = Sub() If True Then For Each i In list2 : m1 = i : Exit Sub : Exit For : Next
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(881590, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLambdaDeclarationCommaSeparated()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim s1 = Sub()
                              End Sub, s2 = Sub() End
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(881597, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseQueryCollectionExpressionContainsLambda()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
-                    Dim x2 = From f In {Sub() Console.WriteLine("Hello")}
+                    Dim x2 = From f In {Sub() Console.WriteLine(""Hello"")}
                              Select f
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(531540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531540")>
     <Fact>
     Public Sub SelectCaseInLambda()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module Program
     Sub Main(args As String())
  
@@ -1299,18 +1299,18 @@ Module Program
                                 Select Case num
  
                                     Case Is = 10
-                                        Console.WriteLine("10")
+                                        Console.WriteLine(""10"")
                                 End Select
                 End Function
     End Sub
 End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(530633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530633")>
     <Fact>
     Public Sub SubImplements()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Interface I
     Property A As Action
 End Interface
@@ -1319,30 +1319,30 @@ Class C
     Implements I
     Property A As Action = Sub() Implements I.A
 End Class
-        ]]>,
+        ",
         <errors>
-            <error id="30024" message="Statement is not valid inside a method." start="112" end="126"/>
+            <error id="30024" message="Statement Is Not valid inside a method." start="112" end="126"/>
         </errors>)
     End Sub
 
     <WorkItem(881603, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseTernaryIfReturningLambda()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim x2 = If(True, Nothing, Sub()
-                                                   Console.WriteLine("Hi")
+                                                   Console.WriteLine(""Hi"")
                                                End Sub)
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(881606, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLambdaMethodArgument()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Foo(a As Action)
                 End Sub
@@ -1352,9 +1352,9 @@ End Class
                         End Sub)
                 End Sub
             End Module
-        ]]>)
+        ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Foo(a As Action)
                 End Sub
@@ -1362,39 +1362,39 @@ End Class
                     Foo(Sub(c) Console.WriteLine(c))
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(881614, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLineIfThenElseIfElse()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim x = 0
                     If True Then x = 1 Else If False Then x = 2 Else x = 3
                 End Sub
             End Module
-       ]]>)
+       ")
     End Sub
 
     <WorkItem(881640, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseBinaryIfReturningLambdaArray()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim e1 = If({Sub()
                                  End Sub}, {})
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(881826, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLambdaDeclareMultipleCommaSeparated()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim m = Sub(ByRef x As String, _
@@ -1404,13 +1404,13 @@ End Class
                                                                                 Console.WriteLine(x)     
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(881827, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseGenericNoTypeArgsImplicitLineContinuation()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim x = GetType(Action(Of
@@ -1418,52 +1418,52 @@ End Class
                             )     
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(882391, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseRightShiftLineContinuation()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim x = 4 >> _
                             1     
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(882801, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseObjectInitializerParenthesizedLambda()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
                 Sub Test()
                     Dim e = New With {.f = New Action(Of Integer)(Sub() If True Then Stop)}               
                     Dim g = 3
                 End Sub
             End Class
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(883286, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLambdaSingleLineWithFollowingStatements()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim x = Sub() Main()
                     Main()
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(882934, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLambdaSingleLineIfInsideIfBlock()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     If True Then
@@ -1472,28 +1472,28 @@ End Class
                     End If
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub ParseLambdaSingleLineIfWithColon()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Sub M()
         Dim x = Sub() If True Then :
     End Sub
 End Module
-]]>,
+",
             <errors>
                 <error id="30081" message="'If' must end with a matching 'End If'."/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Sub M()
         Dim x = Sub() If True Then : End If
     End Sub
 End Module
-]]>,
+",
             <errors>
                 <error id="36918" message="Single-line statement lambdas must include exactly one statement."/>
             </errors>)
@@ -1502,7 +1502,7 @@ End Module
     <WorkItem(546693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546693")>
     <Fact()>
     Public Sub ParseLambdaSingleLineIfWithColonElseIfInsideIfBlock_1()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Sub M()
         If True Then
@@ -1511,7 +1511,7 @@ Module M
         End If
     End Sub
 End Module
-        ]]>,
+        ",
             <errors>
                 <error id="30205" message="End of statement expected."/>
                 <error id="30201" message="Expression expected."/>
@@ -1521,7 +1521,7 @@ End Module
     <WorkItem(546693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546693")>
     <Fact()>
     Public Sub ParseLambdaSingleLineIfWithColonElseIfInsideIfBlock_2()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Sub M()
         If True Then
@@ -1529,7 +1529,7 @@ Module M
         End If
     End Sub
 End Module
-        ]]>,
+        ",
             <errors>
                 <error id="30205" message="End of statement expected."/>
             </errors>)
@@ -1537,7 +1537,7 @@ End Module
 
     <Fact()>
     Public Sub ParseLambdaSingleLineIfWithColonElseInsideIfBlock()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Sub M()
         If True Then
@@ -1545,12 +1545,12 @@ Module M
         End If
     End Sub
 End Module
-        ]]>)
+        ")
     End Sub
 
     <Fact()>
     Public Sub ParseLambdaSingleLineIfWithColonElseSpaceIfInsideIfBlock()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Sub M()
         If True Then
@@ -1558,86 +1558,86 @@ Module M
         End If
     End Sub
 End Module
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub ParseLambdaSingleLineIfWithStatementColon()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Sub M()
         Dim x = Sub() If True Then M() :
     End Sub
 End Module
-]]>)
+")
     End Sub
 
     <Fact>
     Public Sub ParseLambdaSingleLineIfWithStatementColonElse()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Sub M()
         Dim x = Sub() If True Then M() : Else
     End Sub
 End Module
-]]>)
+")
     End Sub
 
     <WorkItem(530940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530940")>
     <Fact()>
     Public Sub ParseSingleLineIfColon()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module Program
     Sub M()
         If True Then Return : Else
     End Sub
 End Module
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 Module Program
     Sub M()
         If True Then Return : Return Else
     End Sub
 End Module
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 Module Program
     Sub M()
         If True Then M() : M() Else
     End Sub
 End Module
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 Module Program
     Sub M()
         If True Then Return : _
         Else
     End Sub
 End Module
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 Module Program
     Sub M()
         If True Then Return : _
         Return Else
     End Sub
 End Module
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 Module Program
     Sub M()
         If True Then M() : _
         M() Else
     End Sub
 End Module
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 Module Program
     Sub M()
         Return Else
     End Sub
 End Module
-]]>,
+",
             <errors>
                 <error id="30205"/>
             </errors>)
@@ -1646,30 +1646,30 @@ End Module
     <WorkItem(601004, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601004")>
     <Fact()>
     Public Sub ParseSingleLineIfEmptyElse()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Dim x = Sub() If True Then Else
 End Module
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 Module M
     Sub M()
         If True Then Else
     End Sub
 End Module
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 Module M
     Dim x = Sub() If True Then Return Else
 End Module
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+        ParseAndVerify("
 Module M
     Sub M()
         If True Then Return Else
     End Sub
 End Module
-]]>)
+")
     End Sub
 
     ''' <summary>
@@ -1678,7 +1678,7 @@ End Module
     <WorkItem(530966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530966")>
     <Fact()>
     Public Sub ParseEmptyStatementFollowingColon()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module M
     Sub M()
         M() : 
@@ -1692,7 +1692,7 @@ L4: M4():
 L5: : M5()
     End Sub
 End Module
-]]>)
+")
         Dim root = tree.GetRoot()
         ' If/Else statement lists should not contain EmptyToken.
         Dim tokens = root.DescendantTokens().Select(Function(t) t.Kind).ToArray()
@@ -1754,13 +1754,13 @@ End Module
     <WorkItem(531486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531486")>
     <Fact()>
     Public Sub ParseSingleLineIfElse()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module Program
     Sub Main()
         Dim x = Sub() If True Then ElseIf False Then
     End Sub
 End Module
-]]>,
+",
 <errors>
     <error id="30205" message="End of statement expected." start="66" end="82"/>
 </errors>)
@@ -1769,7 +1769,7 @@ End Module
     <WorkItem(546910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546910")>
     <Fact()>
     Public Sub ParseMultiLineIfLambdaWithStatementColonElse()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Sub M()
         If True Then
@@ -1777,7 +1777,7 @@ Module M
         End If
     End Sub
 End Module
-]]>,
+",
 <errors>
     <error id="36918"/>
 </errors>)
@@ -1786,13 +1786,13 @@ End Module
     <WorkItem(546910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546910")>
     <Fact()>
     Public Sub ParseSingleLineIfLambdaWithStatementColonElse()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Sub M()
         If True Then Dim x = Sub() M() : Else
     End Sub
 End Module
-]]>,
+",
 <errors>
     <error id="36918"/>
 </errors>)
@@ -1801,7 +1801,7 @@ End Module
     <WorkItem(882943, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLambdaExitFunction()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim f = Function()
@@ -1809,81 +1809,81 @@ End Module
                             End Function
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(883063, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLambdaSingleLineIfInPreprocessorIf()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
             #If True Then
                 Dim x = 0
                 Dim y = Sub() If True Then x = 1 : x = 2
             #End If
             End Class
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(883204, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseQueryLetLineContinuation()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
-                    Dim x11 = From i In (<e e="v"></e>.<e>) Let j = i.@e _
+                    Dim x11 = From i In (<e e=""v""></e>.<e>) Let j = i.@e _
                               Select j
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(883646, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLambdaCallsEndInArrayInitializer()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()      
                     Dim f = {Sub() End}
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(883726, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLambdaNestedCall()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
                 Function Foo()
                     Dim x = Sub() Call Sub()
-                                           Console.WriteLine("hi")
+                                           Console.WriteLine(""hi"")
                                        End Sub
                     Return True
                 End Function
             End Class
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(895166, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseCommentWithDoubleTicks()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                ''string
-            ]]>)
+            ")
     End Sub
 
     'Parse a nested line if with an else clause.  Else should associate with nearest if.
     <WorkItem(895059, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLineIfWithNestedLineIfAndElse()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
         Class C
             Sub s
                 If o1 Then If o2 Then X = 1 Else X = 2 
             End Sub
         End Class
-]]>)
+")
     End Sub
 
     <Fact>
@@ -1938,12 +1938,12 @@ End Module
     <Fact>
     Public Sub ParseMultiLineStatement()
         Dim str =
-            <Q>
+            "
                 For i as integer = 1 to 10
                     While true
                     End While
                 Next
-            </Q>.Value
+            "
 
         Dim statement = SyntaxFactory.ParseExecutableStatement(str)
         Assert.Equal(False, statement.ContainsDiagnostics)
@@ -1953,14 +1953,14 @@ End Module
     <Fact>
     Public Sub Parse2MultiLineStatement01()
         Dim str =
-            <Q>
+            "
                 For i as integer = 1 to 10
                     While true
                     End While
                 Next
                 While true
                 End While
-            </Q>.Value
+            "
 
         Dim statement = SyntaxFactory.ParseExecutableStatement(str)
         Assert.Equal(True, statement.ContainsDiagnostics)
@@ -1970,14 +1970,14 @@ End Module
     <Fact>
     Public Sub Parse2MultiLineStatement02()
         Dim str =
-            <Q>
+            "
                 For i as integer = 1 to 10
                     While true
                     End While
                 Next
                 While true
                 End While
-            </Q>.Value
+            "
 
         Dim statement = SyntaxFactory.ParseExecutableStatement(str, consumeFullText:=False)
         Assert.Equal(False, statement.ContainsDiagnostics)
@@ -1987,14 +1987,14 @@ End Module
     <Fact>
     Public Sub ParseBadMultiLineStatement()
         Dim str =
-            <Q>
+            "
                 For i as integer = 1 to 10
                     While true
                     End Sub
                 Next
                 While true
                 End While
-            </Q>.Value
+            "
 
         Dim statement = SyntaxFactory.ParseExecutableStatement(str)
         Assert.Equal(True, statement.ContainsDiagnostics)
@@ -2004,7 +2004,7 @@ End Module
     <WorkItem(537169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537169")>
     <Fact>
     Public Sub ParseGettypeNextString()
-        ParseAndVerify(<![CDATA[Next.foo(GetType(Func(Of A))), "")]]>,
+        ParseAndVerify("Next.foo(GetType(Func(Of A))), """")",
             Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next.foo(GetType(Func(Of A))), """""),
             Diagnostic(ERRID.ERR_ExtraNextVariable, ".foo(GetType(Func(Of A)))"))
     End Sub
@@ -2012,7 +2012,7 @@ End Module
     <WorkItem(538515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538515")>
     <Fact>
     Public Sub IncParseAGPower17()
-        Dim code As String = (<![CDATA[
+        Dim code As String = "
 Namespace AGPower17
     Friend Module AGPower17mod
         Sub AGPower17()
@@ -2055,7 +2055,7 @@ Namespace AGPower17
     End Module
 End Namespace
 
-]]>).Value
+"
 
         ParseAndVerify(code)
     End Sub
@@ -2063,17 +2063,17 @@ End Namespace
     <WorkItem(539055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539055")>
     <Fact>
     Public Sub ParseReturnFollowedByComma()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module Module1    
     Dim x = Sub() Return, r = 42
 End Module
-]]>)
+")
     End Sub
 
     <WorkItem(538443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538443")>
     <Fact>
     Public Sub ParseMultiIfThenElseOnOneLine()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Imports System
 Module M
 Sub Main()
@@ -2084,13 +2084,13 @@ dim x = sub ()
 end sub
 End Sub
 End Module
-]]>)
+")
     End Sub
 
     <WorkItem(538440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538440")>
     <Fact>
     Public Sub ParseSingleIfElseTerminatedByColon()
-        Dim t = ParseAndVerify(<![CDATA[ 
+        Dim t = ParseAndVerify(" 
 Imports System
 Module M
 Sub Main()
@@ -2099,7 +2099,7 @@ If True Then Console.WriteLine(1) Else Console.WriteLine(2) : Console.WriteLine(
 If True Then Console.WriteLine(4) Else : Console.WriteLine(5)
 End Sub
 End Module
-]]>)
+")
         Dim moduleBlock = t.GetRoot().ChildNodesAndTokens()(1)
         Dim mainBlock = moduleBlock.ChildNodesAndTokens()(1)
         Dim if1 = mainBlock.ChildNodesAndTokens()(1)
@@ -2115,28 +2115,28 @@ End Module
     <WorkItem(4784, "DevDiv_Projects/Roslyn")>
     <Fact>
     Public Sub ParseSingleLineSubFollowedByComma()
-        Dim t = ParseAndVerify(<![CDATA[
+        Dim t = ParseAndVerify("
 Imports System
 Module M
 Sub Main()
     session.Raise(Sub(sess) AddHandler sess.SelectedSignatureChanged, Sub(s, e) Return, New SelectedSignatureChangedEventArgs(Nothing, bestMatch))
 End Sub
 End Module
-]]>)
+")
     End Sub
 
     <WorkItem(538481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538481")>
     <Fact>
     Public Sub ParseLineContAtEnd()
-        Dim t = ParseAndVerify(<![CDATA[
+        Dim t = ParseAndVerify("
 Module M
 End Module
- _]]>)
+ _")
     End Sub
 
     <Fact>
     Public Sub ParseHandlerStatements()
-        Dim t = ParseAndVerify(<![CDATA[
+        Dim t = ParseAndVerify("
 Imports System
 Module M
 
@@ -2146,7 +2146,7 @@ Sub Main()
     RemoveHandler Button1.Click, addressof Button1_Click
 End Sub
 End Module
-]]>)
+")
         Dim moduleBlock = t.GetRoot().ChildNodesAndTokens()(1)
         Dim mainBlock = moduleBlock.ChildNodesAndTokens()(1)
         Dim ah = mainBlock.ChildNodesAndTokens()(2)
@@ -2158,7 +2158,7 @@ End Module
     <Fact>
     Public Sub Regression5150()
 
-        Dim code = <String>Module Program
+        Dim code = "Module Program
 
   Sub Main()
 
@@ -2173,7 +2173,7 @@ End Module
   End Sub
 
 End Module
-</String>.Value
+"
 
         Dim compilation = SyntaxFactory.ParseCompilationUnit(code)
 
@@ -2197,7 +2197,7 @@ End Module
     <Fact()>
     Public Sub Regression5150WithStaticLocal()
 
-        Dim code = <String>Module Program
+        Dim code = "Module Program
 
   Sub Main()
 
@@ -2212,7 +2212,7 @@ End Module
   End Sub
 
 End Module
-</String>.Value
+"
 
         Dim compilation = SyntaxFactory.ParseCompilationUnit(code)
 
@@ -2237,7 +2237,7 @@ End Module
 
         ' Verify that "::" in the else of a single line if does not terminate the single line if. 
         ' The else contains a call, empty statement and the second single line if.
-        Dim code = <String>
+        Dim code = "
     Module Module1
         Sub Main()
              If True Then Foo(1) Else Foo(2) :: If True Then Foo(3) Else Foo(4) : Foo(5)
@@ -2247,7 +2247,7 @@ End Module
             Console.WriteLine(i)
         End Sub
     End Module
-</String>.Value
+"
 
         Dim compilation = SyntaxFactory.ParseCompilationUnit(code)
 
@@ -2268,10 +2268,10 @@ End Module
     <Fact>
     Public Sub TestForEachAfterOffset()
         Const prefix As String = "GARBAGE"
-        Dim forEachText = <![CDATA['A for each statement
+        Dim forEachText = "'A for each statement
                             for each a in b
                             next
-                    ]]>.Value
+                    "
         Dim leading = SyntaxFactory.ParseLeadingTrivia(prefix + forEachText, offset:=prefix.Length)
         Assert.Equal(3, leading.Count)
         Assert.Equal(SyntaxKind.CommentTrivia, leading(0).Kind)
@@ -2302,14 +2302,14 @@ End Module
     <Fact()>
     Public Sub ParseBadCollectionRangeVariableDeclaration1()
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Imports System
              Class Program
                  Shared Sub Main(args As String())
                      Dim x = From y As Char i, In String.Empty    
                  End Sub
              End Class
-                     ]]>, Diagnostic(ERRID.ERR_ExpectedIn, ""),
+                     ", Diagnostic(ERRID.ERR_ExpectedIn, ""),
                           Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "In"),
                           Diagnostic(ERRID.ERR_ExpectedIn, ""))
     End Sub
@@ -2318,7 +2318,7 @@ End Module
     <Fact()>
     Public Sub ParseLabelAfterElse()
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
     Imports System
     Module M
         Sub Main()
@@ -2326,7 +2326,7 @@ End Module
         Else 100:
             End If
         End Sub
-    End Module]]>, Diagnostic(ERRID.ERR_Syntax, "100"))
+    End Module", Diagnostic(ERRID.ERR_Syntax, "100"))
     End Sub
 
     <WorkItem(544224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544224")>
@@ -2344,14 +2344,14 @@ End Module
 
     <Fact()>
     Public Sub BC30003ERR_MissingNext_ParseOnErrorResume()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub s1()
                         on error resume
                         on error resume next
                     end sub
                End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30003"/>
             </errors>)
@@ -2360,14 +2360,14 @@ End Module
     <WorkItem(536260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536260")>
     <Fact()>
     Public Sub BC30012ERR_LbExpectedEndIf()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                       Module Module1
                         #If True Then
                              Dim d = <aoeu>
                                        #End If
                                      </aoeu>
                       End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30012"/>
             </errors>)
@@ -2376,14 +2376,14 @@ End Module
     <WorkItem(527095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527095")>
     <Fact()>
     Public Sub BC30016ERR_InvOutsideProc_Label()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 3
             End Module
             Module Module2
                 Foo:
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30801"/>
             <error id="30016"/>
@@ -2394,13 +2394,13 @@ End Module
     <WorkItem(874301, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30024ERR_InvInsideProc_Option()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Option Explicit On
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30024"/>
         </errors>)
@@ -2409,14 +2409,14 @@ End Module
     <WorkItem(1531, "DevDiv_Projects/Roslyn")>
     <Fact()>
     Public Sub BC30035ERR_Syntax_ParseErrorPrecededByComment()
-        ParseAndVerify(<![CDATA[Module M1
+        ParseAndVerify("Module M1
 Sub Foo
 'this is a 
 'long
 'comment
 (1).ToString
 End Sub
-End Module]]>,
+End Module",
         <errors>
             <error id="30035" message="Syntax error." start="45" end="46"/>
         </errors>)
@@ -2424,7 +2424,7 @@ End Module]]>,
 
     <Fact()>
     Public Sub BC30058ERR_ExpectedCase()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         select i
@@ -2436,7 +2436,7 @@ End Module]]>,
                         end select
                     end sub
                End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30058"/>
             </errors>)
@@ -2446,13 +2446,13 @@ End Module]]>,
     <WorkItem(926761, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30071ERR_CaseElseNoSelect()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Case Else
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30071"/>
         </errors>)
@@ -2460,13 +2460,13 @@ End Module]]>,
 
     <Fact()>
     Public Sub BC30072ERR_CaseNoSelect()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         case 0
                     end sub
                End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30072"/>
             </errors>)
@@ -2476,13 +2476,13 @@ End Module]]>,
     'Parse a nested line if with a block if (if is followed by eol)
     <Fact()>
     Public Sub BC30081ERR_ExpectedEndIf_ParseNestedLineIfWithBlockIf()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
         Class C
             Sub s
                 If o1 Then If o2 
             End Sub
         End Class
-]]>,
+",
 <errors>
     <error id="30081"/>
 </errors>)
@@ -2491,13 +2491,13 @@ End Module]]>,
     <WorkItem(878016, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30084ERR_ExpectedNext_For()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main() 
                     For i = 1 To 10
                 End Sub
             End Module 
-        ]]>,
+        ",
         <errors>
             <error id="30084"/>
         </errors>)
@@ -2506,7 +2506,7 @@ End Module]]>,
     <WorkItem(887521, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30084ERR_ExpectedNext_ParseErrorCatchClosesForBlock()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                    Sub Foo()
                        Try
@@ -2518,7 +2518,7 @@ End Module]]>,
                        End Try
                   End Sub
                 End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30084"/>
             </errors>)
@@ -2528,13 +2528,13 @@ End Module]]>,
     <WorkItem(879764, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30086ERR_ElseNoMatchingIf()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Else
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30086"/>
         </errors>)
@@ -2543,14 +2543,14 @@ End Module]]>,
     <WorkItem(875150, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30089ERR_ObsoleteWhileWend()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     While True
                     Wend
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30809"/>
         </errors>)
@@ -2558,7 +2558,7 @@ End Module]]>,
 
     <Fact()>
     Public Sub BC30091ERR_LoopNoMatchingDo_ParseDoWithErrors()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
 
@@ -2574,7 +2574,7 @@ End Module]]>,
 
                     end sub
                End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30091"/>
                 <error id="30238"/>
@@ -2585,7 +2585,7 @@ End Module]]>,
 
     <Fact()>
     Public Sub BC30095ERR_ExpectedEndSelect()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         if true then
@@ -2596,7 +2596,7 @@ End Module]]>,
                         end if
                     end sub
                End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30095"/>
             </errors>)
@@ -2606,26 +2606,26 @@ End Module]]>,
     <WorkItem(877929, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30198ERR_ExpectedRparen_If()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     If(1,2)
                     End If
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(884863, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30199ERR_ExpectedLparen_ParseWrongNameUsedForOperatorToBeOverloadedErrors()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                       Class c3
-                        'COMPILEERROR: BC30199, "\\"
+                        'COMPILEERROR: BC30199, "" \\ ""
                          shared Operator /\(ByVal x As c3, ByVal y As c3) As Boolean
                          End Operator
                       End Class
-            ]]>,
+            ",
             <errors>
                 <error id="30199"/>
             </errors>)
@@ -2634,7 +2634,7 @@ End Module]]>,
     <WorkItem(885650, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30203ERR_ExpectedIdentifier()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                       Module Module1
                            Sub Main()
                              With New Object
@@ -2642,7 +2642,7 @@ End Module]]>,
                              End With
                            End Sub
                       End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30203"/>
             </errors>)
@@ -2651,13 +2651,13 @@ End Module]]>,
     'Parse a line if followed by dangling elseif
     <Fact()>
     Public Sub BC30205ERR_ExpectedEOS_ParseLineIfDanglingElseIf()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
         class c
             sub foo()
                 if true then elseif
             end sub
         end class
-]]>,
+",
 <errors>
     <error id="30205" message="End of statement expected." start="68" end="74"/>
     <error id="30201" message="Expression expected." start="74" end="74"/>
@@ -2667,7 +2667,7 @@ End Module]]>,
     <WorkItem(885705, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30205ERR_ExpectedEOS_MismatchExpectedEOSVSSyntax()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                      Class Class1
                         Delegate Sub del()
                         Public Custom Event e As del
@@ -2679,7 +2679,7 @@ End Module]]>,
                          End RaiseEvent
                         End Event
                      End Class
-            ]]>,
+            ",
             <errors>
                 <error id="30205"/>
                 <error id="30205"/>
@@ -2690,7 +2690,7 @@ End Module]]>,
     <WorkItem(879284, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30239ERR_ExpectedRelational_ParseLeftShift()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim x
@@ -2699,22 +2699,22 @@ End Module]]>,
                     x = Class1 << 4
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30201"/>
             <error id="30239"/>
         </errors>)
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim x
                     x=4 <>>< 2
-                    'COMPILEERROR: BC30108, "Class1"
+                    'COMPILEERROR: BC30108, ""Class1""
                     x = Class1 << 4
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30201"/>
             <error id="30239"/>
@@ -2724,14 +2724,14 @@ End Module]]>,
     <WorkItem(875155, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30249ERR_ExpectedEQ_ParseFor()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     for x,y as Integer = 1 to 100
                     Next
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30249"/>
             <error id="30035"/>
@@ -2740,7 +2740,7 @@ End Module]]>,
 
     <Fact()>
     Public Sub BC30289ERR_InvInsideEndsProc_ParseSingleLineLambdaWithClass()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
         Module M1
             Sub Foo()
                 Try
@@ -2748,7 +2748,7 @@ End Module]]>,
                 End Try
             End Sub
         End Module
-]]>,
+",
 <errors>
     <error id="30289"/>
 </errors>)
@@ -2756,7 +2756,7 @@ End Module]]>,
 
     <Fact()>
     Public Sub BC30321ERR_CaseAfterCaseElse()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         select i
@@ -2768,7 +2768,7 @@ End Module]]>,
                         end select
                     end sub
                End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30321"/>
             </errors>)
@@ -2777,7 +2777,7 @@ End Module]]>,
 
     <Fact()>
     Public Sub BC30379ERR_CatchAfterFinally()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         try
@@ -2787,7 +2787,7 @@ End Module]]>,
                         end try 
                     end sub
                End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30379"/>
             </errors>)
@@ -2795,7 +2795,7 @@ End Module]]>,
 
     <Fact()>
     Public Sub BC30381ERR_FinallyAfterFinally()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         try
@@ -2805,7 +2805,7 @@ End Module]]>,
                         end try 
                     end sub
                End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30381"/>
             </errors>)
@@ -2813,7 +2813,7 @@ End Module]]>,
 
     <Fact()>
     Public Sub BC30384ERR_ExpectedEndTry()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         try
@@ -2821,7 +2821,7 @@ End Module]]>,
                         finally    
                     end sub
                End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30384"/>
             </errors>)
@@ -2830,7 +2830,7 @@ End Module]]>,
     <WorkItem(904911, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30384ERR_ExpectedEndTry_ParseNestedIncompleteTryBlocks()
-        ParseAndVerify(<![CDATA[Namespace n1
+        ParseAndVerify("Namespace n1
     Module m1
         Public Sub bar()
             Try
@@ -2845,7 +2845,7 @@ End Module]]>,
         End Sub
     End Module
 End Namespace
-]]>,
+",
             <errors>
                 <error id="30384"/>
             </errors>)
@@ -2854,7 +2854,7 @@ End Namespace
     <WorkItem(899235, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30429ERR_InvalidEndSub_ParseLambdaWithEndSubInsideTryBlock()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
         Module M1
             Sub Foo()
                 Try
@@ -2862,7 +2862,7 @@ End Namespace
                 End Try
             End Sub
         End Module
-]]>,
+",
 <errors>
     <error id="30429"/>
 </errors>)
@@ -2871,11 +2871,11 @@ End Namespace
     <WorkItem(904910, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30370ERR_ExpectedRbrace_CollectionInitializer()
-        ParseAndVerify(<![CDATA[Module Module1
+        ParseAndVerify("Module Module1
     Sub Main()
-         Dim b1c = {1"", 2, 3}
+         Dim b1c = {1"""", 2, 3}
     End Sub
-End Module]]>,
+End Module",
             <errors>
                 <error id="30370"/>
             </errors>)
@@ -2886,7 +2886,7 @@ End Module]]>,
     Public Sub BC30670ERR_RedimNoSizes()
         ' NOTE: the test has been changed to check for NO ERROR because error 30670
         '       was moved from parser to initial binding phase
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim Obj()
@@ -2894,20 +2894,20 @@ End Module]]>,
                     ReDim Obj()
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <Fact()>
     Public Sub BC30670ERR_RedimNoSizes_02()
         ' NOTE: the test has been changed to only check for error 30205 because error 30670
         '       was moved from parser to initial binding phase
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 class c1
                     sub s
                         redim a 1 + 2 'Dev 10 reports 30205
                     end sub
                 end class
-            ]]>,
+            ",
             <errors>
                 <error id="30205"/>
             </errors>)
@@ -2915,7 +2915,7 @@ End Module]]>,
 
     <Fact()>
     Public Sub BC30781ERR_ExpectedContinueKind()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         do
@@ -2932,7 +2932,7 @@ End Module]]>,
 
                     end sub
                End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30781"/>
                 <error id="30781"/>
@@ -2942,13 +2942,13 @@ End Module]]>,
 
     <Fact()>
     Public Sub BC30800ERR_ObsoleteArgumentsNeedParens()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 class c1
                     sub s
                         i 1,2
                     end sub
                 end class
-            ]]>,
+            ",
             <errors>
                 <error id="30800"/>
             </errors>)
@@ -2957,13 +2957,13 @@ End Module]]>,
     <WorkItem(880397, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30801ERR_ObsoleteLineNumbersAreLabels_LambdaLineTerminator()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim s1a = Function ()  : 1 + x
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30201"/>
             <error id="30035"/>
@@ -2973,14 +2973,14 @@ End Module]]>,
 
     <Fact()>
     Public Sub BC30807ERR_ObsoleteLetSetNotNeeded()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 class c1
                     sub s
                         let i = 0
                         set j = i
                     end sub
                 end class
-            ]]>,
+            ",
             <errors>
                 <error id="30807"/>
                 <error id="30807"/>
@@ -2990,14 +2990,14 @@ End Module]]>,
     <WorkItem(875171, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30814ERR_ObsoleteGosub()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                    GoSub 1000
             1000:
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30814"/>
         </errors>)
@@ -3006,14 +3006,14 @@ End Module]]>,
     <WorkItem(873634, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30924ERR_NoConstituentArraySizes_ParseArrayInitializer()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim FixedRankArray As Short()
                     FixedRankArray = New Short() ({1, 2})
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30987"/>
             <error id="32014"/>
@@ -3023,7 +3023,7 @@ End Module]]>,
     <WorkItem(885229, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC31135ERR_SpecifiersInvOnEventMethod_AddHandler()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                     Class Cls
                        Friend Delegate Sub EH(ByRef x As Integer)
                        Custom Event e1 As EH
@@ -3035,7 +3035,7 @@ End Module]]>,
                        End RaiseEvent
                        End Event
                     End Class
-            ]]>,
+            ",
             <errors>
                 <error id="31135"/>
             </errors>)
@@ -3044,13 +3044,13 @@ End Module]]>,
     <WorkItem(885655, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC31395ERR_NoTypecharInLabel()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                       Module Module1
                           Sub Main()
                              Label$:
                           End Sub
                       End Module
-            ]]>,
+            ",
             <errors>
                 <error id="31395"/>
             </errors>)
@@ -3059,12 +3059,12 @@ End Module]]>,
     <WorkItem(917, "DevDiv_Projects/Roslyn")>
     <Fact()>
     Public Sub BC31427ERR_BadCCExpression_ConditionalCompilationExpr()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                    Class Class1
                      #If 1 like Nothing Then
                      #End If
                    End Class
-            ]]>,
+            ",
             <errors>
                 <error id="31427"/>
             </errors>)
@@ -3073,13 +3073,13 @@ End Module]]>,
     <WorkItem(527019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527019")>
     <Fact()>
     Public Sub BC31427ERR_BadCCExpression_ParseErrorMismatchExpectedEOSVSBadCCExpressionExpected()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                      Class Class1
-                       'COMPILEERROR: BC31427, "global"
+                       'COMPILEERROR: BC31427, ""Global""
                         #if global.ns1 then
                         #End If
                      End Class
-            ]]>,
+            ",
             <errors>
                 <error id="31427"/>
             </errors>)
@@ -3088,14 +3088,14 @@ End Module]]>,
     <WorkItem(536271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536271")>
     <Fact()>
     Public Sub BC32020ERR_ExpectedAssignmentOperator()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                      Module Module1
                         Dim ele As XElement = <e/>
                         Sub Main()
-                          ele.@h = From i in New String(){"a", "b","c"} let ele.@h = i
+                          ele.@h = From i in New String(){""a"", ""b"",""c""} let ele.@h = i
                         End Sub
                      End Module
-            ]]>,
+            ",
             <errors>
                 <error id="32020"/>
             </errors>)
@@ -3104,13 +3104,13 @@ End Module]]>,
     <WorkItem(879334, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC32065ERR_GenericParamsOnInvalidMember_Lambda()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim x = Function(Of T)(x As T) x
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="32065"/>
         </errors>)
@@ -3119,13 +3119,13 @@ End Module]]>,
     <WorkItem(881553, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC32093ERR_OfExpected_ParseGenericTypeInstantiation()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim c1 As New Class1(String)()
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="32093"/>
         </errors>)
@@ -3135,7 +3135,7 @@ End Module]]>,
     <WorkItem(881641, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC33104ERR_IllegalOperandInIIFCount()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim x1 = If()
@@ -3143,7 +3143,7 @@ End Module]]>,
                     Dim x3 = If(True, False, True, False)     
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="33104"/>
             <error id="33104"/>
@@ -3154,13 +3154,13 @@ End Module]]>,
     <WorkItem(883303, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC33105ERR_IllegalOperandInIIFName_TernaryIf()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim s2_a = If(Expression:=True, truepart:=1, falsepart:=2)
                 End Sub
             End Module
-        ]]>,
+        ",
             <errors>
                 <error id="33105"/>
                 <error id="33105"/>
@@ -3171,7 +3171,7 @@ End Module]]>,
     <WorkItem(875159, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC36005ERR_ElseIfNoMatchingIf()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     If True Then
@@ -3180,7 +3180,7 @@ End Module]]>,
                     End If
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="36005"/>
             <error id="30201"/>
@@ -3190,14 +3190,14 @@ End Module]]>,
     <WorkItem(875202, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC36607ERR_ExpectedIn_ParseForEachControlVariable()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     For each x() as Integer {1,2,3} in New Integer()() {New Integer(){1,2}
                     Next
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30035"/>
             <error id="36607"/>
@@ -3206,14 +3206,14 @@ End Module]]>,
 
     <Fact()>
     Public Sub BC36008ERR_ExpectedEndUsing()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub Foo()
                         using e0
 
                     end sub
                End Module
-            ]]>,
+            ",
             <errors>
                 <error id="36008"/>
             </errors>)
@@ -3222,13 +3222,13 @@ End Module]]>,
     <WorkItem(880150, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC36620ERR_ExpectedAnd_ParseQueryJoinConditionAndAlso()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim q4 = From i In col1 Join j In col1 On i Equals j AndAlso i Equals j
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="36620"/>
         </errors>)
@@ -3237,14 +3237,14 @@ End Module]]>,
     <WorkItem(881620, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC36620ERR_ExpectedAnd_ParseQueryJoinOnOr()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module JoinOnInvalid
                 Sub JoinOnInvalid()
                     Dim col1 As IQueryable
                     Dim q3 = From i In col1 Join j In col1 On i Equals j OR i Equals j
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="36620"/>
         </errors>)
@@ -3253,13 +3253,13 @@ End Module]]>,
     <WorkItem(527028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527028")>
     <Fact()>
     Public Sub BC36631ERR_ExpectedJoin()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                       Class Class1
                          Dim l = From pers In {1, 2}
                           Group 
                           Join pet In {3, 4} On pers Equals pet Into PetList = Group
                       End Class
-        ]]>,
+        ",
         <errors>
             <error id="36605"/>
             <error id="36615"/>
@@ -3270,7 +3270,7 @@ End Module]]>,
     <Fact()>
     Public Sub BC36668ERR_MultilineLambdasCannotContainOnError()
         ' Note, the BC36668 is now reported during binding.
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M1
 Dim a = Sub()
 On Error Resume Next
@@ -3280,14 +3280,14 @@ Dim c = Function()
 Resume
 End Function
 End Module
-]]>)
+")
     End Sub
 
     <WorkItem(880300, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC36672ERR_StaticInLambda()
         ' Roslyn reports this error during binding.
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim y = Sub()
@@ -3295,24 +3295,24 @@ End Module
                           End Sub
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(884259, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC36673ERR_MultilineLambdaMissingSub()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module M1
                      Sub Foo()
                         If True Then
-                            'COMPILEERROR : BC36673, "Sub()" 
+                            'COMPILEERROR : BC36673, ""Sub()"" 
                             Dim x = Sub()
                         End If
-                             'COMPILEERROR : BC30429, "End Sub" 
+                             'COMPILEERROR : BC30429, ""End Sub"" 
                       End Sub
-                  'COMPILEERROR : BC30289, "End Module" 
+                  'COMPILEERROR : BC30289, ""End Module"" 
                  End Module
-            ]]>,
+            ",
             <errors>
                 <error id="36673"/>
             </errors>)
@@ -3323,21 +3323,21 @@ End Module
     <Fact()>
     Public Sub BC36714ERR_InitializedExpandedProperty()
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                     Class Class1
                        Public MustOverride Property Foo() As Date = Now
                     End Class
-            ]]>,
+            ",
     <errors>
         <error id="36714"/>
     </errors>)
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                        Public Interface IFPropertyAssign
                           Property Scenario2Array() As Integer() = {1,2,3}
                           Property Scenario2List() As List(Of Integer) = NEW List(Of Integer) FROM {1,2,3}
                        End Interface
-            ]]>,
+            ",
             <errors>
                 <error id="36714"/>
                 <error id="36714"/>
@@ -3347,7 +3347,7 @@ End Module
     <WorkItem(885375, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseExpectedEndSelect()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                            Class Class1
                               Sub Foo()
                                  Dim q = From x In {1, 2, 3} _
@@ -3356,7 +3356,7 @@ End Module
                                              Select 2
                               End Sub
                            End Class
-                ]]>,
+                ",
             <errors>
                 <error id="30095" message="'Select Case' must end with a matching 'End Select'."/>
             </errors>)
@@ -3365,7 +3365,7 @@ End Module
     <WorkItem(885379, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseObsoleteArgumentsNeedParensAndArgumentSyntax()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                           Class Class1
                                  Sub Foo()
                                       Dim q = From x In {1, 2} _
@@ -3374,9 +3374,9 @@ End Module
                                                 Select 2
                                  End Sub
                            End Class
-                ]]>,
+                ",
             <errors>
-                <error id="30800" message="Method arguments must be enclosed in parentheses."/>
+                <error id="30800" message="Method arguments must be enclosed In parentheses."/>
                 <error id="32017" message="Comma, ')', or a valid expression continuation expected."/>
             </errors>)
     End Sub
@@ -3384,28 +3384,28 @@ End Module
     <WorkItem(881643, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC36720ERR_CantCombineInitializers()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim x0 = New List(Of Integer) FROM {2,3} with {.capacity=2}
 
-                    Dim a As New C2() From {"Hello World!"} with {.a = "foo"}
-                    Dim b As New C2() with {.a = "foo"} From {"Hello World!"}
-                    Dim c as C2 = New C2() From {"Hello World!"} with {.a = "foo"}
-                    Dim d as c2 = New C2() with {.a = "foo"} From {"Hello World!"}
+                    Dim a As New C2() From {""Hello World!""} with {.a = ""foo""}
+                    Dim b As New C2() with {.a = ""foo""} From {""Hello World!""}
+                    Dim c as C2 = New C2() From {""Hello World!""} with {.a = ""foo""}
+                    Dim d as c2 = New C2() with {.a = ""foo""} From {""Hello World!""}
                 End Sub
             End Module
-        ]]>, Diagnostic(ERRID.ERR_CantCombineInitializers, "FROM {2,3}"),
-             Diagnostic(ERRID.ERR_CantCombineInitializers, "with"),
-             Diagnostic(ERRID.ERR_CantCombineInitializers, "From"),
-             Diagnostic(ERRID.ERR_CantCombineInitializers, "From {""Hello World!""}"),
-             Diagnostic(ERRID.ERR_CantCombineInitializers, "with {.a = ""foo""}"))
+        ", Diagnostic(ERRID.ERR_CantCombineInitializers, "FROM {2,3}").WithLocation(4, 51),
+             Diagnostic(ERRID.ERR_CantCombineInitializers, "with").WithLocation(6, 61),
+             Diagnostic(ERRID.ERR_CantCombineInitializers, "From").WithLocation(7, 57),
+             Diagnostic(ERRID.ERR_CantCombineInitializers, "From {""Hello World!""}").WithLocation(8, 44),
+             Diagnostic(ERRID.ERR_CantCombineInitializers, "with {.a = ""foo""}").WithLocation(9, 44))
     End Sub
 
     <Fact()>
     Public Sub BC30431ERR_InvalidEndProperty_Bug869732()
         'Tree loses text when declaring a property Let/End Let
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
                 Property Foo() as Single
                     Let
@@ -3416,7 +3416,7 @@ End Module
                     End Set
                 End Property
             End Class
-]]>,
+",
             Diagnostic(ERRID.ERR_ObsoleteLetSetNotNeeded, "Let"),
             Diagnostic(ERRID.ERR_UnrecognizedEnd, "End"),
             Diagnostic(ERRID.ERR_ExpectedDeclaration, "Get"),
@@ -3429,31 +3429,32 @@ End Module
     <WorkItem(536268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536268")>
     <Fact()>
     Public Sub ParseExpectedXmlNameAndIllegalChar()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                      Module Module1
                           Sub Main()
                             Dim l = <
-                                    <%= "e"%> />
+                                    <%= ""e""%> />
                           End Sub
                      End Module
 
-            ]]>, Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, vbLf),
-                 Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "                                    "))
+            ", Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "
+").WithLocation(4, 38),
+          Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "                                    ").WithLocation(5, 1))
     End Sub
 
     <WorkItem(536270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536270")>
     <Fact()>
     Public Sub ParseExpectedXmlnsAndExpectedEQAndExpectedXmlName()
-        ParseAndVerify(<![CDATA[
-                     Imports < xmlns:ns3="foo">
-                     Imports <xmlns :ns4="foo">
-                     Imports <xmlns: ns5="foo">
-                     Imports < xmlns="foo">
+        ParseAndVerify("
+                     Imports < xmlns:ns3=""foo"">
+                     Imports <xmlns :ns4=""foo"">
+                     Imports <xmlns: ns5=""foo"">
+                     Imports < xmlns=""foo"">
                      Module Module1
                         Sub Main()
                         End Sub
                      End Module
-            ]]>,
+            ",
             Diagnostic(ERRID.ERR_ExpectedXmlns, ""),
             Diagnostic(ERRID.ERR_ExpectedGreater, "xmlns"),
             Diagnostic(ERRID.ERR_ExpectedXmlns, ""),
@@ -3466,13 +3467,13 @@ End Module
     <WorkItem(880138, "DevDiv/Personal")>
     <Fact()>
     Public Sub ParseLambda_ERR_ExpectedIdentifier()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     Dim s6 = Function ((x) (x + 1))
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30203"/>
             <error id="30638"/>
@@ -3484,13 +3485,13 @@ End Module
     <WorkItem(880140, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC32017_ParseObjectMemberInitializer()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
-                    ObjTest!New ClsCustomer With {.ID = 106, .Name = "test 106"}
+                    ObjTest!New ClsCustomer With {.ID = 106, .Name = ""test 106""}
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30800"/>
             <error id="32017"/>
@@ -3501,13 +3502,13 @@ End Module
     <WorkItem(880155, "DevDiv/Personal")>
     <Fact()>
     Public Sub ParseObjectMemberInitializer_ERR_ExpectedEOS()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     dim c3 as customer = new customer with {.x=5 : .y=6}
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30370"/>
             <error id="30205"/>
@@ -3518,9 +3519,9 @@ End Module
     <WorkItem(894062, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30287ERR_ExpectedDot_ParseVariant()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                If VarType(a1.GetValue(x)) > Variant 'Dev10/11 report expected '.' but Roslyn allows this. Grammar says its OK. 
-]]>,
+",
             Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "If VarType(a1.GetValue(x)) > Variant"),
             Diagnostic(ERRID.ERR_ObsoleteObjectNotVariant, "Variant"))
     End Sub
@@ -3528,17 +3529,17 @@ End Module
     <WorkItem(896842, "DevDiv/Personal")>
     <Fact()>
     Public Sub ParseIncompleteWithBlocks()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Dim x3 = Function(y As Long)
-                                         With]]>,
+                                         With",
                                          <errors>
                                              <error id="30085"/>
                                              <error id="30201"/>
                                              <error id="36674"/>
                                          </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Dim x3 =Sub()
-If]]>,
+If",
                                          <errors>
                                              <error id="30081"/>
                                              <error id="30201"/>
@@ -3549,17 +3550,17 @@ If]]>,
     <WorkItem(897824, "DevDiv/Personal")>
     <Fact()>
     Public Sub ParseExplicitLCs()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Namespace RegressDev10660280
 Sub Foo1(ByVal x As Integer, _
 ByVal y As Integer _
 )
-apCompare(2, x, "Value of foo1")
+apCompare(2, x, ""Value Of foo1"")
 End Sub
 Sub Foo2( _
  _
 
-]]>,
+",
 <errors>
     <error id="30026"/>
     <error id="30198"/>
@@ -3571,7 +3572,7 @@ Sub Foo2( _
     <WorkItem(888562, "DevDiv/Personal")>
     <Fact()>
     Public Sub ParseMoreErrorExpectedRparen()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                           Module M
                             Sub Test()
                               Dim i As Object
@@ -3581,7 +3582,7 @@ Sub Foo2( _
                              Public x As Integer
                            End Class
                           End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30200"/>
                 <error id="30198"/>
@@ -3591,7 +3592,7 @@ Sub Foo2( _
     <WorkItem(887788, "DevDiv/Personal")>
     <Fact()>
     Public Sub ParseMoreErrorExpectedEOS()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                      Module m1
                       Sub Test()
                          Try
@@ -3599,7 +3600,7 @@ Sub Foo2( _
                          End Try
                       End Sub
                      End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30987"/>
             </errors>)
@@ -3608,13 +3609,13 @@ Sub Foo2( _
     <WorkItem(887790, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC31412ERR_HandlesSyntaxInClass_ExpectedIdentifierAndExpectedDot()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                     Class c1
-                      sub test handles new customer with {.x = 5, .y = "6"}
+                      sub test handles new customer with {.x = 5, .y = ""6""}
                       End Sub
                     End Class
                     Class customer : End Class
-            ]]>,
+            ",
             <errors>
                 <error id="30183"/>
                 <error id="30287"/>
@@ -3625,7 +3626,7 @@ Sub Foo2( _
     <WorkItem(904917, "DevDiv/Personal")>
     <Fact()>
     Public Sub ParseErrorInTryInSub()
-        ParseAndVerify(<![CDATA[Namespace n1
+        ParseAndVerify("Namespace n1
     Module m1
         public sub bar()
             try
@@ -3635,7 +3636,7 @@ Sub Foo2( _
         End sub
     End Module
 End Namespace
-]]>,
+",
             <errors>
                 <error id="30289"/>
                 <error id="30384"/>
@@ -3646,12 +3647,12 @@ End Namespace
     <WorkItem(924035, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC36674ERR_MultilineLambdaMissingFunction_ParseLambdaCustomEvent()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Structure Scen16
                 Dim i = Function()
                 Custom Event ev
             End Structure       
-        ]]>,
+        ",
         <errors>
             <error id="36674"/>
             <error id="31122"/>
@@ -3661,7 +3662,7 @@ End Namespace
     <WorkItem(927100, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC32005ERR_BogusWithinLineIf()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
 
                 Sub Main()
@@ -3670,7 +3671,7 @@ End Namespace
                 End Sub
 
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30084"/>
             <error id="32005"/>
@@ -3680,14 +3681,14 @@ End Namespace
     <WorkItem(539208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539208")>
     <Fact()>
     Public Sub BC32005ERR_BogusWithinLineIf_2()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Main()
                     If True : If False Then Console.WriteLine(1) : End If
                     If True : If False Then Else Console.WriteLine(1) : End If
                 End Sub
             End Module
-        ]]>, Diagnostic(ERRID.ERR_ExpectedEndIf, "If True"),
+        ", Diagnostic(ERRID.ERR_ExpectedEndIf, "If True"),
              Diagnostic(ERRID.ERR_BogusWithinLineIf, "End If"),
              Diagnostic(ERRID.ERR_ExpectedEndIf, "If True"),
              Diagnostic(ERRID.ERR_BogusWithinLineIf, "End If")
@@ -3697,13 +3698,13 @@ End Namespace
     <WorkItem(914635, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC36615ERR_ExpectedInto()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module P
                 Sub M()
                     Dim q = from x in y group x by
                 End Sub
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30201"/>
             <error id="36615"/>
@@ -3712,7 +3713,7 @@ End Namespace
 
     <Fact()>
     Public Sub BC30016ERR_InvOutsideProc()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module P
             100:
 
@@ -3729,18 +3730,18 @@ End Namespace
             end enum
 
             End Module
-        ]]>,
-        Diagnostic(ERRID.ERR_InvOutsideProc, "100:"),
-        Diagnostic(ERRID.ERR_InvOutsideProc, "200:"),
-        Diagnostic(ERRID.ERR_InvOutsideProc, "300:"),
-        Diagnostic(ERRID.ERR_InvInsideEnum, "300:"))
+        ",
+        Diagnostic(ERRID.ERR_InvOutsideProc, "100:").WithLocation(3, 13),
+        Diagnostic(ERRID.ERR_InvOutsideProc, "200:").WithLocation(6, 13),
+        Diagnostic(ERRID.ERR_InvOutsideProc, "300:").WithLocation(10, 13),
+        Diagnostic(ERRID.ERR_InvInsideEnum, "300:").WithLocation(14, 13))
     End Sub
 
     <WorkItem(539182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539182")>
     <Fact()>
     Public Sub ParseEmptyStatementWithBadToken()
         ' There should only be one error reported
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module P
 
             Sub main()
@@ -3750,21 +3751,21 @@ End Namespace
             End Sub
 
             End Module
-        ]]>, <errors>
-                 <error id="30037" message="Character is not valid." start="59" end="60"/>
-             </errors>)
+        ", <errors>
+               <error id="30037" message="Character Is Not valid." start="59" end="60"/>
+           </errors>)
     End Sub
 
     <WorkItem(539515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539515")>
     <Fact()>
     Public Sub ParseNestedSingleLineIfFollowedByEndIf()
         ' Report error for mismatched END IF.  
-        ParseAndVerify(<![CDATA[Module M
+        ParseAndVerify("Module M
         Sub Main()
             If False Then  Else If True Then  Else 
         End If
         End Sub
-    End Module]]>,
+    End Module",
     <errors>
         <error id="30087" message="'End If' must be preceded by a matching 'If'." start="88" end="94"/>
     </errors>)
@@ -3775,22 +3776,22 @@ End Namespace
     <Fact()>
     Public Sub ParseSingleLineWithNestedMultiLineIf()
         ' Report error for mismatched END IF.
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module M
                 Sub Main()
                     If False Then  Else If True Then
                     End if
                 End Sub
-            End Module]]>, <errors>
-                               <error id="30081" message="'If' must end with a matching 'End If'." start="89" end="101"/>
-                               <error id="30087" message="'End If' must be preceded by a matching 'If'." start="122" end="128"/>
-                           </errors>)
+            End Module", <errors>
+                             <error id="30081" message="'If' must end with a matching 'End If'." start="89" end="101"/>
+                             <error id="30087" message="'End If' must be preceded by a matching 'If'." start="122" end="128"/>
+                         </errors>)
     End Sub
 
     <Fact()>
     Public Sub ParseSingleLineIfThenElseFollowedByIfThen()
         ' This is a single line if-then-else with a multi-line-if-then
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub foo()
                     If False Then Else if true then
@@ -3801,7 +3802,7 @@ End Namespace
                     If False Then Else if true then : end if
 
                 End Sub
-         End Module]]>,
+         End Module",
          <errors>
              <error id="30081" message="'If' must end with a matching 'End If'." start="93" end="105"/>
              <error id="30081" message="'If' must end with a matching 'End If'." start="146" end="158"/>
@@ -3812,7 +3813,7 @@ End Namespace
     <Fact()>
     Public Sub ParseSingleLineIfThenFollowedByIfThen()
         ' This is a single line if-then-else with a multi-line-if-then
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub foo()
                     If False Then if true then
@@ -3823,17 +3824,17 @@ End Namespace
                     If False Then if true then : end if
 
                 End Sub
-         End Module]]>, <Errors>
-                            <error id="30081" message="'If' must end with a matching 'End If'." start="88" end="100"/>
-                            <error id="30081" message="'If' must end with a matching 'End If'." start="136" end="148"/>
-                            <error id="30087" message="'End If' must be preceded by a matching 'If'." start="189" end="195"/>
-                        </Errors>)
+         End Module", <Errors>
+                          <error id="30081" message="'If' must end with a matching 'End If'." start="88" end="100"/>
+                          <error id="30081" message="'If' must end with a matching 'End If'." start="136" end="148"/>
+                          <error id="30087" message="'End If' must be preceded by a matching 'If'." start="189" end="195"/>
+                      </Errors>)
     End Sub
 
     <Fact()>
     Public Sub ParseSingleLineIfThenElseFollowedByDo()
         ' This is a single line if-then-else with a multi-line-if-then
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub foo()
                     If False Then  Else do 
@@ -3843,17 +3844,17 @@ End Namespace
 
                     If False Then  Else Do : Loop
                 End Sub
-         End Module]]>, <errors>
-                            <error id="30083" message="'Do' must end with a matching 'Loop'." start="94" end="96"/>
-                            <error id="30083" message="'Do' must end with a matching 'Loop'." start="139" end="141"/>
-                            <error id="30091" message="'Loop' must be preceded by a matching 'Do'." start="183" end="187"/>
-                        </errors>)
+         End Module", <errors>
+                          <error id="30083" message="'Do' must end with a matching 'Loop'." start="94" end="96"/>
+                          <error id="30083" message="'Do' must end with a matching 'Loop'." start="139" end="141"/>
+                          <error id="30091" message="'Loop' must be preceded by a matching 'Do'." start="183" end="187"/>
+                      </errors>)
     End Sub
 
     <Fact()>
     Public Sub ParseSingleLineIfThenFollowedByDo()
         ' This is a single line if-then-else with a multi-line-if-then
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub foo()
                     If False Then do 
@@ -3863,7 +3864,7 @@ End Namespace
 
                     If False Then Do : Loop
                 End Sub
-         End Module]]>,
+         End Module",
          <errors>
              <error id="30083" message="'Do' must end with a matching 'Loop'." start="88" end="90"/>
              <error id="30083" message="'Do' must end with a matching 'Loop'." start="127" end="129"/>
@@ -3874,13 +3875,13 @@ End Namespace
     <Fact()>
     Public Sub ParseMultiLineIfMissingThen()
         'this is a "multi line if" missing a "then". "f()" after "true" is error as well as missing "end if
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 sub foo()
                     if true f() 
                     if true then else if true f() is an error
                 End Sub
-         End Module]]>,
+         End Module",
          <errors>
              <error id="30081" message="'If' must end with a matching 'End If'." start="74" end="81"/>
              <error id="30205" message="End of statement expected." start="82" end="83"/>
@@ -3891,7 +3892,7 @@ End Namespace
 
     <Fact()>
     Public Sub VarDeclWithKeywordAsIdentifier()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class C1
                 ' the following usages of Dim/Const do not report parser diagnostics, they will
                 ' be reported while binding.
@@ -3938,7 +3939,7 @@ End Namespace
             end class
             dim module foo
             end module
-        ]]>, Diagnostic(ERRID.ERR_ExpectedEndClass, "Class C1").WithLocation(2, 13),
+        ", Diagnostic(ERRID.ERR_ExpectedEndClass, "Class C1").WithLocation(2, 13),
              Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "Namespace").WithLocation(19, 33),
              Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "Class").WithLocation(20, 33),
              Diagnostic(ERRID.ERR_InvalidUseOfKeyword, "End").WithLocation(21, 23),
