@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         /// <remarks>
-        /// This method does not wait for async operations before 
+        /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
         public string[] GetCompletionItems()
@@ -231,7 +231,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         /// <remarks>
-        /// This method does not wait for async operations before 
+        /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
         public string GetCurrentCompletionItem()
@@ -250,7 +250,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         /// <remarks>
-        /// This method does not wait for async operations before 
+        /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
         public bool IsCompletionActive()
@@ -261,7 +261,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         /// <remarks>
-        /// This method does not wait for async operations before 
+        /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
         public bool IsSignatureHelpActive()
@@ -272,7 +272,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         /// <remarks>
-        /// This method does not wait for async operations before 
+        /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
         public Signature[] GetSignatures()
@@ -290,7 +290,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         /// <remarks>
-        /// This method does not wait for async operations before 
+        /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
         public Signature GetCurrentSignature()
