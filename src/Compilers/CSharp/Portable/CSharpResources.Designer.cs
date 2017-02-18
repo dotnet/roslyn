@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 6..
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 7..
         /// </summary>
         internal static string ERR_BadCompatMode {
             get {
