@@ -4098,7 +4098,7 @@ End Class
         Diagnostic(ERRID.ERR_ExpectedExpression, ""))
     End Sub
 
-    <WorkItem(544495, "http: //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544495")>
+    <WorkItem(544495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544495")>
     <Fact>
     Public Sub CatchFinallyStatementOutsideMethodBody()
         ParseAndVerify("
@@ -4126,7 +4126,7 @@ End Module
 
 #End Region
 
-    <WorkItem(545543, "http: //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545543")>
+    <WorkItem(545543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545543")>
     <Fact>
     Public Sub ParseInvalidUseOfBlockWithinSingleLineLambda()
         Dim compilationDef =
@@ -4383,7 +4383,7 @@ End Class
         Assert.True(identifierToken.IsMissing)
     End Sub
 
-    <WorkItem(546688, "http:           //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546688")>
+    <WorkItem(546688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546688")>
     <Fact()>
     Public Sub Bug16568_If()
         Dim tree = ParseAndVerify("
@@ -4471,7 +4471,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(546688, "http:        //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546688")>
+    <WorkItem(546688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546688")>
     <Fact()>
     Public Sub Bug16568_Else()
         Dim tree = ParseAndVerify("
@@ -4559,7 +4559,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(546734, "http:        //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546734")>
+    <WorkItem(546734, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546734")>
     <Fact()>
     Public Sub Bug16688()
         Dim tree = ParseAndVerify("
@@ -4732,7 +4732,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(547060, "http:  //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547060")>
+    <WorkItem(547060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547060")>
     <Fact()>
     Public Sub ParseSingleLineLambdaInSingleLineIf01()
         Dim tree = ParseAndVerify("
@@ -4755,7 +4755,7 @@ End Module
         ")
     End Sub
 
-    <WorkItem(578144, "http:  //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578144")>
+    <WorkItem(578144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578144")>
     <Fact()>
     Public Sub ParseStatementLambdaOnSingleLineLambdaWithColon()
         Dim tree = ParseAndVerify("
@@ -5169,7 +5169,7 @@ End Module
 ")
     End Sub
 
-    <WorkItem(531102, "http:  //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531102")>
+    <WorkItem(531102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531102")>
     <Fact()>
     Public Sub Bug17574_XmlElementAccess()
         ParseAndVerify("
@@ -5503,7 +5503,7 @@ End Module
 ")
     End Sub
 
-    <WorkItem(531102, "http: //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531102")>
+    <WorkItem(531102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531102")>
     <Fact()>
     Public Sub Bug17574_Comment()
         ParseAndVerify("
@@ -5874,7 +5874,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(552836, "http:      //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552836")>
+    <WorkItem(552836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552836")>
     <Fact()>
     Public Sub MoreNextVariablesThanBlockContexts()
         ParseAndVerify("
@@ -5910,99 +5910,159 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(553962, "http:  //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
     <Fact()>
-    Public Sub Bug553962()
+    Public Sub Bug553962_a()
         ParseAndVerify("
 Module M
     Private F <!--
 End Module
 ", <errors><error id="30205" message="End of statement expected."/></errors>)
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_b()
         ParseAndVerify($"
 Module M
     Private F {FULLWIDTH_LESS_THAN_SIGN}!--
 End Module
 ", <errors><error id="30205" message="End of statement expected."/></errors>)
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_c()
         ParseAndVerify("
 Module M
     Private F <!-- :
 End Module
 ", <errors><error id="30205" message="End of statement expected."/></errors>)
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_d()
         ParseAndVerify("
 Module M
     Private F <?
 End Module
 ", <errors><error id="30205" message="End of statement expected."/></errors>)
+    End Sub
 
-        ParseAndVerify($"<![CDATA[
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_e()
+        ParseAndVerify($"
 Module M
     Private F {FULLWIDTH_LESS_THAN_SIGN}?
 End Module
-", Diagnostic(ERRID.ERR_Syntax, "<![CDATA["), Diagnostic(ERRID.ERR_ExpectedEOS, "<").WithLocation(3, 15))
+", Diagnostic(ERRID.ERR_ExpectedEOS, FULLWIDTH_LESS_THAN_SIGN).WithLocation(3, 15))
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_f()
         ParseAndVerify("
 Module M
     Private F ?>
 End Module
 ", <errors><error id="30205" message="End of statement expected."/></errors>)
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_g()
         ParseAndVerify($"
 Module M
     Private F {FULLWIDTH_QUESTION_MARK}>
 End Module
 ", <errors><error id="30205" message="End of statement expected."/></errors>)
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_h()
         ParseAndVerify("
 Module M
     Private F </
 End Module
 ", <errors><error id="30205" message="End of statement expected."/></errors>)
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_i()
         ParseAndVerify($"
 Module M
     Private F {FULLWIDTH_LESS_THAN_SIGN}/
 End Module
 ", <errors><error id="30205" message="End of statement expected."/></errors>)
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_j()
         ParseAndVerify("
 Module M
     Private F %>
 End Module
 ", <errors><error id="30205" message="End of statement expected."/></errors>)
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_k()
         ParseAndVerify($"
 Module M
     Private F {FULLWIDTH_PERCENT_SIGN}>
 End Module
 ", <errors><error id="30205" message="End of statement expected."/></errors>)
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_l()
         ParseAndVerify("
 Module M
     Private F <!DOCTYPE
 End Module
 ", <errors><error id="30205" message="End of statement expected."/></errors>)
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_m()
         ParseAndVerify($"
 Module M
     Private F {FULLWIDTH_LESS_THAN_SIGN}!DOCTYPE
 End Module
 ", <errors><error id="30205" message="End of statement expected."/></errors>)
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_n()
         ParseAndVerify("
 Module M
     Private F <![CDATA[
     End Module
 ", <errors><error id="30205" message="End of statement expected."/></errors>)
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_o()
         ParseAndVerify($"
 Module M
     Private F {FULLWIDTH_LESS_THAN_SIGN}![CDATA[
     End Module
 ", <errors><error id="30034"/><error id="30203" message="Identifier expected."/></errors>)
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_q()
         ParseAndVerify("
 Module M
     Sub M()
@@ -6016,7 +6076,11 @@ End Module
                 <error id="30037"/>
                 <error id="30037"/>
             </errors>)
+    End Sub
 
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <Fact()>
+    Public Sub Bug553962_r()
         ParseAndVerify("
 Module M
         Sub M() _
@@ -6032,9 +6096,9 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(553962, "http:        //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
-                               <WorkItem(571807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571807")>
-                                   <Fact()>
+    <WorkItem(553962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553962")>
+    <WorkItem(571807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571807")>
+    <Fact()>
     Public Sub Bug571807()
         ParseAndVerify("
 Module M
@@ -6070,7 +6134,7 @@ End Module
     End Sub
 
     <WorkItem(570756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570756")>
-                                           <Fact()>
+    <Fact()>
     Public Sub FullWidthKeywords()
         Dim source = "
 Ｃｌａｓｓ Ｃ
@@ -6081,8 +6145,8 @@ End Module
     End Sub
 
     <WorkItem(588122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588122")>
-                                                   <WorkItem(587130, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587130")>
-                                                       <Fact()>
+    <WorkItem(587130, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587130")>
+    <Fact()>
     Public Sub FullWidthKeywords001()
         Dim source = "
 Imports System.Security
@@ -6099,7 +6163,7 @@ End Module
     End Sub
 
     <WorkItem(571529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571529")>
-                                                               <Fact()>
+    <Fact()>
     Public Sub Bug571529()
         ParseAndVerify("
 Module M
@@ -6112,7 +6176,7 @@ End Module
     End Sub
 
     <WorkItem(581662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581662")>
-                                                                       <Fact()>
+    <Fact()>
     Public Sub BlankLinesFollowingUnderscore()
         ParseAndVerify("
 Imports System.Linq 
@@ -6180,8 +6244,8 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(608214, "http:        //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608214")>
-                                                                               <Fact()>
+    <WorkItem(608214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608214")>
+    <Fact()>
     Public Sub Bug608214()
         ParseAndVerify("
 Module M
@@ -6236,7 +6300,7 @@ End Module
 
     <WorkItem(608214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608214")>
     <WorkItem(610345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610345")>
-                                                                                           <Fact()>
+    <Fact()>
     Public Sub Bug608214_2()
         ParseAndVerify("
 Module M
@@ -6288,7 +6352,7 @@ End Module
     End Sub
 
     <WorkItem(608225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608225")>
-                                                                                                   <Fact()>
+    <Fact()>
     Public Sub Bug608225()
         ParseAndVerify("
 Module M
@@ -6419,8 +6483,8 @@ End Module
     ''' <summary>
     ''' Line continuation trivia should include the underscore only.
     ''' </summary>
-                                                                                                       <WorkItem(581662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581662")>
-                                                                                                           <Fact()>
+    <WorkItem(581662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581662")>
+    <Fact()>
     Public Sub LineContinuationTrivia()
         Dim source = "
 Imports System.Linq 
@@ -6707,7 +6771,7 @@ End Module
     End Sub
 
     <WorkItem(620546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620546")>
-                                                                                                                                       <Fact()>
+    <Fact()>
     Public Sub NestedMultiLineBlocksInSingleLineIf()
         ParseAndVerify("
 Module M
@@ -6896,7 +6960,7 @@ End Module
     ''' See reference to Dev10#708061 for ambiguity regarding
     ''' "End Select" in single-line lambda.
     ''' </summary>
-                                                                                                                                                           <Fact()>
+    <Fact()>
     Public Sub SelectOrEndSelect()
         ParseAndVerify("
 Module M
@@ -6938,7 +7002,7 @@ End Module
     End Sub
 
     <WorkItem(622712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622712")>
-                                                                                                                                                                   <Fact()>
+    <Fact()>
     Public Sub ColonTerminatorWithTrailingTrivia()
         ParseAndVerify("
 Module M
@@ -6963,8 +7027,8 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(623023, "http:   //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623023")>
-                                                                                                                                                                           <Fact()>
+    <WorkItem(623023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623023")>
+    <Fact()>
     Public Sub SingleLineIfWithinNestedSingleLineBlocks()
         ParseAndVerify("
 Module M
@@ -7096,8 +7160,8 @@ End Module
     ''' scanner if the colons are on the same line vs.
     ''' separate lines with line continuations.
     ''' </summary>
-                                                                                                                                                                               <WorkItem(634703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634703")>
-                                                                                                                                                                                   <Fact>
+    <WorkItem(634703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634703")>
+    <Fact>
     Public Sub MultipleColons()
         CheckMethodStatementsAndTrivia("
 Module M
@@ -7440,8 +7504,8 @@ End Module
     ''' Currently, any statement on the same line as
     ''' the invalid label is ignored.
     ''' </summary>
-                                                                                                                                                                                                       <WorkItem(642558, "http:       //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642558")>
-                                                                                                                                                                                                           <Fact()>
+    <WorkItem(642558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642558")>
+    <Fact()>
     Public Sub ErrorInStatementFollowingInvalidLabel()
         ParseAndVerify("
 Module M
@@ -7498,8 +7562,8 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(640520, "http:     //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640520")>
-                                                                                                                                                                                                                       <Fact()>
+    <WorkItem(640520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640520")>
+    <Fact()>
     Public Sub Bug640520()
         ParseAndVerify("
 Class C
@@ -7539,8 +7603,8 @@ End Class
             </errors>)
     End Sub
 
-    <WorkItem(648998, "http:  //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648998")>
-                                                                                                                                                                                                                               <Fact()>
+    <WorkItem(648998, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648998")>
+    <Fact()>
     Public Sub Bug648998()
         ParseAndVerify("
 Module M
