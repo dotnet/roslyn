@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - the assignment phase
         /// </summary>
         private BoundExpression RewriteDeconstruction(BoundTupleExpression left, Conversion conversion, BoundExpression right)
-
         {
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var effects = DeconstructionSideEffects.GetInstance();
