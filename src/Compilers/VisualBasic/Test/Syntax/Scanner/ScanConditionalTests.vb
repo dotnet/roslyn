@@ -11,14 +11,14 @@ Public Class ScanConditionalTests
 
     <Fact>
     Public Sub Scanner_ConditionalSkipEol()
-        Dim Str = <text>
+        Dim Str = "
 #hi
-                  </text>.Value
+"
 
         Using s As New InternalSyntax.Scanner(SourceText.From(Str), TestOptions.Regular)
             Dim res = s.SkipToNextConditionalLine
             Assert.Equal(0, res.Start)
-            Assert.Equal(1, res.Length)
+            Assert.Equal(2, res.Length)
 
             Dim tk = s.GetCurrentToken
             Assert.Equal(SyntaxKind.HashToken, tk.Kind)
@@ -27,11 +27,11 @@ Public Class ScanConditionalTests
 
     <Fact>
     Public Sub Scanner_ConditionalSkipSomeText()
-        Dim Str = <text>
+        Dim Str = "
 blah
 blah
 #hi
-boo</text>.Value
+boo"
 
 
         Using s As New InternalSyntax.Scanner(SourceText.From(Str), TestOptions.Regular)
@@ -42,11 +42,11 @@ boo</text>.Value
 
             Dim res = s.SkipToNextConditionalLine
             Assert.Equal(0, res.Start)
-            Assert.Equal(11, res.Length)
+            Assert.Equal(14, res.Length)
 
             ' grab skipped text.
             disabled = s.GetDisabledTextAt(res)
-            Assert.Equal(vbLf & "blah" & vbLf & "blah" & vbLf, disabled.ToFullString)
+            Assert.Equal(vbCrLf & "blah" & vbCrLf & "blah" & vbCrLf, disabled.ToFullString)
 
             Dim tk = s.GetCurrentToken
             Assert.Equal(SyntaxKind.HashToken, tk.Kind)
@@ -54,11 +54,11 @@ boo</text>.Value
             s.GetNextTokenInState(InternalSyntax.ScannerState.VB) ' get off #
 
             res = s.SkipToNextConditionalLine
-            Assert.Equal(12, res.Start)
-            Assert.Equal(6, res.Length)
+            Assert.Equal(15, res.Start)
+            Assert.Equal(7, res.Length)
 
             disabled = s.GetDisabledTextAt(res)
-            Assert.Equal("hi" & vbLf & "boo", disabled.ToFullString)
+            Assert.Equal("hi" & vbCrLf & "boo", disabled.ToFullString)
 
             s.GetNextTokenInState(InternalSyntax.ScannerState.VB)
             tk = s.GetCurrentToken
@@ -68,17 +68,17 @@ boo</text>.Value
 
     <Fact>
     Public Sub Scanner_ConditionalSkipTwice()
-        Dim Str = <text>
+        Dim Str = "
 blah
 blah
 #hi
 boo
-#hi</text>.Value
+#hi"
 
         Using s As New InternalSyntax.Scanner(SourceText.From(Str), TestOptions.Regular)
             Dim res = s.SkipToNextConditionalLine
             Assert.Equal(0, res.Start)
-            Assert.Equal(11, res.Length)
+            Assert.Equal(14, res.Length)
 
             Dim tk = s.GetCurrentToken
             Assert.Equal(SyntaxKind.HashToken, tk.Kind)
@@ -86,15 +86,15 @@ boo
             s.GetNextTokenInState(InternalSyntax.ScannerState.VB) ' skip #
 
             res = s.SkipToNextConditionalLine
-            Assert.Equal(12, res.Start)
-            Assert.Equal(7, res.Length)
+            Assert.Equal(15, res.Start)
+            Assert.Equal(9, res.Length)
 
             tk = s.GetCurrentToken
             Assert.Equal(SyntaxKind.HashToken, tk.Kind)
 
             s.GetNextTokenInState(InternalSyntax.ScannerState.VB) ' skip #
             res = s.SkipToNextConditionalLine
-            Assert.Equal(20, res.Start)
+            Assert.Equal(25, res.Start)
             Assert.Equal(2, res.Length)
 
             tk = s.GetCurrentToken
@@ -104,7 +104,7 @@ boo
 
     <Fact>
     Public Sub Scanner_ConditionalLineCont()
-        Dim Str = <text>blah _
+        Dim Str = "blah _
 # here
 boo
 #here _
@@ -113,12 +113,12 @@ _
 #here _
 
 #here _
-_</text>.Value
+_"
 
         Using s As New InternalSyntax.Scanner(SourceText.From(Str), TestOptions.Regular)
             Dim res = s.SkipToNextConditionalLine
             Assert.Equal(0, res.Start)
-            Assert.Equal(7, res.Length)
+            Assert.Equal(8, res.Length)
 
             Dim tk = s.GetCurrentToken
             Assert.Equal(SyntaxKind.HashToken, tk.Kind)
@@ -126,16 +126,7 @@ _</text>.Value
             s.GetNextTokenInState(InternalSyntax.ScannerState.VB) ' skip #
 
             res = s.SkipToNextConditionalLine
-            Assert.Equal(9, res.Start)
-            Assert.Equal(9, res.Length)
-
-            tk = s.GetCurrentToken
-            Assert.Equal(SyntaxKind.HashToken, tk.Kind)
-
-            s.GetNextTokenInState(InternalSyntax.ScannerState.VB) ' skip #
-
-            res = s.SkipToNextConditionalLine
-            Assert.Equal(19, res.Start)
+            Assert.Equal(10, res.Start)
             Assert.Equal(11, res.Length)
 
             tk = s.GetCurrentToken
@@ -144,8 +135,8 @@ _</text>.Value
             s.GetNextTokenInState(InternalSyntax.ScannerState.VB) ' skip #
 
             res = s.SkipToNextConditionalLine
-            Assert.Equal(31, res.Start)
-            Assert.Equal(8, res.Length)
+            Assert.Equal(22, res.Start)
+            Assert.Equal(14, res.Length)
 
             tk = s.GetCurrentToken
             Assert.Equal(SyntaxKind.HashToken, tk.Kind)
@@ -153,8 +144,17 @@ _</text>.Value
             s.GetNextTokenInState(InternalSyntax.ScannerState.VB) ' skip #
 
             res = s.SkipToNextConditionalLine
-            Assert.Equal(40, res.Start)
-            Assert.Equal(8, res.Length)
+            Assert.Equal(37, res.Start)
+            Assert.Equal(10, res.Length)
+
+            tk = s.GetCurrentToken
+            Assert.Equal(SyntaxKind.HashToken, tk.Kind)
+
+            s.GetNextTokenInState(InternalSyntax.ScannerState.VB) ' skip #
+
+            res = s.SkipToNextConditionalLine
+            Assert.Equal(48, res.Start)
+            Assert.Equal(9, res.Length)
 
             tk = s.GetCurrentToken
             Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)

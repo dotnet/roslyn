@@ -322,8 +322,8 @@ Public Class ScannerTests
                              SyntaxKind.EndOfFileToken)
         ' EmptyToken required because comment is trailing
         ' trivia between the colon and EOL.
-        ParseTokensAndVerify(<![CDATA[If True Then Else :'Comment
-Return]]>.Value,
+        ParseTokensAndVerify("If True Then Else :'Comment
+Return",
                              SyntaxKind.IfKeyword,
                              SyntaxKind.TrueKeyword,
                              SyntaxKind.ThenKeyword,
@@ -348,9 +348,9 @@ Return]]>.Value,
                              SyntaxKind.EndOfFileToken)
         ' No EmptyToken required because colon, space, comment
         ' and EOL are all treated as multi-line leading trivia on EndKeyword.
-        ParseTokensAndVerify(<![CDATA[If True Then
+        ParseTokensAndVerify("If True Then
 : 'Comment
-End If]]>.Value,
+End If",
                              SyntaxKind.IfKeyword,
                              SyntaxKind.TrueKeyword,
                              SyntaxKind.ThenKeyword,
@@ -1137,14 +1137,14 @@ End If]]>.Value,
     <Fact>
     Public Sub Scanner_MultiLineStringLiteral()
         Dim text =
-<text>"Hello,
-World!"</text>.Value
+"""Hello,
+World!"""
 
         Dim token = ScanOnce(text)
 
         Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind)
-        Assert.Equal("Hello," & vbLf & "World!", token.ValueText)
-        Assert.Equal("""Hello," & vbLf & "World!""", token.ToString())
+        Assert.Equal("Hello," & vbCrLf & "World!", token.ValueText)
+        Assert.Equal("""Hello," & vbCrLf & "World!""", token.ToString())
     End Sub
 
     Private Function Repeat(str As String, num As Integer) As String
@@ -1203,20 +1203,20 @@ World!"</text>.Value
 
     <Fact>
     Public Sub Bug869081()
-        ParseAndVerify(<![CDATA[
-            <Obsolete()> _
-        _
-        _
-        _
-        _
-            <CLSCompliant(False)> Class Class1
-            End Class
-        ]]>)
+        ParseAndVerify("
+<Obsolete()> _
+ _
+ _
+ _
+ _
+    <CLSCompliant(False)> Class Class1
+    End Class
+")
     End Sub
 
     <Fact>
     Public Sub Bug658441()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 #If False Then
 #If False Then
 # _
@@ -1224,7 +1224,7 @@ World!"</text>.Value
 # _
 End If
 #End If
-        ]]>)
+")
     End Sub
 
     <WorkItem(538747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538747")>
@@ -1240,13 +1240,13 @@ End Module
     <WorkItem(531175, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531175")>
     <Fact>
     Public Sub Bug17703()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Dim x = <
-”'
+"”'
 
-        ]]>,
+        ",
                        <errors>
-                           <error id="31151" message="Element is missing an end tag." start="9" end="23"/>
+                           <error id="31151" message="Element Is missing an end tag." start="9" end="23"/>
                            <error id="31146" message="XML name expected." start="10" end="10"/>
                            <error id="31146" message="XML name expected." start="10" end="10"/>
                            <error id="30249" message="'=' expected." start="10" end="10"/>
@@ -1259,15 +1259,15 @@ Dim x = <
     <WorkItem(530916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530916")>
     <Fact>
     Public Sub Bug17189()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 a<
 -'
 -
-        ]]>,
+",
         <errors>
             <error id="30689" message="Statement cannot appear outside of a method body." start="1" end="17"/>
             <error id="30800" message="Method arguments must be enclosed in parentheses." start="2" end="17"/>
-            <error id="31151" message="Element is missing an end tag." start="2" end="17"/>
+            <error id="31151" message="Element Is missing an end tag." start="2" end="17"/>
             <error id="31177" message="White space cannot appear here." start="3" end="4"/>
             <error id="31169" message="Character '-' (&amp;H2D) is not allowed at the beginning of an XML name." start="4" end="5"/>
             <error id="31146" message="XML name expected." start="5" end="5"/>
@@ -1281,15 +1281,15 @@ a<
     <WorkItem(530682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530682")>
     <Fact>
     Public Sub Bug16698()
-        ParseAndVerify(<![CDATA[#Const x = <!--
-]]>,
+        ParseAndVerify("#Const x = <!--
+",
                     Diagnostic(ERRID.ERR_BadCCExpression, "<!--"))
     End Sub
 
     <WorkItem(865832, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseSpecialKeywords()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module M1
                 Dim x As Integer
                 Sub Main
@@ -1297,14 +1297,14 @@ a<
                     End If
                 End Sub
             End Module
-        ]]>).
+").
         VerifyNoWhitespaceInKeywords()
     End Sub
 
     <WorkItem(547317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547317")>
     <Fact>
     Public Sub ParseHugeNumber()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Sub Main     
  Dim x = CompareDouble(-7.92281625142643E337593543950335D)
@@ -1312,7 +1312,7 @@ Module M
 EndModule
 
 
-        ]]>,
+        ",
         <errors>
             <error id="30625" message="'Module' statement must end with a matching 'End Module'." start="1" end="9"/>
             <error id="30036" message="Overflow." start="52" end="85"/>
@@ -1324,7 +1324,7 @@ EndModule
     <WorkItem(547317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547317")>
     <Fact>
     Public Sub ParseHugeNumberLabel()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M
     Sub Main     
  
@@ -1332,7 +1332,7 @@ Module M
     End Sub 
 EndModule
 
-        ]]>,
+        ",
         <errors>
             <error id="30625" message="'Module' statement must end with a matching 'End Module'." start="1" end="9"/>
             <error id="30801" message="Labels that are numbers must be followed by colons." start="30" end="114"/>
@@ -1345,7 +1345,7 @@ EndModule
     <WorkItem(926612, "DevDiv/Personal")>
     <Fact>
     Public Sub ScanMultilinesTriviaWithCRLFs()
-        ParseAndVerify(<![CDATA[Option Compare Text
+        ParseAndVerify("Option Compare Text
 
 Public Class Assembly001bDll
     Sub main()
@@ -1357,10 +1357,10 @@ Public Class Assembly001bDll
         
         
 
-        apcompare(Left(CurDir(), 1) & ":\School\assembly001bdll.dll", Asb.Location, "location")
+        apcompare(Left(CurDir(), 1) & "":\School\assembly001bdll.dll"", Asb.Location, ""location"")
 
     End Sub
-End Class]]>)
+End Class")
     End Sub
 
     <Fact>
