@@ -11,6 +11,8 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.Debugger.Clr
 {
@@ -72,7 +74,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
 
         internal DkmClrType GetType(string typeName, params System.Type[] typeArguments)
         {
-            foreach (var module in this.Modules)
+            foreach (var module in WithMscorlibLast(this.Modules))
             {
                 var assembly = module.Assembly;
                 var type = assembly.GetType(typeName);
@@ -87,6 +89,27 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                 }
             }
             return null;
+        }
+
+        private IEnumerable<DkmClrModuleInstance> WithMscorlibLast(DkmClrModuleInstance[] list)
+        {
+            DkmClrModuleInstance mscorlib = null;
+            foreach (var module in list)
+            {
+                if (module.Assembly.GetReferencedAssemblies().Length == 0)
+                {
+                    Debug.Assert(mscorlib == null);
+                    mscorlib = module;
+                }
+                else
+                {
+                    yield return module;
+                }
+            }
+            if (mscorlib != null)
+            {
+                yield return mscorlib;
+            }
         }
 
         internal DkmClrModuleInstance FindClrModuleInstance(Guid mvid)
