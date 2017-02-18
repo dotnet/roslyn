@@ -1516,6 +1516,59 @@ class C
 
             Await TestAsync(input, expected)
         End Function
+
+        <WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_SimplifyIfBinaryExpressionTypeIsIdentityConversion() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    int Add(int a, int b, int c) => a + {|Simplify:(b + c)|};
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    int Add(int a, int b, int c) => a + b + c;
+}
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_SimplifyIfBinaryExpressionTypeIsImplicitNumericConversion() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    int Add(int a, short b, short c) => a + {|Simplify:(b + c)|};
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    int Add(int a, short b, short c) => a + b + c;
+}
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
 #End Region
 
     End Class
