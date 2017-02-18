@@ -12,7 +12,7 @@ Public Class ParseMethods
     <WorkItem(917272, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseSub()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             class c1
                 public Sub Foo()
                 end sub
@@ -31,14 +31,14 @@ Public Class ParseMethods
                 Sub Foo(of T1, T2, T3)(a as T1, b as T2, c as T3)
                 end sub
             End Module
-        ]]>).
+        ").
         TraverseAllNodes()
     End Sub
 
     <WorkItem(917272, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseFunction()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Function Foo() as integer
                     end function
@@ -53,13 +53,13 @@ Public Class ParseMethods
                     Function Foo(of T1, T2, T3)(a as T1, b as T2, c as T3) as integer
                     end function
                 End Module
-        ]]>).
+        ").
         TraverseAllNodes()
     End Sub
 
     <Fact>
     Public Sub ParseProperty()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Property Foo As Integer
                     Get 
@@ -76,7 +76,7 @@ Public Class ParseMethods
                 Property Foo(ByVal s As String, ByVal ParamArray t As Integer()) As Integer
                 End Property
             End Module
-        ]]>)
+        ")
 
         'Property Foo (i as integer) as integer
         'End Property
@@ -90,12 +90,12 @@ Public Class ParseMethods
 
     <Fact>
     Public Sub BC32065ERR_GenericParamsOnInvalidMember_Property()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Property Foo(of T1, T2, T3)(a as T1, b as T2, c as T3) as integer
                 end Property
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="32065"/>
         </errors>)
@@ -104,14 +104,14 @@ Public Class ParseMethods
 
     <Fact>
     Public Sub BC30198_ParseFunctionWithErrors()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub MySub(p2 as A(B,C))
                     End Sub
                     Function Foo(
                     end function
                 End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30198"/>
                 <error id="30203"/>
@@ -123,7 +123,7 @@ Public Class ParseMethods
 
     <Fact>
     Public Sub ParseOperator()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Class c1
                     Operator +(ByVal a As Integer, ByVal b As Integer) As Integer
@@ -136,33 +136,34 @@ Public Class ParseMethods
                     End Operator
                 End Class
             End Module
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub BC30253ERR_MissingEndInterface_ParseOperatorInInterface()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             interface m1
             shared operator +(i as integer, j as integer) as integer
             return 0
             end operator
             end interface
-        ]]>,
-            Diagnostic(ERRID.ERR_InvInsideInterface, "shared operator +(i as integer, j as integer) as integer"),
-            Diagnostic(ERRID.ERR_InvInsideInterface, "return 0"),
-            Diagnostic(ERRID.ERR_InvInsideInterface, "end operator"))
+        ",
+            Diagnostic(ERRID.ERR_InvInsideInterface, "shared operator +(i as integer, j as integer) as integer").WithLocation(3, 13),
+            Diagnostic(ERRID.ERR_InvInsideInterface, "return 0").WithLocation(4, 13),
+            Diagnostic(ERRID.ERR_InvInsideInterface, "end operator").WithLocation(5, 13))
+
     End Sub
 
     <WorkItem(890961, "DevDiv/Personal")>
     <Fact>
     Public Sub BC33005ERR_EndOperatorExpected_ParsePartialOperator()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class foo
                 sub main
                     Public Operator
                 End sub
             End Class
-        ]]>,
+        ",
         <errors>
             <error id="30429"/>
             <error id="30289"/>
@@ -176,13 +177,13 @@ Public Class ParseMethods
 
     <Fact>
     Public Sub BC33018ERR_OperatorDeclaredInModule()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             module m1
             shared operator +(i as integer, j as integer) as integer
             return 0
             end operator
             end module
-        ]]>,
+        ",
         <errors>
             <error id="33018"/>
         </errors>)
@@ -190,7 +191,7 @@ Public Class ParseMethods
 
     <Fact>
     Public Sub BC31112ERR_InvInsideEndsEvent()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Interface i1
                     Delegate Sub d1(ByVal i As Integer)
@@ -229,7 +230,7 @@ Public Class ParseMethods
 
             end class
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="31112"/>
             <error id="31114"/>
@@ -238,19 +239,19 @@ Public Class ParseMethods
 
     <Fact>
     Public Sub ParseDelegateDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Delegate Sub ds1 (i as integer)
                 delegate Sub ds2 (of T1, T2)(p1 as T, p2 as T2)
                 Delegate Function df1 (i as integer) as integer
                 Delegate Function fd2 (of T1, T2) (p1 as T1) as T2
             End Module
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub BC30493ERR_ConstructorFunction_ParseDelegateDeclarationFail()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 'Interface i1
                 '    Sub s()
@@ -262,7 +263,7 @@ Public Class ParseMethods
                 Delegate d1()
                 'Delegate Function d1() Handles i1.s
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="30183"/>
             <error id="30493"/>
@@ -275,27 +276,27 @@ Public Class ParseMethods
 
     <Fact>
     Public Sub Bug862436()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Sub Method1(Optional ByVal x As Object = Nothing)
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug862458()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Imports System.Runtime.InteropServices
             Class Class1
-                Declare Function ValidateAnsiBStr Lib "DllMarshalAsStr.Dll" (<MarshalAs(UnmanagedType.AnsiBStr)> ByVal s As String) As Integer
+                Declare Function ValidateAnsiBStr Lib ""DllMarshalAsStr.Dll"" (<MarshalAs(UnmanagedType.AnsiBStr)> ByVal s As String) As Integer
             End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug862470()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
                 Custom Event Event1 As Action
                     AddHandler(ByVal value As Action)
@@ -306,12 +307,12 @@ Public Class ParseMethods
                     End RaiseEvent
                 End Event
             End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug862481()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Interface I1
             Event E1()
             End Interface
@@ -320,12 +321,12 @@ Public Class ParseMethods
                 Private Sub x_E1() Handles x.E1 
                 End Sub
             End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug862502()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class C1
                 Protected Event E1()
             End Class
@@ -334,17 +335,17 @@ Public Class ParseMethods
                 Sub Foo() Handles MyBase.E1 
                 End Sub
             End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug862505()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class C1
                 Function f1(Optional ByVal c1 As New Object())
                 End Function
             End Class
-        ]]>,
+        ",
         <errors>
             <error id="30201"/>
             <error id="30812"/>
@@ -354,28 +355,28 @@ Public Class ParseMethods
 
     <Fact>
     Public Sub Bug863029()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Helpers
                 Public Property Trace As String 
                 Sub AppendTrace(ByVal actual As String)
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug863032()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
                 Public Shared Function Foo() As ULong? 
                 End Function
             End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug863456()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
                 Property scen5() As Integer
                     Get
@@ -384,32 +385,32 @@ Public Class ParseMethods
                    End Set
                 End Property
             End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug863481()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
           Class Class1
              Custom Event e1 As Action(Of Integer)
-                    <Obsolete("qqq", True)>
+                    <Obsolete(""qqq"", True)>
                     AddHandler(ByVal value As Action(Of Integer))
                     End AddHandler
-                    <Obsolete("qqq", True)>
+                    <Obsolete(""qqq"", True)>
                     RemoveHandler(ByVal value As Action(Of Integer))
                     End RemoveHandler
                     <Obsolete _
-                    ("qqq", True)> _
+                    (""qqq"", True)> _
                     RaiseEvent(ByVal obj As Integer)
                     End RaiseEvent
                 End Event
             End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug863543()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Interface I1
                 Sub Foo()
             End Interface
@@ -423,22 +424,22 @@ Public Class ParseMethods
                 Public Sub Foo() Implements I1.Foo, I2.Foo
                 End Sub
             End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug866500()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
                 Property X As Integer
                 Property Y As Integer
             End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug866503()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class2
             End Class
             MustInherit Class Class1
@@ -446,41 +447,41 @@ Public Class ParseMethods
                     Return Nothing
                 End Operator
             End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug866547()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1(Of T)
                 Implements IEnumerable(Of T)
 
                 Public Function GetEnumerator() As IEnumerator(Of T) Implements System.Collections.Generic.IEnumerable(Of T).GetEnumerator
                 End Function
             End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug866551()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Public Sub Ascending(ByVal b As Boolean
                                                ) 
                 End Sub
             End Module
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub BC30808ERR_ObsoletePropertyGetLetSet_Bug866572()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                  Property Let Foo()
                  End Property
             End Module
 
-        ]]>,
+        ",
         <errors>
             <error id="30808"/>
         </errors>)
@@ -488,30 +489,30 @@ Public Class ParseMethods
 
     <Fact>
     Public Sub Bug867046()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class Class1
                 Public Property PropXyz = 1
             End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub Bug867053()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class HasProps
                 Public Property Scen4() As New <CLSCompliant(True)> System.Collections.ArrayList
             End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub BC31121ERR_CustomEventInvInInterface_Bug868467()
         'Tree loses text when attempting to declare a custom event on an interface
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Public Interface ITest
                 Custom Event Event1()
             End Interface
-        ]]>,
+        ",
         <errors>
             <error id="31121"/>
         </errors>)
@@ -520,13 +521,13 @@ Public Class ParseMethods
     <WorkItem(891486, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30198_ParsePartialAutoProperty01()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class C
                 Property x =
                 sub s
                 End sub
             End Class
-        ]]>,
+        ",
         <errors>
             <error id="30198"/>
             <error id="30199"/>
@@ -537,11 +538,11 @@ Public Class ParseMethods
     <WorkItem(890768, "DevDiv/Personal")>
     <Fact>
     Public Sub BC36759ERR_AutoPropertyCantHaveParams_ParsePartialAutoProperty02()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module bar
                 public property P(
             End Module
-        ]]>,
+        ",
         <errors>
             <error id="36759"/>
             <error id="30198"/>
@@ -552,7 +553,7 @@ Public Class ParseMethods
     <WorkItem(883858, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30631ERR_MissingEndGet_PropertyGetTerminatedBySet()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class c1
             Property foo As Integer
                 Get
@@ -561,7 +562,7 @@ Public Class ParseMethods
                 End Set
             End Property
             End Class
-        ]]>,
+        ",
         <errors>
             <error id="30289"/>
             <error id="30631"/>
@@ -571,52 +572,52 @@ Public Class ParseMethods
     <WorkItem(893957, "DevDiv/Personal")>
     <Fact>
     Public Sub BC36674_ParseIncompleteEndConstructForStatementLambda()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Friend Module Basic001mod
                     Sub Basic001()
                         Dim scen1_v1 As Foo(Of Vertebrates) = Function()
-                            loc = "lambda"
+                            loc = ""lambda""
                             Return New Vertebrates()
                             End Functio
-            ]]>, <errors>
-                     <error id="30625"/>
-                     <error id="30026"/>
-                     <error id="36674"/>
-                     <error id="30678"/>
-                 </errors>)
-        ParseAndVerify(<![CDATA[
+            ", <errors>
+                   <error id="30625"/>
+                   <error id="30026"/>
+                   <error id="36674"/>
+                   <error id="30678"/>
+               </errors>)
+        ParseAndVerify("
                Dim g2 = Function()
 Dim a1 = 1
 Dim a2
 a2 = a1 + 2
-Console.WriteLine("Function Lambda" & a2.ToString)
+Console.WriteLine(""Function Lambda"" & a2.ToString)
 
 End 
-            ]]>,
+            ",
             <errors>
                 <error id="36674"/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Dim g2 = Function()
 Dim a1 = 1
 Dim a2
 a2 = a1 + 2
-            ]]>,
+            ",
             <errors>
                 <error id="36674"/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                         Dim g2 = Function()
                      Dim a1 = 1
                      Dim a2
-            ]]>,
+            ",
             <errors>
                 <error id="36674"/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Dim g2 = Function()
 Return
-            ]]>,
+            ",
             <errors>
                 <error id="36674"/>
             </errors>)
@@ -625,21 +626,21 @@ Return
     <WorkItem(893960, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseIncompleteCollectionInitializerInLambda()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Namespace AutoPropInitializationLambda
                     Class HasAutoProps
                     Public Sub Foo()
                         Dim a = Function() If(True, New List(Of Integer) From 
-            ]]>, <errors>
-                     <error id="30626" message="'Namespace' statement must end with a matching 'End Namespace'." start="17" end="55"/>
-                     <error id="30481" message="'Class' statement must end with a matching 'End Class'." start="76" end="94"/>
-                     <error id="30026" message="'End Sub' expected." start="115" end="131"/>
-                     <error id="30987" message="'{' expected." start="210" end="210"/>
-                     <error id="30198" message="')' expected." start="210" end="210"/>
-                 </errors>)
-        ParseAndVerify(<![CDATA[
+            ", <errors>
+                   <error id="30626" message="'Namespace' statement must end with a matching 'End Namespace'." start="17" end="55"/>
+                   <error id="30481" message="'Class' statement must end with a matching 'End Class'." start="76" end="94"/>
+                   <error id="30026" message="'End Sub' expected." start="115" end="131"/>
+                   <error id="30987" message="'{' expected." start="210" end="210"/>
+                   <error id="30198" message="')' expected." start="210" end="210"/>
+               </errors>)
+        ParseAndVerify("
                Dim q2 = Function() If(4 > 3, Function() 1U
-            ]]>,
+            ",
             <errors>
                 <error id="30198"/>
                 <error id="32017"/>
@@ -649,45 +650,45 @@ Return
     <WorkItem(893976, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30215ERR_ExpectedSubFunction_ParseDeclareKeyword()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Declare
-            ]]>,
+            ",
             <errors>
                 <error id="30218"/>
                 <error id="30203"/>
                 <error id="30215"/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Declare F
-            ]]>,
+            ",
             <errors>
                 <error id="30218"/>
                 <error id="30215"/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Declare Fu
-            ]]>,
+            ",
             <errors>
                 <error id="30218"/>
                 <error id="30215"/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Declare Fun
-            ]]>,
+            ",
             <errors>
                 <error id="30218"/>
                 <error id="30215"/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Declare Func
-            ]]>,
+            ",
             <errors>
                 <error id="30218"/>
                 <error id="30215"/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Declare Function A
-            ]]>,
+            ",
             <errors>
                 <error id="30218"/>
             </errors>)
@@ -696,9 +697,9 @@ Return
     <WorkItem(893977, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30218ERR_MissingLibInDeclare_ParseDeclareMissingLib()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                  Declare Function GetCORSystemDirectory L
-            ]]>,
+            ",
             <errors>
                 <error id="30218"/>
             </errors>)
@@ -707,12 +708,12 @@ Return
     <WorkItem(893603, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30198_ParseIncompleteLambda()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Class SomeClass
     Private Class PrivateClass
         Public Sub Foo()
             dim y = Function
-            ]]>,
+            ",
             <errors>
                 <error id="36674"/>
                 <error id="30198"/>
@@ -726,27 +727,27 @@ Return
     <WorkItem(893959, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30198_ParseConditionalBinaryOperator()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Namespace AutoPropInitializationLambda
 Class HasAutoProps
 Public Property Scen4() As Object = Function(y As Object, z As Object) If(y Is Nothing, z I
-]]>, <errors>
-         <error id="30198"/>
-         <error id="32017"/>
-         <error id="30481"/>
-         <error id="30626"/>
-     </errors>)
+", <errors>
+       <error id="30198"/>
+       <error id="32017"/>
+       <error id="30481"/>
+       <error id="30626"/>
+   </errors>)
     End Sub
 
     <WorkItem(894097, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30384_ParseLambdaCatch()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Sub LambdaSyntax02()
 Try
 Dim s6 = Function ((x) (x + 1))
 Catch
-]]>,
+",
 <errors>
     <error id="30384"/>
     <error id="36674"/>
@@ -761,9 +762,9 @@ Catch
     <WorkItem(894099, "DevDiv/Personal")>
     <Fact>
     Public Sub BC32065_ParseGenericFunction()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
  Dim x = Function(Of
-]]>,
+",
 <errors>
     <error id="36674"/>
     <error id="30198"/>
@@ -775,12 +776,12 @@ Catch
     <WorkItem(894452, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30384ERR_ExpectedEndTry_ParseErroneousAddressOf()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Sub DELError002()
 Try
 d1=addressof Sub
 Catch
-]]>,
+",
 <errors>
     <error id="30384"/>
     <error id="36673"/>
@@ -793,8 +794,8 @@ Catch
     <WorkItem(896836, "DevDiv/Personal")>
     <Fact>
     Public Sub BC36918ERR_SubRequiresSingleStatement_ParseIncompleteLambdas()
-        ParseAndVerify(<![CDATA[
-Dim x = Sub]]>,
+        ParseAndVerify("
+Dim x = Sub",
 <errors>
     <error id="36918"/>
     <error id="30198"/>
@@ -805,25 +806,25 @@ Dim x = Sub]]>,
     <WorkItem(897818, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30081ERR_ExpectedEndIf_ParseElseIfInSubLambda()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
     module m
     sub main()
         Dim d = Sub() If True Then P(arg) Else If
     end sub
     end module
-]]>, <errors>
-         <error id="30081" message="'If' must end with a matching 'End If'." start="76" end="78"/>
-         <error id="30201" message="Expression expected." start="78" end="78"/>
-     </errors>)
+", <errors>
+       <error id="30081" message="'If' must end with a matching 'End If'." start="76" end="78"/>
+       <error id="30201" message="Expression expected." start="78" end="78"/>
+   </errors>)
     End Sub
 
     <WorkItem(897848, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30084ERR_ExpectedNext_ParseColonInLambdaReturn()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Dim ddd = Function(m3)
 Return Sub() If True Then For Each i In list2 : 
-]]>,
+",
 <errors>
     <error id="30084"/>
     <error id="36674"/>
@@ -833,17 +834,17 @@ Return Sub() If True Then For Each i In list2 :
     <WorkItem(899947, "DevDiv/Personal")>
     <Fact>
     Public Sub BC32088ERR_TypeArgsUnexpected_ParseImplementsGenerics()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Sub M() Implements NS.I(Of
-]]>,
+",
 <errors>
     <error id="30026"/>
     <error id="30182"/>
     <error id="30198"/>
 </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Sub M() Implements NS.I(Of Object)
-]]>,
+",
 <errors>
     <error id="30026"/>
     <error id="32088"/>
@@ -853,13 +854,13 @@ Sub M() Implements NS.I(Of Object)
     <WorkItem(901336, "DevDiv/Personal")>
     <Fact>
     Public Sub BC36674ERR_MultilineLambdaMissingFunction_ParseColonInsideEmbeddedLambda()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Class Class5
     Dim w = Function()
                 If True Then
                     Dim x = Sub()
                                 Dim x = True : End If
-]]>,
+",
 <errors>
     <error id="36673"/>
     <error id="36674"/>
@@ -870,8 +871,8 @@ Class Class5
     <WorkItem(903444, "DevDiv/Personal")>
     <Fact>
     Public Sub BC36673ERR_MultilineLambdaMissingSub_ParseEventAfterLambda()
-        ParseAndVerify(<![CDATA[Dim i = Sub(a as Integer, b as Long)
-Event]]>,
+        ParseAndVerify("Dim i = Sub(a as Integer, b as Long)
+Event",
 <errors>
     <error id="30203"/>
     <error id="36673"/>
@@ -881,9 +882,9 @@ Event]]>,
     <WorkItem(904759, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30429ERR_InvalidEndSub_ParseEmbeddedSubLambda()
-        ParseAndVerify(<![CDATA[Dim x1 = Sub()
+        ParseAndVerify("Dim x1 = Sub()
 Dim x2 = Sub(y) End Sub
-End Sub]]>,
+End Sub",
 <errors>
     <error id="30429"/>
 </errors>)
@@ -893,7 +894,7 @@ End Sub]]>,
     <Fact>
     Public Sub ParseErrorsInSubLambda()
         ' The errors are semantic errors not parse errors so no errors are expected.
-        ParseAndVerify(<![CDATA[Namespace n1
+        ParseAndVerify("Namespace n1
     Module m1
         public sub bar()
             Dim mm = Sub(ByRef x As String, y As Integer) Console.WriteL
@@ -902,23 +903,23 @@ End Sub]]>,
         
         End Module
 End Namespace
-]]>)
+")
     End Sub
 
-    <WorkItem(539519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539519")>
+    <WorkItem(539519, "http:       //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539519")>
     <Fact>
     Public Sub ParseIncompleteMultiLineLambdaWithExpressionAfterAsClause()
         ' This looks like a single line lambda with an as clause but it is in fact a badly formed multi-line lambda
         Dim compilationDef =
-        <![CDATA[
+        "
 Module Program
   Sub Main()
     Dim l1 As System.Func(Of Integer, Integer) = Function(x) As Integer x
   End Sub
 End Module
-]]>
+"
         ParseAndVerify(compilationDef, <errors>
-                                           <error id="36674" message="Multiline lambda expression is missing 'End Function'." start="78" end="100"/>
+                                           <error id="36674" message="Multiline lambda expression Is missing 'End Function'." start="78" end="100"/>
                                            <error id="30205" message="End of statement expected." start="101" end="102"/>
                                        </errors>)
     End Sub
@@ -927,13 +928,13 @@ End Module
     <WorkItem(537167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537167")>
     <Fact>
     Public Sub ParseShadowsAfterIncompleteLambda()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Structure Scen31
 
 Shared Dim i = Function(a as Integer)
 Shadows Private Function Foo()
 End Structure
-]]>,
+",
 <errors>
     <error id="36674"/>
     <error id="30027"/>
@@ -945,12 +946,12 @@ End Structure
     <WorkItem(538494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538494")>
     <Fact>
     Public Sub ParseDefaultPropAfterIncompleteLambda()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module m
 Dim i = Sub(a as Integer)
 Default Property
 end module
-]]>,
+",
 <errors>
     <error id="36673"/>
     <error id="30025"/>
@@ -963,51 +964,51 @@ end module
     <WorkItem(2257, "DevDiv_Projects/Roslyn")>
     <Fact>
     Public Sub BC33002ERR_OperatorNotOverloadable_ParseNotOverloadableOperators()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
  Friend Module OLSpErr01mod
         Class A
-            'COMPILEERROR: BC33002, "AndAlso"
+            'COMPILEERROR: BC33002, ""AndAlso""
             shared operator AndAlso(x as c1, y as c1) as Integer
             End Operator
-            'COMPILEERROR: BC33002, "OrElse"
+            'COMPILEERROR: BC33002, ""OrElse""
             shared operator OrElse(x as c1, y as c1) as Integer
             End Operator
-            'COMPILEERROR: BC33002, "New"
+            'COMPILEERROR: BC33002, ""New""
             shared operator New(x as c1, y as c1) as Integer
             End Operator
-            'COMPILEERROR: BC33002, "TypeOf"
+            'COMPILEERROR: BC33002, ""TypeOf""
             shared operator TypeOf(x as c1, y as c1) as Integer
             End Operator
-            'COMPILEERROR: BC33002, "Is"
+            'COMPILEERROR: BC33002, ""Is""
             shared operator Is(x as c1, y as c1) as Integer
             End Operator
-            'COMPILEERROR: BC33002, "IsNot"
+            'COMPILEERROR: BC33002, ""IsNot""
             shared operator IsNot(x as c1, y as c1) as Integer
             End Operator
-            'COMPILEERROR: BC33000, "AddressOf"
+            'COMPILEERROR: BC33000, ""AddressOf""
             shared operator AddressOf(x as c1, y as c1) as Integer
             End Operator
-            'COMPILEERROR: BC33002, "GetType"
+            'COMPILEERROR: BC33002, ""GetType""
             shared operator GetType(x as c1, y as c1) as Integer
             End Operator
-            'COMPILEERROR: BC33000, "VarType"
+            'COMPILEERROR: BC33000, ""VarType""
             shared operator VarType(x as c1, y as c1) as Integer
             End Operator
-            'COMPILEERROR: BC33002, "."
+            'COMPILEERROR: BC33002, "".""
             shared operator .(x as c1, y as c1) as Integer
             End Operator
         End Class
 
         Friend Structure S
-            'COMPILEERROR: BC33002,"+="
+            'COMPILEERROR: BC33002,""+=""
             Public Operator +=(ByVal x As cls1) As Integer
             End Operator
-            'COMPILEERROR: BC33002, "IsNot"
+            'COMPILEERROR: BC33002, ""IsNot""
             shared operator IsNot(x as c1) as Boolean
             End Operator
         End Structure
 End Module
-            ]]>,
+            ",
             <errors>
                 <error id="33002"/>
                 <error id="33002"/>
@@ -1026,11 +1027,11 @@ End Module
 
     <Fact(), WorkItem(544074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544074")>
     Public Sub ParseSubLambdaWithReturnTypeInsideTryCatch()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module Program
     Sub Main()
         Try
-            'COMPILEERROR : BC30205, "As Object" 
+            'COMPILEERROR : BC30205, ""As Object"" 
             Dim x6 = Sub() As Object 
                      End Sub
         Catch
@@ -1038,7 +1039,7 @@ Module Program
         End Try
     End Sub     
 End Module
-        ]]>,
+        ",
         <errors>
             <error id="30205"/>
         </errors>)
@@ -1046,7 +1047,7 @@ End Module
 
     <Fact(), WorkItem(545543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545543")>
     Public Sub ParseSingleLineSubLambdaWithForNext()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module Program
     Sub Main()
         For i = 1 To 10
@@ -1054,7 +1055,7 @@ Module Program
         Next j, i
     End Sub
 End Module
-        ]]>,
+        ",
         Diagnostic(ERRID.ERR_ExpectedNext, "For j = 1 To 10"),
         Diagnostic(ERRID.ERR_ExtraNextVariable, "i"))
     End Sub
