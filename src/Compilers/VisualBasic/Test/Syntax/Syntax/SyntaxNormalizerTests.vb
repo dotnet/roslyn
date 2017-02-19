@@ -25,50 +25,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(expected, actual)
         End Sub
 
-        <Fact()>
-        Public Sub TestNormalizeExpressions()
-            TestNormalizeExpression("+1", "+1")
-            TestNormalizeExpression("+a", "+a")
-            TestNormalizeExpression("-a", "-a")
-
-            TestNormalizeExpression("a", "a")
-            TestNormalizeExpression("a+b", "a + b")
-            TestNormalizeExpression("a-b", "a - b")
-            TestNormalizeExpression("a*b", "a * b")
-            TestNormalizeExpression("a/b", "a / b")
-            TestNormalizeExpression("a mod b", "a mod b")
-            TestNormalizeExpression("a xor b", "a xor b")
-            TestNormalizeExpression("a or b", "a or b")
-            TestNormalizeExpression("a and b", "a and b")
-            TestNormalizeExpression("a orelse b", "a orelse b")
-            TestNormalizeExpression("a andalso b", "a andalso b")
-            TestNormalizeExpression("a<b", "a < b")
-            TestNormalizeExpression("a<=b", "a <= b")
-            TestNormalizeExpression("a>b", "a > b")
-            TestNormalizeExpression("a>=b", "a >= b")
-            TestNormalizeExpression("a=b", "a = b")
-            TestNormalizeExpression("a<>b", "a <> b")
-            TestNormalizeExpression("a<<b", "a << b")
-            TestNormalizeExpression("a>>b", "a >> b")
-
-            TestNormalizeExpression("(a+b)", "(a + b)")
-            TestNormalizeExpression("((a)+(b))", "((a) + (b))")
-            TestNormalizeExpression("(a)", "(a)")
-            TestNormalizeExpression("(a)(b)", "(a)(b)")
-
-            TestNormalizeExpression("m()", "m()")
-            TestNormalizeExpression("m(a)", "m(a)")
-            TestNormalizeExpression("m(a,b)", "m(a, b)")
-            TestNormalizeExpression("m(a,b,c)", "m(a, b, c)")
-            TestNormalizeExpression("m(a,b(c,d))", "m(a, b(c, d))")
-            TestNormalizeExpression("m( , ,, )", "m(,,,)")
-            TestNormalizeExpression("a(b(c(0)))", "a(b(c(0)))")
-
-            TestNormalizeExpression("if(a,b,c)", "if(a, b, c)")
-
-            TestNormalizeExpression("a().b().c()", "a().b().c()")
-
-            TestNormalizeExpression("""aM5b""    Like ""a[L-P]#[!c-e]a?""", """aM5b"" Like ""a[L-P]#[!c-e]a?""")
+        <Theory()>
+        <InlineData("+1", "+1"), InlineData("+a", "+a"), InlineData("-a", "-a"), InlineData("a", "a"),
+         InlineData("a+b", "a + b"), InlineData("a-b", "a - b"), InlineData("a*b", "a * b"), InlineData("a/b", "a / b"), InlineData("a mod b", "a mod b"),
+         InlineData("a xor b", "a xor b"), InlineData("a or b", "a or b"), InlineData("a and b", "a and b"),
+         InlineData("a orelse b", "a orelse b"), InlineData("a andalso b", "a andalso b"),
+         InlineData("a<b", "a < b"), InlineData("a<=b", "a <= b"),
+         InlineData("a>b", "a > b"), InlineData("a>=b", "a >= b"),
+         InlineData("a=b", "a = b"), InlineData("a<>b", "a <> b"),
+         InlineData("a<<b", "a << b"), InlineData("a>>b", "a >> b"),
+         InlineData("(a+b)", "(a + b)"), InlineData("((a)+(b))", "((a) + (b))"), InlineData("(a)", "(a)"), InlineData("(a)(b)", "(a)(b)"),
+         InlineData("m()", "m()"), InlineData("m(a)", "m(a)"), InlineData("m(a,b)", "m(a, b)"),
+         InlineData("m(a,b,c)", "m(a, b, c)"), InlineData("m(a,b(c,d))", "m(a, b(c, d))"), InlineData("m( , ,, )", "m(,,,)"),
+         InlineData("a(b(c(0)))", "a(b(c(0)))"), InlineData("if(a,b,c)", "if(a, b, c)"), InlineData("a().b().c()", "a().b().c()"),
+         InlineData("""aM5b""    Like ""a[L-P]#[!c-e]a?""", """aM5b"" Like ""a[L-P]#[!c-e]a?""")>
+        Public Sub Theory_NormalizeExpressions(code As String, expected As String)
+            TestNormalizeExpression(code, expected)
         End Sub
 
         Private Sub TestNormalizeExpression(text As String, expected As String)
@@ -79,458 +51,574 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestTrailingComment()
-            TestNormalizeBlock("Dim foo as Bar     ' it is a Bar", "Dim foo as Bar ' it is a Bar" + vbCrLf)
+            TestNormalizeBlock(
+"Dim foo as Bar     ' it is a Bar",
+"Dim foo as Bar ' it is a Bar
+")
         End Sub
-
 
         <Fact()>
         Public Sub TestOptionStatements()
-            TestNormalizeBlock("Option             Explicit  Off", "Option Explicit Off" + vbCrLf)
+            TestNormalizeBlock(
+"Option             Explicit  Off",
+"Option Explicit Off
+")
         End Sub
 
         <Fact()>
         Public Sub TestImportsStatements()
-            TestNormalizeBlock("Imports           System", "Imports System" + vbCrLf)
-            TestNormalizeBlock("Imports System.Foo.Bar", "Imports System.Foo.Bar" + vbCrLf)
-            TestNormalizeBlock("Imports T2=System.String", "Imports T2 = System.String" + vbCrLf)
-            TestNormalizeBlock("Imports          <xmlns:db=""http://example.org/database"">", "Imports <xmlns:db=""http://example.org/database"">" + vbCrLf)
+            TestNormalizeBlock(
+"Imports           System",
+"Imports System
+")
+            TestNormalizeBlock(
+"Imports System.Foo.Bar",
+"Imports System.Foo.Bar
+")
+            TestNormalizeBlock(
+"Imports T2=System.String",
+"Imports T2 = System.String
+")
+            TestNormalizeBlock(
+"Imports          <xmlns:db=""http://example.org/database"">",
+"Imports <xmlns:db=""http://example.org/database"">
+")
         End Sub
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestLabelStatements()
-            TestNormalizeStatement("while a<b" + vbCrLf + "foo:" + vbCrLf + "c" + vbCrLf + "end while", "while a < b" + vbCrLf + "foo:" + vbCrLf + "  c" + vbCrLf + "end while")
+            TestNormalizeStatement(
+"while a<b
+foo:
+c
+end while",
+"while a < b
+foo:
+  c
+end while")
         End Sub
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestMethodStatements()
-            TestNormalizeBlock("Sub foo()" + vbCrLf + "a()" + vbCrLf + "end Sub", "Sub foo()" + vbCrLf + "  a()" + vbCrLf + "end Sub" + vbCrLf)
-            TestNormalizeBlock("Function foo()         as   Integer" + vbCrLf + "return 23" + vbCrLf + "end function", "Function foo() as Integer" + vbCrLf + "  return 23" + vbCrLf + "end function" + vbCrLf)
-            TestNormalizeBlock("Function foo(  x as   System.Int32,[Char] as Integer)         as   Integer" + vbCrLf + "return 23" + vbCrLf + "end function", "Function foo(x as System.Int32, [Char] as Integer) as Integer" + vbCrLf + "  return 23" + vbCrLf + "end function" + vbCrLf)
-            TestNormalizeBlock("Sub foo()" + vbCrLf + "Dim a ( ) ( )=New Integer ( ) ( ) (   ){ }" + vbCrLf + "end Sub", "Sub foo()" + vbCrLf + "  Dim a()() = New Integer()()() {}" + vbCrLf + "end Sub" + vbCrLf)
+            TestNormalizeBlock(
+"Sub foo()
+a()
+end Sub",
+"Sub foo()
+  a()
+end Sub
+")
+            TestNormalizeBlock(
+"Function foo()         as   Integer
+return 23
+end function",
+"Function foo() as Integer
+  return 23
+end function
+")
+            TestNormalizeBlock(
+"Function foo(  x as   System.Int32,[Char] as Integer)         as   Integer
+return 23
+end function",
+"Function foo(x as System.Int32, [Char] as Integer) as Integer
+  return 23
+end function
+")
+            TestNormalizeBlock(
+"Sub foo()
+Dim a ( ) ( )=New Integer ( ) ( ) (   ){ }
+end Sub",
+"Sub foo()
+  Dim a()() = New Integer()()() {}
+end Sub
+")
         End Sub
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestWithStatements()
             TestNormalizeBlock(
-<code>
+"
 Sub foo()
 with foo
 .bar()
 end with
-end Sub</code>.Value, _
- _
-<code>Sub foo()
+end Sub",
+"Sub foo()
   with foo
     .bar()
   end with
 end Sub
-</code>.Value)
+")
         End Sub
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Fact(), WorkItem(546397, "http: //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestSyncLockStatements()
-            TestNormalizeBlock("Sub foo()" + vbCrLf + "SyncLock me" + vbCrLf + "bar()" + vbCrLf + "end synclock" + vbCrLf + "end Sub",
-                            "Sub foo()" + vbCrLf + "  SyncLock me" + vbCrLf + "    bar()" + vbCrLf + "  end synclock" + vbCrLf + "end Sub" + vbCrLf)
+            TestNormalizeBlock(
+"Sub foo()
+SyncLock me
+bar()
+end synclock
+end Sub
+",
+"Sub foo()
+  SyncLock me
+    bar()
+  end synclock
+end Sub
+")
         End Sub
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestEventStatements()
             TestNormalizeBlock(
-<code>
-module m1
+"module m1
 private withevents x as y
 private sub myhandler() Handles y.e1
 end sub
 end module
-</code>.Value,
- _
-<code>module m1
+",
+"module m1
 
   private withevents x as y
 
   private sub myhandler() Handles y.e1
   end sub
 end module
-</code>.Value)
+")
         End Sub
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
-        Public Sub TestAssignmentStatements()
-            TestNormalizeBlock("module m1" + vbCrLf +
-                            "sub s1()" + vbCrLf +
-                            "Dim x as Integer()" + vbCrLf +
-                            "x(2)=23" + vbCrLf +
-                            "Dim s as string=""boo""&""ya""" + vbCrLf +
-                            "end sub" + vbCrLf +
-                            "end module", _
- _
-                            "module m1" + vbCrLf + vbCrLf +
-                            "  sub s1()" + vbCrLf +
-                            "    Dim x as Integer()" + vbCrLf +
-                            "    x(2) = 23" + vbCrLf +
-                            "    Dim s as string = ""boo"" & ""ya""" + vbCrLf +
-                            "  end sub" + vbCrLf +
-                            "end module" + vbCrLf)
+        Public Sub TestAssignmentStatements_a()
+            TestNormalizeBlock(
+"module m1
+sub s1()
+Dim x as Integer()
+x(2)=23
+Dim s As String = ""boo""&""ya""
+End Sub
+End Module",
+"module m1
 
-            TestNormalizeBlock("module m1" + vbCrLf + vbCrLf +
-                            "sub s1()" + vbCrLf +
-                            "Dim x as Integer" + vbCrLf +
-                            "x^=23" + vbCrLf +
-                            "x*=23" + vbCrLf +
-                            "x/=23" + vbCrLf +
-                            "x\=23" + vbCrLf +
-                            "x+=23" + vbCrLf +
-                            "x-=23" + vbCrLf +
-                            "x<<=23" + vbCrLf +
-                            "x>>=23" + vbCrLf +
-                            "Dim y as string" + vbCrLf +
-                            "y &=""a""" + vbCrLf +
-                            "end sub" + vbCrLf +
-                            "end module", _
- _
-                            "module m1" + vbCrLf + vbCrLf +
-                            "  sub s1()" + vbCrLf +
-                            "    Dim x as Integer" + vbCrLf +
-                            "    x ^= 23" + vbCrLf +
-                            "    x *= 23" + vbCrLf +
-                            "    x /= 23" + vbCrLf +
-                            "    x \= 23" + vbCrLf +
-                            "    x += 23" + vbCrLf +
-                            "    x -= 23" + vbCrLf +
-                            "    x <<= 23" + vbCrLf +
-                            "    x >>= 23" + vbCrLf +
-                            "    Dim y as string" + vbCrLf +
-                            "    y &= ""a""" + vbCrLf +
-                            "  end sub" + vbCrLf +
-                            "end module" + vbCrLf)
+  sub s1()
+    Dim x as Integer()
+    x(2) = 23
+    Dim s As String = ""boo"" & ""ya""
+  End Sub
+End Module
+")
+        End Sub
+        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        Public Sub TestAssignmentStatements_b()
+            TestNormalizeBlock(
+"Module m1
 
-            TestNormalizeBlock("module m1" + vbCrLf +
-                            "sub s1()" + vbCrLf +
-                            "Dim s1 As String=""a""" + vbCrLf +
-                            "Dim s2 As String=""b""" + vbCrLf +
-                            "Mid$(s1,3,3)=s2" + vbCrLf +
-                            "end sub" + vbCrLf +
-                            "end module", _
- _
-                            "module m1" + vbCrLf + vbCrLf +
-                            "  sub s1()" + vbCrLf +
-                            "    Dim s1 As String = ""a""" + vbCrLf +
-                            "    Dim s2 As String = ""b""" + vbCrLf +
-                            "    Mid$(s1, 3, 3) = s2" + vbCrLf +
-                            "  end sub" + vbCrLf +
-                            "end module" + vbCrLf)
+Sub s1()
+Dim x As Integer
+x ^=23
+x *= 23
+x /=23
+x \= 23
+x +=23
+x -= 23
+x <<=23
+x >>= 23
+Dim y As String
+y &= ""a""
+End Sub
+End Module
+",
+"Module m1
+
+  Sub s1()
+    Dim x As Integer
+    x ^= 23
+    x *= 23
+    x /= 23
+    x \= 23
+    x += 23
+    x -= 23
+    x <<= 23
+    x >>= 23
+    Dim y As String
+    y &= ""a""
+  End Sub
+End Module
+")
+
+            TestNormalizeBlock(
+"Module m1
+Sub s1()
+Dim s1 As String= ""a""
+Dim s2 As String=""b""
+Mid$(s1, 3, 3) = s2
+End Sub
+End Module",
+"Module m1
+
+  Sub s1()
+    Dim s1 As String = ""a""
+    Dim s2 As String = ""b""
+    Mid$(s1, 3, 3) = s2
+  End Sub
+End Module
+")
         End Sub
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestCallStatements()
-            TestNormalizeBlock("module m1" + vbCrLf +
-                            "sub s2()" + vbCrLf +
-                            "s1 ( 23 )" + vbCrLf +
-                            "s1 ( p1:=23 , p2:=23)" + vbCrLf +
-                            "end sub" + vbCrLf +
-                            "end module", _
- _
-                            "module m1" + vbCrLf + vbCrLf +
-                            "  sub s2()" + vbCrLf +
-                            "    s1(23)" + vbCrLf +
-                            "    s1(p1:=23, p2:=23)" + vbCrLf +
-                            "  end sub" + vbCrLf +
-                            "end module" + vbCrLf)
+            TestNormalizeBlock(
+"module m1
+Sub s2()
+s1 ( 23 )
+s1 ( p1:=23 , p2:=23)
+End Sub
+End Module",
+"module m1
 
-            TestNormalizeBlock("module m1" + vbCrLf + vbCrLf +
-                            "sub s2 ( Of   T ) (   optional x As T=nothing  )" + vbCrLf +
-                            "N1.M2.S2 ( ) " + vbCrLf +
-                            "end sub" + vbCrLf +
-                            "end module", _
- _
-                            "module m1" + vbCrLf + vbCrLf +
-                            "  sub s2(Of T)(optional x As T = nothing)" + vbCrLf +
-                            "    N1.M2.S2()" + vbCrLf +
-                            "  end sub" + vbCrLf +
-                            "end module" + vbCrLf)
+  Sub s2()
+    s1(23)
+    s1(p1:=23, p2:=23)
+  End Sub
+End Module
+")
+
+            TestNormalizeBlock(
+"Module m1
+
+Sub s2 ( Of   T )(   Optional x As T= Nothing  )
+N1.M2.S2 ( ) 
+End Sub
+End Module",
+"Module m1
+
+  Sub s2(Of T)(Optional x As T = Nothing)
+    N1.M2.S2()
+  End Sub
+End Module
+")
         End Sub
 
         <Fact()>
         Public Sub TestNewStatements()
-            TestNormalizeBlock("Dim zipState=New With {   Key .ZipCode=98112, .State=""WA""   }",
-                            "Dim zipState = New With {Key .ZipCode = 98112, .State = ""WA""}" + vbCrLf)
+            TestNormalizeBlock(
+"Dim zipState= New With {Key .ZipCode = 98112, .State = ""WA""   }",
+"Dim zipState = New With {Key .ZipCode = 98112, .State = ""WA""}
+")
         End Sub
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397"), WorkItem(546514, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546514")>
         Public Sub TestXmlAccessStatements()
-            TestNormalizeBlock("Imports <xmlns:db=""http://example.org/database"">" + vbCrLf +
-                            "Module Test" + vbCrLf +
-                            "Sub Main ( )" + vbCrLf +
-                            "Dim x=<db:customer><db:Name>Bob</db:Name></db:customer>" + vbCrLf +
-                            "Console . WriteLine ( x .<   db:Name  > )" + vbCrLf +
-                            "End Sub" + vbCrLf +
-                            "End Module",
- _
-                            "Imports <xmlns:db=""http://example.org/database"">" + vbCrLf +
-                            "" + vbCrLf +
-                            "Module Test" + vbCrLf + vbCrLf +
-                            "  Sub Main()" + vbCrLf +
-                            "    Dim x = <db:customer><db:Name>Bob</db:Name></db:customer>" + vbCrLf +
-                            "    Console.WriteLine(x.<db:Name>)" + vbCrLf +
-                            "  End Sub" + vbCrLf +
-                            "End Module" + vbCrLf)
+            TestNormalizeBlock(
+"Imports <xmlns:db=""http://example.org/database"">
+Module Test
+Sub() Main()
+Dim x= <db:customer><db:Name>Bob</db:Name></db:customer>
+Console.WriteLine(x.<db:Name>)
+        End Sub
+End Module",
+"Imports <xmlns:db=""http://example.org/database"">
+
+Module Test
+
+  Sub () Main() 
+    Dim x = <db:customer><db:Name>Bob</db:Name></db:customer>
+    Console.WriteLine(x.<db:Name>)
+  End Sub
+End Module
+")
         End Sub
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Fact(), WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestNamespaceStatements()
-            TestNormalizeBlock("Imports I1.I2" + vbCrLf +
-                            "Namespace N1" + vbCrLf +
-                            "Namespace N2.N3" + vbCrLf +
-                            "end Namespace" + vbCrLf +
-                            "end Namespace", _
- _
-                            "Imports I1.I2" + vbCrLf +
-                            "" + vbCrLf +
-                            "Namespace N1" + vbCrLf +
-                            "  Namespace N2.N3" + vbCrLf +
-                            "  end Namespace" + vbCrLf +
-                            "end Namespace" + vbCrLf)
+            TestNormalizeBlock(
+"Imports I1.I2
+Namespace N1
+Namespace N2.N3
+end Namespace
+end Namespace",
+"Imports I1.I2
+
+Namespace N1
+  Namespace N2.N3
+  end Namespace
+end Namespace
+")
         End Sub
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Fact(), WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestNullableStatements()
             TestNormalizeBlock(
-<code>
+"
 module m1
 Dim x as Integer?=nothing
-end module</code>.Value, _
- _
-<code>module m1
+end module",
+"module m1
 
   Dim x as Integer? = nothing
 end module
-</code>.Value)
+")
         End Sub
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Fact(), WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestInterfaceStatements()
-            TestNormalizeBlock("namespace N1" + vbCrLf +
-                            "Interface I1" + vbCrLf +
-                            "public Function F1() As Object" + vbCrLf +
-                            "End Interface" + vbCrLf +
-                            "Interface I2" + vbCrLf +
-                            "Function F2() As Integer" + vbCrLf +
-                            "End Interface" + vbCrLf +
-                            "Structure S1" + vbCrLf +
-                            "Implements I1,I2" + vbCrLf +
-                            "public Function F1() As Object" + vbCrLf +
-                            "Dim x as Integer=23" + vbCrLf +
-                            "return x" + vbCrLf +
-                            "end function" + vbCrLf +
-                            "End Structure" + vbCrLf +
-                            "End Namespace", _
- _
-                            "namespace N1" + vbCrLf + vbCrLf +
-                            "  Interface I1" + vbCrLf + vbCrLf +
-                            "    public Function F1() As Object" + vbCrLf + vbCrLf +
-                            "  End Interface" + vbCrLf + vbCrLf +
-                            "  Interface I2" + vbCrLf + vbCrLf +
-                            "    Function F2() As Integer" + vbCrLf + vbCrLf +
-                            "  End Interface" + vbCrLf + vbCrLf +
-                            "  Structure S1" + vbCrLf +
-                            "    Implements I1, I2" + vbCrLf + vbCrLf +
-                            "    public Function F1() As Object" + vbCrLf +
-                            "      Dim x as Integer = 23" + vbCrLf +
-                            "      return x" + vbCrLf +
-                            "    end function" + vbCrLf +
-                            "  End Structure" + vbCrLf +
-                            "End Namespace" + vbCrLf)
+            TestNormalizeBlock(
+"namespace N1
+Interface I1
+public Function F1() As Object
+End Interface
+Interface I2
+Function F2() As Integer
+End Interface
+Structure S1
+Implements I1,I2
+public Function F1() As Object
+Dim x as Integer=23
+return x
+end function
+End Structure
+End Namespace",
+"namespace N1
+
+  Interface I1
+
+    public Function F1() As Object
+
+  End Interface
+
+  Interface I2
+
+    Function F2() As Integer
+
+  End Interface
+
+  Structure S1
+    Implements I1, I2
+
+    public Function F1() As Object
+      Dim x as Integer = 23
+      return x
+    end function
+  End Structure
+End Namespace
+")
         End Sub
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Fact(), WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestEnumStatements()
-            TestNormalizeBlock("Module M1" + vbCrLf + vbCrLf +
-                            "ENUM E1 as long" + vbCrLf +
-                            "         foo=23" + vbCrLf +
-                            "bar        " + vbCrLf +
-                            "boo=foo" + vbCrLf +
-                            "booya=1.4" + vbCrLf +
-                            "end enum" + vbCrLf +
-                            "end         MODule", _
- _
-                            "Module M1" + vbCrLf + vbCrLf +
-                            "  ENUM E1 as long" + vbCrLf +
-                            "    foo = 23" + vbCrLf +
-                            "    bar" + vbCrLf +
-                            "    boo = foo" + vbCrLf +
-                            "    booya = 1.4" + vbCrLf +
-                            "  end enum" + vbCrLf +
-                            "end MODule" + vbCrLf)
+            TestNormalizeBlock(
+"Module M1
 
-            TestNormalizeBlock("class c1" + vbCrLf +
-                            "ENUM E1 as long" + vbCrLf +
-                            "         foo=23" + vbCrLf +
-                            "bar        " + vbCrLf +
-                            "boo=foo" + vbCrLf +
-                            "booya=1.4" + vbCrLf +
-                            "end enum" + vbCrLf +
-                            "end         class", _
- _
-                            "class c1" + vbCrLf + vbCrLf +
-                            "  ENUM E1 as long" + vbCrLf +
-                            "    foo = 23" + vbCrLf +
-                            "    bar" + vbCrLf +
-                            "    boo = foo" + vbCrLf +
-                            "    booya = 1.4" + vbCrLf +
-                            "  end enum" + vbCrLf +
-                            "end class" + vbCrLf)
+ENUM E1 as long
+         foo=23 
+bar         
+boo=foo
+booya=1.4 
+end enum
+end         MODule",
+"Module M1
 
-            TestNormalizeBlock("public class c1" + vbCrLf + vbCrLf +
-                            "ENUM E1 as long" + vbCrLf +
-                            "         foo=23" + vbCrLf +
-                            "bar        " + vbCrLf +
-                            "boo=foo" + vbCrLf +
-                            "booya=1.4" + vbCrLf +
-                            "end enum" + vbCrLf +
-                            "end         class", _
- _
-                            "public class c1" + vbCrLf + vbCrLf +
-                            "  ENUM E1 as long" + vbCrLf +
-                            "    foo = 23" + vbCrLf +
-                            "    bar" + vbCrLf +
-                            "    boo = foo" + vbCrLf +
-                            "    booya = 1.4" + vbCrLf +
-                            "  end enum" + vbCrLf +
-                            "end class" + vbCrLf)
+  ENUM E1 as long
+    foo = 23
+    bar
+    boo = foo
+    booya = 1.4
+  end enum
+end MODule
+")
 
-            TestNormalizeBlock("class c1" + vbCrLf +
-                            "public     ENUM E1 as long" + vbCrLf +
-                            "         foo=23" + vbCrLf +
-                            "bar        " + vbCrLf +
-                            "boo=foo" + vbCrLf +
-                            "booya=1.4" + vbCrLf +
-                            "end enum" + vbCrLf +
-                            "end         class", _
- _
-                            "class c1" + vbCrLf + vbCrLf +
-                            "  public ENUM E1 as long" + vbCrLf +
-                            "    foo = 23" + vbCrLf +
-                            "    bar" + vbCrLf +
-                            "    boo = foo" + vbCrLf +
-                            "    booya = 1.4" + vbCrLf +
-                            "  end enum" + vbCrLf +
-                            "end class" + vbCrLf)
+            TestNormalizeBlock(
+"class c1
+ENUM E1 as long
+         foo=23
+bar        
+boo=foo
+booya=1.4
+end enum
+end         class",
+"class c1
+
+  ENUM E1 as long
+    foo = 23
+    bar
+    boo = foo
+    booya = 1.4
+  end enum
+end class
+")
+
+            TestNormalizeBlock(
+"public class c1
+
+ENUM E1 as long
+         foo=23
+bar        
+boo=foo
+booya=1.4
+end enum
+end         class",
+"public class c1
+
+  ENUM E1 as long
+    foo = 23
+    bar
+    boo = foo
+    booya = 1.4
+  end enum
+end class
+")
+
+            TestNormalizeBlock(
+"class c1
+public     ENUM E1 as long
+         foo=23
+bar        
+boo=foo
+booya=1.4
+end enum
+end         class",
+"class c1
+
+  public ENUM E1 as long
+    foo = 23
+    bar
+    boo = foo
+    booya = 1.4
+  end enum
+end class
+")
         End Sub
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
-        Public Sub TestDelegateStatements()
+#Region "Test: DelegateStatement"
+        Private Shared Function DataFor_Theory_DelegateStatements() As IEnumerable(Of Object)
+            Return {
+             ({"Module M1
+Dim x=Function( x ,y )x+y
+Dim y As Func ( Of Integer ,Integer ,Integer )=x
+end MODule",
+"Module M1
 
-            TestNormalizeBlock("Module M1" + vbCrLf +
-                            "Dim x=Function( x ,y )x+y" + vbCrLf +
-                            "Dim y As Func ( Of Integer ,Integer ,Integer )=x" + vbCrLf +
-                            "end MODule", _
- _
-                            "Module M1" + vbCrLf + vbCrLf +
-                            "  Dim x = Function(x, y) x + y" + vbCrLf + vbCrLf +
-                            "  Dim y As Func(Of Integer, Integer, Integer) = x" + vbCrLf +
-                            "end MODule" + vbCrLf)
+  Dim x = Function(x, y) x + y
 
-            TestNormalizeBlock("Module M1" + vbCrLf +
-                            "Dim x=Function( x ,y )" + vbCrLf +
-                            "return    x+y" + vbCrLf +
-                            "end function" + vbCrLf +
-                            "Dim y As Func ( Of Integer ,Integer ,Integer )=x" + vbCrLf +
-                            "end MODule", _
- _
-                            "Module M1" + vbCrLf + vbCrLf +
-                            "  Dim x = Function(x, y)" + vbCrLf +
-                            "    return x + y" + vbCrLf +
-                            "  end function" + vbCrLf + vbCrLf +
-                            "  Dim y As Func(Of Integer, Integer, Integer) = x" + vbCrLf +
-                            "end MODule" + vbCrLf)
+  Dim y As Func(Of Integer, Integer, Integer) = x
+end MODule
+"}),
+({"Module M1
+Dim x=Function( x ,y )
+return    x+y
+end function
+Dim y As Func ( Of Integer ,Integer ,Integer )=x
+end MODule",
+"Module M1
 
-            TestNormalizeBlock("Module M1" + vbCrLf +
-                            "Dim x=Sub( x ,y )" + vbCrLf +
-                            "dim x as integer" + vbCrLf +
-                            "end sub" + vbCrLf +
-                            "Dim y As Action ( Of Integer ,Integer)=x" + vbCrLf +
-                            "end MODule", _
- _
-                            "Module M1" + vbCrLf + vbCrLf +
-                            "  Dim x = Sub(x, y)" + vbCrLf +
-                            "    dim x as integer" + vbCrLf +
-                            "  end sub" + vbCrLf +
-                            vbCrLf +
-                            "  Dim y As Action(Of Integer, Integer) = x" + vbCrLf +
-                            "end MODule" + vbCrLf)
+  Dim x = Function(x, y)
+    return x + y
+  end function
 
+  Dim y As Func(Of Integer, Integer, Integer) = x
+end MODule
+"}),
+({"Module M1
+Dim x=Sub( x ,y )
+dim x as integer
+End sub
+Dim y As Action(Of Integer, Integer) = x
+            End Module",
+"Module M1
+
+  Dim x = Sub(x, y)
+    dim x as integer
+  End sub
+
+  Dim y As Action(Of Integer, Integer) = x
+End Module
+"})
+            }
+        End Function
+
+        <WorkItem(546397, "http//vstfdevdiv:  8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Theory, MemberData(NameOf(DataFor_Theory_DelegateStatements))>
+        Private Sub Theory_DelegateStatements(code As String, expected As String)
+            TestNormalizeBlock(code, expected)
         End Sub
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+#End Region
+
+        <Fact(), WorkItem(546397, "http//vstfdevdiv: 8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestSelectStatements()
 
-            TestNormalizeBlock("    Module M1" + vbCrLf +
-                            "sub s1()" + vbCrLf +
-                            "select case foo" + vbCrLf +
-                            "case    23 " + vbCrLf +
-                            "return    foo       " + vbCrLf +
-                            "case    42,11 " + vbCrLf +
-                            "return    foo       " + vbCrLf +
-                            "case    > 100 " + vbCrLf +
-                            "return    foo       " + vbCrLf +
-                            "case   200 to  300 " + vbCrLf +
-                            "return    foo       " + vbCrLf +
-                            "case    12," + vbCrLf +
-                            "13" + vbCrLf +
-                            "return    foo       " + vbCrLf +
-                            "case else" + vbCrLf +
-                            "return   foo       " + vbCrLf +
-                            "end   select  " + vbCrLf +
-                            "end   sub  " + vbCrLf +
-                            "end   module  ", _
- _
-                            "Module M1" + vbCrLf + vbCrLf +
-                            "  sub s1()" + vbCrLf +
-                            "    select case foo" + vbCrLf +
-                            "      case 23" + vbCrLf +
-                            "        return foo" + vbCrLf +
-                            "      case 42, 11" + vbCrLf +
-                            "        return foo" + vbCrLf +
-                            "      case > 100" + vbCrLf +
-                            "        return foo" + vbCrLf +
-                            "      case 200 to 300" + vbCrLf +
-                            "        return foo" + vbCrLf +
-                            "      case 12, 13" + vbCrLf +
-                            "        return foo" + vbCrLf +
-                            "      case else" + vbCrLf +
-                            "        return foo" + vbCrLf +
-                            "    end select" + vbCrLf +
-                            "  end sub" + vbCrLf +
-                            "end module" + vbCrLf)
+            TestNormalizeBlock(
+"    Module M1
+sub s1()
+select case foo
+case    23 
+return    foo       
+case    42,11 
+return    foo       
+case    > 100 
+return    foo       
+case   200 to  300 
+return    foo       
+case    12,
+13
+return    foo       
+case else
+return   foo       
+end   select  
+end   sub  
+end   module  ",
+"Module M1
+
+  sub s1()
+    select case foo
+      case 23
+        return foo
+      case 42, 11
+        return foo
+      case > 100
+        return foo
+      case 200 to 300
+        return foo
+      case 12, 13
+        return foo
+      case else
+        return foo
+    end select
+  end sub
+end module
+")
         End Sub
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+#Region "Test: IfStatement"
+        Private Shared Function TestDataFor_Theory_IfStatement() As IEnumerable(Of Object)
+            Return {
+({"a", "a"}),
+({"if a then b", "if a then b"}),
+({"if a then b else c", "if a then b else c"}),
+({"if a then b else if c then d else e", "if a then b else if c then d else e"}),
+({"if       a      then   b   else   if  c  then    d   else  e", "if a then b else if c then d else e"}),
+({"if  " + vbTab + "     a      then   b   else   if  c  then    d   else  e", "if a then b else if c then d else e"}),
+({"if a then
+b
+end if",
+"if a then
+  b
+end if"})}
+        End Function
+
+        <WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Theory, MemberData(NameOf(TestDataFor_Theory_IfStatement), DisableDiscoveryEnumeration:=False)>
+        Public Sub Theory_IfStatement(code As String, expected As String)
+            TestNormalizeStatement(code, expected)
+        End Sub
+
+        <Fact, WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestIfStatement()
-
-            ' expressions
-            TestNormalizeStatement("a", "a")
-
-            ' if
-            TestNormalizeStatement("if a then b", "if a then b")
-            TestNormalizeStatement("if a then b else c", "if a then b else c")
-            TestNormalizeStatement("if a then b else if c then d else e", "if a then b else if c then d else e")
-            TestNormalizeStatement("if       a      then   b   else   if  c  then    d   else  e", "if a then b else if c then d else e")
-            TestNormalizeStatement("if  " + vbTab + "     a      then   b   else   if  c  then    d   else  e", "if a then b else if c then d else e")
-            TestNormalizeStatement("if a then" + vbCrLf + "b" + vbCrLf + "end if", "if a then" + vbCrLf + "  b" + vbCrLf + "end if")
-            TestNormalizeStatement("if a then" + vbCrLf + vbCrLf + vbCrLf + "b" + vbCrLf + "end if", "if a then" + vbCrLf + "  b" + vbCrLf + "end if")
-            TestNormalizeStatement("if   a   then" + vbCrLf + "if a then" + vbCrLf + "b" + vbCrLf + "end if" + vbCrLf + "else" + vbCrLf + "b" + vbCrLf + "end if",
-                                "if a then" + vbCrLf + "  if a then" + vbCrLf + "    b" + vbCrLf + "  end if" + vbCrLf + "else" + vbCrLf + "  b" + vbCrLf + "end if")
-
-            ' line continuation trivia will be removed
-            TestNormalizeStatement("if a then _" + vbCrLf + "b _" + vbCrLf + "else       c", "if a then b else c")
-            TestNormalizeStatement("if a then:b:end if", "if a then : b : end if")
-
             Dim generatedLeftLiteralToken = SyntaxFactory.IntegerLiteralToken("42", LiteralBase.Decimal, TypeCharacter.None, 42)
             Dim generatedRightLiteralToken = SyntaxFactory.IntegerLiteralToken("23", LiteralBase.Decimal, TypeCharacter.None, 23)
             Dim generatedLeftLiteralExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, generatedLeftLiteralToken)
             Dim generatedRightLiteralExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, generatedRightLiteralToken)
             Dim generatedRedLiteralExpression = SyntaxFactory.GreaterThanExpression(generatedLeftLiteralExpression, SyntaxFactory.Token(SyntaxKind.GreaterThanToken), generatedRightLiteralExpression)
-            Dim generatedRedIfStatement = SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), generatedRedLiteralExpression, SyntaxFactory.Token(SyntaxKind.ThenKeyword, "THeN"))
+            Dim generatedRedIfStatement = SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), generatedRedLiteralExpression, SyntaxFactory.Token(SyntaxKind.ThenKeyword, "Then"))
             Dim expression As ExpressionSyntax = SyntaxFactory.StringLiteralExpression(SyntaxFactory.StringLiteralToken("foo", "foo"))
             Dim callexpression = SyntaxFactory.InvocationExpression(expression:=expression)
             Dim callstatement = SyntaxFactory.CallStatement(SyntaxFactory.Token(SyntaxKind.CallKeyword), callexpression)
@@ -539,123 +627,135 @@ end module
 
             Dim mlib = SyntaxFactory.MultiLineIfBlock(generatedRedIfStatement, stmtlist, Nothing, Nothing, generatedEndIfStatement)
             Dim str = mlib.NormalizeWhitespace("  ").ToFullString()
-            Assert.Equal("If 42 > 23 THeN" + vbCrLf + "  Call foo" + vbCrLf + "  Call foo" + vbCrLf + "End If", str)
+            Assert.Equal(
+"If 42 > 23 Then
+  Call foo
+  Call foo
+End If", str)
         End Sub
+#End Region
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
-        Public Sub TestLoopStatements()
-            TestNormalizeStatement("while a<b" + vbCrLf + "c                  " + vbCrLf + "end while", "while a < b" + vbCrLf + "  c" + vbCrLf + "end while")
+#Region "Test: LoopStatements"
+        Private Shared Function TestDataForTestLoopStatements() As IEnumerable(Of Object)
+            Return {
+({"while a<b
+c                  
+end while",
+"while a < b
+  c
+end while"}),
+({"DO until a(2)<>12
+Dim x = 12
+loop",
+"DO until a(2) <> 12
+  Dim x = 12
+loop"}),
+({
+"DO while a(2)<>12
+Dim x = 12
+   loop",
+"DO while a(2) <> 12
+  Dim x = 12
+loop"}),
+({"DO               
+Dim x = 12
+   loop",
+"DO
+  Dim x = 12
+loop"}),
+({"DO               
+Dim x = 12
+    loop until a ( 2 )  <>    12   ",
+"DO
+  Dim x = 12
+loop until a(2) <> 12"}),
+({"For     Each   i  In   x
+Dim x = 12
+   next",
+"For Each i In x
+  Dim x = 12
+next"}),
+({"For     Each   i  In   x
+For     Each   j  In   x
+Dim x = 12
+   next j,i",
+"For Each i In x
+  For Each j In x
+    Dim x = 12
+next j, i"})
+            }
+        End Function
 
-            TestNormalizeStatement("DO until a(2)<>12" + vbCrLf +
-                            "Dim x = 12" + vbCrLf +
-                            "   loop", _
- _
-                            "DO until a(2) <> 12" + vbCrLf +
-                            "  Dim x = 12" + vbCrLf +
-                            "loop")
-
-            TestNormalizeStatement("DO while a(2)<>12" + vbCrLf +
-                            "Dim x = 12" + vbCrLf +
-                            "   loop", _
- _
-                            "DO while a(2) <> 12" + vbCrLf +
-                            "  Dim x = 12" + vbCrLf +
-                            "loop")
-
-            TestNormalizeStatement("DO               " + vbCrLf +
-                            "Dim x = 12" + vbCrLf +
-                            "   loop", _
- _
-                            "DO" + vbCrLf +
-                            "  Dim x = 12" + vbCrLf +
-                            "loop")
-
-            TestNormalizeStatement("DO               " + vbCrLf +
-                            "Dim x = 12" + vbCrLf +
-                            "   loop until a ( 2 )  <>    12   ", _
- _
-                            "DO" + vbCrLf +
-                            "  Dim x = 12" + vbCrLf +
-                            "loop until a(2) <> 12")
-
-            TestNormalizeStatement("For     Each   i  In   x" + vbCrLf +
-                            "Dim x = 12" + vbCrLf +
-                            "   next", _
- _
-                            "For Each i In x" + vbCrLf +
-                            "  Dim x = 12" + vbCrLf +
-                            "next")
-
-            TestNormalizeStatement("For     Each   i  In   x" + vbCrLf +
-                                "For     Each   j  In   x" + vbCrLf +
-                                "Dim x = 12" + vbCrLf +
-                                "   next j,i", _
- _
-                            "For Each i In x" + vbCrLf +
-                            "  For Each j In x" + vbCrLf +
-                            "    Dim x = 12" + vbCrLf +
-                            "next j, i")
+        <WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Theory, MemberData(NameOf(TestDataForTestLoopStatements), DisableDiscoveryEnumeration:=False)>
+        Private Sub TestLoopStatements(code As String, expected As String)
+            TestNormalizeStatement(code, expected)
         End Sub
+#End Region
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Fact(), WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestExceptionsStatements()
 
-            TestNormalizeStatement("   try" + vbCrLf +
-                            "dim x =23" + vbCrLf +
-                            "Catch  e1 As Exception When 1>2" + vbCrLf +
-                            "dim x =23" + vbCrLf +
-                            "Catch" + vbCrLf +
-                            "dim x =23" + vbCrLf +
-                            "finally" + vbCrLf +
-                            "dim x =23" + vbCrLf +
-                            " end try", _
- _
-                            "try" + vbCrLf +
-                            "  dim x = 23" + vbCrLf +
-                            "Catch e1 As Exception When 1 > 2" + vbCrLf +
-                            "  dim x = 23" + vbCrLf +
-                            "Catch" + vbCrLf +
-                            "  dim x = 23" + vbCrLf +
-                            "finally" + vbCrLf +
-                            "  dim x = 23" + vbCrLf +
-                            "end try")
+            TestNormalizeStatement(
+"   try
+dim x =23
+Catch  e1 As Exception When 1>2
+Dim x = 23
+Catch
+Dim x = 23
+finally
+Dim x = 23
+ end try",
+"try
+  dim x = 23
+Catch e1 As Exception When 1 > 2
+  Dim x = 23
+Catch
+  Dim x = 23
+finally
+  Dim x = 23
+end try")
         End Sub
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Fact(), WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestUsingStatements()
 
-            TestNormalizeStatement("  Using   r1  As  R =  New R ( ) ,   r2 As R = New R( )" + vbCrLf +
-                            "dim x =23" + vbCrLf +
-                            "end using", _
- _
-                            "Using r1 As R = New R(), r2 As R = New R()" + vbCrLf +
-                            "  dim x = 23" + vbCrLf +
-                            "end using")
+            TestNormalizeStatement(
+"  Using   r1  As  R =  New R ( ) ,   r2 As R = New R( )
+dim x =23
+end using",
+"Using r1 As R = New R(), r2 As R = New R()
+  dim x = 23
+end using")
         End Sub
 
         <Fact()>
         Public Sub TestQueryExpressions()
 
-            TestNormalizeStatement("  Dim waCusts = _" + vbCrLf +
-                            "From cust As Customer In Customers _" + vbCrLf +
-                            "Where    cust.State    =  ""WA""", _
- _
-                            "Dim waCusts = From cust As Customer In Customers Where cust.State = ""WA""")
+            TestNormalizeStatement(
+"  Dim waCusts = _
+From cust As Customer In Customers _
+Where    cust.State    =  ""WA""",
+"Dim waCusts = From cust As Customer In Customers Where cust.State = ""WA""")
         End Sub
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Fact(), WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestDefaultCasingForKeywords()
-            Dim expected = "Module m1" + vbCrLf + vbCrLf +
-                            "  Dim x = Function(x, y) x + y" + vbCrLf + vbCrLf +
-                            "  Dim y As func(Of Integer, Integer, Integer) = x" + vbCrLf +
-                            "End Module" + vbCrLf
+            Dim expected =
+"Module m1
+
+  Dim x = Function(x, y) x + y
+
+  Dim y As func(Of Integer, Integer, Integer) = x
+End Module
+"
 
             Dim node As CompilationUnitSyntax = SyntaxFactory.ParseCompilationUnit(expected.ToLowerInvariant)
             Dim actual = node.NormalizeWhitespace(indentation:="  ", useDefaultCasing:=True).ToFullString()
             Assert.Equal(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Fact(), WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestComment()
 
             ' trailing whitespace will be aligned to the indent level (see second comment)
@@ -663,30 +763,34 @@ end module
             ' of structured trivia. Because of that there is now a space at the end of structured trivia before the next token
             ' whitespace before comments get reduced to one (see comment after code), whitespace in trivia is maintained (see same comment)
             ' xml doc comments somehow contain \n in the XmlTextLiterals ... will not spend time to work around
-            Dim input = "Module m1" + vbCrLf +
-                            "  ' a nice comment" + vbCrLf +
-                            "  ''' even more comments" + vbCrLf +
-                            "' and more comments " + vbCrLf +
-                            "#if false   " + vbCrLf +
-                            " whatever? " + vbCrLf +
-                            "#end if" + vbCrLf +
-                            "' and more comments" + vbCrLf +
-                            " ''' structured trivia before code" + vbCrLf +
-                            "Dim x = Function(x, y) x + y      '  trivia after code" + vbCrLf +
-                            "End Module"
+            Dim input =
+"Module m1
+  ' a nice comment
+  ''' even more comments
+' and more comments 
+#if false   
+ whatever? 
+#end if
+' and more comments
+ ''' structured trivia before code
+Dim x = Function(x, y) x + y      '  trivia after code
+End Module"
 
-            Dim expected = "Module m1" + vbCrLf + vbCrLf +
-                            "  ' a nice comment" + vbCrLf +
-                            "  ''' even more comments" + vbCrLf +
-                            vbCrLf +
-                            "  ' and more comments " + vbCrLf +
-                            "#if false" + vbCrLf +
-                            " whatever? " + vbCrLf +
-                            "#end if" + vbCrLf +
-                            "  ' and more comments" + vbCrLf +
-                            "  ''' structured trivia before code" + vbCrLf +
-                            "  Dim x = Function(x, y) x + y '  trivia after code" + vbCrLf +
-                            "End Module" + vbCrLf
+            Dim expected =
+"Module m1
+
+  ' a nice comment
+  ''' even more comments
+
+  ' and more comments 
+#if false
+ whatever? 
+#end if
+  ' and more comments
+  ''' structured trivia before code
+  Dim x = Function(x, y) x + y '  trivia after code
+End Module
+"
 
             Dim node As CompilationUnitSyntax = SyntaxFactory.ParseCompilationUnit(input)
             Dim actual = node.NormalizeWhitespace("  ").ToFullString()
@@ -701,21 +805,24 @@ end module
             ' of structured trivia. Because of that there is now a space at the end of structured trivia before the next token
             ' whitespace before comments get reduced to one (see comment after code), whitespace in trivia is maintained (see same comment)
             ' xml doc comments somehow contain \n in the XmlTextLiterals ... will not spend time to work around
-            Dim input = "Module m1" + vbCrLf +
-                        "Sub Main(args As String())" + vbCrLf +
-                        "Sub1(Function(p As Integer)" + vbCrLf +
-                        "Sub2()" + vbCrLf +
-                        "End Function)" + vbCrLf +
-                        "End Sub" + vbCrLf +
-                        "End Module"
+            Dim input =
+"Module m1
+Sub Main(args As String())
+Sub1(Function(p As Integer)
+Sub2()
+End Function)
+End Sub
+End Module"
+            Dim expected =
+"Module m1
 
-            Dim expected = "Module m1" + vbCrLf + vbCrLf +
-                            "  Sub Main(args As String())" + vbCrLf +
-                            "    Sub1(Function(p As Integer)" + vbCrLf +
-                            "      Sub2()" + vbCrLf +
-                            "    End Function)" + vbCrLf +
-                            "  End Sub" + vbCrLf +
-                            "End Module" + vbCrLf
+  Sub Main(args As String())
+    Sub1(Function(p As Integer)
+      Sub2()
+    End Function)
+  End Sub
+End Module
+"
 
             Dim node As CompilationUnitSyntax = SyntaxFactory.ParseCompilationUnit(input)
             Dim actual = node.NormalizeWhitespace("  ").ToFullString()
@@ -724,22 +831,23 @@ end module
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestProperty()
-            Dim input = <text>Property    p   As  Integer         
+            Dim input = "Property    p   As  Integer         
                 Get
             End     Get
 
 Set (   value	As	Integer )
     End	Set
-            End	Property</text>.Value.Replace(vbLf, vbCrLf)
+            End	Property"
 
-            Dim expected = <text>Property p As Integer
+            Dim expected =
+"Property p As Integer
   Get
   End Get
 
   Set(value As Integer)
   End Set
 End Property
-</text>.Value.Replace(vbLf, vbCrLf)
+"
             TestNormalizeBlock(input, expected)
         End Sub
 
@@ -759,19 +867,24 @@ End Property
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestStructuredTriviaAndAttributes()
-            Dim source = "Module m1" + vbCrLf +
-                            " '''<x>...</x>" + vbCrLf +
-                            "  <foo()>" + vbCrLf +
-                            "  sub a()" + vbCrLf +
-                            "  end sub" + vbCrLf +
-                            "End Module" + vbCrLf + vbCrLf
+            Dim source =
+"Module m1
+ '''<x>...</x>
+  <foo()>
+  Sub a()
+  End Sub
+End Module 
+"
 
-            Dim expected = "Module m1" + vbCrLf + vbCrLf +
-                            "  '''<x>...</x>" + vbCrLf +
-                            "  <foo()>" + vbCrLf +
-                            "  sub a()" + vbCrLf +
-                            "  end sub" + vbCrLf +
-                            "End Module" + vbCrLf
+            Dim expected =
+"Module m1
+
+  '''<x>...</x>
+  <foo()>
+  Sub a()
+  End Sub
+End Module
+"
 
             Dim node As CompilationUnitSyntax = SyntaxFactory.ParseCompilationUnit(source)
             Dim actual = node.NormalizeWhitespace(indentation:="  ", useDefaultCasing:=False).ToFullString()
@@ -782,11 +895,10 @@ End Property
         Public Sub TestNestedStructuredTrivia()
             Dim trivia = SyntaxFactory.TriviaList(
                 SyntaxFactory.Trivia(
-                    SyntaxFactory.ConstDirectiveTrivia(
-                            "constant",
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(1).WithTrailingTrivia(SyntaxFactory.Trivia(SyntaxFactory.SkippedTokensTrivia(SyntaxFactory.TokenList(SyntaxFactory.Literal("A"c)))))))))
+                    SyntaxFactory.ConstDirectiveTrivia("constant",
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(1).WithTrailingTrivia(SyntaxFactory.Trivia(SyntaxFactory.SkippedTokensTrivia(SyntaxFactory.TokenList(SyntaxFactory.Literal("A"c)))))))))
 
             Dim expected = "#Const constant = 1 ""A""c"
 
@@ -796,31 +908,34 @@ End Property
 
         <Fact()>
         Public Sub TestCrefAttribute()
-            Dim source = "''' <summary>" + vbCrLf +
-                         "''' <see cref  = """"/>" + vbCrLf +
-                         "''' <see cref   =""""/>" + vbCrLf +
-                         "''' <see cref= """"/>" + vbCrLf +
-                         "''' <see cref=""""/>" + vbCrLf +
-                         "''' <see cref  = ""1""/>" + vbCrLf +
-                         "''' <see cref   =""a""/>" + vbCrLf +
-                         "''' <see cref= ""Integer()""/>" + vbCrLf +
-                         "''' <see cref   = ""a()""/>" + vbCrLf +
-                         "''' </summary>" + vbCrLf +
-                         "Module Program" + vbCrLf +
-                         "End Module" + vbCrLf
-
-            Dim expected = "''' <summary>" + vbCrLf +
-                           "''' <see cref=""""/> " + vbCrLf +
-                           "''' <see cref=""""/> " + vbCrLf +
-                           "''' <see cref=""""/> " + vbCrLf +
-                           "''' <see cref=""""/> " + vbCrLf +
-                           "''' <see cref=""1""/> " + vbCrLf +
-                           "''' <see cref=""a""/> " + vbCrLf +
-                           "''' <see cref=""Integer()""/> " + vbCrLf +
-                           "''' <see cref=""a()""/> " + vbCrLf +
-                           "''' </summary>" + vbCrLf +
-                           "Module Program" + vbCrLf +
-                           "End Module" + vbCrLf
+            Dim source =
+"''' <summary>
+''' <see cref  = """"/>
+''' <see cref   =""""/>
+''' <see cref= """"/>
+''' <see cref=""""/>
+''' <see cref  = ""1""/>
+''' <see cref   =""a""/>
+''' <see cref= ""Integer()""/>
+''' <see cref   = ""a()""/>
+''' </summary>
+Module Program
+End Module
+"
+            Dim expected =
+"''' <summary>
+''' <see cref=""""/> 
+''' <see cref=""""/> 
+''' <see cref=""""/> 
+''' <see cref=""""/> 
+''' <see cref=""1""/> 
+''' <see cref=""a""/> 
+''' <see cref=""Integer()""/> 
+''' <see cref=""a()""/> 
+''' </summary>
+Module Program
+End Module
+"
 
             Dim node As CompilationUnitSyntax = SyntaxFactory.ParseCompilationUnit(source)
             Dim actual = node.NormalizeWhitespace(indentation:="  ", useDefaultCasing:=False).ToFullString()
@@ -829,32 +944,35 @@ End Property
 
         <Fact()>
         Public Sub TestNameAttribute()
-            Dim source = "''' <summary>" + vbCrLf +
-                         "''' <paramref name  = """"/>" + vbCrLf +
-                         "''' <paramref name   =""""/>" + vbCrLf +
-                         "''' <paramref name= """"/>" + vbCrLf +
-                         "''' <paramref name=""""/>" + vbCrLf +
-                         "''' <paramref name  = ""1""/>" + vbCrLf +
-                         "''' <paramref name   =""a""/>" + vbCrLf +
-                         "''' <paramref name= ""Integer()""/>" + vbCrLf +
-                         "''' <paramref name   = ""a()""/>" + vbCrLf +
-                         "''' </summary>" + vbCrLf +
-                         "Module Program" + vbCrLf +
-                         "End Module" + vbCrLf
+            Dim source =
+"''' <summary>
+''' <paramref name  = """"/>
+''' <paramref name   =""""/>
+''' <paramref name= """"/>
+''' <paramref name=""""/>
+''' <paramref name  = ""1""/>
+''' <paramref name   =""a""/>
+''' <paramref name= ""Integer()""/>
+''' <paramref name   = ""a()""/>
+''' </summary>
+Module Program
+End Module
+"
 
-            Dim expected = "''' <summary>" + vbCrLf +
-                           "''' <paramref name=""""/> " + vbCrLf +
-                           "''' <paramref name=""""/> " + vbCrLf +
-                           "''' <paramref name=""""/> " + vbCrLf +
-                           "''' <paramref name=""""/> " + vbCrLf +
-                           "''' <paramref name=""1""/> " + vbCrLf +
-                           "''' <paramref name=""a""/> " + vbCrLf +
-                           "''' <paramref name=""Integer()""/> " + vbCrLf +
-                           "''' <paramref name=""a()""/> " + vbCrLf +
-                           "''' </summary>" + vbCrLf +
-                           "Module Program" + vbCrLf +
-                           "End Module" + vbCrLf
-
+            Dim expected =
+"''' <summary>
+''' <paramref name=""""/> 
+''' <paramref name=""""/> 
+''' <paramref name=""""/> 
+''' <paramref name=""""/> 
+''' <paramref name=""1""/> 
+''' <paramref name=""a""/> 
+''' <paramref name=""Integer()""/> 
+''' <paramref name=""a()""/> 
+''' </summary>
+Module Program
+End Module
+"
             Dim node As CompilationUnitSyntax = SyntaxFactory.ParseCompilationUnit(source)
             Dim actual = node.NormalizeWhitespace(indentation:="  ", useDefaultCasing:=False).ToFullString()
             Assert.Equal(expected, actual)
@@ -862,35 +980,35 @@ End Property
 
         <Fact>
         Public Sub TestEnableWarningDirective()
-            Dim text = <![CDATA[         #  enable           warning[BC000],Bc123,             BC456,_789'          comment
+            Dim text = "         #  enable           warning[BC000],Bc123,             BC456,_789'          comment
 # enable   warning
-# enable   warning ,]]>.Value.Replace(vbLf, vbCrLf)
+# enable   warning ,"
 
             Dim root = Parse(text).GetRoot()
             Dim normalizedRoot = root.NormalizeWhitespace(indentation:="    ", elasticTrivia:=True, useDefaultCasing:=True)
 
-            Dim expected = <![CDATA[#Enable Warning [BC000], Bc123, BC456, _789 '          comment
+            Dim expected = "#Enable Warning [BC000], Bc123, BC456, _789 '          comment
 #Enable Warning
 #Enable Warning ,
-]]>.Value.Replace(vbLf, vbCrLf)
+"
 
             Assert.Equal(expected, normalizedRoot.ToFullString())
         End Sub
 
         <Fact>
         Public Sub TestDisableWarningDirective()
-            Dim text = <![CDATA[Module Program
+            Dim text = "Module Program
 #   disable warning
     Sub Main()
         #disable       warning          bc123,            Bc456,BC789
     End Sub
 #   disable   warning[BC123],   '   Comment
-End Module]]>.Value.Replace(vbLf, vbCrLf)
+End Module"
 
             Dim root = Parse(text).GetRoot()
             Dim normalizedRoot = root.NormalizeWhitespace(indentation:="    ", elasticTrivia:=True, useDefaultCasing:=True)
 
-            Dim expected = <![CDATA[Module Program
+            Dim expected = "Module Program
 
 #Disable Warning
     Sub Main()
@@ -898,26 +1016,40 @@ End Module]]>.Value.Replace(vbLf, vbCrLf)
     End Sub
 #Disable Warning [BC123], '   Comment
  End Module
-]]>.Value.Replace(vbLf, vbCrLf)
-
+"
             Assert.Equal(expected, normalizedRoot.ToFullString())
         End Sub
 
         <Fact>
         Public Sub TestNormalizeEOL()
-            Dim code = "Class C" & vbCrLf & "End Class"
-            Dim expected = "Class C" & vbLf & "End Class" & vbLf
-            Dim actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace("  ", eol:=vbLf).ToFullString()
+            Dim code =
+"Class C
+End Class"
+            Dim expected =
+"Class C
+End Class
+"
+            Dim actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace("  ").ToFullString()
             Assert.Equal(expected, actual)
         End Sub
 
         <Fact>
         Public Sub TestNormalizeTabs()
-            Dim code = "Class C" & vbCrLf & "Sub M()" & vbCrLf & "End Sub" & vbCrLf & "End Class"
-            Dim expected = "Class C" & vbCrLf & vbCrLf & vbTab & "Sub M()" & vbCrLf & vbTab & "End Sub" & vbCrLf & "End Class" & vbCrLf
+            Dim code =
+"Class C
+Sub M()
+End Sub
+End Class"
+            Dim expected =
+"Class C
+
+" & vbTab & "Sub M()
+" & vbTab & "End Sub
+End Class
+"
             Dim actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(vbTab).ToFullString()
             Assert.Equal(expected, actual)
         End Sub
 
-    End Class
-End Namespace
+        End Class
+    End Namespace
