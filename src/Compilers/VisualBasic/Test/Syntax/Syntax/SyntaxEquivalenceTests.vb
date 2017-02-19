@@ -3,7 +3,7 @@
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class SyntaxEquivalenceTests
-#If True Then
+#If False Then
         Private Function NewLines(p1 As String) As String
             Return p1.Replace("\n", vbCrLf)
         End Function
@@ -818,7 +818,14 @@ end sub", "' sub Foo()
 #Region "Constructor"
         <Fact>
         Public Sub TestConstructor_Body()
-            Dim text = NewLines("Imports System \n Class Program \n Sub New(args As String()) \n Body(1) \n End Sub \n End Class")
+            Dim text =
+"Imports System 
+Class Program 
+Sub New(args As String()) 
+Body(1) 
+ End Sub 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("Body(1)", "Body(2)"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -827,7 +834,14 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestConstructor_Initializer()
-            Dim text = NewLines("Imports System \n Class Program \n Sub New(args As String()) \n MyBase.New(1) \n End Sub \n End Class")
+            Dim text =
+"Imports System 
+Class Program 
+Sub New(args As String()) 
+MyBase.New(1) 
+End Sub 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("MyBase", "Me"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -836,7 +850,14 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestConstructor_ParameterDefaultValue()
-            Dim text = NewLines("Imports System \n Class Program \n Sub New(Optional arg As Integer = 123) \n \n End Sub \n End Class")
+            Dim text =
+"Imports System 
+Class Program 
+Sub New(Optional arg As Integer = 123) 
+
+End Sub 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("123", "456"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -847,7 +868,14 @@ end sub", "' sub Foo()
 #Region "Operator"
         <Fact>
         Public Sub TestOperator_Body()
-            Dim text = NewLines("Imports System \n Class C \n Shared Operator *(a As C, b As C) As Integer \n Return 0 \n End Operator \n End Class")
+            Dim text =
+"Imports System 
+Class C 
+Shared Operator *(a As C, b As C) As Integer 
+Return 0 
+End Operator 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("Return 0", "Return 1"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -856,7 +884,14 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestOperator_ParameterName()
-            Dim text = NewLines("Imports System \n Class C \n Shared Operator *(a As C, b As C) As Integer \n Return 0 \n End Operator \n End Class")
+            Dim text =
+"Imports System 
+Class C 
+Shared Operator *(a As C, b As C) As Integer 
+Return 0 
+End Operator 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("b As C", "c As C"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -867,7 +902,17 @@ end sub", "' sub Foo()
 #Region "Property"
         <Fact>
         Public Sub TestPropertyAccessor_Attribute1()
-            Dim text = NewLines("Imports System \n Class Program \n Property P As Integer \n <A(1)>Get \n End Get \n Set(value As Integer) \n End Set \n End Property \n End Class")
+            Dim text =
+"Imports System 
+Class Program 
+Property P As Integer 
+<A(1)>Get 
+End Get 
+Set(value As Integer) 
+End Set 
+End Property 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("<A(1)>", "<A(2)>"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -876,7 +921,17 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestPropertyAccessor_Attribute2()
-            Dim text = NewLines("Imports System \n Class Program \n Property P As Integer \n Get \n End Get \n <A(1)>Set(value As Integer) \n End Set \n End Property \n End Class")
+            Dim text =
+"Imports System 
+Class Program 
+Property P As Integer 
+Get 
+End Get 
+<A(1)>Set(value As Integer) 
+End Set 
+End Property 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("<A(1)>", "<A(2)>"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -885,7 +940,17 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestPropertyAccessor_Attribute3()
-            Dim text = NewLines("Imports System \n Class Program \n Property P As Integer \n Get \n End Get \n Set(<A(1)>value As Integer) \n End Set \n End Property \n End Class")
+            Dim text =
+"Imports System 
+Class Program 
+Property P As Integer 
+Get 
+End Get 
+Set(<A(1)>value As Integer) 
+End Set 
+End Property 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("<A(1)>", "<A(2)>"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -894,7 +959,17 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestProperty_Parameters()
-            Dim text = NewLines("Imports System \n Class Program \n Property P(a As Integer = 123) \n Get \n End Get \n Set(value As Integer) \n End Set \n End Property \n End Class")
+            Dim text =
+"Imports System 
+Class Program 
+Property P(a As Integer = 123) 
+Get 
+End Get 
+Set(value As Integer) 
+End Set 
+End Property 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("123", "345"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -903,7 +978,12 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestAutoProperty_Initializer1()
-            Dim text = NewLines("Imports System \n Class Program \n Property P As Integer = 123 \n End Class")
+            Dim text =
+"Imports System 
+Class Program 
+Property P As Integer = 123 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("123", "345"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -912,7 +992,12 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestAutoProperty_Initializer_InvalidSyntax()
-            Dim text = NewLines("Imports System \n Class Program \n Property P(a As Integer = 123) As Integer = 1 \n End Class")
+            Dim text =
+"Imports System 
+Class Program 
+Property P(a As Integer = 123) As Integer = 1 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("123", "345"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -923,7 +1008,19 @@ end sub", "' sub Foo()
 #Region "Event"
         <Fact>
         Public Sub TestEventAccessor_Attribute1()
-            Dim text = NewLines("Imports System \n Class Program \n Custom Event E As Action \n <A(1)>AddHandler(value As Action) \n End AddHandler \n RemoveHandler(value As Action) \n End RemoveHandler \n RaiseEvent() \n End RaiseEvent \n End Event \n End Class")
+            Dim text =
+"Imports System 
+Class Program 
+Custom Event E As Action 
+<A(1)>AddHandler(value As Action) 
+End AddHandler 
+RemoveHandler(value As Action) 
+End RemoveHandler 
+RaiseEvent() 
+End RaiseEvent 
+End Event 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("<A(1)>", "<A(2)>"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -932,7 +1029,19 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestEventAccessor_Attribute2()
-            Dim text = NewLines("Imports System \n Class Program \n Custom Event E As Action \n AddHandler(value As Action) \n End AddHandler \n <A(1)>RemoveHandler(value As Action) \n End RemoveHandler \n RaiseEvent() \n End RaiseEvent \n End Event \n End Class")
+            Dim text =
+"Imports System 
+Class Program 
+Custom Event E As Action 
+AddHandler(value As Action) 
+End AddHandler 
+<A(1)>RemoveHandler(value As Action) 
+End RemoveHandler 
+RaiseEvent() 
+End RaiseEvent 
+End Event 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("<A(1)>", "<A(2)>"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -941,7 +1050,19 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestEventAccessor_Attribute3()
-            Dim text = NewLines("Imports System \n Class Program \n Custom Event E As Action \n AddHandler(value As Action) \n End AddHandler \n RemoveHandler(value As Action) \n End RemoveHandler \n <A(1)>RaiseEvent() \n End RaiseEvent \n End Event \n End Class")
+            Dim text =
+"Imports System 
+Class Program 
+Custom Event E As Action 
+AddHandler(value As Action) 
+End AddHandler 
+RemoveHandler(value As Action) 
+End RemoveHandler 
+<A(1)>RaiseEvent() 
+End RaiseEvent 
+End Event 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("<A(1)>", "<A(2)>"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -950,7 +1071,19 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestEventAccessor_Attribute4()
-            Dim text = NewLines("Imports System \n Class Program \n Custom Event E As Action \n AddHandler(<A(1)>value As Action) \n End AddHandler \n RemoveHandler(value As Action) \n End RemoveHandler \n RaiseEvent() \n End RaiseEvent \n End Event \n End Class")
+            Dim text =
+"Imports System 
+Class Program 
+Custom Event E As Action 
+AddHandler(<A(1)>value As Action) 
+End AddHandler 
+RemoveHandler(value As Action) 
+End RemoveHandler 
+RaiseEvent() 
+End RaiseEvent 
+End Event 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("<A(1)>", "<A(2)>"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -959,7 +1092,19 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestEventAccessor_Attribute5()
-            Dim text = NewLines("Imports System \n Class Program \n Custom Event E As Action \n AddHandler(value As Action) \n End AddHandler \n RemoveHandler(<A(1)>value As Action) \n End RemoveHandler \n RaiseEvent() \n End RaiseEvent \n End Event \n End Class")
+            Dim text =
+"Imports System 
+Class Program 
+Custom Event E As Action 
+AddHandler(value As Action) 
+End AddHandler 
+RemoveHandler(<A(1)>value As Action) 
+End RemoveHandler 
+RaiseEvent() 
+End RaiseEvent 
+End Event 
+End Class
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("<A(1)>", "<A(2)>"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -970,7 +1115,12 @@ end sub", "' sub Foo()
 #Region "Declare"
         <Fact>
         Public Sub TestDeclare_Modifier()
-            Dim text = NewLines("Imports System \n Module Program \n Declare Ansi Function Foo Lib ""foo"" Alias ""bar"" () As Integer \n End Module")
+            Dim text =
+"Imports System 
+Module Program 
+Declare Ansi Function Foo Lib ""foo"" Alias ""bar"" () As Integer 
+End Module
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("Ansi", "Unicode"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -979,7 +1129,12 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestDeclare_LibName()
-            Dim text = NewLines("Imports System \n Module Program \n Declare Ansi Function Foo Lib ""foo"" Alias ""bar"" () As Integer \n End Module")
+            Dim text =
+"Imports System 
+Module Program 
+Declare Ansi Function Foo Lib ""foo"" Alias ""bar"" () As Integer 
+End Module
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("foo", "foo2"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -988,7 +1143,12 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestDeclare_AliasName()
-            Dim text = NewLines("Imports System \n Module Program \n Declare Ansi Function Foo Lib ""foo"" Alias ""bar"" () As Integer \n End Module")
+            Dim text =
+"Imports System 
+Module Program 
+Declare Ansi Function Foo Lib ""foo"" Alias ""bar"" () As Integer 
+End Module
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("bar", "bar2"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -997,7 +1157,12 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestDeclare_ReturnType()
-            Dim text = NewLines("Imports System \n Module Program \n Declare Ansi Function Foo Lib ""foo"" Alias ""bar"" () As Integer \n End Module")
+            Dim text =
+"Imports System 
+Module Program 
+Declare Ansi Function Foo Lib ""foo"" Alias ""bar"" () As Integer 
+End Module
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("Integer", "Boolean"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -1006,7 +1171,12 @@ end sub", "' sub Foo()
 
         <Fact>
         Public Sub TestDeclare_Parameter()
-            Dim text = NewLines("Imports System \n Module Program \n Declare Ansi Function Foo Lib ""foo"" Alias ""bar"" () As Integer \n End Module")
+            Dim text =
+"Imports System 
+Module Program 
+Declare Ansi Function Foo Lib ""foo"" Alias ""bar"" () As Integer 
+End Module
+"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("()", "(a As Integer)"))
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
