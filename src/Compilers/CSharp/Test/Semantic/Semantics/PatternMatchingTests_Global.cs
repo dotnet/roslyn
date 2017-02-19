@@ -7472,10 +7472,7 @@ var r11 = from x1 in new[] { 1 is var y11 ? y11 : 0}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(83, 7),
                 // (62,46): error CS0165: Use of unassigned local variable 'u7'
                 //                     x > y7 && 1 is var u7 && u7 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 46),
-                // (76,44): error CS0165: Use of unassigned local variable 'z9'
-                //             group x > y9 && 1 is var z9 && z9 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z9").WithArguments("z9").WithLocation(76, 44)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 46)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -7675,10 +7672,7 @@ var r11 = from x1 in new[] { 1 is var y11 ? y11 : 0}
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y11").WithArguments("y11").WithLocation(90, 17),
                 // (62,46): error CS0165: Use of unassigned local variable 'u7'
                 //                     x > y7 && 1 is var u7 && u7 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 46),
-                // (76,44): error CS0165: Use of unassigned local variable 'z9'
-                //             group x > y9 && 1 is var z9 && z9 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z9").WithArguments("z9").WithLocation(76, 44)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 46)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
