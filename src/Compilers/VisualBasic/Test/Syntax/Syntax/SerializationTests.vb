@@ -30,18 +30,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestRoundTripSyntaxNode()
-            RoundTrip(<Foo>
+            RoundTrip("
 Public Class C
 End Class
-</Foo>.Value)
+")
         End Sub
 
         <Fact>
         Public Sub TestRoundTripSyntaxNodeWithDiagnostics()
-            Dim text = <Foo>
+            Dim text = "
 Public Class C
 End 
-</Foo>.Value
+"
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim root = tree.GetVisualBasicRoot()
             Assert.True(root.HasErrors)
@@ -61,10 +61,10 @@ End
 
         <Fact>
         Public Sub TestRoundTripSyntaxNodeWithAnnotation()
-            Dim text = <Foo>
+            Dim text = "
 Public Class C
 End Class
-</Foo>.Value
+"
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim annotation = New SyntaxAnnotation()
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation)
@@ -87,10 +87,10 @@ End Class
 
         <Fact>
         Public Sub TestRoundTripSyntaxNodeWithMultipleInstancesOfTheSameAnnotation()
-            Dim text = <Foo>
+            Dim text = "
 Public Class C
 End Class
-</Foo>.Value
+"
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim annotation = New SyntaxAnnotation()
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation, annotation)
@@ -113,10 +113,10 @@ End Class
 
         <Fact>
         Public Sub RoundTripSyntaxNodeWithAnnotationsRemoved()
-            Dim text = <Foo>
+            Dim text = "
 Public Class C
 End Class
-</Foo>.Value
+"
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim annotation1 = New SyntaxAnnotation("annotation1")
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation1)
@@ -161,10 +161,10 @@ End Class
 
         <Fact>
         Public Sub RoundTripSyntaxNodeWithAnnotationRemovedWithMultipleReference()
-            Dim text = <Foo>
+            Dim text = "
 Public Class C
 End Class
-</Foo>.Value
+"
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim annotation1 = New SyntaxAnnotation("annotation1")
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation1, annotation1)
@@ -187,10 +187,10 @@ End Class
 
         <Fact()>
         Public Sub TestRoundTripSyntaxNodeWithSpecialAnnotation()
-            Dim text = <Foo>
+            Dim text = "
 Public Class C
 End Class
-</Foo>.Value
+"
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim annotation = New SyntaxAnnotation("TestAnnotation", "this is a test")
             Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation)
@@ -217,12 +217,12 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86))>
-        <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
+                                           <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
         Public Sub RoundtripSerializeDeepExpression()
-            Dim text = <Foo><![CDATA[
+            Dim text = "
 Module Module15
-    Declare Function GetDesktopWindow Lib "User32" () As Integer
-    Declare Function EnumChildWindows Lib "User32" (ByVal hw As Integer, ByVal lpWndProc As mydel, ByVal lp As Integer) As Integer
+    Declare Function GetDesktopWindow Lib ""User32"" () As Integer
+    Declare Function EnumChildWindows Lib "" ()User32"" (ByVal hw As Integer, ByVal lpWndProc As mydel, ByVal lp As Integer) As Integer
     Public intCounter As Integer
     Delegate Function mydel(ByVal hw As Integer, ByVal lp As Integer) As Integer
     Public d As mydel = New mydel(AddressOf EnumChildProc)
@@ -247,203 +247,201 @@ Module Module15
         EnumChildProc = 1
     End Function
     Sub Regression41614()
-        Dim abc = "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & _
-            "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" & "abc" 
+        Dim abc =
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" &
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & _
+            ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" & ""abc"" 
 
 
     End Sub
 End Module
-]]>
-                       </Foo>.Value
+                                               "
             RoundTrip(text, expectRecursive:=False)
         End Sub
 
         <Fact>
-        <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
+                                                   <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
         Public Sub RoundtripSerializeDeepExpression2()
-            Dim text = <Foo><![CDATA[
+            Dim text = "
 Module GroupJoin2
     Sub Test1()
         q = From a In aa Group Join b As $ In bb On a Equals b
     End Sub
 End Module
-]]>
-                       </Foo>.Value
+"
             RoundTrip(text)
         End Sub
 
         <Fact>
-        <WorkItem(1038237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038237")>
+                                                           <WorkItem(1038237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038237")>
         Public Sub RoundTripPragmaDirective()
-            Dim text = <Foo><![CDATA[
+            Dim text = "
 #Disable Warning BC40000
-]]>
-                       </Foo>.Value
+"
 
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim root = tree.GetRoot()

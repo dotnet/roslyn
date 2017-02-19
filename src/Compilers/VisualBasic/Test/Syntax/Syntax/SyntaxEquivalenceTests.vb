@@ -3,10 +3,11 @@
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class SyntaxEquivalenceTests
-
+#If True Then
         Private Function NewLines(p1 As String) As String
             Return p1.Replace("\n", vbCrLf)
         End Function
+#End If
 
         Private Sub VerifyEquivalent(tree1 As SyntaxTree, tree2 As SyntaxTree, topLevel As Boolean)
             Assert.True(SyntaxFactory.AreEquivalent(tree1, tree2, topLevel))
@@ -44,7 +45,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub TestAddingActivePPDirective()
             Dim text = ""
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
-            Dim tree2 = tree1.WithInsertAt(0, NewLines("#if true \n\n#end if"))
+            Dim tree2 = tree1.WithInsertAt(0, "#if true 
+
+#end if")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyEquivalent(tree1, tree2, topLevel:=False)
         End Sub
@@ -53,7 +56,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub TestAddingInactivePPDirective()
             Dim text = ""
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
-            Dim tree2 = tree1.WithInsertAt(0, NewLines("#if false \n\n#end if"))
+            Dim tree2 = tree1.WithInsertAt(0, "#if false 
+
+#end if")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyEquivalent(tree1, tree2, topLevel:=False)
         End Sub
@@ -62,22 +67,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub TestChangingEmpty()
             Dim text = ""
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
-            Dim tree2 = tree1.WithInsertAt(0, NewLines("namespace N \n end namespace"))
+            Dim tree2 = tree1.WithInsertAt(0, "namespace N 
+end namespace")
             VerifyNotEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
         End Sub
 
         <Fact>
         Public Sub TestAddingClass()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n end namespace"))
-            Dim tree2 = tree1.WithInsertBefore("end", NewLines("class C \n end class \n"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText("namespace N 
+end namespace")
+            Dim tree2 = tree1.WithInsertBefore("end", "class C 
+end class 
+")
             VerifyNotEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
         End Sub
 
         <Fact>
         Public Sub TestRenameOuter()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n end namespace"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText("namespace N 
+end namespace")
             Dim tree2 = tree1.WithReplaceFirst("N", "N1")
             VerifyNotEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -85,7 +95,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestRenameInner()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n class C \n sub Foo() \n dim z = 0 \n end sub \n end class \n end namespace"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText("namespace N 
+class C 
+sub Foo() 
+dim z = 0 
+end sub 
+end class 
+end namespace")
             Dim tree2 = tree1.WithReplaceFirst("z", "y")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -93,7 +109,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestRenameOuterToSamename()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n end namespace"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText("namespace N 
+end namespace")
             Dim tree2 = tree1.WithReplaceFirst("N", "N")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyEquivalent(tree1, tree2, topLevel:=False)
@@ -101,7 +118,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestRenameInnerToSameName()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n class C \n sub Foo() \n dim z = 0 \n end sub \n end class \n end namespace"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText("namespace N 
+class C 
+sub Foo() 
+dim z = 0 
+end sub 
+end class 
+end namespace")
             Dim tree2 = tree1.WithReplaceFirst("z", "z")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyEquivalent(tree1, tree2, topLevel:=False)
@@ -109,23 +132,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestAddingMethod()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n class C \n end class \n end namespace"))
-            Dim tree2 = tree1.WithInsertBefore("end", NewLines("sub Foo() \n end sub \n"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText("namespace N 
+class C
+end class 
+end namespace")
+            Dim tree2 = tree1.WithInsertBefore("end", "sub Foo() 
+end sub 
+")
             VerifyNotEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
         End Sub
 
         <Fact>
         Public Sub TestAddingLocal()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n class C \n sub Foo() \n end sub \n end class \n end namespace"))
-            Dim tree2 = tree1.WithInsertBefore("end", NewLines("dim i as Integer \n "))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText("namespace N 
+class C 
+sub Foo() 
+end sub 
+end class 
+end namespace")
+            Dim tree2 = tree1.WithInsertBefore("end", "dim i as Integer 
+")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
         End Sub
 
         <Fact>
         Public Sub TestRemovingLocal()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n class C \n sub Foo() \n dim z = 0 \n end sub \n end class \n end namespace"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText("namespace N 
+class C 
+sub Foo() 
+dim z = 0 
+end sub 
+end class 
+end namespace")
             Dim tree2 = tree1.WithRemoveFirst("dim z = 0")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -133,7 +173,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestChangingConstLocal()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n class C \n sub Foo() \n const i = 5 \n end sub \n end class \n end namespace"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText("namespace N 
+class C 
+sub Foo() 
+const i = 5 
+end sub 
+end class 
+end namespace")
             Dim tree2 = tree1.WithReplaceFirst("5", "6")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -141,7 +187,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestChangingEnumMember()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("enum E \n i = 5 \n end enum"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText("enum E 
+i = 5 
+end enum")
             Dim tree2 = tree1.WithReplaceFirst("5", "6")
             VerifyNotEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -149,7 +197,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestChangingAttribute()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n <Obsolete(true)>\nclass C \n const i = 5 \n end class \n end namespace"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText("namespace N 
+<Obsolete(true)>
+class C 
+const i = 5 
+end class 
+end namespace")
             Dim tree2 = tree1.WithReplaceFirst("true", "false")
             VerifyNotEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -157,7 +210,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestChangingMethodCall()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n class C \n sub Foo() \n Console.Write(0) \n end sub \n end class \n end namespace"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText("namespace N 
+class C 
+sub Foo() 
+Console.Write(0) 
+end sub 
+end class 
+end namespace")
             Dim tree2 = tree1.WithReplaceFirst("Write", "WriteLine")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -165,7 +224,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestChangingUsing()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("Imports System \n namespace N \n class C \n sub Foo() \n Console.Write(0) \n end sub \n end class \n end namespace"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(
+"Imports System 
+namespace N 
+class C 
+sub Foo() 
+Console.Write(0) 
+end sub 
+end class 
+end namespace")
             Dim tree2 = tree1.WithReplaceFirst("System", "System.Linq")
             VerifyNotEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -173,7 +240,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestChangingBaseType()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("class C \n sub Foo() \n Console.Write(0) \n end sub \n end class"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(
+"class C 
+sub Foo() 
+Console.Write(0) 
+end sub 
+end class")
             Dim tree2 = tree1.WithInsertBefore("sub", "Inherits B \n")
             VerifyNotEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -181,7 +253,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestChangingMethodType()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("class C \n sub Foo() \n Console.Write(0) \n end sub \n end class"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(
+"class C 
+sub Foo() 
+Console.Write(0) 
+end sub 
+end class")
             Dim tree2 = tree1.WithReplaceFirst("sub Foo()", "function Foo() as Integer")
             VerifyNotEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -189,15 +266,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestAddComment()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("class C \n sub Foo() \n Console.Write(0) \n end sub \n end class"))
-            Dim tree2 = tree1.WithInsertBefore("class", NewLines("' Comment\n"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(
+"class C 
+sub Foo() 
+Console.Write(0) 
+end sub 
+end class")
+            Dim tree2 = tree1.WithInsertBefore("class", "' Comment
+")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyEquivalent(tree1, tree2, topLevel:=False)
         End Sub
 
         <Fact>
         Public Sub TestCommentOutCode()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("class C \n sub Foo() \n Console.Write(0) \n end sub \n end class"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(
+"class C 
+sub Foo() 
+Console.Write(0) 
+end sub 
+end class")
             Dim tree2 = tree1.WithInsertBefore("class", "' ")
             VerifyNotEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
@@ -205,47 +293,107 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestAddDocComment()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("class C \n sub Foo() \n Console.Write(0) \n end sub \n end class"))
-            Dim tree2 = tree1.WithInsertBefore("class", NewLines("''' Comment \n"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(
+"class C 
+sub Foo() 
+Console.Write(0) 
+end sub 
+end class")
+            Dim tree2 = tree1.WithInsertBefore("class",
+"''' Comment 
+")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyEquivalent(tree1, tree2, topLevel:=False)
         End Sub
 
         <Fact>
         Public Sub TestSurroundMethodWithActivePPRegion()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("class C \n sub Foo() \n end sub \n end class"))
-            Dim tree2 = tree1.WithReplaceFirst(NewLines("sub Foo() \n end sub \n"), NewLines("\n #if true \n sub Foo() \n end sub \n #end if \n"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(
+"class C 
+sub Foo()
+end sub 
+end class")
+            Dim tree2 = tree1.WithReplaceFirst(
+"sub Foo()
+end sub 
+",
+"
+#if true 
+sub Foo() 
+end sub 
+#end if 
+")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyEquivalent(tree1, tree2, topLevel:=False)
         End Sub
 
         <Fact>
         Public Sub TestSurroundMethodWithInactivePPRegion()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("class C \n sub Foo() \n end sub \n end class"))
-            Dim tree2 = tree1.WithReplaceFirst(NewLines("sub Foo() \n end sub \n"), NewLines("\n #if false \n sub Foo() \n end sub \n #end if \n"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(
+"class C 
+sub Foo() 
+end sub 
+end class")
+            Dim tree2 = tree1.WithReplaceFirst(
+"sub Foo() 
+end sub 
+",
+"
+#if false 
+sub Foo() 
+end sub 
+#end if ")
             VerifyNotEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
         End Sub
 
         <Fact>
         Public Sub TestSurroundStatementWithActivePPRegion()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("class C \n sub Foo() \n dim i as Integer \n end sub \n end class"))
-            Dim tree2 = tree1.WithReplaceFirst(NewLines("dim i as Integer \n"), NewLines("\n #if true \n dim i as Integer \n #end if \n"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(
+"class C 
+sub Foo() 
+dim i as Integer 
+end sub 
+end class")
+            Dim tree2 = tree1.WithReplaceFirst(
+"dim i as Integer 
+", "
+#if true 
+dim i as Integer 
+#end if 
+")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyEquivalent(tree1, tree2, topLevel:=False)
         End Sub
 
         <Fact>
         Public Sub TestSurroundStatementWithInactivePPRegion()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("class C \n sub Foo() \n dim i as Integer \n end sub \n end class"))
-            Dim tree2 = tree1.WithReplaceFirst(NewLines("dim i as Integer \n"), NewLines("\n #if false \n dim i as Integer \n #end if \n"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(
+"class C 
+sub Foo() 
+dim i as Integer 
+end sub 
+end class")
+            Dim tree2 = tree1.WithReplaceFirst(
+"dim i as Integer 
+",
+"
+#if false 
+dim i as Integer 
+#end if 
+")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
         End Sub
 
         <Fact>
         Public Sub TestChangeWhitespace()
-            Dim text = NewLines("class C \n sub Foo() \n dim i as Integer \n end sub \n end class")
+            Dim text =
+"class C 
+sub Foo() 
+dim i as Integer 
+end sub 
+end class"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace(" ", "  "))
             VerifyEquivalent(tree1, tree2, topLevel:=True)
@@ -254,7 +402,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestSkippedText()
-            Dim text = NewLines("Imports System \n Modle Program \n Sub Main(args As String()) \n \n End Sub \n End Module")
+            Dim text =
+"Imports System 
+Modle Program 
+Sub Main(args As String()) 
+
+End Sub 
+End Module"
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(text.Replace("Modle ", "Mode "))
             VerifyEquivalent(tree1, tree2, topLevel:=True)
@@ -262,7 +416,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestUpdateInterpolatedString()
-            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n class C \n sub Foo() \n Console.Write($""Hello{123:N1}"") \n end sub \n end class \n end namespace"))
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(
+"namespace N 
+class C 
+sub Foo() 
+Console.Write($""Hello{123:N1}"") 
+end sub 
+end class 
+end namespace
+")
             Dim tree2 = tree1.WithReplaceFirst("N1", "N2")
             VerifyEquivalent(tree1, tree2, topLevel:=True)
             VerifyNotEquivalent(tree1, tree2, topLevel:=False)
