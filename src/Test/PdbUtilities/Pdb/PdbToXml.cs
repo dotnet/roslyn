@@ -82,7 +82,7 @@ namespace Roslyn.Test.PdbUtilities
         {
             IEnumerable<MethodDefinitionHandle> methodHandles;
 
-            using (var peReader = new PEReader(peStream))
+            using (var peReader = new PEReader(peStream, PEStreamOptions.LeaveOpen))
             {
                 var metadataReader = peReader.GetMetadataReader();
 
