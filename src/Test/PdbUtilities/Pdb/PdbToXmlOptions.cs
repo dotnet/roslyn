@@ -19,5 +19,6 @@ namespace Roslyn.Test.PdbUtilities
         ExcludeNamespaces = 1 << 9,
         ExcludeAsyncInfo = 1 << 10,
         ExcludeCustomDebugInformation = 1 << 11,
+        IncludeSourceServerInformation = 1 << 12,
     }
 }
