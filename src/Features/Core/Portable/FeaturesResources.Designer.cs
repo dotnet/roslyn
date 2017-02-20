@@ -579,11 +579,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Changes to expression trees may result in changes at runtime.
+        ///   Looks up a localized string similar to Changes to expression trees may result in behavior changes at runtime.
         /// </summary>
-        internal static string Changes_to_expression_trees_may_result_in_changes_at_runtime {
+        internal static string Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime {
             get {
-                return ResourceManager.GetString("Changes_to_expression_trees_may_result_in_changes_at_runtime", resourceCulture);
+                return ResourceManager.GetString("Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime", resourceCulture);
             }
         }
         

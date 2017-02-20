@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                             semanticModel, conditionalExpression, expressionTypeOpt, cancellationToken))
                     {
                         coalesceExpression = coalesceExpression.WithAdditionalAnnotations(
-                            WarningAnnotation.Create(FeaturesResources.Changes_to_expression_trees_may_result_in_changes_at_runtime));
+                            WarningAnnotation.Create(FeaturesResources.Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime));
                     }
 
                     return coalesceExpression.WithAdditionalAnnotations(Formatter.Annotation);
