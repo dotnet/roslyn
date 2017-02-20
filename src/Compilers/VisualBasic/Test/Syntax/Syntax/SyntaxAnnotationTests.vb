@@ -514,7 +514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Private Sub TestTriviaAnnotation(tree As SyntaxTree)
                 Dim annotation = New SyntaxAnnotation()
 
-                For Each trivia In GetAllTrivia(tree.GetRoot())
+                For Each trivia As SyntaxTrivia In GetAllTrivia(tree.GetRoot())
                     ' add one annotation and test its existence
                     Dim newTrivia = trivia.WithAdditionalAnnotations(annotation)
                     Dim newRoot = tree.GetRoot().ReplaceTrivia(trivia, newTrivia)
