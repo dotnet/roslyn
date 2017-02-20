@@ -1004,7 +1004,7 @@ End Module
 
             Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
-                Dim ILRef = ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)).GetReference()
+                Dim ILRef = ModuleMetadata.CreateFromImage(IO.File.ReadAllBytes(reference.Path)).GetReference()
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
@@ -2240,7 +2240,7 @@ BC42030: Variable 'x' is passed by reference before it has been assigned a value
 
             Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
-                Dim ILRef = ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)).GetReference()
+                Dim ILRef = ModuleMetadata.CreateFromImage(IO.File.ReadAllBytes(reference.Path)).GetReference()
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
         <compilation name="ExtensionMethodsDeclaredInTypesWithConflictingNamesAreNotVisible">

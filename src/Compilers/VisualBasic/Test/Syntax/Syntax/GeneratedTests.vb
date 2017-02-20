@@ -7,9 +7,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
-    Partial Public Class GeneratedTests
+Partial Public Class GeneratedTests
 
         Private Shared Function GenerateGreenIdentifierToken() As IdentifierTokenSyntax
             Return InternalSyntax.SyntaxFactory.Identifier(String.Empty, GenerateGreenWhitespaceTrivia(), GenerateGreenWhitespaceTrivia())
@@ -106,5 +105,4 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits InternalSyntax.VisualBasicSyntaxVisitor
     End Class
 
-End Namespace
 

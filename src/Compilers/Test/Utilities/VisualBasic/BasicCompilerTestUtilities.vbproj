@@ -71,6 +71,7 @@
     <Compile Include="ParserTestUtilities.vb" />
     <Compile Include="SemanticModelTestBase.vb" />
     <Compile Include="SyntaxTreeExtensions.vb" />
+    <Compile Include="TestSource.vb" />
     <Compile Include="VBParser.vb" />
   </ItemGroup>
   <ItemGroup>
