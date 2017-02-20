@@ -24,23 +24,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         private static readonly Dictionary<OptionKey, object> UseExpressionBody =
             new Dictionary<OptionKey, object>
             {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.FalseWithNoneEnforcement }
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.FalseWithSuggestionEnforcement }
             };
 
         private static readonly Dictionary<OptionKey, object> UseExpressionBodyIncludingPropertiesAndIndexers =
             new Dictionary<OptionKey, object>
             {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.TrueWithNoneEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.TrueWithNoneEnforcement }
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.TrueWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.TrueWithSuggestionEnforcement }
             };
 
         private static readonly Dictionary<OptionKey, object> UseBlockBody =
             new Dictionary<OptionKey, object>
             {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement }
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithSuggestionEnforcement }
             };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -147,14 +147,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestMissingWithOnlySetter()
         {
-            await TestMissingAsync(
+            await TestActionCountAsync(
 @"class C
 {
     int Foo
     {
         set => [|Bar|]();
-        }
-    }", options: UseExpressionBody);
+    }
+}", count: 1, featureOptions: UseExpressionBody);
+
+            // There is a hidden diagnostic that still offers to convert expression-body to block-body.
+            await TestAsync(
+@"class C
+{
+    int Foo
+    {
+        set => [|Bar|]();
+    }
+}",
+@"class C
+{
+    int Foo
+    {
+        set { Bar(); }
+    }
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
