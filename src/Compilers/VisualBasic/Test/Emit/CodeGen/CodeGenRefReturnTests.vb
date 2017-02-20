@@ -1891,7 +1891,7 @@ BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem(17140, "https://github.com/dotnet/roslyn/issues/17140")>
         Public Sub DelegateToByRefFunctionWithDerivedType()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -1943,7 +1943,7 @@ BC31143: Method 'Public Overloads ByRef Function F() As String' does not have a 
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem(17140, "https://github.com/dotnet/roslyn/issues/17140")>
         Public Sub RefMethodGroupConversionError_WithResolution()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -1989,7 +1989,7 @@ End Module",
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem(17140, "https://github.com/dotnet/roslyn/issues/17140")>
         Public Sub RefMethodGroupConversionNoError_WithResolution()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -2031,7 +2031,7 @@ End Module",
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem(17140, "https://github.com/dotnet/roslyn/issues/17140")>
         Public Sub RefMethodGroupConversionNoError_WithResolution1()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -2077,7 +2077,7 @@ RefFunc1`2[Derived2,Base]")
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem(17140, "https://github.com/dotnet/roslyn/issues/17140")>
         Public Sub RefMethodGroupOverloadResolution()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -2121,7 +2121,7 @@ End Module",
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem(17140, "https://github.com/dotnet/roslyn/issues/17140")>
         Public Sub RefLambdaOverloadResolution()
             Dim comp1 = CreateCSharpCompilation(
 "
@@ -2165,7 +2165,7 @@ End Module",
         End Sub
 
         <Fact>
-        <WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")>
+        <WorkItem(17140, "https://github.com/dotnet/roslyn/issues/17140")>
         Public Sub DelegateToByRefFunctionWithBaseType()
             Dim comp1 = CreateCSharpCompilation(
 "
