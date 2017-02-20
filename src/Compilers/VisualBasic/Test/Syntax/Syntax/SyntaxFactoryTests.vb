@@ -3,7 +3,7 @@
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Namespace Syntax.Factory
 
         Public Class SyntaxFactoryTests

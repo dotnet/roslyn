@@ -5,13 +5,16 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
-<CLSCompliant(False)>
-Public Class ParseVarDecl
-    Inherits BasicTestBase
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+    Namespace Parser.VarDecl
 
-    <Fact>
-    Public Sub ParseBasicVarDecls()
-        ParseAndVerify(
+        <CLSCompliant(False)>
+        Public Class ParseVarDecl
+            Inherits BasicTestBase
+
+            <Fact>
+            Public Sub ParseBasicVarDecls()
+                ParseAndVerify(
 "Module Module1
     dim i as integer
     dim s as string
@@ -74,11 +77,11 @@ Structure S1
     <clscompliant(true)> dim attribute_i as integer
 End Structure
 ")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ParseArrayDecl()
-        ParseAndVerify("
+            <Fact>
+            Public Sub ParseArrayDecl()
+                ParseAndVerify("
 Class C1
     Private i1(10) As Integer
     Private i2(,) As Integer
@@ -89,52 +92,52 @@ Class C1
     private c2 as new customer with {.a = 1, .b = 2, .c = 3}
 End Class
 ")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub Bug862143()
-        ParseAndVerify("
+            <Fact>
+            Public Sub Bug862143()
+                ParseAndVerify("
 Module Module1
     Dim v1 = 1, v2 = 2
 End Module
 ")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub Bug863104()
-        ParseAndVerify("
+            <Fact>
+            Public Sub Bug863104()
+                ParseAndVerify("
 Class ClassA
     Dim scen1 As Integer = 1
     Public scen2 = New With {.x = New With {scen2}}
 End Class
 ")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub Bug868003()
-        ' Collection initializers for field initialization is not supported, contextual keyword 'from' was not parsed correctly
-        ParseAndVerify("
+            <Fact>
+            Public Sub Bug868003()
+                ' Collection initializers for field initialization is not supported, contextual keyword 'from' was not parsed correctly
+                ParseAndVerify("
 Class Class1
     Dim errorList As New System.Collections.Generic.List(Of Integer) From {36534}
 End Class
 ")
-    End Sub
+            End Sub
 
 
-    <Fact>
-    Public Sub Bug869104()
-        ' Custom Keyword should be contextual (only preceding Event keyword)
-        ParseAndVerify("
+            <Fact>
+            Public Sub Bug869104()
+                ' Custom Keyword should be contextual (only preceding Event keyword)
+                ParseAndVerify("
 Class Class1
     Public Const Custom As String = ""custom""
 End Class
 ")
-    End Sub
+            End Sub
 
-    <WorkItem(898582, "DevDiv/Personal")>
-    <Fact>
-    Public Sub ParseIncorrectShorArr()
-        ParseAndVerify("
+            <WorkItem(898582, "DevDiv/Personal")>
+            <Fact>
+            Public Sub ParseIncorrectShorArr()
+                ParseAndVerify("
             Sub ArExtNewErr001()
 FixedRankArray_19 = New Short() (1,
 ",
@@ -144,11 +147,11 @@ FixedRankArray_19 = New Short() (1,
             <error id="32014"/>
             <error id="30026"/>
         </errors>)
-    End Sub
-    <WorkItem(885792, "DevDiv/Personal")>
-    <Fact>
-    Public Sub BC30988ERR_UnrecognizedTypeOrWith_MismatchVSUnrecognizedType()
-        ParseAndVerify("
+            End Sub
+            <WorkItem(885792, "DevDiv/Personal")>
+            <Fact>
+            Public Sub BC30988ERR_UnrecognizedTypeOrWith_MismatchVSUnrecognizedType()
+                ParseAndVerify("
 Class Class1
  Sub Main()
  Dim obj = new {Key .prop1 = ""123""}
@@ -158,12 +161,12 @@ End Class
             <errors>
                 <error id="30988"/>
             </errors>)
-    End Sub
+            End Sub
 
-    <WorkItem(527021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527021")>
-    <Fact>
-    Public Sub BC30036_ParseErrorMismatchExpectedExpression()
-        ParseAndVerify("
+            <WorkItem(527021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527021")>
+            <Fact>
+            Public Sub BC30036_ParseErrorMismatchExpectedExpression()
+                ParseAndVerify("
 Module Module1
    Dim sb7 As ULong = 18446744073709551616UL
    Dim sb71 As ULong = 18446744073709551617UL
@@ -173,12 +176,12 @@ End Module
                 <error id="30036"/>
                 <error id="30036"/>
             </errors>)
-    End Sub
+            End Sub
 
-    <WorkItem(538746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538746")>
-    <Fact>
-    Public Sub ParseDecimalLiteralWithExponent()
-        ParseAndVerify("
+            <WorkItem(538746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538746")>
+            <Fact>
+            Public Sub ParseDecimalLiteralWithExponent()
+                ParseAndVerify("
 Module M
     Sub Main()
         Dim x = 1.0e28d
@@ -186,17 +189,17 @@ Module M
 End Module
 ")
 
-        Dim d As Decimal = 0
-        If (Decimal.TryParse("0E1", Globalization.NumberStyles.AllowExponent, Nothing, d)) Then
-            ParseAndVerify("
+                Dim d As Decimal = 0
+                If (Decimal.TryParse("0E1", Globalization.NumberStyles.AllowExponent, Nothing, d)) Then
+                    ParseAndVerify("
 Module M
     Sub Main()
         Dim x = 0.0e28d
     End Sub
 End Module
 ")
-        Else
-            ParseAndVerify("
+                Else
+                    ParseAndVerify("
 Module M
     Sub Main()
         Dim x = 0.0e28d
@@ -206,13 +209,13 @@ End Module
                  <errors>
                      <error id="30036" message="Overflow."/>
                  </errors>)
-        End If
-    End Sub
+                End If
+            End Sub
 
-    <WorkItem(541293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541293")>
-    <Fact>
-    Public Sub ParsePropertyWithFromInitializer()
-        ParseAndVerify("
+            <WorkItem(541293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541293")>
+            <Fact>
+            Public Sub ParsePropertyWithFromInitializer()
+                ParseAndVerify("
 Module Program
 
     Property)As New t(Of Integer) From {1, 2, 3}
@@ -227,12 +230,12 @@ End Module
             <errors>
                 <error id="30203" message="Identifier expected." start="29" end="29"/>
             </errors>)
-    End Sub
+            End Sub
 
-    <WorkItem(541293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541293")>
-    <Fact>
-    Public Sub ParsePropertyWithFromInitializer_2()
-        ParseAndVerify("
+            <WorkItem(541293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541293")>
+            <Fact>
+            Public Sub ParsePropertyWithFromInitializer_2()
+                ParseAndVerify("
 Class C
     Property P As New C
         From {1,2,3}
@@ -240,13 +243,13 @@ Class C
         From {1,2,3}
 End Class
 ")
-    End Sub
+            End Sub
 
-    <WorkItem(543755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543755")>
-    <Fact()>
-    Public Sub Bug11682()
+            <WorkItem(543755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543755")>
+            <Fact()>
+            Public Sub Bug11682()
 
-        ParseAndVerify("
+                ParseAndVerify("
 Module Program
     Sub Main()
         Dim [foo as integer = 23 
@@ -288,6 +291,8 @@ End Module
                  Diagnostic(ERRID.ERR_ExpectedIdentifier, "["),
                  Diagnostic(ERRID.ERR_ExpectedIdentifier, "[]"),
                  Diagnostic(ERRID.ERR_IllegalChar, "]"))
-    End Sub
+            End Sub
 
-End Class
+        End Class
+    End Namespace
+End Namespace

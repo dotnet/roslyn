@@ -4,227 +4,232 @@ Imports System.Collections.Immutable
 Imports System.Linq
 Imports Roslyn.Test.Utilities
 
-Public Class VisualBasicParseOptionsTests
-    Inherits BasicTestBase
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+    Namespace Parser.Options
 
-    Private Sub TestProperty(Of T)(factory As Func(Of VisualBasicParseOptions, T, VisualBasicParseOptions), getter As Func(Of VisualBasicParseOptions, T), validValue As T)
-        Dim oldOpt1 = VisualBasicParseOptions.Default
-        Dim newOpt1 = factory(oldOpt1, validValue)
-        Dim newOpt2 = factory(newOpt1, validValue)
-        Assert.Equal(validValue, getter(newOpt1))
-        Assert.Same(newOpt2, newOpt1)
-    End Sub
+        Public Class VisualBasicParseOptionsTests
+            Inherits BasicTestBase
 
-    <Fact>
-    Public Sub WithXxx()
-        TestProperty(Function(old, value) old.WithKind(value), Function(opt) opt.Kind, SourceCodeKind.Script)
-        TestProperty(Function(old, value) old.WithLanguageVersion(value), Function(opt) opt.LanguageVersion, LanguageVersion.VisualBasic9)
-        TestProperty(Function(old, value) old.WithDocumentationMode(value), Function(opt) opt.DocumentationMode, DocumentationMode.None)
+            Private Sub TestProperty(Of T)(factory As Func(Of VisualBasicParseOptions, T, VisualBasicParseOptions), getter As Func(Of VisualBasicParseOptions, T), validValue As T)
+                Dim oldOpt1 = VisualBasicParseOptions.Default
+                Dim newOpt1 = factory(oldOpt1, validValue)
+                Dim newOpt2 = factory(newOpt1, validValue)
+                Assert.Equal(validValue, getter(newOpt1))
+                Assert.Same(newOpt2, newOpt1)
+            End Sub
 
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithKind(DirectCast(Integer.MaxValue, SourceCodeKind)))
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithLanguageVersion(DirectCast(1000, LanguageVersion)))
-    End Sub
+            <Fact>
+            Public Sub WithXxx()
+                TestProperty(Function(old, value) old.WithKind(value), Function(opt) opt.Kind, SourceCodeKind.Script)
+                TestProperty(Function(old, value) old.WithLanguageVersion(value), Function(opt) opt.LanguageVersion, LanguageVersion.VisualBasic9)
+                TestProperty(Function(old, value) old.WithDocumentationMode(value), Function(opt) opt.DocumentationMode, DocumentationMode.None)
 
-    <Fact>
-    Public Sub WithLatestLanguageVersion()
-        Dim oldOpt1 = VisualBasicParseOptions.Default
-        Dim newOpt1 = oldOpt1.WithLanguageVersion(LanguageVersion.Latest)
-        Dim newOpt2 = newOpt1.WithLanguageVersion(LanguageVersion.Latest)
-        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, oldOpt1.LanguageVersion)
-        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt1.LanguageVersion)
-        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt2.LanguageVersion)
-        newOpt1 = oldOpt1.WithLanguageVersion(LanguageVersion.Default)
-        newOpt2 = newOpt1.WithLanguageVersion(LanguageVersion.Default)
-        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, oldOpt1.LanguageVersion)
-        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt1.LanguageVersion)
-        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt2.LanguageVersion)
-    End Sub
+                Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithKind(DirectCast(Integer.MaxValue, SourceCodeKind)))
+                Assert.Throws(Of ArgumentOutOfRangeException)(Function() VisualBasicParseOptions.Default.WithLanguageVersion(DirectCast(1000, LanguageVersion)))
+            End Sub
 
-    <Fact>
-    Public Sub WithPreprocessorSymbols()
-        Dim syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("A", 1),
-                                         New KeyValuePair(Of String, Object)("B", 2),
-                                         New KeyValuePair(Of String, Object)("C", 3))
+            <Fact>
+            Public Sub WithLatestLanguageVersion()
+                Dim oldOpt1 = VisualBasicParseOptions.Default
+                Dim newOpt1 = oldOpt1.WithLanguageVersion(LanguageVersion.Latest)
+                Dim newOpt2 = newOpt1.WithLanguageVersion(LanguageVersion.Latest)
+                Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, oldOpt1.LanguageVersion)
+                Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt1.LanguageVersion)
+                Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt2.LanguageVersion)
+                newOpt1 = oldOpt1.WithLanguageVersion(LanguageVersion.Default)
+                newOpt2 = newOpt1.WithLanguageVersion(LanguageVersion.Default)
+                Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, oldOpt1.LanguageVersion)
+                Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt1.LanguageVersion)
+                Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt2.LanguageVersion)
+            End Sub
 
-        TestProperty(Function(old, value) old.WithPreprocessorSymbols(value), Function(opt) opt.PreprocessorSymbols, syms)
+            <Fact>
+            Public Sub WithPreprocessorSymbols()
+                Dim syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("A", 1),
+                                             New KeyValuePair(Of String, Object)("B", 2),
+                                             New KeyValuePair(Of String, Object)("C", 3))
 
-        Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).
-                                                        WithPreprocessorSymbols(CType(Nothing, ImmutableArray(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
-        Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).
-                                                        WithPreprocessorSymbols(DirectCast(Nothing, IEnumerable(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
-        Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).
-                                                        WithPreprocessorSymbols(DirectCast(Nothing, KeyValuePair(Of String, Object)())).PreprocessorSymbols.Length)
+                TestProperty(Function(old, value) old.WithPreprocessorSymbols(value), Function(opt) opt.PreprocessorSymbols, syms)
 
-        Dim syms2 = {New KeyValuePair(Of String, Object)("A", 1),
-                     New KeyValuePair(Of String, Object)("B", New List(Of String)()),
-                     New KeyValuePair(Of String, Object)("C", 3)}
+                Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).
+                                                            WithPreprocessorSymbols(CType(Nothing, ImmutableArray(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
+                Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).
+                                                            WithPreprocessorSymbols(DirectCast(Nothing, IEnumerable(Of KeyValuePair(Of String, Object)))).PreprocessorSymbols.Length)
+                Assert.Equal(0, VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms).
+                                                            WithPreprocessorSymbols(DirectCast(Nothing, KeyValuePair(Of String, Object)())).PreprocessorSymbols.Length)
 
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms2))
-        Assert.Throws(Of ArgumentException)(Function() VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms2))
-    End Sub
+                Dim syms2 = {New KeyValuePair(Of String, Object)("A", 1),
+                         New KeyValuePair(Of String, Object)("B", New List(Of String)()),
+                         New KeyValuePair(Of String, Object)("C", 3)}
 
-    <Fact>
-    Public Sub ConstructorValidation()
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(kind:=DirectCast(Int32.MaxValue, SourceCodeKind)))
-        Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(languageVersion:=DirectCast(1000, LanguageVersion)))
-    End Sub
+                Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms2))
+                Assert.Throws(Of ArgumentException)(Function() VisualBasicParseOptions.Default.WithPreprocessorSymbols(syms2))
+            End Sub
 
-    <Fact, WorkItem(546206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546206")>
-    Public Sub InvalidDefineSymbols()
+            <Fact>
+            Public Sub ConstructorValidation()
+                Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(kind:=DirectCast(Int32.MaxValue, SourceCodeKind)))
+                Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(languageVersion:=DirectCast(1000, LanguageVersion)))
+            End Sub
 
-        ' Command line: error BC31030: Project-level conditional compilation constant 'xxx' is not valid: Identifier expected
+            <Fact, WorkItem(546206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546206")>
+            Public Sub InvalidDefineSymbols()
 
-        Dim syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("", 1))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
+                ' Command line: error BC31030: Project-level conditional compilation constant 'xxx' is not valid: Identifier expected
 
-        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)(" ", 1))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
+                Dim syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("", 1))
+                Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
 
-        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("Good", 1),
-                                     New KeyValuePair(Of String, Object)(Nothing, 2))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
+                syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)(" ", 1))
+                Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
 
-        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("Good", 1),
-                                     New KeyValuePair(Of String, Object)("Bad.Symbol", 2))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
+                syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("Good", 1),
+                                         New KeyValuePair(Of String, Object)(Nothing, 2))
+                Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
 
-        syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("123", 1),
-                                     New KeyValuePair(Of String, Object)("Bad/Symbol", 2),
-                                     New KeyValuePair(Of String, Object)("Good", 3))
-        Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
-    End Sub
+                syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("Good", 1),
+                                         New KeyValuePair(Of String, Object)("Bad.Symbol", 2))
+                Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
 
-    <Fact>
-    Public Sub PredefinedPreprocessorSymbolsTests()
-        Dim options = VisualBasicParseOptions.Default
-        Dim empty = ImmutableArray.Create(Of KeyValuePair(Of String, Object))()
+                syms = ImmutableArray.Create(New KeyValuePair(Of String, Object)("123", 1),
+                                         New KeyValuePair(Of String, Object)("Bad/Symbol", 2),
+                                         New KeyValuePair(Of String, Object)("Good", 3))
+                Assert.Throws(Of ArgumentException)(Function() New VisualBasicParseOptions(preprocessorSymbols:=syms))
+            End Sub
 
-        Dim symbols = AddPredefinedPreprocessorSymbols(OutputKind.NetModule)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
-                           New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
+            <Fact>
+            Public Sub PredefinedPreprocessorSymbolsTests()
+                Dim options = VisualBasicParseOptions.Default
+                Dim empty = ImmutableArray.Create(Of KeyValuePair(Of String, Object))()
 
-        ' if the symbols are already there, don't change their values
-        symbols = AddPredefinedPreprocessorSymbols(OutputKind.DynamicallyLinkedLibrary, symbols)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
-                           New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
+                Dim symbols = AddPredefinedPreprocessorSymbols(OutputKind.NetModule)
+                AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
+                               New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
 
-        symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
-                                                   {New KeyValuePair(Of String, Object)("VBC_VER", "Foo"),
-                                                    New KeyValuePair(Of String, Object)("TARGET", 123)})
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"),
-                           New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
+                ' if the symbols are already there, don't change their values
+                symbols = AddPredefinedPreprocessorSymbols(OutputKind.DynamicallyLinkedLibrary, symbols)
+                AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
+                               New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
 
-        symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
-                                                   New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123))
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"),
-                           New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
+                symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
+                                                       {New KeyValuePair(Of String, Object)("VBC_VER", "Foo"),
+                                                        New KeyValuePair(Of String, Object)("TARGET", 123)})
+                AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"),
+                               New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
 
-        symbols = AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication, empty)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
-                           New KeyValuePair(Of String, Object)("TARGET", "exe")}, symbols.AsEnumerable)
+                symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
+                                                       New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123))
+                AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"),
+                               New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
 
-        symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication, empty)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
-                           New KeyValuePair(Of String, Object)("TARGET", "winexe")}, symbols.AsEnumerable)
-    End Sub
+                symbols = AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication, empty)
+                AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
+                               New KeyValuePair(Of String, Object)("TARGET", "exe")}, symbols.AsEnumerable)
 
-    <Fact>
-    Public Sub CurrentVersionNumber()
-        Dim highest = System.Enum.
-            GetValues(GetType(LanguageVersion)).
-            Cast(Of LanguageVersion).
-            Select(Function(x) CInt(x)).
-            Where(Function(x) x <> LanguageVersion.Latest).
-            Max()
+                symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication, empty)
+                AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
+                               New KeyValuePair(Of String, Object)("TARGET", "winexe")}, symbols.AsEnumerable)
+            End Sub
 
-        Assert.Equal(highest, CInt(PredefinedPreprocessorSymbols.CurrentVersionNumber))
-    End Sub
+            <Fact>
+            Public Sub CurrentVersionNumber()
+                Dim highest = System.Enum.
+                GetValues(GetType(LanguageVersion)).
+                Cast(Of LanguageVersion).
+                Select(Function(x) CInt(x)).
+                Where(Function(x) x <> LanguageVersion.Latest).
+                Max()
 
-    <Fact>
-    Public Sub PredefinedPreprocessorSymbols_Win8()
-        Dim options = VisualBasicParseOptions.Default
+                Assert.Equal(highest, CInt(PredefinedPreprocessorSymbols.CurrentVersionNumber))
+            End Sub
 
-        Dim symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsRuntimeApplication)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
-                           New KeyValuePair(Of String, Object)("TARGET", "appcontainerexe")}, symbols.AsEnumerable)
+            <Fact>
+            Public Sub PredefinedPreprocessorSymbols_Win8()
+                Dim options = VisualBasicParseOptions.Default
 
-        symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsRuntimeMetadata)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
-                           New KeyValuePair(Of String, Object)("TARGET", "winmdobj")}, symbols.AsEnumerable)
-    End Sub
+                Dim symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsRuntimeApplication)
+                AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
+                               New KeyValuePair(Of String, Object)("TARGET", "appcontainerexe")}, symbols.AsEnumerable)
 
-    <Fact>
-    Public Sub ParseOptionsPass()
-        ParseAndVerify(
-"Option strict
+                symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsRuntimeMetadata)
+                AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber),
+                               New KeyValuePair(Of String, Object)("TARGET", "winmdobj")}, symbols.AsEnumerable)
+            End Sub
+
+            <Fact>
+            Public Sub ParseOptionsPass()
+                ParseAndVerify(
+    "Option strict
 Option strict on
 Option strict off")
 
-        ParseAndVerify(
-"Option infer
+                ParseAndVerify(
+    "Option infer
 Option infer on
 option infer off")
 
-        ParseAndVerify(
-"option explicit
+                ParseAndVerify(
+    "option explicit
 Option explicit On
 Option explicit off")
 
-        ParseAndVerify(
-"Option compare text
+                ParseAndVerify(
+    "Option compare text
 Option compare binary")
-    End Sub
+            End Sub
 
-    <Fact()>
-    Public Sub BC30208ERR_ExpectedOptionCompare()
-        ParseAndVerify("Option text", <errors><error id="30208"/></errors>)
-    End Sub
+            <Fact()>
+            Public Sub BC30208ERR_ExpectedOptionCompare()
+                ParseAndVerify("Option text", <errors><error id="30208"/></errors>)
+            End Sub
 
-    <Fact()>
-    Public Sub BC30979ERR_InvalidOptionInfer()
-        ParseAndVerify("Option infer xyz", <errors><error id="30979"/></errors>)
-    End Sub
+            <Fact()>
+            Public Sub BC30979ERR_InvalidOptionInfer()
+                ParseAndVerify("Option infer xyz", <errors><error id="30979"/></errors>)
+            End Sub
 
-    <Fact()>
-    Public Sub BC31141ERR_InvalidOptionStrictCustom()
-        ParseAndVerify("Option strict custom", <errors><error id="31141"/></errors>)
-    End Sub
+            <Fact()>
+            Public Sub BC31141ERR_InvalidOptionStrictCustom()
+                ParseAndVerify("Option strict custom", <errors><error id="31141"/></errors>)
+            End Sub
 
-    <Fact, WorkItem(536060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536060")>
-    Public Sub BC30620ERR_InvalidOptionStrict_FollowedByAssemblyAttribute()
-        ParseAndVerify(
-"Option Strict False
+            <Fact, WorkItem(536060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536060")>
+            Public Sub BC30620ERR_InvalidOptionStrict_FollowedByAssemblyAttribute()
+                ParseAndVerify(
+    "Option Strict False
 <Assembly: CLSCompliant(True)> ", <errors><error id="30620"/></errors>)
-    End Sub
+            End Sub
 
-    <Fact, WorkItem(536067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536067")>
-    Public Sub BC30627ERR_OptionStmtWrongOrder()
-        ParseAndVerify(
-"Imports System
+            <Fact, WorkItem(536067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536067")>
+            Public Sub BC30627ERR_OptionStmtWrongOrder()
+                ParseAndVerify(
+    "Imports System
 Option Infer On", <errors><error id="30627"/></errors>)
-    End Sub
+            End Sub
 
-    <Fact, WorkItem(536362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536362")>
-    Public Sub BC30206ERR_ExpectedForOptionStmt_NullReferenceException()
-        ParseAndVerify("Option", <errors><error id="30206"/></errors>)
-        ParseAndVerify("Option on", <errors><error id="30206"/></errors>)
-    End Sub
+            <Fact, WorkItem(536362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536362")>
+            Public Sub BC30206ERR_ExpectedForOptionStmt_NullReferenceException()
+                ParseAndVerify("Option", <errors><error id="30206"/></errors>)
+                ParseAndVerify("Option on", <errors><error id="30206"/></errors>)
+            End Sub
 
-    <Fact, WorkItem(536432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536432")>
-    Public Sub BC30205ERR_ExpectedEOS_ParseOption_ExtraSyntaxAtEOL()
-        ParseAndVerify("Option Infer On O", <errors><error id="30205"/></errors>)
-    End Sub
+            <Fact, WorkItem(536432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536432")>
+            Public Sub BC30205ERR_ExpectedEOS_ParseOption_ExtraSyntaxAtEOL()
+                ParseAndVerify("Option Infer On O", <errors><error id="30205"/></errors>)
+            End Sub
 
-    ''' <summary>
-    ''' If this test fails, please update the <see cref="ParseOptions.GetHashCode" />
-    ''' And <see cref="ParseOptions.Equals" /> methods to
-    ''' make sure they are doing the right thing with your New field And then update the baseline
-    ''' here.
-    ''' </summary>
-    <Fact>
-    Public Sub TestFieldsForEqualsAndGetHashCode()
-        ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
-            GetType(VisualBasicParseOptions),
-            "Features", "Language", "LanguageVersion", "PreprocessorSymbolNames", "PreprocessorSymbols", "SpecifiedLanguageVersion")
-    End Sub
-End Class
+            ''' <summary>
+            ''' If this test fails, please update the <see cref="ParseOptions.GetHashCode" />
+            ''' And <see cref="ParseOptions.Equals" /> methods to
+            ''' make sure they are doing the right thing with your New field And then update the baseline
+            ''' here.
+            ''' </summary>
+            <Fact>
+            Public Sub TestFieldsForEqualsAndGetHashCode()
+                ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
+                GetType(VisualBasicParseOptions),
+                "Features", "Language", "LanguageVersion", "PreprocessorSymbolNames", "PreprocessorSymbols", "SpecifiedLanguageVersion")
+            End Sub
+        End Class
+    End Namespace
+End Namespace

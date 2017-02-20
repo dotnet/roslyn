@@ -4,7 +4,7 @@ Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Namespace Syntax.Tree
         Public Class VisualBasicSyntaxTreeTests
             <Fact>

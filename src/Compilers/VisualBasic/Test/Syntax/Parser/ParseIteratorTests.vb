@@ -6,12 +6,15 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
-Public Class ParseIteratorTests
-    Inherits BasicTestBase
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+    Namespace Parser.Iterator
 
-    <Fact>
-    Public Sub ParseIteratorModifier()
-        Dim tree = ParseAndVerify("
+        Public Class ParseIteratorTests
+            Inherits BasicTestBase
+
+            <Fact>
+            Public Sub ParseIteratorModifier()
+                Dim tree = ParseAndVerify("
 Imports Iterator = System.Collections.Generic.IEnumerable(Of Integer)
 
 Module Program
@@ -73,13 +76,13 @@ Class IteratorAttribute
     End Sub
 End Class")
 
-        Assert.Equal(6, Aggregate t In tree.GetRoot().DescendantTokens Where t.Kind = SyntaxKind.IteratorKeyword Into Count())
+                Assert.Equal(6, Aggregate t In tree.GetRoot().DescendantTokens Where t.Kind = SyntaxKind.IteratorKeyword Into Count())
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ParseYieldStatements()
-        Dim tree = VisualBasicSyntaxTree.ParseText("
+            <Fact>
+            Public Sub ParseYieldStatements()
+                Dim tree = VisualBasicSyntaxTree.ParseText("
 Module Program
 
     Iterator Function M()
@@ -147,70 +150,70 @@ Module Program
 
 End Module")
 
-        Dim yieldStatements = tree.GetRoot().DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
+                Dim yieldStatements = tree.GetRoot().DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
 
-        Assert.Equal(10, yieldStatements.Count)
+                Assert.Equal(10, yieldStatements.Count)
 
-        Dim methodSyntaxList = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax)().ToArray()
+                Dim methodSyntaxList = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax)().ToArray()
 
-        ' Iterator Function M()
-        Dim firstStatementOfM = methodSyntaxList(0).Statements.First
-        Assert.Equal(SyntaxKind.YieldStatement, firstStatementOfM.Kind)     ' 1
+                ' Iterator Function M()
+                Dim firstStatementOfM = methodSyntaxList(0).Statements.First
+                Assert.Equal(SyntaxKind.YieldStatement, firstStatementOfM.Kind)     ' 1
 
-        ' Function M2()
-        yieldStatements = methodSyntaxList(1).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
-        Assert.Equal(0, yieldStatements.Count)
+                ' Function M2()
+                yieldStatements = methodSyntaxList(1).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
+                Assert.Equal(0, yieldStatements.Count)
 
-        ' Iterator Property P1() As IEnumerable(Of Func(Of IEnumerable(Of Integer)))
-        ' Getter
-        Dim statements = methodSyntaxList(2).Statements
-        Assert.Equal(SyntaxKind.YieldStatement, statements(0).Kind)     ' 2
-        yieldStatements = statements(0).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
-        Assert.Equal(0, yieldStatements.Count)
-        Assert.Equal(SyntaxKind.YieldStatement, statements(1).Kind)     ' 3
-        yieldStatements = statements(1).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
-        Assert.Equal(1, yieldStatements.Count)      ' 4
-        ' Setter
-        statements = methodSyntaxList(3).Statements
-        Assert.Equal(SyntaxKind.YieldStatement, statements(0).Kind)     ' 5
+                ' Iterator Property P1() As IEnumerable(Of Func(Of IEnumerable(Of Integer)))
+                ' Getter
+                Dim statements = methodSyntaxList(2).Statements
+                Assert.Equal(SyntaxKind.YieldStatement, statements(0).Kind)     ' 2
+                yieldStatements = statements(0).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
+                Assert.Equal(0, yieldStatements.Count)
+                Assert.Equal(SyntaxKind.YieldStatement, statements(1).Kind)     ' 3
+                yieldStatements = statements(1).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
+                Assert.Equal(1, yieldStatements.Count)      ' 4
+                ' Setter
+                statements = methodSyntaxList(3).Statements
+                Assert.Equal(SyntaxKind.YieldStatement, statements(0).Kind)     ' 5
 
-        ' Property P2 As IEnumerable(Of Func(Of IEnumerable(Of Integer)))
-        ' Getter
-        statements = methodSyntaxList(4).Statements
-        Assert.NotEqual(SyntaxKind.YieldStatement, statements(0).Kind)
-        yieldStatements = statements(0).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
-        Assert.Equal(0, yieldStatements.Count)
-        Assert.NotEqual(SyntaxKind.YieldStatement, statements(1).Kind)
-        yieldStatements = statements(1).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
-        Assert.Equal(1, yieldStatements.Count)      ' 6
-        ' Setter
-        statements = methodSyntaxList(5).Statements
-        Assert.NotEqual(SyntaxKind.YieldStatement, statements(0).Kind)
+                ' Property P2 As IEnumerable(Of Func(Of IEnumerable(Of Integer)))
+                ' Getter
+                statements = methodSyntaxList(4).Statements
+                Assert.NotEqual(SyntaxKind.YieldStatement, statements(0).Kind)
+                yieldStatements = statements(0).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
+                Assert.Equal(0, yieldStatements.Count)
+                Assert.NotEqual(SyntaxKind.YieldStatement, statements(1).Kind)
+                yieldStatements = statements(1).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
+                Assert.Equal(1, yieldStatements.Count)      ' 6
+                ' Setter
+                statements = methodSyntaxList(5).Statements
+                Assert.NotEqual(SyntaxKind.YieldStatement, statements(0).Kind)
 
-        ' ReadOnly Iterator Property P3 As IEnumerable(Of Func(Of IEnumerable(Of Integer)))
-        ' Getter
-        statements = methodSyntaxList(6).Statements
-        Assert.Equal(SyntaxKind.YieldStatement, statements(0).Kind)     ' 7
-        yieldStatements = statements(0).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
-        Assert.Equal(0, yieldStatements.Count)
-        Assert.Equal(SyntaxKind.YieldStatement, statements(1).Kind)     ' 8
-        yieldStatements = statements(1).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
-        Assert.Equal(1, yieldStatements.Count)      ' 9
+                ' ReadOnly Iterator Property P3 As IEnumerable(Of Func(Of IEnumerable(Of Integer)))
+                ' Getter
+                statements = methodSyntaxList(6).Statements
+                Assert.Equal(SyntaxKind.YieldStatement, statements(0).Kind)     ' 7
+                yieldStatements = statements(0).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
+                Assert.Equal(0, yieldStatements.Count)
+                Assert.Equal(SyntaxKind.YieldStatement, statements(1).Kind)     ' 8
+                yieldStatements = statements(1).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
+                Assert.Equal(1, yieldStatements.Count)      ' 9
 
-        ' ReadOnly Property P4 As IEnumerable(Of Func(Of IEnumerable(Of Integer)))
-        ' Getter
-        statements = methodSyntaxList(7).Statements
-        Assert.NotEqual(SyntaxKind.YieldStatement, statements(0).Kind)
-        yieldStatements = statements(0).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
-        Assert.Equal(0, yieldStatements.Count)
-        Assert.NotEqual(SyntaxKind.YieldStatement, statements(1).Kind)
-        yieldStatements = statements(1).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
-        Assert.Equal(1, yieldStatements.Count)  ' 10
-    End Sub
+                ' ReadOnly Property P4 As IEnumerable(Of Func(Of IEnumerable(Of Integer)))
+                ' Getter
+                statements = methodSyntaxList(7).Statements
+                Assert.NotEqual(SyntaxKind.YieldStatement, statements(0).Kind)
+                yieldStatements = statements(0).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
+                Assert.Equal(0, yieldStatements.Count)
+                Assert.NotEqual(SyntaxKind.YieldStatement, statements(1).Kind)
+                yieldStatements = statements(1).DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
+                Assert.Equal(1, yieldStatements.Count)  ' 10
+            End Sub
 
-    <Fact>
-    Public Sub ParseYieldStatementsWithPrecedence()
-        Dim tree = VisualBasicSyntaxTree.ParseText("
+            <Fact>
+            Public Sub ParseYieldStatementsWithPrecedence()
+                Dim tree = VisualBasicSyntaxTree.ParseText("
 Module Program
     Iterator Function M(a As Task(Of Integer), x As Task(Of Integer), y As Task(Of Integer), b As Task(Of Integer)) As Task(Of Integer)
 
@@ -219,15 +222,15 @@ Module Program
     End Function
 End Module")
 
-        Dim yieldStatements = tree.GetRoot().DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
+                Dim yieldStatements = tree.GetRoot().DescendantNodes.OfType(Of YieldStatementSyntax)().ToArray()
 
-        Assert.Equal(1, yieldStatements.Count)
+                Assert.Equal(1, yieldStatements.Count)
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ParseIteratorLambdas()
-        Dim tree = ParseAndVerify("
+            <Fact>
+            Public Sub ParseIteratorLambdas()
+                Dim tree = ParseAndVerify("
 Module Program
 
     Private t1 As Task
@@ -252,25 +255,25 @@ Module Program
     End Sub
 End Module")
 
-        Dim lambdas = tree.GetRoot().DescendantNodes.OfType(Of LambdaExpressionSyntax)().ToArray()
+                Dim lambdas = tree.GetRoot().DescendantNodes.OfType(Of LambdaExpressionSyntax)().ToArray()
 
-        Assert.Equal(3, lambdas.Count)
-        Assert.Equal(1, lambdas.Count(Function(l) SyntaxFacts.IsSingleLineLambdaExpression(l.Kind)))
-        Assert.Equal(2, lambdas.Count(Function(l) SyntaxFacts.IsMultiLineLambdaExpression(l.Kind)))
+                Assert.Equal(3, lambdas.Count)
+                Assert.Equal(1, lambdas.Count(Function(l) SyntaxFacts.IsSingleLineLambdaExpression(l.Kind)))
+                Assert.Equal(2, lambdas.Count(Function(l) SyntaxFacts.IsMultiLineLambdaExpression(l.Kind)))
 
-        ' Dim slIteratorSub1 = Iterator Sub() Yield t1
-        Assert.Equal(SyntaxKind.YieldStatement, CType(lambdas(0), SingleLineLambdaExpressionSyntax).Body.Kind)
+                ' Dim slIteratorSub1 = Iterator Sub() Yield t1
+                Assert.Equal(SyntaxKind.YieldStatement, CType(lambdas(0), SingleLineLambdaExpressionSyntax).Body.Kind)
 
-        Dim yieldStatements = lambdas(1).DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
-        Assert.Equal(1, yieldStatements.Count)
+                Dim yieldStatements = lambdas(1).DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
+                Assert.Equal(1, yieldStatements.Count)
 
-        yieldStatements = lambdas(2).DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
-        Assert.Equal(1, yieldStatements.Count)
-    End Sub
+                yieldStatements = lambdas(2).DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
+                Assert.Equal(1, yieldStatements.Count)
+            End Sub
 
-    <Fact>
-    Public Sub ParseIteratorWithNesting()
-        Dim tree = VisualBasicSyntaxTree.ParseText("
+            <Fact>
+            Public Sub ParseIteratorWithNesting()
+                Dim tree = VisualBasicSyntaxTree.ParseText("
 Imports Iterator = System.Threading.Tasks.Task
 
 Class C
@@ -336,40 +339,40 @@ Class IteratorAttribute
     End Sub
 End Class")
 
-        Dim expected = {SyntaxKind.YieldStatement,
-                        SyntaxKind.IdentifierName,
-                        SyntaxKind.IdentifierName,
-                        SyntaxKind.IdentifierName,
-                        SyntaxKind.YieldStatement,
-                        SyntaxKind.IdentifierName,
-                        SyntaxKind.IdentifierName,
-                        SyntaxKind.YieldStatement,
-                        SyntaxKind.IdentifierName,
-                        SyntaxKind.IdentifierName,
-                        SyntaxKind.IdentifierName,
-                        SyntaxKind.IdentifierName,
-                        SyntaxKind.YieldStatement,
-                        SyntaxKind.IdentifierName,
-                        SyntaxKind.IdentifierName,
-                        SyntaxKind.YieldStatement,
-                        SyntaxKind.IdentifierName,
-                        SyntaxKind.IdentifierName,
-                        SyntaxKind.IdentifierName,
-                        SyntaxKind.IdentifierName}
+                Dim expected = {SyntaxKind.YieldStatement,
+                                SyntaxKind.IdentifierName,
+                                SyntaxKind.IdentifierName,
+                                SyntaxKind.IdentifierName,
+                                SyntaxKind.YieldStatement,
+                                SyntaxKind.IdentifierName,
+                                SyntaxKind.IdentifierName,
+                                SyntaxKind.YieldStatement,
+                                SyntaxKind.IdentifierName,
+                                SyntaxKind.IdentifierName,
+                                SyntaxKind.IdentifierName,
+                                SyntaxKind.IdentifierName,
+                                SyntaxKind.YieldStatement,
+                                SyntaxKind.IdentifierName,
+                                SyntaxKind.IdentifierName,
+                                SyntaxKind.YieldStatement,
+                                SyntaxKind.IdentifierName,
+                                SyntaxKind.IdentifierName,
+                                SyntaxKind.IdentifierName,
+                                SyntaxKind.IdentifierName}
 
-        Dim actual = From expression In tree.GetRoot().DescendantNodes()
-                     Where expression.Kind = SyntaxKind.YieldStatement OrElse
-                            (expression.Kind = SyntaxKind.IdentifierName AndAlso DirectCast(expression, IdentifierNameSyntax).Identifier.ValueText.Equals("Yield"))
-                     Order By expression.FullSpan.Start
-                     Select expression.Kind()
+                Dim actual = From expression In tree.GetRoot().DescendantNodes()
+                             Where expression.Kind = SyntaxKind.YieldStatement OrElse
+                                    (expression.Kind = SyntaxKind.IdentifierName AndAlso DirectCast(expression, IdentifierNameSyntax).Identifier.ValueText.Equals("Yield"))
+                             Order By expression.FullSpan.Start
+                             Select expression.Kind()
 
-        Assert.Equal(expected, actual)
-    End Sub
+                Assert.Equal(expected, actual)
+            End Sub
 
-    <Fact>
-    Public Sub ParseYieldInScriptingAndInteractive()
+            <Fact>
+            Public Sub ParseYieldInScriptingAndInteractive()
 
-        Dim source = "
+                Dim source = "
 Yield T                                     ' No
 Yield (T)                                   ' No
 Yield T + Yield (T)                         ' No, No
@@ -402,22 +405,24 @@ Iterator Function F()
     Return Yield T                          ' No
 End Function"
 
-        Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
+                Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
 
-        Dim yieldStatements = tree.GetRoot().DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
+                Dim yieldStatements = tree.GetRoot().DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
 
-        Assert.Equal(6, yieldStatements.Count)
+                Assert.Equal(6, yieldStatements.Count)
 
-        For Each yieldStatement In yieldStatements
-            Assert.True(IsInIteratorMethod(yieldStatement))
-        Next
-    End Sub
+                For Each yieldStatement In yieldStatements
+                    Assert.True(IsInIteratorMethod(yieldStatement))
+                Next
+            End Sub
 
-    Private Shared Function IsIteratorMethod(methodSyntax As MethodBlockBaseSyntax) As Boolean
-        Return methodSyntax.BlockStatement.Modifiers.Contains(Function(t As SyntaxToken) t.Kind = SyntaxKind.IteratorKeyword)
-    End Function
+            Private Shared Function IsIteratorMethod(methodSyntax As MethodBlockBaseSyntax) As Boolean
+                Return methodSyntax.BlockStatement.Modifiers.Contains(Function(t As SyntaxToken) t.Kind = SyntaxKind.IteratorKeyword)
+            End Function
 
-    Private Shared Function IsInIteratorMethod(yieldStatement As YieldStatementSyntax) As Boolean
-        Return IsIteratorMethod(DirectCast(yieldStatement.Parent, MethodBlockBaseSyntax))
-    End Function
-End Class
+            Private Shared Function IsInIteratorMethod(yieldStatement As YieldStatementSyntax) As Boolean
+                Return IsIteratorMethod(DirectCast(yieldStatement.Parent, MethodBlockBaseSyntax))
+            End Function
+        End Class
+    End Namespace
+End Namespace

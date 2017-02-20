@@ -1,11 +1,14 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-<CLSCompliant(False)>
-Public Class ParseSpecifiers
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+    Namespace Parser.Specifiers
 
-    <Fact>
-    Public Sub ParseSpecifiersOnClass()
-        ParseAndVerify("
+        <CLSCompliant(False)>
+        Public Class ParseSpecifiers
+
+            <Fact>
+            Public Sub ParseSpecifiersOnClass()
+                ParseAndVerify("
 public class c1
 End class
 
@@ -30,6 +33,8 @@ end class
 public notinheritable class c8
 end class
 ")
-    End Sub
+            End Sub
 
-End Class
+        End Class
+    End Namespace
+End Namespace

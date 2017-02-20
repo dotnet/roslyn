@@ -2,7 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Namespace Syntax.Submissions
         Public MustInherit Class Syntax_Submissions_TestBase
             Public Shared Sub AssertCompleteSubmission(code As String, hasErrors As Boolean)
