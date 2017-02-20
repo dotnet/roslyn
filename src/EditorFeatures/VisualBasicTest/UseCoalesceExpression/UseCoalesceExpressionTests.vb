@@ -247,7 +247,7 @@ Imports System.Linq.Expressions
 
 Class C
     Sub M(x as string, y as string)
-        dim e as Expression(of Func(of string)) = [||]If (x isnot Nothing, x, y)
+        dim e as Expression(of Func(of string)) = func() [||]If (x isnot Nothing, x, y)
     End Sub
 End Class",
 "Imports System
@@ -255,7 +255,7 @@ Imports System.Linq.Expressions
 
 Class C
     Sub M(x as string, y as string, z as string)
-        dim e as Expression(of Func(of string)) = If (x, y)
+        dim e as Expression(of Func(of string)) = func () If (x, y)
     End Sub
 End Class")
         End Function

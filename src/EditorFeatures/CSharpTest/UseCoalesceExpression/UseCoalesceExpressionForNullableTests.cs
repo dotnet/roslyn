@@ -186,5 +186,32 @@ class C
     }
 }");
         }
+
+        [WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestInExpressionOfT()
+        {
+            await TestAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void M(int? x, int? y)
+    {
+        Expression<Func<int>> e = () => [||]!x.HasValue ? y : x.Value;
+    }
+}",
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void M(int? x, int? y)
+    {
+        Expression<Func<int>> e = () => {|Warning:x ?? y|};
+    }
+}");
+        }
     }
 }
