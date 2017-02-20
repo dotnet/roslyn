@@ -446,12 +446,10 @@ class Class
 class Class
 {
     int Prop {
-        get
-        {
-            return 1;
+        get { return 1;
         }";
 
-            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.GetKeyword);
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
         [WpfFact]
@@ -507,6 +505,66 @@ class Class
     }";
 
             await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList8()
+        {
+            var code = @"class C
+{
+    int Prop
+    {
+get
+        {
+            return 0;
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    int Prop
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList9()
+        {
+            var code = @"class C
+{
+    int Prop
+    {
+set
+        {
+            ;
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    int Prop
+    {
+        set
+        {
+            ;
+        }
+    }
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
         [WpfFact]
