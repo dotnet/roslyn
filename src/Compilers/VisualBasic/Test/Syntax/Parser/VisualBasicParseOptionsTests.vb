@@ -4,7 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Linq
 Imports Roslyn.Test.Utilities
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Namespace Parser.Options
 
         Public Class VisualBasicParseOptionsTests

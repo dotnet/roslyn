@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Partial Public Class GeneratedTests
 
@@ -27,10 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim c = SyntaxFactory.ClassBlock(SyntaxFactory.ClassStatement("C").AddTypeParameterListParameters(SyntaxFactory.TypeParameter("T"))) _
                           .AddImplements(SyntaxFactory.ImplementsStatement(SyntaxFactory.ParseTypeName("X"), SyntaxFactory.ParseTypeName("Y")))
 
-            Dim expectedText As String = _
-                "Class C(Of T)" + vbCrLf + _
-                "    Implements X, Y" + vbCrLf + _
-                vbCrLf + _
+            Dim expectedText As String =
+                "Class C(Of T)" + vbCrLf +
+                "    Implements X, Y" + vbCrLf +
+                vbCrLf +
                 "End Class"
 
             Dim actualText = c.NormalizeWhitespace().ToFullString()

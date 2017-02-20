@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     ' this place is dedicated to scan related error tests
     Public Class ScanErrorTests

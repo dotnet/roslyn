@@ -4,7 +4,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class LocationTests
         Inherits TestBase

@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Xunit
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Namespace Declaration
 
         Public Class DeclarationTests
