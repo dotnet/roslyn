@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-
 Partial Public Class GeneratedTests
 
         Private Shared Function GenerateGreenIdentifierToken() As IdentifierTokenSyntax
@@ -101,8 +100,6 @@ Partial Public Class GeneratedTests
         End Function
     End Class
 
-    Friend Class GreenNodeVisitor
-        Inherits InternalSyntax.VisualBasicSyntaxVisitor
-    End Class
-
-
+Friend Class GreenNodeVisitor
+    Inherits InternalSyntax.VisualBasicSyntaxVisitor
+End Class
