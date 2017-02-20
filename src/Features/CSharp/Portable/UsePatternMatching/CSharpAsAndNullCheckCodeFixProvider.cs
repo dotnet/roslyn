@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // inlining the declaration, and thus need to see the effects of that change.
             editor.ReplaceNode(
                 block.Statements[declarationIndex + 1],
-                (s, g) => localDeclaration.MoveNonIndentationTriviaTo(s));
+                (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
             editor.RemoveNode(localDeclaration, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
             editor.ReplaceNode(ifStatement, (i, g) =>

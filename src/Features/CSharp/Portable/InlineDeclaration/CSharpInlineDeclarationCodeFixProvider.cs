@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // inlining the declaration, and thus need to see the effects of that change.
                 editor.ReplaceNode(
                     block.Statements[declarationIndex + 1],
-                    (s, g) => localDeclarationStatement.MoveNonIndentationTriviaTo(s));
+                    (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclarationStatement));
 
                 editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
             }

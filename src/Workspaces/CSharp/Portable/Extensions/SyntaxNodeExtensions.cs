@@ -1144,8 +1144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static SyntaxNode MoveNonIndentationTriviaTo(
-            this SyntaxNode from, SyntaxNode to)
+        public static SyntaxNode WithPrependedNonIndentationTriviaFrom(
+            this SyntaxNode to, SyntaxNode from)
         {
             // get all the preceding trivia from the 'from' node, not counting the leading
             // indentation trivia is has.
