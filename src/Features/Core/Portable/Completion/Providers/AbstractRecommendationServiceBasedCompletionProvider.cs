@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return recommender.GetRecommendedSymbolsAtPositionAsync(context.Workspace, context.SemanticModel, position, options, cancellationToken);
         }
 
-        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
             var typeInferrer = context.GetLanguageService<ITypeInferenceService>();
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .ToSet();
             if (inferredTypes.Count == 0)
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
             }
 
             var symbols = await recommender.GetRecommendedSymbolsAtPositionAsync(
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cancellationToken).ConfigureAwait(false);
 
             // Don't preselect intrinsic type symbols so we can preselect their keywords instead.
-            return symbols.WhereAsArray(s => inferredTypes.Contains(GetSymbolType(s)) && !IsInstrinsic(s));
+            return symbols.Where(s => inferredTypes.Contains(GetSymbolType(s)) && !IsInstrinsic(s)).Select(s => (s, CompletionItemRules.Default)).ToImmutableArray();
         }
 
         private ITypeSymbol GetSymbolType(ISymbol symbol)

@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
 
-        protected override Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(
+        protected override Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetPreselectedSymbolsWorker(
             SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var newExpression = this.GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);
             if (newExpression == null)
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol, CompletionItemRules)>();
             }
 
             var typeInferenceService = context.GetLanguageService<ITypeInferenceService>();
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (type == null)
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol, CompletionItemRules)>();
             }
 
             // Unwrap nullable
@@ -79,17 +79,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (type.SpecialType == SpecialType.System_Void)
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol, CompletionItemRules)>();
             }
 
             if (type.ContainsAnonymousType())
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol, CompletionItemRules)>();
             }
 
             if (!type.CanBeReferencedByName)
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol, CompletionItemRules)>();
             }
 
             // Normally the user can't say things like "new IList".  Except for "IList[] x = new |".
@@ -102,22 +102,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     type.TypeKind == TypeKind.Dynamic ||
                     type.IsAbstract)
                 {
-                    return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                    return SpecializedTasks.EmptyImmutableArray<(ISymbol, CompletionItemRules)>();
                 }
 
                 if (type.TypeKind == TypeKind.TypeParameter &&
                     !((ITypeParameterSymbol)type).HasConstructorConstraint)
                 {
-                    return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                    return SpecializedTasks.EmptyImmutableArray<(ISymbol, CompletionItemRules)>();
                 }
             }
 
             if (!type.IsEditorBrowsable(options.GetOption(RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language), context.SemanticModel.Compilation))
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol, CompletionItemRules)>();
             }
 
-            return Task.FromResult(ImmutableArray.Create((ISymbol)type));
+            return Task.FromResult(ImmutableArray.Create(((ISymbol)type, CompletionItemRules.Default)));
         }
 
         protected override(string displayText, string insertionText) GetDisplayAndInsertionText(

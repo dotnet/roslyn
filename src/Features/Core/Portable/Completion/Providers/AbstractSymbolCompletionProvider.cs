@@ -141,9 +141,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken);
 
-        protected virtual Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected virtual Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            return SpecializedTasks.EmptyImmutableArray<(ISymbol, CompletionItemRules)>();
         }
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
@@ -232,13 +232,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedTasks.True;
         }
 
-        private Task<ImmutableArray<ISymbol>> GetSymbolsWorker(int position, bool preselect, SyntaxContext context, OptionSet options, CancellationToken cancellationToken)
+        // TODO: Refactor this to return a tuple of (ISymbol, CompletionItemRules)
+        private async Task<ImmutableArray<ISymbol>> GetSymbolsWorker(int position, bool preselect, SyntaxContext context, OptionSet options, CancellationToken cancellationToken)
         {
             try
             {
-                return preselect
-                    ? GetPreselectedSymbolsWorker(context, position, options, cancellationToken)
-                    : GetSymbolsWorker(context, position, options, cancellationToken);
+                if (preselect)
+                {
+                    return (await GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false))
+                                .Select(completionItem => completionItem.symbol).ToImmutableArray();
+                }
+
+                return await GetSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
