@@ -1,14 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -65,30 +58,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 ")
         End Sub
 
-        <Fact()>
-        Public Sub TestImportsStatements()
-            TestNormalizeBlock(
-"Imports           System",
-"Imports System
-")
-            TestNormalizeBlock(
-"Imports System.Foo.Bar",
-"Imports System.Foo.Bar
-")
-            TestNormalizeBlock(
-"Imports T2=System.String",
-"Imports T2 = System.String
-")
-            TestNormalizeBlock(
-"Imports          <xmlns:db=""http://example.org/database"">",
-"Imports <xmlns:db=""http://example.org/database"">
-")
+#Region "Theory: ImportsStatements"
+        <Theory>
+        <InlineData("Imports           System", "Imports System
+"), InlineData("Imports System.Foo.Bar", "Imports System.Foo.Bar
+"), InlineData("Imports T2=System.String", "Imports T2 = System.String
+"), InlineData("Imports          <xmlns:db=""http://example.org/database"">", "Imports <xmlns:db=""http://example.org/database"">
+")>
+        Private Sub Theory_ImportsStatements(Code As String, Expected As String)
+            TestNormalizeBlock(Code, Expected)
         End Sub
+#End Region
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestLabelStatements()
             TestNormalizeStatement(
-"while a<b
+                "while a<b
 foo:
 c
 end while",
@@ -98,40 +83,35 @@ foo:
 end while")
         End Sub
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
-        Public Sub TestMethodStatements()
-            TestNormalizeBlock(
-"Sub foo()
+        <WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Theory>
+        <InlineData("Sub foo()
 a()
 end Sub",
 "Sub foo()
   a()
 end Sub
-")
-            TestNormalizeBlock(
-"Function foo()         as   Integer
+"), InlineData("Function foo()         as   Integer
 return 23
 end function",
 "Function foo() as Integer
   return 23
 end function
-")
-            TestNormalizeBlock(
-"Function foo(  x as   System.Int32,[Char] as Integer)         as   Integer
+"), InlineData("Function foo(  x as   System.Int32,[Char] as Integer)         as   Integer
 return 23
 end function",
 "Function foo(x as System.Int32, [Char] as Integer) as Integer
   return 23
 end function
-")
-            TestNormalizeBlock(
-"Sub foo()
+"), InlineData("Sub foo()
 Dim a ( ) ( )=New Integer ( ) ( ) (   ){ }
 end Sub",
 "Sub foo()
   Dim a()() = New Integer()()() {}
 end Sub
-")
+")>
+        Private Sub Theory_MethodStatements(Code As String, Expected As String)
+            TestNormalizeBlock(Code, Expected)
         End Sub
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
@@ -187,10 +167,10 @@ end module
 ")
         End Sub
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
-        Public Sub TestAssignmentStatements_a()
-            TestNormalizeBlock(
-"module m1
+#Region "Theory: AssignmentStatements"
+        <WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Theory>
+        <InlineData("module m1
 sub s1()
 Dim x as Integer()
 x(2)=23
@@ -205,12 +185,7 @@ End Module",
     Dim s As String = ""boo"" & ""ya""
   End Sub
 End Module
-")
-        End Sub
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
-        Public Sub TestAssignmentStatements_b()
-            TestNormalizeBlock(
-"Module m1
+"), InlineData("Module m1
 
 Sub s1()
 Dim x As Integer
@@ -243,10 +218,7 @@ End Module
     y &= ""a""
   End Sub
 End Module
-")
-
-            TestNormalizeBlock(
-"Module m1
+"), InlineData("Module m1
 Sub s1()
 Dim s1 As String= ""a""
 Dim s2 As String=""b""
@@ -261,13 +233,16 @@ End Module",
     Mid$(s1, 3, 3) = s2
   End Sub
 End Module
-")
+")>
+        Private Sub Theory_AssignmentStatements(Code As String, Expected As String)
+            TestNormalizeBlock(Code, Expected)
         End Sub
+#End Region
 
-        <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
-        Public Sub TestCallStatements()
-            TestNormalizeBlock(
-"module m1
+#Region "Theory: CallStatements"
+        <WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Theory>
+        <InlineData("module m1
 Sub s2()
 s1 ( 23 )
 s1 ( p1:=23 , p2:=23)
@@ -280,10 +255,8 @@ End Module",
     s1(p1:=23, p2:=23)
   End Sub
 End Module
-")
-
-            TestNormalizeBlock(
-"Module m1
+")>
+        <InlineData("Module m1
 
 Sub s2 ( Of   T )(   Optional x As T= Nothing  )
 N1.M2.S2 ( ) 
@@ -295,14 +268,17 @@ End Module",
     N1.M2.S2()
   End Sub
 End Module
-")
+")>
+        Private Sub Theory_CallStatements(Code As String, Expected As String)
+            TestNormalizeBlock(Code, Expected)
         End Sub
+
+#End Region
 
         <Fact()>
         Public Sub TestNewStatements()
             TestNormalizeBlock(
-"Dim zipState= New With {Key .ZipCode = 98112, .State = ""WA""   }",
-"Dim zipState = New With {Key .ZipCode = 98112, .State = ""WA""}
+"Dim zipState= New With {Key .ZipCode = 98112, .State = ""WA""   }", "Dim zipState = New With {Key .ZipCode = 98112, .State = ""WA""}
 ")
         End Sub
 
@@ -403,10 +379,11 @@ End Namespace
 ")
         End Sub
 
-        <Fact(), WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
-        Public Sub TestEnumStatements()
-            TestNormalizeBlock(
-"Module M1
+#Region "Theory: EnumStatements"
+
+        <WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
+        <Theory>
+        <InlineData("Module M1
 
 ENUM E1 as long
          foo=23 
@@ -424,10 +401,8 @@ end         MODule",
     booya = 1.4
   end enum
 end MODule
-")
-
-            TestNormalizeBlock(
-"class c1
+")>
+        <InlineData("class c1
 ENUM E1 as long
          foo=23
 bar        
@@ -444,10 +419,8 @@ end         class",
     booya = 1.4
   end enum
 end class
-")
-
-            TestNormalizeBlock(
-"public class c1
+")>
+        <InlineData("public class c1
 
 ENUM E1 as long
          foo=23
@@ -465,10 +438,8 @@ end         class",
     booya = 1.4
   end enum
 end class
-")
-
-            TestNormalizeBlock(
-"class c1
+")>
+        <InlineData("class c1
 public     ENUM E1 as long
          foo=23
 bar        
@@ -485,10 +456,13 @@ end         class",
     booya = 1.4
   end enum
 end class
-")
+")>
+        Private Sub Theory_EnumStatements(Code As String, Expected As String)
+            TestNormalizeBlock(Code, Expected)
         End Sub
+#End Region
 
-#Region "Test: DelegateStatement"
+#Region "Theory: DelegateStatement"
         Private Shared Function DataFor_Theory_DelegateStatements() As IEnumerable(Of Object)
             Return {
              ({"Module M1
@@ -588,8 +562,8 @@ end module
 ")
         End Sub
 
-#Region "Test: IfStatement"
-        Private Shared Function TestDataFor_Theory_IfStatement() As IEnumerable(Of Object)
+#Region "Theory: IfStatement"
+        Private Shared Function Theory_IfStatement_Data() As IEnumerable(Of Object)
             Return {
 ({"a", "a"}),
 ({"if a then b", "if a then b"}),
@@ -606,7 +580,7 @@ end if"})}
         End Function
 
         <WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
-        <Theory, MemberData(NameOf(TestDataFor_Theory_IfStatement), DisableDiscoveryEnumeration:=False)>
+        <Theory, MemberData(NameOf(Theory_IfStatement_Data), DisableDiscoveryEnumeration:=False)>
         Public Sub Theory_IfStatement(code As String, expected As String)
             TestNormalizeStatement(code, expected)
         End Sub
@@ -635,8 +609,8 @@ End If", str)
         End Sub
 #End Region
 
-#Region "Test: LoopStatements"
-        Private Shared Function TestDataForTestLoopStatements() As IEnumerable(Of Object)
+#Region "Theory: LoopStatements"
+        Private Shared Function LoopStatements_TestData() As IEnumerable(Of Object)
             Return {
 ({"while a<b
 c                  
@@ -687,7 +661,7 @@ next j, i"})
         End Function
 
         <WorkItem(546397, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
-        <Theory, MemberData(NameOf(TestDataForTestLoopStatements), DisableDiscoveryEnumeration:=False)>
+        <Theory, MemberData(NameOf(LoopStatements_TestData), DisableDiscoveryEnumeration:=False)>
         Private Sub TestLoopStatements(code As String, expected As String)
             TestNormalizeStatement(code, expected)
         End Sub

@@ -31,11 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim output = "F(A,C)"
 
             ' delete the middle argument (should clear the following comma)
-            Dim rewriter = New GreenRewriter(rewriteNode:=
-                Function(node)
-                    Return If(node.Kind = SyntaxKind.SimpleArgument AndAlso node.ToString() = "B", Nothing, node)
-                End Function)
-
+            Dim rewriter = New GreenRewriter(rewriteNode:=Function(node) If(node.Kind = SyntaxKind.SimpleArgument AndAlso node.ToString() = "B", Nothing, node))
             TestGreen(input, output, rewriter, isStmt:=True)
         End Sub
 
@@ -46,10 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim output = "F()"
 
             ' delete all arguments, should clear the intervening commas
-            Dim rewriter = New GreenRewriter(rewriteNode:=
-                Function(node)
-                    Return If(node.Kind = SyntaxKind.SimpleArgument, Nothing, node)
-                End Function)
+            Dim rewriter = New GreenRewriter(rewriteNode:=Function(node) If(node.Kind = SyntaxKind.SimpleArgument, Nothing, node))
 
             TestGreen(input, output, rewriter, isStmt:=True)
         End Sub
@@ -61,14 +54,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestGreenDeleteNone()
             ' class declarations constitute a SyntaxList
-            Dim input = <![CDATA[
+            Dim input = "
                 Class A
                 End Class
                 Class B
                 End Class
                 Class C
                 End Class
-            ]]>.Value
+            "
             Dim output = input
 
             Dim rewriter As GreenRewriter = New GreenRewriter()
@@ -79,20 +72,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestGreenDeleteSome()
             ' class declarations constitute a SyntaxList
-            Dim input = <![CDATA[
+            Dim input = "
                 Class A
                 End Class
                 Class B
                 End Class
                 Class C
                 End Class
-            ]]>.Value
-            Dim output = <![CDATA[
+            "
+            Dim output = "
                 Class A
                 End Class
                 Class C
                 End Class
-            ]]>.Value
+            "
 
             Dim rewriter = New GreenRewriter(rewriteNode:=
                 Function(node)
@@ -105,22 +98,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestGreenDeleteAll()
             ' class declarations constitute a SyntaxList
-            Dim input = <![CDATA[
+            Dim input = "
                 Class A
                 End Class
                 Class B
                 End Class
                 Class C
                 End Class
-            ]]>.Value
-            Dim output = <![CDATA[
-            ]]>.Value
+            "
+            Dim output = "
+            "
 
             ' delete all statements
-            Dim rewriter = New GreenRewriter(rewriteNode:=
-                Function(node)
-                    Return If(node.Kind = SyntaxKind.ClassBlock, Nothing, node)
-                End Function)
+            Dim rewriter = New GreenRewriter(rewriteNode:=Function(node) If(node.Kind = SyntaxKind.ClassBlock, Nothing, node))
 
             TestGreen(input, output, rewriter, isStmt:=False)
         End Sub
@@ -146,10 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim input = "F(A,B,C)"
 
             ' delete the middle type argument (should clear the following comma)
-            Dim rewriter = New RedRewriter(rewriteNode:=
-                Function(node)
-                    Return If(node.Kind = SyntaxKind.SimpleArgument AndAlso node.ToString() = "B", Nothing, node)
-                End Function)
+            Dim rewriter = New RedRewriter(rewriteNode:=Function(node) If(node.Kind = SyntaxKind.SimpleArgument AndAlso node.ToString() = "B", Nothing, node))
 
             Dim caught As Exception = Nothing
             Try
@@ -167,10 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim input = "F(A,B,C)"
 
             ' delete all arguments, should clear the intervening commas
-            Dim rewriter = New RedRewriter(rewriteNode:=
-                Function(node)
-                    Return If(node.Kind = SyntaxKind.SimpleArgument, Nothing, node)
-                End Function)
+            Dim rewriter = New RedRewriter(rewriteNode:=Function(node) If(node.Kind = SyntaxKind.SimpleArgument, Nothing, node))
 
             Dim caught As Exception = Nothing
             Try
@@ -189,12 +173,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestRedTokenDeleteNone()
             ' commas in an implicit array creation constitute a SyntaxTokenList
-            Dim input = <![CDATA[
+            Dim input = "
                 Class c
                 Sub s(x as Boolean(,,))
                 End Sub
                 End Class
-            ]]>.Value
+            "
             Dim output = input
 
             Dim rewriter As RedRewriter = New RedRewriter()
@@ -205,18 +189,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestRedTokenDeleteSome()
             ' commas in an implicit array creation constitute a SyntaxTokenList
-            Dim input = <![CDATA[
+            Dim input = "
                 Class c
                 Sub s(x as Boolean(,,))
                 End Sub
                 End Class
-            ]]>.Value
-            Dim output = <![CDATA[
+            "
+            Dim output = "
                 Class c
                 Sub s(x as Boolean(,))
                 End Sub
                 End Class
-            ]]>.Value
+            "
 
             ' delete one comma
             Dim first As Boolean = True
@@ -235,18 +219,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestRedTokenDeleteAll()
             ' commas in an implicit array creation constitute a SyntaxTokenList
-            Dim input = <![CDATA[
+            Dim input = "
                 Class c
                 Sub s(x as Boolean(,,))
                 End Sub
                 End Class
-            ]]>.Value
-            Dim output = <![CDATA[
+            "
+            Dim output = "
                 Class c
                 Sub s(x as Boolean())
                 End Sub
                 End Class
-            ]]>.Value
+            "
 
             ' delete all commas
             Dim rewriter = New RedRewriter(rewriteToken:=
@@ -313,13 +297,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestRedDeleteNone()
             ' attributes are a SyntaxList
-            Dim input = <![CDATA[
+            Dim input = "
                 <Attr1()>
                 <Attr2()>
                 <Attr3()>
                 Class Q
                 End Class
-            ]]>.Value
+            "
             Dim output = input
 
             Dim rewriter = New RedRewriter()
@@ -330,19 +314,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestRedDeleteSome()
             ' attributes are a SyntaxList
-            Dim input = <![CDATA[
+            Dim input = "
                 <Attr1()>
                 <Attr2()>
                 <Attr3()>
                 Class Q
                 End Class
-            ]]>.Value
-            Dim output = <![CDATA[
+            "
+            Dim output = "
                 <Attr1()>
                 <Attr3()>
                 Class Q
                 End Class
-            ]]>.Value
+            "
 
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
@@ -355,17 +339,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestRedDeleteAll()
             ' attributes are a SyntaxList
-            Dim input = <![CDATA[
+            Dim input = "
                 <Attr1()>
                 <Attr2()>
                 <Attr3()>
                 Class Q
                 End Class
-            ]]>.Value
-            Dim output = <![CDATA[
+            "
+            Dim output = "
                 Class Q
                 End Class
-            ]]>.Value
+            "
 
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
@@ -409,14 +393,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestRedSeparatedDeleteLastWithTrailingSeparator()
-            Dim input = <![CDATA[
+            Dim input = "
                 Class Q
                 Sub A()
                 End Sub
                 Sub B()
                 End Sub
                 End Class
-            ]]>.Value
+            "
 
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
@@ -424,37 +408,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 End Function)
 
             Dim caught As Exception = Nothing
-            Dim output = <![CDATA[
+            Dim output = "
                 Class Q
                 Sub A()
                 End Sub
                 End Class
-            ]]>.Value
+            "
 
             TestRed(input, output, rewriter, isStmt:=False)
         End Sub
 
         <Fact>
         Public Sub TestGreenSeparatedDeleteLastWithTrailingSeparator()
-            Dim input = <![CDATA[
+            Dim input = "
                 Class Q
                 Sub A()
                 End Sub
                 Sub B()
                 End Sub
                 End Class
-            ]]>.Value
-            Dim output = <![CDATA[
+            "
+            Dim output =
+            "
                 Class Q
                 Sub A()
                 End Sub
                 End Class
-            ]]>.Value
+            "
 
-            Dim rewriter = New GreenRewriter(rewriteNode:=
-                Function(node)
-                    Return If(node.Kind = SyntaxKind.SubBlock AndAlso node.ToString().Contains("B"), Nothing, node)
-                End Function)
+            Dim rewriter = New GreenRewriter(rewriteNode:=Function(node) If(node.Kind = SyntaxKind.SubBlock AndAlso node.ToString().Contains("B"), Nothing, node))
 
             TestGreen(input, output, rewriter, isStmt:=False)
         End Sub
@@ -465,10 +447,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Assert.False(red.ContainsDiagnostics)
 
-            Dim rewriter = New RedRewriter(rewriteToken:=
-                Function(token)
-                    Return If(token.Kind = SyntaxKind.CommaToken, Nothing, token)
-                End Function)
+            Dim rewriter = New RedRewriter(rewriteToken:=Function(token) If(token.Kind = SyntaxKind.CommaToken, Nothing, token))
 
             Assert.Throws(Of InvalidOperationException)(Sub() rewriter.Visit(red))
         End Sub
@@ -485,39 +464,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub RemoveDocCommentNode()
-            Dim oldSource = <![CDATA[
+            Dim oldSource = "
 ''' <see cref='C'/>
 Class C
 End Class
-]]>
+"
 
-            Dim expectedNewSource = <![CDATA[
+            Dim expectedNewSource = "
 ''' 
 Class C
 End Class
-]]>
+"
 
-            Dim oldTree = VisualBasicSyntaxTree.ParseText(oldSource.Value, options:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose))
+            Dim oldTree = VisualBasicSyntaxTree.ParseText(oldSource, options:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose))
             Dim oldRoot = oldTree.GetRoot()
             Dim xmlNode = oldRoot.DescendantNodes(descendIntoTrivia:=True).OfType(Of XmlEmptyElementSyntax)().Single()
             Dim newRoot = oldRoot.RemoveNode(xmlNode, SyntaxRemoveOptions.KeepDirectives)
 
-            Assert.Equal(expectedNewSource.Value, newRoot.ToFullString())
+            Assert.Equal(expectedNewSource, newRoot.ToFullString())
         End Sub
 
         <WorkItem(991474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991474")>
         <Fact>
         Public Sub ReturnNothingFromStructuredTriviaRoot_Succeeds()
             Dim Text =
-<x>#Region
+"#Region
 Class C 
 End Class
-#End Region"</x>.Value
+#End Region"""
 
             Dim expectedText =
-<x>Class C 
+"Class C 
 End Class
-#End Region"</x>.Value
+#End Region"""
 
             Dim root = SyntaxFactory.ParseCompilationUnit(Text)
             Dim newRoot = New RemoveRegionRewriter().Visit(root)
@@ -561,7 +540,7 @@ End Class
         End Sub
 
         Private Sub TestRed(input As String, output As String, rewriter As RedRewriter, isStmt As Boolean)
-            Dim red As VisualBasicSyntaxNode
+            Dim red As VisualBasicSyntaxNode 
             If isStmt Then
                 red = SyntaxFactory.ParseExecutableStatement(input)
             Else
@@ -580,9 +559,7 @@ End Class
 
 #Region "Helper Types"
 
-        ''' <summary>
-        ''' This Rewriter exposes delegates for the methods that would normally be overridden.
-        ''' </summary>
+        ''' <summary>This Rewriter exposes delegates for the methods that would normally be overridden.</summary>
         Friend Class GreenRewriter
             Inherits InternalSyntax.VisualBasicSyntaxRewriter
 
@@ -594,43 +571,31 @@ End Class
                     Optional rewriteNode As Func(Of InternalSyntax.VisualBasicSyntaxNode, InternalSyntax.VisualBasicSyntaxNode) = Nothing,
                     Optional rewriteToken As Func(Of InternalSyntax.SyntaxToken, InternalSyntax.SyntaxToken) = Nothing,
                     Optional rewriteTrivia As Func(Of InternalSyntax.SyntaxTrivia, InternalSyntax.SyntaxTrivia) = Nothing)
-                Me._rewriteNode = rewriteNode
-                Me._rewriteToken = rewriteToken
-                Me._rewriteTrivia = rewriteTrivia
+                _rewriteNode = rewriteNode
+                _rewriteToken = rewriteToken
+                _rewriteTrivia = rewriteTrivia
             End Sub
 
             Public Overrides Function Visit(node As InternalSyntax.VisualBasicSyntaxNode) As InternalSyntax.VisualBasicSyntaxNode
                 Dim visited As InternalSyntax.VisualBasicSyntaxNode = MyBase.Visit(node)
-                If _rewriteNode Is Nothing OrElse visited Is Nothing Then
-                    Return visited
-                Else
-                    Return _rewriteNode(visited)
-                End If
+                If _rewriteNode Is Nothing OrElse visited Is Nothing Then Return visited
+                Return _rewriteNode(visited)
             End Function
 
             Public Overrides Function VisitSyntaxToken(token As InternalSyntax.SyntaxToken) As InternalSyntax.SyntaxToken
                 Dim visited = MyBase.VisitSyntaxToken(token)
-                If _rewriteToken Is Nothing Then
-                    Return visited
-                Else
-                    Return _rewriteToken(visited)
-                End If
+                If _rewriteToken Is Nothing Then Return visited
+                Return _rewriteToken(visited)
             End Function
 
             Public Overrides Function VisitSyntaxTrivia(trivia As InternalSyntax.SyntaxTrivia) As InternalSyntax.SyntaxTrivia
                 Dim visited As InternalSyntax.SyntaxTrivia = MyBase.VisitSyntaxTrivia(trivia)
-                If _rewriteTrivia Is Nothing Then
-                    Return visited
-                Else
-                    Return _rewriteTrivia(visited)
-                End If
+                If _rewriteTrivia Is Nothing Then Return visited
+                Return _rewriteTrivia(visited)
             End Function
         End Class
 
-
-        ''' <summary>
-        ''' This Rewriter exposes delegates for the methods that would normally be overridden.
-        ''' </summary>
+        ''' <summary>This Rewriter exposes delegates for the methods that would normally be overridden.</summary>
         Friend Class RedRewriter
             Inherits VisualBasicSyntaxRewriter
 
@@ -642,36 +607,27 @@ End Class
                     Optional rewriteNode As Func(Of SyntaxNode, SyntaxNode) = Nothing,
                     Optional rewriteToken As Func(Of SyntaxToken, SyntaxToken) = Nothing,
                     Optional rewriteTrivia As Func(Of SyntaxTrivia, SyntaxTrivia) = Nothing)
-                Me._rewriteNode = rewriteNode
-                Me._rewriteToken = rewriteToken
-                Me._rewriteTrivia = rewriteTrivia
+                _rewriteNode = rewriteNode
+                _rewriteToken = rewriteToken
+                _rewriteTrivia = rewriteTrivia
             End Sub
 
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
                 Dim visited = MyBase.Visit(node)
-                If _rewriteNode Is Nothing OrElse visited Is Nothing Then
-                    Return visited
-                Else
-                    Return _rewriteNode(visited)
-                End If
+                If _rewriteNode Is Nothing OrElse visited Is Nothing Then Return visited
+                Return _rewriteNode(visited)
             End Function
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
                 Dim visited As SyntaxToken = MyBase.VisitToken(token)
-                If _rewriteToken Is Nothing Then
-                    Return visited
-                Else
-                    Return _rewriteToken(visited)
-                End If
+                If _rewriteToken Is Nothing Then Return visited
+                Return _rewriteToken(visited)
             End Function
 
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
                 Dim visited As SyntaxTrivia = MyBase.VisitTrivia(trivia)
-                If _rewriteTrivia Is Nothing Then
-                    Return visited
-                Else
-                    Return _rewriteTrivia(visited)
-                End If
+                If _rewriteTrivia Is Nothing Then Return visited
+                Return _rewriteTrivia(visited)
             End Function
         End Class
 
