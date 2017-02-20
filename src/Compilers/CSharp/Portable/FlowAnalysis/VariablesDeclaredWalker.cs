@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // deconstruction foreach declares multiple variables
-                   deconstructionAssignment.Left.VisitAllElements((x, self) => self.Visit(x), this);
+                    ((BoundTupleExpression)deconstructionAssignment.Left).VisitAllElements((x, self) => self.Visit(x), this);
                 }
             }
         }

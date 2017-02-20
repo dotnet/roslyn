@@ -903,17 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var syntax = UnboundLambda.Syntax;
-                switch (syntax.Kind())
-                {
-                    default:
-                    case SyntaxKind.SimpleLambdaExpression:
-                        return ((SimpleLambdaExpressionSyntax)syntax).Body;
-                    case SyntaxKind.ParenthesizedLambdaExpression:
-                        return ((ParenthesizedLambdaExpressionSyntax)syntax).Body;
-                    case SyntaxKind.AnonymousMethodExpression:
-                        return ((AnonymousMethodExpressionSyntax)syntax).Block;
-                }
+                return UnboundLambda.Syntax.AnonymousFunctionBody();
             }
         }
 

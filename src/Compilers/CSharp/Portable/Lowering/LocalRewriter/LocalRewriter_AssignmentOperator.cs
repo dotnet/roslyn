@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -17,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitAssignmentOperator(BoundAssignmentOperator node, bool used)
         {
-            var loweredRight = VisitExpression(node.Right);
+            var right = node.Right;
+            var loweredRight = VisitExpression(right);
 
             BoundExpression left = node.Left;
             BoundExpression loweredLeft;
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (eventAccess.EventSymbol.IsWindowsRuntimeEvent)
                         {
                             Debug.Assert(node.RefKind == RefKind.None);
-                            return VisitWindowsRuntimeEventFieldAssignmentOperator(node.Syntax, eventAccess, node.Right);
+                            return VisitWindowsRuntimeEventFieldAssignmentOperator(node.Syntax, eventAccess, right);
                         }
                         goto default;
                     }
