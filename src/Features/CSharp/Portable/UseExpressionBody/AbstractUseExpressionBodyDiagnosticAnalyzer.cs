@@ -72,6 +72,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             // fix is available.  That way the user can go to any place in the member and choose to
             // convert it.  Otherwise, they'd have no idea what the 'right' location was to invoke
             // the conversion.
+            //
+            // Also, if the diagnostic is hidden, we'll lower the priority of the code action.  We
+            // always want it to be available.  But we don't want it to override issues that are
+            // actually being reported in the UI.
 
             var preferExpressionBodiedOption = optionSet.GetOption(_option);
 
