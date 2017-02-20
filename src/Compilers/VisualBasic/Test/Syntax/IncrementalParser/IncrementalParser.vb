@@ -1678,7 +1678,7 @@ End Class
 
         ' NOTE: We're using the class statement, rather than the block, because the
         ' change region is expanded enough to impinge on the block.
-        Dim extractGreenClassC As Func(Of SyntaxTree, Syntax.InternalSyntax.VisualBasicSyntaxNode) =
+        Dim extractGreenClassC As Func(Of SyntaxTree, VisualBasic.Syntax.InternalSyntax.VisualBasicSyntaxNode) =
             Function(tree) DirectCast(tree.GetRoot().DescendantNodes().First(Function(n) n.IsKind(SyntaxKind.ClassStatement)), VisualBasicSyntaxNode).VbGreen
 
         ''''''''''
@@ -1716,8 +1716,8 @@ End Class
         Assert.Equal(oldClassC2.ToFullString(), newClassC2.ToFullString())
 
 
-        Dim oldToken2 = DirectCast(oldClassC2, Syntax.InternalSyntax.ClassStatementSyntax).Identifier
-        Dim newToken2 = DirectCast(newClassC2, Syntax.InternalSyntax.ClassStatementSyntax).Identifier
+        Dim oldToken2 = DirectCast(oldClassC2, VisualBasic.Syntax.InternalSyntax.ClassStatementSyntax).Identifier
+        Dim newToken2 = DirectCast(newClassC2, VisualBasic.Syntax.InternalSyntax.ClassStatementSyntax).Identifier
 
         Assert.True(oldToken2.ContainsAnnotations, "Should contain annotations")
         Assert.False(newToken2.ContainsAnnotations, "Annotations should have been removed.")
