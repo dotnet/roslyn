@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     int Foo
     {
         get => Bar();
-        }
-    }", options: UseExpressionBody);
+    }
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
