@@ -10,216 +10,217 @@ Imports Roslyn.Test.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+    Namespace Syntax.Serialization
 
-    Public Class SerializationTests
+        Public Class SerializationTests
 
-        Private Sub RoundTrip(text As String, Optional expectRecursive As Boolean = True)
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
-            Dim root = tree.GetRoot()
+            Private Sub RoundTrip(text As String, Optional expectRecursive As Boolean = True)
+                Dim tree = VisualBasicSyntaxTree.ParseText(text)
+                Dim root = tree.GetRoot()
 
-            Dim stream = New MemoryStream()
-            root.SerializeTo(stream)
+                Dim stream = New MemoryStream()
+                root.SerializeTo(stream)
 
-            stream.Position = 0
-            Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
-            Dim dtext = droot.ToFullString()
+                stream.Position = 0
+                Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+                Dim dtext = droot.ToFullString()
 
-            Assert.Equal(text, dtext)
-            Assert.True(droot.IsEquivalentTo(tree.GetRoot()))
-        End Sub
+                Assert.Equal(text, dtext)
+                Assert.True(droot.IsEquivalentTo(tree.GetRoot()))
+            End Sub
 
-        <Fact>
-        Public Sub TestRoundTripSyntaxNode()
-            RoundTrip("
+            <Fact>
+            Public Sub TestRoundTripSyntaxNode()
+                RoundTrip("
 Public Class C
 End Class
 ")
-        End Sub
+            End Sub
 
-        <Fact>
-        Public Sub TestRoundTripSyntaxNodeWithDiagnostics()
-            Dim text = "
+            <Fact>
+            Public Sub TestRoundTripSyntaxNodeWithDiagnostics()
+                Dim text = "
 Public Class C
 End 
 "
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
-            Dim root = tree.GetVisualBasicRoot()
-            Assert.True(root.HasErrors)
+                Dim tree = VisualBasicSyntaxTree.ParseText(text)
+                Dim root = tree.GetVisualBasicRoot()
+                Assert.True(root.HasErrors)
 
-            Dim stream = New MemoryStream()
-            root.SerializeTo(stream)
+                Dim stream = New MemoryStream()
+                root.SerializeTo(stream)
 
-            stream.Position = 0
+                stream.Position = 0
 
-            Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
-            Dim dtext = droot.ToFullString()
+                Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+                Dim dtext = droot.ToFullString()
 
-            Assert.Equal(text, dtext)
-            Assert.True(DirectCast(droot, VisualBasicSyntaxNode).HasErrors)
-            Assert.True(droot.IsEquivalentTo(tree.GetRoot()))
-        End Sub
+                Assert.Equal(text, dtext)
+                Assert.True(DirectCast(droot, VisualBasicSyntaxNode).HasErrors)
+                Assert.True(droot.IsEquivalentTo(tree.GetRoot()))
+            End Sub
 
-        <Fact>
-        Public Sub TestRoundTripSyntaxNodeWithAnnotation()
-            Dim text = "
+            <Fact>
+            Public Sub TestRoundTripSyntaxNodeWithAnnotation()
+                Dim text = "
 Public Class C
 End Class
 "
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
-            Dim annotation = New SyntaxAnnotation()
-            Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation)
-            Assert.True(root.ContainsAnnotations)
-            Assert.True(root.HasAnnotation(annotation))
+                Dim tree = VisualBasicSyntaxTree.ParseText(text)
+                Dim annotation = New SyntaxAnnotation()
+                Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation)
+                Assert.True(root.ContainsAnnotations)
+                Assert.True(root.HasAnnotation(annotation))
 
-            Dim stream = New MemoryStream()
-            root.SerializeTo(stream)
+                Dim stream = New MemoryStream()
+                root.SerializeTo(stream)
 
-            stream.Position = 0
+                stream.Position = 0
 
-            Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
-            Dim dtext = droot.ToFullString()
+                Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+                Dim dtext = droot.ToFullString()
 
-            Assert.Equal(text, dtext)
-            Assert.True(droot.ContainsAnnotations)
-            Assert.True(droot.HasAnnotation(annotation))
-            Assert.True(droot.IsEquivalentTo(tree.GetRoot()))
-        End Sub
+                Assert.Equal(text, dtext)
+                Assert.True(droot.ContainsAnnotations)
+                Assert.True(droot.HasAnnotation(annotation))
+                Assert.True(droot.IsEquivalentTo(tree.GetRoot()))
+            End Sub
 
-        <Fact>
-        Public Sub TestRoundTripSyntaxNodeWithMultipleInstancesOfTheSameAnnotation()
-            Dim text = "
+            <Fact>
+            Public Sub TestRoundTripSyntaxNodeWithMultipleInstancesOfTheSameAnnotation()
+                Dim text = "
 Public Class C
 End Class
 "
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
-            Dim annotation = New SyntaxAnnotation()
-            Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation, annotation)
-            Assert.True(root.ContainsAnnotations)
-            Assert.True(root.HasAnnotation(annotation))
+                Dim tree = VisualBasicSyntaxTree.ParseText(text)
+                Dim annotation = New SyntaxAnnotation()
+                Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation, annotation)
+                Assert.True(root.ContainsAnnotations)
+                Assert.True(root.HasAnnotation(annotation))
 
-            Dim stream = New MemoryStream()
-            root.SerializeTo(stream)
+                Dim stream = New MemoryStream()
+                root.SerializeTo(stream)
 
-            stream.Position = 0
+                stream.Position = 0
 
-            Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
-            Dim dtext = droot.ToFullString()
+                Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+                Dim dtext = droot.ToFullString()
 
-            Assert.Equal(text, dtext)
-            Assert.True(droot.ContainsAnnotations)
-            Assert.True(droot.HasAnnotation(annotation))
-            Assert.True(droot.IsEquivalentTo(tree.GetRoot()))
-        End Sub
+                Assert.Equal(text, dtext)
+                Assert.True(droot.ContainsAnnotations)
+                Assert.True(droot.HasAnnotation(annotation))
+                Assert.True(droot.IsEquivalentTo(tree.GetRoot()))
+            End Sub
 
-        <Fact>
-        Public Sub RoundTripSyntaxNodeWithAnnotationsRemoved()
-            Dim text = "
+            <Fact>
+            Public Sub RoundTripSyntaxNodeWithAnnotationsRemoved()
+                Dim text = "
 Public Class C
 End Class
 "
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
-            Dim annotation1 = New SyntaxAnnotation("annotation1")
-            Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation1)
-            Assert.Equal(True, root.ContainsAnnotations)
-            Assert.Equal(True, root.HasAnnotation(annotation1))
-            Dim removedRoot = root.WithoutAnnotations(annotation1)
-            Assert.Equal(False, removedRoot.ContainsAnnotations)
-            Assert.Equal(False, removedRoot.HasAnnotation(annotation1))
+                Dim tree = VisualBasicSyntaxTree.ParseText(text)
+                Dim annotation1 = New SyntaxAnnotation("annotation1")
+                Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation1)
+                Assert.Equal(True, root.ContainsAnnotations)
+                Assert.Equal(True, root.HasAnnotation(annotation1))
+                Dim removedRoot = root.WithoutAnnotations(annotation1)
+                Assert.Equal(False, removedRoot.ContainsAnnotations)
+                Assert.Equal(False, removedRoot.HasAnnotation(annotation1))
 
-            Dim stream = New MemoryStream()
-            removedRoot.SerializeTo(stream)
+                Dim stream = New MemoryStream()
+                removedRoot.SerializeTo(stream)
 
-            stream.Position = 0
+                stream.Position = 0
 
-            Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+                Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
 
-            Assert.Equal(False, droot.ContainsAnnotations)
-            Assert.Equal(False, droot.HasAnnotation(annotation1))
+                Assert.Equal(False, droot.ContainsAnnotations)
+                Assert.Equal(False, droot.HasAnnotation(annotation1))
 
-            Dim annotation2 = New SyntaxAnnotation("annotation2")
+                Dim annotation2 = New SyntaxAnnotation("annotation2")
 
-            Dim doubleAnnoRoot = droot.WithAdditionalAnnotations(annotation1, annotation2)
-            Assert.Equal(True, doubleAnnoRoot.ContainsAnnotations)
-            Assert.Equal(True, doubleAnnoRoot.HasAnnotation(annotation1))
-            Assert.Equal(True, doubleAnnoRoot.HasAnnotation(annotation2))
-            Dim removedDoubleAnnoRoot = doubleAnnoRoot.WithoutAnnotations(annotation1, annotation2)
-            Assert.Equal(False, removedDoubleAnnoRoot.ContainsAnnotations)
-            Assert.Equal(False, removedDoubleAnnoRoot.HasAnnotation(annotation1))
-            Assert.Equal(False, removedDoubleAnnoRoot.HasAnnotation(annotation2))
+                Dim doubleAnnoRoot = droot.WithAdditionalAnnotations(annotation1, annotation2)
+                Assert.Equal(True, doubleAnnoRoot.ContainsAnnotations)
+                Assert.Equal(True, doubleAnnoRoot.HasAnnotation(annotation1))
+                Assert.Equal(True, doubleAnnoRoot.HasAnnotation(annotation2))
+                Dim removedDoubleAnnoRoot = doubleAnnoRoot.WithoutAnnotations(annotation1, annotation2)
+                Assert.Equal(False, removedDoubleAnnoRoot.ContainsAnnotations)
+                Assert.Equal(False, removedDoubleAnnoRoot.HasAnnotation(annotation1))
+                Assert.Equal(False, removedDoubleAnnoRoot.HasAnnotation(annotation2))
 
-            stream = New MemoryStream()
-            removedRoot.SerializeTo(stream)
+                stream = New MemoryStream()
+                removedRoot.SerializeTo(stream)
 
-            stream.Position = 0
+                stream.Position = 0
 
-            droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+                droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
 
-            Assert.Equal(False, droot.ContainsAnnotations)
-            Assert.Equal(False, droot.HasAnnotation(annotation1))
-            Assert.Equal(False, droot.HasAnnotation(annotation2))
-        End Sub
+                Assert.Equal(False, droot.ContainsAnnotations)
+                Assert.Equal(False, droot.HasAnnotation(annotation1))
+                Assert.Equal(False, droot.HasAnnotation(annotation2))
+            End Sub
 
-        <Fact>
-        Public Sub RoundTripSyntaxNodeWithAnnotationRemovedWithMultipleReference()
-            Dim text = "
+            <Fact>
+            Public Sub RoundTripSyntaxNodeWithAnnotationRemovedWithMultipleReference()
+                Dim text = "
 Public Class C
 End Class
 "
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
-            Dim annotation1 = New SyntaxAnnotation("annotation1")
-            Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation1, annotation1)
-            Assert.Equal(True, root.ContainsAnnotations)
-            Assert.Equal(True, root.HasAnnotation(annotation1))
-            Dim removedRoot = root.WithoutAnnotations(annotation1)
-            Assert.Equal(False, removedRoot.ContainsAnnotations)
-            Assert.Equal(False, removedRoot.HasAnnotation(annotation1))
+                Dim tree = VisualBasicSyntaxTree.ParseText(text)
+                Dim annotation1 = New SyntaxAnnotation("annotation1")
+                Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation1, annotation1)
+                Assert.Equal(True, root.ContainsAnnotations)
+                Assert.Equal(True, root.HasAnnotation(annotation1))
+                Dim removedRoot = root.WithoutAnnotations(annotation1)
+                Assert.Equal(False, removedRoot.ContainsAnnotations)
+                Assert.Equal(False, removedRoot.HasAnnotation(annotation1))
 
-            Dim stream = New MemoryStream()
-            removedRoot.SerializeTo(stream)
+                Dim stream = New MemoryStream()
+                removedRoot.SerializeTo(stream)
 
-            stream.Position = 0
+                stream.Position = 0
 
-            Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+                Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
 
-            Assert.Equal(False, droot.ContainsAnnotations)
-            Assert.Equal(False, droot.HasAnnotation(annotation1))
-        End Sub
+                Assert.Equal(False, droot.ContainsAnnotations)
+                Assert.Equal(False, droot.HasAnnotation(annotation1))
+            End Sub
 
-        <Fact()>
-        Public Sub TestRoundTripSyntaxNodeWithSpecialAnnotation()
-            Dim text = "
+            <Fact()>
+            Public Sub TestRoundTripSyntaxNodeWithSpecialAnnotation()
+                Dim text = "
 Public Class C
 End Class
 "
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
-            Dim annotation = New SyntaxAnnotation("TestAnnotation", "this is a test")
-            Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation)
-            Assert.True(root.ContainsAnnotations)
-            Assert.True(root.HasAnnotation(annotation))
+                Dim tree = VisualBasicSyntaxTree.ParseText(text)
+                Dim annotation = New SyntaxAnnotation("TestAnnotation", "this is a test")
+                Dim root = tree.GetRoot().WithAdditionalAnnotations(annotation)
+                Assert.True(root.ContainsAnnotations)
+                Assert.True(root.HasAnnotation(annotation))
 
-            Dim stream = New MemoryStream()
-            root.SerializeTo(stream)
+                Dim stream = New MemoryStream()
+                root.SerializeTo(stream)
 
-            stream.Position = 0
+                stream.Position = 0
 
-            Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
-            Dim dtext = droot.ToFullString()
+                Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+                Dim dtext = droot.ToFullString()
 
-            Assert.Equal(text, dtext)
-            Assert.True(droot.ContainsAnnotations)
-            Assert.True(droot.HasAnnotation(annotation))
-            Assert.True(droot.IsEquivalentTo(tree.GetRoot()))
+                Assert.Equal(text, dtext)
+                Assert.True(droot.ContainsAnnotations)
+                Assert.True(droot.HasAnnotation(annotation))
+                Assert.True(droot.IsEquivalentTo(tree.GetRoot()))
 
-            Dim dannotation = droot.GetAnnotations("TestAnnotation").SingleOrDefault()
-            Assert.NotNull(dannotation)
-            Assert.NotSame(annotation, dannotation) ' not same instance
-            Assert.Equal(annotation, dannotation) ' but are equivalent
-        End Sub
+                Dim dannotation = droot.GetAnnotations("TestAnnotation").SingleOrDefault()
+                Assert.NotNull(dannotation)
+                Assert.NotSame(annotation, dannotation) ' not same instance
+                Assert.Equal(annotation, dannotation) ' but are equivalent
+            End Sub
 
-        <ConditionalFact(GetType(x86))>
-                                           <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
-        Public Sub RoundtripSerializeDeepExpression()
-            Dim text = "
+            <ConditionalFact(GetType(x86))>
+            <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
+            Public Sub RoundtripSerializeDeepExpression()
+                Dim text = "
 Module Module15
     Declare Function GetDesktopWindow Lib ""User32"" () As Integer
     Declare Function EnumChildWindows Lib "" ()User32"" (ByVal hw As Integer, ByVal lpWndProc As mydel, ByVal lp As Integer) As Integer
@@ -420,40 +421,41 @@ Module Module15
     End Sub
 End Module
                                                "
-            RoundTrip(text, expectRecursive:=False)
-        End Sub
+                RoundTrip(text, expectRecursive:=False)
+            End Sub
 
-        <Fact>
-                                                   <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
-        Public Sub RoundtripSerializeDeepExpression2()
-            Dim text = "
+            <Fact>
+            <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
+            Public Sub RoundtripSerializeDeepExpression2()
+                Dim text = "
 Module GroupJoin2
     Sub Test1()
         q = From a In aa Group Join b As $ In bb On a Equals b
     End Sub
 End Module
 "
-            RoundTrip(text)
-        End Sub
+                RoundTrip(text)
+            End Sub
 
-        <Fact>
-                                                           <WorkItem(1038237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038237")>
-        Public Sub RoundTripPragmaDirective()
-            Dim text = "
+            <Fact>
+            <WorkItem(1038237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038237")>
+            Public Sub RoundTripPragmaDirective()
+                Dim text = "
 #Disable Warning BC40000
 "
 
-            Dim tree = VisualBasicSyntaxTree.ParseText(text)
-            Dim root = tree.GetRoot()
-            Assert.True(root.ContainsDirectives)
+                Dim tree = VisualBasicSyntaxTree.ParseText(text)
+                Dim root = tree.GetRoot()
+                Assert.True(root.ContainsDirectives)
 
-            Dim stream = New MemoryStream()
-            root.SerializeTo(stream)
+                Dim stream = New MemoryStream()
+                root.SerializeTo(stream)
 
-            stream.Position = 0
+                stream.Position = 0
 
-            Dim newRoot = VisualBasicSyntaxNode.DeserializeFrom(stream)
-            Assert.True(newRoot.ContainsDirectives)
-        End Sub
-    End Class
+                Dim newRoot = VisualBasicSyntaxNode.DeserializeFrom(stream)
+                Assert.True(newRoot.ContainsDirectives)
+            End Sub
+        End Class
+    End Namespace
 End Namespace
