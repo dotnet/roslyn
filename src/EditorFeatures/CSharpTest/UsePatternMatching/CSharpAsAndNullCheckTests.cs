@@ -461,5 +461,49 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     }
 }", compareTokens: false);
         }
+
+        [WorkItem(17129, "https://github.com/dotnet/roslyn/issues/17129")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestTrivia2()
+        {
+            await TestAsync(
+@"using System;
+namespace N
+{
+    class Program
+    {
+        public static void Main()
+        {
+            object o = null;
+            int i = 0;
+            [|var|] s = o as string;
+            if (s != null && i == 0 && i == 1 &&
+                i == 2 && i == 3 &&
+                i == 4 && i == 5)
+            {
+                Console.WriteLine();
+            }
         }
+    }
+}",
+@"using System;
+namespace N
+{
+    class Program
+    {
+        public static void Main()
+        {
+            object o = null;
+            int i = 0;
+            if (o is string s && i == 0 && i == 1 &&
+                i == 2 && i == 3 &&
+                i == 4 && i == 5)
+            {
+                Console.WriteLine();
+            }
+        }
+    }
+}", compareTokens: false);
+        }
+    }
 }
