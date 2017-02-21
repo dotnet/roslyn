@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private static TArgumentSyntax TryGetRelevantArgument(SyntaxNode initialNode, SyntaxNode node)
         {
             return initialNode.GetAncestorsOrThis<TArgumentSyntax>()
-                                                             .LastOrDefault(a => a.AncestorsAndSelf().Contains(node));
+                              .LastOrDefault(a => a.AncestorsAndSelf().Contains(node));
         }
 
         private Task HandleInvocationExpressionAsync(

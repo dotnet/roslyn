@@ -15,116 +15,61 @@ using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     internal partial class StreamingFindUsagesPresenter
     {
-        private class DocumentSpanEntry : Entry
+        /// <summary>
+        /// Entry to show for a particular source location.  The row will show the classified
+        /// contents of that line, and hovering will reveal a tooltip showing that line along
+        /// with a few lines above/below it.
+        /// </summary>
+        private class DocumentSpanEntry : AbstractDocumentSpanEntry
         {
-            private readonly TableDataSourceFindUsagesContext _context;
-
-            private readonly DocumentSpan _documentSpan;
             private readonly bool _isDefinitionLocation;
-            private readonly object _boxedProjectGuid;
-            private readonly SourceText _sourceText;
-            private readonly ClassifiedSpansAndHighlightSpan _classifiedSpans;
+            private readonly ClassifiedSpansAndHighlightSpan _classifiedSpansAndHighlights;
 
             public DocumentSpanEntry(
-                TableDataSourceFindUsagesContext context,
+                AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 bool isDefinitionLocation,
                 Guid projectGuid,
                 SourceText sourceText,
                 ClassifiedSpansAndHighlightSpan classifiedSpans)
-                : base(definitionBucket)
+                : base(context, definitionBucket, documentSpan, projectGuid, sourceText)
             {
-                _context = context;
-
-                _documentSpan = documentSpan;
                 _isDefinitionLocation = isDefinitionLocation;
-                _boxedProjectGuid = projectGuid;
-                _sourceText = sourceText;
-                _classifiedSpans = classifiedSpans;
+                _classifiedSpansAndHighlights = classifiedSpans;
             }
 
-            private StreamingFindUsagesPresenter Presenter => _context.Presenter;
-
-            private Document Document => _documentSpan.Document;
-            private TextSpan SourceSpan => _documentSpan.SourceSpan;
-
-            protected override object GetValueWorker(string keyName)
+            protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()
             {
-                switch (keyName)
-                {
-                case StandardTableKeyNames.DocumentName:
-                    return Document.FilePath;
-                case StandardTableKeyNames.Line:
-                    return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Line;
-                case StandardTableKeyNames.Column:
-                    return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Character;
-                case StandardTableKeyNames.ProjectName:
-                    return Document.Project.Name;
-                case StandardTableKeyNames.ProjectGuid:
-                    return _boxedProjectGuid;
-                case StandardTableKeyNames.Text:
-                    return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
-                }
-
-                return null;
-            }
-
-            public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
-            {
-                if (columnName == StandardTableColumnDefinitions2.LineText)
-                {
-                    var inlines = GetHighlightedInlines(Presenter, _sourceText, _classifiedSpans, _isDefinitionLocation);
-                    var textBlock = inlines.ToTextBlock(Presenter._typeMap, wrap: false);
-
-                    LazyToolTip.AttachTo(textBlock, CreateDisposableToolTip);
-
-                    content = textBlock;
-                    return true;
-                }
-
-                content = null;
-                return false;
-            }
-
-            private static IList<System.Windows.Documents.Inline> GetHighlightedInlines(
-                StreamingFindUsagesPresenter presenter,
-                SourceText sourceText,
-                ClassifiedSpansAndHighlightSpan classifiedSpansAndHighlight,
-                bool isDefinition)
-            {
-                var propertyId = isDefinition
+                var propertyId = _isDefinitionLocation
                     ? DefinitionHighlightTag.TagId
                     : ReferenceHighlightTag.TagId;
 
-                var properties = presenter._formatMapService
+                var properties = Presenter.FormatMapService
                                           .GetEditorFormatMap("text")
                                           .GetProperties(propertyId);
                 var highlightBrush = properties["Background"] as Brush;
 
-                var classifiedSpans = classifiedSpansAndHighlight.ClassifiedSpans;
+                var classifiedSpans = _classifiedSpansAndHighlights.ClassifiedSpans;
                 var classifiedTexts = classifiedSpans.SelectAsArray(
-                    cs => new ClassifiedText(cs.ClassificationType, sourceText.ToString(cs.TextSpan)));
+                    cs => new ClassifiedText(cs.ClassificationType, _sourceText.ToString(cs.TextSpan)));
 
                 var inlines = classifiedTexts.ToInlines(
-                    presenter._typeMap,
+                    Presenter.TypeMap,
                     runCallback: (run, classifiedText, position) =>
                     {
                         if (highlightBrush != null)
                         {
-                            if (position == classifiedSpansAndHighlight.HighlightSpan.Start)
+                            if (position == _classifiedSpansAndHighlights.HighlightSpan.Start)
                             {
                                 run.SetValue(
                                     System.Windows.Documents.TextElement.BackgroundProperty,
@@ -168,10 +113,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var regionSpan = this.GetRegionSpanForReference();
                 var snapshotSpan = textBuffer.CurrentSnapshot.GetSpan(regionSpan);
 
-                var contentType = Presenter._contentTypeRegistryService.GetContentType(
+                var contentType = Presenter.ContentTypeRegistryService.GetContentType(
                     IProjectionBufferFactoryServiceExtensions.RoslynPreviewContentType);
 
-                var roleSet = Presenter._textEditorFactoryService.CreateTextViewRoleSet(
+                var roleSet = Presenter.TextEditorFactoryService.CreateTextViewRoleSet(
                     TextViewRoles.PreviewRole,
                     PredefinedTextViewRoles.Analyzable,
                     PredefinedTextViewRoles.Document,
@@ -179,9 +124,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 var content = new ElisionBufferDeferredContent(
                     snapshotSpan,
-                    Presenter._projectionBufferFactoryService,
-                    Presenter._editorOptionsFactoryService,
-                    Presenter._textEditorFactoryService,
+                    Presenter.ProjectionBufferFactoryService,
+                    Presenter.EditorOptionsFactoryService,
+                    Presenter.TextEditorFactoryService,
                     contentType,
                     roleSet);
 
@@ -197,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var contentTypeService = Document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
                 var contentType = contentTypeService.GetDefaultContentType();
 
-                var textBuffer = Presenter._textBufferFactoryService.CreateTextBuffer(
+                var textBuffer = Presenter.TextBufferFactoryService.CreateTextBuffer(
                     _sourceText.ToString(), contentType);
 
                 // Create an appropriate highlight span on that buffer for the reference.

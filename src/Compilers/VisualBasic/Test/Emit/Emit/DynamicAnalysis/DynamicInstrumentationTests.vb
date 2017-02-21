@@ -457,6 +457,165 @@ True
         End Sub
 
         <Fact>
+        Public Sub IteratorCoverage()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Public Sub Main(args As String())                                   ' Method 1
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub TestMain()                                                      ' Method 2
+        For Each number In Foo()
+            System.Console.WriteLine(number)
+        Next                                                     
+        For Each number In Foo()
+            System.Console.WriteLine(number)
+        Next
+    End Sub
+
+    Public Iterator Function Foo() As System.Collections.Generic.IEnumerable(Of Integer)      ' Method 3
+        For counter = 1 To 5
+            Yield counter
+        Next
+    End Function
+End Module
+]]>
+                                         </file>
+
+            Dim source As XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[1
+2
+3
+4
+5
+1
+2
+3
+4
+5
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+True
+True
+Method 3
+File 1
+True
+True
+Method 6
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+
+            verifier.VerifyIL(
+                "Program.VB$StateMachine_2_Foo.MoveNext()",
+            <![CDATA[
+{
+  // Code size      149 (0x95)
+  .maxstack  5
+  .locals init (Integer V_0,
+                Boolean() V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Foo.$State As Integer"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0010
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  beq.s      IL_0073
+  IL_000e:  ldc.i4.0
+  IL_000f:  ret
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.i4.m1
+  IL_0012:  dup
+  IL_0013:  stloc.0
+  IL_0014:  stfld      "Program.VB$StateMachine_2_Foo.$State As Integer"
+  IL_0019:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
+  IL_001e:  ldtoken    "Function Program.Foo() As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_0023:  ldelem.ref
+  IL_0024:  stloc.1
+  IL_0025:  ldloc.1
+  IL_0026:  brtrue.s   IL_004d
+  IL_0028:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
+  IL_002d:  ldtoken    "Function Program.Foo() As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_0032:  ldtoken    Source Document 0
+  IL_0037:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
+  IL_003c:  ldtoken    "Function Program.Foo() As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_0041:  ldelema    "Boolean()"
+  IL_0046:  ldc.i4.2
+  IL_0047:  call       "Function Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, Integer, Integer, ByRef Boolean(), Integer) As Boolean()"
+  IL_004c:  stloc.1
+  IL_004d:  ldloc.1
+  IL_004e:  ldc.i4.0
+  IL_004f:  ldc.i4.1
+  IL_0050:  stelem.i1
+  IL_0051:  ldloc.1
+  IL_0052:  ldc.i4.1
+  IL_0053:  ldc.i4.1
+  IL_0054:  stelem.i1
+  IL_0055:  ldarg.0
+  IL_0056:  ldc.i4.1
+  IL_0057:  stfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_005c:  ldarg.0
+  IL_005d:  ldarg.0
+  IL_005e:  ldfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_0063:  stfld      "Program.VB$StateMachine_2_Foo.$Current As Integer"
+  IL_0068:  ldarg.0
+  IL_0069:  ldc.i4.1
+  IL_006a:  dup
+  IL_006b:  stloc.0
+  IL_006c:  stfld      "Program.VB$StateMachine_2_Foo.$State As Integer"
+  IL_0071:  ldc.i4.1
+  IL_0072:  ret
+  IL_0073:  ldarg.0
+  IL_0074:  ldc.i4.m1
+  IL_0075:  dup
+  IL_0076:  stloc.0
+  IL_0077:  stfld      "Program.VB$StateMachine_2_Foo.$State As Integer"
+  IL_007c:  ldarg.0
+  IL_007d:  ldarg.0
+  IL_007e:  ldfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_0083:  ldc.i4.1
+  IL_0084:  add.ovf
+  IL_0085:  stfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_008a:  ldarg.0
+  IL_008b:  ldfld      "Program.VB$StateMachine_2_Foo.$VB$ResumableLocal_counter$0 As Integer"
+  IL_0090:  ldc.i4.5
+  IL_0091:  ble.s      IL_005c
+  IL_0093:  ldc.i4.0
+  IL_0094:  ret
+}
+                ]]>.Value)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
         Public Sub AsyncCoverage()
             Dim testSource As XElement = <file name="c.vb">
                                              <![CDATA[
@@ -476,7 +635,7 @@ Module Program
     Async Function Outer(s As String) As Task(Of String)                ' Method 3
         Dim s1 As String = Await First(s)
         Dim s2 As String = Await Second(s)
-
+        
         Return s1 + s2
     End Function
 
@@ -556,6 +715,163 @@ True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+
+            verifier.VerifyIL(
+                "Program.VB$StateMachine_4_Second.MoveNext()",
+            <![CDATA[
+{
+  // Code size      375 (0x177)
+  .maxstack  6
+  .locals init (String V_0,
+                Integer V_1,
+                Program._Closure$__4-0 V_2, //$VB$Closure_0
+                System.Runtime.CompilerServices.TaskAwaiter(Of String) V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_4_Second.$State As Integer"
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  ldloc.1
+    IL_0008:  brfalse    IL_010e
+    IL_000d:  newobj     "Sub Program._Closure$__4-0..ctor()"
+    IL_0012:  stloc.2
+    IL_0013:  ldloc.2
+    IL_0014:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
+    IL_0019:  ldtoken    "Function Program.Second(String) As System.Threading.Tasks.Task(Of String)"
+    IL_001e:  ldelem.ref
+    IL_001f:  stfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_0024:  ldloc.2
+    IL_0025:  ldfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_002a:  brtrue.s   IL_0056
+    IL_002c:  ldloc.2
+    IL_002d:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
+    IL_0032:  ldtoken    "Function Program.Second(String) As System.Threading.Tasks.Task(Of String)"
+    IL_0037:  ldtoken    Source Document 0
+    IL_003c:  ldsfld     "Boolean()() <PrivateImplementationDetails>.PayloadRoot0"
+    IL_0041:  ldtoken    "Function Program.Second(String) As System.Threading.Tasks.Task(Of String)"
+    IL_0046:  ldelema    "Boolean()"
+    IL_004b:  ldc.i4.7
+    IL_004c:  call       "Function Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, Integer, Integer, ByRef Boolean(), Integer) As Boolean()"
+    IL_0051:  stfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_0056:  ldloc.2
+    IL_0057:  ldfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_005c:  ldc.i4.0
+    IL_005d:  ldc.i4.1
+    IL_005e:  stelem.i1
+    IL_005f:  ldloc.2
+    IL_0060:  ldfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_0065:  ldc.i4.1
+    IL_0066:  ldc.i4.1
+    IL_0067:  stelem.i1
+    IL_0068:  ldloc.2
+    IL_0069:  ldstr      ""
+    IL_006e:  stfld      "Program._Closure$__4-0.$VB$Local_doubled As String"
+    IL_0073:  ldloc.2
+    IL_0074:  ldfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_0079:  ldc.i4.4
+    IL_007a:  ldc.i4.1
+    IL_007b:  stelem.i1
+    IL_007c:  ldarg.0
+    IL_007d:  ldfld      "Program.VB$StateMachine_4_Second.$VB$Local_s As String"
+    IL_0082:  callvirt   "Function String.get_Length() As Integer"
+    IL_0087:  ldc.i4.2
+    IL_0088:  ble.s      IL_00ac
+    IL_008a:  ldloc.2
+    IL_008b:  ldfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_0090:  ldc.i4.2
+    IL_0091:  ldc.i4.1
+    IL_0092:  stelem.i1
+    IL_0093:  ldloc.2
+    IL_0094:  ldarg.0
+    IL_0095:  ldfld      "Program.VB$StateMachine_4_Second.$VB$Local_s As String"
+    IL_009a:  ldarg.0
+    IL_009b:  ldfld      "Program.VB$StateMachine_4_Second.$VB$Local_s As String"
+    IL_00a0:  call       "Function String.Concat(String, String) As String"
+    IL_00a5:  stfld      "Program._Closure$__4-0.$VB$Local_doubled As String"
+    IL_00aa:  br.s       IL_00c0
+    IL_00ac:  ldloc.2
+    IL_00ad:  ldfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_00b2:  ldc.i4.3
+    IL_00b3:  ldc.i4.1
+    IL_00b4:  stelem.i1
+    IL_00b5:  ldloc.2
+    IL_00b6:  ldstr      "HuhHuh"
+    IL_00bb:  stfld      "Program._Closure$__4-0.$VB$Local_doubled As String"
+    IL_00c0:  ldloc.2
+    IL_00c1:  ldfld      "Program._Closure$__4-0.$VB$NonLocal_2 As Boolean()"
+    IL_00c6:  ldc.i4.6
+    IL_00c7:  ldc.i4.1
+    IL_00c8:  stelem.i1
+    IL_00c9:  call       "Function System.Threading.Tasks.Task.get_Factory() As System.Threading.Tasks.TaskFactory"
+    IL_00ce:  ldloc.2
+    IL_00cf:  ldftn      "Function Program._Closure$__4-0._Lambda$__0() As String"
+    IL_00d5:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
+    IL_00da:  callvirt   "Function System.Threading.Tasks.TaskFactory.StartNew(Of String)(System.Func(Of String)) As System.Threading.Tasks.Task(Of String)"
+    IL_00df:  callvirt   "Function System.Threading.Tasks.Task(Of String).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_00e4:  stloc.3
+    IL_00e5:  ldloca.s   V_3
+    IL_00e7:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of String).get_IsCompleted() As Boolean"
+    IL_00ec:  brtrue.s   IL_012a
+    IL_00ee:  ldarg.0
+    IL_00ef:  ldc.i4.0
+    IL_00f0:  dup
+    IL_00f1:  stloc.1
+    IL_00f2:  stfld      "Program.VB$StateMachine_4_Second.$State As Integer"
+    IL_00f7:  ldarg.0
+    IL_00f8:  ldloc.3
+    IL_00f9:  stfld      "Program.VB$StateMachine_4_Second.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_00fe:  ldarg.0
+    IL_00ff:  ldflda     "Program.VB$StateMachine_4_Second.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
+    IL_0104:  ldloca.s   V_3
+    IL_0106:  ldarg.0
+    IL_0107:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of String), Program.VB$StateMachine_4_Second)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of String), ByRef Program.VB$StateMachine_4_Second)"
+    IL_010c:  leave.s    IL_0176
+    IL_010e:  ldarg.0
+    IL_010f:  ldc.i4.m1
+    IL_0110:  dup
+    IL_0111:  stloc.1
+    IL_0112:  stfld      "Program.VB$StateMachine_4_Second.$State As Integer"
+    IL_0117:  ldarg.0
+    IL_0118:  ldfld      "Program.VB$StateMachine_4_Second.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_011d:  stloc.3
+    IL_011e:  ldarg.0
+    IL_011f:  ldflda     "Program.VB$StateMachine_4_Second.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_0124:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_012a:  ldloca.s   V_3
+    IL_012c:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of String).GetResult() As String"
+    IL_0131:  ldloca.s   V_3
+    IL_0133:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of String)"
+    IL_0139:  stloc.0
+    IL_013a:  leave.s    IL_0160
+  }
+  catch System.Exception
+  {
+    IL_013c:  dup
+    IL_013d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0142:  stloc.s    V_4
+    IL_0144:  ldarg.0
+    IL_0145:  ldc.i4.s   -2
+    IL_0147:  stfld      "Program.VB$StateMachine_4_Second.$State As Integer"
+    IL_014c:  ldarg.0
+    IL_014d:  ldflda     "Program.VB$StateMachine_4_Second.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
+    IL_0152:  ldloc.s    V_4
+    IL_0154:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String).SetException(System.Exception)"
+    IL_0159:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_015e:  leave.s    IL_0176
+  }
+  IL_0160:  ldarg.0
+  IL_0161:  ldc.i4.s   -2
+  IL_0163:  dup
+  IL_0164:  stloc.1
+  IL_0165:  stfld      "Program.VB$StateMachine_4_Second.$State As Integer"
+  IL_016a:  ldarg.0
+  IL_016b:  ldflda     "Program.VB$StateMachine_4_Second.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
+  IL_0170:  ldloc.0
+  IL_0171:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String).SetResult(String)"
+  IL_0176:  ret
+}
+                ]]>.Value)
             verifier.VerifyDiagnostics()
         End Sub
 

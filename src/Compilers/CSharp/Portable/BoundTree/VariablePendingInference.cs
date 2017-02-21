@@ -4,22 +4,35 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    internal partial class DeconstructionVariablePendingInference
+    {
+        protected override ErrorCode InferenceFailedError => ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable;
+    }
+
     internal partial class OutVariablePendingInference
     {
-        public BoundExpression SetInferredType(TypeSymbol type, DiagnosticBag diagnosticsOpt)
+        protected override ErrorCode InferenceFailedError => ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable;
+    }
+
+    internal partial class VariablePendingInference : BoundExpression
+    {
+        internal BoundExpression SetInferredType(TypeSymbol type, DiagnosticBag diagnosticsOpt)
         {
             Debug.Assert((object)type != null);
 
             return SetInferredType(type, null, diagnosticsOpt);
         }
 
-        private BoundExpression SetInferredType(TypeSymbol type, Binder binderOpt, DiagnosticBag diagnosticsOpt)
+        internal BoundExpression SetInferredType(TypeSymbol type, Binder binderOpt, DiagnosticBag diagnosticsOpt)
         {
             Debug.Assert(binderOpt != null || (object)type != null);
-            Debug.Assert(this.Syntax.Kind() == SyntaxKind.DeclarationExpression);
+            Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation ||
+                (this.Syntax.Kind() == SyntaxKind.DeclarationExpression &&
+                    ((DeclarationExpressionSyntax)this.Syntax).Designation.Kind() == SyntaxKind.SingleVariableDesignation));
 
             bool inferenceFailed = ((object)type == null);
 
@@ -41,8 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            TypeSyntax typeSyntax = ((DeclarationExpressionSyntax)Syntax).Type;
-                            Binder.CheckRestrictedTypeInAsync(localSymbol.ContainingSymbol, type, diagnosticsOpt, typeSyntax);
+                            SyntaxNode typeOrDesignationSyntax = this.Syntax.Kind() == SyntaxKind.DeclarationExpression ?
+                                ((DeclarationExpressionSyntax)this.Syntax).Type :
+                                this.Syntax;
+
+                            Binder.CheckRestrictedTypeInAsync(localSymbol.ContainingSymbol, type, diagnosticsOpt, typeOrDesignationSyntax);
                         }
                     }
 
@@ -63,26 +79,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return new BoundFieldAccess(this.Syntax,
                                                 this.ReceiverOpt,
-                                                fieldSymbol, null, LookupResultKind.Viable, type, 
+                                                fieldSymbol, null, LookupResultKind.Viable, type,
                                                 this.HasErrors || inferenceFailed);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this.VariableSymbol.Kind);
             }
+        }
 
+        internal BoundExpression FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
+        {
+            return this.SetInferredType(null, binder, diagnosticsOpt);
         }
 
         private void ReportInferenceFailure(DiagnosticBag diagnostics)
         {
-            var designation = (SingleVariableDesignationSyntax)((DeclarationExpressionSyntax)this.Syntax).Designation;
+            SingleVariableDesignationSyntax designation;
+            switch (this.Syntax.Kind())
+            {
+                case SyntaxKind.DeclarationExpression:
+                    designation = (SingleVariableDesignationSyntax)((DeclarationExpressionSyntax)this.Syntax).Designation;
+                    break;
+                case SyntaxKind.SingleVariableDesignation:
+                    designation = (SingleVariableDesignationSyntax)this.Syntax;
+                    break;
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
+
             Binder.Error(
-                diagnostics, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, designation.Identifier,
+                diagnostics, this.InferenceFailedError, designation.Identifier,
                 designation.Identifier.ValueText);
         }
 
-        public BoundExpression FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
-        {
-            return this.SetInferredType(null, binder, diagnosticsOpt);
-        }
+        protected abstract ErrorCode InferenceFailedError { get; }
     }
 }

@@ -1154,6 +1154,9 @@ This version used in: {2}</value>
   <data name="Add_argument_name_0" xml:space="preserve">
     <value>Add argument name '{0}'</value>
   </data>
+  <data name="Remove_unused_variable" xml:space="preserve">
+    <value>Remove unused variable</value>
+  </data>
   <data name="Convert_to_binary" xml:space="preserve">
     <value>Convert to binary</value>
   </data>

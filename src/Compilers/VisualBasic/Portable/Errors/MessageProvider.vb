@@ -7,9 +7,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class MessageProvider
         Inherits CommonMessageProvider
-        Implements IObjectWritable, IObjectReadable
+        Implements IObjectWritable
 
         Public Shared ReadOnly Instance As MessageProvider = New MessageProvider()
+
+        Shared Sub New()
+            ObjectBinder.RegisterTypeReader(GetType(MessageProvider), Function(r) Instance)
+        End Sub
 
         Private Sub New()
         End Sub
@@ -17,10 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub WriteTo(writer As ObjectWriter) Implements IObjectWritable.WriteTo
             ' don't write anything since we always return the shared 'Instance' when read.
         End Sub
-
-        Private Function GetReader() As Func(Of ObjectReader, Object) Implements IObjectReadable.GetReader
-            Return Function(r) Instance
-        End Function
 
         Public Overrides ReadOnly Property CodePrefix As String
             Get

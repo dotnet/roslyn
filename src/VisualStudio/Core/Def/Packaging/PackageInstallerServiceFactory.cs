@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// <summary>
     /// Free threaded wrapper around the NuGet.VisualStudio STA package installer interfaces.
     /// We want to be able to make queries about packages from any thread.  For example, the
-    /// add-nuget-reference feature wants to know what packages a project already has 
+    /// add-NuGet-reference feature wants to know what packages a project already has 
     /// references to.  NuGet.VisualStudio provides this information, but only in a COM STA 
     /// manner.  As we don't want our background work to bounce and block on the UI thread 
     /// we have this helper class which queries the information on the UI thread and caches
@@ -391,9 +391,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // Remove anything we have associated with this project.
             _projectToInstalledPackageAndVersion.TryRemove(projectId, out var installedPackages);
 
-            if (!solution.ContainsProject(projectId))
+            var project = solution.GetProject(projectId);
+            if (project == null)
             {
                 // Project was removed.  Nothing needs to be done.
+                return;
+            }
+
+            // We really only need to know the NuGet status for managed language projects.
+            // Also, the NuGet APIs may throw on some projects that don't implement the 
+            // full set of DTE APIs they expect.  So we filter down to just C# and VB here
+            // as we know these languages are safe to build up this index for.
+            if (project.Language != LanguageNames.CSharp &&
+                project.Language != LanguageNames.VisualBasic)
+            {
                 return;
             }
 
@@ -401,13 +412,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             var dteProject = _workspace.TryGetDTEProject(projectId);
             if (dteProject == null)
             {
-                // Don't have a DTE project for this project ID.  not something we can query nuget for.
+                // Don't have a DTE project for this project ID.  not something we can query NuGet for.
                 return;
             }
 
             installedPackages = new Dictionary<string, string>();
 
-            // Calling into nuget.  Assume they may fail for any reason.
+            // Calling into NuGet.  Assume they may fail for any reason.
             try
             {
                 var installedPackageMetadata = _packageServices.GetInstalledPackages(dteProject);
@@ -518,7 +529,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             // We're able to launch the package manager (with an item in its search box) by
-            // using the IVsSearchProvider API that the nuget package exposes.
+            // using the IVsSearchProvider API that the NuGet package exposes.
             //
             // We get that interface for it and then pass it a SearchQuery that effectively
             // wraps the package name we're looking for.  The NuGet package will then read

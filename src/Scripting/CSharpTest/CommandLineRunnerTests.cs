@@ -135,7 +135,7 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
                 runner.Console.Error.ToString());
         }
 
-        [Fact]
+        [Fact(Skip="https://github.com/dotnet/roslyn/issues/17043")]
         [WorkItem(7133, "http://github.com/dotnet/roslyn/issues/7133")]
         public void TestDisplayResultsWithCurrentUICulture()
         {

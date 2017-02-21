@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -287,6 +288,67 @@ Sub C.Foo()
           IArgument (Matching Parameter: value) (OperationKind.Argument)
             ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32)
 ")
+        End Sub
+
+        <Fact>
+        <WorkItem(382240, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=382240")>
+        Public Sub NothingOrAddressOfInPlaceOfParamArray()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Module Module1
+    Sub Main() 
+        Test1(Nothing)
+        Test2(new System.Guid(), Nothing)
+        Test1(AddressOf Main)
+        Test2(new System.Guid(), AddressOf Main)
+    End Sub
+
+    Sub Test1(ParamArray x as Integer())
+    End Sub
+
+    Sub Test2(y As Integer, ParamArray x as Integer())
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim tree = comp.SyntaxTrees.Single()
+
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30311: Value of type 'Guid' cannot be converted to 'Integer'.
+        Test2(new System.Guid(), Nothing)
+              ~~~~~~~~~~~~~~~~~
+BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
+        Test1(AddressOf Main)
+              ~~~~~~~~~~~~~~
+BC30311: Value of type 'Guid' cannot be converted to 'Integer'.
+        Test2(new System.Guid(), AddressOf Main)
+              ~~~~~~~~~~~~~~~~~
+BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
+        Test2(new System.Guid(), AddressOf Main)
+                                 ~~~~~~~~~~~~~~
+</expected>)
+
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().ToArray()
+
+            comp.VerifyOperationTree(nodes(0), expectedOperationTree:=
+"IInvocationExpression (static Sub Module1.Test1(ParamArray x As System.Int32())) (OperationKind.InvocationExpression, Type: System.Void)
+  IArgument (Matching Parameter: x) (OperationKind.Argument)
+    IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null)
+      ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null)")
+
+            comp.VerifyOperationTree(nodes(1), expectedOperationTree:=
+"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid)")
+
+            comp.VerifyOperationTree(nodes(2), expectedOperationTree:=
+"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid)")
+
+            comp.VerifyOperationTree(nodes(3), expectedOperationTree:=
+"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid)")
         End Sub
     End Class
 End Namespace

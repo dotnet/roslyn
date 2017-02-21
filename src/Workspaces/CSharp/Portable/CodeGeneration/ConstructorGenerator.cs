@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            bool hasNoBody = !options.GenerateMethodBodies;
+            var hasNoBody = !options.GenerateMethodBodies;
 
             var declaration = SyntaxFactory.ConstructorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(constructor.GetAttributes(), options),
@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
                 if (preferExpressionBody)
                 {
-                    var expressionBody = declaration.Body.TryConvertToExpressionBody(options);
-                    if (expressionBody != null)
+                    if (declaration.Body.TryConvertToExpressionBody(
+                            options, out var expressionBody, out var semicolonToken))
                     {
                         return declaration.WithBody(null)
                                           .WithExpressionBody(expressionBody)
-                                          .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                                          .WithSemicolonToken(semicolonToken);
                     }
                 }
             }

@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.flags &= ~NodeFlags.IsNotMissing;
             }
 
-            internal override Func<ObjectReader, object> GetReader()
+            static MissingTokenWithTrivia()
             {
-                return r => new MissingTokenWithTrivia(r);
+                ObjectBinder.RegisterTypeReader(typeof(MissingTokenWithTrivia), r => new MissingTokenWithTrivia(r));
             }
 
             public override string Text
