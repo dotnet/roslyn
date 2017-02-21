@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private Task HandleInvocationExpressionAsync(
             CodeFixContext context, TInvocationExpressionSyntax invocationExpression, TArgumentSyntax argumentOpt)
         {
+            // Currently we only support this for 'new obj' calls.
             return SpecializedTasks.EmptyTask;
         }
 
@@ -78,15 +79,18 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
+            // Not supported if this is "new Foo { ... }" (as there are no parameters at all.
             var typeNode = syntaxFacts.GetObjectCreationType(objectCreation);
             if (typeNode == null)
             {
                 return;
             }
 
+            // If we can't figure out the type being created, or the type isn't in source,
+            // then there's nothing we can do.
             var type = semanticModel.GetSymbolInfo(typeNode, cancellationToken).GetAnySymbol() as INamedTypeSymbol;
             if (type == null ||
-                !IsInSource(type))
+                type.IsNonImplicitAndFromSource())
             {
                 return;
             }
@@ -101,7 +105,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
             foreach (var constructor in type.InstanceConstructors.OrderBy(m => m.Parameters.Length))
             {
-                if (IsInSource(constructor) &&
+                if (constructor.IsNonImplicitAndFromSource() &&
                     NonParamsParameterCount(constructor) < arguments.Count)
                 {
                     var argumentToAdd = DetermineFirstArgumentToAdd(
@@ -146,12 +150,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
         private int NonParamsParameterCount(IMethodSymbol method)
             => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
-
-        private bool IsInSource(ISymbol symbol)
-            => !symbol.IsImplicitlyDeclared &&
-               symbol.DeclaringSyntaxReferences.Length > 0 &&
-               symbol.Locations.Length > 0 && 
-               symbol.Locations.All(loc => loc.IsInSource);
 
         private async Task<Document> FixAsync(
             Document invocationDocument, 
