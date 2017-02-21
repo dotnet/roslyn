@@ -52,6 +52,7 @@ This document provides guidance for thinking about language interactions and tes
 - Delegates
 - Multi-declaration
 - NoPIA
+- Dynamic
  
 # Code
 - Operators (see Eric's list below)
