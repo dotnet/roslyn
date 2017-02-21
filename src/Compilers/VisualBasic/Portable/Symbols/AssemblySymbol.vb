@@ -524,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     ' ignore candidate
                                     Continue For
                                 End If
-                                If (IsInCorLib(result)) Then
+                                If IsInCorLib(result) Then
                                     ' drop previous result
                                     result = candidate
                                     Continue For

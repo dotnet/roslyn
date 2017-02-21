@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return false;
         }
 
-        internal static bool IsMscorlib(this Assembly assembly)
+        private static bool IsMscorlib(this Assembly assembly)
         {
             return assembly.GetReferencedAssemblies().Length == 0;
         }

@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
+Imports System.IO
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
@@ -135,23 +136,18 @@ End Class"
             Dim compileResult = evalContext.CompileExpression("(1, 2)", errorMessage, testData)
             Assert.Null(errorMessage)
 
+            Using block As ModuleMetadata = ModuleMetadata.CreateFromStream(New MemoryStream(compileResult.Assembly))
+                Dim reader = block.MetadataReader
+
+                Dim appRef = app.Assembly.Identity.Name
+                AssertEx.SetEqual({"corlib 2.0", appRef + " 0.0"}, reader.DumpAssemblyReferences())
+
+                AssertEx.SetEqual({"Object, System, AssemblyRef:corlib",
+                    "ValueTuple`2, System, AssemblyRef:" + appRef, ' ValueTuple comes from app, not corlib
+                    ", System, AssemblyRef:" + appRef},
+                    reader.DumpTypeReferences())
+            End Using
         End Sub
-
-
-        '            Using (ModuleMetadata block = ModuleMetadata.CreateFromStream(New MemoryStream(compileResult.Assembly)))
-        '            {
-        '                var reader = block.MetadataReader;
-
-        '                var appRef = app.Assembly.Identity.Name;
-        '                AssertEx.SetEqual(New[] { "corlib 2.0", appRef + " 0.0" }, reader.DumpAssemblyReferences());
-
-        '                AssertEx.SetEqual(New[] {
-        '                        "Object, System, AssemblyRef:corlib",
-        '                        "ValueTuple`2, System, AssemblyRef:" + appRef, // ValueTuple comes from app, Not corlib
-        '                        ", System, AssemblyRef:" + appRef },
-        '                    reader.DumpTypeReferences());
-        '            }
-        '        }
 
         <Fact>
         Public Sub TupleElementNamesAttribute_NotAvailable()
@@ -385,25 +381,25 @@ End Class"
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp, references:={MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
-                validator:= Sub(runtime)
-                    Dim context = CreateMethodContext(runtime, "C.M")
-                    Dim errorMessage As String = Nothing
-                    Dim testData = New CompilationTestData()
-                    Dim result = context.CompileExpression(
-                        "y = DirectCast(x, (A As Integer, B As Integer))",
-                        DkmEvaluationFlags.None,
-                        NoAliases,
-                        errorMessage,
-                        testData)
-                    Assert.Null(errorMessage)
-                    Dim typeInfo As ReadOnlyCollection(Of Byte) = Nothing
-                    Dim typeInfoId = result.GetCustomTypeInfo(typeInfo)
-                    Assert.Null(typeInfo)
-                    Dim methodData = testData.GetMethodData("<>x.<>m0")
-                    Dim method = methodData.Method
-                    Assert.Null(GetTupleElementNamesAttributeIfAny(method))
-                    methodData.VerifyIL(
-"{
+                validator:=Sub(runtime)
+                               Dim context = CreateMethodContext(runtime, "C.M")
+                               Dim errorMessage As String = Nothing
+                               Dim testData = New CompilationTestData()
+                               Dim result = context.CompileExpression(
+                                   "y = DirectCast(x, (A As Integer, B As Integer))",
+                                   DkmEvaluationFlags.None,
+                                   NoAliases,
+                                   errorMessage,
+                                   testData)
+                               Assert.Null(errorMessage)
+                               Dim typeInfo As ReadOnlyCollection(Of Byte) = Nothing
+                               Dim typeInfoId = result.GetCustomTypeInfo(typeInfo)
+                               Assert.Null(typeInfo)
+                               Dim methodData = testData.GetMethodData("<>x.<>m0")
+                               Dim method = methodData.Method
+                               Assert.Null(GetTupleElementNamesAttributeIfAny(method))
+                               methodData.VerifyIL(
+           "{
   // Code size       48 (0x30)
   .maxstack  4
   .locals init ((Integer, Integer) V_0, //x
@@ -423,7 +419,7 @@ End Class"
   IL_002e:  stind.ref
   IL_002f:  ret
 }")
-                            End Sub)
+                           End Sub)
         End Sub
 
         <WorkItem(13589, "https://github.com/dotnet/roslyn/issues/13589")>
