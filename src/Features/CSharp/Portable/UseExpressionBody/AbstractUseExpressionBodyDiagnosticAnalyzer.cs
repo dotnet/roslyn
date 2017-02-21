@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -59,43 +60,75 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         internal virtual Diagnostic AnalyzeSyntax(OptionSet optionSet, TDeclaration declaration)
         {
+            // Note: we will always offer to convert a block to an expression-body (and vice versa)
+            // if possible.  All the user preference does is determine if we show them anything in
+            // the UI (i.e. suggestion dots, or a squiggle) to let them know that they can make the
+            // change.  
+            //
+            // This way, users can turn off the option so they don't get notified, but they can still
+            // make the transformation on a case by case basis.
+            //
+            // Note: if we decide to hide any adornments, then we also broaden the location where the
+            // fix is available.  That way the user can go to any place in the member and choose to
+            // convert it.  Otherwise, they'd have no idea what the 'right' location was to invoke
+            // the conversion.
+            //
+            // Also, if the diagnostic is hidden, we'll lower the priority of the code action.  We
+            // always want it to be available.  But we don't want it to override issues that are
+            // actually being reported in the UI.
+
             var preferExpressionBodiedOption = optionSet.GetOption(_option);
 
             var expressionBody = GetExpressionBody(declaration);
 
-            if (preferExpressionBodiedOption.Value)
+            if (expressionBody == null)
             {
-                if (expressionBody == null)
+                // They don't have an expression body.  See if we can convert into one.
+                // If so, offer the conversion (with the proper severity depending on their options).
+                if (!GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options,
+                        out expressionBody, out var semicolonToken))
                 {
-                    // They want expression bodies and they don't have one.  See if we can
-                    // convert this to have an expression body.
-                    if (GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options,
-                            out expressionBody, out var semicolonToken))
-                    {
-                        var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
-                        return Diagnostic.Create(
-                            CreateDescriptorWithTitle(_expressionBodyTitle, preferExpressionBodiedOption.Notification.Value),
-                            GetBody(declaration).Statements[0].GetLocation(),
-                            additionalLocations: additionalLocations);
-                    }
+                    // Not a block that can be converted to an expression.
+                    return null;
                 }
+
+                var severity = preferExpressionBodiedOption.Value
+                    ? preferExpressionBodiedOption.Notification.Value
+                    : DiagnosticSeverity.Hidden;
+
+                var location = severity == DiagnosticSeverity.Hidden
+                    ? declaration.GetLocation()
+                    : GetBody(declaration).Statements[0].GetLocation();
+
+                var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
+                return Diagnostic.Create(
+                    CreateDescriptorWithTitle(_expressionBodyTitle, severity, GetCustomTags(severity)),
+                    location, additionalLocations: additionalLocations);
             }
             else
             {
-                // They don't want expression bodies but they have one.  Offer to convert this to 
-                // a normal block
-                if (expressionBody != null)
-                {
-                    var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
-                    return Diagnostic.Create(
-                        CreateDescriptorWithTitle(_blockBodyTitle, preferExpressionBodiedOption.Notification.Value),
-                        expressionBody.GetLocation(),
-                        additionalLocations: additionalLocations);
-                }
-            }
+                // They have an expression body.  These can always be converted into blocks.
+                // Offer to convert this to a block, with the appropriate severity based
+                // on their options.
+                var severity = preferExpressionBodiedOption.Value
+                    ? DiagnosticSeverity.Hidden
+                    : preferExpressionBodiedOption.Notification.Value;
 
-            return null;
+                var location = severity == DiagnosticSeverity.Hidden
+                    ? declaration.GetLocation()
+                    : expressionBody.GetLocation();
+
+                var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
+                return Diagnostic.Create(
+                    CreateDescriptorWithTitle(_blockBodyTitle, severity, GetCustomTags(severity)),
+                    location, additionalLocations: additionalLocations);
+            }
         }
+
+        private static string[] GetCustomTags(DiagnosticSeverity severity)
+            => severity == DiagnosticSeverity.Hidden
+                ? new[] { WellKnownDiagnosticTags.NotConfigurable }
+                : Array.Empty<string>();
 
         protected static BlockSyntax GetBodyFromSingleGetAccessor(AccessorListSyntax accessorList)
         {

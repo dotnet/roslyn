@@ -41,16 +41,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             _useBlockBodyTitle = useBlockBodyTitle;
         }
 
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+            => diagnostic.Severity != DiagnosticSeverity.Hidden;
+
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
             var documentOptionSet = await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
-            var title = documentOptionSet.GetOption(_option).Value
-                ? _useExpressionBodyTitle
-                : _useBlockBodyTitle;
+
+            var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
+                ? CodeActionPriority.Low
+                : CodeActionPriority.Medium;
 
             context.RegisterCodeFix(
-                new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c)),
+                new MyCodeAction(diagnostic.GetMessage(), priority, c => FixAsync(context.Document, diagnostic, c)),
                 diagnostic);
         }
 
@@ -59,31 +63,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var preferExpressionBody = options.GetOption(_option).Value;
 
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(editor, diagnostic, options, preferExpressionBody, cancellationToken);
+                AddEdits(editor, diagnostic, options, cancellationToken);
             }
         }
 
         private void AddEdits(
             SyntaxEditor editor, Diagnostic diagnostic,
-            OptionSet options, bool preferExpressionBody,
-            CancellationToken cancellationToken)
+            OptionSet options, CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
             var declaration = (TDeclaration)declarationLocation.FindNode(cancellationToken);
 
-            var updatedDeclaration = this.Update(declaration, preferExpressionBody, options)
+            var updatedDeclaration = this.Update(declaration, options)
                                          .WithAdditionalAnnotations(Formatter.Annotation);
 
             editor.ReplaceNode(declaration, updatedDeclaration);
         }
 
-        private TDeclaration Update(TDeclaration declaration, bool preferExpressionBody, OptionSet options)
+        private TDeclaration Update(TDeclaration declaration, OptionSet options)
         {
+            var preferExpressionBody = GetBody(declaration) != null;
             if (preferExpressionBody)
             {
                 GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options,
@@ -166,9 +169,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+            internal override CodeActionPriority Priority { get; }
+
+            public MyCodeAction(string title, CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
+                this.Priority = priority;
             }
         }
     }
