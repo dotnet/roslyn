@@ -143,8 +143,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var title = string.Format(FeaturesResources.Add_parameter_to_0, signature);
 
                 context.RegisterCodeFix(
-                     new MyCodeAction(title, c => FixAsync(document, constructor, argumentToAdd, arguments, c)),
-                     context.Diagnostics);
+                    new MyCodeAction(title, c => FixAsync(document, constructor, argumentToAdd, arguments, c)),
+                    context.Diagnostics);
             }
         }
 
@@ -261,7 +261,16 @@ namespace Microsoft.CodeAnalysis.AddParameter
                         return argument;
                     }
 
+                    // Now check the type of the argument versus the type of the parameter.  If they
+                    // don't match, then this is the argument we should make the parameter for.
                     var argumentTypeInfo = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfArgument(argument));
+                    if (argumentTypeInfo.Type == null && argumentTypeInfo.ConvertedType == null)
+                    {
+                        // Didn't know the type of the argument.  We shouldn't assume it doesn't
+                        // match a parameter. 
+                        continue;
+                    }
+
                     var parameter = method.Parameters[i];
 
                     if (!TypeInfoMatchesType(argumentTypeInfo, parameter.Type))
