@@ -31,7 +31,8 @@ try {
     }
 
     $changeFilePath = [IO.Path]::GetTempFileName()
-    $changeList | out-file $changeFilePath
+    $changeList -join [Environment]::NewLine | out-file $changeFilePath
+    write-host (gc -raw $changeFilePath)
 
     $fullSln = join-path $rootPath "..\Roslyn.sln"
     if (test-path $fullSln) {

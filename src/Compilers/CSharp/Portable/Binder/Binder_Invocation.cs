@@ -1181,7 +1181,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             foreach (var parameterList in parameterListList)
                             {
                                 var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
-                                if (parameterType?.Kind == SymbolKind.NamedType)
+                                if (parameterType?.Kind == SymbolKind.NamedType &&
+                                    (object)parameterType.GetDelegateType() != null)
                                 {
                                     var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType);
                                 }

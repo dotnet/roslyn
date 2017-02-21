@@ -59,6 +59,7 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.AllInOne.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.cs" />
     <Compile Include="Diagnostics\GetDiagnosticsTests.cs" />
+    <Compile Include="Diagnostics\IOperationTests.cs" />
     <Compile Include="Diagnostics\OperationAnalyzerTests.cs" />
     <Compile Include="FlowAnalysis\FlowDiagnosticTests.cs" />
     <Compile Include="FlowAnalysis\FlowTestBase.cs" />

@@ -430,9 +430,9 @@ Friend Class GreenNodeWriter
 
         If Not _parseTree.IsAbstract(nodeStructure) Then
             _writer.WriteLine()
-            _writer.WriteLine("        Friend Overrides Function GetReader() As Func(Of ObjectReader, Object)")
-            _writer.WriteLine("          Return Function(r) New {0}(r)", StructureTypeName(nodeStructure))
-            _writer.WriteLine("        End Function")
+            _writer.WriteLine("        Shared Sub New()")
+            _writer.WriteLine("          ObjectBinder.RegisterTypeReader(GetType({0}), Function(r) New {0}(r))", StructureTypeName(nodeStructure))
+            _writer.WriteLine("        End Sub")
         End If
 
         _writer.WriteLine()
@@ -441,6 +441,8 @@ Friend Class GreenNodeWriter
     Private Function ReaderMethod(type As String) As String
         Select Case type
             Case "Integer"
+                Return "ReadInt32"
+            Case "SyntaxKind"
                 Return "ReadInt32"
             Case "Boolean"
                 Return "ReadBoolean"
@@ -452,6 +454,8 @@ Friend Class GreenNodeWriter
     Private Function WriterMethod(type As String) As String
         Select Case type
             Case "Integer"
+                Return "WriteInt32"
+            Case "SyntaxKind"
                 Return "WriteInt32"
             Case "Boolean"
                 Return "WriteBoolean"

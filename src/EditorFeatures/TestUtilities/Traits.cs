@@ -27,7 +27,7 @@ namespace Roslyn.Test.Utilities
             public const string ChangeSignature = nameof(ChangeSignature);
             public const string Classification = nameof(Classification);
             public const string ClassView = nameof(ClassView);
-            public const string CodeActionsAddConstructorParameters = "CodeActions.AddConstructorParameters";
+            public const string CodeActionsAddConstructorParametersFromMembers = "CodeActions.AddConstructorParametersFromMembers";
             public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
             public const string CodeActionsAddAsync = "CodeActions.AddAsync";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
@@ -50,7 +50,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsGenerateEndConstruct = "CodeActions.GenerateEndConstruct";
             public const string CodeActionsGenerateEnumMember = "CodeActions.GenerateEnumMember";
             public const string CodeActionsGenerateEvent = "CodeActions.GenerateEvent";
-            public const string CodeActionsGenerateEqualsAndGetHashCode = "CodeActions.GenerateEqualsAndGetHashCode";
+            public const string CodeActionsGenerateEqualsAndGetHashCode = "CodeActions.GenerateEqualsAndGetHashCodeFromMembers";
             public const string CodeActionsGenerateVariable = "CodeActions.GenerateVariable";
             public const string CodeActionsGenerateMethod = "CodeActions.GenerateMethod";
             public const string CodeActionsGenerateType = "CodeActions.GenerateType";
@@ -80,6 +80,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsRemoveByVal = "CodeActions.RemoveByVal";
             public const string CodeActionsRemoveDocCommentNode = "CodeActions.RemoveDocCommentNode";
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
+            public const string CodeActionsRemoveUnusedVariable = "CodeActions.RemoveUnusedVariable";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";

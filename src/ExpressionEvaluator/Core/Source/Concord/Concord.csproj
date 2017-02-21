@@ -22,10 +22,10 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Debugger.Engine\15.0.25824-RC\lib\portable-net45+win8\Microsoft.VisualStudio.Debugger.Engine.dll">
+    <Content Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Debugger.Engine\$(MicrosoftVisualStudioDebuggerEngineVersion)\lib\portable-net45+win8\Microsoft.VisualStudio.Debugger.Engine.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Debugger.Metadata\15.0.25824-RC\lib\portable-net45+win8\Microsoft.VisualStudio.Debugger.Metadata.dll">
+    <Content Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Debugger.Metadata\$(MicrosoftVisualStudioDebuggerMetadataVersion)\lib\portable-net45+win8\Microsoft.VisualStudio.Debugger.Metadata.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

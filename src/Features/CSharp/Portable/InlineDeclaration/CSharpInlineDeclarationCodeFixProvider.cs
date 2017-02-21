@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             Document document, ImmutableArray<Diagnostic> diagnostics, 
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var options = document.Project.Solution.Options;
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // Attempt to use an out-var declaration if that's the style the user prefers.
             // Note: if using 'var' would cause a problem, we will use the actual type
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // inlining the declaration, and thus need to see the effects of that change.
                 editor.ReplaceNode(
                     block.Statements[declarationIndex + 1],
-                    (s, g) => MoveNonIndentationTrivia(localDeclarationStatement, s));
+                    (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclarationStatement));
 
                 editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
             }
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // it for apparent types
 
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
-            var newType = local.Type.GenerateTypeSyntaxOrVar(options, typeIsApperant: false);
+            var newType = local.Type.GenerateTypeSyntaxOrVar(options, typeIsApparent: false);
 
             var declarationExpression = GetDeclarationExpression(
                 sourceText, identifier, newType, singleDeclarator ? null : declarator);
@@ -160,30 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             editor.ReplaceNode(identifier, declarationExpression);
-        }
-
-        private static SyntaxNode MoveNonIndentationTrivia(
-            SyntaxNode from, SyntaxNode to)
-        {
-            // get all the preceding trivia from the 'from' node, not counting the leading
-            // indentation trivia is has.
-            var finalTrivia = from.GetLeadingTrivia().ToList();
-            while (finalTrivia.Count > 0 && finalTrivia.Last().Kind() == SyntaxKind.WhitespaceTrivia)
-            {
-                finalTrivia.RemoveAt(finalTrivia.Count - 1);
-            }
-
-            // Also, add on the trailing trivia if there are trailing comments.
-            var hasTrailingComments = from.GetTrailingTrivia().Any(t => t.IsRegularComment());
-            if (hasTrailingComments)
-            {
-                finalTrivia.AddRange(from.GetTrailingTrivia());
-            }
-
-            // Merge this trivia with the existing trivia on the node.  Format in case
-            // we added comments and need them indented properly.
-            return to.WithPrependedLeadingTrivia(finalTrivia)
-                     .WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(

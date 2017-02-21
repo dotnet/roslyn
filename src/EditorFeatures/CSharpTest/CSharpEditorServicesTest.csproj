@@ -200,9 +200,9 @@
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.cs" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.cs" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
-    <Compile Include="CodeActions\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersTests.cs" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.cs" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.cs" />
+    <Compile Include="GenerateFromMembers\AddConstructorParametersFromMembers\AddConstructorParametersFromMembersTests.cs" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.cs" />
+    <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.cs" />
     <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.cs" />
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.cs" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.cs" />
@@ -229,6 +229,7 @@
     <Compile Include="Diagnostics\NamingStyles\NamingStylesTests_OptionSets.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.cs" />
+    <Compile Include="Diagnostics\RemoveUnusedVariable\RemoveUnusedVariableTest.cs" />
     <Compile Include="Extensions\ContextQuery\IsPossibleDeconstructionDesignationTests.cs" />
     <Compile Include="Extensions\ContextQuery\PossibleTupleContextTests.cs" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.cs" />

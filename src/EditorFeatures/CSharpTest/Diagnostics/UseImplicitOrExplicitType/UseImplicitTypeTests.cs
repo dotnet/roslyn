@@ -61,11 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
 
         private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
-        {
-            var options = new Dictionary<OptionKey, object>();
-            options.Add(option, value);
-            return options;
-        }
+            => new Dictionary<OptionKey, object> { { option, value } };
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnFieldDeclaration()
@@ -760,6 +756,7 @@ class C
         {
             await TestAsync(
 @"using System;
+using System.Collections.Generic;
 
 class C
 {
@@ -772,6 +769,7 @@ class C
     }
 }",
 @"using System;
+using System.Collections.Generic;
 
 class C
 {
@@ -1225,10 +1223,10 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule()
         {
-            // The option settings here say 
+            // The option settings here say
             // "use explicit type for built-in types" and
             // "use implicit type where apparent".
-            // The rationale for preferring explicit type for built-in types is 
+            // The rationale for preferring explicit type for built-in types is
             // they have short names and using var doesn't gain anything.
             // Accordingly, the `built-in type` rule precedes over the `where apparent` rule
             // and we do not suggest `use var` here.
@@ -1599,6 +1597,110 @@ withScriptOption: true);
     static void M()
     {
         [|(int, string)|] s = (c: 1, d: ""hello"");
+    }
+}",
+options: ImplicitTypeEverywhere(),
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(14052, "https://github.com/dotnet/roslyn/issues/14052")]
+        public async Task DoNotOfferOnForEachConversionIfItChangesSemantics()
+        {
+            await TestMissingAsync(
+@"using System;
+using System.Collections.Generic;
+
+interface IContractV1
+{
+}
+
+interface IContractV2 : IContractV1
+{
+}
+
+class ContractFactory
+{
+    public IEnumerable<IContractV1> GetContracts()
+    {
+    }
+}
+
+class Program
+{
+    static void M()
+    {
+        var contractFactory = new ContractFactory();
+        foreach ([|IContractV2|] contract in contractFactory.GetContracts())
+        {
+        }
+    }
+}",
+options: ImplicitTypeEverywhere(),
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(14052, "https://github.com/dotnet/roslyn/issues/14052")]
+        public async Task OfferOnForEachConversionIfItDoesNotChangesSemantics()
+        {
+            await TestAsync(
+@"using System;
+using System.Collections.Generic;
+
+interface IContractV1
+{
+}
+
+interface IContractV2 : IContractV1
+{
+}
+
+class ContractFactory
+{
+    public IEnumerable<IContractV1> GetContracts()
+    {
+    }
+}
+
+class Program
+{
+    static void M()
+    {
+        var contractFactory = new ContractFactory();
+        foreach ([|IContractV1|] contract in contractFactory.GetContracts())
+        {
+        }
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+interface IContractV1
+{
+}
+
+interface IContractV2 : IContractV1
+{
+}
+
+class ContractFactory
+{
+    public IEnumerable<IContractV1> GetContracts()
+    {
+    }
+}
+
+class Program
+{
+    static void M()
+    {
+        var contractFactory = new ContractFactory();
+        foreach (var contract in contractFactory.GetContracts())
+        {
+        }
     }
 }",
 options: ImplicitTypeEverywhere(),

@@ -274,6 +274,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }", compareTokens: false);
         }
 
+        [WorkItem(17126, "https://github.com/dotnet/roslyn/issues/17126")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestComments4()
+        {
+            await TestAsync(
+@"using System;
+namespace N {
+    class Program {
+        public static void Main()
+        {
+            object o = null;
+            if (o is int)
+                Console.WriteLine();
+            else if (o is string)
+            {
+                // some comment
+                [|var|] s = (string)o;
+                Console.WriteLine(s);
+            }
+        }
+    }
+}",
+@"using System;
+namespace N {
+    class Program {
+        public static void Main()
+        {
+            object o = null;
+            if (o is int)
+                Console.WriteLine();
+            else if (o is string s) // some comment
+            {
+                Console.WriteLine(s);
+            }
+        }
+    }
+}", compareTokens: false);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task InlineTypeCheckParenthesized1()
         {

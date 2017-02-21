@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Literal(true));
                 }
 
-                // It would be possible to improve this code by only assigning t when returning
+                // It may be possible to improve this code by only assigning t when returning
                 // true (avoid returning a new default value)
                 // bool Is<T>(object e, out T t) where T : struct // non-Nullable value type
                 // {
@@ -203,26 +203,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return tmp.HasValue;
                 // }
                 var tmpType = _factory.SpecialType(SpecialType.System_Nullable_T).Construct(type);
-                if (tmpType == loweredInput.Type)
-                {
-                    var value = _factory.Call(
-                        loweredInput,
-                        GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                    var asg2 = _factory.AssignmentExpression(loweredTarget, value);
-                    var result = requiresNullTest ? MakeNullableHasValue(syntax, loweredInput) : _factory.Literal(true);
-                    return _factory.MakeSequence(asg2, result);
-                }
-                else
-                {
-                    var tmp = _factory.SynthesizedLocal(tmpType, syntax);
-                    var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), _factory.As(loweredInput, tmpType));
-                    var value = _factory.Call(
-                        _factory.Local(tmp),
-                        GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                    var asg2 = _factory.AssignmentExpression(loweredTarget, value);
-                    var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
-                    return _factory.MakeSequence(tmp, asg1, asg2, result);
-                }
+                var tmp = _factory.SynthesizedLocal(tmpType, syntax);
+                var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), tmpType == loweredInput.Type ? loweredInput : _factory.As(loweredInput, tmpType));
+                var value = _factory.Call(
+                    _factory.Local(tmp),
+                    GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                var asg2 = _factory.AssignmentExpression(loweredTarget, value);
+                var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
+                return _factory.MakeSequence(tmp, asg1, asg2, result);
             }
             else // type parameter
             {

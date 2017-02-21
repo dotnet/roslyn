@@ -1,30 +1,35 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.GenerateFromMembers;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateFromMembers
 {
-    internal static class GenerateFromMembersHelpers
+    [ExportLanguageService(typeof(IGenerateFromMembersHelperService), LanguageNames.CSharp), Shared]
+    internal class CSharpGenerateFromMembersHelpersService : IGenerateFromMembersHelperService
     {
-        internal static async Task<IList<MemberDeclarationSyntax>> GetSelectedMembersAsync(
+        public async Task<ImmutableArray<SyntaxNode>> GetSelectedMembersAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return tree.GetMembersInSpan(textSpan, cancellationToken);
+            return ImmutableArray<SyntaxNode>.CastUp(tree.GetMembersInSpan(textSpan, cancellationToken));
         }
 
-        internal static IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, MemberDeclarationSyntax memberDeclaration, CancellationToken cancellationToken)
+        public IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
         {
-            if (memberDeclaration is FieldDeclarationSyntax)
+            if (memberDeclaration is FieldDeclarationSyntax field)
             {
-                return ((FieldDeclarationSyntax)memberDeclaration).Declaration.Variables.Select(
+                return field.Declaration.Variables.Select(
                     v => semanticModel.GetDeclaredSymbol(v, cancellationToken));
             }
 

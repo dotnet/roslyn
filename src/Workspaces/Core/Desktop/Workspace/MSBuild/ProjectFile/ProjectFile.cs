@@ -8,6 +8,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Execution;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -87,19 +89,71 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // connect the host "callback" object with the host services, so we get called back with the exact inputs to the compiler task.
             hostServices.RegisterHostObject(_loadedProject.FullPath, "CoreCompile", taskName, taskHost);
 
-            var buildParameters = new MSB.Execution.BuildParameters(_loadedProject.ProjectCollection);
+            var buildParameters = new BuildParameters(_loadedProject.ProjectCollection);
 
-            var buildRequestData = new MSB.Execution.BuildRequestData(executedProject, new string[] { "Compile" }, hostServices);
+            // capture errors that are output in the build log
+            var errorBuilder = new StringWriter();
+            var errorLogger = new ErrorLogger(errorBuilder) { Verbosity = LoggerVerbosity.Normal };
+            buildParameters.Loggers = new ILogger[] { errorLogger };
+
+            var buildRequestData = new BuildRequestData(executedProject, new string[] { "Compile" }, hostServices);
 
             BuildResult result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
 
             if (result.OverallResult == BuildResultCode.Failure)
             {
-                return new BuildInfo(executedProject, result.Exception?.Message ?? "");
+                if (result.Exception != null)
+                {
+                    return new BuildInfo(executedProject, result.Exception.Message);
+                }
+                else
+                {
+                    return new BuildInfo(executedProject, errorBuilder.ToString());
+                }
             }
             else
             {
                 return new BuildInfo(executedProject, null);
+            }
+        }
+
+        private class ErrorLogger : ILogger
+        {
+            private readonly TextWriter _writer;
+            private bool _hasError;
+            private IEventSource _eventSource;
+
+            public string Parameters { get; set; }
+            public LoggerVerbosity Verbosity { get; set; }
+
+            public ErrorLogger(TextWriter writer)
+            {
+                _writer = writer;
+            }
+
+            public void Initialize(IEventSource eventSource)
+            {
+                _eventSource = eventSource;
+                _eventSource.ErrorRaised += OnErrorRaised;
+            }
+
+            private void OnErrorRaised(object sender, BuildErrorEventArgs e)
+            {
+                if (_hasError)
+                {
+                    _writer.WriteLine();
+                }
+
+                _writer.Write($"{e.File}: ({e.LineNumber}, {e.ColumnNumber}): {e.Message}");
+                _hasError = true;
+            }
+
+            public void Shutdown()
+            {
+                if (_eventSource != null)
+                {
+                    _eventSource.ErrorRaised -= OnErrorRaised;
+                }
             }
         }
 

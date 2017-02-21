@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         Private Async Function TestAPI(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
             Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
-            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=True)
         End Function
 
         Private Async Function TestAPI(definition As XElement,
