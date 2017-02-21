@@ -210,11 +210,7 @@ Public Class SyntaxFactsTests
 
     <Fact>
     Public Sub IsaddressofOperand()
-        Dim source =
-          <compilation name="TestAddressof">
-              <file name="a.vb">
-                  <![CDATA[
-#If Debug Then
+        Dim source = Unit.Make("TestAddressof").WithFile("a.vb", "#If Debug Then
 #End If
 
 Namespace NS1
@@ -237,11 +233,7 @@ Namespace NS1
     Class genClass(Of t)
     End Class
 
-End Namespace
-]]></file>
-          </compilation>
-
-
+End Namespace")
 
         Dim tree = CreateCompilationWithMscorlib(source).SyntaxTrees.Item(0)
         Dim symNode = FindNodeOrTokenByKind(tree, SyntaxKind.AddressOfExpression, 1).AsNode
@@ -1161,7 +1153,7 @@ End Namespace
     <WorkItem(531480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531480")>
     <Fact>
     Public Sub ImplicitLineContinuationAfterQuery()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module M
     Sub M()
         If Nothing Is From c In "" Distinct Then
@@ -1172,7 +1164,7 @@ Module M
         End If
     End Sub
 End Module
-]]>)
+")
         Dim tokens = tree.GetRoot().DescendantTokens().ToArray()
         Dim index = 0
         For Each token In tokens
@@ -1189,7 +1181,7 @@ End Module
     <WorkItem(530665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530665")>
     <Fact>
     Public Sub ImplicitLineContinuationAfterDictionaryAccessOperator()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System.Collections
  
 Module Program
@@ -1199,7 +1191,7 @@ Module Program
         Foo
     End Sub
 End Module
-]]>)
+")
 
         Dim memberAccess = tree.GetRoot().DescendantNodes().OfType(Of MemberAccessExpressionSyntax).Single()
 
