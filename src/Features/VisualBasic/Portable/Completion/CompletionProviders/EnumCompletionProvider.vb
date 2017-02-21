@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class EnumCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 
-        Protected Overrides Function GetPreselectedSymbolsWorker(
+        Protected Overrides Function GetPreselectedItemsWorker(
                 context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, rules As CompletionItemRules)))
 
             If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) Then

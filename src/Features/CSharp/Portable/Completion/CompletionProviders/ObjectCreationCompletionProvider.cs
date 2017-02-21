@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override async Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetPreselectedItemsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            var result = await base.GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
+            var result = await base.GetPreselectedItemsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
             if (result.Any())
             {
                 var type = (ITypeSymbol)result.Single().symbol;

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return recommender.GetRecommendedSymbolsAtPositionAsync(context.Workspace, context.SemanticModel, position, options, cancellationToken);
         }
 
-        protected override async Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetPreselectedItemsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
             var typeInferrer = context.GetLanguageService<ITypeInferenceService>();
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var kind = SymbolCompletionItem.GetKind(completionItem);
             var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id).Concat(document.Id);
             var options = document.Project.Solution.Workspace.Options;
-            var perContextCompletionItems = await base.GetPerContextCompletionItems(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var perContextCompletionItems = await base.GetPerContextItems(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             foreach (var perContextCompletionItem in perContextCompletionItems)
             {
                 var bestCompletionItems = perContextCompletionItem.Item3.Where(item => kind != null && item.symbol.Kind == kind && item.symbol.Name == name);
