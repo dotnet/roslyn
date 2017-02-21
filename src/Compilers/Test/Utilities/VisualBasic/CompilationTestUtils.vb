@@ -169,6 +169,12 @@ Friend Module CompilationUtils
                                                                Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
         Return CreateCompilationWithReferences(sources, {MscorlibRef}.Concat(references), options, parseOptions:=parseOptions)
     End Function
+    Public Function CreateCompilationWithMscorlibAndReferences(sources As Unit,
+                                                               references As IEnumerable(Of MetadataReference),
+                                                               Optional options As VisualBasicCompilationOptions = Nothing,
+                                                               Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
+        Return CreateCompilationWithReferences(sources, {MscorlibRef}.Concat(references), options, parseOptions:=parseOptions)
+    End Function
 
     ''' <summary>
     ''' 
@@ -527,7 +533,35 @@ Friend Module CompilationUtils
 
         Return CreateCompilationWithMscorlibAndReferences(sources, references, options, parseOptions)
     End Function
+    Public Function CreateCompilationWithCustomILSource(sources As Unit,
+                                                        ilSource As String,
+                                                        Optional options As VisualBasicCompilationOptions = Nothing,
+                                                        Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
+                                                        Optional includeVbRuntime As Boolean = False,
+                                                        Optional includeSystemCore As Boolean = False,
+                                                        Optional appendDefaultHeader As Boolean = True,
+                                                        Optional parseOptions As VisualBasicParseOptions = Nothing,
+                                                        Optional additionalReferences As IEnumerable(Of MetadataReference) = Nothing,
+                                                        <Out> Optional ByRef ilReference As MetadataReference = Nothing,
+                                                        <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing
+    ) As VisualBasicCompilation
+        Dim references = If(additionalReferences IsNot Nothing, New List(Of MetadataReference)(additionalReferences), New List(Of MetadataReference))
+        If includeVbRuntime Then
+            references.Add(MsvbRef)
+        End If
+        If includeSystemCore Then
+            references.Add(SystemCoreRef)
+        End If
 
+        If ilSource Is Nothing Then
+            Return CreateCompilationWithMscorlibAndReferences(sources, references, options, parseOptions)
+        End If
+
+        ilReference = CreateReferenceFromIlCode(ilSource, appendDefaultHeader, ilImage)
+        references.Add(ilReference)
+
+        Return CreateCompilationWithMscorlibAndReferences(sources, references, options, parseOptions)
+    End Function
     Public Function CreateReferenceFromIlCode(ilSource As String, Optional appendDefaultHeader As Boolean = True, <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing) As MetadataReference
         Using reference = IlasmUtilities.CreateTempAssembly(ilSource, appendDefaultHeader)
             ilImage = ImmutableArray.Create(IO.File.ReadAllBytes(reference.Path))
