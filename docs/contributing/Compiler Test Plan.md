@@ -102,7 +102,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
 
 # Eric's cheatsheet
 
-Statements 
+## Statements 
 ```
 { … }  
 ;   
@@ -134,44 +134,44 @@ break;
 continue; 
 ```
 
-Expression classifications 
+## Expression classifications 
   
 Every expression can be classified as exactly one of these: 
   
-Value 
-Variable 
-Namespace 
-Type 
-Method group 
-Null literal 
-Anonymous function 
-Property 
-Indexer 
-Event 
-Void-returning method call 
-Array initializer (*) 
-__arglist (*) 
+- Value 
+- Variable 
+- Namespace 
+- Type 
+- Method group 
+- Null literal 
+- Anonymous function 
+- Property 
+- Indexer 
+- Event 
+- Void-returning method call 
+- Array initializer (*) 
+- __arglist (*) 
   
 (*) Technically not an expression according to the spec. 
   
 Note that only values, variables, properties, indexers and events have a type. 
   
-Variable classifications 
+## Variable classifications 
   
 A variable is a storage location. These are all the different ways to refer to a storage location: 
   
-Static field 
-Instance field 
-Array element 
-Formal param, value 
-Formal param, ref 
-Formal param, out 
-Local variable 
-Pointer dereference 
-__refvalue 
+- Static field 
+- Instance field 
+- Array element 
+- Formal param, value 
+- Formal param, ref 
+- Formal param, out 
+- Local variable 
+- Pointer dereference 
+- __refvalue 
   
-Operators 
-  
+## Operators 
+```
 x.y 
 f( ) 
 a[ ] 
@@ -233,73 +233,74 @@ __arglist( )
 __refvalue( x, X ) 
 __reftype( x ) 
 __makeref( x ) 
+```
+
+## Explicit conversions 
   
-Explicit conversions 
+- Numeric 
+- Enum 
+- Nullable 
+- Reference  
+- Unboxing 
+- Dynamic 
+- Type parameter 
+- User defined 
+- Pointer to pointer 
+- Pointer to integral 
+- Integral to pointer 
   
-Numeric 
-Enum 
-Nullable 
-Reference  
-Unboxing 
-Dynamic 
-Type parameter 
-User defined 
-Pointer to pointer 
-Pointer to integral 
-Integral to pointer 
+## Implicit conversions 
   
-Implicit conversions 
+- Identity 
+- Numeric 
+- Literal zero to enum (we actually do constant zero, not literal zero) 
+- Nullable 
+- Null literal 
+- Reference 
+- Boxing 
+- Dynamic 
+- Constant 
+- Type parameter 
+- User defined 
+- Anonymous function 
+- Method group  
+- Pointer to void pointer 
+- Null literal to pointer 
   
-Identity 
-Numeric 
-Literal zero to enum (we actually do constant zero, not literal zero) 
-Nullable 
-Null literal 
-Reference 
-Boxing 
-Dynamic 
-Constant 
-Type parameter 
-User defined 
-Anonymous function 
-Method group  
-Pointer to void pointer 
-Null literal to pointer 
+## Types 
   
-Types 
-  
-Class 
-Interface 
-Delegate 
-Struct 
-Enum 
-Nullable 
-Pointer 
-Type parameter 
+- Class 
+- Interface 
+- Delegate 
+- Struct 
+- Enum 
+- Nullable 
+- Pointer 
+- Type parameter 
   
 Things that can be members of another thing 
   
-Class 
-Struct 
-Interface 
-Enum 
-Delegate 
-Namespace 
-Property 
-Event 
-Constructor 
-Destructor 
-Method 
-Interface method 
-Field 
-User-defined indexer 
-User-defined operator 
-User-defined conversion 
+- Class 
+- Struct 
+- Interface 
+- Enum 
+- Delegate 
+- Namespace 
+- Property 
+- Event 
+- Constructor 
+- Destructor 
+- Method 
+- Interface method 
+- Field 
+- User-defined indexer 
+- User-defined operator 
+- User-defined conversion 
   
-Metadata table numbers / token prefixes 
+## Metadata table numbers / token prefixes 
  
 If you look at a 32 bit integer token as a hex number, the first two digits identify the “table number” and the last six digits are an offset into that table. The table numbers are: 
-  
+```
 00 Module 
 01 TypeRef 
 02 TypeDef 
@@ -345,3 +346,4 @@ If you look at a 32 bit integer token as a hex number, the first two digits iden
 2A GenericParam 
 2B MethodSpec 
 2C GenericConstraint 
+```
