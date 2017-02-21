@@ -505,5 +505,26 @@ namespace N
     }
 }", compareTokens: false);
         }
+
+        [WorkItem(17122, "https://github.com/dotnet/roslyn/issues/17122")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingOnNullableType()
+        {
+            await TestMissingAsync(
+@"using System;
+namespace N
+{
+    class Program
+    {
+        public static void Main()
+        {
+            object o = null;
+            [|var|] i = o as int?;
+            if (i != null)
+                Console.WriteLine(i);
+        }
+    }
+}");
+        }
     }
 }
