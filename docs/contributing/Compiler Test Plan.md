@@ -54,7 +54,7 @@ This document provides guidance for thinking about language interactions and tes
 - NoPIA
  
 # Code
-- Operators (see Eric's list)
+- Operators (see Eric's list below)
 - Lambdas (capture of parameters or locals, target typing)
 - Execution order
 - Target typing (var, lambdas, integrals)
@@ -119,7 +119,7 @@ switch(…) { … }
 while(…) … 
 do … while(…); 
 for( … ; … ; … ) … 
-foreach(…) … 
+foreach(…) …
 goto … ; 
 throw … ; 
 return … ; 
@@ -159,7 +159,7 @@ Note that only values, variables, properties, indexers and events have a type.
 ## Variable classifications 
   
 A variable is a storage location. These are all the different ways to refer to a storage location: 
-  
+
 - Static field 
 - Instance field 
 - Array element 
@@ -248,7 +248,9 @@ __makeref( x )
 - Pointer to pointer 
 - Pointer to integral 
 - Integral to pointer 
-  
+- Tuple literal
+- Tuple
+
 ## Implicit conversions 
   
 - Identity 
@@ -265,8 +267,12 @@ __makeref( x )
 - Anonymous function 
 - Method group  
 - Pointer to void pointer 
-- Null literal to pointer 
-  
+- Null literal to pointer
+- Interpolated string
+- Tuple literal
+- Tuple
+
+
 ## Types 
   
 - Class 
