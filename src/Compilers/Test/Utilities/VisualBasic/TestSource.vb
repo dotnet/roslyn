@@ -31,6 +31,7 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Shared Function Make(Optional Name As String = Nothing) As UnitTests.Unit
             Return New Unit(Name)
         End Function
+
         Public Class TestFile
             Public ReadOnly Property Name As String
             Public ReadOnly Property Source As SourceText
@@ -45,6 +46,7 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Public Shared Function Create(Name As String, Text As String) As TestFile
                 Return New TestFile(Name, SourceText.From(Text))
             End Function
+
             Public Class SourceText
                 Public ReadOnly Property Text As String
                 Private Sub New(Text As String)
@@ -54,20 +56,24 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     Return New SourceText(Text)
                 End Function
             End Class
+
         End Class
 
     End Class
+
     Namespace Bunch
+
         Public MustInherit Class Bunch(Of T)
+            Private Shared ReadOnly Property __Empty As New Zero(Of T)
+            Public Shared ReadOnly Property Empty As Zero(Of T) = __Empty
             Public ReadOnly Property Count As Int32
             Friend Sub New(Count As Int32)
                 Me.Count = Count
             End Sub
             MustOverride Function Items() As IEnumerable(Of T)
-            Shared __Empty As New Zero(Of T)
-            Public Shared ReadOnly Property Empty As Zero(Of T) = __Empty
             MustOverride Function Add(Item As T) As Bunch(Of T)
         End Class
+
         Public NotInheritable Class Zero(Of T) : Inherits Bunch(Of T)
             Friend Sub New()
                 MyBase.New(0)
@@ -79,6 +85,7 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Return If(Item Is Nothing, DirectCast(Me, Bunch(Of T)), New One(Of T)(Item))
             End Function
         End Class
+
         Public NotInheritable Class One(Of T) : Inherits Bunch(Of T)
             Private _i0 As T
             Friend Sub New(i0 As T)
@@ -92,6 +99,7 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Return If(Item Is Nothing, DirectCast(Me, Bunch(Of T)), New Two(Of T)(_i0, Item))
             End Function
         End Class
+
         Public NotInheritable Class Two(Of T) : Inherits Bunch(Of T)
             Private _i0 As T, _i1 As T
             Friend Sub New(i0 As T, i1 As T)
@@ -105,6 +113,7 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Return If(Item Is Nothing, DirectCast(Me, Bunch(Of T)), New Three(Of T)(_i0, _i1, Item))
             End Function
         End Class
+
         Public NotInheritable Class Three(Of T) : Inherits Bunch(Of T)
             Private _i0 As T, _i1 As T, _i2 As T
             Friend Sub New(i0 As T, i1 As T, i2 As T)
@@ -120,6 +129,7 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Return If(Item Is Nothing, DirectCast(Me, Bunch(Of T)), New Many(Of T)(Count + 1, Items.Concat(Enumerable.Repeat(Item, 1))))
             End Function
         End Class
+
         Public NotInheritable Class Many(Of T) : Inherits Bunch(Of T)
             Private _ix As IEnumerable(Of T)
             Friend Sub New(Count As Int32, ix As IEnumerable(Of T))
@@ -133,5 +143,7 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Return If(Item Is Nothing, Me, New Many(Of T)(Count + 1, Items.Concat(Enumerable.Repeat(Item, 1))))
             End Function
         End Class
+
     End Namespace
+
 End Namespace
