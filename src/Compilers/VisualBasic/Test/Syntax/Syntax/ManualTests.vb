@@ -6,8 +6,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-
-Partial Public Class GeneratedTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+    Partial Public Class GeneratedTests
 
         <Fact>
         Public Sub TestUpdateWithNull()
@@ -38,22 +38,22 @@ Partial Public Class GeneratedTests
 
         <Fact()>
         Public Sub TestCastExpression()
-        Dim objUnderTest As VisualBasicSyntaxNode = SyntaxFactory.CTypeExpression(
+            Dim objUnderTest As VisualBasicSyntaxNode = SyntaxFactory.CTypeExpression(
             SyntaxFactory.Token(SyntaxKind.CTypeKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken),
             GenerateRedCharacterLiteralExpression(), SyntaxFactory.Token(SyntaxKind.CommaToken), GenerateRedArrayType(), SyntaxFactory.Token(SyntaxKind.CloseParenToken))
-        Assert.True(Not objUnderTest Is Nothing, "obj can't be Nothing")
+            Assert.True(Not objUnderTest Is Nothing, "obj can't be Nothing")
         End Sub
 
         <Fact()>
         Public Sub TestOnErrorGoToStatement()
-        Dim objUnderTest As VisualBasicSyntaxNode = SyntaxFactory.OnErrorGoToStatement(SyntaxKind.OnErrorGoToLabelStatement,
+            Dim objUnderTest As VisualBasicSyntaxNode = SyntaxFactory.OnErrorGoToStatement(SyntaxKind.OnErrorGoToLabelStatement,
                                                                                            SyntaxFactory.Token(SyntaxKind.OnKeyword),
                                                                                            SyntaxFactory.Token(SyntaxKind.ErrorKeyword),
                                                                                            SyntaxFactory.Token(SyntaxKind.GoToKeyword),
                                                                                            Nothing,
                                                                                            SyntaxFactory.IdentifierLabel(
                                                                                            GenerateRedIdentifierToken()))
-        Assert.True(Not objUnderTest Is Nothing, "obj can't be Nothing")
+            Assert.True(Not objUnderTest Is Nothing, "obj can't be Nothing")
         End Sub
 
         <Fact()>
@@ -240,3 +240,4 @@ End Namespace
         End Sub
     End Class
 
+End Namespace

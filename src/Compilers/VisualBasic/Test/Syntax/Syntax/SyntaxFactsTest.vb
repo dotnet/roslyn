@@ -1156,11 +1156,11 @@ End Namespace")
         Dim tree = ParseAndVerify("
 Module M
     Sub M()
-        If Nothing Is From c In "" Distinct Then
+        If Nothing Is From c In """" Distinct Then
         End If
-        If Nothing Is From c In "" Order By c Ascending Then
+        If Nothing Is From c In """" Order By c Ascending Then
         End If
-        If Nothing Is From c In "" Order By c Descending Then
+        If Nothing Is From c In """" Order By c Descending Then
         End If
     End Sub
 End Module
