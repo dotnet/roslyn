@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var ifStatement = (IfStatementSyntax)syntaxContext.Node;
 
             // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
-            // in projects targetting a lesser version.
+            // in projects targeting a lesser version.
             if (((CSharpParseOptions)ifStatement.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
             {
                 return;
@@ -130,6 +130,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var initializerValue = declarator.Initializer.Value;
             if (!initializerValue.IsKind(SyntaxKind.AsExpression))
             {
+                return;
+            }
+
+            var asExpression = (BinaryExpressionSyntax)initializerValue;
+            var typeNode = (TypeSyntax)asExpression.Right;
+            var type = syntaxContext.SemanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
+            if (type.IsNullable())
+            {
+                // not legal to write "if (x is int? y)"
                 return;
             }
 
