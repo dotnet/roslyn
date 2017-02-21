@@ -18,17 +18,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub MemberAccessNoContainingWith()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="MemberAccessNoContainingWith">
-    <file name="a.vb">
-Imports System        
+                Unit.Make("MemberAccessNoContainingWith").WithFile("a.vb",
+"Imports System        
 Module M1
     Sub Main()
         Dim x as Integer
         x = .foo
     End Sub
 End Module
-    </file>
-</compilation>)
+"))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -41,9 +39,7 @@ BC30157: Leading '.' or '!' can only appear inside a 'With' statement.
         ' Test field access off a local variable of structure type.
         <Fact>
         Public Sub FieldAccessInLocalStruct()
-            CompileAndVerify(
-<compilation name="FieldAccessInLocalStruct">
-    <file name="a.vb">
+            CompileAndVerify(Unit.Make("FieldAccessInLocalStruct").WithFile("a.vb","
 Imports System        
 
 Module M1
@@ -56,20 +52,14 @@ Module M1
         Console.WriteLine(x.Field1)
     End Sub
 End Module
-    </file>
-</compilation>,
+"),
 expectedOutput:="123")
         End Sub
 
         <WorkItem(679765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
         <Fact>
         Public Sub Bug679765()
-            CompileAndVerify(
-<compilation>
-    <file name="a.vb">
-        <%= My.Resources.Resource.T_68086 %>
-    </file>
-</compilation>, additionalRefs:={MsvbRef})
+            CompileAndVerify(Unit.Make().WithFile("a.vb", My.Resources.Resource.T_68086), additionalRefs:={MsvbRef})
         End Sub
 
         <WorkItem(707924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707924")>
@@ -83,9 +73,8 @@ expectedOutput:="123")
         ' Test access to a local variable and assignment of them..
         <Fact>
         Public Sub LocalVariable1()
-            CompileAndVerify(
-<compilation name="LocalVariable1">
-    <file name="a.vb">
+            CompileAndVerify(Unit.Make("LocalVariable1").WithFile("a.vb",
+"
 Imports System        
 
 Module M1
@@ -97,8 +86,7 @@ Module M1
         Console.WriteLine(y)
     End Sub
 End Module
-    </file>
-</compilation>,
+"),
     expectedOutput:="143")
         End Sub
 
@@ -106,8 +94,7 @@ End Module
         <Fact>
         Public Sub LocalVariableWrongArity()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="LocalVariable1">
-    <file name="a.vb">
+                Unit.Make("LocalVariable1").WithFile("a.vb","
 Imports System        
 
 Module M1
@@ -129,9 +116,7 @@ Class Q(Of T, U)
         dim x as integer = U(Of T)
     End Sub
 End Class
-
-    </file>
-</compilation>)
+"))
 
             AssertTheseDiagnostics(compilation,
 <expected>

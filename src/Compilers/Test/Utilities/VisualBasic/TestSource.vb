@@ -1,10 +1,15 @@
-﻿Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
+﻿Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Test.Utilities.CommonTestBase
+
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class Unit
-        Private Property _Files As Immutable.ImmutableArray(Of TestFile) = Immutable.ImmutableArray(Of TestFile).Empty
-        Public ReadOnly Property Files As IList(Of TestFile)
+        'Private Property _Files As Immutable.ImmutableArray(Of TestFile) = Immutable.ImmutableArray(Of TestFile).Empty
+        Private Property _Files As Bunch.Bunch(Of TestFile) = Bunch.Bunch(Of TestFile).Empty
+        Public ReadOnly Property Files As IEnumerable(Of TestFile)
             Get
-                Return _Files
+                Return _Files.Items
             End Get
         End Property
         Public ReadOnly Property Name As String
@@ -52,7 +57,81 @@
         End Class
 
     End Class
-
-
-
+    Namespace Bunch
+        Public MustInherit Class Bunch(Of T)
+            Public ReadOnly Property Count As Int32
+            Friend Sub New(Count As Int32)
+                Me.Count = Count
+            End Sub
+            MustOverride Function Items() As IEnumerable(Of T)
+            Shared __Empty As New Zero(Of T)
+            Public Shared ReadOnly Property Empty As Zero(Of T) = __Empty
+            MustOverride Function Add(Item As T) As Bunch(Of T)
+        End Class
+        Public NotInheritable Class Zero(Of T) : Inherits Bunch(Of T)
+            Friend Sub New()
+                MyBase.New(0)
+            End Sub
+            Public Overrides Function Items() As IEnumerable(Of T)
+                Return SpecializedCollections.EmptyEnumerable(Of T)
+            End Function
+            Public Overrides Function Add(Item As T) As Bunch(Of T)
+                Return If(Item Is Nothing, DirectCast(Me, Bunch(Of T)), New One(Of T)(Item))
+            End Function
+        End Class
+        Public NotInheritable Class One(Of T) : Inherits Bunch(Of T)
+            Private _i0 As T
+            Friend Sub New(i0 As T)
+                MyBase.New(1)
+                _i0 = i0
+            End Sub
+            Public Overrides Iterator Function Items() As IEnumerable(Of T)
+                Yield _i0
+            End Function
+            Public Overrides Function Add(Item As T) As Bunch(Of T)
+                Return If(Item Is Nothing, DirectCast(Me, Bunch(Of T)), New Two(Of T)(_i0, Item))
+            End Function
+        End Class
+        Public NotInheritable Class Two(Of T) : Inherits Bunch(Of T)
+            Private _i0 As T, _i1 As T
+            Friend Sub New(i0 As T, i1 As T)
+                MyBase.New(2)
+                _i0 = i0 : _i1 = i1
+            End Sub
+            Public Overrides Iterator Function Items() As IEnumerable(Of T)
+                Yield _i0 : Yield _i1
+            End Function
+            Public Overrides Function Add(Item As T) As Bunch(Of T)
+                Return If(Item Is Nothing, DirectCast(Me, Bunch(Of T)), New Three(Of T)(_i0, _i1, Item))
+            End Function
+        End Class
+        Public NotInheritable Class Three(Of T) : Inherits Bunch(Of T)
+            Private _i0 As T, _i1 As T, _i2 As T
+            Friend Sub New(i0 As T, i1 As T, i2 As T)
+                MyBase.New(3)
+                _i0 = i0 : _i1 = i1 : _i2 = i2
+            End Sub
+            Public Overrides Iterator Function Items() As IEnumerable(Of T)
+                Yield _i0
+                Yield _i1
+                Yield _i2
+            End Function
+            Public Overrides Function Add(Item As T) As Bunch(Of T)
+                Return If(Item Is Nothing, DirectCast(Me, Bunch(Of T)), New Many(Of T)(Count + 1, Items.Concat(Enumerable.Repeat(Item, 1))))
+            End Function
+        End Class
+        Public NotInheritable Class Many(Of T) : Inherits Bunch(Of T)
+            Private _ix As IEnumerable(Of T)
+            Friend Sub New(Count As Int32, ix As IEnumerable(Of T))
+                MyBase.New(Count)
+                _ix = ix
+            End Sub
+            Public Overrides Function Items() As IEnumerable(Of T)
+                Return _ix.AsEnumerable
+            End Function
+            Public Overrides Function Add(Item As T) As Bunch(Of T)
+                Return If(Item Is Nothing, Me, New Many(Of T)(Count + 1, Items.Concat(Enumerable.Repeat(Item, 1))))
+            End Function
+        End Class
+    End Namespace
 End Namespace
