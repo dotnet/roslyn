@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 // They don't have an expression body.  See if we can convert into one.
                 // If so, offer the conversion (with the proper severity depending on their options).
-                expressionBody = GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options);
-                if (expressionBody == null)
+                if (!GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options,
+                        out expressionBody, out var semicolonToken))
                 {
                     // Not a block that can be converted to an expression.
                     return null;

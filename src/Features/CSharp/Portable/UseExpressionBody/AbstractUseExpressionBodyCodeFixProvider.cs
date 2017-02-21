@@ -89,7 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var preferExpressionBody = GetBody(declaration) != null;
             if (preferExpressionBody)
             {
-                var semicolonToken = GetFirstStatementSemicolon(GetBody(declaration));
+                GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options,
+                    out var expressionBody, out var semicolonToken);
+
                 var trailingTrivia = semicolonToken.TrailingTrivia
                                                    .Where(t => t.Kind() != SyntaxKind.EndOfLineTrivia)
                                                    .Concat(declaration.GetTrailingTrivia());
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return WithSemicolonToken(
                            WithExpressionBody(
                                WithBody(declaration, null),
-                               GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options)),
+                               expressionBody),
                            semicolonToken);
             }
             else
@@ -131,27 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 CreateReturnStatementForExpression(declaration));
 
             return WithBody(declaration, block);
-        }
-
-        private SyntaxToken GetFirstStatementSemicolon(BlockSyntax body)
-        {
-            var firstStatement = body.Statements[0];
-            if (firstStatement.IsKind(SyntaxKind.ExpressionStatement))
-            {
-                return ((ExpressionStatementSyntax)firstStatement).SemicolonToken;
-            }
-            else if (firstStatement.IsKind(SyntaxKind.ReturnStatement))
-            {
-                return ((ReturnStatementSyntax)firstStatement).SemicolonToken;
-            }
-            else if (firstStatement.IsKind(SyntaxKind.ThrowStatement))
-            {
-                return ((ThrowStatementSyntax)firstStatement).SemicolonToken;
-            }
-            else
-            {
-                return SyntaxFactory.Token(SyntaxKind.SemicolonToken);
-            }
         }
 
         protected TDeclaration WithAccessorList(
