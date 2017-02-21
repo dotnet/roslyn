@@ -8,9 +8,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -19,6 +21,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         public class RemoteHostClientService : ForegroundThreadAffinitizedObject, IRemoteHostClientService
         {
+            // OOP killed more info page link
+            private const string OOPKilledMoreInfoLink = "https://go.microsoft.com/fwlink/?linkid=842308";
+
+            /// <summary>
+            /// this hold onto last remoteHostClient to make debugging easier
+            /// </summary>
+            private static Task<RemoteHostClient> s_lastInstanceTask;
+
             private readonly IAsynchronousOperationListener _listener;
             private readonly Workspace _workspace;
             private readonly IDiagnosticAnalyzerService _analyzerService;
@@ -191,17 +201,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return;
                 }
 
-                lock (_gate)
+                if (_shutdownCancellationTokenSource.IsCancellationRequested)
                 {
-                    if (_shutdownCancellationTokenSource.IsCancellationRequested)
+                    lock (_gate)
                     {
-                        // we are shutting down
-                        return;
+                        // RemoteHost has been disabled
+                        _instanceTask = null;
                     }
                 }
+                else
+                {
+                    lock (_gate)
+                    {
+                        // save last remoteHostClient
+                        s_lastInstanceTask = _instanceTask;
 
-                // crash right away when connection is closed
-                FatalError.Report(new Exception("Connection to remote host closed"));
+                        // save NoOpRemoteHostClient to instance so that all RemoteHost call becomes
+                        // No Op. this basically have same effect as disabling all RemoteHost features
+                        _instanceTask = Task.FromResult<RemoteHostClient>(new RemoteHostClient.NoOpClient(_workspace));
+                    }
+
+                    // s_lastInstanceTask info should be saved in the dump
+                    // report NFW when connection is closed unless it is proper shutdown
+                    FatalError.ReportWithoutCrash(new Exception("Connection to remote host closed"));
+
+                    // use info bar to show warning to users
+                    _workspace.Services.GetService<IErrorReportingService>().ShowGlobalErrorInfo(ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio,
+                        new ErrorReportingUI(ServicesVSResources.Learn_more, ErrorReportingUI.UIKind.HyperLink, () =>
+                            BrowserHelper.StartBrowser(new Uri(OOPKilledMoreInfoLink)), closeAfterAction: false));
+                }
             }
         }
     }
