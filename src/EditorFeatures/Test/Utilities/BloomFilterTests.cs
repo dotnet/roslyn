@@ -6,8 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -135,14 +133,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var stream = new MemoryStream();
             var bloomFilter = new BloomFilter(0.001, new[] { "Hello, World" }, new long[] { long.MaxValue, -1, 0, 1, long.MinValue });
 
-            using (var writer = new StreamObjectWriter(stream))
+            using (var writer = new ObjectWriter(stream))
             {
                 bloomFilter.WriteTo(writer);
             }
 
             stream.Position = 0;
 
-            using (var reader = StreamObjectReader.TryGetReader(stream))
+            using (var reader = ObjectReader.TryGetReader(stream))
             {
                 var rehydratedFilter = BloomFilter.ReadFrom(reader);
                 Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));
@@ -191,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var result = new HashSet<long>();
 
-            for (int i = 0; i < ints.Count; i += 2)
+            for (var i = 0; i < ints.Count; i += 2)
             {
                 var long1 = ((long)ints[i]) << 32;
                 var long2 = (long)ints[i + 1];
