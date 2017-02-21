@@ -275,12 +275,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                     if (!TypeInfoMatchesType(argumentTypeInfo, parameter.Type))
                     {
-                        if (parameter.IsParams && parameter.Type is IArrayTypeSymbol arrayType)
+                        if (TypeInfoMatchesWithParamsExpansion(argumentTypeInfo, parameter))
                         {
-                            if (TypeInfoMatchesType(argumentTypeInfo, arrayType.ElementType))
-                            {
-                                return null;
-                            }
+                            // The argument matched if we expanded out the params-parameter.
+                            // As the params-parameter has to be last, there's nothing else to 
+                            // do here.
+                            return null;
                         }
 
                         return argument;
@@ -289,6 +289,19 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
 
             return null;
+        }
+
+        private bool TypeInfoMatchesWithParamsExpansion(TypeInfo argumentTypeInfo, IParameterSymbol parameter)
+        {
+            if (parameter.IsParams && parameter.Type is IArrayTypeSymbol arrayType)
+            {
+                if (TypeInfoMatchesType(argumentTypeInfo, arrayType.ElementType))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool TypeInfoMatchesType(TypeInfo argumentTypeInfo, ITypeSymbol type)
