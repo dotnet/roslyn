@@ -65,7 +65,6 @@ class Program
 {
     static void Main()
     {
-        readonly ref int local = ref (new int[1])[0];
     }
 
     readonly ref int Field;
@@ -86,36 +85,74 @@ class Program
 }
 ";
 
-            ParseAndValidate(text, TestOptions.Latest,
-                // (7,9): error CS0106: The modifier 'readonly' is not valid for this item
-                //         readonly ref int local = ref (new int[1])[0];
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(7, 9),
-                // (10,27): error CS1003: Syntax error, '(' expected
+            ParseAndValidate(text, TestOptions.Regular,
+                // (9,27): error CS1003: Syntax error, '(' expected
                 //     readonly ref int Field;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(", ";").WithLocation(10, 27),
-                // (10,27): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(", ";").WithLocation(9, 27),
+                // (9,27): error CS1026: ) expected
                 //     readonly ref int Field;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(10, 27),
-                // (12,41): error CS1519: Invalid token 'operator' in class, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(9, 27),
+                // (11,41): error CS1519: Invalid token 'operator' in class, struct, or interface member declaration
                 //     public static readonly ref Program  operator  +(Program x, Program y)
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(12, 41),
-                // (12,41): error CS1519: Invalid token 'operator' in class, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(11, 41),
+                // (11,41): error CS1519: Invalid token 'operator' in class, struct, or interface member declaration
                 //     public static readonly ref Program  operator  +(Program x, Program y)
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(12, 41),
-                // (13,5): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(11, 41),
+                // (12,5): error CS1519: Invalid token '{' in class, struct, or interface member declaration
                 //     {
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(13, 5),
-                // (13,5): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(12, 5),
+                // (12,5): error CS1519: Invalid token '{' in class, struct, or interface member declaration
                 //     {
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(13, 5),
-                // (23,25): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(12, 5),
+                // (22,25): error CS1031: Type expected
                 //     public readonly ref virtual int* P1 => throw null;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "virtual").WithLocation(23, 25),
-                // (25,1): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_TypeExpected, "virtual").WithLocation(22, 25),
+                // (24,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(25, 1)
-
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(24, 1)
                 );
         }
+
+        [Fact]
+        public void ReadonlyRefReturn_UnexpectedBindTime()
+        {
+            var text = @"
+
+class Program
+{
+    static void Main()
+    {
+        readonly ref int local = ref (new int[1])[0];
+
+        (readonly ref int, readonly ref int Alice)? t = null;
+
+        System.Collections.Generic.List<readonly ref int> x = null;
+
+        Use(local);
+        Use(t);
+        Use(x);
+    }
+
+    static void Use<T>(T dummy)
+    {
+    }
+}
+";
+            //PROTOTYPE(readonlyRef): binding now falls back on regular "Ref", otherwise there should be one more error on the local declaration
+
+            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (9,19): error CS1073: Unexpected token 'ref'
+                //         (readonly ref int, readonly ref int Alice)? t = null;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 19),
+                // (9,37): error CS1073: Unexpected token 'ref'
+                //         (readonly ref int, readonly ref int Alice)? t = null;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 37),
+                // (11,50): error CS1073: Unexpected token 'ref'
+                //         System.Collections.Generic.List<readonly ref int> x = null;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(11, 50)
+            );
+        }
+
     }
 }

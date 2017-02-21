@@ -6308,8 +6308,14 @@ tryAgain:
         {
             ScanTypeFlags result;
 
-            // in a ref local or ref return, we treat "ref" as part of the type
-            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+            // in a ref local or ref return, we treat "ref" and "readonly ref" as part of the type
+            if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword &&
+                this.PeekToken(1).Kind == SyntaxKind.RefKeyword)
+            {
+                this.EatToken();
+                this.EatToken();
+            }
+            else if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
                 this.EatToken();
             }
@@ -8793,6 +8799,12 @@ tryAgain:
             SyntaxKind k;
             while (IsDeclarationModifier(k = this.CurrentToken.ContextualKind) || IsAdditionalLocalFunctionModifier(k))
             {
+                // "readonly ref" is not a modifier, in our syntax.
+                if (k == SyntaxKind.ReadOnlyKeyword && this.PeekToken(1).Kind == SyntaxKind.RefKeyword)
+                {
+                    break;
+                }
+
                 SyntaxToken mod;
                 if (k == SyntaxKind.AsyncKeyword)
                 {

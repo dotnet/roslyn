@@ -731,5 +731,20 @@ class C
             Assert.Equal(RefKind.Ref, d.DelegateInvokeMethod.RefKind);
             Assert.Equal(RefKind.Ref, ((MethodSymbol)d.GetMembers("EndInvoke").Single()).RefKind);
         }
+
+        [Fact]
+        public void ReadonlyRefReturningDelegate()
+        {
+            var source = @"delegate readonly ref int D();";
+
+            var comp = CreateCompilationWithMscorlib45(source);
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var d = global.GetMembers("D")[0] as NamedTypeSymbol;
+            //PROTOTYPE(readonlyRefeences): this will work as regular RefKind.Ref for now since binding is NYI
+            Assert.Equal(RefKind.Ref, d.DelegateInvokeMethod.RefKind);
+            Assert.Equal(RefKind.Ref, ((MethodSymbol)d.GetMembers("EndInvoke").Single()).RefKind);
+        }
     }
 }

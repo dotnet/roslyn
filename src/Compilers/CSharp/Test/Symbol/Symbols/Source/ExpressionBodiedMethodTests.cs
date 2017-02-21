@@ -378,5 +378,17 @@ class C
 }");
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ReadonlyRefReturningExpressionBodiedMethod()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    int field = 0;
+    public readonly ref int M() => ref field;
+}");
+            comp.VerifyDiagnostics();
+        }
     }
 }

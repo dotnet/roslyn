@@ -786,10 +786,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // might own nested scope.
             bool hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-            var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
-            if (containingMethod != null && containingMethod.IsAsync && localSymbol.RefKind != RefKind.None)
+            if (localSymbol.RefKind == RefKind.In)
             {
-                Error(diagnostics, ErrorCode.ERR_BadAsyncLocalType, declarator);
+                var refKeyword = typeSyntax.GetFirstToken();
+                diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());
+            }
+            else
+            {
+                var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
+                if (containingMethod != null && containingMethod.IsAsync && localSymbol.RefKind != RefKind.None)
+                {
+                    Error(diagnostics, ErrorCode.ERR_BadAsyncLocalType, declarator);
+                }
             }
 
             EqualsValueClauseSyntax equalsClauseSyntax = declarator.Initializer;

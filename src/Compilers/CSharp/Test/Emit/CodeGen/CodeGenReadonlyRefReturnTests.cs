@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-    public class ReadonlyRefReturnTests : CompilingTestBase
+    public class CodeGenReadonlyRefReturnTests : CompilingTestBase
     {
         [Fact]
         public void RefReturnArrayAccess()
@@ -29,7 +29,7 @@ class Program
 ";
 
             //PROTOTYPE(readonlyRefs): this should work for now because readonly is treated as regular ref
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Latest);
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyIL("Program.M()", @"
 {

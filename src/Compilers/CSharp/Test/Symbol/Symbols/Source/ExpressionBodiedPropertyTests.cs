@@ -504,5 +504,28 @@ class C
             Assert.True(p.IsExpressionBodied);
             Assert.Equal(RefKind.Ref, p.GetMethod.RefKind);
         }
+
+        [Fact]
+        public void ReadonlyRefReturningExpressionBodiedProperty()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    int field = 0;
+    public readonly ref int P => ref field;
+}");
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var c = global.GetTypeMember("C");
+
+            var p = c.GetMember<SourcePropertySymbol>("P");
+            Assert.Null(p.SetMethod);
+            Assert.NotNull(p.GetMethod);
+            Assert.False(p.GetMethod.IsImplicitlyDeclared);
+            Assert.True(p.IsExpressionBodied);
+            //PROTOTYPE(readonlyRef): binding is currently NYI so it is "Ref" for now.
+            Assert.Equal(RefKind.Ref, p.GetMethod.RefKind);
+        }
     }
 }

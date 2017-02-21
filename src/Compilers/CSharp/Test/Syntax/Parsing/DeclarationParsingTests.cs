@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
-            return SyntaxFactory.ParseSyntaxTree(text, options ?? TestOptions.Latest);
+            return SyntaxFactory.ParseSyntaxTree(text, options ?? TestOptions.Regular);
         }
 
         [Fact]
@@ -1982,7 +1982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegateWithReadonlyRefReturnType()
         {
             var text = "delegate readonly ref a b();";
-            var file = this.ParseFile(text, TestOptions.Latest);
+            var file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2499,7 +2499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithReadonlyRefReturn()
         {
             var text = "class a { readonly ref b X() { } }";
-            var file = this.ParseFile(text, TestOptions.Latest);
+            var file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2573,7 +2573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithReadonlyRef()
         {
             var text = "class a { readonly ref }";
-            var file = this.ParseFile(text, parseOptions: TestOptions.Latest);
+            var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3947,7 +3947,7 @@ class Class1<T>{
         public void TestClassPropertyWithReadonlyRefReturn()
         {
             var text = "class a { readonly ref b c { get; set; } }";
-            var file = this.ParseFile(text, TestOptions.Latest);
+            var file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4890,7 +4890,7 @@ class Class1<T>{
         public void TestClassIndexerWithReadonlyRefReturn()
         {
             var text = "class a { readonly ref b this[c d] { get; set; } }";
-            var file = this.ParseFile(text, TestOptions.Latest);
+            var file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
