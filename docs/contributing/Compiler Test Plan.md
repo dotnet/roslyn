@@ -67,12 +67,10 @@ This document provides guidance for thinking about language interactions and tes
 - LINQ
 - Constructors, properties, indexers, events, operators, and destructors.
 - Async
- 
- 
- Lvalues: the synthesized fields are mutable 
-- Ref / out parameters
-- Compound operators (+=, /=, etc ..) 
-- Assignment exprs
+- Lvalues: the synthesized fields are mutable 
+ - Ref / out parameters
+ - Compound operators (+=, /=, etc ..) 
+ - Assignment exprs
 
  
 # Misc
@@ -91,13 +89,11 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
  5. More: https://github.com/dotnet/roslyn/issues/8389
 
 - Debugger
- 1. typing in immediate/watch window (that also covers hovering over a variable)
- 2. displaying locals (that also covers autos)
- 3. Stepping, setting breakpoints, evaluating variables
+ 1. Stepping, setting breakpoints
+ 2. Displaying Locals (that also covers Autos)
+ 3. Typing in immediate/watch window (that also covers hovering over a variable)
  
 - Edit-and-continue
-
-
 
 
 # Eric's cheatsheet
