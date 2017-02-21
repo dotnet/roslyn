@@ -21,6 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundDelegateCreationExpression(node.Syntax, loweredReceiver, methodOpt: null, isExtensionMethod: false, type: node.Type);
             }
 
+            if (node.Argument.Kind == BoundKind.MethodGroup)
+            {
+                var mg = node.Argument as BoundMethodGroup;
+                var method = node.MethodOpt;
+                var receiver = (method.IsStatic && !node.IsExtensionMethod) ? _factory.Type(method.ContainingType) : VisitExpression(mg.ReceiverOpt);
+                return node.Update(receiver, method, node.IsExtensionMethod, node.Type);
+            }
+
             return base.VisitDelegateCreationExpression(node);
         }
     }

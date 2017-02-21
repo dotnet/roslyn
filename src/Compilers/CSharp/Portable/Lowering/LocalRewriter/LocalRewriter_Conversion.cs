@@ -336,7 +336,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // we eliminate the method group conversion entirely from the bound nodes following local lowering
                         var mg = (BoundMethodGroup)rewrittenOperand;
-                        return new BoundDelegateCreationExpression(syntax, argument: mg.ReceiverOpt, methodOpt: oldNode.SymbolOpt, isExtensionMethod: oldNode.IsExtensionMethod, type: rewrittenType);
+                        var method = oldNode.SymbolOpt;
+                        Debug.Assert((object)method != null);
+                        var receiver = (method.IsStatic && !oldNode.IsExtensionMethod) ? _factory.Type(method.ContainingType) : VisitExpression(mg.ReceiverOpt);
+                        return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method, isExtensionMethod: oldNode.IsExtensionMethod, type: rewrittenType);
                     }
                 default:
                     break;

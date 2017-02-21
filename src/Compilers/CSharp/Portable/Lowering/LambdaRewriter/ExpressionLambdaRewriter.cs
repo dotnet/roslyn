@@ -693,6 +693,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.UnexpectedValue(BoundKind.MethodGroup);
             }
 
+            if ((object)node.MethodOpt != null)
+            {
+                bool staticMember = node.MethodOpt.IsStatic && !node.IsExtensionMethod;
+                return DelegateCreation(node.Argument, node.MethodOpt, node.Type, staticMember);
+            }
+
             var d = node.Argument.Type as NamedTypeSymbol;
             if ((object)d != null && d.TypeKind == TypeKind.Delegate)
             {
