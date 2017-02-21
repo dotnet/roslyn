@@ -524,6 +524,7 @@ class C
             Assert.NotNull(p.GetMethod);
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
             Assert.True(p.IsExpressionBodied);
+            //PROTOTYPE(readonlyRef): binding is currently NYI so it is "Ref" for now.
             Assert.Equal(RefKind.Ref, p.GetMethod.RefKind);
         }
     }

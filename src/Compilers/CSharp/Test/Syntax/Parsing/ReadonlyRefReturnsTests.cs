@@ -138,6 +138,7 @@ class Program
     }
 }
 ";
+            //PROTOTYPE(readonlyRef): binding now falls back on regular "Ref", otherwise there should be one more error on the local declaration
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
