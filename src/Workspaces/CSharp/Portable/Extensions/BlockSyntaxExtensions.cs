@@ -2,58 +2,74 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class BlockSyntaxExtensions
     {
-        public static ArrowExpressionClauseSyntax TryConvertToExpressionBody(
-            this BlockSyntax block, ParseOptions options)
+        public static bool TryConvertToExpressionBody(
+            this BlockSyntax block, ParseOptions options,
+            out ArrowExpressionClauseSyntax arrowExpression,
+            out SyntaxToken semicolonToken)
         {
             if ((options as CSharpParseOptions)?.LanguageVersion >= LanguageVersion.CSharp7)
             {
                 if (block != null && block.Statements.Count == 1)
                 {
                     var firstStatement = block.Statements[0];
-                    var expression = TryGetExpression(firstStatement);
-                    if (expression != null)
+
+                    if (TryGetExpression(firstStatement, out var expression, out semicolonToken))
                     {
-                        return SyntaxFactory.ArrowExpressionClause(expression);
+                        arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
+
+                        semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
+                            block.CloseBraceToken.LeadingTrivia.Where(t =>!t.IsWhitespaceOrEndOfLine()));
+                        return true;
                     }
                 }
             }
 
-            return null;
+            arrowExpression = null;
+            semicolonToken = default(SyntaxToken);
+            return false;
         }
 
-        private static ExpressionSyntax TryGetExpression(StatementSyntax firstStatement)
+        private static bool TryGetExpression(
+            StatementSyntax firstStatement, out ExpressionSyntax expression, out SyntaxToken semicolonToken)
         {
-            if (firstStatement.Kind() == SyntaxKind.ExpressionStatement)
+            if (firstStatement is ExpressionStatementSyntax exprStatement)
             {
-                return ((ExpressionStatementSyntax)firstStatement).Expression;
+                expression = exprStatement.Expression;
+                semicolonToken = exprStatement.SemicolonToken;
+                return true;
             }
-            else if (firstStatement.Kind() == SyntaxKind.ReturnStatement)
+            else if (firstStatement is ReturnStatementSyntax returnStatement)
             {
-                var returnStatement = (ReturnStatementSyntax)firstStatement;
                 if (returnStatement.Expression != null)
                 {
                     // If there are any comments on the return keyword, move them to
                     // the expression.
-                    return firstStatement.GetLeadingTrivia().Any(t => t.IsSingleOrMultiLineComment())
+                    expression = firstStatement.GetLeadingTrivia().Any(t => t.IsSingleOrMultiLineComment())
                         ? returnStatement.Expression.WithLeadingTrivia(returnStatement.GetLeadingTrivia())
                         : returnStatement.Expression;
+                    semicolonToken = returnStatement.SemicolonToken;
+                    return true;
                 }
             }
-            else if (firstStatement.Kind() == SyntaxKind.ThrowStatement)
+            else if (firstStatement is ThrowStatementSyntax throwStatement)
             {
-                var throwStatement = (ThrowStatementSyntax)firstStatement;
                 if (throwStatement.Expression != null)
                 {
-                    return SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
+                    expression = SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
+                    semicolonToken = throwStatement.SemicolonToken;
+                    return true;
                 }
             }
 
-            return null;
+            expression = null;
+            semicolonToken = default(SyntaxToken);
+            return false;
         }
     }
 }
