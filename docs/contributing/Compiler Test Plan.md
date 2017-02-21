@@ -1,56 +1,47 @@
+This document provides guidance for thinking about language interactions and testing compiler changes.
 
-
-
-
-Lvalues: the synthesized fields are mutable 
-- Ref / out parameters
-- Compound operators (+=, /=, etc ..) 
-- Assignment exprs
-
-- Interaction with overload resolution
-
-General concerns:
+# General concerns:
 - Completeness of the specification as a guide for testing (is the spec complete enough to suggest what the compiler should do in each scenario?)
 - Other external documentation
 - Backward and forward compatibility (interoperation with previous and future compilers, each in both directions)
-- Error handling/recovery (Missing libraries, including missing types in mscorlib; errors in parsing)
-- Error handling for semantic errors (e.g. ambiguous lookup, inaccessible lookup, wrong kind of thing found, instance vs static thing found, wrong type for the context, value vs variable)
+- Error handling/recovery (missing libraries, including missing types in mscorlib; errors in parsing, ambiguous lookup, inaccessible lookup, wrong kind of thing found, instance vs static thing found, wrong type for the context, value vs variable)
 - BCL and other customer impact
 - Determinism
 - Loading from metadata (source vs. loaded from metadata)
 - Public interface of compiler APIs (including semantic model APIs listed below):
- - SemanticModel.GetDeclaredSymbol 
- - SemanticModel.GetEnclosingSymbol 
- - SemanticModel.GetSymbolInfo 
- - SemanticModel.GetSpeculativeSymbolInfo 
- - SemanticModel.GetTypeInfo 
- - SemanticModel.GetSpeculativeTypeInfo 
- - SemanticModel.GetMethodGroup 
- - SemanticModel.GetConstantValue 
- - SemanticModel.GetAliasInfo 
- - SemanticModel.GetSpeculativeAliasInfo 
- - SemanticModel.LookupSymbols 
- - SemanticModel.AnalyzeStatementsControlFlow 
- - SemanticModel.AnalyzeStatementControlFlow 
- - SemanticModel.AnalyzeExpressionDataFlow 
- - SemanticModel.AnalyzeStatementsDataFlow 
- - SemanticModel.AnalyzeStatementDataFlow 
- - SemanticModel.ClassifyConversion
+ - GetDeclaredSymbol 
+ - GetEnclosingSymbol 
+ - GetSymbolInfo 
+ - GetSpeculativeSymbolInfo 
+ - GetTypeInfo 
+ - GetSpeculativeTypeInfo 
+ - GetMethodGroup 
+ - GetConstantValue 
+ - GetAliasInfo 
+ - GetSpeculativeAliasInfo 
+ - LookupSymbols 
+ - AnalyzeStatementsControlFlow 
+ - AnalyzeStatementControlFlow 
+ - AnalyzeExpressionDataFlow 
+ - AnalyzeStatementsDataFlow 
+ - AnalyzeStatementDataFlow 
+ - ClassifyConversion
 - VB/F# interop
+- Performance and stress testing
  
-Type and members:
+# Type and members
 - Access modifiers (public, protected, internal, protected internal, private), static modifier
 - Parameter modifiers (ref, out, params)
 - Attributes (including security attribute)
 - Generics (type arguments, constraints, variance)
-- default value
-- partial classes
-- literals
-- enum (implicit vs. explicit underlying type)
-- epression trees
+- Default and constant values
+- Partial classes
+- Literals
+- Enum (implicit vs. explicit underlying type)
+- Expression trees
 - Iterators
 - Initializers (object, collection, dictionary)
-- array (single- or multi-dimensional, jagged, initilalizer)
+- Array (single- or multi-dimensional, jagged, initializer)
 - Expression-bodied methods/properties/...
 - Extension methods
 - Partial method
@@ -58,58 +49,61 @@ Type and members:
 - String interpolation
 - Properties (read-write, read-only, write-only, auto-property, expression-bodied)
 - Interfaces (implicit vs. explicit interface member implementation)
-- delegates
+- Delegates
 - Multi-declaration
 - NoPIA
  
-Code:
+# Code
 - Operators (see Eric's list)
-- lambdas (capture of parameters or locals, target typing)
-- execution order
+- Lambdas (capture of parameters or locals, target typing)
+- Execution order
 - Target typing (var, lambdas, integrals)
-- conversions (boxing/unboxing)
-- nullable (wrapping, unwrapping)
-- OHI
-- inheritance (virtual, override, abstract, new)
-- overload resolution
+- Conversions (boxing/unboxing)
+- Nullable (wrapping, unwrapping)
+- Overload resolution, override/inherits/implementation (OHI)
+- Inheritance (virtual, override, abstract, new)
 - Anonymous types
 - Unsafe code
 - LINQ
-- constructors, properties, indexers, events, operators, and destructors.
+- Constructors, properties, indexers, events, operators, and destructors.
 - Async
  
  
-Misc:
+ Lvalues: the synthesized fields are mutable 
+- Ref / out parameters
+- Compound operators (+=, /=, etc ..) 
+- Assignment exprs
+
+ 
+# Misc
 - reserved keywords (sometimes contextual)
 - pre-processing directives
 - COM interop
 
+
+# Testing in interaction with other components
+Interaction with IDE, Debugger, and EnC should be worked out with relevant teams. A few highlights:
+- IDE
+ 1. Colorization
+ 2. Typing experience and dealing with incomplete code
+ 3. Intellisense (squiggles, dot completion)
+ 4. "go to" and renaming
+ 5. More: https://github.com/dotnet/roslyn/issues/8389
+
+- Debugger
+ 1. typing in immediate/watch window (that also covers hovering over a variable)
+ 2. displaying locals (that also covers autos)
+ 3. Stepping, setting breakpoints, evaluating variables
  
-Interaction with Debugger:
-
-1. typing in immediate/watch window (that also covers hovering over a variable)
-2. displaying locals (that also covers autos)
- stepping, setting breakpoints, evaluating variables
- 
-Interaction with IDE: 
-
-1. Colorization
-2. Typing experience
-3. Intellisense (squiggles, dot completion)
-4. "go to" and renaming
-5. More: https://github.com/dotnet/roslyn/issues/8389
-
-- interaction with IDE in incomplete code scenarios (e.g. while typing)
-
-- edit-and-continue
-
-Performance and stress testing
+- Edit-and-continue
 
 
-Eric's cheatsheet:
+
+
+# Eric's cheatsheet
 
 Statements 
-  
+```
 { … }  
 ;   
 label : … 
@@ -138,7 +132,8 @@ yield return …;
 yield break; 
 break; 
 continue; 
-  
+```
+
 Expression classifications 
   
 Every expression can be classified as exactly one of these: 
