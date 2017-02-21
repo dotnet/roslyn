@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 {
                     // They want expression bodies and they don't have one.  See if we can
                     // convert this to have an expression body.
-                    expressionBody = GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options);
-                    if (expressionBody != null)
+                    if (GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options,
+                            out expressionBody, out var semicolonToken))
                     {
                         var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                         return Diagnostic.Create(
@@ -82,7 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
             else
             {
-                // They don't want expression bodies but they have one.  Offer to conver this to a normal block
+                // They don't want expression bodies but they have one.  Offer to convert this to 
+                // a normal block
                 if (expressionBody != null)
                 {
                     var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
