@@ -508,7 +508,7 @@ Public MustInherit Class BasicTestBaseBase
                </sequencePoints>
     End Function
 
-    Public Shared ReadOnly ClassesWithReadWriteProperties As XCData = <![CDATA[
+    Public Shared ReadOnly ClassesWithReadWriteProperties As String = "
 .class public auto ansi beforefieldinit B
        extends [mscorlib]System.Object
 {
@@ -713,8 +713,7 @@ Public MustInherit Class BasicTestBaseBase
     .get instance int32 D2::get_P_rw_rw_r()
   } // end of property D2::P_rw_rw_r
 } // end of class D2
-]]>
-
+"
     Public Class NameSyntaxFinder
         Inherits VisualBasicSyntaxWalker
 

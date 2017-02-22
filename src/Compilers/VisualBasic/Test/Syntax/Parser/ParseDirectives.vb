@@ -1538,14 +1538,13 @@ Namespace CHDIR48
             <Fact()>
             Public Sub Bug586811()
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-        <compilation>
-            <file name="a.vb">
-#Const X = If(True, 1, "2")
+Unit.Make().WithFile("a,vb",
+"#Const X = If(True, 1, ""2"")
 #Const Y = 1
 #Const Z = If(True, 1, 2)
-#Const U = If(False, "2", 1)
-#Const V = If(1, "2")
-#Const W = If("2",1)
+#Const U = If(False, ""2"", 1)
+#Const V = If(1, ""2"")
+#Const W = If(""2"",1)
 
 #Const X1 = If(True, 1UL, 2L)
 #Const X2 = If(True, 1, Nothing)
@@ -1553,8 +1552,7 @@ Namespace CHDIR48
 #Const X4 = 2.1D  
 #Const X5 = If(True, Nothing, Nothing)
 #Const X6 = If(True, Nothing, 1)
-                </file>
-        </compilation>, TestOptions.ReleaseDll)
+"), options:=TestOptions.ReleaseDll)
 
                 AssertTheseParseDiagnostics(compilation,
 <expected>
@@ -1576,7 +1574,7 @@ BC30059: Constant expression is required.
 </expected>)
             End Sub
 
-            <WorkItem(780817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780817")>
+            <WorkItem(780817, "http: //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780817")>
             <Fact>
             Public Sub ParseProjConstsCaseInsensitivity()
 
@@ -2678,10 +2676,8 @@ End Class",
 #Region "E2E Tests"
             <Fact>
             Public Sub TestWarningDirective_NoErrorCodes()
-                Dim compXml =
-<compilation>
-    <file name="a.vb">
-Module Program
+                Dim compXml = Unit.Make().WithFile("a.vb",
+"Module Program
 #Disable Warning rem comment
     Sub Main()
         Dim a 'BC42024: Unused local variable: 'a'.
@@ -2691,36 +2687,33 @@ Module Program
         Dim d 'BC42024: Unused local variable: 'd'.
     End Sub
 End Module
-    </file>
-</compilation>
+")
                 CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13))
 
                 Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
                 Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True))
 
                 diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
                 compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics()
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics()
             End Sub
 
             <Fact>
             Public Sub TestWarningDirective_WithErrorCodes1()
-                Dim compXml =
-<compilation>
-    <file name="a.vb">
-Module Program
+                Dim compXml = Unit.Make().WithFile("a.vb",
+"Module Program
 #Disable Warning BC42104, [BC42024]
     Sub Main()
         Dim a 'BC42024: Unused local variable: 'a'.
@@ -2731,36 +2724,34 @@ Module Program
         Dim d 'BC42024: Unused local variable: 'd'.
     End Sub
 End Module
-    </file>
-</compilation>
+")
                 CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13))
 
                 Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
                 Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True))
 
                 diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
                 compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics()
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics()
             End Sub
 
             <Fact>
             Public Sub TestWarningDirective_WithErrorCodes2()
                 Dim compXml =
-<compilation>
-    <file name="a.vb">
-#Disable Warning _
+Unit.Make().WithFile("a.vb",
+"#Disable Warning _
     BC42104, BC42024
 Module Program
     Sub Main()
@@ -2771,36 +2762,33 @@ Module Program
         Dim d 'BC42024: Unused local variable: 'd'.
     End Sub
 End Module
-    </file>
-</compilation>
+")
                 CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13))
 
                 Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
                 Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True))
 
                 diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
                 compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics()
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics()
             End Sub
 
             <Fact>
             Public Sub TestWarningDirective_WithErrorCodes3()
-                Dim compXml =
-<compilation>
-    <file name="a.vb">
-Module Program
+                Dim compXml = Unit.Make().WithFile("a.vb",
+"Module Program
     Sub Main()
 #Disable Warning
         Dim a 'BC42024: Unused local variable: 'a'.
@@ -2811,35 +2799,34 @@ Module Program
         Dim d 'BC42024: Unused local variable: 'd'.
     End Sub
 End Module
-    </file>
-</compilation>
+")
                 CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13))
 
                 Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
                 Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True))
 
                 diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
                 compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics()
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics()
             End Sub
 
             <Fact>
             Public Sub TestWarningDirective_NoOpEnable()
                 Dim compXml =
-<compilation>
-    <file name="a.vb">#Enable Warning
+Unit.Make().WithFile("a.vb",
+"#Enable Warning
 Module Program
     Sub Main()
         Dim a 'BC42024: Unused local variable: 'a'.
@@ -2849,42 +2836,41 @@ Module Program
         Dim d 'BC42024: Unused local variable: 'd'.
     End Sub
 End Module
-#enable warning bc42105</file>
-</compilation>
+#enable warning bc42105")
                 CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
-            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13),
-            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
-            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13))
+                    Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13),
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
+                    Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13))
 
                 Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
                 Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
-            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13).WithWarningAsError(True),
-            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
-            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True))
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13).WithWarningAsError(True),
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
+                    Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True))
 
                 diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
                 compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
-            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13).WithWarningAsError(True),
-            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17).WithWarningAsError(True),
-            Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True))
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13).WithWarningAsError(True),
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17).WithWarningAsError(True),
+                    Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics()
             End Sub
 
             <Fact>
             Public Sub TestWarningDirective_NoOpDisable()
                 Dim compXml =
-<compilation>
-    <file name="a.vb">#Disable Warning BC42015
+Unit.Make().WithFile("a.vb",
+"#Disable Warning BC42015
 Module Program
     Sub Main()
         Dim a 'BC42024: Unused local variable: 'a'.
@@ -2894,8 +2880,7 @@ Module Program
         Dim d 'BC42024: Unused local variable: 'd'.
     End Sub
 End Module
-#Disable Warning</file>
-</compilation>
+#Disable Warning")
                 CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13),
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
@@ -2904,7 +2889,7 @@ End Module
                 Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
                 Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13).WithWarningAsError(True),
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True))
@@ -2912,25 +2897,24 @@ End Module
                 diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
                 compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13).WithWarningAsError(True),
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17).WithWarningAsError(True),
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics()
             End Sub
 
             <Fact>
             Public Sub TestWarningDirective_FullWidth()
                 Dim compXml =
-<compilation>
-    <file name="a.vb">
-＃ _ 
+Unit.Make().WithFile("a.vb",
+"＃ _ 
  ｅｎａｂｌｅ     ｗａｒｎｉｎｇ
 Module Program
     Sub Main()
@@ -2941,40 +2925,38 @@ Module Program
         Dim d 'BC42024: Unused local variable: 'd'.
     End Sub
 End Module
-    </file>
-</compilation>
+")
                 CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
-            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17),
-            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13))
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17),
+                    Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13))
 
                 Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
                 Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
-            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13).WithWarningAsError(True),
-            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17))
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13).WithWarningAsError(True),
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17))
 
                 diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
                 compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
-            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17))
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
-            Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13).WithWarningAsError(True),
-            Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17).WithWarningAsError(True))
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13).WithWarningAsError(True),
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17).WithWarningAsError(True))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics()
             End Sub
 
             <Fact>
             Public Sub TestWarningDirective_IdsAreCaseInsensitive1()
                 Dim compXml =
-<compilation>
-    <file name="a.vb">
-Module Program
+Unit.Make().WithFile("a.vb",
+"Module Program
 #Disable Warning BC42024
     Sub Main()
         Dim a 'BC42024: Unused local variable: 'a'.
@@ -2984,8 +2966,7 @@ Module Program
         Dim d 'BC42024: Unused local variable: 'd'.
     End Sub
 End Module
-    </file>
-</compilation>
+")
                 CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13))
@@ -2993,31 +2974,30 @@ End Module
                 Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add("Bc42024", ReportDiagnostic.Error)
                 Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True))
 
                 diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add("bc42024", ReportDiagnostic.Suppress)
                 compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17).WithWarningAsError(True),
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(8, 13).WithWarningAsError(True))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics()
             End Sub
 
             <Fact>
             Public Sub TestWarningDirective_IdsAreCaseInsensitive2()
                 Dim compXml =
-<compilation>
-    <file name="a.vb">
-Module Program
+Unit.Make().WithFile("a.vb",
+"Module Program
 #Disable Warning BC42024, [bc42104]
     Sub Main()
         Dim a 'BC42024: Unused local variable: 'a'.
@@ -3033,8 +3013,7 @@ Module Program
         Dim i = d
     End Sub
 End Module
-    </file>
-</compilation>
+")
                 CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "f").WithArguments("f").WithLocation(10, 13),
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "g").WithArguments("g").WithLocation(13, 17))
@@ -3042,23 +3021,23 @@ End Module
                 Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add("BC42024", ReportDiagnostic.Error)
                 Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "f").WithArguments("f").WithLocation(10, 13).WithWarningAsError(True),
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "g").WithArguments("g").WithLocation(13, 17))
 
                 diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add("bC42024", ReportDiagnostic.Suppress)
                 compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "g").WithArguments("g").WithLocation(13, 17))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "f").WithArguments("f").WithLocation(10, 13).WithWarningAsError(True),
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "g").WithArguments("g").WithLocation(13, 17).WithWarningAsError(True))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics()
             End Sub
 
             Private Class CustomDiagnosticAnalyzer
@@ -3106,22 +3085,20 @@ End Module
             <Fact>
             Public Sub TestWarningDirective_FullWidthIdsAreCaseInsensitive()
                 Dim compXml =
-<compilation>
-    <file name="a.vb">
-＃ＤＩＳＡＢＬＥ ＷＡＲＮＩＮＧ ［ＳＯＭＥＩＤ］
+Unit.Make().WithFile("a.vb",
+"＃ＤＩＳＡＢＬＥ ＷＡＲＮＩＮＧ ［ＳＯＭＥＩＤ］
 Module Program
     Sub Main()
-        Dim x As Integer 'Warning with id "ＳＯＭＥＩＤ" is reported on "As Integer" clause
+        Dim x As Integer 'Warning with id ""ＳＯＭＥＩＤ"" is reported on ""As Integer"" clause
     End Sub
 End Module
 ＃ｅｎａｂｌｅ     ｗａｒｎｉｎｇ ｓｏＭｅｉｄ
 Module Other
     Sub Other()
-        Dim y As Long 'Warning with id "ＳＯＭＥＩＤ" is reported on "As Long" clause
+        Dim y As Long 'Warning with id ""ＳＯＭＥＩＤ"" is reported on ""As Long"" clause
     End Sub
 End Module
-    </file>
-</compilation>
+")
                 Dim analyzer = New CustomDiagnosticAnalyzerWithFullWidthId
                 Dim analyzers = {analyzer}
                 Dim expectedId = analyzer.SupportedDiagnostics.Single.Id
@@ -3132,28 +3109,27 @@ End Module
                 Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add("ｓｏＭｅＩｄ", ReportDiagnostic.Error)
                 Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True))
 
                 diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add("ＳｏＭｅｉＤ", ReportDiagnostic.Suppress)
                 compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers)
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyAnalyzerDiagnostics(analyzers)
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers)
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyAnalyzerDiagnostics(analyzers)
             End Sub
 
             <Fact>
             Public Sub TestWarningDirective_FullWidthIdsAndNonFullWidthIdsAreSeparate()
                 Dim compXml =
-<compilation>
-    <file name="a.vb">
-＃ _ 
+Unit.Make().WithFile("a.vb",
+"＃ _ 
  ｅｎａｂｌｅ     ｗａｒｎｉｎｇ bc42024
 Module Program
     Sub Main()
@@ -3164,8 +3140,7 @@ Module Program
         Dim d 'BC42024: Unused local variable: 'd'.
     End Sub
 End Module
-    </file>
-</compilation>
+")
                 CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13),
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17),
@@ -3174,7 +3149,7 @@ End Module
                 Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
                 Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13).WithWarningAsError(True),
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17),
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True))
@@ -3182,17 +3157,17 @@ End Module
                 diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
                 compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics(
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(5, 13).WithWarningAsError(True),
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(7, 17).WithWarningAsError(True),
             Diagnostic(ERRID.WRN_UnusedLocal, "d").WithArguments("d").WithLocation(9, 13).WithWarningAsError(True))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyDiagnostics()
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyDiagnostics()
             End Sub
 
             Private Class CustomDiagnosticAnalyzerWithVeryLongId
@@ -3213,22 +3188,20 @@ End Module
             <Fact>
             Public Sub TestWarningDirective_VeryLongIdentifier()
                 Dim compXml =
-<compilation>
-    <file name="a.vb">
-＃ＤＩＳＡＢＬＥ ＷＡＲＮＩＮＧ __something_123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+Unit.Make().WithFile("a.vb",
+"＃ＤＩＳＡＢＬＥ ＷＡＲＮＩＮＧ __something_123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
 Module Program
     Sub Main()
-        Dim x As Integer 'Warning with above very long id is reported on "As Integer" clause
+        Dim x As Integer 'Warning with above very long id is reported on ""As Integer"" clause
     End Sub
 End Module
 ＃ｅｎａｂｌｅ     ｗａｒｎｉｎｇ [__SomeThing_123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890]
 Module Other
     Sub Other()
-        Dim y As Long 'Warning with above very long id is reported on "As Long" clause
+        Dim y As Long 'Warning with above very long id is reported on ""As Long"" clause
     End Sub
 End Module
-    </file>
-</compilation>
+")
                 Dim analyzer = New CustomDiagnosticAnalyzerWithVeryLongId
                 Dim analyzers = {analyzer}
                 Dim expectedId = analyzer.SupportedDiagnostics.Single.Id
@@ -3239,28 +3212,27 @@ End Module
                 Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add("__someThing_123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", ReportDiagnostic.Error)
                 Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True))
 
                 diagOptions = New Dictionary(Of String, ReportDiagnostic)
                 diagOptions.Add("__somethIng_123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", ReportDiagnostic.Suppress)
                 compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers)
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyAnalyzerDiagnostics(analyzers)
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True))
 
                 compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-                CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers)
+                CreateCompilationWithMscorlibAndVBRuntime(compXml, options:=compOptions).VerifyAnalyzerDiagnostics(analyzers)
             End Sub
 
             <Fact>
             Public Sub TestWarningDirective_CompilerWarningIdFormat()
                 Dim compXml =
-<compilation>
-    <file name="a.vb">
-Module Program
+Unit.Make().WithFile("a.vb",
+"Module Program
 #Disable Warning BC042024 'Incorrect and hence warnings for 'a' and 'b' below won't be disabled.
     Sub Main()
         Dim a 'BC42024: Unused local variable: 'a'.
@@ -3271,8 +3243,7 @@ Module Program
         Dim d 'BC42024: Unused local variable: 'd'.
     End Sub
 End Module
-    </file>
-</compilation>
+")
                 CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "b").WithArguments("b").WithLocation(6, 17),
             Diagnostic(ERRID.WRN_UnusedLocal, "a").WithArguments("a").WithLocation(4, 13))
@@ -3281,9 +3252,8 @@ End Module
             <Fact>
             Public Sub TestWarningDirective_CantSuppressCompilerErrors()
                 Dim compXml =
-<compilation>
-    <file name="a.vb">
-Module Program
+Unit.Make().WithFile("a.vb",
+"Module Program
     Sub Main()
         Dim x = 1
 #Disable Warning BC30311
@@ -3291,10 +3261,9 @@ Module Program
 #Enable Warning BC30311
     End Sub
 End Module
-    </file>
-</compilation>
+")
                 CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_TypeMismatch2, "x").WithArguments("Integer", "System.Exception").WithLocation(5, 37))
+                    Diagnostic(ERRID.ERR_TypeMismatch2, "x").WithArguments("Integer", "System.Exception").WithLocation(5, 37))
             End Sub
 
             Private Function GetStartPosition(tree As SyntaxTree, text As String) As Integer
@@ -3443,17 +3412,15 @@ End Module
             <Fact>
             Public Sub TestWarningDirective_ErrorCases1()
                 Dim compXml =
-<compilation>
-    <file name="a.vb">
-Module Program
+Unit.Make().WithFile("a.vb",
+"Module Program
     Sub Main()
 #Disable BC42024
         Dim a 'BC42024: Unused local variable: 'a'.
 #Enable , BC42024
     End Sub
 End Module
-    </file>
-</compilation>
+")
                 CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
             Diagnostic(ERRID.ERR_ExpectedWarningKeyword, "").WithLocation(3, 10),
             Diagnostic(ERRID.ERR_ExpectedWarningKeyword, "").WithLocation(5, 9),
@@ -3463,9 +3430,8 @@ End Module
             <Fact>
             Public Sub TestWarningDirective_ErrorCases2()
                 Dim compXml =
-        <compilation>
-            <file name="a.vb">
-Module Program
+Unit.Make().WithFile("a.vb",
+"Module Program
     Sub Main()
 #Disable Warning BC42104,, BC42024
         Dim a 'BC42024: Unused local variable: 'a'.
@@ -3477,8 +3443,7 @@ Module Program
         Dim f = e 'BC42014: BC42104: Variable 'e' is used before it has been assigned a value.
     End Sub
 End Module
-    </file>
-        </compilation>
+")
                 CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyDiagnostics(
             Diagnostic(ERRID.ERR_ExpectedIdentifier, "").WithLocation(3, 26),
             Diagnostic(ERRID.ERR_ExpectedIdentifier, "").WithLocation(7, 17),
@@ -3520,17 +3485,15 @@ End Module"
             <Fact>
             Public Sub TestWarningDirective_Precedence1()
                 Dim compXml =
-<compilation>
-    <file name="a.vb">
-Module Program
-    &lt;System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "TestId", Justification:="&lt;Pending&gt;")&gt;
+Unit.Make().WithFile("a.vb",
+"Module Program
+    <System.Diagnostics.CodeAnalysis.SuppressMessage(""Usage"", ""TestId"", Justification:=""<Pending>"")>
     Sub Main()
     #enable warning TestId
-        Dim x As Integer 'Warning with above very long id is reported on "As Integer" clause
+        Dim x As Integer 'Warning with above very long id is reported on ""As Integer"" clause
     End Sub
 End Module
-    </file>
-</compilation>
+")
                 Dim analyzer = New CustomDiagnosticAnalyzer(
             New DiagnosticDescriptor("TestId", "something1", "something2", "something3", DiagnosticSeverity.Warning, isEnabledByDefault:=True),
                 SyntaxKind.VariableDeclarator,
@@ -3545,19 +3508,16 @@ End Module
             <Fact>
             Public Sub TestWarningDirective_Precedence2()
                 Dim compXml =
-<compilation>
-    <file name="a.vb">
-Module Program
+Unit.Make().WithFile("a.vb",
+"Module Program
     Sub Main()
     #enable warning TestId
-        Dim x As Integer 'Warning with above very long id is reported on "As Integer" clause
+        Dim x As Integer 'Warning with above very long id is reported on ""As Integer"" clause
     End Sub
 End Module
-    </file>
-    <file name="suppression.vb">
-        &lt;Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "TestId", Justification:="&lt;Pending&gt;")&gt;
-    </file>
-</compilation>
+").WithFile("suppression.vb",
+"       <Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Usage"", ""TestId"", Justification:=""<Pending>"")>;
+")
                 Dim analyzer = New CustomDiagnosticAnalyzer(
             New DiagnosticDescriptor("TestId", "something1", "something2", "something3", DiagnosticSeverity.Warning, isEnabledByDefault:=True),
                 SyntaxKind.VariableDeclarator,
