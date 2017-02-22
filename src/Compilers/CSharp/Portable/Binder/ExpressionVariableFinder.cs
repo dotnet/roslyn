@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             nodeBinder: _enclosingBinder,
                             typeSyntax: node.Type,
                             identifierToken: designation.Identifier,
-                            kind: LocalDeclarationKind.OutVariable,
+                            kind: LocalDeclarationKind.DeclarationExpression,
                             nodeToBind: nodeToBind,
                             forbiddenZone: argumentListSyntax);
         }

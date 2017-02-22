@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(node is CatchDeclarationSyntax);
                         break;
 
-                    case LocalDeclarationKind.OutVariable:
+                    case LocalDeclarationKind.DeclarationExpression:
                     case LocalDeclarationKind.Deconstruction:
                     case LocalDeclarationKind.PatternVariable:
                         Debug.Assert(node is SingleVariableDesignationSyntax);

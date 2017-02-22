@@ -961,7 +961,7 @@ public class Cls
             Assert.NotNull(symbol);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDeclaratorSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
-            Assert.Equal(LocalDeclarationKind.OutVariable, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Equal(LocalDeclarationKind.DeclarationExpression, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
 
             var other = model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single();
@@ -1089,7 +1089,7 @@ public class Cls
             var symbol = model.GetDeclaredSymbol(variableDesignationSyntax);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDesignationSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
-            Assert.Equal(LocalDeclarationKind.OutVariable, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Equal(LocalDeclarationKind.DeclarationExpression, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDesignationSyntax));
             Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single());
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));

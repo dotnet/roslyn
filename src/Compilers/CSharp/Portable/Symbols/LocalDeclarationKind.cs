@@ -51,13 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         PatternVariable,
 
         /// <summary>
-        /// User variable declared in the left-hand-side of a deconstruction assignment.
+        /// User variable declared by a declaration expression in the left-hand-side of a deconstruction assignment.
         /// </summary>
         Deconstruction,
 
         /// <summary>
-        /// User variable declared in an out argument.
+        /// User variable declared by a declaration expression that is not a deconstruction. This occurs for an
+        /// out variable declaration, and as a result of error recovery in incorrect code.
         /// </summary>
-        OutVariable,
+        DeclarationExpression,
     }
 }
