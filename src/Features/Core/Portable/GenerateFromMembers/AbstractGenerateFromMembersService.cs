@@ -20,17 +20,10 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
     }
 
-    internal abstract class AbstractGenerateFromMembersCodeRefactoringProvider : CodeRefactoringProvider
+    internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvider : CodeRefactoringProvider
     {
         protected AbstractGenerateFromMembersCodeRefactoringProvider()
         {
-        }
-
-        protected class SelectedMemberInfo
-        {
-            public INamedTypeSymbol ContainingType;
-            public IList<SyntaxNode> SelectedDeclarations;
-            public IList<ISymbol> SelectedMembers;
         }
 
         protected async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
@@ -44,13 +37,13 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var selectedMembers = selectedDeclarations.SelectMany(
-                    d => helper.GetDeclaredSymbols(semanticModel, d, cancellationToken)).WhereNotNull().ToList();
-                if (selectedMembers.Count > 0)
+                    d => helper.GetDeclaredSymbols(semanticModel, d, cancellationToken)).WhereNotNull().ToImmutableArray();
+                if (selectedMembers.Length > 0)
                 {
                     var containingType = selectedMembers.First().ContainingType;
                     if (containingType != null)
                     {
-                        return new SelectedMemberInfo { ContainingType = containingType, SelectedDeclarations = selectedDeclarations, SelectedMembers = selectedMembers };
+                        return new SelectedMemberInfo(containingType, selectedDeclarations, selectedMembers);
                     }
                 }
             }
@@ -58,13 +51,10 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             return null;
         }
 
+        // Can use non const fields and properties with setters in them.
         protected static bool IsWritableInstanceFieldOrProperty(ISymbol symbol)
-        {
-            // Can use non const fields and properties with setters in them.
-            return
-                IsInstanceFieldOrProperty(symbol) &&
-                IsWritableFieldOrProperty(symbol);
-        }
+            => IsInstanceFieldOrProperty(symbol) &&
+               IsWritableFieldOrProperty(symbol);
 
         private static bool IsWritableFieldOrProperty(ISymbol symbol)
         {
@@ -77,19 +67,13 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         }
 
         protected static bool IsInstanceFieldOrProperty(ISymbol symbol)
-        {
-            return !symbol.IsStatic && (IsField(symbol) || IsProperty(symbol));
-        }
+            => !symbol.IsStatic && (IsField(symbol) || IsProperty(symbol));
 
         private static bool IsProperty(ISymbol symbol)
-        {
-            return symbol.Kind == SymbolKind.Property;
-        }
+            => symbol.Kind == SymbolKind.Property;
 
         private static bool IsField(ISymbol symbol)
-        {
-            return symbol.Kind == SymbolKind.Field;
-        }
+            => symbol.Kind == SymbolKind.Field;
 
         protected List<IParameterSymbol> DetermineParameters(
             IList<ISymbol> selectedMembers)
