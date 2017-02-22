@@ -926,8 +926,8 @@ Friend Module CompilationUtils
         Dim expectedReader = New StringReader(expected)
         Dim actualReader = New StringReader(actual)
 
-        Dim expectedBuilder = _PooledStringBuilderPool.Allocate()
-        Dim actualBuilder = _PooledStringBuilderPool.Allocate()
+        Dim expectedBuilder = _pooledStringBuilderPool.Allocate()
+        Dim actualBuilder = _pooledStringBuilderPool.Allocate()
         Dim expectedLine = expectedReader.ReadLine()
         Dim actualLine = actualReader.ReadLine()
 
@@ -1220,7 +1220,7 @@ Friend Module CompilationUtils
             End If
             builder.Builder.Append(str)
         Next
-        Return builder.ToStringAndFree
+        Return builder.ToStringAndFree()
     End Function
 
     Public Sub CheckSymbolsUnordered(Of TSymbol As ISymbol)(symbols As ImmutableArray(Of TSymbol), ParamArray descriptions As String())
