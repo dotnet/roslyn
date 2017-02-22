@@ -40,6 +40,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 15.0 and later.");
             }
 
+        }
+
+        public VisualStudioInstanceFactory()
+        {
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolveHandler;
             AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
         }
@@ -52,7 +56,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 {
                     var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
                     var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
-                    var fileName = $"{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}.png";
+                    var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
+                    var fileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}.png";
 
                     var fullPath = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots", fileName);
 

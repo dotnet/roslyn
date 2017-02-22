@@ -23,6 +23,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CaptureTestNameAttribute.cs" />
     <Compile Include="Common\Comparison.cs" />
     <Compile Include="Common\Parameter.cs" />
     <Compile Include="Common\Signature.cs" />
