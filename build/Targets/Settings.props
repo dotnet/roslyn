@@ -72,6 +72,12 @@
       {TargetFrameworkDirectory};
       {RawFileName};
     </AssemblySearchPaths>
+
+  </PropertyGroup>
+
+  <!-- Build settings when not using a VS command prompt -->
+  <PropertyGroup Condition="'$(VSINSTALLDIR)' == ''">
+    <TargetFrameworkRootPath>$(RepoRoot)Binaries\Toolset\msbuild\Framework</TargetFrameworkRootPath> 
   </PropertyGroup>
 
   <!-- Windows specific settings -->
