@@ -65,9 +65,21 @@ namespace Microsoft.CodeAnalysis.Host
                     break;
 
                 case WorkspaceChangeKind.ProjectChanged:
-                    foreach (var doc in args.NewSolution.GetProject(args.ProjectId).Documents)
+
+                    var oldProject = args.OldSolution.GetProject(args.ProjectId);
+                    var newProject = args.NewSolution.GetProject(args.ProjectId);
+
+                    // Perf optimization: don't rescan the new project if parse options didn't change. When looking
+                    // at the perf of changing configurations that resulted in many reference additions/removals,
+                    // this consumed around 2%-3% of the trace after some other optimizations I did. Most of that
+                    // was actually walking the documents list since this was causing all the Documents to be realized.
+                    // Since this is on the UI thread, it's best just to not do the work if we don't need it.
+                    if (oldProject.SupportsCompilation && !object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
                     {
-                        this.ParseIfOpen(doc);
+                        foreach (var doc in newProject.Documents)
+                        {
+                            this.ParseIfOpen(doc);
+                        }
                     }
 
                     break;
