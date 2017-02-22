@@ -13,7 +13,7 @@ Imports Xunit
 Imports Microsoft.CodeAnalysis.Collections
 
 Friend Module ParserTestUtilities
-    Friend ReadOnly Property PooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool()
+    Friend ReadOnly Property PooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = ParserTestUtilities.PooledStringBuilderPool ' PooledStringBuilder.CreatePool()
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
     Public Function ParseAndVerify(code As XCData, Optional expectedErrors As XElement = Nothing) As SyntaxTree
