@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -97,6 +98,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             public void Disable()
             {
+                RemoteHostClient client = null;
+
                 lock (_gate)
                 {
                     if (_instanceTask == null)
@@ -120,13 +123,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         instanceTask.Wait(_shutdownCancellationTokenSource.Token);
 
                         // result can be null if service hub failed to launch
-                        instanceTask.Result?.Shutdown();
+                        client = instanceTask.Result;
                     }
                     catch (OperationCanceledException)
                     {
                         // _instance wasn't finished running yet.
                     }
                 }
+
+                // shut it down outside of lock so that
+                // we don't call into different component while
+                // holding onto a lock
+                client?.Shutdown();
             }
 
             public Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken)
@@ -226,10 +234,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     FatalError.ReportWithoutCrash(new Exception("Connection to remote host closed"));
 
                     // use info bar to show warning to users
-                    _workspace.Services.GetService<IErrorReportingService>().ShowGlobalErrorInfo(ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio,
+                    var infoBarUIs = new List<ErrorReportingUI>();
+
+                    infoBarUIs.Add(
                         new ErrorReportingUI(ServicesVSResources.Learn_more, ErrorReportingUI.UIKind.HyperLink, () =>
                             BrowserHelper.StartBrowser(new Uri(OOPKilledMoreInfoLink)), closeAfterAction: false));
+
+                    var allowRestarting = _workspace.Options.GetOption(RemoteHostOptions.RestartRemoteHostAllowed);
+                    if (allowRestarting)
+                    {
+                        infoBarUIs.Add(
+                            new ErrorReportingUI("Restart OOP", ErrorReportingUI.UIKind.Button, async () =>
+                            await RequestNewRemoteHostAsync(CancellationToken.None).ConfigureAwait(false), closeAfterAction: true));
+                    }
+
+                    _workspace.Services.GetService<IErrorReportingService>().ShowGlobalErrorInfo(
+                        ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio,
+                        infoBarUIs.ToArray());
                 }
+            }
+
+            public async Task RequestNewRemoteHostAsync(CancellationToken cancellationToken)
+            {
+                var instance = await GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                if (instance == null)
+                {
+                    return;
+                }
+
+
+                // log that remote host is restarted
+                Logger.Log(FunctionId.RemoteHostClientService_Restarted, KeyValueLogMessage.NoProperty);
+
+                // we are going to kill the existing remote host, connection change is expected
+                instance.ConnectionChanged -= OnConnectionChanged;
+
+                lock (_gate)
+                {
+                    var token = _shutdownCancellationTokenSource.Token;
+                    _instanceTask = Task.Run(() => EnableAsync(token), token);
+                }
+
+                // shutdown 
+                instance.Shutdown();
             }
         }
     }
