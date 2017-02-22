@@ -141,8 +141,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub SourceNamedTypeDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="SourceNamedTypeDeclaringSyntax">
-        <file name="a.vb">
+                Unit.Make("SourceNamedTypeDeclaringSyntax").WithFile("a.vb",
+"
 Namespace N1
     Public Class C1(Of T)
         Class Nested(Of U)
@@ -166,9 +166,7 @@ Namespace N1
 
     Module M1
     End Module
-End Namespace
-    </file>
-    </compilation>)
+End Namespace"))
 
             Dim globalNS = comp.GlobalNamespace
             Dim n1 = TryCast(globalNS.GetMembers("N1").Single(), NamespaceSymbol)
@@ -189,8 +187,8 @@ End Namespace
         <Fact>
         Public Sub NonSourceTypeDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="NonSourceTypeDeclaringSyntax">
-        <file name="a.vb">
+                Unit.Make("NonSourceTypeDeclaringSyntax").WithFile("a.vb",
+"
 Namespace N1
     Public Class C1
         Dim o As Object
@@ -201,8 +199,7 @@ Namespace N1
         Dim err As ErrType
         Dim consErr As ConsErrType(Of Object)
     End Class
-End Namespace    </file>
-    </compilation>)
+End Namespace    "))
 
             Dim globalNS = comp.GlobalNamespace
             Dim n1 = TryCast(globalNS.GetMembers("N1").Single(), NamespaceSymbol)
@@ -215,15 +212,13 @@ End Namespace    </file>
         <Fact>
         Public Sub AnonTypeDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="AnonTypeDeclaringSyntax">
-        <file name="a.vb">
-Public Class C1
+    Unit.Make("AnonTypeDeclaringSyntax").WithFile("a.vb",
+"Public Class C1
     Sub f()
-        Dim a1 = New With {.a = 5, .b = "hi"}
+        Dim a1 = New With {.a = 5, .b = ""hi""}
     End Sub
 End Class
-     </file>
-    </compilation>)
+"))
 
             Dim tree = comp.SyntaxTrees(0)
             Dim text = tree.GetText().ToString()
@@ -250,15 +245,12 @@ End Class
         <Fact()>
         Public Sub AnonTypeDeclaringSyntaxStaticLocal()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="AnonTypeDeclaringSyntax">
-        <file name="a.vb">
-Public Class C1
+                Unit.Make("AnonTypeDeclaringSyntax").WithFile("a.vb",
+"Public Class C1
     Sub f()
-        Static a1 = New With {.a = 5, .b = "hi"}
+        Static a1 = New With {.a = 5, .b = ""hi""}
     End Sub
-End Class
-     </file>
-    </compilation>)
+End Class"))
 
             Dim tree = comp.SyntaxTrees(0)
             Dim text = tree.GetText().ToString()
@@ -292,15 +284,12 @@ End Class
             'This should be fixed when multiple modifiers issues is resolved so that this should work in the same
             'way as static and not normal local declarations as at present.
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="AnonTypeDeclaringSyntax">
-        <file name="a.vb">
-Public Class C1
+                Unit.Make("AnonTypeDeclaringSyntax").WithFile("a.vb",
+"Public Class C1
     Sub f()
-        Static Dim a1 = New With {.a = 5, .b = "hi"}
+        Static Dim a1 = New With {.a = 5, .b = ""hi""}
     End Sub
-End Class
-     </file>
-    </compilation>)
+End Class"))
 
             Dim tree = comp.SyntaxTrees(0)
             Dim text = tree.GetText().ToString()
@@ -333,9 +322,8 @@ End Class
         <Fact>
         Public Sub NamespaceDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="NamespaceDeclaringSyntax">
-        <file name="a.vb">
-Namespace N1
+                Unit.Make("NamespaceDeclaringSyntax").WithFile("a.vb",
+"Namespace N1
     Namespace N2
         Namespace N3
         End Namespace
@@ -348,8 +336,7 @@ Namespace N1.N2
 End Namespace
 
 Namespace System
-End Namespace     </file>
-    </compilation>)
+End Namespace"))
 
             Dim tree = comp.SyntaxTrees(0)
             Dim globalNS = comp.GlobalNamespace
@@ -366,18 +353,16 @@ End Namespace     </file>
 
         <Fact>
         Public Sub NamespaceDeclaringSyntax2()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="NamespaceDeclaringSyntax">
-        <file name="a.vb">
-Namespace N2
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(sourceUnit:=
+                Unit.Make("NamespaceDeclaringSyntax").WithFile("a.vb",
+"Namespace N2
     Namespace N3
     End Namespace
 End Namespace
 
 Namespace Global.N4
 End Namespace
-</file>
-    </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithRootNamespace("N1"))
+"), options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithRootNamespace("N1"))
 
             Dim tree = comp.SyntaxTrees(0)
             Dim globalNS = comp.GlobalNamespace
@@ -396,9 +381,8 @@ End Namespace
         <Fact>
         Public Sub TypeParameterDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="TypeParameterDeclaringSyntax">
-        <file name="a.vb">
-Imports System
+                Unit.Make("TypeParameterDeclaringSyntax").WithFile("a.vb",
+"Imports System
 Imports System.Collections.Generic
 
 Namespace N1
@@ -418,8 +402,7 @@ Namespace N1
     Class M
     End Class
 End Namespace     
-    </file>
-    </compilation>)
+"))
             Dim globalNS = comp.GlobalNamespace
             Dim n1 = TryCast(globalNS.GetMembers("N1").Single(), NamespaceSymbol)
             Dim c1 = TryCast(n1.GetTypeMembers("C1").Single(), NamedTypeSymbol)
@@ -451,9 +434,8 @@ End Namespace
         <Fact>
         Public Sub MemberDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="SourceNamedTypeDeclaringSyntax">
-        <file name="a.vb">
-Namespace N1
+Unit.Make("SourceNamedTypeDeclaringSyntax").WithFile("a.vb",
+"Namespace N1
     Enum E1
         Red
         Blue = 5
@@ -482,7 +464,7 @@ Namespace N1
         Property Prop3 as Integer
         Default Property Items(i As Integer, j As Integer) As String
             Get
-                Return ""
+                Return """"
             End Get
             Set(value As String)
             End Set
@@ -505,8 +487,7 @@ Namespace N1
         Shared x As Integer = 7
     End Class
 End Namespace
-    </file>
-    </compilation>)
+"))
 
 
             Dim globalNS = comp.GlobalNamespace
@@ -607,9 +588,8 @@ End Namespace
         <Fact>
         Public Sub LocalDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="LocalDeclaringSyntax">
-        <file name="a.vb">
-Imports System
+    Unit.Make("LocalDeclaringSyntax").WithFile("a.vb",
+"Imports System
 Imports System.Collections.Generic
 
 Class C1
@@ -632,8 +612,7 @@ Class C1
     Function foo() As IDisposable
     End Function
 End Class
-    </file>
-    </compilation>)
+"))
 
             Dim tree = comp.SyntaxTrees(0)
             CheckDeclaringSyntax(Of ModifiedIdentifierSyntax)(comp, tree, "loc1", SymbolKind.Local)
@@ -651,8 +630,8 @@ End Class
         <Fact>
         Public Sub LabelDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="LabelDeclaringSyntax">
-        <file name="a.vb">
+    Unit.Make("LabelDeclaringSyntax").WithFile("a.vb",
+"
 Imports System
 Imports System.Collections.Generic
 
@@ -664,8 +643,7 @@ lab2:
 lab3:
     End Sub
 End Class
-    </file>
-    </compilation>)
+"))
 
             Dim tree = comp.SyntaxTrees(0)
             CheckDeclaringSyntax(Of LabelStatementSyntax)(comp, tree, "lab1", SymbolKind.Label)
@@ -676,8 +654,8 @@ End Class
         <Fact>
         Public Sub AliasDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="AliasDeclaringSyntax">
-        <file name="a.vb">
+Unit.Make("AliasDeclaringSyntax").WithFile("a.vb",
+"
 Imports System
 Imports System.Collections.Generic
 Imports ConsoleAlias = System.Console, FooAlias = System
@@ -686,8 +664,7 @@ Imports ListOfIntAlias = System.Collections.Generic.List(Of Integer)
 Namespace N1
 
 End Namespace
-    </file>
-    </compilation>)
+"))
 
             Dim tree = comp.SyntaxTrees(0)
             CheckDeclaringSyntax(Of SimpleImportsClauseSyntax)(comp, tree, "ConsoleAlias", SymbolKind.Alias)
@@ -698,9 +675,8 @@ End Namespace
         <Fact>
         Public Sub RangeVariableDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="RangeVariableDeclaringSyntax">
-        <file name="a.vb">
-Imports System
+Unit.Make("RangeVariableDeclaringSyntax").WithFile("a.vb",
+"Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 
@@ -712,8 +688,7 @@ Class C
         Dim y2 = From range4 In a, range8 in a Join range5 In a On range4.ToString() Equals range5.ToString() Select range7 = range4 + range5 Aggregate range6 In a Into range9 = Sum(range6 + range7)
     End Sub
 End Class    
-</file>
-    </compilation>)
+"))
 
             Dim tree = comp.SyntaxTrees(0)
             CheckDeclaringSyntax(Of CollectionRangeVariableSyntax)(comp, tree, "range1", SymbolKind.RangeVariable)
@@ -730,8 +705,8 @@ End Class
         <Fact>
         Public Sub LambdaDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="RangeVariableDeclaringSyntax">
-        <file name="a.vb">
+Unit.Make("RangeVariableDeclaringSyntax").WithFile("a.vb",
+"
 Imports System
 Imports System.Collections.Generic
 
@@ -747,8 +722,7 @@ Class C
                                                     x = a + b '4
                                                 End Sub
     End Sub
-End Class</file>
-    </compilation>)
+End Class"))
 
             Dim tree = comp.SyntaxTrees(0)
             CheckLambdaDeclaringSyntax(Of SingleLineLambdaExpressionSyntax)(comp, tree, "'1")

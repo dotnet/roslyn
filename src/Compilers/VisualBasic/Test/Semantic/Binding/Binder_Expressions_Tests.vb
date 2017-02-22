@@ -138,22 +138,19 @@ BC32045: 'U' has no type parameters and so cannot have type arguments.
         ' Test access to a local variable and assignment of them..
         <Fact>
         Public Sub ArrayAssignment1()
-            CompileAndVerify(
-<compilation name="ArrayAssignment1">
-    <file name="a.vb">
-Imports System        
+            CompileAndVerify( Unit.Make("ArrayAssignment1").WithFile("a.vb",
+"Imports System        
 
 Module M1
     Sub Main()
         dim z(10) as string
         dim i as integer
         i = 2
-        z(i) = "hello"
+        z(i) = ""hello""
         Console.WriteLine(z(i))
     End Sub
 End Module
-    </file>
-</compilation>,
+"),
     expectedOutput:="hello")
         End Sub
 
@@ -161,19 +158,18 @@ End Module
         <Fact>
         Public Sub ArrayAssignmentError1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="ArrayAssignmentError1">
-    <file name="a.vb">
+                Unit.Make("ArrayAssignmentError1").WithFile("a.vb",
+"
 Imports System        
 
 Module M1
     Sub Main()
         dim z(10) as string
-        z(1,1) = "world"
-        z() = "world"
+        z(1,1) = ""world""
+        z() = ""world""
     End Sub
 End Module
-    </file>
-</compilation>)
+"))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -190,10 +186,8 @@ BC30105: Number of indices is less than the number of dimensions of the indexed 
         <WorkItem(4225, "DevDiv_Projects/Roslyn")>
         <Fact>
         Public Sub CheckArrayUpperBound()
-            Dim compilation = CompileAndVerify(
-<compilation name="ArrayAssignmentError1">
-    <file name="a.vb">
-Imports System        
+            Dim compilation = CompileAndVerify( Unit.Make("ArrayAssignmentError1").WithFile("a.vb",
+"Imports System        
 Module M
   Sub Main()
     dim a as integer() = New Integer(1) {}
@@ -202,21 +196,19 @@ Module M
     Console.WriteLine(New Integer(-1) {}.GetLength(0))
   End Sub
 End Module
-    </file>
-</compilation>,
-    expectedOutput:=<![CDATA[
+"),
+    expectedOutput:="
 2
 0
-]]>)
+")
         End Sub
 
         ' Test access to a local variable and assignment of them..
         <Fact()>
         Public Sub ArrayAssignmentError2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="ArrayAssignmentErrors2">
-    <file name="a.vb">
-Option strict on     
+                Unit.Make("ArrayAssignmentErrors2").WithFile("a.vb",
+"Option strict on     
 Imports System        
 
 Module M1
@@ -224,11 +216,10 @@ Module M1
         dim z(10) as string
         dim i as uinteger
         ' Should report an implicit conversion error, uinteger can't be converted to integer
-        z(i) = "world"
+        z(i) = ""world""
     End Sub
 End Module
-    </file>
-</compilation>)
+"))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -242,18 +233,17 @@ BC30512: Option Strict On disallows implicit conversions from 'UInteger' to 'Int
         <Fact>
         Public Sub Parameter1()
             CompileAndVerify(
-<compilation name="Parameter1">
-    <file name="a.vb">
+                Unit.Make("Parameter1").WithFile("a.vb","
 Imports System        
 
 Module M1
     Sub Foo(xParam as Integer, ByRef yParam As Long)
-        Console.WriteLine("xParam = {0}", xParam)
-        Console.WriteLine("yParam = {0}", yParam)
+        Console.WriteLine(""xParam = {0}"", xParam)
+        Console.WriteLine(""yParam = {0}"", yParam)
         xParam = 17
         yParam = 189
-        Console.WriteLine("xParam = {0}", xParam)
-        Console.WriteLine("yParam = {0}", yParam)
+        Console.WriteLine(""xParam = {0}"", xParam)
+        Console.WriteLine(""yParam = {0}"", yParam)
     End Sub
 
     Sub Main()
@@ -261,16 +251,15 @@ Module M1
         Dim y as Long
         x = 143
         y = 16442
-        Console.WriteLine("x = {0}", x)
-        Console.WriteLine("y = {0}", y)
+        Console.WriteLine(""x = {0}"", x)
+        Console.WriteLine(""y = {0}"", y)
         Foo(x,y)
-        Console.WriteLine("x = {0}", x)
-        Console.WriteLine("y = {0}", y)
+        Console.WriteLine(""x = {0}"", x)
+        Console.WriteLine(""y = {0}"", y)
     End Sub
 End Module
-    </file>
-</compilation>,
-    expectedOutput:=<![CDATA[
+"),
+    expectedOutput:="
 x = 143
 y = 16442
 xParam = 143
@@ -279,15 +268,14 @@ xParam = 17
 yParam = 189
 x = 143
 y = 189
-]]>)
+")
         End Sub
 
         ' Test object creation expression
         <Fact>
         Public Sub SimpleObjectCreation1()
             CompileAndVerify(
-<compilation name="SimpleObjectCreation">
-    <file name="a.vb">
+                Unit.Make("SimpleObjectCreation").WithFile("a.vb","
 Imports System   
 
 Class C1
@@ -295,7 +283,7 @@ Class C1
     End Sub
 
     Sub Foo()
-        Console.WriteLine("Called C1.Foo")
+        Console.WriteLine(""Called C1.Foo"")
     End Sub
 End Class     
 
@@ -306,18 +294,15 @@ Module M1
         c.Foo()
     End Sub
 End Module
-    </file>
-</compilation>,
+"),
     expectedOutput:="Called C1.Foo")
         End Sub
 
         ' Test object creation expression
         <Fact>
         Public Sub MeReference()
-            CompileAndVerify(
-<compilation name="MeReference">
-    <file name="a.vb">
-Imports System   
+            CompileAndVerify( Unit.Make("MeReference").WithFile("a.vb",
+"Imports System   
 
 Class C1
     private _i as integer
@@ -334,18 +319,15 @@ Module M1
         c = new C1(1)
     End Sub
 End Module
-    </file>
-</compilation>,
+"),
     expectedOutput:="1")
         End Sub
 
         ' Test access to simple identifier that isn't found anywhere.
         <Fact>
         Public Sub SimpleNameNotFound()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="SimpleNameNotFound">
-    <file name="a.vb">
-Imports System        
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime( Unit.Make("SimpleNameNotFound").WithFile("a.vb",
+"Imports System        
 
 Module M1
     Sub Main()
@@ -353,8 +335,7 @@ Module M1
         x = foo
     End Sub
 End Module
-    </file>
-</compilation>)
+"))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -368,8 +349,7 @@ BC30451: 'foo' is not declared. It may be inaccessible due to its protection lev
         <Fact>
         Public Sub QualifiedNameBeforeDotNotFound()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="QualifiedNameBeforeDotNotFound">
-    <file name="a.vb">
+Unit.Make("QualifiedNameBeforeDotNotFound").WithFile("a.vb","
 Imports System
 
 Module MainModule
@@ -381,8 +361,7 @@ Module MainModule
         A.B.Rdim456()
     End Sub
 End Module
-    </file>
-</compilation>)
+"))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -399,8 +378,7 @@ BC30456: 'B' is not a member of 'MainModule.A'.
         <Fact>
         Public Sub QualifiedNameNotFound()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="QualifiedNameNotFound">
-    <file name="a.vb">
+Unit.Make("QualifiedNameNotFound").WithFile("a.vb","
 Imports System        
 
 Namespace N
@@ -420,9 +398,7 @@ Module M1
         x = cInstance.foo
         x = M1.foo
     End Sub
-End Module
-    </file>
-</compilation>)
+End Module"))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -444,10 +420,8 @@ BC30456: 'foo' is not a member of 'M1'.
         ' Test access qualified identifier off of type parameter
         <Fact>
         Public Sub TypeParamCantQualify()
-            Dim compilation = CreateCompilationWithMscorlib(
-<compilation name="TypeParamCantQualify">
-    <file name="a.vb">
-Imports System        
+            Dim compilation = CreateCompilationWithMscorlib(Unit.Make("TypeParamCantQualify").WithFile("a.vb",
+"Imports System        
 
 Class C(Of T)
     Public Sub f()
@@ -455,9 +429,7 @@ Class C(Of T)
         x = T.foo
     End Sub
 End Class
-
-    </file>
-</compilation>)
+"))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -470,9 +442,8 @@ BC32098: Type parameters cannot be used as qualifiers.
         ' Test access to simple identifier that can be found, but has an error.
         <Fact>
         Public Sub BadSimpleName()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="BadSimpleName">
-    <file name="a.vb">
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime( 
+                Unit.Make("BadSimpleName").WithFile("a.vb","
 Imports System
 
 Class Foo(Of T)
@@ -485,8 +456,7 @@ Module Module1
         y = Foo.x
     End Sub
 End Module
-    </file>
-</compilation>)
+"))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -500,8 +470,7 @@ BC32042: Too few type arguments to 'Foo(Of T)'.
         <Fact>
         Public Sub BadQualifiedName()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="BadQualifiedName">
-    <file name="a.vb">
+                Unit.Make("BadQualifiedName").WithFile("a.vb", "
 Imports System
 Namespace N
     Class Foo(Of T)
@@ -526,8 +495,7 @@ Module Module1
         y = cInstance.Foo(Of Integer).x
     End Sub
 End Module
-    </file>
-</compilation>)
+"))
 
             ' Note that we produce different (but I think better) error messages than Dev10.
             AssertTheseDiagnostics(compilation,
@@ -1055,21 +1023,19 @@ BC30108: 'S' is a type and cannot be used as an expression.
         <Fact>
         Public Sub TestRangeExpressionAllowableLowerBounds()
 
-            Dim compilationDef =
-<compilation name="TestRangeExpressionAllowableLowerBounds">
-    <file name="a.vb">
+            Dim compilationDef = Unit.Make("TestRangeExpressionAllowableLowerBounds").WithFile("a.vb",
+"
     Friend Module ExpArrBounds0LowerBound
         Sub ExpArrBounds0LowerBound()
-            Dim x0(0 To 2&amp;)
-            Dim x1(0&amp; To 2&amp;)
-            Dim x2(0ul To 2&amp;)
-            Dim x3(0l To 2&amp;)
-            Dim x4(0us To 2&amp;)
-            Dim x5(0s To 2&amp;)
+            Dim x0(0 To 2&)
+            Dim x1(0& To 2&)
+            Dim x2(0ul To 2&)
+            Dim x3(0l To 2&)
+            Dim x4(0us To 2&)
+            Dim x5(0s To 2&)
         End Sub
     End Module
-    </file>
-</compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
@@ -1158,16 +1124,16 @@ End Class
 </compilation>
             CompileAndVerify(compilationDef).
                 VerifyIL("Y.f",
-            <![CDATA[
+"
 {
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldnull    
-  IL_0001:  callvirt   "Function Object.GetType() As System.Type"
+  IL_0001:  callvirt   ""Function Object.GetType() As System.Type""
   IL_0006:  pop
   IL_0007:  ret       
 }
-]]>)
+")
         End Sub
 
         <Fact>
