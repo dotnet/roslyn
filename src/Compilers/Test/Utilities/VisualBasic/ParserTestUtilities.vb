@@ -13,7 +13,7 @@ Imports Xunit
 Imports Microsoft.CodeAnalysis.Collections
 
 Friend Module ParserTestUtilities
-    Friend ReadOnly Property _PooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool()
+    Friend ReadOnly Property PooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool()
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
     Public Function ParseAndVerify(code As XCData, Optional expectedErrors As XElement = Nothing) As SyntaxTree
@@ -77,8 +77,8 @@ Friend Module ParserTestUtilities
 
         ' Verify Errors
         If expectedDiagnostics Is Nothing Then
-            Dim errors = _PooledStringBuilderPool.Allocate()
-            AppendSyntaxErrors(tree.GetDiagnostics(), errors)
+            Dim errors = PooledStringBuilderPool.Allocate()
+            AppendSyntaxErrors(tree.GetDiagnostics(), errors.Builder)
             Assert.Equal(root.ContainsDiagnostics, errors.Builder.Length > 0)
             Assert.False(root.ContainsDiagnostics, errors.ToStringAndFree())
         Else
@@ -541,17 +541,17 @@ Public Module VerificationHelpers
         End Function
     End Class
 
-    Friend Sub AppendSyntaxErrors(errors As IEnumerable(Of Diagnostic), output As PooledStringBuilder)
+    Friend Sub AppendSyntaxErrors(errors As IEnumerable(Of Diagnostic), output As StringBuilder)
         For Each e In errors
             Dim span = e.Location.SourceSpan
-            output.Builder.AppendLine(GetErrorString(e.Code, e.GetMessage(EnsureEnglishUICulture.PreferredOrNull), span.Start.ToString(), span.End.ToString()))
+            output.AppendLine(GetErrorString(e.Code, e.GetMessage(EnsureEnglishUICulture.PreferredOrNull), span.Start.ToString(), span.End.ToString()))
         Next
     End Sub
 
 #Region "Private Helpers"
 
     Private Function GetErrorString(id As Integer, message As String, start As String, [end] As String) As String
-        Dim errorString = ParserTestUtilities._PooledStringBuilderPool.Allocate()
+        Dim errorString = ParserTestUtilities.PooledStringBuilderPool.Allocate()
         With errorString.Builder
             .Append(vbTab)
             .Append("<error id=""")
@@ -634,7 +634,7 @@ Public Module VerificationHelpers
         Next
 
         If errorScenarioFailed Then
-            Dim errorMessage = ParserTestUtilities._PooledStringBuilderPool.Allocate()
+            Dim errorMessage = ParserTestUtilities.PooledStringBuilderPool.Allocate()
             With errorMessage.Builder
                 .AppendLine()
                 .AppendLine("Expected Subset:")
@@ -642,7 +642,7 @@ Public Module VerificationHelpers
                     .AppendLine(GetErrorString(CInt(e.@id), If(e.@message, "?"), If(e.@start, "?"), If(e.@end, "?")))
                 Next
                 .AppendLine("Actual Errors (on " & node.Kind().ToString & node.Span.ToString & ")")
-                AppendSyntaxErrors(tree.GetDiagnostics(node), errorMessage)
+                AppendSyntaxErrors(tree.GetDiagnostics(node), errorMessage.Builder)
             End With
             Assert.False(errorScenarioFailed, errorMessage.ToStringAndFree())
         End If

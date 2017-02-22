@@ -27,10 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                           .AddImplements(SyntaxFactory.ImplementsStatement(SyntaxFactory.ParseTypeName("X"), SyntaxFactory.ParseTypeName("Y")))
 
             Dim expectedText As String =
-                "Class C(Of T)" + vbCrLf +
-                "    Implements X, Y" + vbCrLf +
-                vbCrLf +
-                "End Class"
+"Class C(Of T)
+    Implements X, Y
+
+End Class"
 
             Dim actualText = c.NormalizeWhitespace().ToFullString()
             Assert.Equal(expectedText, actualText)

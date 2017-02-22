@@ -15,7 +15,7 @@ Imports Xunit
 Imports Microsoft.CodeAnalysis.Collections
 Friend Module CompilationUtils
 
-    Private ReadOnly Property _PooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool()
+    Private ReadOnly _pooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool
 
     Private Function ParseSources(sources As IEnumerable(Of String), parseOptions As VisualBasicParseOptions) As IEnumerable(Of SyntaxTree)
         Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
@@ -1099,8 +1099,8 @@ Friend Module CompilationUtils
         Dim expectedReader = New StringReader(expected)
         Dim actualReader = New StringReader(actual)
 
-        Dim expectedBuilder = _PooledStringBuilderPool.Allocate()
-        Dim actualBuilder = _PooledStringBuilderPool.Allocate()
+        Dim expectedBuilder = _pooledStringBuilderPool.Allocate()
+        Dim actualBuilder = _pooledStringBuilderPool.Allocate()
         Dim expectedLine = expectedReader.ReadLine()
         Dim actualLine = actualReader.ReadLine()
 
@@ -1152,7 +1152,7 @@ Friend Module CompilationUtils
 
         Array.Sort(diagnosticsAndIndices, Function(diag1, diag2) CompareErrors(diag1, diag2))
 
-        Dim builder = _PooledStringBuilderPool.Allocate()
+        Dim builder = _pooledStringBuilderPool.Allocate()
         For Each e In diagnosticsAndIndices
             If Not suppressInfos OrElse e.Diagnostic.Severity > DiagnosticSeverity.Info Then
                 builder.Builder.Append(ErrorText(e.Diagnostic))
@@ -1386,7 +1386,7 @@ Friend Module CompilationUtils
 
     Public Function SortAndMergeStrings(ParamArray strings As String()) As String
         Array.Sort(strings)
-        Dim builder = _PooledStringBuilderPool.Allocate
+        Dim builder = _pooledStringBuilderPool.Allocate
         For Each str In strings
             If builder.Length > 0 Then
                 builder.Builder.AppendLine()

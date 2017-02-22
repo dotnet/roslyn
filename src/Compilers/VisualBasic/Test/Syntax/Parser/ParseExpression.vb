@@ -2670,7 +2670,7 @@ End Module
             <WorkItem(1085618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085618")>
             Public Sub TooDeepLambdaDeclarations()
                 Dim depth = 5000
-                Dim builder = _PooledStringBuilderPool.Allocate
+                Dim builder = PooledStringBuilderPool.Allocate
                 With builder.Builder
                     .AppendLine("
 
@@ -2700,7 +2700,7 @@ End Module")
             <ClrOnlyFact>
             Public Sub TooDeepObjectInitializers()
                 Dim depth = 5000
-                Dim builder = _PooledStringBuilderPool.Allocate
+                Dim builder = PooledStringBuilderPool.Allocate
                 With builder.Builder
                     .AppendLine("
 
@@ -2735,7 +2735,7 @@ End Module")
             <ClrOnlyFact>
             Public Sub TooDeepLambdaDeclarationsAsExpression()
                 Dim depth = 5000
-                Dim builder = _PooledStringBuilderPool.Allocate()
+                Dim builder = PooledStringBuilderPool.Allocate()
                 With builder.Builder
                     .AppendLine("Sub()")
                     For i = 0 To depth
@@ -2756,7 +2756,7 @@ End Module")
             <ClrOnlyFact>
             Public Sub TooDeepLambdaDeclarationsAsStatement()
                 Dim depth = 5000
-                Dim builder = _PooledStringBuilderPool.Allocate
+                Dim builder = PooledStringBuilderPool.Allocate
                 With builder.Builder
                     .AppendLine("Dim c = Sub()")
                     For i = 0 To depth
