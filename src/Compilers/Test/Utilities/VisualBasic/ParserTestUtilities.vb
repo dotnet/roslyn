@@ -77,7 +77,7 @@ Friend Module ParserTestUtilities
 
         ' Verify Errors
         If expectedDiagnostics Is Nothing Then
-            Dim errors = _PooledStringBuilderPool.Allocate()
+            Dim errors = PooledStringBuilderPool.Allocate()
             AppendSyntaxErrors(tree.GetDiagnostics(), errors)
             Assert.Equal(root.ContainsDiagnostics, errors.Builder.Length > 0)
             Assert.False(root.ContainsDiagnostics, errors.ToStringAndFree())
