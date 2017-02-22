@@ -4157,5 +4157,31 @@ public class KVP<T1, T2>
 
             await TestAsync(code, expected, index: 0);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")]
+        public async Task EnsureParenthesesInStringConcatenation()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        string s = ""a"" + i;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        string s = ""a"" + (1 + 2);
+    }
+}";
+
+            await TestAsync(code, expected, index: 0, compareTokens: false);
+        }
     }
 }
