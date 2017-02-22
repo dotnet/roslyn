@@ -77,6 +77,8 @@ namespace Roslyn.Test.Utilities.Remote
 
         protected override void OnDisconnected()
         {
+            // we are asked to disconnect. unsubscribe and dispose to disconnect
+            _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
         }
 

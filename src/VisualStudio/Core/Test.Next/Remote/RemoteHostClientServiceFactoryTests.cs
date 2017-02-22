@@ -124,6 +124,34 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             service.Disable();
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestRequestNewRemoteHost()
+        {
+            var service = CreateRemoteHostClientService();
+
+            service.Enable();
+
+            var completionTask = new TaskCompletionSource<bool>();
+
+            var client1 = await service.GetRemoteHostClientAsync(CancellationToken.None);
+            client1.ConnectionChanged += (s, connected) =>
+            {
+                // mark done
+                completionTask.SetResult(connected);
+            };
+
+            await service.RequestNewRemoteHostAsync(CancellationToken.None);
+
+            var result = await completionTask.Task;
+            Assert.False(result);
+
+            var client2 = await service.GetRemoteHostClientAsync(CancellationToken.None);
+
+            Assert.NotEqual(client1, client2);
+
+            service.Disable();
+        }
+
         private RemoteHostClientServiceFactory.RemoteHostClientService CreateRemoteHostClientService(
             Workspace workspace = null,
             IEnumerable<AnalyzerReference> hostAnalyzerReferences = null,
