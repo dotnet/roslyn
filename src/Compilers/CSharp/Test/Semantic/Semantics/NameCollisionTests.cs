@@ -828,6 +828,7 @@ class Class
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,22): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //         foreach (var name1 in "string")            // 0136
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(7, 22),
                 // (9,26): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
