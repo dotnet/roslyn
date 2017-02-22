@@ -519,8 +519,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
         <Fact>
         Public Sub AccessInstanceFromStatic()
             Dim compilation = CreateCompilationWithMscorlib(
-<compilation name="AccessInstanceFromStatic">
-    <file name="a.vb">
+Unit.Make("AccessInstanceFromStatic").WithFile("a.vb","
 Class K
     Public Sub y()
     End Sub
@@ -549,9 +548,7 @@ Class K
 
         End Sub
     End Class
-End Class
-    </file>
-</compilation>)
+End Class"))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -580,9 +577,8 @@ BC30469: Reference to a non-shared member requires an object reference.
         <Fact>
         Public Sub AccessStaticViaInstance()
             Dim compilation = CreateCompilationWithMscorlib(
-<compilation name="AccessStaticViaInstance">
-    <file name="a.vb">
-Class K
+                Unit.Make("AccessStaticViaInstance").WithFile("a.vb",
+"Class K
     Public Shared Sub y()
     End Sub
     Public Shared x As Integer
@@ -611,8 +607,7 @@ Class K
         End Sub
     End Class
 End Class
-    </file>
-</compilation>)
+"))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -627,10 +622,8 @@ BC42025: Access of shared member, constant member, enum member or nested type th
 
         <Fact(), WorkItem(531587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531587")>
         Public Sub CircularSharedMemberAccessThroughInstance()
-            Dim source =
-<compilation name="FieldsConst">
-    <file name="a.vb">
-Option Strict On
+            Dim source = Unit.Make("FieldsConst").WithFile("a.vb",
+"Option Strict On
 Option Infer On
 
 Class C1
@@ -640,9 +633,7 @@ Class C1
     Public shared Sub Main(args() as string)
     End sub
 End Class
-    </file>
-</compilation>
-
+")
             Dim c1 = CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "j.MaxValue"),
                 Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "i.MaxValue"))
@@ -652,71 +643,67 @@ End Class
         <Fact>
         Public Sub ConstantFields1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="VBConstantFields1">
-    <file name="a.vb">
-Module Module1
+Unit.Make("VBConstantFields1").WithFile("a.vb",
+"Module Module1
 
     Sub Main()
-        System.Console.WriteLine("Int64Field: {0}", ConstFields.Int64Field)
-        System.Console.WriteLine("DateTimeField: {0}", ConstFields.DateTimeField.ToString("M/d/yyyy h:mm:ss tt", System.Globalization.CultureInfo.InvariantCulture))
-        System.Console.WriteLine("DoubleField: {0}", ConstFields.DoubleField)
-        System.Console.WriteLine("SingleField: {0}", ConstFields.SingleField)
-        System.Console.WriteLine("StringField: {0}", ConstFields.StringField)
-        System.Console.WriteLine("StringNullField: [{0}]", ConstFields.StringNullField)
-        System.Console.WriteLine("ObjectNullField: [{0}]", ConstFields.ObjectNullField)
+        System.Console.WriteLine(""Int64Field: {0}"", ConstFields.Int64Field)
+        System.Console.WriteLine(""DateTimeField:   {0}"", ConstFields.DateTimeField.ToString(""M/d/yyyy h:mm : ss tt"", System.Globalization.CultureInfo.InvariantCulture))
+        System.Console.WriteLine(""DoubleField: {0}"", ConstFields.DoubleField)
+        System.Console.WriteLine(""SingleField:   {0}"", ConstFields.SingleField)
+        System.Console.WriteLine(""StringField: {0}"", ConstFields.StringField)
+        System.Console.WriteLine(""StringNullField:  [{0}]"", ConstFields.StringNullField)
+        System.Console.WriteLine(""ObjectNullField:  [{0}]"", ConstFields.ObjectNullField)
 
-        System.Console.WriteLine("ByteValue: {0}", ByteEnum.ByteValue)
-        System.Console.WriteLine("SByteValue: {0}", SByteEnum.SByteValue)
-        System.Console.WriteLine("UInt16Value: {0}", UInt16Enum.UInt16Value)
-        System.Console.WriteLine("Int16Value: {0}", Int16Enum.Int16Value)
-        System.Console.WriteLine("UInt32Value: {0}", UInt32Enum.UInt32Value)
-        System.Console.WriteLine("Int32Value: {0}", Int32Enum.Int32Value)
-        System.Console.WriteLine("UInt64Value: {0}", UInt64Enum.UInt64Value)
-        System.Console.WriteLine("Int64Value: {0}", Int64Enum.Int64Value)
+        System.Console.WriteLine(""ByteValue:  {0}"", ByteEnum.ByteValue)
+        System.Console.WriteLine(""SByteValue: {0}"", SByteEnum.SByteValue)
+        System.Console.WriteLine(""UInt16Value:  {0}"", UInt16Enum.UInt16Value)
+        System.Console.WriteLine(""Int16Value: {0}"", Int16Enum.Int16Value)
+        System.Console.WriteLine(""UInt32Value:  {0}"", UInt32Enum.UInt32Value)
+        System.Console.WriteLine(""Int32Value: {0}"", Int32Enum.Int32Value)
+        System.Console.WriteLine(""UInt64Value:  {0}"", UInt64Enum.UInt64Value)
+        System.Console.WriteLine(""Int64Value: {0}"", Int64Enum.Int64Value)
     End Sub
 
 End Module
-    </file>
-</compilation>, TestOptions.ReleaseExe)
+"), options:=TestOptions.ReleaseExe)
 
             compilation = compilation.AddReferences(TestReferences.SymbolsTests.Fields.ConstantFields)
 
-            CompileAndVerify(compilation, <![CDATA[
-Int64Field: 634315546432909307
-DateTimeField: 1/25/2011 12:17:23 PM
+            CompileAndVerify(compilation, expectedOutput:=
+"Int64Field: 634315546432909307
+DateTimeField:   1/25/2011 12:17 : 23 PM
 DoubleField: -10
-SingleField: 9
+SingleField:   9
 StringField: 11
-StringNullField: []
-ObjectNullField: []
-ByteValue: ByteValue
+StringNullField:  []
+ObjectNullField:  []
+ByteValue:  ByteValue
 SByteValue: SByteValue
-UInt16Value: UInt16Value
+UInt16Value:  UInt16Value
 Int16Value: Int16Value
-UInt32Value: UInt32Value
+UInt32Value:  UInt32Value
 Int32Value: Int32Value
-UInt64Value: UInt64Value
+UInt64Value:  UInt64Value
 Int64Value: Int64Value
-]]>)
+")
         End Sub
 
         ' Test member of built in type.
         <Fact>
         Public Sub MemberOfBuiltInType()
             CompileAndVerify(
-<compilation name="MeReference">
-    <file name="a.vb">
-Imports System   
+                Unit.Make("MeReference").WithFile("a.vb",
+"Imports System   
 
 Module M1
     Sub Main()
         Dim x as Integer
-        x = Integer.Parse("143")
+        x = Integer.Parse(""143"")
         Console.WriteLine(x)
     End Sub
 End Module
-    </file>
-</compilation>,
+"),
     expectedOutput:="143")
         End Sub
 
@@ -724,37 +711,32 @@ End Module
         <Fact>
         Public Sub MemberOfNullableType()
             CompileAndVerify(
-<compilation name="MeReference">
-    <file name="a.vb">
-Imports System   
+                Unit.Make("MeReference").WithFile("a.vb",
+"Imports System   
 
 Module M1
     Sub Main()
         Dim x as boolean
-        x = Integer?.Equals("foo", "f" + "oo")
+        x = Integer?.Equals(""foo"", ""f"" + ""oo"")
         Console.WriteLine(x)
     End Sub
 End Module
-    </file>
-</compilation>,
+"),
     expectedOutput:="True")
         End Sub
 
         <Fact>
         Public Sub Bug4272()
 
-            Dim compilationDef =
-<compilation name="Bug4272">
-    <file name="a.vb">
-Option Strict On
+            Dim compilationDef = Unit.Make("Bug4272").WithFile("a.vb",
+"Option Strict On
 
 Module M
   Function Foo(x As Integer) As Integer()
     Foo(1) = Nothing
   End Function
 End Module
-    </file>
-</compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
@@ -768,10 +750,8 @@ BC42105: Function 'Foo' doesn't return a value on all code paths. A null referen
   ~~~~~~~~~~~~
 </expected>)
 
-            compilationDef =
-<compilation name="Bug4272">
-    <file name="a.vb">
-Module Module1
+            compilationDef = Unit.Make("Bug4272").WithFile("a.vb",
+"Module Module1
 
     Sub Main()
         Foo()
@@ -781,11 +761,11 @@ Module Module1
 
     Function Foo() As TestClass
         If val Is Nothing Then
-            System.Console.WriteLine("Nothing")
+            System.Console.WriteLine(""Nothing"")
             val = New TestClass()
             val.Field = 2
         Else
-            System.Console.WriteLine("val")
+            System.Console.WriteLine(""val"")
             Return val
         End If
 
@@ -813,24 +793,21 @@ Class TestClass
     End Function
 
 End Class
-    </file>
-</compilation>
+")
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
-            CompileAndVerify(compilation, <![CDATA[
+            CompileAndVerify(compilation, expectedOutput:="
 Nothing
 1
 1
 val
 2
 3
-]]>)
+")
 
-            compilationDef =
-<compilation name="Bug4272">
-    <file name="a.vb">
-Option Strict On
+            compilationDef = Unit.Make("Bug4272").WithFile("a.vb",
+"Option Strict On
 Module M
   Function Foo(x As Integer) As Integer()
     Dim y As Integer() = Foo(1)
@@ -845,8 +822,7 @@ Module M1
         Return 1
     End Function
 End Module
-    </file>
-</compilation>
+")
 
             compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
@@ -863,27 +839,25 @@ BC42105: Function 'Foo' doesn't return a value on all code paths. A null referen
         <Fact>
         Public Sub MethodAccessibilityChecking()
             CompileAndVerify(
-<compilation name="MeReference">
-    <file name="a.vb">
-Imports System
+                 Unit.Make("MeReference").WithFile("a.vb",
+"Imports System
 
 Public Class C1
     Private Shared Sub foo(x as String)
-        Console.Writeline("Private")
+        Console.Writeline(""Private"")
     End Sub
     Public Shared Sub foo(x as Object)
-        Console.Writeline("Public")
+        Console.Writeline(""Public"")
     End Sub
 End class
 
 Module Program
     Sub Main()
         'Below call should bind to public overload that takes object
-        c1.foo("")
+        c1.foo("""")
     End Sub
 End Module
-    </file>
-</compilation>,
+"),
     expectedOutput:="Public")
         End Sub
 
@@ -891,16 +865,13 @@ End Module
         <Fact>
         Public Sub Bug4249()
 
-            Dim compilationDef =
-<compilation name="Bug4249">
-    <file name="a.vb">
+            Dim compilationDef = Unit.Make("Bug4249").WithFile("a.vb","
 Module Program
   Sub Main()
     Main().ToString
   End Sub
 End Module
-    </file>
-</compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
@@ -915,10 +886,8 @@ BC30491: Expression does not produce a value.
         <Fact>
         Public Sub Bug4250()
 
-            Dim compilationDef =
-<compilation name="Bug4250">
-    <file name="a.vb">
-Module Program
+            Dim compilationDef = Unit.Make("Bug4250").WithFile("a.vb",
+"Module Program
   Sub Main()
     System.Console.WriteLine(Foo.ToString)
     System.Console.WriteLine(Bar(Of Integer).ToString)
@@ -932,20 +901,17 @@ Module Program
     return 231
   End Function
 End Module
-    </file>
-</compilation>
+")
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
-            CompileAndVerify(compilation, <![CDATA[
+            CompileAndVerify(compilation, expectedOutput:="
 123
 231
-]]>)
+")
 
-            compilationDef =
-<compilation name="Bug4250">
-    <file name="a.vb">
-Module Program
+            compilationDef = Unit.Make("Bug4250").WithFile("a.vb",
+"Module Program
   Sub Main()
     System.Console.WriteLine(Foo.ToString)
   End Sub
@@ -954,10 +920,9 @@ Module Program
     return 321
   End Function
 End Module
-    </file>
-</compilation>
+")
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -971,10 +936,8 @@ BC30455: Argument not specified for parameter 'x' of 'Public Function Foo(x As I
         <Fact>
         Public Sub Bug4277()
 
-            Dim compilationDef =
-<compilation name="Bug4277">
-    <file name="a.vb">
-Option Strict Off
+            Dim compilationDef = Unit.Make("Bug4277").WithFile("a.vb",
+"Option Strict Off
 
 Module M
   Sub Main()
@@ -1006,8 +969,7 @@ Class C
     End Class
 
 End Class
-    </file>
-</compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
@@ -1045,19 +1007,16 @@ BC30108: 'S' is a type and cannot be used as an expression.
         <WorkItem(537219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537219")>
         <Fact>
         Public Sub BC32059ERR_OnlyNullLowerBound()
-            Dim compilationDef =
-<compilation name="BC32059ERR_OnlyNullLowerBound">
-    <file name="a.b">
-    Friend Module ExpArrBounds003Errmod
+            Dim compilationDef = Unit.Make("BC32059ERR_OnlyNullLowerBound").WithFile("a.b",
+"Friend Module ExpArrBounds003Errmod
         Sub ExpArrBounds003Err()
-            ' COMPILEERROR: BC32059, "0!"
+            ' COMPILEERROR: BC32059, ""0!""
     	    Dim x1(0! To 5) as Single
             Dim x2(0.0 to 5) as Single
             Dim x3(0d to 5) as Single
         End Sub
     End Module  
-    </file>
-</compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
@@ -1078,10 +1037,8 @@ BC32059: Array lower bounds can be only '0'.
 
         <Fact>
         Public Sub LocalShadowsGenericMethod()
-            Dim compilationDef =
-<compilation name="LocalShadowsGenericMethod">
-    <file name="a.vb">
-Class Y
+            Dim compilationDef = Unit.Make("LocalShadowsGenericMethod").WithFile("a.vb",
+"Class Y
     Sub f()
         Dim foo As Integer
 
@@ -1092,8 +1049,7 @@ Class Y
 
     End Sub
 End Class
-    </file>
-</compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
@@ -1113,15 +1069,13 @@ BC32045: 'foo' has no type parameters and so cannot have type arguments.
         <Fact>
         Public Sub AccessingMemberOffOfNothing()
             Dim compilationDef =
-<compilation name="AccessingMemberOffOfNothing">
-    <file name="a.vb">
-Class Y
+Unit.Make("AccessingMemberOffOfNothing").WithFile("a.vb",
+"Class Y
     Sub f()
         Dim x As System.Type = Nothing.GetType()
     End Sub
 End Class
-    </file>
-</compilation>
+")
             CompileAndVerify(compilationDef).
                 VerifyIL("Y.f",
 "
@@ -1138,10 +1092,8 @@ End Class
 
         <Fact>
         Public Sub ColorColor()
-            Dim compilationDef =
-<compilation name="AccessingMemberOffOfNothing">
-    <file name="a.vb">
-Option Strict On
+            Dim compilationDef = Unit.Make("AccessingMemberOffOfNothing").WithFile("a.vb",
+"Option Strict On
 
 Imports System
 
@@ -1158,7 +1110,7 @@ Class cls1
     Shared o As Integer = cls1.s
     Public ReadOnly Property cls1 As cls1
         Get
-            Console.WriteLine("hi")
+            Console.WriteLine(""hi"")
             Return Me
         End Get
     End Property
@@ -1207,8 +1159,7 @@ Class Test
     End Function
 End Class
 
-    </file>
-</compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
@@ -1218,9 +1169,8 @@ End Class
 
         <Fact>
         Public Sub FalseColorColor()
-            Dim compilationDef =
-<compilation name="AccessingMemberOffOfNothing">
-    <file name="a.vb">
+            Dim compilationDef = Unit.Make("AccessingMemberOffOfNothing").WithFile("a.vb",
+"
 Imports Q = B
 
 Class B
@@ -1236,8 +1186,7 @@ Class B
         Dim x As Integer = Q.Zip 'this should be an error
     End Sub
 End Class
-    </file>
-</compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
@@ -1252,10 +1201,8 @@ BC30369: Cannot refer to an instance member of a class from within a shared meth
 
         <Fact>
         Public Sub ColorColor1()
-            Dim compilationDef =
-<compilation name="AccessingMemberOffOfNothing">
-    <file name="a.vb">
-Option Strict On
+            Dim compilationDef = Unit.Make("AccessingMemberOffOfNothing").WithFile("a.vb",
+"Option Strict On
 
 Imports System
 
@@ -1277,7 +1224,7 @@ End Class
 Class Test
     ReadOnly Property color(x as integer) As Color
         Get
-            Console.WriteLine("evaluated")
+            Console.WriteLine(""evaluated"")
             Return Color.Red
         End Get
     End Property
@@ -1287,8 +1234,7 @@ Class Test
         Return color.G(of Long)(1)          ' error, missing parameter to color property
     End Function
 End Class
-    </file>
-</compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
