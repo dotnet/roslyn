@@ -458,6 +458,9 @@
   <ItemGroup>
     <Compile Include="ReplaceMethodWithProperty\VisualBasicReplaceMethodWithPropertyService.vb" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AddParameter\VisualBasicAddParameterCodeFixProvider.vb" />
+  </ItemGroup>
   <Import Project="..\..\..\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

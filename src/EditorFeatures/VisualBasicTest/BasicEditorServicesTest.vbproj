@@ -691,6 +691,7 @@
       <SubType>Designer</SubType>
     </None>
     <Compile Include="ConvertToInterpolatedString\ConvertConcatenationToInterpolatedStringTests.vb" />
+    <Compile Include="AddParameter\AddParameterTests.vb" />
     <Content Include="PerfTests\Sources\BasicPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

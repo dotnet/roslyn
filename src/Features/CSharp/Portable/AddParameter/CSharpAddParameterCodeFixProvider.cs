@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.AddParameter;
@@ -21,5 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             GenerateConstructorDiagnosticIds.AllDiagnosticIds;
+
+        protected override ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; } =
+            GenerateConstructorDiagnosticIds.TooManyArgumentsDiagnosticIds;
     }
 }

@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
         public static readonly ImmutableArray<string> AllDiagnosticIds = 
             ImmutableArray.Create(CS0122, CS1729, CS1739, CS1503, CS7036);
+
+        public static readonly ImmutableArray<string> TooManyArgumentsDiagnosticIds =
+            ImmutableArray.Create(CS1729);
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateConstructor), Shared]

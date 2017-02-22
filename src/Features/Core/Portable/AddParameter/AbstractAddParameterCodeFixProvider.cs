@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,35 +30,43 @@ namespace Microsoft.CodeAnalysis.AddParameter
         where TInvocationExpressionSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : SyntaxNode
     {
+        protected abstract ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; }
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var diagnotic = context.Diagnostics.First();
+            var diagnostic = context.Diagnostics.First();
 
             var document = context.Document;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var initialNode = root.FindNode(diagnotic.Location.SourceSpan);
+            var initialNode = root.FindNode(diagnostic.Location.SourceSpan);
 
             for (var node = initialNode; node != null; node = node.Parent)
             {
                 if (node is TObjectCreationExpressionSyntax objectCreation)
                 {
-                    var argumentOpt = TryGetRelevantArgument(initialNode, node);
+                    var argumentOpt = TryGetRelevantArgument(initialNode, node, diagnostic);
                     await HandleObjectCreationExpressionAsync(context, objectCreation, argumentOpt).ConfigureAwait(false);
                     return;
                 }
                 else if (node is TInvocationExpressionSyntax invocationExpression)
                 {
-                    var argumentOpt = TryGetRelevantArgument(initialNode, node);
+                    var argumentOpt = TryGetRelevantArgument(initialNode, node, diagnostic);
                     await HandleInvocationExpressionAsync(context, invocationExpression, argumentOpt).ConfigureAwait(false);
                     return;
                 }
             }
         }
 
-        private static TArgumentSyntax TryGetRelevantArgument(SyntaxNode initialNode, SyntaxNode node)
+        private TArgumentSyntax TryGetRelevantArgument(
+            SyntaxNode initialNode, SyntaxNode node, Diagnostic diagnostic)
         {
+            if (this.TooManyArgumentsDiagnosticIds.Contains(diagnostic.Id))
+            {
+                return null;
+            }
+
             return initialNode.GetAncestorsOrThis<TArgumentSyntax>()
                               .LastOrDefault(a => a.AncestorsAndSelf().Contains(node));
         }
@@ -89,8 +98,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
             // If we can't figure out the type being created, or the type isn't in source,
             // then there's nothing we can do.
             var type = semanticModel.GetSymbolInfo(typeNode, cancellationToken).GetAnySymbol() as INamedTypeSymbol;
-            if (type == null ||
-                type.IsNonImplicitAndFromSource())
+            if (type == null)
+            {
+                return;
+            }
+
+            if (!type.IsNonImplicitAndFromSource())
             {
                 return;
             }
