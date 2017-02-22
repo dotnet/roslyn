@@ -13,7 +13,7 @@ Imports Xunit
 Imports Microsoft.CodeAnalysis.Collections
 
 Friend Module ParserTestUtilities
-    Friend ReadOnly Property _PooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool()
+    Friend ReadOnly Property PooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool()
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
     Public Function ParseAndVerify(code As XCData, Optional expectedErrors As XElement = Nothing) As SyntaxTree
@@ -551,7 +551,7 @@ Public Module VerificationHelpers
 #Region "Private Helpers"
 
     Private Function GetErrorString(id As Integer, message As String, start As String, [end] As String) As String
-        Dim errorString = ParserTestUtilities._PooledStringBuilderPool.Allocate()
+        Dim errorString = PooledStringBuilderPool.Allocate()
         With errorString.Builder
             .Append(vbTab)
             .Append("<error id=""")
@@ -634,7 +634,7 @@ Public Module VerificationHelpers
         Next
 
         If errorScenarioFailed Then
-            Dim errorMessage = ParserTestUtilities._PooledStringBuilderPool.Allocate()
+            Dim errorMessage = ParserTestUtilities.PooledStringBuilderPool.Allocate()
             With errorMessage.Builder
                 .AppendLine()
                 .AppendLine("Expected Subset:")
