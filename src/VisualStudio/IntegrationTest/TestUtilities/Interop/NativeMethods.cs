@@ -11,7 +11,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
 {
     internal static class NativeMethods
     {
-        private const string Gdi32 = "gdi32.dll";
         private const string Kernel32 = "kernel32.dll";
         private const string Ole32 = "ole32.dll";
         private const string User32 = "User32.dll";
@@ -26,31 +25,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
             [Out, MarshalAs(UnmanagedType.Interface)] out ISetupConfiguration setupConfiguration,
             [In] IntPtr pReserved
         );
-
-        #endregion
-
-        #region gdi32.dll
-
-        [DllImport(Gdi32)]
-        public static extern bool BitBlt(IntPtr hdcDest, int xDest, int yDest, int wDest, int hDest, IntPtr hdcSource, int xSrc, int ySrc, CopyPixelOperation rop);
-
-        [DllImport(Gdi32)]
-        public static extern IntPtr CreateCompatibleBitmap(IntPtr hdc, int nWidth, int nHeight);
-
-        [DllImport(Gdi32)]
-        public static extern IntPtr CreateCompatibleDC(IntPtr hdc);
-
-        [DllImport(Gdi32)]
-        public static extern IntPtr DeleteDC(IntPtr hdc);
-
-        [DllImport(Gdi32)]
-        public static extern IntPtr DeleteObject(IntPtr hdc);
-
-        [DllImport(Gdi32)]
-        public static extern bool ReleaseDC(IntPtr hWnd, IntPtr hDc);
-
-        [DllImport(Gdi32)]
-        public static extern IntPtr SelectObject(IntPtr hdc, IntPtr bmp);
 
         #endregion
 

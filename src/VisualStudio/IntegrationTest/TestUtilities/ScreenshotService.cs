@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Windows.Forms;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
@@ -19,53 +18,35 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             using (var bitmap = CaptureFullScreen())
             {
+                var directory = Path.GetDirectoryName(fullPath);
+                Directory.CreateDirectory(directory);
+
                 bitmap.Save(fullPath, ImageFormat.Png);
             }
         }
 
         /// <summary>
-        /// Captures the full screen including the mouse cursor.
+        /// Captures the full screen to a <see cref="Bitmap"/>.
         /// </summary>
         /// <returns>A <see cref="Bitmap"/> containing the screen capture of the desktop.</returns>
         private static Bitmap CaptureFullScreen()
         {
-            IntPtr desktop = IntPtr.Zero;
-            IntPtr srcDC = IntPtr.Zero;
-            IntPtr destDC = IntPtr.Zero;
-            IntPtr bmp = IntPtr.Zero;
+            var bitmap = new Bitmap(
+                width: Screen.PrimaryScreen.Bounds.Width,
+                height: Screen.PrimaryScreen.Bounds.Height);
 
-            try
+            using (var graphics = Graphics.FromImage(bitmap))
             {
-                Size size = Screen.PrimaryScreen.Bounds.Size;
-                desktop = NativeMethods.GetDesktopWindow();
-                srcDC = NativeMethods.GetWindowDC(desktop);
-                destDC = NativeMethods.CreateCompatibleDC(srcDC);
-                bmp = NativeMethods.CreateCompatibleBitmap(srcDC, size.Width, size.Height);
-                var oldBmp = NativeMethods.SelectObject(destDC, bmp);
-                var b = NativeMethods.BitBlt(destDC, 0, 0, size.Width, size.Height, srcDC, 0, 0, CopyPixelOperation.SourceCopy | CopyPixelOperation.CaptureBlt);
-
-                var bitmap = Bitmap.FromHbitmap(bmp);
-                NativeMethods.SelectObject(destDC, oldBmp);
-
-                return bitmap;
+                graphics.CopyFromScreen(
+                    sourceX: Screen.PrimaryScreen.Bounds.X,
+                    sourceY: Screen.PrimaryScreen.Bounds.Y,
+                    destinationX: 0,
+                    destinationY: 0,
+                    blockRegionSize: bitmap.Size,
+                    copyPixelOperation: CopyPixelOperation.SourceCopy);
             }
-            finally
-            {
-                if (bmp != IntPtr.Zero)
-                {
-                    NativeMethods.DeleteObject(bmp);
-                }
 
-                if (destDC != IntPtr.Zero)
-                {
-                    NativeMethods.DeleteDC(destDC);
-                }
-
-                if (srcDC != IntPtr.Zero)
-                {
-                    NativeMethods.ReleaseDC(desktop, srcDC);
-                }
-            }
+            return bitmap;
         }
     }
 }
