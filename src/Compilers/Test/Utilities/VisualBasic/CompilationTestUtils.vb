@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.Collections
 
 Friend Module CompilationUtils
 
-    Private ReadOnly Property _pooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool()
+    Private ReadOnly Property _pooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = ParserTestUtilities.PooledStringBuilderPool
 
     Private Function ParseSources(sources As IEnumerable(Of String), parseOptions As VisualBasicParseOptions) As IEnumerable(Of SyntaxTree)
         Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
