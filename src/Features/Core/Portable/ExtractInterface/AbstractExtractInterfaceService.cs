@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -44,13 +45,13 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
         internal abstract bool ShouldIncludeAccessibilityModifier(SyntaxNode typeNode);
 
-        public async Task<IEnumerable<ExtractInterfaceCodeAction>> GetExtractInterfaceCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ExtractInterfaceCodeAction>> GetExtractInterfaceCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, TypeDiscoveryRule.TypeNameOnly, cancellationToken).ConfigureAwait(false);
 
             return typeAnalysisResult.CanExtractInterface
-                ? SpecializedCollections.SingletonEnumerable(new ExtractInterfaceCodeAction(this, typeAnalysisResult))
-                : SpecializedCollections.EmptyEnumerable<ExtractInterfaceCodeAction>();
+                ? ImmutableArray.Create(new ExtractInterfaceCodeAction(this, typeAnalysisResult))
+                : ImmutableArray<ExtractInterfaceCodeAction>.Empty;
         }
 
         public ExtractInterfaceResult ExtractInterface(

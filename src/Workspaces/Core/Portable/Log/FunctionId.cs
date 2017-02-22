@@ -362,6 +362,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SolutionSynchronizationService_GetRemotableData,
         AssetService_SynchronizeProjectAssetsAsync,
         FileTextLoader_FileLengthThresholdExceeded,
+        RemoteHost_Connect,
+        RemoteHost_Disconnect,
         RemoteHostClientService_Restarted,
     }
 }

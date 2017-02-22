@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     // We did an exact, case insensitive, search.  Case sensitive matches should
                     // be preffered though over insensitive ones.
-                    return symbols.SelectAsArray(s => 
+                    return symbols.SelectAsArray(s =>
                         SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1));
                 }
 
