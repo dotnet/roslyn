@@ -549,5 +549,58 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
             Assert.Same(options, options.WithCryptoPublicKey(ImmutableArray(Of Byte).Empty))
         End Sub
 
+        <Fact>
+        <WorkItem(6941, "https://github.com/dotnet/roslyn/issues/6941")>
+        Public Sub VBCoreAndOverflow()
+
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim s As SByte = -128
+        Dim o As Object = s
+
+        Try
+            Dim b = CByte(o)
+            System.Console.WriteLine(b)
+        Catch ex As System.OverflowException
+            System.Console.WriteLine("Overflow")
+        End Try
+
+        Try
+            Dim b = CByte(s)
+            System.Console.WriteLine(b)
+        Catch ex As System.OverflowException
+            System.Console.WriteLine("Overflow")
+        End Try
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOverflowChecks(True))
+            CompileAndVerify(c1, expectedOutput:=
+"Overflow
+Overflow")
+
+            Dim c2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOverflowChecks(False))
+            CompileAndVerify(c2, expectedOutput:=
+"Overflow
+128")
+
+            Dim c3 = CompilationUtils.CreateCompilationWithMscorlib(source, references:={SystemRef},
+                                                                    options:=TestOptions.ReleaseExe.WithOverflowChecks(True).WithEmbedVbCoreRuntime(True))
+            CompileAndVerify(c3, expectedOutput:=
+"Overflow
+Overflow")
+
+            Dim c4 = CompilationUtils.CreateCompilationWithMscorlib(source, references:={SystemRef},
+                                                                    options:=TestOptions.ReleaseExe.WithOverflowChecks(False).WithEmbedVbCoreRuntime(True))
+            CompileAndVerify(c4, expectedOutput:=
+"Overflow
+128")
+        End Sub
+
     End Class
 End Namespace

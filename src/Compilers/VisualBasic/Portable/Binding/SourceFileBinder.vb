@@ -82,6 +82,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property CheckOverflow As Boolean
+            Get
+                ' VBCore should always be compiled with overflow checks on.
+                If SyntaxTree.GetEmbeddedKind() = EmbeddedSymbolKind.VbCore Then
+                    Return True
+                End If
+
+                Return MyBase.CheckOverflow
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property QuickAttributeChecker As QuickAttributeChecker
             Get
                 Return _sourceFile.QuickAttributeChecker
