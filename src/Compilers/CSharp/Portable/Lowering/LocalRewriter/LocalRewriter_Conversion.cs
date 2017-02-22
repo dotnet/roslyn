@@ -338,6 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var mg = (BoundMethodGroup)rewrittenOperand;
                         var method = oldNode.SymbolOpt;
                         Debug.Assert((object)method != null);
+                        _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
                         var receiver = (method.IsStatic && !oldNode.IsExtensionMethod) ? _factory.Type(method.ContainingType) : VisitExpression(mg.ReceiverOpt);
                         return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method, isExtensionMethod: oldNode.IsExtensionMethod, type: rewrittenType);
                     }
