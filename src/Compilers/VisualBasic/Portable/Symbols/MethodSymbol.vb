@@ -951,7 +951,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IMethodSymbol_ReturnsByRefReadonly As Boolean Implements IMethodSymbol.ReturnsByRefReadonly
             Get
-                ' PROTOTYPE(refreadonly): NYI
+                ' PROTOTYPE(readonlyRefs): NYI
                 Return False
             End Get
         End Property

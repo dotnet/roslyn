@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -2074,6 +2075,7 @@ static class C
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         public void RefReadonlyReturningVoidMethod()
         {
             var source = @"
@@ -2085,7 +2087,7 @@ static class C
 
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (4,25): error CS1547: Keyword 'void' cannot be used in this context
-                //     static readonly ref void M() { }
+                //     static ref readonly void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 25)
                 );
         }
@@ -2114,6 +2116,7 @@ static class C
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         public void RefReadonlyReturningVoidMethodNested()
         {
             var source = @"
@@ -2135,7 +2138,7 @@ static class C
             var parseOptions = TestOptions.Regular;
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (10,22): error CS1547: Keyword 'void' cannot be used in this context
-                //         readonly ref void M2() {M1(); throw null;}
+                //         ref readonly void M2() {M1(); throw null;}
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(10, 22)
             );
         }
@@ -2164,6 +2167,7 @@ static class C
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         public void RefReadonlyReturningAsyncMethod()
         {
             var source = @"

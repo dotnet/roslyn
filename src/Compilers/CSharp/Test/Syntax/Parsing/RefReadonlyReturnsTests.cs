@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Fact]
-        public void ReadonlyRefReturn_CSharp7()
+        public void RefReadonlyReturn_CSharp7()
         {
             var text = @"
 unsafe class Program
@@ -55,7 +55,7 @@ unsafe class Program
         }
 
         [Fact]
-        public void ReadonlyRefReturn_Unexpected()
+        public void RefReadonlyReturn_Unexpected()
         {
             var text = @"
 
@@ -111,7 +111,7 @@ class Program
         }
 
         [Fact]
-        public void ReadonlyRefReturn_UnexpectedBindTime()
+        public void RefReadonlyReturn_UnexpectedBindTime()
         {
             var text = @"
 
@@ -135,7 +135,7 @@ class Program
     }
 }
 ";
-            //PROTOTYPE(readonlyRef): binding now falls back on regular "Ref", otherwise there should be one more error on the local declaration
+            //PROTOTYPE(readonlyRefs): binding now falls back on regular "Ref", otherwise there should be one more error on the local declaration
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(

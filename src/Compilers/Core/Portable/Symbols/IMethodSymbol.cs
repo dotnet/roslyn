@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool ReturnsByRef { get; }
 
-        // PROTOTYPE(refreadonly): this is very preliminary. We need to have _some_ API for now.
+        // PROTOTYPE(readonlyRefs): this is very preliminary. We need to have _some_ API for now.
         /// <summary>
         /// Returns true if this method returns by ref readonly.
         /// </summary>
