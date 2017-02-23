@@ -36,7 +36,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && EqualityComparer<int>.Default.Equals(a, program.a);
+        return program != null && a == program.a;
     }
 }",
 index: 0);
@@ -61,7 +61,7 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null && EqualityComparer<int>.Default.Equals(a, name.a);
+        return name != null && a == name.a;
     }
 }",
 index: 0);
@@ -86,7 +86,7 @@ class ReallyLongLong
     public override bool Equals(object obj)
     {
         var @long = obj as ReallyLongLong;
-        return @long != null && EqualityComparer<long>.Default.Equals(a, @long.a);
+        return @long != null && a == @long.a;
     }
 }",
 index: 0);
@@ -115,7 +115,7 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null && EqualityComparer<int>.Default.Equals(a, name.a) && EqualityComparer<string>.Default.Equals(B, name.B);
+        return name != null && a == name.a && B == name.B;
     }
 }",
 index: 0);
@@ -133,9 +133,7 @@ class Program : Base
 {
     [|int i;|]
 }",
-@"using System.Collections.Generic;
-
-class Base
+@"class Base
 {
 }
 
@@ -146,7 +144,7 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && EqualityComparer<int>.Default.Equals(i, program.i);
+        return program != null && i == program.i;
     }
 }",
 index: 0);
@@ -189,10 +187,13 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && base.Equals(obj) && EqualityComparer<int>.Default.Equals(i, program.i) && EqualityComparer<string>.Default.Equals(S, program.S);
+        return program != null &&
+               base.Equals(obj) &&
+               i == program.i &&
+               S == program.S;
     }
 }",
-index: 0);
+index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -240,7 +241,8 @@ class Program : Middle
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && base.Equals(obj) && EqualityComparer<int>.Default.Equals(i, program.i) && EqualityComparer<string>.Default.Equals(S, program.S);
+        return program != null && base.Equals(obj) &&
+               i == program.i && S == program.S;
     }
 }",
 index: 0);
@@ -274,7 +276,7 @@ struct ReallyLongName
         }
 
         var name = (ReallyLongName)obj;
-        return EqualityComparer<int>.Default.Equals(i, name.i) && EqualityComparer<string>.Default.Equals(S, name.S);
+        return i == name.i && S == name.S;
     }
 }",
 index: 0);
@@ -300,7 +302,8 @@ class Program<T>
     public override bool Equals(object obj)
     {
         var program = obj as Program<T>;
-        return program != null && EqualityComparer<int>.Default.Equals(i, program.i);
+        return program != null &&
+               i == program.i;
     }
 }
 ";
@@ -326,7 +329,7 @@ class Program
 
     public override int GetHashCode()
     {
-        return EqualityComparer<int>.Default.GetHashCode(i);
+        return i.GetHashCode();
     }
 }",
 index: 1);
@@ -348,7 +351,7 @@ class Program
 {
     int i;
 
-    public override int GetHashCode() => EqualityComparer<int>.Default.GetHashCode(i);
+    public override int GetHashCode() => i.GetHashCode();
 }",
 index: 1,
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
@@ -424,7 +427,7 @@ class Program
 
     public override int GetHashCode()
     {
-        var hashCode = EqualityComparer<int>.Default.GetHashCode(i);
+        var hashCode = i.GetHashCode();
         hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
         return hashCode;
     }
