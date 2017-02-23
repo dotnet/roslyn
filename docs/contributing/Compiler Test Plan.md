@@ -167,8 +167,10 @@ A variable is a storage location. These are all the different ways to refer to a
 - Local variable 
 - Pointer dereference 
 - __refvalue 
-  
+
+
 ## Operators 
+
 ```
 x.y 
 f( ) 
