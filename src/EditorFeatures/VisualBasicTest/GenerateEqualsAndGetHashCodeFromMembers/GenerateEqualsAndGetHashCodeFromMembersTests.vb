@@ -19,15 +19,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructo
 "Class Z
     [|Private a As Integer|]
 End Class",
-"Imports System.Collections.Generic
-Class Z
+"Class Z
     Private a As Integer
+
     Public Overrides Function Equals(obj As Object) As Boolean
         Dim z = TryCast(obj, Z)
-        Return z IsNot Nothing AndAlso EqualityComparer(Of Integer).Default.Equals(a, z.a)
+        Return z IsNot Nothing AndAlso
+               a = z.a
     End Function
 End Class",
-index:=0)
+index:=0, compareTokens:=False)
         End Function
 
         <WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
@@ -37,11 +38,11 @@ index:=0)
 "Class Z
     [|Private a As Integer|]
 End Class",
-"Imports System.Collections.Generic
-Class Z
+"Class Z
     Private a As Integer
+
     Public Overrides Function GetHashCode() As Integer
-        Return EqualityComparer(Of Integer).Default.GetHashCode(a)
+        Return a.GetHashCode()
     End Function
 End Class",
 index:=1)
@@ -54,18 +55,20 @@ index:=1)
 "Class Z
     [|Private a As Integer|]
 End Class",
-"Imports System.Collections.Generic
-Class Z
+"Class Z
     Private a As Integer
+
     Public Overrides Function Equals(obj As Object) As Boolean
         Dim z = TryCast(obj, Z)
-        Return z IsNot Nothing AndAlso EqualityComparer(Of Integer).Default.Equals(a, z.a)
+        Return z IsNot Nothing AndAlso
+               a = z.a
     End Function
+
     Public Overrides Function GetHashCode() As Integer
-        Return EqualityComparer(Of Integer).Default.GetHashCode(a)
+        Return a.GetHashCode()
     End Function
 End Class",
-index:=2)
+index:=2, compareTokens:=False)
         End Function
 
         <WorkItem(545205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545205")>
@@ -86,4 +89,3 @@ End Class")
         End Function
     End Class
 End Namespace
-
