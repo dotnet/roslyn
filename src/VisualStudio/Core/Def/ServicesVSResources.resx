@@ -867,4 +867,7 @@ Additional information: {1}</value>
   <data name="Remove" xml:space="preserve">
     <value>Remove</value>
   </data>
+  <data name="Pick_members" xml:space="preserve">
+    <value>Pick members</value>
+  </data>
 </root>

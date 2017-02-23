@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         {
             switch (symbol)
             {
-                case IFieldSymbol field: return !field.IsConst;
+                case IFieldSymbol field: return !field.IsConst && field.AssociatedSymbol == null;
                 case IPropertySymbol property: return property.IsWritableInConstructor();
                 default: return false;
             }
@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         private static bool IsField(ISymbol symbol)
             => symbol.Kind == SymbolKind.Field;
 
-        protected List<IParameterSymbol> DetermineParameters(
-            IList<ISymbol> selectedMembers)
+        protected ImmutableArray<IParameterSymbol> DetermineParameters(
+            ImmutableArray<ISymbol> selectedMembers)
         {
-            var parameters = new List<IParameterSymbol>();
+            var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
 
             foreach (var symbol in selectedMembers)
             {
@@ -94,19 +94,19 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                     name: symbol.Name.ToCamelCase().TrimStart(s_underscore)));
             }
 
-            return parameters;
+            return parameters.ToImmutableAndFree();
         }
 
         private static readonly char[] s_underscore = { '_' };
 
         protected IMethodSymbol GetDelegatedConstructor(
             INamedTypeSymbol containingType,
-            List<IParameterSymbol> parameters)
+            ImmutableArray<IParameterSymbol> parameters)
         {
             var q =
                 from c in containingType.InstanceConstructors
                 orderby c.Parameters.Length descending
-                where c.Parameters.Length > 0 && c.Parameters.Length < parameters.Count
+                where c.Parameters.Length > 0 && c.Parameters.Length < parameters.Length
                 where c.Parameters.All(p => p.RefKind == RefKind.None) && !c.Parameters.Any(p => p.IsParams)
                 let constructorTypes = c.Parameters.Select(p => p.Type)
                 let symbolTypes = parameters.Take(c.Parameters.Length).Select(p => p.Type)
@@ -116,19 +116,11 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             return q.FirstOrDefault();
         }
 
-        protected bool HasMatchingConstructor(
-            INamedTypeSymbol containingType,
-            List<IParameterSymbol> parameters)
-        {
-            return containingType.InstanceConstructors.Any(c => MatchesConstructor(c, parameters));
-        }
+        protected IMethodSymbol GetMatchingConstructor(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
+            => containingType.InstanceConstructors.FirstOrDefault(c => MatchesConstructor(c, parameters));
 
-        private bool MatchesConstructor(
-            IMethodSymbol constructor,
-            List<IParameterSymbol> parameters)
-        {
-            return parameters.Select(p => p.Type).SequenceEqual(constructor.Parameters.Select(p => p.Type));
-        }
+        private bool MatchesConstructor(IMethodSymbol constructor, ImmutableArray<IParameterSymbol> parameters)
+            => parameters.Select(p => p.Type).SequenceEqual(constructor.Parameters.Select(p => p.Type));
 
         protected static readonly SymbolDisplayFormat SimpleFormat =
             new SymbolDisplayFormat(

@@ -1640,5 +1640,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsDocumentationComment(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsDocumentationComment
             Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
         End Function
+
+        Public Function IsOnTypeHeader(root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsOnTypeHeader
+            Return False
+        End Function
+
+        Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
+            Return False
+        End Function
     End Class
 End Namespace

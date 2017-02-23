@@ -1189,6 +1189,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generate constructor....
+        /// </summary>
+        internal static string Generate_constructor {
+            get {
+                return ResourceManager.GetString("Generate_constructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate constructor &apos;{0}({1})&apos;.
         /// </summary>
         internal static string Generate_constructor_0_1 {
@@ -2136,6 +2145,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Pending {
             get {
                 return ResourceManager.GetString("Pending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pick members to be used as constructor parameters.
+        /// </summary>
+        internal static string Pick_members_to_be_used_as_constructor_parameters {
+            get {
+                return ResourceManager.GetString("Pick_members_to_be_used_as_constructor_parameters", resourceCulture);
             }
         }
         

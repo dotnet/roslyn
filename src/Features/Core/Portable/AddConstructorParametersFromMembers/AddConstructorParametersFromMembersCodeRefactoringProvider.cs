@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 if (info != null)
                 {
                     var state = State.Generate(this, document, textSpan, info.SelectedMembers, cancellationToken);
-                    if (state != null)
+                    if (state != null && state.MatchingConstructor == null)
                     {
                         return CreateCodeActions(document, state).AsImmutableOrNull();
                     }
