@@ -175,6 +175,7 @@
     <Compile Include="BraceHighlighting\BraceHighlightingTests.cs" />
     <Compile Include="BraceMatching\CSharpBraceMatcherTests.cs" />
     <Compile Include="CallHierarchy\CallHierarchyTests.cs" />
+    <Compile Include="ChangeSignature\ChangeSignatureTests.cs" />
     <Compile Include="ChangeSignature\ChangeSignature_CheckAllSignatureChanges.cs" />
     <Compile Include="ChangeSignature\ChangeSignature_Delegates.cs" />
     <Compile Include="ChangeSignature\ChangeSignature_Formatting.cs" />
