@@ -549,7 +549,7 @@
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectManagementService.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker.WorkspaceHostState.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionEvents.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl_IVsSolutionEvents.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionLoadEvents.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspace.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.cs" />
