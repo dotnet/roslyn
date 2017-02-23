@@ -23,6 +23,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CaptureTestNameAttribute.cs" />
     <Compile Include="Common\Comparison.cs" />
     <Compile Include="Common\Parameter.cs" />
     <Compile Include="Common\Signature.cs" />
@@ -43,6 +44,7 @@
     <Compile Include="OutOfProcess\OutOfProcComponent.cs" />
     <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.cs" />
     <Compile Include="InProcess\VisualStudioWorkspace_InProc.cs" />
+    <Compile Include="ScreenshotService.cs" />
     <Compile Include="TestUtilities.cs" />
     <Compile Include="WellKnownCommandNames.cs" />
     <Compile Include="VisualStudioInstance.cs" />
@@ -66,7 +68,9 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="UIAutomationClient" />
     <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsBase" />
