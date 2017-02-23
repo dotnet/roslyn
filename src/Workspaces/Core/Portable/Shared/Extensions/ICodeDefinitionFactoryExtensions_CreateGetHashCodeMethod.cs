@@ -99,11 +99,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             EqualityComparer<SType>.Default.GetHashCode(this.S1)
 #endif
 
-            return factory.InvocationExpression(
-                factory.MemberAccessExpression(
-                    GetDefaultEqualityComparer(factory, compilation, member),
-                    getHashCodeNameExpression),
-                thisSymbol);
+            var memberType = member.GetSymbolType();
+            if (IsPrimitiveValueType(memberType) && memberType.SpecialType != SpecialType.System_String)
+            {
+                return factory.InvocationExpression(
+                    factory.MemberAccessExpression(thisSymbol, nameof(object.GetHashCode)));
+            }
+            else
+            {
+                return factory.InvocationExpression(
+                    factory.MemberAccessExpression(
+                        GetDefaultEqualityComparer(factory, compilation, member),
+                        getHashCodeNameExpression),
+                    thisSymbol);
+            }
         }
     }
 }

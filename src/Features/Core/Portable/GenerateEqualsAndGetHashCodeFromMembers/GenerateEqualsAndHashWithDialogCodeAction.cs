@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             }
 
             public override string Title
-                => GenerateEqualsAndGetHashCodeAction.GetTitle(_generateEquals, _generateGetHashCode);
+                => GenerateEqualsAndGetHashCodeAction.GetTitle(_generateEquals, _generateGetHashCode) + "...";
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             IEnumerable<ISymbol> members,
             CancellationToken cancellationToken)
         {
+            var iequatableType = compilation.GetTypeByMetadataName("System.IEquatable`1");
             var statements = new List<SyntaxNode>();
 
             var parts = StringBreaker.BreakIntoWordParts(containingType.Name);
@@ -124,15 +126,33 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 #if false
                 EqualityComparer<SType>.Default.Equals(this.S1, myType.S1)
 #endif
-                var expression =
-                    factory.InvocationExpression(
-                        factory.MemberAccessExpression(
-                            GetDefaultEqualityComparer(factory, compilation, member),
-                            factory.IdentifierName(EqualsName)),
-                        thisSymbol,
-                        otherSymbol);
+                var memberType = member.GetSymbolType();
 
-                expressions.Add(expression);
+                if (IsPrimitiveValueType(memberType))
+                {
+                    var expression = factory.ValueEqualsExpression(thisSymbol, otherSymbol);
+                    expressions.Add(expression);
+                }
+                else if (memberType?.IsValueType == true &&
+                         ImplementsIEquatable(memberType, iequatableType))
+                {
+                    var expression = factory.InvocationExpression(
+                        factory.MemberAccessExpression(thisSymbol, nameof(object.Equals)),
+                        otherSymbol);
+                    expressions.Add(expression);
+                }
+                else
+                {
+                    var expression =
+                        factory.InvocationExpression(
+                            factory.MemberAccessExpression(
+                                GetDefaultEqualityComparer(factory, compilation, member),
+                                factory.IdentifierName(EqualsName)),
+                            thisSymbol,
+                            otherSymbol);
+
+                    expressions.Add(expression);
+                }
             }
 
 #if false
@@ -142,6 +162,50 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 expressions.Aggregate(factory.LogicalAndExpression)));
 
             return statements;
+        }
+
+        private static bool ImplementsIEquatable(ITypeSymbol memberType, INamedTypeSymbol iequatableType)
+        {
+            if (iequatableType != null) {
+                var constructed = iequatableType.Construct(memberType);
+                return memberType.AllInterfaces.Any(t => t.OriginalDefinition.Equals(constructed));
+            }
+
+            return false;
+        }
+
+        private static bool IsPrimitiveValueType(ITypeSymbol typeSymbol)
+        {
+            if (typeSymbol != null)
+            {
+                if (typeSymbol.IsEnumType())
+                {
+                    return true;
+                }
+
+                switch (typeSymbol.SpecialType)
+                {
+                    case SpecialType.System_Boolean:
+                    case SpecialType.System_Char:
+                    case SpecialType.System_SByte:
+                    case SpecialType.System_Byte:
+                    case SpecialType.System_Int16:
+                    case SpecialType.System_UInt16:
+                    case SpecialType.System_Int32:
+                    case SpecialType.System_UInt32:
+                    case SpecialType.System_Int64:
+                    case SpecialType.System_UInt64:
+                    case SpecialType.System_Decimal:
+                    case SpecialType.System_Single:
+                    case SpecialType.System_Double:
+                    case SpecialType.System_String:
+                    case SpecialType.System_Nullable_T:
+                    case SpecialType.System_DateTime:
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         private static SyntaxNode GetDefaultEqualityComparer(
