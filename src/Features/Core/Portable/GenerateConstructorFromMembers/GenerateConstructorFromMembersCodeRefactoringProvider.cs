@@ -1,7 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -12,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -53,6 +50,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
+            // We offer the refactoring when the user is either on the header of a class/struct,
+            // or if they're between any members of a class/struct and are on a blank line.
             if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start) &&
                 !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start))
             {
@@ -60,17 +59,23 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            // Only supported on classes/structs.
             var containingType = GetEnclosingNamedType(semanticModel, root, textSpan.Start, cancellationToken);
             if (containingType?.TypeKind != TypeKind.Class && containingType?.TypeKind != TypeKind.Struct)
             {
                 return;
             }
 
+            // No constructors for static classes.
             if (containingType.IsStatic)
             {
                 return;
             }
 
+            // Find all the possible writable instance fields/properties.  If there are any, then
+            // show a dialog to the user to select the ones they want.  Otherwise, if there are none
+            // just offer to generate the no-param constructor if they don't already have one.
             var viableMembers = containingType.GetMembers().WhereAsArray(IsWritableInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
             {
@@ -93,10 +98,15 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             context.RegisterRefactoring(
-                new GenerateConstructorCodeAction(
+                new GenerateConstructorWithDialogCodeAction(
                     this, document, textSpan, containingType, viableMembers));
         }
 
+        /// <summary>
+        /// Gets the enclosing named type for the specified position.  We can't use
+        /// <see cref="SemanticModel.GetEnclosingSymbol"/> because that doesn't return
+        /// the type you're current on if you're on the header of a class/interface.
+        /// </summary>
         private INamedTypeSymbol GetEnclosingNamedType(
             SemanticModel semanticModel, SyntaxNode root, int start, CancellationToken cancellationToken)
         {
@@ -147,79 +157,6 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             return result.ToImmutableAndFree();
-        }
-
-        private class GenerateConstructorCodeAction : CodeActionWithOptions
-        {
-            private readonly Document _document;
-            private readonly INamedTypeSymbol _containingType;
-            private readonly GenerateConstructorFromMembersCodeRefactoringProvider _service;
-            private readonly TextSpan _textSpan;
-            private readonly ImmutableArray<ISymbol> _viableMembers;
-
-            public override string Title => FeaturesResources.Generate_constructor;
-
-            public GenerateConstructorCodeAction(
-                GenerateConstructorFromMembersCodeRefactoringProvider service,
-                Document document, TextSpan textSpan,
-                INamedTypeSymbol containingType,
-                ImmutableArray<ISymbol> viableMembers)
-            {
-                _service = service;
-                _document = document;
-                _textSpan = textSpan;
-                _containingType = containingType;
-                _viableMembers = viableMembers;
-            }
-
-            public override object GetOptions(CancellationToken cancellationToken)
-            {
-                var workspace = _document.Project.Solution.Workspace;
-                var service = workspace.Services.GetService<IPickMembersService>();
-                return service.PickMembers(
-                    FeaturesResources.Pick_members_to_be_used_as_constructor_parameters, _viableMembers);
-            }
-
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
-                object options, CancellationToken cancellationToken)
-            {
-                var result = (PickMembersResult)options;
-                if (result.IsCanceled)
-                {
-                    return ImmutableArray<CodeActionOperation>.Empty;
-                }
-
-                var state = State.TryGenerate(
-                    _service, _document, _textSpan, _containingType, 
-                    result.Members, cancellationToken);
-
-                // There was an existing constructor that matched what the user wants to create.
-                // Generate it if it's the implicit, no-arg, constructor, otherwise just navigate
-                // to the existing constructor
-                if (state.MatchingConstructor != null)
-                {
-                    if (state.MatchingConstructor.IsImplicitlyDeclared)
-                    {
-                        var codeAction = new FieldDelegatingCodeAction(_service, _document, state);
-                        return await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
-                    }
-
-                    var constructorReference = state.MatchingConstructor.DeclaringSyntaxReferences[0];
-                    var constructorSyntax = await constructorReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                    var constructorTree = constructorSyntax.SyntaxTree;
-                    var constructorDocument = _document.Project.Solution.GetDocument(constructorTree);
-                    return ImmutableArray.Create<CodeActionOperation>(new DocumentNavigationOperation(
-                        constructorDocument.Id, constructorSyntax.SpanStart));
-                }
-                else
-                {
-                    var codeAction = state.DelegatedConstructor != null
-                        ? new ConstructorDelegatingCodeAction(_service, _document, state)
-                        : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state);
-
-                    return await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
-                }
-            }
         }
     }
 }
