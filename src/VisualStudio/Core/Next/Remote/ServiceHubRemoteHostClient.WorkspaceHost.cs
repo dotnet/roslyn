@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _currentSolutionId = _workspace.CurrentSolution.Id;
                 var solutionId = _currentSolutionId;
 
-                using (var session = await _client.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
+                using (var session = await _client.TryCreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
                 {
                     if (session == null)
                     {

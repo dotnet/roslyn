@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            private async Task<RemoteHostClient.Session> GetSessionAsync()
+            private async Task<RemoteHostClient.Session> TryGetSessionAsync()
             {
                 using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
                 {
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // to be created on the remote side.  We only want one instance of that type.  The
                     // alternative is to make that type static variable on the remote side.  But that's
                     // much less clean and would make some of the state management much more complex.
-                    _sessionDoNotAccessDirectly = await _client.CreateServiceSessionAsync(
+                    _sessionDoNotAccessDirectly = await _client.TryCreateServiceSessionAsync(
                         WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine,
                         _logService,
                         _cancellationToken).ConfigureAwait(false);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity)
             {
-                var session = await GetSessionAsync().ConfigureAwait(false);
+                var session = await TryGetSessionAsync().ConfigureAwait(false);
                 if (session == null)
                 {
                     // we couldn't get session. most likely remote host is gone
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string assemblyName)
             {
-                var session = await GetSessionAsync().ConfigureAwait(false);
+                var session = await TryGetSessionAsync().ConfigureAwait(false);
                 if (session == null)
                 {
                     // we couldn't get session. most likely remote host is gone
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity)
             {
-                var session = await GetSessionAsync().ConfigureAwait(false);
+                var session = await TryGetSessionAsync().ConfigureAwait(false);
                 if (session == null)
                 {
                     // we couldn't get session. most likely remote host is gone
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             public async Task UpdateContinuouslyAsync(
                 string sourceName, string localSettingsDirectory)
             {
-                var session = await GetSessionAsync().ConfigureAwait(false);
+                var session = await TryGetSessionAsync().ConfigureAwait(false);
                 if (session == null)
                 {
                     // we couldn't get session. most likely remote host is gone

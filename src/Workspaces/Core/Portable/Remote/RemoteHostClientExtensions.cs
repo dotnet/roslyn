@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,6 +8,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class RemoteHostClientExtensions
     {
+        [Obsolete]
         public static Task<RemoteHostClient.Session> CreateCodeAnalysisServiceSessionAsync(
             this RemoteHostClient client, Solution solution, CancellationToken cancellationToken)
         {
@@ -14,10 +16,24 @@ namespace Microsoft.CodeAnalysis.Remote
                 client, solution, callbackTarget: null, cancellationToken: cancellationToken);
         }
 
+        [Obsolete]
         public static Task<RemoteHostClient.Session> CreateCodeAnalysisServiceSessionAsync(
             this RemoteHostClient client, Solution solution, object callbackTarget, CancellationToken cancellationToken)
         {
-            return client.CreateServiceSessionAsync(
+            return TryCreateCodeAnalysisServiceSessionAsync(client, solution, callbackTarget, cancellationToken);
+        }
+
+        public static Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(
+            this RemoteHostClient client, Solution solution, CancellationToken cancellationToken)
+        {
+            return TryCreateCodeAnalysisServiceSessionAsync(
+                client, solution, callbackTarget: null, cancellationToken: cancellationToken);
+        }
+
+        public static Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(
+            this RemoteHostClient client, Solution solution, object callbackTarget, CancellationToken cancellationToken)
+        {
+            return client.TryCreateServiceSessionAsync(
                 WellKnownServiceHubServices.CodeAnalysisService, solution, callbackTarget, cancellationToken);
         }
 
@@ -44,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
             this RemoteHostClient client, string serviceName, Solution solution, object callbackTarget,
             string targetName, object[] arguments, CancellationToken cancellationToken)
         {
-            using (var session = await client.CreateServiceSessionAsync(serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false))
+            using (var session = await client.TryCreateServiceSessionAsync(serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false))
             {
                 if (session == null)
                 {
@@ -56,10 +72,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        /// <summary>
+        /// Run given service on remote host. if it fails to run on remote host, it will return default(T)
+        /// </summary>
         public static async Task<T> RunOnRemoteHostAsync<T>(
             this RemoteHostClient client, string serviceName, Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken)
         {
-            using (var session = await client.CreateServiceSessionAsync(serviceName, solution, cancellationToken).ConfigureAwait(false))
+            using (var session = await client.TryCreateServiceSessionAsync(serviceName, solution, cancellationToken).ConfigureAwait(false))
             {
                 if (session == null)
                 {
@@ -83,12 +102,18 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunOnRemoteHostAsync(client, WellKnownServiceHubServices.CodeAnalysisService, solution, callbackTarget, targetName, arguments, cancellationToken);
         }
 
+        /// <summary>
+        /// Run given service on remote host. if it fails to run on remote host, it will return default(T)
+        /// </summary>
         public static Task<T> RunCodeAnalysisServiceOnRemoteHostAsync<T>(
             this RemoteHostClient client, Solution solution, string targetName, object argument, CancellationToken cancellationToken)
         {
             return RunCodeAnalysisServiceOnRemoteHostAsync<T>(client, solution, targetName, new object[] { argument }, cancellationToken);
         }
 
+        /// <summary>
+        /// Run given service on remote host. if it fails to run on remote host, it will return default(T)
+        /// </summary>
         public static Task<T> RunCodeAnalysisServiceOnRemoteHostAsync<T>(
             this RemoteHostClient client, Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken)
         {
