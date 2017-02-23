@@ -50,6 +50,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private bool _solutionIsClosing = false;
 
         /// <summary>
+        /// Set during <see cref="IVsSolutionEvents.OnBeforeCloseSolution"/>, so that <see cref="IVsSolutionEvents.OnAfterCloseSolution"/> knows
+        /// whether or not to clean up deferred projects.
+        /// </summary>
+        private bool _deferredLoadWasEnabledForLastSolution = false;
+
+        /// <summary>
         /// Set to true once the solution has already been completely loaded and all future changes
         /// should be pushed immediately to the workspace hosts. This may not actually result in changes
         /// being pushed to a particular host if <see cref="WorkspaceHostState.HostReadyForEvents"/> isn't true yet.
@@ -508,6 +514,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             _solutionLoadComplete = false;
+            _deferredLoadWasEnabledForLastSolution = VisualStudioWorkspaceImpl.IsDeferredSolutionLoadEnabled(_serviceProvider);
 
             // Cancel any background solution parsing. NOTE: This means that work needs to
             // check the token periodically, and whenever resuming from an "await"
@@ -519,7 +526,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            if (VisualStudioWorkspaceImpl.IsDeferredSolutionLoadEnabled(_serviceProvider))
+            if (_deferredLoadWasEnabledForLastSolution)
             {
                 // Copy to avoid modifying the collection while enumerating
                 var loadedProjects = ImmutableProjects.ToList();
