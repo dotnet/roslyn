@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsAttributeNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsNameOfContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
+        bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken);
+
         /// <summary>
         /// True if a write is performed to the given expression.  Note: reads may also be performed
         /// to the expression as well.  For example, "++a".  In this expression 'a' is both read from
