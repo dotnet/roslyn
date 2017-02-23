@@ -154,15 +154,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         firstToken.LeadingTrivia.Where(t => !IsDocCommentOrElastic(t)));
                     usings[0] = newFirstUsing;
                 }
-                else if (usings[0] != root.Usings[0])
+                else
                 {
-                    // We added a new first-using.  Take the trivia on the existing first using
-                    // And move it to the new using.
-                    var newFirstUsing = usings[0].WithLeadingTrivia(usings[1].GetLeadingTrivia())
-                                                 .WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+                    var originalFirstUsing = root.Usings[0];
+                    if (usings[0] != originalFirstUsing)
+                    {
+                        // We added a new first-using.  Take the trivia on the existing first using
+                        // And move it to the new using.
+                        var originalFirstUsingCurrentIndex = usings.IndexOf(originalFirstUsing);
 
-                    usings[0] = newFirstUsing;
-                    usings[1] = usings[1].WithoutLeadingTrivia();
+                        var newFirstUsing = usings[0].WithLeadingTrivia(originalFirstUsing.GetLeadingTrivia())
+                                                     .WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+
+                        usings[0] = newFirstUsing;
+                        usings[originalFirstUsingCurrentIndex] = originalFirstUsing.WithoutLeadingTrivia();
+                    }
                 }
             }
 
@@ -181,9 +187,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // We need to try and not place the using inside of a directive if possible.
             var usings = new List<UsingDirectiveSyntax>();
             var endOfList = root.Usings.Count - 1;
-            int startOfLastDirective = -1;
-            int endOfLastDirective = -1;
-            for (int i = 0; i < root.Usings.Count; i++)
+            var startOfLastDirective = -1;
+            var endOfLastDirective = -1;
+            for (var i = 0; i < root.Usings.Count; i++)
             {
                 if (root.Usings[i].GetLeadingTrivia().Any(trivia => trivia.IsKind(SyntaxKind.IfDirectiveTrivia)))
                 {
