@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.Identity:
                     case ConversionKind.ImplicitReference:
                     case ConversionKind.Unboxing:
-                    case ConversionKind.NullLiteral:
+                    case ConversionKind.DefaultOrNullLiteral:
                     case ConversionKind.ImplicitNullable:
                         // these are the conversions allowed by a pattern match
                         break;

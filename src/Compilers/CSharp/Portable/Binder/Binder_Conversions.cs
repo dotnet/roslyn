@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateUserDefinedConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
-            if (conversion.Kind == ConversionKind.NullLiteral && source.Kind == BoundKind.DefaultLiteral)
+            if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultLiteral)
             {
                 return CreateDefaultLiteralConversion(syntax, (BoundDefaultLiteral)source, conversion, isCast, destination, diagnostics, wasCompilerGenerated);
             }
@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return sourceConstantValue;
                     }
 
-                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultOrNullLiteral:
                     return sourceConstantValue;
 
                 case ConversionKind.ImplicitConstant:

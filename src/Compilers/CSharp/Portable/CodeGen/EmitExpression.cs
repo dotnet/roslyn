@@ -2991,7 +2991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var conversionKind = conversion.ConversionKind;
                     if (conversionKind.IsImplicitConversion() &&
                         conversionKind != ConversionKind.MethodGroup &&
-                        conversionKind != ConversionKind.NullLiteral)
+                        conversionKind != ConversionKind.DefaultOrNullLiteral)
                     {
                         return StackMergeType(conversion.Operand);
                     }

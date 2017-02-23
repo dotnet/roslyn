@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.PointerToVoid:
 
                 // Added to spec in Roslyn timeframe.
-                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultOrNullLiteral:
                 case ConversionKind.NullToPointer:
 
                 // Added for C# 7.

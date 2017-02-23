@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversion = (BoundConversion)expr;
                 switch (conversion.ConversionKind)
                 {
-                    case ConversionKind.NullLiteral:
+                    case ConversionKind.DefaultOrNullLiteral:
                         // Any "null literal conversion" is a conversion from the literals null/default to
                         // a nullable value type; obviously it never has a value.
                         return true;

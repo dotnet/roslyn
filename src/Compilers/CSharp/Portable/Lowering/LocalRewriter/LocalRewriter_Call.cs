@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.AnonymousFunction:
                                 case ConversionKind.ImplicitConstant:
                                 case ConversionKind.MethodGroup:
-                                case ConversionKind.NullLiteral:
+                                case ConversionKind.DefaultOrNullLiteral:
                                     return true;
 
                                 case ConversionKind.Boxing:

@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CSharp.ConversionKind.ImplicitConstant:
                     case CSharp.ConversionKind.IntegerToPointer:
                     case CSharp.ConversionKind.IntPtr:
-                    case CSharp.ConversionKind.NullLiteral:
+                    case CSharp.ConversionKind.DefaultOrNullLiteral:
                     case CSharp.ConversionKind.NullToPointer:
                     case CSharp.ConversionKind.PointerToInteger:
                     case CSharp.ConversionKind.PointerToPointer:
