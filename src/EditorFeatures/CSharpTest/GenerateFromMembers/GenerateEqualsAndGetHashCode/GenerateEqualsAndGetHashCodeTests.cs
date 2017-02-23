@@ -43,6 +43,72 @@ index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestReferenceIEquatable()
+        {
+            await TestAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+class S : IEquatable<S> { }
+
+class Program
+{
+    [|S a;|]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class S : IEquatable<S> { }
+
+class Program
+{
+    S a;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null && EqualityComparer<S>.Default.Equals(a, program.a);
+    }
+}",
+index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestValueIEquatable()
+        {
+            await TestAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+struct S : IEquatable<S> { }
+
+class Program
+{
+    [|S a;|]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+struct S : IEquatable<S> { }
+
+class Program
+{
+    S a;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null && a.Equals(program.a);
+    }
+}",
+index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsLongName()
         {
             await TestAsync(

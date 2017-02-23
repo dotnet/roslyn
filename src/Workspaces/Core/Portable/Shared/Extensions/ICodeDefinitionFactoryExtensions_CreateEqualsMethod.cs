@@ -171,9 +171,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static bool ImplementsIEquatable(ITypeSymbol memberType, INamedTypeSymbol iequatableType)
         {
-            if (iequatableType != null) {
+            if (iequatableType != null)
+            {
                 var constructed = iequatableType.Construct(memberType);
-                return memberType.AllInterfaces.Any(t => t.OriginalDefinition.Equals(constructed));
+                return memberType.AllInterfaces.Contains(constructed);
             }
 
             return false;
