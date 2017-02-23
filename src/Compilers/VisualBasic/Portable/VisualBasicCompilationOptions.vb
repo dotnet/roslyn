@@ -978,6 +978,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Me.OptionCompareText = other.OptionCompareText AndAlso
                    Me.EmbedVbCoreRuntime = other.EmbedVbCoreRuntime AndAlso
                    Me.SuppressEmbeddedDeclarations = other.SuppressEmbeddedDeclarations AndAlso
+                   Me.IgnoreCorLibraryDuplicatedTypes = other.IgnoreCorLibraryDuplicatedTypes AndAlso
                    If(Me.ParseOptions Is Nothing, other.ParseOptions Is Nothing, Me.ParseOptions.Equals(other.ParseOptions))
         End Function
 
@@ -1005,7 +1006,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Hash.Combine(Me.OptionCompareText,
                    Hash.Combine(Me.EmbedVbCoreRuntime,
                    Hash.Combine(Me.SuppressEmbeddedDeclarations,
-                   Hash.Combine(Me.ParseOptions, 0))))))))))
+                   Hash.Combine(Me.IgnoreCorLibraryDuplicatedTypes,
+                   Hash.Combine(Me.ParseOptions, 0)))))))))))
         End Function
 
         Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic

@@ -75,6 +75,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyWellKnownTypeMembers[(int)member];
         }
 
+        /// <summary>
+        /// This method handles duplicate types in a few different ways:
+        /// - for types before C# 7, the first candidate is returned with a warning
+        /// - for types after C# 7, the type is considered missing
+        /// - in both cases, when BinderFlags.IgnoreCorLibraryDuplicatedTypes is set, any duplicate coming from corlib will be ignored (ie not count as a duplicate)
+        /// </summary>
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
         {
             Debug.Assert(type.IsValid());

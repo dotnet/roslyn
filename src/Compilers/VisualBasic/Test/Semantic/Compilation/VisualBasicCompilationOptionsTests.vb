@@ -550,5 +550,15 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
             Assert.Same(options, options.WithCryptoPublicKey(ImmutableArray(Of Byte).Empty))
         End Sub
 
+        <Fact>
+        Public Sub WithIgnoreCorLibraryDuplicatedTypes()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
+
+            Assert.False(options.IgnoreCorLibraryDuplicatedTypes)
+            Assert.True(options.WithIgnoreCorLibraryDuplicatedTypes(True).IgnoreCorLibraryDuplicatedTypes)
+
+            Assert.Same(options, options.WithIgnoreCorLibraryDuplicatedTypes(False))
+        End Sub
+
     End Class
 End Namespace
