@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Debug.WriteLine(e);
                 // Per the AppDomain.FirstChanceException contract we must catch and deal with all exceptions that arise in the handler.
                 // Otherwise, we are likely to end up with recursive calls into this method until we overflow the stack.
             }
