@@ -23,14 +23,13 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub M()
 End Interface
 Class C
     Implements I
     Public Sub M() Implements I.M
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -68,14 +67,13 @@ Class C
     Function M() As Integer
     End Function
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub M()
 End Interface
 Class C
     Implements I
     Private Sub I_M() Implements I.M
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
     Function M() As Integer
     End Function
@@ -93,8 +91,7 @@ Class C
     Public Sub Bar()
     End Sub
 End Class",
-"Imports System
-Interface IFoo
+"Interface IFoo
     Sub Bar()
 End Interface
 Class C
@@ -102,7 +99,7 @@ Class C
     Public Sub Bar()
     End Sub
     Private Sub IFoo_Bar() Implements IFoo.Bar
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -118,15 +115,14 @@ Class C
     Implements [|I|]
     Private m As Integer
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub M()
 End Interface
 Class C
     Implements I
     Private m As Integer
     Private Sub I_M() Implements I.M
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -142,8 +138,7 @@ Class C
     Implements [|I|]
     Public Property M As Integer
 End Class",
-"Imports System
-Interface I
+"Interface I
     Property M As Integer
 End Interface
 Class C
@@ -151,10 +146,10 @@ Class C
     Public Property M As Integer
     Private Property I_M As Integer Implements I.M
         Get
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Get
         Set(value As Integer)
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Set
     End Property
 End Class")
@@ -177,8 +172,7 @@ Class C
         End Set
     End Property
 End Class",
-"Imports System
-Interface I
+"Interface I
     Property M As Integer
 End Interface
 Class C
@@ -194,10 +188,10 @@ Class C
 
     Private Property I_M As Integer Implements I.M
         Get
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Get
         Set(value As Integer)
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Set
     End Property
 End Class")
@@ -218,8 +212,7 @@ Class C
     Inherits B
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub M()
 End Interface
 Class B
@@ -230,7 +223,7 @@ Class C
     Inherits B
     Implements I
     Private Sub I_M() Implements I.M
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -249,8 +242,7 @@ Class C
     Inherits B
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub M()
 End Interface
 Class B
@@ -260,7 +252,7 @@ Class C
     Inherits B
     Implements I
     Private Sub I_M() Implements I.M
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -279,8 +271,7 @@ Class C
     Inherits B
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub M()
 End Interface
 Class B
@@ -290,7 +281,7 @@ Class C
     Inherits B
     Implements I
     Private Sub I_M() Implements I.M
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -323,14 +314,13 @@ End Interface
 Class [Class]
     Implements [|IInterface1(Of Integer)|]
 End Class",
-"Imports System
-Interface IInterface1(Of T)
+"Interface IInterface1(Of T)
     Sub Method1(t As T)
 End Interface
 Class [Class]
     Implements IInterface1(Of Integer)
     Public Sub Method1(t As Integer) Implements IInterface1(Of Integer).Method1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -344,14 +334,13 @@ End Interface
 Class [Class]
     Implements [|IInterface1(Of Integer)|]
 End Class",
-"Imports System
-Interface IInterface1(Of T)
+"Interface IInterface1(Of T)
     Sub Method1(Of U)(arg As T, arg1 As U)
 End Interface
 Class [Class]
     Implements IInterface1(Of Integer)
     Public Sub Method1(Of U)(arg As Integer, arg1 As U) Implements IInterface1(Of Integer).Method1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -366,15 +355,14 @@ End Interface
 Class [Class]
     Implements [|IInterface1(Of Integer)|]
 End Class",
-"Imports System
-Imports System.Collections.Generic
+"Imports System.Collections.Generic
 Interface IInterface1(Of T)
     Sub Method1(Of U As IList(Of T))(arg As T, arg1 As U)
 End Interface
 Class [Class]
     Implements IInterface1(Of Integer)
     Public Sub Method1(Of U As IList(Of Integer))(arg As Integer, arg1 As U) Implements IInterface1(Of Integer).Method1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -388,14 +376,13 @@ End Interface
 Class [Class]
     Implements [|IInterface1(Of Integer)|]
 End Class",
-"Imports System
-Interface IInterface1(Of T)
+"Interface IInterface1(Of T)
     Sub Method1(Of U As T)(arg As T, arg1 As U)
 End Interface
 Class [Class]
     Implements IInterface1(Of Integer)
     Public Sub Method1(Of U As Integer)(arg As Integer, arg1 As U) Implements IInterface1(Of Integer).Method1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -410,15 +397,14 @@ Class C
     Implements [|I|]
     Private x As I
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub M()
 End Interface
 Class C
     Implements I
     Private x As I
     Public Sub M() Implements I.M
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -578,18 +564,17 @@ End Interface
 Class M
     Implements [|I1|]
 End Class",
-"Imports System
-Interface I1
+"Interface I1
     Property Foo() As Integer
 End Interface
 Class M
     Implements I1
     Public Property Foo As Integer Implements I1.Foo
         Get
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Get
         Set(value As Integer)
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Set
     End Property
 End Class")
@@ -604,14 +589,13 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Function M() As String()
 End Interface
 Class C
     Implements I
     Public Function M() As String() Implements I.M
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Function
 End Class")
         End Function
@@ -627,15 +611,14 @@ Interface I
     Sub Method1(ByRef x As Integer, ByRef y As Integer, z As Integer)
     Function Method2() As Integer
 End Interface",
-"Imports System
-Class C
+"Class C
     Implements I
     Private foo As I
     Public Sub Method1(ByRef x As Integer, ByRef y As Integer, z As Integer) Implements I.Method1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
     Public Function Method2() As Integer Implements I.Method2
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Function
 End Class
 Interface I
@@ -653,14 +636,13 @@ End Interface
 Class C
     Implements [|I1|]
 End Class",
-"Imports System
-Interface I1
+"Interface I1
     Function Method1$()
 End Interface
 Class C
     Implements I1
     Public Function Method1() As String Implements I1.Method1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Function
 End Class")
         End Function
@@ -674,14 +656,13 @@ End Interface
 Class C
     Implements [|I1|]
 End Class",
-"Imports System
-Interface I1
+"Interface I1
     Sub Method1(ByRef arg#)
 End Interface
 Class C
     Implements I1
     Public Sub Method1(ByRef arg As Double) Implements I1.Method1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -710,15 +691,14 @@ Interface I
     Sub Method1(ByRef x As Integer, ByRef y As Integer, z As Integer)
     Function Method2() As Integer
 End Interface",
-"Imports System
-Class C
+"Class C
     Implements I
     Private foo As I
     Public Sub Method1(ByRef x As Integer, ByRef y As Integer, z As Integer) Implements I.Method1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
     Public Function Method2() As Integer Implements I.Method2
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Function
 End Class
 Interface I
@@ -737,18 +717,17 @@ End Interface
 Class C
     Implements [|I1|]
 End Class",
-"Imports System
-Interface I1
+"Interface I1
     Default Property Foo(ByVal arg As Integer)
 End Interface
 Class C
     Implements I1
     Default Public Property Foo(arg As Integer) As Object Implements I1.Foo
         Get
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Get
         Set(value As Object)
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Set
     End Property
 End Class")
@@ -767,8 +746,7 @@ End Interface
 Class C
     Implements [|I1.I2|]
 End Class",
-"Imports System
-Interface I1
+"Interface I1
     Sub Foo()
     Delegate Sub Del(ByVal arg As Integer)
     Interface I2
@@ -778,7 +756,7 @@ End Interface
 Class C
     Implements I1.I2
     Public Sub Foo(arg As I1.Del) Implements I1.I2.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -793,14 +771,13 @@ End Interface
 Class C
     Implements [|I1|]
 End Class",
-"Imports System
-Interface I1
+"Interface I1
     Sub Method1(ByVal arg() As Integer)
 End Interface
 Class C
     Implements I1
     Public Sub Method1(arg() As Integer) Implements I1.Method1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -817,15 +794,14 @@ End Class")
         Implements [|I1|]
     End Class
 End Namespace",
-"Imports System
-Namespace ConsoleApplication
+"Namespace ConsoleApplication
     Interface I1
         Sub Method1()
     End Interface
     Class C
         Implements I1
         Public Sub Method1() Implements I1.Method1
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Sub
     End Class
 End Namespace",
@@ -842,14 +818,13 @@ End Interface
 Class A
     Implements [|I2|]
 End Class",
-"Imports System
-Interface I2
+"Interface I2
     Function G(ParamArray args As Double()) As Integer
 End Interface
 Class A
     Implements I2
     Public Function G(ParamArray args() As Double) As Integer Implements I2.G
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Function
 End Class")
         End Function
@@ -864,14 +839,13 @@ End Interface
 Class A
     Implements [|I1|]
 End Class",
-"Imports System
-Interface I1
+"Interface I1
     Private Sub Foo()
 End Interface
 Class A
     Implements I1
     Public Sub Foo() Implements I1.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -912,15 +886,14 @@ Class C
     Implements [|I|]
     Public Property X As I
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub M()
 End Interface
 Class C
     Implements I
     Public Property X As I
     Public Sub M() Implements I.M
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
 
@@ -1520,9 +1493,7 @@ End Interface
 Class M
     Implements [|I1|]
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
-<Text>Imports System
-
-Interface I1
+<Text>Interface I1
     Function Foo()
 End Interface
 
@@ -1530,7 +1501,7 @@ Class M
     Implements I1
 
     Public Function Foo() As Object Implements I1.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Function
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
 compareTokens:=False)
@@ -1551,8 +1522,7 @@ Class C
     Inherits B
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub M()
 End Interface
 Class B
@@ -1563,7 +1533,7 @@ Class C
     Inherits B
     Implements I
     Private Sub I_M() Implements I.M
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -1578,14 +1548,13 @@ End Interface
 Class C
     Implements [|I|] ' Implement interface 
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub [Rem]
 End Interface
 Class C
     Implements I ' Implement interface 
     Public Sub [Rem]() Implements I.[Rem]
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -1671,14 +1640,13 @@ End Interface
 Class C(Of T, R)
     Implements [|I(Of T, R)|]
 End Class",
-"Imports System
-Interface I(Of In T, Out R)
+"Interface I(Of In T, Out R)
     Sub Foo()
 End Interface
 Class C(Of T, R)
     Implements I(Of T, R)
     Public Sub Foo() Implements I(Of T, R).Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -1697,8 +1665,7 @@ End Interface
 Class C
     Implements [|I2|]
 End Class",
-"Imports System
-Interface I1
+"Interface I1
     Property Bar As Integer
 End Interface
 Interface I2
@@ -1709,18 +1676,18 @@ Class C
     Implements I2
     Public Property Bar As Integer Implements I2.Bar
         Get
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Get
         Set(value As Integer)
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Set
     End Property
     Private Property I1_Bar As Integer Implements I1.Bar
         Get
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Get
         Set(value As Integer)
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Set
     End Property
 End Class")
@@ -1753,8 +1720,7 @@ Class C
     Inherits B
     Implements [|I1|]
 End Class",
-"Imports System
-Interface I1
+"Interface I1
     Property Bar As Integer
     Sub Foo()
 End Interface
@@ -1766,14 +1732,14 @@ Class C
     Implements I1
     Private Property I1_Bar As Integer Implements I1.Bar
         Get
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Get
         Set(value As Integer)
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Set
     End Property
     Public Sub Foo() Implements I1.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -1806,14 +1772,13 @@ End Interface
 Class Bar
     Implements [|IFoo|]
 End Class",
-"Imports System
-Interface IFoo
+"Interface IFoo
     Sub Foo(Optional s As String = """""""")
 End Interface
 Class Bar
     Implements IFoo
     Public Sub Foo(Optional s As String = """""""") Implements IFoo.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -1822,8 +1787,7 @@ End Class")
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestVBConstantValue1() As Task
             Await TestAsync(
-"Imports System
-Imports Microsoft.VisualBasic
+"Imports Microsoft.VisualBasic
 Interface I
     Sub VBNullChar(Optional x As String = Constants.vbNullChar)
 End Interface
@@ -1831,8 +1795,7 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Imports Microsoft.VisualBasic
+"Imports Microsoft.VisualBasic
 Interface I
     Sub VBNullChar(Optional x As String = Constants.vbNullChar)
 End Interface
@@ -1840,7 +1803,7 @@ End Interface
 Class C
     Implements I
     Public Sub VBNullChar(Optional x As String = Constants.vbNullChar) Implements I.VBNullChar
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -1913,14 +1876,13 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub Foo(Optional x As Date = #6/29/2012#)
 End Interface
 Class C
     Implements I
     Public Sub Foo(Optional x As Date = #6/29/2012 12:00:00 AM#) Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -1963,15 +1925,14 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub Foo(x As Integer()())
 End Interface
 
 Class C
     Implements I
     Public Sub Foo(x As Integer()()) Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -2014,15 +1975,14 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub Foo(Optional x As Long = Long.MinValue)
 End Interface
 
 Class C
     Implements I
     Public Sub Foo(Optional x As Long = Long.MinValue) Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -2048,9 +2008,7 @@ End Interface
 Class C
     Implements [|I|]
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
-<Text>Imports System
-
-Interface I
+<Text>Interface I
     Sub M01(Optional x As Short = Short.MinValue)
     Sub M02(Optional x As Short = Short.MaxValue)
     Sub M03(Optional x As UShort = UShort.MinValue)
@@ -2069,51 +2027,51 @@ Class C
     Implements I
 
     Public Sub M01(Optional x As Short = Short.MinValue) Implements I.M01
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M02(Optional x As Short = Short.MaxValue) Implements I.M02
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M03(Optional x As UShort = 0) Implements I.M03
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M04(Optional x As UShort = UShort.MaxValue) Implements I.M04
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M05(Optional x As Integer = Integer.MinValue) Implements I.M05
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M06(Optional x As Integer = Integer.MaxValue) Implements I.M06
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M07(Optional x As UInteger = 0) Implements I.M07
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M08(Optional x As UInteger = UInteger.MaxValue) Implements I.M08
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M09(Optional x As Long = Long.MinValue) Implements I.M09
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M10(Optional x As Long = Long.MaxValue) Implements I.M10
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M11(Optional x As ULong = 0) Implements I.M11
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M12(Optional x As ULong = ULong.MaxValue) Implements I.M12
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
 compareTokens:=False)
@@ -2140,9 +2098,7 @@ End Interface
 Class C
     Implements [|I|]
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
-<Text>Imports System
-
-Interface I
+<Text>Interface I
     Sub D1(Optional x As Double = Double.Epsilon)
     Sub D2(Optional x As Double = Double.MaxValue)
     Sub D3(Optional x As Double = Double.MinValue)
@@ -2161,51 +2117,51 @@ Class C
     Implements I
 
     Public Sub D1(Optional x As Double = Double.Epsilon) Implements I.D1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub D2(Optional x As Double = Double.MaxValue) Implements I.D2
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub D3(Optional x As Double = Double.MinValue) Implements I.D3
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub D4(Optional x As Double = Double.NaN) Implements I.D4
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub D5(Optional x As Double = Double.NegativeInfinity) Implements I.D5
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub D6(Optional x As Double = Double.PositiveInfinity) Implements I.D6
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub S1(Optional x As Single = Single.Epsilon) Implements I.S1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub S2(Optional x As Single = Single.MaxValue) Implements I.S2
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub S3(Optional x As Single = Single.MinValue) Implements I.S3
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub S4(Optional x As Single = Single.NaN) Implements I.S4
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub S5(Optional x As Single = Single.NegativeInfinity) Implements I.S5
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub S6(Optional x As Single = Single.PositiveInfinity) Implements I.S6
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
 compareTokens:=False)
@@ -2340,15 +2296,14 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub Foo(x As Integer(,))
 End Interface
 
 Class C
     Implements I
     Public Sub Foo(x(,) As Integer) Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -2389,15 +2344,14 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub Foo(Optional x As Object = ""‟"")
 End Interface
 
 Class C
     Implements I
     Public Sub Foo(Optional x As Object = ""‟"") Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -2606,15 +2560,14 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub Foo(x As Integer?())
 End Interface
 
 Class C
     Implements I
     Public Sub Foo(x As Integer?()) Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -2630,15 +2583,14 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub Foo(Optional x As Integer() = Nothing)
 End Interface
 
 Class C
     Implements I
     Public Sub Foo(Optional x() As Integer = Nothing) Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -2689,15 +2641,14 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub Foo(Optional x As Byte = 1)
 End Interface
 
 Class C
     Implements I
     Public Sub Foo(Optional x As Byte = 1) Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -2713,15 +2664,14 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub Foo(Optional x As Object = 1L)
 End Interface
 
 Class C
     Implements I
     Public Sub Foo(Optional x As Object = 1L) Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -2741,8 +2691,7 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Enum E
+"Enum E
     A = 1
 End Enum
 
@@ -2753,7 +2702,7 @@ End Interface
 Class C
     Implements I
     Public Sub Foo(Optional x As E = 0) Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -2769,15 +2718,14 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub Foo(Optional x As Object = CByte(1))
 End Interface
 
 Class C
     Implements I
     Public Sub Foo(Optional x As Object = CByte(1)) Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -2802,8 +2750,6 @@ Class C
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
 <Text>Option Strict On
-Imports System
-
 Interface I
     Sub M1(Optional x As Decimal = 2D)
     Sub M2(Optional x As Decimal = 2.0D)
@@ -2817,27 +2763,27 @@ Class C
     Implements I
 
     Public Sub M1(Optional x As Decimal = 2) Implements I.M1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M2(Optional x As Decimal = 2.0D) Implements I.M2
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M3(Optional x As Decimal = 0) Implements I.M3
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M4(Optional x As Decimal = 0.0D) Implements I.M4
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M5(Optional x As Decimal = 0.1D) Implements I.M5
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M6(Optional x As Decimal = 0.10D) Implements I.M6
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf))
@@ -2857,7 +2803,6 @@ Class C
     Implements [|I|]
 End Class",
 "Option Strict On
-Imports System
 Interface I
     Sub Foo(Optional x As Decimal = Long.MinValue)
 End Interface
@@ -2865,7 +2810,7 @@ End Interface
 Class C
     Implements I
     Public Sub Foo(Optional x As Decimal = -9223372036854775808D) Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -2989,14 +2934,13 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub Foo(Optional x As String = ""𪛖"")
 End Interface
 Class C
     Implements I
     Public Sub Foo(Optional x As String = ""𪛖"") Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -3039,15 +2983,14 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub Foo(Of [TO], TP, TQ)()
 End Interface
 
 Class C
     Implements I
     Public Sub Foo(Of [TO], TP, TQ)() Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -3117,7 +3060,6 @@ End Class
             Dim expected =
 <File>
 Option Strict On
-Imports System
 
 Interface I
     Sub F1(Optional x As Decimal = 1E-25D)
@@ -3146,83 +3088,83 @@ Class C
     Implements I
 
     Public Sub F1(Optional x As Decimal = 0.0000000000000000000000001D) Implements I.F1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub F2(Optional x As Decimal = 0.00000000000000000000000001D) Implements I.F2
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub F3(Optional x As Decimal = 0.000000000000000000000000001D) Implements I.F3
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub F4(Optional x As Decimal = 0.0000000000000000000000000001D) Implements I.F4
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub F5(Optional x As Decimal = 0.0000000000000000000000000000D) Implements I.F5
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M1(Optional x As Decimal = 0.00000000000000000000000011D) Implements I.M1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M2(Optional x As Decimal = 0.000000000000000000000000011D) Implements I.M2
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M3(Optional x As Decimal = 0.0000000000000000000000000011D) Implements I.M3
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M4(Optional x As Decimal = 0.0000000000000000000000000001D) Implements I.M4
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub M5(Optional x As Decimal = 0.0000000000000000000000000000D) Implements I.M5
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub S1(Optional x As Decimal = -0.0000000000000000000000001D) Implements I.S1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub S2(Optional x As Decimal = -0.00000000000000000000000001D) Implements I.S2
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub S3(Optional x As Decimal = -0.000000000000000000000000001D) Implements I.S3
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub S4(Optional x As Decimal = -0.0000000000000000000000000001D) Implements I.S4
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub S5(Optional x As Decimal = 0.0000000000000000000000000000D) Implements I.S5
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub T1(Optional x As Decimal = -0.00000000000000000000000011D) Implements I.T1
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub T2(Optional x As Decimal = -0.000000000000000000000000011D) Implements I.T2
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub T3(Optional x As Decimal = -0.0000000000000000000000000011D) Implements I.T3
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub T4(Optional x As Decimal = -0.0000000000000000000000000001D) Implements I.T4
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Public Sub T5(Optional x As Decimal = 0.0000000000000000000000000000D) Implements I.T5
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class
 </File>
@@ -3360,15 +3302,14 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub ［ＲＥＭ］()
 End Interface
 
 Class C
     Implements I
     Public Sub [ＲＥＭ]() Implements I.[ＲＥＭ]
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -3383,15 +3324,14 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     Sub Foo(Of ［ＲＥＭ］)()
 End Interface
 Class C
     Implements I
 
     Public Sub Foo(Of [ＲＥＭ])() Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -3413,7 +3353,6 @@ Class C
     Implements [|I|] ' Implement 
 End Class",
 "Option Strict On
-Imports System
 Class C(Of T)
     Enum E
         X
@@ -3425,7 +3364,7 @@ End Interface
 Class C
     Implements I ' Implement 
     Public Sub Foo(Of M)(Optional x As C(Of M()).E = C(Of M()).E.X) Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -3447,7 +3386,6 @@ Class C
     Implements [|I|]
 End Class",
 "Option Strict On
-Imports System
 Class C(Of T)
     Enum E
         X
@@ -3459,7 +3397,7 @@ End Interface
 Class C
     Implements I
     Public Sub Foo(Of T)(Optional x As C(Of T()).E = C(Of T()).E.X) Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -3506,8 +3444,7 @@ End Class
 Partial Class C
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
 
     Sub M()
 
@@ -3520,7 +3457,7 @@ End Class
 Partial Class C
     Implements I
     Public Sub M() Implements I.M
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -3538,8 +3475,7 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Imports System.Runtime.InteropServices
+"Imports System.Runtime.InteropServices
 
 Interface I
     Function Foo(<MarshalAs(UnmanagedType.U1)> x As Boolean) As <MarshalAs(UnmanagedType.U1)> Boolean
@@ -3550,7 +3486,7 @@ Class C
     Public Function Foo(<MarshalAs(UnmanagedType.U1)>
     x As Boolean) As <MarshalAs(UnmanagedType.U1)>
     Boolean Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Function
 End Class")
         End Function
@@ -3567,14 +3503,13 @@ Class C
     Implements [|I|] ' Implement 
 End Class",
 "Option Strict On
-Imports System
 Interface I
     Sub Foo(Optional x As Decimal = 1000000000000000000D)
 End Interface
 Class C
     Implements I ' Implement 
     Public Sub Foo(Optional x As Decimal = 1000000000000000000) Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -3590,8 +3525,7 @@ End Interface
 MustInherit Class C
     Implements [|I|] ' Implement interface abstractly 
 End Class",
-"Imports System
-Interface I
+"Interface I
     Property Foo() As Integer
 End Interface
 
@@ -3599,10 +3533,10 @@ MustInherit Class C
     Implements I ' Implement interface abstractly 
     Public Property Foo As Integer Implements I.Foo
         Get
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Get
         Set(value As Integer)
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Set
     End Property
 End Class")
@@ -3620,15 +3554,14 @@ Class c
 End Class
 Structure S
 End Structure",
-"Imports System
-Interface I
+"Interface I
     ReadOnly Property g(Optional x As S? = Nothing)
 End Interface
 Class c
     Implements I
     Public ReadOnly Property g(Optional x As S? = Nothing) As Object Implements I.g
         Get
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Get
     End Property
 End Class
@@ -3646,15 +3579,14 @@ End Interface
 Class c
     Implements [|I|]
 End Class",
-"Imports System
-Interface I
+"Interface I
     ReadOnly Property g(Optional x As Long? = Nothing, Optional y As Long? = 5)
 End Interface
 Class c
     Implements I
     Public ReadOnly Property g(Optional x As Long? = Nothing, Optional y As Long? = 5) As Object Implements I.g
         Get
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Get
     End Property
 End Class")
@@ -3674,8 +3606,7 @@ Class C
     Implements [|I|] ' Implement
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
-<Text>Imports System
-Imports System.Runtime.InteropServices
+<Text>Imports System.Runtime.InteropServices
 
 Interface I
     Function Foo(&lt;MarshalAs(UnmanagedType.U1)&gt; x As Boolean) As &lt;MarshalAs(UnmanagedType.U1)&gt; Boolean
@@ -3685,7 +3616,7 @@ Class C
     Implements I ' Implement
 
     Public Function Foo(&lt;MarshalAs(UnmanagedType.U1)&gt; x As Boolean) As &lt;MarshalAs(UnmanagedType.U1)&gt; Boolean Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Function
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
@@ -3705,8 +3636,7 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Imports System.Runtime.InteropServices
+"Imports System.Runtime.InteropServices
 
 Interface I
     Property P(<MarshalAs(UnmanagedType.I4)> x As Integer) As <MarshalAs(UnmanagedType.I4)> Integer
@@ -3716,10 +3646,10 @@ Class C
     Implements I
     Public Property P(<MarshalAs(UnmanagedType.I4)> x As Integer) As <MarshalAs(UnmanagedType.I4)> Integer Implements I.P
         Get
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Get
         Set(value As Integer)
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Set
     End Property
 End Class")
@@ -3737,8 +3667,7 @@ End Class
 Partial Class C
     Implements [|I|]
 End Class",
-"Imports System
-Public Interface I
+"Public Interface I
     Sub Foo()
 End Interface
 Partial Class C
@@ -3746,7 +3675,7 @@ End Class
 Partial Class C
     Implements I
     Public Sub Foo() Implements I.Foo
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -3768,9 +3697,7 @@ End Class")
     End Interface
 End Interface
 </Text>.Value.Replace(vbLf, vbCrLf),
-<Text>Imports System
-
-Interface A(Of B)
+<Text>Interface A(Of B)
     Sub M()
     Interface C(Of D)
         Inherits A(Of C(Of D))
@@ -3780,7 +3707,7 @@ Interface A(Of B)
                 Implements E
 
                 Public Sub M() Implements A(Of A(Of A(Of A(Of B).C(Of D)).C(Of A(Of B).C(Of D).E)).C(Of A(Of A(Of B).C(Of D)).C(Of A(Of B).C(Of D).E).E)).M
-                    Throw New NotImplementedException()
+                    Throw New System.NotImplementedException()
                 End Sub
             End Class
         End Interface
@@ -3891,8 +3818,7 @@ End Interface
 MustInherit Class C
     Implements [|I|]
 End Class",
-"Imports System
-Imports System.Runtime.InteropServices
+"Imports System.Runtime.InteropServices
 
 Interface I
     Function F(<ComAliasName(""pAlias"")> p As Long) As Integer
@@ -3902,7 +3828,7 @@ MustInherit Class C
     Implements I
 
     Public Function F(p As Long) As Integer Implements I.F
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Function
 End Class")
         End Function
@@ -3920,8 +3846,7 @@ End Interface
 MustInherit Class C
     Implements [|I|]
 End Class",
-"Imports System
-Imports System.Runtime.InteropServices
+"Imports System.Runtime.InteropServices
 
 Interface I
     Function F(<ComAliasName(""pAlias1"")> p As Long) As <ComAliasName(""pAlias2"")> Integer
@@ -3931,7 +3856,7 @@ MustInherit Class C
     Implements I
 
     Public Function F(p As Long) As Integer Implements I.F
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Function
 End Class")
         End Function
@@ -3949,8 +3874,7 @@ End Interface
 Class C
     Implements [|I|]
 End Class",
-"Imports System
-Imports System.Runtime.InteropServices
+"Imports System.Runtime.InteropServices
 
 Interface I
     Default Property Prop(<ComAliasName(""pAlias"")> p As Long) As Integer
@@ -3962,11 +3886,11 @@ Class C
     Default Public Property Prop(p As Long) As Integer Implements I.Prop
 
         Get
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Get
 
         Set(value As Integer)
-            Throw New NotImplementedException()
+            Throw New System.NotImplementedException()
         End Set
 
     End Property
