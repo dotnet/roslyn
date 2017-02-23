@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -115,13 +114,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var content = new List<SyntaxNode>(pieces.Count);
             var previousIndex = -2;
             var insertionIndex = -1;
-            for (int i = 0; i < pieces.Count; i++)
+            for (var i = 0; i < pieces.Count; i++)
             {
                 if (syntaxFacts.IsStringLiteralExpression(pieces[i]))
                 {
                     var text = pieces[i].GetFirstToken().Text;
                     var textWithoutQuotes = GetTextWithoutQuotes(text, isVerbatimStringLiteral);
-                    if (i-1 == previousIndex)
+                    if (i - 1 == previousIndex)
                     {
                         // Last part we added to the content list was also an interpolated-string-text-node.
                         // We need to combine these as the API for creating an interpolated strings

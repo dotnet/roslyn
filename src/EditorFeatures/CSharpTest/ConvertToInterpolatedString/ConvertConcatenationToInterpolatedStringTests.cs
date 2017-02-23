@@ -348,6 +348,48 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithMultipleStringConcatinations2()
         {
+            await TestAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = ""A"" + [||]""B"" + ""C"" + 1;
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $""ABC{1}"";
+    }
+}");
+        }
+
+        [WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestWithMultipleStringConcatinations3()
+        {
+            await TestAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = ""A"" + 1 + [||]""B"" + ""C"" + 2 +""D""+ ""E""+ ""F"" + 3;
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $""A{1}BC{2}DEF{3}"";
+    }
+}");
+        }
+
+        [WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestWithMultipleStringConcatinations4()
+        {
             await TestMissingAsync(
 @"public class C
 {
