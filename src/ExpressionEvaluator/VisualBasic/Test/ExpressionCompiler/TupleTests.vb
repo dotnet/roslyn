@@ -128,7 +128,7 @@ End Class"
             app.AssertTheseDiagnostics()
 
             Dim runtime = CreateRuntimeInstance({app.ToModuleInstance(), corlibWithVT.ToModuleInstance()})
-            ' Create EE context with app assembly (including ValueTuple) And a more recent corlib (also including ValueTuple)
+            ' Create EE context with app assembly (including ValueTuple) and a more recent corlib (also including ValueTuple)
             Dim evalContext = CreateMethodContext(runtime, "C.M")
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()

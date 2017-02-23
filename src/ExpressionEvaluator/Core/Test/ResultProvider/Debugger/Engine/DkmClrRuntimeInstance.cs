@@ -4,15 +4,15 @@
 
 #endregion
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Symbols;
-using System;
-using System.Linq;
-using System.Reflection;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
-using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.Debugger.Clr
 {
