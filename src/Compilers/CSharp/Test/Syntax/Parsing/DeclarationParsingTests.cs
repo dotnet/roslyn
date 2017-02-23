@@ -1979,7 +1979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         [Fact]
-        public void TestDelegateWithReadonlyRefReturnType()
+        public void TestDelegateWithRefReadonlyReturnType()
         {
             var text = "delegate ref readonly a b();";
             var file = this.ParseFile(text, TestOptions.Regular);
@@ -2496,7 +2496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         [Fact]
-        public void TestClassMethodWithReadonlyRefReturn()
+        public void TestClassMethodWithRefReadonlyReturn()
         {
             var text = "class a { ref readonly b X() { } }";
             var file = this.ParseFile(text, TestOptions.Regular);
@@ -2570,7 +2570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         [Fact]
-        public void TestClassMethodWithReadonlyRef()
+        public void TestClassMethodWithRefReadonly()
         {
             var text = "class a { ref readonly }";
             var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
@@ -3944,7 +3944,7 @@ class Class1<T>{
 
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         [Fact]
-        public void TestClassPropertyWithReadonlyRefReturn()
+        public void TestClassPropertyWithRefReadonlyReturn()
         {
             var text = "class a { ref readonly b c { get; set; } }";
             var file = this.ParseFile(text, TestOptions.Regular);
@@ -4887,7 +4887,7 @@ class Class1<T>{
 
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         [Fact]
-        public void TestClassIndexerWithReadonlyRefReturn()
+        public void TestClassIndexerWithRefReadonlyReturn()
         {
             var text = "class a { ref readonly b this[c d] { get; set; } }";
             var file = this.ParseFile(text, TestOptions.Regular);

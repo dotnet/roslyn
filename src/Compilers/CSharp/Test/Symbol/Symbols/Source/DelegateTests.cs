@@ -733,9 +733,9 @@ class C
         }
 
         [Fact]
-        public void ReadonlyRefReturningDelegate()
+        public void RefReadonlyReturningDelegate()
         {
-            var source = @"delegate readonly ref int D();";
+            var source = @"delegate ref readonly int D();";
 
             var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyDiagnostics();

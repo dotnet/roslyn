@@ -2074,12 +2074,12 @@ static class C
         }
 
         [Fact]
-        public void ReadonlyRefReturningVoidMethod()
+        public void RefReadonlyReturningVoidMethod()
         {
             var source = @"
 static class C
 {
-    static readonly ref void M() { }
+    static ref readonly void M() { }
 }
 ";
 
@@ -2114,7 +2114,7 @@ static class C
         }
 
         [Fact]
-        public void ReadonlyRefReturningVoidMethodNested()
+        public void RefReadonlyReturningVoidMethodNested()
         {
             var source = @"
 static class C
@@ -2122,10 +2122,10 @@ static class C
     static void Main()
     {
         // valid
-        readonly ref int M1() {throw null;}
+        ref readonly int M1() {throw null;}
 
         // not valid
-        readonly ref void M2() {M1(); throw null;}
+        ref readonly void M2() {M1(); throw null;}
 
         M2();
     }
@@ -2164,24 +2164,24 @@ static class C
         }
 
         [Fact]
-        public void ReadonlyRefReturningAsyncMethod()
+        public void RefReadonlyReturningAsyncMethod()
         {
             var source = @"
 static class C
 {
-    static async readonly ref int M() { }
+    static async ref readonly int M() { }
 }
 ";
 
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (4,18): error CS1073: Unexpected token 'readonly'
-                //     static async readonly ref int M() { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "readonly").WithArguments("readonly").WithLocation(4, 18),
+                // (4,18): error CS1073: Unexpected token 'ref'
+                //     static async ref readonly int M() { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
                 // (4,35): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async readonly ref int M() { }
+                //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 35),
                 // (4,35): error CS0161: 'C.M()': not all code paths return a value
-                //     static async readonly ref int M() { }
+                //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 35)
                 );
         }

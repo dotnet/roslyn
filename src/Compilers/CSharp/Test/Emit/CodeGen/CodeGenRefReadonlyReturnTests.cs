@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-    public class CodeGenReadonlyRefReturnTests : CompilingTestBase
+    public class CodeGenRefReadonlyReturnTests : CompilingTestBase
     {
         [Fact]
         public void RefReturnArrayAccess()

@@ -8814,8 +8814,8 @@ tryAgain:
             SyntaxKind k;
             while (IsDeclarationModifier(k = this.CurrentToken.ContextualKind) || IsAdditionalLocalFunctionModifier(k))
             {
-                // "readonly ref" is not a modifier, in our syntax.
-                if (k == SyntaxKind.ReadOnlyKeyword && this.PeekToken(1).Kind == SyntaxKind.RefKeyword)
+                // "ref readonly" is not a modifier, in our syntax.
+                if (k == SyntaxKind.RefKeyword && this.PeekToken(1).Kind == SyntaxKind.ReadOnlyKeyword)
                 {
                     break;
                 }

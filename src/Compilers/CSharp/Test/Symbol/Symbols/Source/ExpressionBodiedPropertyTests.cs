@@ -512,7 +512,7 @@ class C
 class C
 {
     int field = 0;
-    public readonly ref int P => ref field;
+    public ref readonly int P => ref field;
 }");
             comp.VerifyDiagnostics();
 
