@@ -14,7 +14,8 @@ Imports Microsoft.CodeAnalysis.Collections
 
 Friend Module ParserTestUtilities
     Friend ReadOnly Property PooledStringBuilderPool As New ObjectPool(Of PooledStringBuilder)(
-        New ObjectPool(Of PooledStringBuilder).Factory(Function() PooledStringBuilder.GetInstance), 64)
+                New ObjectPool(Of PooledStringBuilder).Factory(Function() PooledStringBuilder.GetInstance), 64)
+
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
     Public Function ParseAndVerify(code As XCData, Optional expectedErrors As XElement = Nothing) As SyntaxTree
         Return ParseAndVerify(code.Value, expectedErrors)
@@ -575,7 +576,6 @@ Public Module VerificationHelpers
             .Append("/>")
         End With
         Return errorString.ToStringAndFree()
-
     End Function
 
     Private Function AreErrorsEquivalent(syntaxError As Diagnostic, xmlError As XElement) As Boolean
@@ -634,7 +634,7 @@ Public Module VerificationHelpers
         Next
 
         If errorScenarioFailed Then
-            Dim errorMessage = ParserTestUtilities.PooledStringBuilderPool.Allocate()
+            Dim errorMessage = PooledStringBuilderPool.Allocate()
             With errorMessage.Builder
                 .AppendLine()
                 .AppendLine("Expected Subset:")

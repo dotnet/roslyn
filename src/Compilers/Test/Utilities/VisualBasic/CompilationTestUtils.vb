@@ -884,43 +884,44 @@ Friend Module CompilationUtils
         Dim actualText = DumpAllDiagnostics(errors.ToArray(), suppressInfos)
         If expectedText <> actualText Then
 
-            Dim messages As New StringBuilder
-            messages.AppendLine()
+            Dim messages = PooledStringBuilderPool.Allocate()
+            With messages.Builder
+                .AppendLine()
 
-            If actualText.StartsWith(expectedText, StringComparison.Ordinal) AndAlso actualText.Substring(expectedText.Length).Trim().Length > 0 Then
-                messages.AppendLine("UNEXPECTED ERROR MESSAGES:")
-                messages.AppendLine(actualText.Substring(expectedText.Length))
+                If actualText.StartsWith(expectedText, StringComparison.Ordinal) AndAlso actualText.Substring(expectedText.Length).Trim().Length > 0 Then
+                    .AppendLine("UNEXPECTED ERROR MESSAGES:")
+                    .AppendLine(actualText.Substring(expectedText.Length))
 
-                Assert.True(False, messages.ToString())
-            Else
-                Dim expectedLines = expectedText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
-                Dim actualLines = actualText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
-
-                Dim appendedLines As Integer = 0
-
-                messages.AppendLine("MISSING ERROR MESSAGES:")
-                For Each l In expectedLines
-                    If Not actualLines.Contains(l) Then
-                        messages.AppendLine(l)
-                        appendedLines += 1
-                    End If
-                Next
-
-                messages.AppendLine("UNEXPECTED ERROR MESSAGES:")
-                For Each l In actualLines
-                    If Not expectedLines.Contains(l) Then
-                        messages.AppendLine(l)
-                        appendedLines += 1
-                    End If
-                Next
-
-                If appendedLines > 0 Then
-                    Assert.True(False, messages.ToString())
+                    Assert.True(False, messages.ToStringAndFree())
                 Else
-                    CompareLineByLine(expectedText, actualText)
-                End If
+                    Dim expectedLines = expectedText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
+                    Dim actualLines = actualText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
 
-            End If
+                    Dim appendedLines As Integer = 0
+
+                    .AppendLine("MISSING ERROR MESSAGES:")
+                    For Each l In expectedLines
+                        If Not actualLines.Contains(l) Then
+                            .AppendLine(l)
+                            appendedLines += 1
+                        End If
+                    Next
+
+                    .AppendLine("UNEXPECTED ERROR MESSAGES:")
+                    For Each l In actualLines
+                        If Not expectedLines.Contains(l) Then
+                            .AppendLine(l)
+                            appendedLines += 1
+                        End If
+                    Next
+
+                    If appendedLines > 0 Then
+                        Assert.True(False, messages.ToStringAndFree())
+                    Else
+                        CompareLineByLine(expectedText, actualText)
+                    End If
+                End If
+            End With
         End If
     End Sub
 
@@ -1215,7 +1216,7 @@ Friend Module CompilationUtils
 
     Public Function SortAndMergeStrings(ParamArray strings As String()) As String
         Array.Sort(strings)
-        Dim builder = _pooledStringBuilderPool.Allocate
+        Dim builder = _pooledStringBuilderPool.Allocate()
         For Each str In strings
             If builder.Length > 0 Then
                 builder.Builder.AppendLine()
