@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -23,9 +24,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Compilation compilation,
             INamedTypeSymbol containingType,
             IList<ISymbol> symbols,
+            SyntaxAnnotation statementAnnotation,
             CancellationToken cancellationToken)
         {
-            var statements = CreateEqualsMethodStatements(factory, compilation, containingType, symbols, cancellationToken);
+            var statements = CreateEqualsMethodStatements(
+                factory, compilation, containingType, symbols, cancellationToken);
+            statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: null,
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 statements: statements);
         }
 
-        private static IList<SyntaxNode> CreateEqualsMethodStatements(
+        private static ImmutableArray<SyntaxNode> CreateEqualsMethodStatements(
             SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
@@ -48,11 +52,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             CancellationToken cancellationToken)
         {
             var iequatableType = compilation.GetTypeByMetadataName("System.IEquatable`1");
-            var statements = new List<SyntaxNode>();
+            var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
             var parts = StringBreaker.BreakIntoWordParts(containingType.Name);
-            string localName = "v";
-            for (int i = parts.Count - 1; i >= 0; i--)
+            var localName = "v";
+            for (var i = parts.Count - 1; i >= 0; i--)
             {
                 var p = parts[i];
                 if (char.IsLetter(containingType.Name[p.Start]))
@@ -120,7 +124,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             foreach (var member in members)
             {
                 var symbolNameExpression = factory.IdentifierName(member.Name);
-                var thisSymbol = factory.MemberAccessExpression(factory.ThisExpression(), symbolNameExpression).WithAdditionalAnnotations(Simplification.Simplifier.Annotation);
+                var thisSymbol = factory.MemberAccessExpression(factory.ThisExpression(), symbolNameExpression)
+                                        .WithAdditionalAnnotations(Simplification.Simplifier.Annotation);
                 var otherSymbol = factory.MemberAccessExpression(localNameExpression, symbolNameExpression);
 
 #if false
@@ -161,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             statements.Add(factory.ReturnStatement(
                 expressions.Aggregate(factory.LogicalAndExpression)));
 
-            return statements;
+            return statements.ToImmutableAndFree();
         }
 
         private static bool ImplementsIEquatable(ITypeSymbol memberType, INamedTypeSymbol iequatableType)
