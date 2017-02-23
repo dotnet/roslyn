@@ -59,6 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 using (var session = await _client.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
                 {
+                    if (session == null)
+                    {
+                        // failed to create session. remote host might not responding or gone. 
+                        return;
+                    }
+
                     await session.InvokeAsync(
                         WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_RegisterPrimarySolutionId,
                         solutionId).ConfigureAwait(false);
@@ -95,14 +101,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private async Task UnregisterPrimarySolutionAsync(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                using (var session = await _client.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
-                {
-                    // ask remote host to sync initial asset
-                    await session.InvokeAsync(
-                        WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_UnregisterPrimarySolutionId,
-                        solutionId,
-                        synchronousShutdown).ConfigureAwait(false);
-                }
+                await _client.RunOnRemoteHostAsync(
+                    WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
+                    WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_UnregisterPrimarySolutionId,
+                        new object[] { solutionId, synchronousShutdown }, CancellationToken.None).ConfigureAwait(false);
             }
 
             public void ClearSolution() { }

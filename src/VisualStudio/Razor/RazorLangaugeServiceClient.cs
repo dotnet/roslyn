@@ -24,6 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         public async Task<Session> CreateSessionAsync(Solution solution, object callbackTarget = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var innerSession = await _client.CreateServiceSessionAsync(RazorServiceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
+            if (innerSession == null)
+            {
+                return null;
+            }
+
             return new Session(innerSession);
         }
 

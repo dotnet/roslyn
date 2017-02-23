@@ -24,21 +24,37 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public event EventHandler<bool> ConnectionChanged;
 
+        /// <summary>
+        /// Create <see cref="RemoteHostClient.Session"/> for the <paramref name="serviceName"/> if possible.
+        /// otherwise, return null.
+        /// </summary>
         public Task<Session> CreateServiceSessionAsync(string serviceName, CancellationToken cancellationToken)
         {
             return CreateServiceSessionAsync(serviceName, callbackTarget: null, cancellationToken: cancellationToken);
         }
 
+        /// <summary>
+        /// Create <see cref="RemoteHostClient.Session"/> for the <paramref name="serviceName"/> if possible.
+        /// otherwise, return null.
+        /// </summary>
         public Task<Session> CreateServiceSessionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
             return CreateServiceSessionAsync(serviceName, snapshot: null, callbackTarget: callbackTarget, cancellationToken: cancellationToken);
         }
 
+        /// <summary>
+        /// Create <see cref="RemoteHostClient.Session"/> for the <paramref name="serviceName"/> if possible.
+        /// otherwise, return null.
+        /// </summary>
         public Task<Session> CreateServiceSessionAsync(string serviceName, Solution solution, CancellationToken cancellationToken)
         {
             return CreateServiceSessionAsync(serviceName, solution, callbackTarget: null, cancellationToken: cancellationToken);
         }
 
+        /// <summary>
+        /// Create <see cref="RemoteHostClient.Session"/> for the <paramref name="serviceName"/> if possible.
+        /// otherwise, return null.
+        /// </summary>
         public async Task<Session> CreateServiceSessionAsync(string serviceName, Solution solution, object callbackTarget, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(solution.Workspace == _workspace);
@@ -98,18 +114,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public abstract Task InvokeAsync(string targetName, params object[] arguments);
 
-            /// <summary>
-            /// All caller must guard itself from it returning default(T) which can happen if OOP is killed
-            /// unintentionally such as user killed OOP process.
-            /// </summary>
             public abstract Task<T> InvokeAsync<T>(string targetName, params object[] arguments);
 
             public abstract Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync);
 
-            /// <summary>
-            /// All caller must guard itself from it returning default(T) which can happen if OOP is killed
-            /// unintentionally such as user killed OOP process.
-            /// </summary>
             public abstract Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync);
 
             public void AddAdditionalAssets(CustomAsset asset)
@@ -148,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Remote
             protected override Task<Session> CreateServiceSessionAsync(
                 string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
             {
-                return Task.FromResult<Session>(new NoOpSession(snapshot, cancellationToken));
+                return SpecializedTasks.Default<Session>();
             }
 
             protected override void OnConnected()
@@ -159,34 +167,6 @@ namespace Microsoft.CodeAnalysis.Remote
             protected override void OnDisconnected()
             {
                 // do nothing
-            }
-
-            private class NoOpSession : Session
-            {
-                public NoOpSession(PinnedRemotableDataScope scope, CancellationToken cancellationToken) :
-                    base(scope, cancellationToken)
-                {
-                }
-
-                public override Task InvokeAsync(string targetName, params object[] arguments)
-                {
-                    return SpecializedTasks.EmptyTask;
-                }
-
-                public override Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
-                {
-                    return SpecializedTasks.Default<T>();
-                }
-
-                public override Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
-                {
-                    return SpecializedTasks.EmptyTask;
-                }
-
-                public override Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
-                {
-                    return SpecializedTasks.Default<T>();
-                }
             }
         }
     }
