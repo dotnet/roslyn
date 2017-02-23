@@ -568,6 +568,78 @@ set
         }
 
         [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList10()
+        {
+            var code = @"class C
+{
+    event EventHandler E
+    {
+add
+        {
+        }$$
+        remove
+        {
+        }
+    }
+
+}";
+
+            var expected = @"class C
+{
+    event EventHandler E
+    {
+        add
+        {
+        }
+        remove
+        {
+        }
+    }
+
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList11()
+        {
+            var code = @"class C
+{
+    event EventHandler E
+    {
+        add
+        {
+        }
+remove
+        {
+        }$$
+    }
+
+}";
+
+            var expected = @"class C
+{
+    event EventHandler E
+    {
+        add
+        {
+        }
+        remove
+        {
+        }
+    }
+
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.CloseBraceToken);
+        }
+
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block1()
         {
