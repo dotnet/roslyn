@@ -717,7 +717,7 @@ namespace Microsoft.Cci
                 var signatureHandle = _metadataWriter.SerializeLocalConstantStandAloneSignature(scopeConstant);
                 if (!_metadataWriter.IsLocalNameTooLong(scopeConstant))
                 {
-                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, _metadataWriter.GetConstantTypeCode(scopeConstant), signatureHandle);
+                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, scopeConstant.CompileTimeValue.Type.TypeCode, signatureHandle);
                 }
             }
 
