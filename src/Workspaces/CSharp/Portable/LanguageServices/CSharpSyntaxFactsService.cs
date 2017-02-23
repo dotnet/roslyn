@@ -236,6 +236,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsReturnStatement(SyntaxNode node)
             => node.Kind() == SyntaxKind.ReturnStatement;
 
+        public SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node)
+            => (node as ReturnStatementSyntax)?.Expression;
+
         public bool IsThisConstructorInitializer(SyntaxToken token)
         {
             return token.Parent.IsKind(SyntaxKind.ThisConstructorInitializer) &&

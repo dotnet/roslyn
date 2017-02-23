@@ -37,13 +37,18 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 {
                     if (_syntaxFacts.IsReturnStatement(node))
                     {
-                        list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(
-                            node.GetFirstToken(),
-                            node.GetFirstToken().GetNextToken(),
-                            node.GetLastToken(),
-                            indentationDelta: 1,
-                            option: IndentBlockOption.RelativePosition));
-                        return;
+                        var expr = _syntaxFacts.GetExpressionOfReturnStatement(node);
+                        if (expr != null)
+                        {
+                            list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(
+                                expr.GetFirstToken(),
+                                expr.GetFirstToken(),
+                                node.GetLastToken(),
+                                indentationDelta: 0,
+                                option: IndentBlockOption.RelativePosition));
+
+                            return;
+                        }
                     }
 
                     nextOperation.Invoke(list);
