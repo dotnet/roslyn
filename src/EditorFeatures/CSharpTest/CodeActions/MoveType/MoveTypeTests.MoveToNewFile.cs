@@ -863,7 +863,7 @@ partial class Outer
                 compareTokens: false,
                 onAfterWorkspaceCreated: w =>
                 {
-                    w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, LanguageNames.CSharp, true);
+                    w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, true);
                 });
         }
 
@@ -905,7 +905,7 @@ partial class Outer
                 compareTokens: false,
                 onAfterWorkspaceCreated: w =>
                 {
-                    w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, LanguageNames.CSharp, false);
+                    w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, false);
                 });
         }
     }

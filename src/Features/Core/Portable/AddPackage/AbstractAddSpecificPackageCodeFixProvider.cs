@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System;
 
 namespace Microsoft.CodeAnalysis.AddPackage
 {
@@ -28,6 +30,8 @@ namespace Microsoft.CodeAnalysis.AddPackage
             var cancellationToken = context.CancellationToken;
             var assemblyName = GetAssemblyName(context.Diagnostics[0].Id);
 
+            // context.Document.Project.WithCompilationOptions
+
             if (assemblyName != null)
             {
                 var assemblyNames = new HashSet<string> { assemblyName };
@@ -37,5 +41,13 @@ namespace Microsoft.CodeAnalysis.AddPackage
         }
 
         protected abstract string GetAssemblyName(string id);
+
+        class MyCodeAction : CodeAction.SolutionChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution) 
+                : base(title, createChangedSolution)
+            {
+            }
+        }
     }
 }

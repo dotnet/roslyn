@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             new PerLanguageOption<string>(nameof(FormattingOptions), nameof(NewLine), defaultValue: "\r\n",
                 storageLocations: new EditorConfigStorageLocation("end_of_line", ParseEditorConfigEndOfLine));
 
-        internal static PerLanguageOption<bool> InsertFinalNewLine { get; } =
-            new PerLanguageOption<bool>(nameof(FormattingOptions), nameof(InsertFinalNewLine), defaultValue: false,
-                storageLocations: new EditorConfigStorageLocation("insert_final_newline", s => s == "true"));
+        internal static Option<bool> InsertFinalNewLine { get; } =
+            new Option<bool>(nameof(FormattingOptions), nameof(InsertFinalNewLine), defaultValue: false,
+                storageLocations: new EditorConfigStorageLocation("insert_final_newline"));
 
         private static object ParseEditorConfigEndOfLine(string endOfLineValue)
         {
