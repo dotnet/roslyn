@@ -15,10 +15,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class LookupTests
         Inherits BasicTestBase
 
-        Private Function GetContext(compilation As VisualBasicCompilation,
-                                   treeName As String,
-                                   textToFind As String) As Binder
-            Dim tree As SyntaxTree = CompilationUtils.GetTree(compilation, treeName)
+        Private Function GetContext(
+                                     compilation As VisualBasicCompilation,
+                                     treeName As String,
+                                     textToFind As String
+                                   ) As Binder
+
+            Dim tree = CompilationUtils.GetTree(compilation, treeName)
             Dim position = CompilationUtils.FindPositionFromText(tree, textToFind)
 
             Return DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel).GetEnclosingBinder(position)
@@ -27,16 +30,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestLookupResult()
-            Dim sym1 = New MockAssemblySymbol("hello") ' just a symbol to put in results
-            Dim sym2 = New MockAssemblySymbol("goodbye") ' just a symbol to put in results
-            Dim sym3 = New MockAssemblySymbol("world") ' just a symbol to put in results
-            Dim sym4 = New MockAssemblySymbol("banana") ' just a symbol to put in results
-            Dim sym5 = New MockAssemblySymbol("apple") ' just a symbol to put in results
-            Dim meth1 = New MockMethodSymbol("foo") ' just a symbol to put in results
-            Dim meth2 = New MockMethodSymbol("bag") ' just a symbol to put in results
-            Dim meth3 = New MockMethodSymbol("baz") ' just a symbol to put in results
+            Dim sym1 As New MockAssemblySymbol("hello")   ' just a symbol to put in results
+            Dim sym2 As New MockAssemblySymbol("goodbye") ' just a symbol to put in results
+            Dim sym3 As New MockAssemblySymbol("world")   ' just a symbol to put in results
+            Dim sym4 As New MockAssemblySymbol("banana")  ' just a symbol to put in results
+            Dim sym5 As New MockAssemblySymbol("apple")   ' just a symbol to put in results
+            Dim meth1 As New MockMethodSymbol("foo")      ' just a symbol to put in results
+            Dim meth2 As New MockMethodSymbol("bag")      ' just a symbol to put in results
+            Dim meth3 As New MockMethodSymbol("baz")      ' just a symbol to put in results
 
-            Dim r1 = New LookupResult()
+            Dim r1 As New LookupResult()
             r1.SetFrom(SingleLookupResult.Empty)
             Assert.False(r1.HasSymbol)
             Assert.False(r1.IsGood)
@@ -44,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.False(r1.StopFurtherLookup)
 
             Dim r2 = SingleLookupResult.Good(sym1)
-            Dim _r2 = New LookupResult()
+            Dim _r2 As New LookupResult()
             _r2.SetFrom(r2)
             Assert.True(_r2.HasSymbol)
             Assert.True(_r2.IsGood)
@@ -52,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.False(_r2.HasDiagnostic)
             Assert.True(_r2.StopFurtherLookup)
 
-            Dim r3 = New LookupResult()
+            Dim r3 As New LookupResult()
             r3.SetFrom(SingleLookupResult.Ambiguous(ImmutableArray.Create(Of Symbol)(sym1, sym2, sym3), AddressOf GenerateAmbiguity))
             Assert.True(r3.HasSymbol)
             Assert.False(r3.IsGood)
@@ -64,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(sym2, diag3.AmbiguousSymbols.Item(1))
             Assert.Same(sym3, diag3.AmbiguousSymbols.Item(2))
 
-            Dim r4 = New LookupResult()
+            Dim r4 As New LookupResult()
             r4.SetFrom(SingleLookupResult.Inaccessible(sym2, New BadSymbolDiagnostic(sym2, ERRID.ERR_InaccessibleSymbol2, sym2)))
             Assert.True(r4.HasSymbol)
             Assert.False(r4.IsGood)
@@ -75,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(ERRID.ERR_InaccessibleSymbol2, diag4.Code)
             Assert.Same(sym2, diag4.BadSymbol)
 
-            Dim r5 = New LookupResult()
+            Dim r5 As New LookupResult()
             r5.SetFrom(SingleLookupResult.WrongArity(sym3, ERRID.ERR_IndexedNotArrayOrProc))
             Assert.True(r5.HasSymbol)
             Assert.False(r5.IsGood)
@@ -85,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim diag5 = r5.Diagnostic
             Assert.Equal(ERRID.ERR_IndexedNotArrayOrProc, diag5.Code)
 
-            Dim r6 = New LookupResult()
+            Dim r6 As New LookupResult()
             r6.MergePrioritized(r1)
             r6.MergePrioritized(r2)
             Assert.True(r6.HasSymbol)
@@ -94,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.True(r6.StopFurtherLookup)
             r6.Free()
 
-            Dim r7 = New LookupResult()
+            Dim r7 As New LookupResult()
             r7.MergePrioritized(r2)
             r7.MergePrioritized(r1)
             Assert.True(r7.HasSymbol)
@@ -102,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.False(r7.HasDiagnostic)
             Assert.True(r7.StopFurtherLookup)
 
-            Dim r8 = New LookupResult()
+            Dim r8 As New LookupResult()
             r8.SetFrom(SingleLookupResult.Good(sym4))
             Dim r9 = New LookupResult()
             r9.SetFrom(r2)
@@ -112,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.False(r9.HasDiagnostic)
             Assert.True(r9.StopFurtherLookup)
 
-            Dim r10 = New LookupResult()
+            Dim r10 As New LookupResult()
             r10.SetFrom(r3)
             r10.MergePrioritized(r8)
             r10.MergePrioritized(r2)
@@ -125,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(sym2, diag10.AmbiguousSymbols.Item(1))
             Assert.Same(sym3, diag10.AmbiguousSymbols.Item(2))
 
-            Dim r11 = New LookupResult()
+            Dim r11 As New LookupResult()
             r11.MergePrioritized(r1)
             r11.MergePrioritized(r5)
             r11.MergePrioritized(r3)
@@ -140,15 +143,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(sym2, diag11.AmbiguousSymbols.Item(1))
             Assert.Same(sym3, diag11.AmbiguousSymbols.Item(2))
 
-            Dim r12 = New LookupResult()
-            Dim r12Empty = New LookupResult()
+            Dim r12 As New LookupResult()
+            Dim r12Empty As New LookupResult()
             r12.MergePrioritized(r1)
             r12.MergePrioritized(r12Empty)
             Assert.False(r12.HasSymbol)
             Assert.False(r12.HasDiagnostic)
             Assert.False(r12.StopFurtherLookup)
 
-            Dim r13 = New LookupResult()
+            Dim r13 As New LookupResult()
             r13.MergePrioritized(r1)
             r13.MergePrioritized(r5)
             r13.MergePrioritized(r4)
@@ -160,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(ERRID.ERR_InaccessibleSymbol2, diag13.Code)
             Assert.Same(sym2, diag13.BadSymbol)
 
-            Dim r14 = New LookupResult()
+            Dim r14 As New LookupResult()
             r14.MergeAmbiguous(r1, AddressOf GenerateAmbiguity)
             r14.MergeAmbiguous(r5, AddressOf GenerateAmbiguity)
             r14.MergeAmbiguous(r4, AddressOf GenerateAmbiguity)
@@ -172,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(ERRID.ERR_InaccessibleSymbol2, diag14.Code)
             Assert.Same(sym2, diag14.BadSymbol)
 
-            Dim r15 = New LookupResult()
+            Dim r15 As New LookupResult()
             r15.MergeAmbiguous(r1, AddressOf GenerateAmbiguity)
             r15.MergeAmbiguous(r8, AddressOf GenerateAmbiguity)
             r15.MergeAmbiguous(r3, AddressOf GenerateAmbiguity)
@@ -193,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim r18 = SingleLookupResult.Good(meth3)
 
-            Dim r19 = New LookupResult()
+            Dim r19 As New LookupResult()
             r19.MergeMembersOfTheSameType(r16, False)
             Assert.True(r19.StopFurtherLookup)
             Assert.Equal(1, r19.Symbols.Count)
@@ -223,15 +226,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         End Sub
 
-        Private Function GenerateAmbiguity(syms As ImmutableArray(Of Symbol)) As AmbiguousSymbolDiagnostic
+        Private Function GenerateAmbiguity(
+                                            syms As ImmutableArray(Of Symbol)
+                                          ) As AmbiguousSymbolDiagnostic
             Return New AmbiguousSymbolDiagnostic(ERRID.ERR_AmbiguousInModules2, syms, New FormattedSymbolList(syms.AsEnumerable))
         End Function
 
         <Fact()>
         Public Sub MemberLookup1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Comp">
-    <file name="a.vb">
+            Unit.Make("Comp").WithFile("a.vb",
+"
 Option Strict On
 Option Explicit On
 
@@ -288,8 +293,7 @@ Module Module1
     End Sub
 End Module
 
-    </file>
-</compilation>, TestOptions.ReleaseExe)
+"), options:=TestOptions.ReleaseExe)
             Dim context = GetContext(compilation, "a.vb", "Sub Main")
             Dim globalNS = compilation.GlobalNamespace
 
@@ -387,8 +391,8 @@ End Module
         <Fact()>
         Public Sub Bug3024()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Bug3024">
-    <file name="a.vb">
+                Unit.Make("Bug3024").WithFile("a.vb",
+"
 Imports P
 Imports R
 Module C
@@ -402,9 +406,7 @@ Namespace R
 End Namespace
 Namespace P.Q
 End Namespace
-    </file>
-</compilation>)
-
+"))
 
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
 
@@ -414,8 +416,7 @@ End Namespace
         <Fact()>
         Public Sub Bug3025()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Bug3025">
-    <file name="a.vb">
+Unit.Make("Bug3025").WithFile("a,vb","
 Imports P
 Imports R
 Module C
@@ -431,8 +432,7 @@ Namespace P.Q
     Class Z
     End Class
 End Namespace
-    </file>
-</compilation>)
+"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -445,8 +445,7 @@ BC30182: Type expected.
         <Fact()>
         Public Sub Bug4099()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Bug4099">
-    <file name="a.vb">
+Unit.Make("Bug4099").WithFile("a.vb","
 Imports N
 Imports K
 
@@ -465,9 +464,7 @@ End Namespace
 Class A
     Inherits C
 End Class
-    </file>
-</compilation>)
-
+"))
 
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
 
@@ -477,8 +474,7 @@ End Class
         <Fact()>
         Public Sub Bug4100()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
-<compilation name="Bug4100">
-    <file name="a.vb">
+Unit.Make("Bug4100").WithFile("a.vb", "
 Imports N
 Imports K
 
@@ -496,18 +492,14 @@ End Namespace
 
 Class A
     Inherits C
-End Class
-    </file>
-</compilation>)
-
+End Class"))
 
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
 
             Assert.Same(compilation.GetTypeByMetadataName("N.C"), compilation.GetTypeByMetadataName("A").BaseType)
 
             compilation = CompilationUtils.CreateCompilationWithMscorlib(
-<compilation name="Bug4100">
-    <file name="a.vb">
+Unit.Make("Bug4100").WithFile("a.vb", "
 Imports K
 Imports N
 
@@ -526,9 +518,7 @@ End Namespace
 Class A
     Inherits C
 End Class
-    </file>
-</compilation>)
-
+"))
 
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
 
@@ -539,8 +529,8 @@ End Class
         <Fact()>
         Public Sub Bug3015()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Bug3015">
-    <file name="a.vb">
+Unit.Make("Bug3015").WithFile("a.vb",
+"
 Imports P
 Imports R
 
@@ -558,20 +548,19 @@ End Namespace
 
 Namespace P.Q
 End Namespace
-    </file>
-</compilation>, TestOptions.ReleaseExe)
+"), options:=TestOptions.ReleaseExe)
 
-            CompileAndVerify(compilation, <![CDATA[
+            CompileAndVerify(compilation, expectedOutput:="
 R.Q
-]]>)
+")
         End Sub
 
 
         <Fact()>
         Public Sub Bug3014()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Bug3014">
-    <file name="a.vb">
+Unit.Make("Bug3014").WithFile("a.vb",
+"
 Imports P = System
 Imports R
 Module C
@@ -584,8 +573,7 @@ Namespace R
     Class P(Of T)
     End Class
 End Namespace
-    </file>
-</compilation>, TestOptions.ReleaseExe)
+"), options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -598,8 +586,8 @@ BC32045: 'System' has no type parameters and so cannot have type arguments.
         <Fact()>
         Public Sub AmbiguityInImports()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
-<compilation name="AmbiguityInImports1">
-    <file name="a.vb">
+Unit.Make("AmbiguityInImports1").WithFile("a.vb",
+"
 Namespace NS1
 
     Friend Class CT1
@@ -648,12 +636,10 @@ Namespace NS3
     End Class
 End Namespace
 
-    </file>
-</compilation>)
+"))
 
             Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlib(
-<compilation name="AmbiguityInImports3">
-    <file name="a.vb">
+Unit.Make("AmbiguityInImports3").WithFile("a.vb","
 Namespace NS1
     Namespace CT4
     End Namespace
@@ -663,12 +649,11 @@ Namespace NS2
     Namespace CT5
     End Namespace
 End Namespace
-    </file>
-</compilation>)
+"))
 
             Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-<compilation name="AmbiguityInImports2">
-    <file name="a.vb">
+Unit.Make("AmbiguityInImports2").WithFile("a.vb",
+"
 Imports NS2
 Imports NS3
 
@@ -691,9 +676,7 @@ Namespace NS1
     End Module
 
 End Namespace
-    </file>
-</compilation>, {New VisualBasicCompilationReference(compilation1),
-                 New VisualBasicCompilationReference(compilation3)})
+"), {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation3)})
 
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <expected>
@@ -719,8 +702,8 @@ BC30560: 'CT5' is ambiguous in the namespace 'NS2'.
         <Fact()>
         Public Sub TieBreakingInImports()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
-<compilation name="TieBreakingInImports1">
-    <file name="a.vb">
+Unit.Make("TieBreakingInImports1").WithFile("a.vb",
+"
 Namespace NS1
     Namespace Test1
         Public Class Test3
@@ -743,12 +726,11 @@ Namespace NS2
     Public Class Test5
     End Class
 End Namespace
-    </file>
-</compilation>)
+"))
 
             Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib(
-<compilation name="TieBreakingInImports2">
-    <file name="a.vb">
+Unit.Make("TieBreakingInImports2").WithFile("a.vb",
+"
 Namespace NS3
     Class Test1
     End Class
@@ -759,22 +741,20 @@ Namespace NS3
     Class Test5
     End Class
 End Namespace
-    </file>
-</compilation>)
+"))
 
             Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlib(
-<compilation name="TieBreakingInImports3">
-    <file name="a.vb">
+Unit.Make("TieBreakingInImports3").WithFile("a.vb",
+"
 Namespace NS2
     Class Test2(Of T)
     End Class
 End Namespace
-    </file>
-</compilation>)
+"))
 
             Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-<compilation name="TieBreakingInImports4">
-    <file name="a.vb">
+Unit.Make("TieBreakingInImports4").WithFile("a.vb",
+"
             Imports NS1
             Imports NS2
             Imports NS3
@@ -787,10 +767,9 @@ End Namespace
                     Dim x4 As Test5 = Nothing
                 End Sub
             End Module
-                </file>
-</compilation>, {New VisualBasicCompilationReference(compilation1),
-                 New VisualBasicCompilationReference(compilation2),
-                 New VisualBasicCompilationReference(compilation3)})
+"), {New VisualBasicCompilationReference(compilation1),
+        New VisualBasicCompilationReference(compilation2),
+        New VisualBasicCompilationReference(compilation3)})
 
             CompilationUtils.AssertTheseDiagnostics(compilation4,
 <expected>
@@ -809,8 +788,8 @@ BC30561: 'Test5' is ambiguous, imported from the namespaces or types 'NS1, NS2'.
 </expected>)
 
             Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-<compilation name="TieBreakingInImports4">
-    <file name="a.vb">
+Unit.Make("TieBreakingInImports4").WithFile("a.vb",
+"
             Imports NS2
             Imports NS3
             Imports NS1
@@ -823,10 +802,9 @@ BC30561: 'Test5' is ambiguous, imported from the namespaces or types 'NS1, NS2'.
                     Dim x4 As Test5 = Nothing
                 End Sub
             End Module
-                </file>
-</compilation>, {New VisualBasicCompilationReference(compilation1),
-                 New VisualBasicCompilationReference(compilation2),
-                 New VisualBasicCompilationReference(compilation3)})
+"), {New VisualBasicCompilationReference(compilation1),
+        New VisualBasicCompilationReference(compilation2),
+        New VisualBasicCompilationReference(compilation3)})
 
             CompilationUtils.AssertTheseDiagnostics(compilation5,
 <expected>
@@ -845,8 +823,8 @@ BC30561: 'Test5' is ambiguous, imported from the namespaces or types 'NS2, NS1'.
             </expected>)
 
             Dim compilation6 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-<compilation name="TieBreakingInImports4">
-    <file name="a.vb">
+Unit.Make("TieBreakingInImports4").WithFile("a.vb",
+"
             Imports NS3
             Imports NS1
             Imports NS2
@@ -859,10 +837,9 @@ BC30561: 'Test5' is ambiguous, imported from the namespaces or types 'NS2, NS1'.
                     Dim x4 As Test5 = Nothing
                 End Sub
             End Module
-    </file>
-</compilation>, {New VisualBasicCompilationReference(compilation1),
-                 New VisualBasicCompilationReference(compilation2),
-                 New VisualBasicCompilationReference(compilation3)})
+"), {New VisualBasicCompilationReference(compilation1),
+        New VisualBasicCompilationReference(compilation2),
+        New VisualBasicCompilationReference(compilation3)})
 
             CompilationUtils.AssertTheseDiagnostics(compilation6,
 <expected>
@@ -886,8 +863,8 @@ BC30561: 'Test5' is ambiguous, imported from the namespaces or types 'NS1, NS2'.
         <Fact()>
         Public Sub RecursiveCheckForAccessibleTypesWithinANamespace()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="RecursiveCheckForAccessibleTypesWithinANamespace1">
-    <file name="a.vb">
+Unit.Make("RecursiveCheckForAccessibleTypesWithinANamespace1").WithFile("a.vb",
+"
 Imports P
 
 Module Module1
@@ -905,17 +882,16 @@ Namespace P
         End Namespace
     End Namespace
 End Namespace
-    </file>
-</compilation>, TestOptions.ReleaseExe)
+"), options:=TestOptions.ReleaseExe)
 
-            CompileAndVerify(compilation, <![CDATA[
+            CompileAndVerify(compilation, expectedOutput:="
 P.Q.R.S
-]]>)
+")
 
 
             compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="RecursiveCheckForAccessibleTypesWithinANamespace2">
-    <file name="a.vb">
+Unit.Make("RecursiveCheckForAccessibleTypesWithinANamespace2").
+WithFile("a.vb", "
 Imports P
 
 Module Module1
@@ -936,8 +912,7 @@ Namespace P
         End Namespace
     End Namespace
 End Namespace
-    </file>
-</compilation>, TestOptions.ReleaseExe)
+"), options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 P.Q.R.S
@@ -996,38 +971,35 @@ P.Q.R.S
         <Fact()>
         Public Sub TestMergedNamespaceContainsTypesAccessibleFrom()
             Dim c1 = CompilationUtils.CreateCompilationWithMscorlib(
-<compilation name="C1">
-    <file name="a.vb">
+Unit.Make("C1").
+WithFile("a.vb", "
 Namespace P
     Namespace Q
         Public Class R
         End Class
     End Namespace
 End Namespace
-    </file>
-</compilation>)
+"))
 
             Dim c2 = CompilationUtils.CreateCompilationWithMscorlib(
-<compilation name="C2">
-    <file name="a.vb">
+Unit.Make("C2").
+WithFile("a.vb", "
 Namespace P
     Namespace Q
         Friend Class S
         End Class
     End Namespace
 End Namespace
-    </file>
-</compilation>)
+"))
 
             Dim c3 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
-<compilation name="C3">
-    <file name="a.vb">
+Unit.Make("C3").
+WithFile("a.vb", "
 Namespace P
     Namespace Q
     End Namespace
 End Namespace
-    </file>
-</compilation>, {New VisualBasicCompilationReference(c1), New VisualBasicCompilationReference(c2)})
+"), {New VisualBasicCompilationReference(c1), New VisualBasicCompilationReference(c2)})
 
             Dim p = c3.GlobalNamespace.GetMembers("P").OfType(Of MergedNamespaceSymbol)().Single()
             Dim q = p.GetMembers("Q").OfType(Of MergedNamespaceSymbol)().Single()
@@ -1050,16 +1022,15 @@ End Namespace
             Assert.Equal(0, q.RawContainsAccessibleTypes)
 
             c3 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
-<compilation name="C3">
-    <file name="a.vb">
+Unit.Make("C3").
+WithFile("a.vb", "
 Namespace P
     Namespace Q
         Friend Class U
         End Class
     End Namespace
 End Namespace
-    </file>
-</compilation>, {New VisualBasicCompilationReference(c2)})
+"), {New VisualBasicCompilationReference(c2)})
 
             p = c3.GlobalNamespace.GetMembers("P").OfType(Of MergedNamespaceSymbol)().Single()
             q = p.GetMembers("Q").OfType(Of MergedNamespaceSymbol)().Single()
@@ -1080,14 +1051,14 @@ End Namespace
             Assert.Equal(Accessibility.Private, p.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType)
 
             Dim c4 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
-<compilation name="C4">
-    <file name="a.vb">
+Unit.Make("C4").
+WithFile("a.vb", "
 Namespace P
     Namespace Q
     End Namespace
 End Namespace
-    </file>
-</compilation>, {New VisualBasicCompilationReference(c3), New VisualBasicCompilationReference(c2)})
+"), {New VisualBasicCompilationReference(c3),
+        New VisualBasicCompilationReference(c2)})
 
             p = c4.GlobalNamespace.GetMembers("P").OfType(Of MergedNamespaceSymbol)().Single()
             q = p.GetMembers("Q").OfType(Of MergedNamespaceSymbol)().Single()
@@ -1109,14 +1080,13 @@ End Namespace
             Assert.Equal(ThreeState.False, p.RawContainsAccessibleTypes)
 
             c4 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
-<compilation name="C4">
-    <file name="a.vb">
+Unit.Make("C4").
+WithFile("a.vb", "
 Namespace P
     Namespace Q
     End Namespace
 End Namespace
-    </file>
-</compilation>, {New VisualBasicCompilationReference(c3), New VisualBasicCompilationReference(c2)})
+"), {New VisualBasicCompilationReference(c3), New VisualBasicCompilationReference(c2)})
 
             p = c4.GlobalNamespace.GetMembers("P").OfType(Of MergedNamespaceSymbol)().Single()
             q = p.GetMembers("Q").OfType(Of MergedNamespaceSymbol)().Single()
@@ -1143,8 +1113,8 @@ End Namespace
         <Fact()>
         Public Sub Bug4128()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Bug4128">
-    <file name="a.vb">
+Unit.Make("Bug4128").
+WithFile("a.vb", "
 Imports A = C.B
 Imports XXXXXXX = UNKNOWN.UNKNOWN(Of UNKNOWN)  'BUG #4115
 Imports XXXXYYY = UNKNOWN(Of UNKNOWN)
@@ -1158,8 +1128,7 @@ Module Y
     Class C
     End Class
 End Module
-    </file>
-</compilation>)
+"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1185,8 +1154,8 @@ Imports XXXXYYY = UNKNOWN(Of UNKNOWN)
         Public Sub Bug4220()
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Bug4220">
-    <file name="a.vb">
+Unit.Make("Bug4220").
+WithFile("a.vb", "
 Imports A
 Imports A.B
 Imports A.B
@@ -1195,9 +1164,7 @@ Namespace A
   Module B
   End Module
 End Namespace
-
-    </file>
-</compilation>)
+"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1207,8 +1174,8 @@ Imports A.B
 </expected>)
 
             compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Bug4220">
-    <file name="a.vb">
+Unit.Make("Bug4220").
+WithFile("a.vb", "
 Imports A
 Imports A.B
 
@@ -1221,12 +1188,11 @@ End Module
 Namespace A
   Module B
     Public Sub c()
-      System.Console.WriteLine("Sub c()")
+      System.Console.WriteLine(""Sub c()"")
     End Sub
   End Module
 End Namespace
-    </file>
-</compilation>, TestOptions.ReleaseExe)
+"), options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 Sub c()
@@ -1236,8 +1202,8 @@ Sub c()
         <Fact()>
         Public Sub Bug4180()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
-<compilation name="Bug4180">
-    <file name="a.vb">
+Unit.Make("Bug4180").
+WithFile("a.vb", "
 Namespace System
     Class [Object]
     End Class
@@ -1245,8 +1211,7 @@ Namespace System
         Inherits [Object]
     End Class
 End Namespace
-    </file>
-</compilation>)
+"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1255,8 +1220,8 @@ End Namespace
             Assert.Same(compilation.Assembly.GetTypeByMetadataName("System.Object"), compilation.GetTypeByMetadataName("System.C").BaseType)
 
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="C1">
-    <file name="a.vb">
+Unit.Make("C1").
+WithFile("a.vb", "
 Namespace NS1
     Namespace NS2
         Public Class C1
@@ -1270,12 +1235,11 @@ Namespace NS5
         End Sub
     End Module
 End Namespace
-    </file>
-</compilation>)
+"))
 
             Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="C2">
-    <file name="a.vb">
+Unit.Make("C2").
+WithFile("a.vb", "
 Namespace NS1
     Namespace NS2
         Namespace C1
@@ -1293,12 +1257,11 @@ Namespace NS5
     End Module
 
 End Namespace
-    </file>
-</compilation>)
+"))
 
             Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-<compilation name="C3">
-    <file name="a.vb">
+Unit.Make("C3").
+WithFile("a.vb", "
 Namespace NS1
 
     Module Module1
@@ -1315,16 +1278,15 @@ Namespace NS1
     End Namespace
 
 End Namespace
-    </file>
-</compilation>, {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2)}, TestOptions.ReleaseExe)
+"), {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2)}, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation3, <![CDATA[
 NS1.NS2.C1.C2
 ]]>)
 
             Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlib(
-<compilation name="C4">
-    <file name="a.vb">
+Unit.Make("C4").
+WithFile("a.vb", "
 Namespace NS1
     Namespace NS2
         Namespace C1
@@ -1333,12 +1295,11 @@ Namespace NS1
         End Namespace
     End Namespace
 End Namespace
-    </file>
-</compilation>)
+"))
 
             compilation3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-<compilation name="C3">
-    <file name="a.vb">
+Unit.Make("C3").
+WithFile("a.vb", "
 Imports NS1
 
 Module Module1
@@ -1346,8 +1307,9 @@ Module Module1
         Dim x As NS2.C1.C2 = Nothing
     End Sub
 End Module
-    </file>
-</compilation>, {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2), New VisualBasicCompilationReference(compilation4)}, TestOptions.ReleaseExe)
+"), {New VisualBasicCompilationReference(compilation1),
+        New VisualBasicCompilationReference(compilation2),
+        New VisualBasicCompilationReference(compilation4)}, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation3,
 <expected>
@@ -1357,8 +1319,8 @@ BC30560: 'C1' is ambiguous in the namespace 'NS1.NS2'.
 </expected>)
 
             compilation3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-<compilation name="C3">
-    <file name="a.vb">
+Unit.Make("C3").
+WithFile("a.vb", "
 Namespace NS5
 
     Module Module1
@@ -1368,8 +1330,7 @@ Namespace NS5
     End Module
 
 End Namespace    
-</file>
-</compilation>, {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2)}, TestOptions.ReleaseExe)
+"), {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2)}, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation3,
 <expected>
@@ -1379,8 +1340,7 @@ BC30562: 'Test' is ambiguous between declarations in Modules 'NS5.Module3, NS5.M
 </expected>)
 
             compilation3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-<compilation name="C3">
-    <file name="a.vb">
+Unit.Make("C3").WithFile("a.vb", "
 Namespace NS5
 
     Module Module1
@@ -1391,16 +1351,15 @@ Namespace NS5
 
     Module Module2
         Sub Test()
-            System.Console.WriteLine("Module2.Test")
+            System.Console.WriteLine(""Module2.Test"")
         End Sub
     End Module
 
-End Namespace    </file>
-</compilation>, {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2)}, TestOptions.ReleaseExe)
+End Namespace"), {New VisualBasicCompilationReference(compilation1), New VisualBasicCompilationReference(compilation2)}, TestOptions.ReleaseExe)
 
-            CompileAndVerify(compilation3, <![CDATA[
+            CompileAndVerify(compilation3, expectedOutput:="
 Module2.Test
-]]>)
+")
         End Sub
 
 
@@ -1408,14 +1367,13 @@ Module2.Test
         Public Sub Bug4817()
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Bug4817">
-    <file name="a.vb">
+Unit.Make("Bug4817").WithFile("a.vb", "
 Imports A
 Imports B
 
 Class A
     Shared Sub Foo()
-        System.Console.WriteLine("A.Foo()")
+        System.Console.WriteLine(""A.Foo()"")
     End Sub
 End Class
 
@@ -1428,23 +1386,21 @@ Module C
         Foo()
     End Sub
 End Module
-    </file>
-</compilation>, TestOptions.ReleaseExe)
+"), options:=TestOptions.ReleaseExe)
 
 
-            CompileAndVerify(compilation, <![CDATA[
+            CompileAndVerify(compilation, expectedOutput:="
 A.Foo()
-]]>)
+")
 
             compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Bug4817">
-    <file name="a.vb">
+Unit.Make("Bug4817").WithFile("a.vb", "
 Imports A
 Imports B
 
 Class A
     Shared Sub Foo()
-        System.Console.WriteLine("A.Foo()")
+        System.Console.WriteLine(""A.Foo()"")
     End Sub
 End Class
 
@@ -1452,7 +1408,7 @@ Class B
     Inherits A
 
     Overloads Shared Sub Foo(x As Integer)
-        System.Console.WriteLine("B.Foo()")
+        System.Console.WriteLine(""B.Foo()"")
     End Sub
 End Class
 
@@ -1461,8 +1417,7 @@ Module C
         Foo()
     End Sub
 End Module
-    </file>
-</compilation>, TestOptions.ReleaseExe)
+"), options:= TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1475,8 +1430,7 @@ BC30561: 'Foo' is ambiguous, imported from the namespaces or types 'A, B, A'.
         <Fact()>
         Public Sub LookupOptionMustBeInstance()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb">
+Unit.Make.WithFile("a.vb", "
 Option Strict On
 Option Explicit On
 
@@ -1496,9 +1450,7 @@ Module Module1
     Sub Main()
     End Sub
 End Module
-
-    </file>
-</compilation>, TestOptions.ReleaseExe)
+"), options:=TestOptions.ReleaseExe)
             Dim context = GetContext(compilation, "a.vb", "Sub Main")
             Dim globalNS = compilation.GlobalNamespace
 
@@ -1546,11 +1498,10 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(545575, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545575")>
+            <WorkItem(545575, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545575")>
         Public Sub Bug14079()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb">
+Unit.Make.WithFile("a.vb", "
 Option Strict On
 
 Interface I
@@ -1573,8 +1524,7 @@ Class D
         End Class
     End Interface
 End Class
-    </file>
-</compilation>)
+"))
 
             CompilationUtils.AssertNoDiagnostics(compilation)
         End Sub
@@ -1583,17 +1533,15 @@ End Class
         Public Sub Bug17900()
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Bug4817">
-    <file name="a.vb">
+Unit.Make("Bug4817").
+WithFile("a.vb", "
 Imports Undefined
 Module Program
     Event E
  Sub Main()
  End Sub
 End Module
-
-    </file>
-</compilation>, TestOptions.ReleaseExe)
+"), options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1606,18 +1554,16 @@ Imports Undefined
         <Fact()>
         Public Sub AmbiguousNamespaces_01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-<compilation>
-    <file name="a.vb">
+Unit.Make.WithFile("a.vb", "
 Imports System
 Imports System.Windows.Forms
 
 Module Module1
     Sub Main()
-        Dim x As ComponentModel.INotifyPropertyChanged =  Nothing 'BIND1:"ComponentModel"
+        Dim x As ComponentModel.INotifyPropertyChanged =  Nothing 'BIND1:""ComponentModel""
     End Sub
 End Module
-    </file>
-</compilation>, {SystemWindowsFormsRef})
+"), {SystemWindowsFormsRef})
 
             CompilationUtils.AssertNoDiagnostics(compilation)
 
@@ -1645,22 +1591,20 @@ End Module
         <Fact()>
         Public Sub AmbiguousNamespaces_02()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-<compilation>
-    <file name="a.vb">
+Unit.Make.WithFile("a.vb", "
 Imports System
 Imports Windows.Foundation
 
 Module Module1
     Sub Main()
-        Diagnostics.Debug.WriteLine("") 'BIND1:"Diagnostics"
+        Diagnostics.Debug.WriteLine("""") 'BIND1:""Diagnostics""
 
         Dim x = Diagnostics
 
         Diagnostics
     End Sub
 End Module
-    </file>
-</compilation>, WinRtRefs)
+"), WinRtRefs)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
 BC30112: 'Diagnostics' is a namespace and cannot be used as an expression.
@@ -1695,15 +1639,14 @@ BC30112: 'Diagnostics' is a namespace and cannot be used as an expression.
         <Fact()>
         Public Sub AmbiguousNamespaces_03()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb">
+unit.make.withfile("a.vb","
 Imports NS1
 Imports NS2
 
 Module Module1
     Sub Main()
-        NS3.            'BIND1:"NS3"
-            NS4.T1.M1() 'BIND2:"NS4"
+        NS3.            'BIND1:""NS3""
+            NS4.T1.M1() 'BIND2:""NS4""
     End Sub
 End Module
 
@@ -1726,8 +1669,7 @@ Namespace NS2
         End Namespace
     End Namespace
 End Namespace
-    </file>
-</compilation>)
+"))
 
             CompilationUtils.AssertNoDiagnostics(compilation)
 
@@ -1764,8 +1706,7 @@ End Namespace
         <Fact()>
         Public Sub AmbiguousNamespaces_04()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb"><![CDATA[
+unit.make.withfile("a.vb","
 Imports NS1
 Imports NS2
 Imports NS3
@@ -1775,52 +1716,52 @@ Imports NS9
 
 Module Module1
     Sub Main()
-        Dim x = GetType(NS6. 'BIND1:"NS6"
-                        NS7. 'BIND2:"NS7"
-                        T1)  'BIND3:"T1"
+        Dim x = GetType(NS6. 'BIND1:""NS6""
+                        NS7. 'BIND2:""NS7""
+                        T1)  'BIND3:""T1""
     End Sub
 
     Class Test1
-        Inherits NS6. 'BIND4:"NS6"
-                    NS7. 'BIND5:"NS7"
-                        T1 'BIND6:"T1"
+        Inherits NS6. 'BIND4:""NS6""
+                    NS7. 'BIND5:""NS7""
+                        T1 'BIND6:""T1""
     End Class
 
     Sub Main2()
-        Dim x = NS6. 'BIND7:"NS6"
-                NS7. 'BIND8:"NS7"
-                T1.  'BIND9:"T1"
+        Dim x = NS6. 'BIND7:""NS6""
+                NS7. 'BIND8:""NS7""
+                T1.  'BIND9:""T1""
                 M1()
     End Sub
 
     Sub Main3()
-        Dim x = GetType(NS6) 'BIND10:"NS6"
-        Dim y = GetType(NS6. 'BIND11:"NS6"
-                        NS7) 'BIND12:"NS7"
+        Dim x = GetType(NS6) 'BIND10:""NS6""
+        Dim y = GetType(NS6. 'BIND11:""NS6""
+                        NS7) 'BIND12:""NS7""
     End Sub
 
     Class Test2
-        Inherits NS6 'BIND13:"NS6"
+        Inherits NS6 'BIND13:""NS6""
     End Class
 
     Class Test3
-        Inherits NS6. 'BIND14:"NS6"
-                    NS7 'BIND15:"NS7"
+        Inherits NS6. 'BIND14:""NS6""
+                    NS7 'BIND15:""NS7""
     End Class
 
     Sub Main4()
-        NS6 'BIND16:"NS6"
+        NS6 'BIND16:""NS6""
 
-        NS6. 'BIND17:"NS6"
-                NS7 'BIND18:"NS7"
+        NS6. 'BIND17:""NS6""
+                NS7 'BIND18:""NS7""
     End Sub
     
-    <NS6> 'BIND19:"NS6"
-    <NS6. 'BIND20:"NS6"
-        NS7> 'BIND21:"NS7"
-    <NS6. 'BIND22:"NS6"
-        NS7. 'BIND23:"NS7"
-            T1> 'BIND24:"T1"
+    <NS6> 'BIND19:""NS6""
+    <NS6. 'BIND20:""NS6""
+        NS7> 'BIND21:""NS7""
+    <NS6. 'BIND22:""NS6""
+        NS7. 'BIND23:""NS7""
+            T1> 'BIND24:""T1""
     Class Test4
     End Class
 End Module
@@ -1881,8 +1822,7 @@ Namespace NS9
         End Namespace
     End Namespace
 End Namespace
-    ]]></file>
-</compilation>)
+"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
                                                     <expected><![CDATA[
@@ -1995,8 +1935,7 @@ BC37229: 'T1' is ambiguous between declarations in namespaces 'NS1.NS6.NS7, NS2.
         <Fact()>
         Public Sub AmbiguousNamespaces_05()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb"><![CDATA[
+Unit.Make.WithFile("a.vb", "
 Imports NS1
 Imports NS2
 Imports NS3
@@ -2006,27 +1945,27 @@ Imports NS9
 
 Module Module1
     Sub Main()
-        Dim x = GetType(NS6. 'BIND1:"NS6"
-                        NS7. 'BIND2:"NS7"
-                        T1)  'BIND3:"T1"
+        Dim x = GetType(NS6. 'BIND1:""NS6""
+                        NS7. 'BIND2:""NS7""
+                        T1)  'BIND3:""T1""
     End Sub
 
     Class Test1
-        Inherits NS6. 'BIND4:"NS6"
-                    NS7. 'BIND5:"NS7"
-                        T1 'BIND6:"T1"
+        Inherits NS6. 'BIND4:""NS6""
+                    NS7. 'BIND5:""NS7""
+                        T1 'BIND6:""T1""
     End Class
 
     Sub Main2()
-        NS6. 'BIND7:"NS6"
-                NS7. 'BIND8:"NS7"
-                T1.  'BIND9:"T1"
+        NS6. 'BIND7:""NS6""
+                NS7. 'BIND8:""NS7""
+                T1.  'BIND9:""T1""
                 M1()
     End Sub
 
-    <NS6. 'BIND10:"NS6"
-                    NS7. 'BIND11:"NS7"
-                        T1> 'BIND12:"T1"
+    <NS6. 'BIND10:""NS6""
+                    NS7. 'BIND11:""NS7""
+                        T1> 'BIND12:""T1""
     Class Test2
     End Class
 End Module
@@ -2090,8 +2029,7 @@ Namespace NS9
         End Namespace
     End Namespace
 End Namespace
-    ]]></file>
-</compilation>)
+"))
 
             CompilationUtils.AssertNoDiagnostics(compilation)
 
@@ -2137,8 +2075,7 @@ End Namespace
         <Fact()>
         Public Sub AmbiguousNamespaces_06()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb"><![CDATA[
+   Unit.Make.WithFile("a.vb", "
 Imports NS1
 Imports NS2
 Imports NS3
@@ -2147,22 +2084,22 @@ Imports NS9
 
 Module Module1
     Sub Main()
-        Dim x = NS6. 'BIND1:"NS6"
-                NS7. 'BIND2:"NS7"
-                M1()  'BIND3:"M1"
+        Dim x = NS6. 'BIND1:""NS6""
+                NS7. 'BIND2:""NS7""
+                M1()  'BIND3:""M1""
 
-        Dim y = GetType(NS6. 'BIND4:"NS6"
-                            NS7. 'BIND5:"NS7"
-                            M1)  'BIND6:"M1"
+        Dim y = GetType(NS6. 'BIND4:""NS6""
+                            NS7. 'BIND5:""NS7""
+                            M1)  'BIND6:""M1""
     End Sub
 
-    <NS6. 'BIND7:"NS6"
-                NS7. 'BIND8:"NS7"
-                M1>  'BIND9:"M1"
+    <NS6. 'BIND7:""NS6""
+                NS7. 'BIND8:""NS7""
+                M1>  'BIND9:""M1""
     Class Test1
-        Inherits NS6. 'BIND10:"NS6"
-                NS7. 'BIND11:"NS7"
-                M1  'BIND12:"M1"
+        Inherits NS6. 'BIND10:""NS6""
+                NS7. 'BIND11:""NS7""
+                M1  'BIND12:""M1""
     End Class
 End Module
 
@@ -2219,8 +2156,7 @@ Namespace NS9
         End Namespace
     End Namespace
 End Namespace
-    ]]></file>
-</compilation>)
+"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
                                                     <expected><![CDATA[
@@ -2281,8 +2217,7 @@ BC30002: Type 'NS6.NS7.M1' is not defined.
         <Fact()>
         Public Sub AmbiguousNamespaces_07()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb">
+Unit.Make.WithFile("a.vb", "
 Imports NS1
 Imports NS2
 Imports NS3
@@ -2291,9 +2226,9 @@ Imports NS9
 
 Module Module1
     Sub Main()
-        Dim x = NS6. 'BIND1:"NS6"
-                NS7. 'BIND2:"NS7"
-                M1()  'BIND3:"M1"
+        Dim x = NS6. 'BIND1:""NS6""
+                NS7. 'BIND2:""NS7""
+                M1()  'BIND3:""M1""
     End Sub
 End Module
 
@@ -2346,8 +2281,7 @@ Namespace NS9
         End Namespace
     End Namespace
 End Namespace
-    </file>
-</compilation>)
+"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
                                                     <expected>
@@ -2391,8 +2325,7 @@ BC30516: Overload resolution failed because no accessible 'M1' accepts this numb
         <Fact()>
         Public Sub AmbiguousNamespaces_08()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb">
+Unit.Make.WithFile("a.vb", "
 Imports NS1
 Imports NS2
 Imports NS3
@@ -2401,9 +2334,9 @@ Imports NS9
 
 Module Module1
     Sub Main()
-        NS6. 'BIND1:"NS6"
-                NS7. 'BIND2:"NS7"
-                M1()  'BIND3:"M1"
+        NS6. 'BIND1:""NS6""
+                NS7. 'BIND2:""NS7""
+                M1()  'BIND3:""M1""
     End Sub
 End Module
 
@@ -2454,8 +2387,7 @@ Namespace NS9
         End Namespace
     End Namespace
 End Namespace
-    </file>
-</compilation>)
+"))
 
             CompilationUtils.AssertNoDiagnostics(compilation)
 
@@ -2492,8 +2424,7 @@ End Namespace
         <Fact()>
         Public Sub AmbiguousNamespaces_09()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb"><![CDATA[
+Unit.Make.WithFile("a.vb", "
 Imports NS1
 Imports NS2
 Imports NS3
@@ -2502,24 +2433,24 @@ Imports NS9
 
 Module Module1
     Class Test1
-        Inherits NS6. 'BIND1:"NS6"
-                    NS7. 'BIND2:"NS7"
-                        T1 'BIND3:"T1"
+        Inherits NS6. 'BIND1:""NS6""
+                    NS7. 'BIND2:""NS7""
+                        T1 'BIND3:""T1""
     End Class
 
     Sub Main()
-        NS6. 'BIND4:"NS6"
-                    NS7. 'BIND5:"NS7"
-                        T1 'BIND6:"T1"
+        NS6. 'BIND4:""NS6""
+                    NS7. 'BIND5:""NS7""
+                        T1 'BIND6:""T1""
 
-        Dim x = GetType(NS6. 'BIND7:"NS6"
-                        NS7. 'BIND8:"NS7"
-                        T1) 'BIND9:"T1"
+        Dim x = GetType(NS6. 'BIND7:""NS6""
+                        NS7. 'BIND8:""NS7""
+                        T1) 'BIND9:""T1""
     End Sub
 
-    <NS6. 'BIND10:"NS6"
-                    NS7. 'BIND11:"NS7"
-                        T1> 'BIND12:"T1"
+    <NS6. 'BIND10:""NS6""
+                    NS7. 'BIND11:""NS7""
+                        T1> 'BIND12:""T1""
     Class Test2
     End Class
 End Module
@@ -2577,8 +2508,7 @@ Namespace NS9
         End Namespace
     End Namespace
 End Namespace
-    ]]></file>
-</compilation>)
+"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
                                                     <expected><![CDATA[
@@ -2639,8 +2569,7 @@ BC30562: 'T1' is ambiguous between declarations in Modules 'NS1.NS6.NS7.Module1,
         <Fact()>
         Public Sub AmbiguousNamespaces_10()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb"><![CDATA[
+Unit.Make.WithFile("a.vb", "
 Imports NS1
 Imports NS2
 Imports NS3
@@ -2649,24 +2578,24 @@ Imports NS9
 
 Module Module1
     Class Test1
-        Inherits NS6. 'BIND1:"NS6"
-                    NS7. 'BIND2:"NS7"
-                        T1 'BIND3:"T1"
+        Inherits NS6. 'BIND1:""NS6""
+                    NS7. 'BIND2:""NS7""
+                        T1 'BIND3:""T1""
     End Class
 
     Sub Main()
-        NS6. 'BIND4:"NS6"
-                    NS7. 'BIND5:"NS7"
-                        T1 'BIND6:"T1"
+        NS6. 'BIND4:""NS6""
+                    NS7. 'BIND5:""NS7""
+                        T1 'BIND6:""T1""
 
-        Dim x = GetType(NS6. 'BIND7:"NS6"
-                        NS7. 'BIND8:"NS7"
-                        T1) 'BIND9:"T1"
+        Dim x = GetType(NS6. 'BIND7:""NS6""
+                        NS7. 'BIND8:""NS7""
+                        T1) 'BIND9:""T1""
     End Sub
 
-    <NS6. 'BIND10:"NS6"
-                    NS7. 'BIND11:"NS7"
-                        T1> 'BIND12:"T1"
+    <NS6. 'BIND10:""NS6""
+                    NS7. 'BIND11:""NS7""
+                        T1> 'BIND12:""T1""
     Class Test2
     End Class
 End Module
@@ -2719,8 +2648,7 @@ Namespace NS9
         End Namespace
     End Namespace
 End Namespace
-    ]]></file>
-</compilation>)
+    "))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
                                                     <expected><![CDATA[
@@ -2770,8 +2698,7 @@ BC30109: 'Module1.T1' is a class type and cannot be used as an expression.
         <Fact()> <WorkItem(842056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842056")>
         Public Sub AmbiguousNamespaces_11()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb"><![CDATA[
+Unit.Make.WithFile("a.vb", "
 Imports A
 Imports B
  
@@ -2788,8 +2715,7 @@ End Namespace
 Module M
     Dim c As X.C
 End Module
-    ]]></file>
-</compilation>, TestOptions.ReleaseDll)
+"), options:=TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
                                                     <expected><![CDATA[
@@ -2802,7 +2728,7 @@ BC37229: 'C' is ambiguous between declarations in namespaces 'A.X, B.X'.
         <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
         Public Sub AmbiguousEnumConstants01()
             Dim csCompilation = CreateCSharpCompilation("CSEnum",
-            <![CDATA[
+"
 public enum Color
 {
 Red,
@@ -2811,16 +2737,16 @@ DateTime,
 [System.Obsolete] Datetime = DateTime,
 Blue,
 }
-]]>,
+",
                 compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             csCompilation.VerifyDiagnostics()
             Dim vbCompilation = CreateVisualBasicCompilation("VBEnumClient",
-            <![CDATA[
+"
 Public Module Program
     Sub Main()
         System.Console.WriteLine(CInt(Color.DateTime))
     End Sub
-End Module]]>,
+End Module",
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             vbCompilation.VerifyDiagnostics() ' no obsolete diagnostic - we select the first one of the given name
@@ -2830,7 +2756,7 @@ End Module]]>,
         <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
         Public Sub AmbiguousEnumConstants01b()
             Dim csCompilation = CreateCSharpCompilation("CSEnum",
-            <![CDATA[
+"
 public enum Color
 {
 Red,
@@ -2840,16 +2766,16 @@ DateTime,
 DATETIME = DateTime,
 Blue,
 }
-]]>,
+",
                 compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             csCompilation.VerifyDiagnostics()
             Dim vbCompilation = CreateVisualBasicCompilation("VBEnumClient",
-            <![CDATA[
+"
 Public Module Program
     Sub Main()
         System.Console.WriteLine(CInt(Color.Datetime))
     End Sub
-End Module]]>,
+End Module",
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             vbCompilation.VerifyDiagnostics() ' no obsolete diagnostic - we select the first one of the given name
@@ -2859,7 +2785,7 @@ End Module]]>,
         <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
         Public Sub AmbiguousEnumConstants02()
             Dim csCompilation = CreateCSharpCompilation("CSEnum",
-            <![CDATA[
+"
 public enum Color
 {
 Red,
@@ -2868,16 +2794,16 @@ DateTime,
 [System.Obsolete] Datetime,
 Blue,
 }
-]]>,
+",
                 compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             csCompilation.VerifyDiagnostics()
             Dim vbCompilation = CreateVisualBasicCompilation("VBEnumClient",
-            <![CDATA[
+"
 Public Module Program
     Sub Main()
         System.Console.WriteLine(CInt(Color.DateTime))
     End Sub
-End Module]]>,
+End Module",
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             CompilationUtils.AssertTheseDiagnostics(vbCompilation,
@@ -2891,7 +2817,7 @@ BC31429: 'DateTime' is ambiguous because multiple kinds of members with this nam
         <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
         Public Sub AmbiguousEnumConstants02b()
             Dim csCompilation = CreateCSharpCompilation("CSEnum",
-            <![CDATA[
+"
 public enum Color
 {
 Red,
@@ -2901,16 +2827,16 @@ DateTime,
 DATETIME,
 Blue,
 }
-]]>,
+",
                 compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             csCompilation.VerifyDiagnostics()
             Dim vbCompilation = CreateVisualBasicCompilation("VBEnumClient",
-            <![CDATA[
+"
 Public Module Program
     Sub Main()
         System.Console.WriteLine(CInt(Color.DateTime))
     End Sub
-End Module]]>,
+End Module",
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             CompilationUtils.AssertTheseDiagnostics(vbCompilation,
@@ -2924,7 +2850,7 @@ BC31429: 'DateTime' is ambiguous because multiple kinds of members with this nam
         <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
         Public Sub AmbiguousEnumConstants02c()
             Dim csCompilation = CreateCSharpCompilation("CSEnum",
-            <![CDATA[
+"
 public enum Color
 {
 Red,
@@ -2934,16 +2860,16 @@ DateTime,
 [System.Obsolete] DATETIME,
 Blue,
 }
-]]>,
+",
                 compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             csCompilation.VerifyDiagnostics()
             Dim vbCompilation = CreateVisualBasicCompilation("VBEnumClient",
-            <![CDATA[
+"
 Public Module Program
     Sub Main()
         System.Console.WriteLine(CInt(Color.DateTime))
     End Sub
-End Module]]>,
+End Module",
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             CompilationUtils.AssertTheseDiagnostics(vbCompilation,
@@ -2957,7 +2883,7 @@ BC31429: 'DateTime' is ambiguous because multiple kinds of members with this nam
         <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
         Public Sub AmbiguousEnumConstants02d()
             Dim vbCompilation1 = CreateVisualBasicCompilation("VBEnum",
-            <![CDATA[
+"
 Public Enum Color
     Red
     Green
@@ -2966,7 +2892,7 @@ Public Enum Color
     DATETIME
     Blue
 End Enum
-]]>,
+",
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             CompilationUtils.AssertTheseDiagnostics(vbCompilation1,
                                                     <expected><![CDATA[
@@ -2981,12 +2907,12 @@ BC31421: 'DATETIME' is already declared in this enum.
     ~~~~~~~~
                                                     ]]></expected>)
             Dim vbCompilation = CreateVisualBasicCompilation("VBEnumClient",
-            <![CDATA[
+"
 Public Module Program
     Sub Main()
         System.Console.WriteLine(CInt(Color.DateTime))
     End Sub
-End Module]]>,
+End Module",
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedAssemblies:={New VisualBasicCompilationReference(vbCompilation1), MscorlibRef, MsvbRef})
             CompilationUtils.AssertTheseDiagnostics(vbCompilation,
@@ -3000,7 +2926,7 @@ BC31429: 'DateTime' is ambiguous because multiple kinds of members with this nam
         <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
         Public Sub AmbiguousEnumConstants02e()
             Dim vbCompilation1 = CreateVisualBasicCompilation("VBEnum",
-            <![CDATA[
+"
 Public Enum Color
     Red
     Green
@@ -3008,7 +2934,7 @@ Public Enum Color
     <System.Obsolete> Datetime = 2
     Blue
 End Enum
-]]>,
+",
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             CompilationUtils.AssertTheseDiagnostics(vbCompilation1,
                                                     <expected><![CDATA[
@@ -3017,12 +2943,12 @@ BC31421: 'Datetime' is already declared in this enum.
                       ~~~~~~~~
                                                     ]]></expected>)
             Dim vbCompilation = CreateVisualBasicCompilation("VBEnumClient",
-            <![CDATA[
+            "
 Public Module Program
     Sub Main()
         System.Console.WriteLine(CInt(Color.DateTime))
     End Sub
-End Module]]>,
+End Module",
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedAssemblies:={New VisualBasicCompilationReference(vbCompilation1), MscorlibRef, MsvbRef})
             CompilationUtils.AssertTheseDiagnostics(vbCompilation,
