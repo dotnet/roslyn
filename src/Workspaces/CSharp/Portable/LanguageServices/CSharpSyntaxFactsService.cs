@@ -1959,5 +1959,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+
+        public ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan)
+            => ImmutableArray<SyntaxNode>.CastUp(root.GetMembersInSpan(textSpan));
     }
 }

@@ -249,5 +249,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return DirectCast(n.GetSyntax(cancellationToken), TypeStatementSyntax).Modifiers.Any(SyntaxKind.PartialKeyword)
                 End Function)
         End Function
+
+        Public Function GetDeclaredSymbols(semanticModel As SemanticModel, memberDeclaration As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol) Implements ISemanticFactsService.GetDeclaredSymbols
+            If TypeOf memberDeclaration Is FieldDeclarationSyntax Then
+                Return DirectCast(memberDeclaration, FieldDeclarationSyntax).Declarators.
+                    SelectMany(Function(d) d.Names.AsEnumerable()).
+                    Select(Function(n) semanticModel.GetDeclaredSymbol(n, cancellationToken))
+            End If
+
+            Return {semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken)}
+        End Function
     End Class
 End Namespace

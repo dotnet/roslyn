@@ -8,18 +8,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateFromMembers
 {
-    internal interface IGenerateFromMembersHelperService : ILanguageService
-    {
-        Task<ImmutableArray<SyntaxNode>> GetSelectedMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
-        IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
-    }
-
     internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvider : CodeRefactoringProvider
     {
         protected AbstractGenerateFromMembersCodeRefactoringProvider()
@@ -29,15 +24,17 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         protected async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var helper = document.GetLanguageService<IGenerateFromMembersHelperService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
-            var selectedDeclarations = await helper.GetSelectedMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var selectedDeclarations = syntaxFacts.GetSelectedMembers(root, textSpan);
 
             if (selectedDeclarations.Length > 0)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var selectedMembers = selectedDeclarations.SelectMany(
-                    d => helper.GetDeclaredSymbols(semanticModel, d, cancellationToken)).WhereNotNull().ToImmutableArray();
+                    d => semanticFacts.GetDeclaredSymbols(semanticModel, d, cancellationToken)).WhereNotNull().ToImmutableArray();
                 if (selectedMembers.Length > 0)
                 {
                     var containingType = selectedMembers.First().ContainingType;

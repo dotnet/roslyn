@@ -20,21 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ExportLanguageService(typeof(ISemanticFactsService), LanguageNames.CSharp), Shared]
     internal class CSharpSemanticFactsService : ISemanticFactsService
     {
-        public bool SupportsImplicitInterfaceImplementation
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool SupportsImplicitInterfaceImplementation => true;
 
-        public bool ExposesAnonymousFunctionParameterNames
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool ExposesAnonymousFunctionParameterNames => false;
 
         public bool IsExpressionContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
@@ -258,6 +246,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
             return syntaxRefs.Any(n => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword));
+        }
+
+        public IEnumerable<ISymbol> GetDeclaredSymbols(
+            SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
+        {
+            if (memberDeclaration is FieldDeclarationSyntax field)
+            {
+                return field.Declaration.Variables.Select(
+                    v => semanticModel.GetDeclaredSymbol(v, cancellationToken));
+            }
+
+            return SpecializedCollections.SingletonEnumerable(
+                semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken));
         }
     }
 }

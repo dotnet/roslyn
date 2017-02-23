@@ -1624,7 +1624,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetNextExecutableStatement(statement As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetNextExecutableStatement
             Return DirectCast(statement, StatementSyntax).GetNextStatement()?.FirstAncestorOrSelf(Of ExecutableStatementSyntax)
         End Function
-                                        
+
         Public Function IsWhitespaceTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsWhitespaceTrivia
             Return trivia.IsWhitespace()
         End Function
@@ -1647,6 +1647,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
             Return False
+        End Function
+
+        Public Function GetSelectedMembers(root As SyntaxNode, textSpan As TextSpan) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFactsService.GetSelectedMembers
+            Return ImmutableArray(Of SyntaxNode).CastUp(root.GetMembersInSpan(textSpan))
         End Function
     End Class
 End Namespace
