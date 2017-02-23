@@ -836,7 +836,7 @@ class Program
 {
     void M(int x, int y)
     {
-        M([|5|], 6);
+        M([||]5, 6);
     }
 }";
             var permutation = new[] { 1, 0 };
