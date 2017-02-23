@@ -9,6 +9,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
+        [WorkItem(8333, "https://github.com/dotnet/roslyn/issues/8333")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task TestDoNotShowSignatureChangeForExpressionBody()
+        {
+            var markup = @"
+class Point
+{
+    int x; int y;
+    public Point(int x, int y) { }
+    public Point Move1(int dx, int dy) [|=>|] new Point(x + dx, y + dy);
+    public Point Move2(int dx, int dy) { return new Point(x + dx, y + dy); }
+}";
+            await TestMissingAsync(markup, null, withScriptOption: false);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestAllSignatureChanges_1This_3Regular_2Default_1Params()
         {
