@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                         {
                             list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(
                                 expr.GetFirstToken(),
-                                expr.GetFirstToken(),
+                                expr.GetFirstToken().GetNextToken(),
                                 node.GetLastToken(),
                                 indentationDelta: 0,
                                 option: IndentBlockOption.RelativePosition));
