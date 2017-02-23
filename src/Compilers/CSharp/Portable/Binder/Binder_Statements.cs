@@ -786,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // might own nested scope.
             bool hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-            if (localSymbol.RefKind == RefKind.In)
+            if (localSymbol.RefKind == RefKind.RefReadOnly)
             {
                 var refKeyword = typeSyntax.GetFirstToken();
                 diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());

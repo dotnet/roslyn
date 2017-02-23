@@ -181,14 +181,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Indicates whether or not the method returns by readonly reference
+        /// Indicates whether or not the method returns by ref readonly
         /// </summary>
-        public bool ReturnsByReadonlyRef
+        public bool ReturnsByRefReadonly
         {
             get
             {
                 Debug.Assert(this.RefKind != RefKind.Out);
-                return this.RefKind == RefKind.In;
+                return this.RefKind == RefKind.RefReadOnly;
             }
         }
 

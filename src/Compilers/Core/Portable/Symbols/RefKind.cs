@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis
         Out = 2,
 
         /// <summary>
-        /// Indicates an "in" parameter.
+        /// Indicates a "ref readonly" or an "in" parameter.
         /// </summary>
-        In = 3,
+        RefReadOnly = 3,
     }
 
     internal static class RefKindExtensions
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
             {
                 case RefKind.Out: return "out";
                 case RefKind.Ref: return "ref";
-                case RefKind.In: return "in";
+                case RefKind.RefReadOnly: return "ref readonly";
                 default: return null;
             }
         }
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
             {
                 case RefKind.Out: return "out ";
                 case RefKind.Ref: return "ref ";
-                case RefKind.In: return "in ";
+                case RefKind.RefReadOnly: return "ref readonly ";
                 default: return string.Empty;
             }
         }

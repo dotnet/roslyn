@@ -1355,16 +1355,6 @@ tryAgain:
                             }
                             return;
                         }
-                    case SyntaxModifier.ReadOnly:
-                        {
-                            if (PeekToken(1).Kind == SyntaxKind.RefKeyword)
-                            {
-                                // readonly is not a modifier in "readonly ref", since "ref" is not a modifier.
-                                return;
-                            }
-
-                            goto default;
-                        }
                     default:
                         {
                             modTok = this.EatToken();
@@ -6308,16 +6298,14 @@ tryAgain:
         {
             ScanTypeFlags result;
 
-            // in a ref local or ref return, we treat "ref" and "readonly ref" as part of the type
-            if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword &&
-                this.PeekToken(1).Kind == SyntaxKind.RefKeyword)
+            // in a ref local or ref return, we treat "ref" and "ref readonly" as part of the type
+            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
                 this.EatToken();
-                this.EatToken();
-            }
-            else if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
-            {
-                this.EatToken();
+                if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
+                {
+                    this.EatToken();
+                }
             }
 
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
@@ -6529,21 +6517,20 @@ tryAgain:
             ParseTypeMode mode = ParseTypeMode.Normal,
             bool expectSizes = false)
         {
-            if (mode == ParseTypeMode.Normal && !expectSizes)
+            if (mode == ParseTypeMode.Normal && !expectSizes && this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
+                var refKeyword = this.EatToken();
+                refKeyword = this.CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
+
                 SyntaxToken readonlyKeyword = null;
-                if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword && this.PeekToken(1).Kind == SyntaxKind.RefKeyword)
+                if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
                 {
                     readonlyKeyword = this.EatToken();
                     readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadonlyReferences);
                 }
 
-                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
-                {
-                    var refKeyword = this.EatToken();
-                    var type = ParseTypeCore(mode, expectSizes);
-                    return this.CheckFeatureAvailability(_syntaxFactory.RefType(readonlyKeyword, refKeyword, type), MessageID.IDS_FeatureRefLocalsReturns);
-                }
+                var type = ParseTypeCore(mode, expectSizes);
+                return _syntaxFactory.RefType(refKeyword, readonlyKeyword, type);
             }
 
             return ParseTypeCore(mode, expectSizes);

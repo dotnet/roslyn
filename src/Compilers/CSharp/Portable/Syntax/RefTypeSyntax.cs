@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public RefTypeSyntax Update(SyntaxToken refKeyword, TypeSyntax type)
         {
-            return Update(default(SyntaxToken), refKeyword, type);
+            return Update(refKeyword, default(SyntaxToken), type);
         }
     }
 }
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new RefTypeSyntax instance.</summary>
         public static RefTypeSyntax RefType(SyntaxToken refKeyword, TypeSyntax type)
         {
-            return RefType(default(SyntaxToken), refKeyword, type);
+            return RefType(refKeyword, default(SyntaxToken), type);
         }
     }
 }

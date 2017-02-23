@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"
 class Program
 {
-    static readonly ref int M()
+    static ref readonly int M()
     {
         return ref (new int[1])[0];
     }
