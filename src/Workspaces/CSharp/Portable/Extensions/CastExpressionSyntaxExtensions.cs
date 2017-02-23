@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 // Case :
                 // 3. object y = (NullableValueType)null;
-                if ((!castToOuterType.IsBoxing || expressionToCastType.IsDefaultOrNullLiteral) &&
+                if ((!castToOuterType.IsBoxing || expressionToCastType.IsNullLiteral) &&
                     castToOuterType.IsImplicit &&
                     expressionToCastType.IsImplicit &&
                     expressionToOuterType.IsImplicit)

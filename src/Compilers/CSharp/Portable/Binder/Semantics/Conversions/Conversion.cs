@@ -550,12 +550,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns true if the conversion is an implicit null or default literal conversion.
-        /// For clarity, use <see cref="IsDefaultOrNullLiteral"/> instead.
         /// </summary>
         /// <remarks>
         /// Null or default literal conversions are described in section 6.1.5 of the C# language specification.
         /// </remarks>
-        [Obsolete]
         public bool IsNullLiteral
         {
             get
@@ -563,21 +561,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Kind == ConversionKind.DefaultOrNullLiteral;
             }
         }
-
-        /// <summary>
-        /// Returns true if the conversion is an implicit null or default literal conversion.
-        /// </summary>
-        /// <remarks>
-        /// Null or default literal conversions are described in section 6.1.5 of the C# language specification.
-        /// </remarks>
-        public bool IsDefaultOrNullLiteral
-        {
-            get
-            {
-                return Kind == ConversionKind.DefaultOrNullLiteral;
-            }
-        }
-
 
         /// <summary>
         /// Returns true if the conversion is an implicit dynamic conversion. 
