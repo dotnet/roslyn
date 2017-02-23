@@ -47,6 +47,16 @@ class C
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            Assert.Equal("System.Int32", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.Equal("0", model.GetConstantValue(def).Value.ToString());
         }
 
         [Fact]
@@ -89,6 +99,60 @@ interface ITest { }
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AssignmentToStructType()
+        {
+            string source = @"
+struct S
+{
+    static void M()
+    {
+        S x1 = default;
+        System.Console.Write(x1);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            Assert.Equal("S", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("S", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.False(model.GetConstantValue(def).HasValue);
+        }
+
+        [Fact]
+        public void AssignmentToGenericType()
+        {
+            string source = @"
+class C
+{
+    static void M<T>()
+    {
+        T x1 = default;
+        System.Console.Write(x1);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            Assert.Equal("T", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("T", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.False(model.GetConstantValue(def).HasValue);
         }
 
         [Fact]

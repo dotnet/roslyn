@@ -103,29 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateUserDefinedConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
+            ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
             if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultLiteral)
             {
-                return CreateDefaultLiteralConversion(syntax, (BoundDefaultLiteral)source, conversion, isCast, destination, diagnostics, wasCompilerGenerated);
+                source = ((BoundDefaultLiteral)source).Update(constantValue, destination);
             }
-
-            ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
-            return new BoundConversion(
-                syntax,
-                source,
-                conversion,
-                IsCheckedConversion(source.Type, destination),
-                explicitCastInCode: isCast && !wasCompilerGenerated,
-                constantValueOpt: constantValue,
-                type: destination)
-            { WasCompilerGenerated = wasCompilerGenerated };
-        }
-
-        private BoundExpression CreateDefaultLiteralConversion(SyntaxNode syntax, BoundDefaultLiteral source,
-            Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics, bool wasCompilerGenerated)
-        {
-            Debug.Assert(source.ConstantValue == null);
-            var constantValue = destination.GetDefaultValue();
-            source = source.Update(constantValue, destination);
 
             return new BoundConversion(
                 syntax,
@@ -887,7 +869,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var sourceConstantValue = source.ConstantValue;
-            if (sourceConstantValue == null || sourceConstantValue.IsBad)
+            if (sourceConstantValue == null)
+            {
+                if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultLiteral)
+                {
+                    return destination.GetDefaultValue();
+                }
+                else
+                {
+                    return sourceConstantValue;
+                }
+            }
+            else if (sourceConstantValue.IsBad)
             {
                 return sourceConstantValue;
             }
@@ -909,6 +902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case ConversionKind.DefaultOrNullLiteral:
+                    // 'default' case is handled above, 'null' is handled here
                     return sourceConstantValue;
 
                 case ConversionKind.ImplicitConstant:
