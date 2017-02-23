@@ -6057,8 +6057,8 @@ class C
             var x2Ref = GetReference(tree, "x2");
             Assert.Equal("string", model.GetTypeInfo(x2Ref).Type.ToDisplayString());
 
-            VerifyModelForDeconstruction(model, x1, LocalDeclarationKind.OutVariable, x1Ref);
-            VerifyModelForDeconstruction(model, x2, LocalDeclarationKind.OutVariable, x2Ref);
+            VerifyModelForDeconstruction(model, x1, LocalDeclarationKind.DeclarationExpressionVariable, x1Ref);
+            VerifyModelForDeconstruction(model, x2, LocalDeclarationKind.DeclarationExpressionVariable, x2Ref);
         }
 
         [Fact]
