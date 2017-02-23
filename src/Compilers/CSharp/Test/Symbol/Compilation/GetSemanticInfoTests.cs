@@ -684,7 +684,7 @@ class C {
                     Assert.True(conv.Exists);
                     Assert.True(conv.IsImplicit);
                     Assert.False(conv.IsExplicit);
-                    Assert.True(conv.IsNullLiteral);
+                    Assert.True(conv.IsDefaultOrNullLiteral);
                     break;
                 case ConversionKind.ImplicitReference:
                     Assert.True(conv.Exists);
