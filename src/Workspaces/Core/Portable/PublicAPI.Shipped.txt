@@ -370,6 +370,7 @@ Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NamespaceDeclaration(string name,
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NamespaceDeclaration(string name, params Microsoft.CodeAnalysis.SyntaxNode[] declarations) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NamespaceImportDeclaration(string name) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NullLiteralExpression() -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ObjectCreationExpression(Microsoft.CodeAnalysis.ITypeSymbol type, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> arguments) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ObjectCreationExpression(Microsoft.CodeAnalysis.ITypeSymbol type, params Microsoft.CodeAnalysis.SyntaxNode[] arguments) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ObjectCreationExpression(Microsoft.CodeAnalysis.SyntaxNode type, params Microsoft.CodeAnalysis.SyntaxNode[] arguments) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.OperatorDeclaration(Microsoft.CodeAnalysis.IMethodSymbol method, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
