@@ -4,45 +4,46 @@ Imports System.Xml.Linq
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
-    ' Test that binding APIs that take character positions determine the edges of language
-    ' constructs as we expect. We just use LookupNames as the test API, since all these APIs use the
-    ' same underlying helpers to find the Binder object used to answer the questions.
-    Public Class BindingScopeTests
-        Private Sub CheckScopeOfSymbol(
+    Namespace Semantics.Binding
+        ' Test that binding APIs that take character positions determine the edges of language
+        ' constructs as we expect. We just use LookupNames as the test API, since all these APIs use the
+        ' same underlying helpers to find the Binder object used to answer the questions.
+        Public Class BindingScopeTests
+            Private Sub CheckScopeOfSymbol(
                                         comp As VisualBasicCompilation,
                                         treeName As String,
                                         symbolName As String,
                                         expectedScope As String
                                       )
-            Dim tree As SyntaxTree = CompilationUtils.GetTree(comp, treeName)
-            Dim treeText As String = tree.GetText().ToString()
-            Dim expectedScopeText As String = expectedScope
-            Dim expectedStart As Integer = treeText.IndexOf(expectedScopeText, StringComparison.Ordinal)
-            Assert.True(expectedStart >= 0, "did not found " & expectedScope)
-            Dim expectedEnd As Integer = expectedStart + expectedScopeText.Length
+                Dim tree As SyntaxTree = CompilationUtils.GetTree(comp, treeName)
+                Dim treeText As String = tree.GetText().ToString()
+                Dim expectedScopeText As String = expectedScope
+                Dim expectedStart As Integer = treeText.IndexOf(expectedScopeText, StringComparison.Ordinal)
+                Assert.True(expectedStart >= 0, "did not found " & expectedScope)
+                Dim expectedEnd As Integer = expectedStart + expectedScopeText.Length
 
-            Dim semanticModel = comp.GetSemanticModel(tree)
+                Dim semanticModel = comp.GetSemanticModel(tree)
 
-            For position As Integer = 0 To treeText.Length - 1
-                Dim names = semanticModel.LookupNames(position)
-                Dim found = names.Contains(symbolName)
-                Dim expectedToFind = (position >= expectedStart AndAlso position < expectedEnd)
-                If found <> expectedToFind Then
-                    Dim locationText = If(treeText.Length > position + 50, treeText.Substring(position, 50), treeText.Substring(position))
-                    If expectedToFind Then
-                        Assert.True(found, $"Should have been in scope at position {position} text '{locationText}...'")
-                    Else
-                        Dim Delta0 = expectedStart - position
-                        Dim Delta1 = expectedEnd - position
-                        Assert.False(found, $"({Delta0},{Delta1}) Should have been out of scope at position {position} text '{locationText}...'")
+                For position As Integer = 0 To treeText.Length - 1
+                    Dim names = semanticModel.LookupNames(position)
+                    Dim found = names.Contains(symbolName)
+                    Dim expectedToFind = (position >= expectedStart AndAlso position < expectedEnd)
+                    If found <> expectedToFind Then
+                        Dim locationText = If(treeText.Length > position + 50, treeText.Substring(position, 50), treeText.Substring(position))
+                        If expectedToFind Then
+                            Assert.True(found, $"Should have been in scope at position {position} text '{locationText}...'")
+                        Else
+                            Dim Delta0 = expectedStart - position
+                            Dim Delta1 = expectedEnd - position
+                            Assert.False(found, $"({Delta0},{Delta1}) Should have been out of scope at position {position} text '{locationText}...'")
+                        End If
                     End If
-                End If
-            Next
-        End Sub
+                Next
+            End Sub
 
-        <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
-        Public Sub TestScopes1()
-            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
+            Public Sub TestScopes1()
+                Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     Unit.Make("Compilation").
         WithFile("a.vb",
 "Option Strict On
@@ -71,17 +72,17 @@ End Namespace
 ' outside namespaces
 "))
 
-            CheckScopeOfSymbol(comp, "a.vb", "alpha",
+                CheckScopeOfSymbol(comp, "a.vb", "alpha",
 "Public Class Apple(Of TBravo)
         Public alpha As Integer 'alpha
     End Class 'hello")
 
-            CheckScopeOfSymbol(comp, "a.vb", "TBravo",
+                CheckScopeOfSymbol(comp, "a.vb", "TBravo",
 "Public Class Apple(Of TBravo)
         Public alpha As Integer 'alpha
     End Class 'hello")
 
-            CheckScopeOfSymbol(comp, "a.vb", "Apple",
+                CheckScopeOfSymbol(comp, "a.vb", "Apple",
 "
     ' ClassA
     Public Class Apple(Of TBravo)
@@ -100,7 +101,7 @@ End Namespace
     'about to end Bar
 End Namespace")
 
-            CheckScopeOfSymbol(comp, "a.vb", "Bar",
+                CheckScopeOfSymbol(comp, "a.vb", "Bar",
 "
     ' ClassA
     Public Class Apple(Of TBravo)
@@ -119,7 +120,7 @@ End Namespace")
     'about to end Bar
 End Namespace")
 
-            CheckScopeOfSymbol(comp, "a.vb", "Delta",
+                CheckScopeOfSymbol(comp, "a.vb", "Delta",
 "
         'Delta
         Delegate Sub Delta(Of TCharlie _
@@ -127,14 +128,14 @@ End Namespace")
         ' after delta
     End Namespace")
 
-            CheckScopeOfSymbol(comp, "a.vb", "TCharlie",
+                CheckScopeOfSymbol(comp, "a.vb", "TCharlie",
 "Delegate Sub Delta(Of TCharlie _
                   )(x As Integer)")
-        End Sub
+            End Sub
 
-        <Fact(), WorkItem(546396, "http:     //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
-        Public Sub TestScopes2()
-            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            <Fact(), WorkItem(546396, "http:     //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
+            Public Sub TestScopes2()
+                Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 Unit.Make("Compilation").WithFile("a.vb",
 "Option Strict On
 
@@ -157,29 +158,29 @@ End Namespace
 ' outside namespaces
 "))
 
-            CheckScopeOfSymbol(comp, "a.vb", "TRind",
+                CheckScopeOfSymbol(comp, "a.vb", "TRind",
 "Public Sub Mango(Of TRind)(yellow as Integer) 'zzz
             Dim red As String  'yyy
             'before end sub
         End Sub  ' xxx")
 
-            CheckScopeOfSymbol(comp, "a.vb", "yellow",
+                CheckScopeOfSymbol(comp, "a.vb", "yellow",
 "
             Dim red As String  'yyy
             'before end sub
         End Sub  ' xxx")
 
-            CheckScopeOfSymbol(comp, "a.vb", "red",
+                CheckScopeOfSymbol(comp, "a.vb", "red",
 "
             Dim red As String  'yyy
             'before end sub
         End Sub  ' xxx")
 
-        End Sub
+            End Sub
 
-        <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
-        Public Sub TestScopes3()
-            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
+            Public Sub TestScopes3()
+                Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 Unit.Make("Compilation").WithFile("a.vb",
 "Public Class Apple(Of TBravo)
     Public Sub Mango(Of TRind)(yellow as Integer) 
@@ -195,30 +196,30 @@ Unit.Make("Compilation").WithFile("a.vb",
     End Sub  
 End Class 'hello"))
 
-            CheckScopeOfSymbol(comp, "a.vb", "cheetos",
+                CheckScopeOfSymbol(comp, "a.vb", "cheetos",
 "
              ' inside for 1
              Dim cheetos as String 'xxx
              ' inside for 2
         Next color 'zzz")
 
-            CheckScopeOfSymbol(comp, "a.vb", "freetos",
+                CheckScopeOfSymbol(comp, "a.vb", "freetos",
 "Then Dim freetos As Integer : Dim chips As String ")
 
-            CheckScopeOfSymbol(comp, "a.vb", "chips",
+                CheckScopeOfSymbol(comp, "a.vb", "chips",
 "Then Dim freetos As Integer : Dim chips As String ")
 
-            CheckScopeOfSymbol(comp, "a.vb", "water",
+                CheckScopeOfSymbol(comp, "a.vb", "water",
 "Else Dim water As Integer : Dim fire as String 'if statement")
 
-            CheckScopeOfSymbol(comp, "a.vb", "fire",
+                CheckScopeOfSymbol(comp, "a.vb", "fire",
 "Else Dim water As Integer : Dim fire as String 'if statement")
 
-        End Sub
+            End Sub
 
-        <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
-        Public Sub TestScopes4()
-            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
+            Public Sub TestScopes4()
+                Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 Unit.Make("Compilation").WithFile("a.vb",
 "Public Class Apple(Of TBravo)
     Public Sub Mango(Of TRind)(yellow as Integer) 
@@ -230,18 +231,18 @@ Unit.Make("Compilation").WithFile("a.vb",
     End Sub  
 End Class 'hello"))
 
-            CheckScopeOfSymbol(comp, "a.vb", "cheetos",
+                CheckScopeOfSymbol(comp, "a.vb", "cheetos",
 "
             Dim cheetos as String 'xxx
 
         'hello there
     ")
 
-        End Sub
+            End Sub
 
-        <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
-        Public Sub TestPropertyScopes()
-            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
+            Public Sub TestPropertyScopes()
+                Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 Unit.Make("Compilation").WithFile("c.vb",
 "Class C
     Private _p
@@ -267,26 +268,27 @@ Unit.Make("Compilation").WithFile("c.vb",
     End Property
 End Class"))
 
-            ' Set value argument should be in scope for the body of the accessor.
-            CheckScopeOfSymbol(comp, "c.vb", "val",
+                ' Set value argument should be in scope for the body of the accessor.
+                CheckScopeOfSymbol(comp, "c.vb", "val",
         "
             _p = val
         End Set")
 
-            ' Property parameters should be in scope for individual accessors.
-            ' Note: The parameter is represented as separate symbols in the property and
-            ' the accessors so that the ContainingSymbol property on the parameter symbol
-            ' always refers to the immediately enclosing container (property or accessor).
-            CheckScopeOfSymbol(comp, "c.vb", "i",
+                ' Property parameters should be in scope for individual accessors.
+                ' Note: The parameter is represented as separate symbols in the property and
+                ' the accessors so that the ContainingSymbol property on the parameter symbol
+                ' always refers to the immediately enclosing container (property or accessor).
+                CheckScopeOfSymbol(comp, "c.vb", "i",
         "
             Return _q
         End Get")
-            CheckScopeOfSymbol(comp, "c.vb", "y",
+                CheckScopeOfSymbol(comp, "c.vb", "y",
         "
             _r = Value
         End Set")
 
-        End Sub
+            End Sub
 
-    End Class
+        End Class
+    End Namespace
 End Namespace
