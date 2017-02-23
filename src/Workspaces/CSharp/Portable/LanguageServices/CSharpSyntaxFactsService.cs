@@ -1894,6 +1894,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsOnTypeHeader(SyntaxNode root, int position)
         {
             var token = root.FindToken(position);
+            if (token.Kind() == SyntaxKind.EndOfFileToken)
+            {
+                token = token.GetPreviousToken();
+            }
+
             var typeDecl = token.GetAncestor<TypeDeclarationSyntax>();
             if (typeDecl == null)
             {
@@ -1902,8 +1907,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var start = typeDecl.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
                         typeDecl.SpanStart;
-            var end = typeDecl.TypeParameterList?.GetLastToken().Span.End ??
-                      typeDecl.Identifier.Span.End;
+            var end = typeDecl.TypeParameterList?.GetLastToken().FullSpan.End ??
+                      typeDecl.Identifier.FullSpan.End;
 
             return position >= start && position <= end;
         }

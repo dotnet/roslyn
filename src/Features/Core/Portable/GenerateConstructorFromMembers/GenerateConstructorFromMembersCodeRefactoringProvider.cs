@@ -39,41 +39,74 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             if (actions.IsDefaultOrEmpty && textSpan.IsEmpty)
             {
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                await HandleNonSelectionAsync(context).ConfigureAwait(false);
+            }
+        }
 
-                if (syntaxFacts.IsOnTypeHeader(root, textSpan.Start) ||
-                    syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start))
+        private async Task HandleNonSelectionAsync(CodeRefactoringContext context)
+        {
+            var document = context.Document;
+            var textSpan = context.Span;
+            var cancellationToken = context.CancellationToken;
+
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start) &&
+                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start))
+            {
+                return;
+            }
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var containingType = GetEnclosingNamedType(semanticModel, root, textSpan.Start, cancellationToken);
+            if (containingType?.TypeKind != TypeKind.Class && containingType?.TypeKind != TypeKind.Struct)
+            {
+                return;
+            }
+
+            if (containingType.IsStatic)
+            {
+                return;
+            }
+
+            var viableMembers = containingType.GetMembers().WhereAsArray(IsWritableInstanceFieldOrProperty);
+            if (viableMembers.Length == 0)
+            {
+                var noParamConstructor = containingType.InstanceConstructors.FirstOrDefault(c => c.Parameters.Length == 0);
+                if (noParamConstructor == null ||
+                    noParamConstructor.IsImplicitlyDeclared)
                 {
-                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var containingType = GetEnclosingNamedType(semanticModel, root, textSpan.Start, cancellationToken);
-                    if (containingType?.TypeKind == TypeKind.Class || containingType?.TypeKind == TypeKind.Struct)
-                    {
-                        if (!containingType.IsStatic)
-                        {
-                            var viableMembers = containingType.GetMembers().WhereAsArray(IsWritableInstanceFieldOrProperty);
-                            if (viableMembers.Length == 0 &&
-                                containingType.InstanceConstructors.Any(c => c.Parameters.Length == 0 && !c.IsImplicitlyDeclared))
-                            {
-                                // If there are no fields, and there's already an explicit empty parameter constructor
-                                // then we can't offer anything.
-                                return;
-                            }
+                    // Offer to just make the no-param-constructor directly.
+                    var state = State.TryGenerate(this, document, textSpan, containingType,
+                        ImmutableArray<ISymbol>.Empty, cancellationToken);
 
-                            var action = new GenerateConstructorCodeAction(
-                                this, document, textSpan, containingType, viableMembers);
-                            context.RegisterRefactoring(action);
-                        }
+                    if (state != null)
+                    {
+                        context.RegisterRefactoring(new FieldDelegatingCodeAction(this, document, state));
                     }
                 }
+
+                // already had an explicit, no-param constructor.  No need to offer anything.
+                return;
             }
+
+            context.RegisterRefactoring(
+                new GenerateConstructorCodeAction(
+                    this, document, textSpan, containingType, viableMembers));
         }
 
         private INamedTypeSymbol GetEnclosingNamedType(
             SemanticModel semanticModel, SyntaxNode root, int start, CancellationToken cancellationToken)
         {
-            for (var node = root.FindToken(start).Parent; node != null; node = node.Parent)
+            var token = root.FindToken(start);
+            if (token == ((ICompilationUnitSyntax)root).EndOfFileToken)
+            {
+                token = token.GetPreviousToken();
+            }
+
+            for (var node = token.Parent; node != null; node = node.Parent)
             {
                 if (semanticModel.GetDeclaredSymbol(node) is INamedTypeSymbol declaration)
                 {
@@ -92,7 +125,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var info = await GetSelectedMemberInfoAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
                 if (info != null)
                 {
-                    var state = State.Generate(this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken);
+                    var state = State.TryGenerate(this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken);
                     if (state != null && state.MatchingConstructor == null)
                     {
                         return GetCodeActions(document, state);
@@ -156,7 +189,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     return ImmutableArray<CodeActionOperation>.Empty;
                 }
 
-                var state = State.Generate(
+                var state = State.TryGenerate(
                     _service, _document, _textSpan, _containingType, 
                     result.Members, cancellationToken);
 
