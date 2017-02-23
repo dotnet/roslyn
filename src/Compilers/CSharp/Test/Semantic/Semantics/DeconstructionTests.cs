@@ -2531,7 +2531,7 @@ class Program
                     if (node is DeclarationExpressionSyntax)
                     {
                         Assert.Equal(SymbolKind.Local, symbol.Kind);
-                        Assert.Equal(LocalDeclarationKind.Deconstruction, ((LocalSymbol)symbol).DeclarationKind);
+                        Assert.Equal(LocalDeclarationKind.DeconstructionVariable, ((LocalSymbol)symbol).DeclarationKind);
                     }
                     else
                     {
@@ -2545,7 +2545,7 @@ class Program
                     if (node is SingleVariableDesignationSyntax)
                     {
                         Assert.Equal(SymbolKind.Local, symbol.Kind);
-                        Assert.Equal(LocalDeclarationKind.Deconstruction, ((LocalSymbol)symbol).DeclarationKind);
+                        Assert.Equal(LocalDeclarationKind.DeconstructionVariable, ((LocalSymbol)symbol).DeclarationKind);
                     }
                     else
                     {

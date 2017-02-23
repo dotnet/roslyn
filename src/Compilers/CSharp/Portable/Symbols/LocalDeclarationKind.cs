@@ -53,12 +53,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// User variable declared by a declaration expression in the left-hand-side of a deconstruction assignment.
         /// </summary>
-        Deconstruction,
+        DeconstructionVariable,
 
         /// <summary>
-        /// User variable declared by a declaration expression that is not a deconstruction. This occurs for an
-        /// out variable declaration, and as a result of error recovery in incorrect code.
+        /// User variable declared as an out argument.
         /// </summary>
-        DeclarationExpression,
+        OutVariable,
+
+        /// <summary>
+        /// User variable declared by a declaration expression in some unsupported context.
+        /// This occurs as a result of error recovery in incorrect code.
+        /// </summary>
+        DeclarationExpressionVariable,
     }
 }

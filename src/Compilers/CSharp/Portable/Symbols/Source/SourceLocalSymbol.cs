@@ -428,8 +428,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(node is CatchDeclarationSyntax);
                         break;
 
-                    case LocalDeclarationKind.DeclarationExpression:
-                    case LocalDeclarationKind.Deconstruction:
+                    case LocalDeclarationKind.OutVariable:
+                    case LocalDeclarationKind.DeclarationExpressionVariable:
+                    case LocalDeclarationKind.DeconstructionVariable:
                     case LocalDeclarationKind.PatternVariable:
                         Debug.Assert(node is SingleVariableDesignationSyntax);
                         break;
@@ -763,29 +764,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)this._type == null)
                 {
-                    AssertNoOutOrPatternVariableSyntax();
+                    Debug.Assert(this.DeclarationKind == LocalDeclarationKind.DeclarationExpressionVariable);
                     SetType(_nodeBinder.CreateErrorType("var"));
                 }
 
                 return this._type;
-            }
-
-            [Conditional("DEBUG")]
-            private void AssertNoOutOrPatternVariableSyntax()
-            {
-                // The following assertion
-                //   Debug.Assert(DeclarationKind != LocalDeclarationKind.OutVariable && DeclarationKind != LocalDeclarationKind.PatternVariable);
-                // would not be correct because, for example, the declarations in the erroneous code `M(out (var x, var y))` are treated as out variables.
-
-                var parent = this._typeSyntax.Parent;
-                if (parent?.Kind() == SyntaxKind.DeclarationExpression && ((DeclarationExpressionSyntax)parent).IsOutVarDeclaration())
-                {
-                    Debug.Assert(false);
-                }
-                else if (parent?.Kind() == SyntaxKind.DeclarationPattern)
-                {
-                    Debug.Assert(false);
-                }
             }
         }
     }
