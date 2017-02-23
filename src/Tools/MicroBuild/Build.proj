@@ -15,7 +15,7 @@
   <!-- Non-official builds / local testing have different defaults -->
   <PropertyGroup Condition="'$(OfficialBuild)' != 'true'">
     <BranchName Condition="'$(BranchName)' == ''">master</BranchName>
-    <SignRoslynArgs>-test</SignRoslynArgs>
+    <SignRoslynArgs>-test -msbuildPath "$(MSBuildBinPath)\msbuild.exe"</SignRoslynArgs>
     <PublishAssetsArgs>-test</PublishAssetsArgs>
     <CopyInsertionFileArgs>-test</CopyInsertionFileArgs>
     <SetupStep2Properties>FinalizeValidate=false;ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6</SetupStep2Properties>
@@ -26,7 +26,9 @@
 
     <MSBuild Projects="$(RepoRoot)Roslyn.sln" BuildInParallel="true" Properties="DeployExtension=false" />
 
+    <!--
     <Exec Command="$(NuGetPackageRoot)\GitLink\$(GitLinkVersion)\lib\net45\GitLink.exe $(RepoRoot) -u https://github.com/dotnet/roslyn -f Roslyn.sln -c $(Configuration)" />
+    -->
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\create-perftests.ps1 &quot;$(BinariesPath)&quot;" />
 

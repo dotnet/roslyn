@@ -3,7 +3,7 @@ set-strictmode -version 2.0
 $ErrorActionPreference="Stop"
 
 $nugetVersion = "3.6.0-beta1"
-$msbuildToolsetVersion = "0.1.6-alpha"
+$msbuildToolsetVersion = "0.1.7-alpha"
 $repoDir = [IO.Path]::GetFullPath((join-path $PSScriptroot "..\.."))
 $toolsDir = join-path $repoDir "Binaries\Toolset"
 
