@@ -20,6 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Get
         End Property
 
+        Friend Overrides Function EndOfLine(text As String) As SyntaxTrivia
+            Return SyntaxFactory.EndOfLine(text)
+        End Function
+
 #Region "Expressions and Statements"
 
         Public Overrides Function AwaitExpression(expression As SyntaxNode) As SyntaxNode
