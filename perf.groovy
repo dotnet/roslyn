@@ -3,7 +3,7 @@
 
 import jobs.generation.*;
 
-def generate(boolean isPr) {
+def generate(boolean isPr, String branch) {
     // The input project name (e.g. dotnet/corefx)
     def projectName = GithubProject
     // The input branch name (e.g. master)
@@ -42,7 +42,7 @@ def generate(boolean isPr) {
     if (isPr) {
         TriggerBuilder prTrigger = TriggerBuilder.triggerOnPullRequest()
         prTrigger.permitOrg('Microsoft')
-        prTrigger.permitOrg('dotnet')
+        prTrigger.permitOrg(branch)
         prTrigger.setCustomTriggerPhrase("(?i)^\\s*(@dotnet-bot\\s+)?(re)?test\\s+perf(\\s+please)?\\s*\$" )
         prTrigger.triggerForBranch('master');
         prTrigger.setGithubContext('Performance Test Run')
@@ -53,5 +53,11 @@ def generate(boolean isPr) {
     }
 }
 
-generate(true)
-generate(false)
+generate(true, 'master')
+generate(false, 'master')
+
+generate(true, 'dev15.0.x')
+generate(false, 'dev15.0.x')
+
+generate(true, 'dev15.1.x')
+generate(false, 'dev15.1.x')
