@@ -146,10 +146,11 @@ Every expression can be classified as exactly one of these:
 - Indexer 
 - Event 
 - Void-returning method call 
-- Array initializer (*) 
-- __arglist (*) 
-  
-(*) Technically not an expression according to the spec. 
+- Array initializer (\*) 
+- __arglist (\*)  
+
+
+(\*) Technically not an expression according to the spec. 
   
 Note that only values, variables, properties, indexers and events have a type. 
   
