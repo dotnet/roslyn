@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.Cci
 {
@@ -203,11 +204,11 @@ namespace Microsoft.Cci
             throw ExceptionUtilities.Unreachable;
         }
 
-        public virtual void Visit(IMetadataConstant constant)
+        public virtual void Visit(MetadataConstant constant)
         {
         }
 
-        public virtual void Visit(IMetadataCreateArray createArray)
+        public virtual void Visit(MetadataCreateArray createArray)
         {
             this.Visit(createArray.ElementType);
             this.Visit(createArray.Elements);
@@ -240,7 +241,7 @@ namespace Microsoft.Cci
             this.Visit(namedArgument.ArgumentValue);
         }
 
-        public virtual void Visit(IMetadataTypeOf typeOf)
+        public virtual void Visit(MetadataTypeOf typeOf)
         {
             if (typeOf.TypeToGet != null)
             {
@@ -413,7 +414,7 @@ namespace Microsoft.Cci
             this.Visit(parameterDefinition.GetAttributes(Context));
             this.Visit(parameterDefinition.CustomModifiers);
 
-            IMetadataConstant defaultValue = parameterDefinition.GetDefaultValue(Context);
+            MetadataConstant defaultValue = parameterDefinition.GetDefaultValue(Context);
             if (defaultValue != null)
             {
                 this.Visit((IMetadataExpression)defaultValue);

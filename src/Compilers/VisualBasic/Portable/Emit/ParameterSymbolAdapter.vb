@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -41,12 +42,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function IParameterDefinition_GetDefaultValue(context As EmitContext) As IMetadataConstant Implements IParameterDefinition.GetDefaultValue
+        Private Function IParameterDefinition_GetDefaultValue(context As EmitContext) As MetadataConstant Implements IParameterDefinition.GetDefaultValue
             CheckDefinitionInvariant()
             Return Me.GetMetadataConstantValue(context)
         End Function
 
-        Friend Function GetMetadataConstantValue(context As EmitContext) As IMetadataConstant
+        Friend Function GetMetadataConstantValue(context As EmitContext) As MetadataConstant
             If Me.HasMetadataConstantValue Then
                 Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(Me.Type, Me.ExplicitDefaultConstantValue.Value, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             Else
