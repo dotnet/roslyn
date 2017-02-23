@@ -186,5 +186,20 @@ class Ext
 
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
         }
+
+        [WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task TestNotInConstraints()
+        {
+            var markup = @"
+class Ext
+{
+    void Foo<T>(int a, int b) where [||]T : class
+    {
+    };
+}";
+
+            await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
+        }
     }
 }
