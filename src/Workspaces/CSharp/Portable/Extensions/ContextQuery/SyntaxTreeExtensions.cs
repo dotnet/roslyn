@@ -1243,7 +1243,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return node.FindTokenOnLeftOfPosition(node.SpanStart);
         }
 
-        private static bool IsPossibleTupleOpenParenOrComma(SyntaxToken possibleCommaOrParen)
+
+        public static bool IsPossibleTupleOpenParenOrComma(SyntaxToken possibleCommaOrParen)
         {
             if (!possibleCommaOrParen.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
             {
@@ -1251,10 +1252,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             if (possibleCommaOrParen.Parent.IsKind(
-                SyntaxKind.ParenthesizedExpression,
-                SyntaxKind.TupleExpression,
-                SyntaxKind.TupleType,
-                SyntaxKind.CastExpression))
+                    SyntaxKind.ParenthesizedExpression,
+                    SyntaxKind.TupleExpression,
+                    SyntaxKind.TupleType,
+                    SyntaxKind.CastExpression))
             {
                 return true;
             }
@@ -1268,8 +1269,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     return true;
                 }
-
             }
+
             return false;
         }
 
