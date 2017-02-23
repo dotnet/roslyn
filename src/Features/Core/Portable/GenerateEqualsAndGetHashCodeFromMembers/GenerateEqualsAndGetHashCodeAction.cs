@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -13,22 +14,22 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
     internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
     {
-        private class GenerateEqualsAndHashCodeAction : CodeAction
+        private class GenerateEqualsAndGetHashCodeAction : CodeAction
         {
             private readonly bool _generateEquals;
             private readonly bool _generateGetHashCode;
             private readonly GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly INamedTypeSymbol _containingType;
-            private readonly IList<ISymbol> _selectedMembers;
+            private readonly ImmutableArray<ISymbol> _selectedMembers;
             private readonly TextSpan _textSpan;
 
-            public GenerateEqualsAndHashCodeAction(
+            public GenerateEqualsAndGetHashCodeAction(
                 GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
-                IList<ISymbol> selectedMembers,
+                ImmutableArray<ISymbol> selectedMembers,
                 bool generateEquals = false,
                 bool generateGetHashCode = false)
             {
@@ -83,16 +84,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             }
 
             public override string Title
-            {
-                get
-                {
-                    return _generateEquals
-                        ? _generateGetHashCode
-                            ? FeaturesResources.Generate_Both
-                            : FeaturesResources.Generate_Equals_object
-                        : FeaturesResources.Generate_GetHashCode;
-                }
-            }
+                => GetTitle(_generateEquals, _generateGetHashCode);
+
+            internal static string GetTitle(bool generateEquals, bool generateGetHashCode)
+                => generateEquals
+                    ? generateGetHashCode
+                        ? FeaturesResources.Generate_Both
+                        : FeaturesResources.Generate_Equals_object
+                    : FeaturesResources.Generate_GetHashCode;
         }
     }
 }

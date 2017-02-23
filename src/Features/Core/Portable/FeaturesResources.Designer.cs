@@ -2158,6 +2158,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pick members to be used in Equals/GetHashCode.
+        /// </summary>
+        internal static string Pick_members_to_be_used_in_Equals_GetHashCode {
+            get {
+                return ResourceManager.GetString("Pick_members_to_be_used_in_Equals_GetHashCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to  + additional {0} {1}.
         /// </summary>
         internal static string plus_additional_0_1 {

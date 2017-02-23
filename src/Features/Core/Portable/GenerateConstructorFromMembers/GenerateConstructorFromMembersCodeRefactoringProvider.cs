@@ -102,31 +102,6 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     this, document, textSpan, containingType, viableMembers));
         }
 
-        /// <summary>
-        /// Gets the enclosing named type for the specified position.  We can't use
-        /// <see cref="SemanticModel.GetEnclosingSymbol"/> because that doesn't return
-        /// the type you're current on if you're on the header of a class/interface.
-        /// </summary>
-        private INamedTypeSymbol GetEnclosingNamedType(
-            SemanticModel semanticModel, SyntaxNode root, int start, CancellationToken cancellationToken)
-        {
-            var token = root.FindToken(start);
-            if (token == ((ICompilationUnitSyntax)root).EndOfFileToken)
-            {
-                token = token.GetPreviousToken();
-            }
-
-            for (var node = token.Parent; node != null; node = node.Parent)
-            {
-                if (semanticModel.GetDeclaredSymbol(node) is INamedTypeSymbol declaration)
-                {
-                    return declaration;
-                }
-            }
-
-            return null;
-        }
-
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
