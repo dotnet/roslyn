@@ -4193,9 +4193,21 @@ tryAgain:
             return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, name, def);
         }
 
-        private static bool IsParameterModifier(SyntaxKind kind, bool allowThisKeyword)
+        private bool IsParameterModifier(SyntaxKind kind, bool allowThisKeyword)
         {
-            return GetParamFlags(kind, allowThisKeyword) != ParamFlags.None;
+            switch (kind)
+            {
+                case SyntaxKind.ThisKeyword:
+                    return allowThisKeyword;
+                case SyntaxKind.RefKeyword:
+                case SyntaxKind.OutKeyword:
+                case SyntaxKind.ParamsKeyword:
+                case SyntaxKind.InKeyword:
+                case SyntaxKind.ReadOnlyKeyword:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         [Flags]
@@ -4206,180 +4218,196 @@ tryAgain:
             Ref = 0x02,
             Out = 0x04,
             Params = 0x08,
-            In = 0x10,
-        }
 
-        private static ParamFlags GetParamFlags(SyntaxKind kind, bool allowThisKeyword)
-        {
-            switch (kind)
-            {
-                case SyntaxKind.ThisKeyword:
-                    // if (this.IsCSharp3Enabled)
-                    return (allowThisKeyword ? ParamFlags.This : ParamFlags.None);
-
-                // goto default;
-                case SyntaxKind.RefKeyword:
-                    return ParamFlags.Ref;
-                case SyntaxKind.OutKeyword:
-                    return ParamFlags.Out;
-                case SyntaxKind.ParamsKeyword:
-                    return ParamFlags.Params;
-                case SyntaxKind.InKeyword:
-                    return ParamFlags.In;
-                default:
-                    return ParamFlags.None;
-            }
+            // Store 'RefReadOnly' and 'In' separately for better error reporting, although they are semantically equivalent.
+            RefReadOnly = 0x10,
+            In = 0x20,
         }
 
         private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool allowThisKeyword)
         {
             var flags = ParamFlags.None;
 
-            while (IsParameterModifier(this.CurrentToken.Kind, allowThisKeyword))
+            while (this.IsParameterModifier(this.CurrentToken.Kind, allowThisKeyword))
             {
                 var mod = this.EatToken();
 
-                if (mod.Kind == SyntaxKind.ThisKeyword ||
-                    mod.Kind == SyntaxKind.RefKeyword ||
-                    mod.Kind == SyntaxKind.OutKeyword ||
-                    mod.Kind == SyntaxKind.ParamsKeyword ||
-                    mod.Kind == SyntaxKind.InKeyword)
+                if (mod.Kind == SyntaxKind.ThisKeyword)
                 {
-                    if (mod.Kind == SyntaxKind.ThisKeyword)
-                    {
-                        mod = CheckFeatureAvailability(mod, MessageID.IDS_FeatureExtensionMethod);
+                    mod = CheckFeatureAvailability(mod, MessageID.IDS_FeatureExtensionMethod);
 
-                        if ((flags & ParamFlags.This) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
-                        }
-                        else if ((flags & ParamFlags.Out) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.ThisKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
-                        }
-                        else if ((flags & ParamFlags.Ref) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.ThisKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
-                        }
-                        else if ((flags & ParamFlags.Params) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParamModThis);
-                        }
-                        else
-                        {
-                            flags |= ParamFlags.This;
-                        }
-                    }
-                    else if (mod.Kind == SyntaxKind.RefKeyword)
+                    if ((flags & ParamFlags.This) != 0)
                     {
-                        if ((flags & ParamFlags.Ref) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.RefKeyword));
-                        }
-                        else if ((flags & ParamFlags.This) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
-                        }
-                        else if ((flags & ParamFlags.Params) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeWithModifier, SyntaxFacts.GetText(SyntaxKind.RefKeyword));
-                        }
-                        else if ((flags & ParamFlags.Out) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
-                        }
-                        else if ((flags & ParamFlags.In) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
-                        }
-                        else
-                        {
-                            flags |= ParamFlags.Ref;
-                        }
+                        mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
                     }
-                    else if (mod.Kind == SyntaxKind.OutKeyword)
+                    else if ((flags & ParamFlags.Out) != 0)
                     {
-                        if ((flags & ParamFlags.Out) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.OutKeyword));
-                        }
-                        else if ((flags & ParamFlags.This) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.OutKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
-                        }
-                        else if ((flags & ParamFlags.Params) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeWithModifier, SyntaxFacts.GetText(SyntaxKind.OutKeyword));
-                        }
-                        else if ((flags & ParamFlags.Ref) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.OutKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
-                        }
-                        else if ((flags & ParamFlags.In) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.OutKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
-                        }
-                        else
-                        {
-                            flags |= ParamFlags.Out;
-                        }
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.ThisKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
                     }
-                    else if (mod.Kind == SyntaxKind.ParamsKeyword)
+                    else if ((flags & ParamFlags.Ref) != 0 || (flags & ParamFlags.RefReadOnly) != 0)
                     {
-                        if ((flags & ParamFlags.Params) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.ParamsKeyword));
-                        }
-                        else if ((flags & ParamFlags.This) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParamModThis);
-                        }
-                        else if ((flags & ParamFlags.Ref) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.ParamsKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
-                        }
-                        else if ((flags & ParamFlags.Out) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.ParamsKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
-                        }
-                        else if ((flags & ParamFlags.In) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.ParamsKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
-                        }
-                        else
-                        {
-                            flags |= ParamFlags.Params;
-                        }
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.ThisKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
                     }
-                    else if (mod.Kind == SyntaxKind.InKeyword)
+                    else if ((flags & ParamFlags.Params) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParamModThis);
+                    }
+                    else if ((flags & ParamFlags.In) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.ThisKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                    }
+                    else
+                    {
+                        flags |= ParamFlags.This;
+                    }
+                }
+                else if (mod.Kind == SyntaxKind.RefKeyword)
+                {
+                    if ((flags & ParamFlags.Ref) != 0 || (flags & ParamFlags.RefReadOnly) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                    }
+                    else if ((flags & ParamFlags.This) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                    }
+                    else if ((flags & ParamFlags.Params) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeWithModifier, SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                    }
+                    else if ((flags & ParamFlags.Out) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                    }
+                    else if ((flags & ParamFlags.In) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                    }
+                    else
+                    {
+                        flags |= ParamFlags.Ref;
+                    }
+                }
+                else if (mod.Kind == SyntaxKind.OutKeyword)
+                {
+                    if ((flags & ParamFlags.Out) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                    }
+                    else if ((flags & ParamFlags.This) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.OutKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                    }
+                    else if ((flags & ParamFlags.Params) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeWithModifier, SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                    }
+                    else if ((flags & ParamFlags.Ref) != 0 || (flags & ParamFlags.RefReadOnly) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.OutKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                    }
+                    else if ((flags & ParamFlags.In) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.OutKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                    }
+                    else
+                    {
+                        flags |= ParamFlags.Out;
+                    }
+                }
+                else if (mod.Kind == SyntaxKind.ParamsKeyword)
+                {
+                    if ((flags & ParamFlags.Params) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.ParamsKeyword));
+                    }
+                    else if ((flags & ParamFlags.This) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParamModThis);
+                    }
+                    else if ((flags & ParamFlags.Ref) != 0 || (flags & ParamFlags.RefReadOnly) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.ParamsKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                    }
+                    else if ((flags & ParamFlags.Out) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.ParamsKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                    }
+                    else if ((flags & ParamFlags.In) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.ParamsKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                    }
+                    else
+                    {
+                        flags |= ParamFlags.Params;
+                    }
+                }
+                else if (mod.Kind == SyntaxKind.InKeyword)
+                {
+                    mod = CheckFeatureAvailability(mod, MessageID.IDS_FeatureReadonlyReferences);
+
+                    if ((flags & ParamFlags.In) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                    }
+                    else if ((flags & ParamFlags.Out) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                    }
+                    else if ((flags & ParamFlags.This) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                    }
+                    else if ((flags & ParamFlags.Ref) != 0 || (flags & ParamFlags.RefReadOnly) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                    }
+                    else if ((flags & ParamFlags.Params) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeWithModifier, SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                    }
+                    else
+                    {
+                        flags |= ParamFlags.In;
+                    }
+                }
+                else if (mod.Kind == SyntaxKind.ReadOnlyKeyword)
+                {
+                    if ((flags & ParamFlags.RefReadOnly) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
+                    }
+                    else if ((flags & ParamFlags.Out) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                    }
+                    else if ((flags & ParamFlags.This) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                    }
+                    else if ((flags & ParamFlags.In) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                    }
+                    else if ((flags & ParamFlags.Ref) != 0)
                     {
                         mod = CheckFeatureAvailability(mod, MessageID.IDS_FeatureReadonlyReferences);
 
-                        if ((flags & ParamFlags.In) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.InKeyword));
-                        }
-                        else if ((flags & ParamFlags.Out) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
-                        }
-                        else if ((flags & ParamFlags.This) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
-                        }
-                        else if ((flags & ParamFlags.Ref) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParameterModifiers, SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
-                        }
-                        else if ((flags & ParamFlags.Params) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeWithModifier, SyntaxFacts.GetText(SyntaxKind.InKeyword));
-                        }
-                        else
-                        {
-                            flags |= ParamFlags.In;
-                        }
+                        flags &= ~ParamFlags.Ref;
+                        flags |= ParamFlags.RefReadOnly;
                     }
+                    else if ((flags & ParamFlags.Params) != 0)
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeWithModifier, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
+                    }
+                    else
+                    {
+                        mod = this.AddError(mod, ErrorCode.ERR_UnexpectedToken, mod.Text);
+                    }
+                }
+                else
+                {
+                    Debug.Assert(false, $"{mod.Kind} SyntaxKind not legal here");
                 }
 
                 modifiers.Add(mod);
@@ -10304,6 +10332,13 @@ tryAgain:
                     switch (this.CurrentToken.Kind)
                     {
                         case SyntaxKind.RefKeyword:
+                            this.EatToken();
+                            foundParameterModifier = true;
+                            if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
+                            {
+                                this.EatToken();
+                            }
+                            break;
                         case SyntaxKind.OutKeyword:
                         case SyntaxKind.InKeyword:
                         case SyntaxKind.ParamsKeyword:
@@ -11387,15 +11422,11 @@ tryAgain:
         {
             TypeSyntax paramType = null;
             SyntaxToken paramName = null;
-            SyntaxToken modifier = null;
+            SyntaxListBuilder modifiers = _pool.Allocate();
 
             // Params are actually illegal in a lambda, but we'll allow it for error recovery purposes and
             // give the "params unexpected" error at semantic analysis time.
-            bool hasModifier =
-                this.CurrentToken.Kind == SyntaxKind.RefKeyword ||
-                this.CurrentToken.Kind == SyntaxKind.OutKeyword ||
-                this.CurrentToken.Kind == SyntaxKind.InKeyword ||
-                this.CurrentToken.Kind == SyntaxKind.ParamsKeyword;
+            bool hasModifier = this.IsParameterModifier(this.CurrentToken.Kind, allowThisKeyword: false);
 
             var pk = this.PeekToken(1).Kind;
             if (hasModifier
@@ -11405,7 +11436,7 @@ tryAgain:
             {
                 if (hasModifier)
                 {
-                    modifier = this.EatToken();
+                    this.ParseParameterModifiers(modifiers, allowThisKeyword: false);
                 }
 
                 paramType = this.ParseType(ParseTypeMode.Parameter);
@@ -11426,7 +11457,9 @@ tryAgain:
                 paramName = this.AddError(paramName, ErrorCode.ERR_InconsistentLambdaParameterUsage);
             }
 
-            return _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifier, paramType, paramName, null);
+            var parameter = _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifiers.ToList(), paramType, paramName, null);
+            _pool.Free(modifiers);
+            return parameter;
         }
 
         private bool IsCurrentTokenQueryContextualKeyword
