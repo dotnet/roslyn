@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of (symbol As ISymbol , rules As CompletionItemRules)), context As SyntaxContext) As CompletionItemRules
             Return CompletionItemRules.Default
         End Function
 

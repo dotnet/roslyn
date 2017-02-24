@@ -23,19 +23,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract SyntaxNode GetObjectCreationNewExpression(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
         protected override CompletionItem CreateItem(
-            string displayText, string insertionText, List<ISymbol> symbols,
+            string displayText, string insertionText, List<(ISymbol symbol, CompletionItemRules)> items,
             SyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
+            // TODO: 1. Do we need to make CreateWithSymbolId take the tuple? 
+            // TODO: 2. if we do (1) then we need to remove .Select(item => item.symbol).ToImmutableArray()
+            // TODO: 3. Rename symbols to items
+            // TODO: 4. Remove GetCompletionItemRules
+
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 insertionText: insertionText,
-                filterText: GetFilterText(symbols[0], displayText, context),
+                filterText: GetFilterText(items[0].symbol, displayText, context),
                 contextPosition: context.Position,
-                symbols: symbols,
+                symbols: items.Select(item => item.symbol).ToImmutableArray(),
                 supportedPlatforms: supportedPlatformData,
                 matchPriority: MatchPriority.Preselect, // Always preselect
-                rules: GetCompletionItemRules(symbols, context));
+                rules: GetCompletionItemRules(items, context));
         }
 
         protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)

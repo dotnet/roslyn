@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 matchPriority:=MatchPriority.Preselect,
                 selectionBehavior:=CompletionItemSelectionBehavior.HardSelection)
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of (symbol As ISymbol , rules As CompletionItemRules)), context As SyntaxContext) As CompletionItemRules
             Return s_rules
         End Function
     End Class

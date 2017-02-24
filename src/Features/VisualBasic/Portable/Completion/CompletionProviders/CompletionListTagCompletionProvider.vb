@@ -66,12 +66,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return (text, text)
         End Function
 
-        Protected Overrides Function CreateItem(displayText As String, insertionText As String, symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+        Protected Overrides Function CreateItem(displayText As String, insertionText As String, items As List(Of (symbol As ISymbol , CompletionItemRules)), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+            ' TODO: 1. Do we need to make CreateWithSymbolId take the tuple? 
+            ' TODO: 2. if we do (1) then we need to remove .Select(Function(item) item.symbol).ToImmutableArray() 
+            ' TODO: 3. Rename symbols to items
+            ' TODO: 4. Remove GetCompletionItemRules
             Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
                 insertionText:=insertionText,
-                filterText:=GetFilterText(symbols(0), displayText, context),
-                symbols:=symbols,
+                filterText:=GetFilterText(items(0).symbol, displayText, context),
+                symbols:=items.Select(Function(item) item.symbol).ToImmutableArray(),
                 contextPosition:=context.Position,
                 sortText:=displayText,
                 glyph:=Glyph.EnumMember,

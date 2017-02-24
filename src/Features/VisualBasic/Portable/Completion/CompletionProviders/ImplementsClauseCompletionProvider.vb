@@ -274,15 +274,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of (symbol As ISymbol , rules As CompletionItemRules)), context As SyntaxContext) As CompletionItemRules
             Return CompletionItemRules.Default
         End Function
 
-        Protected Overrides Function CreateItem(displayText As String, insertionText As String, symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Dim item = MyBase.CreateItem(displayText, insertionText, symbols, context, preselect, supportedPlatformData)
+        Protected Overrides Function CreateItem(displayText As String, insertionText As String, items As List(Of (symbol As ISymbol , CompletionItemRules)), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+            Dim item = MyBase.CreateItem(displayText, insertionText, items, context, preselect, supportedPlatformData)
 
-            If IsGenericType(symbols(0)) Then
-                Dim text = symbols(0).ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)
+            If IsGenericType(items(0).symbol) Then
+                Dim text = items(0).symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)
                 item = item.WithProperties(ImmutableDictionary(Of String, String).Empty.Add(InsertionTextOnOpenParen, text))
             End If
 

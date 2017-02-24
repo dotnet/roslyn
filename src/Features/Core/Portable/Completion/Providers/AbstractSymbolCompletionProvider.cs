@@ -34,15 +34,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected abstract (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context);
-        protected abstract CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context);
+        protected abstract CompletionItemRules GetCompletionItemRules(IReadOnlyList<(ISymbol symbol, CompletionItemRules rules)> symbols, SyntaxContext context);
 
         /// <summary>
         /// Given a list of symbols, creates the list of completion items for them.
         /// </summary>
         protected IEnumerable<CompletionItem> CreateItems(
-            IEnumerable<(ISymbol symbol, CompletionItemRules rules)> items,
+            IEnumerable<(ISymbol symbol, CompletionItemRules)> items,
             SyntaxContext context,
-            Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
+            Dictionary<(ISymbol, CompletionItemRules), List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
             bool preselect)
         {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var q = from item in items
                     let texts = GetDisplayAndInsertionText(item.symbol, context)
-                    group item.symbol by texts into g
+                    group item by texts into g
                     select this.CreateItem(
                         g.Key.displayText, g.Key.insertionText, g.ToList(), context,
                         invalidProjectMap, totalProjects, preselect);
@@ -62,15 +62,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// Given a list of symbols, and a mapping from each symbol to its original SemanticModel, creates the list of completion items for them.
         /// </summary>
         protected IEnumerable<CompletionItem> CreateItems(
-            IEnumerable<ISymbol> symbols,
-            Dictionary<ISymbol, SyntaxContext> originatingContextMap,
-            Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
+            IEnumerable<(ISymbol symbol, CompletionItemRules)> items,
+            Dictionary<(ISymbol, CompletionItemRules), SyntaxContext> originatingContextMap,
+            Dictionary<(ISymbol, CompletionItemRules), List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
             bool preselect)
         {
-            var q = from symbol in symbols
-                    let texts = GetDisplayAndInsertionText(symbol, originatingContextMap[symbol])
-                    group symbol by texts into g
+            var q = from item in items
+                    let texts = GetDisplayAndInsertionText(item.symbol, originatingContextMap[item])
+                    group item by texts into g
                     select this.CreateItem(
                         g.Key.displayText, g.Key.insertionText, g.ToList(),
                         originatingContextMap[g.First()], invalidProjectMap, totalProjects, preselect);
@@ -84,21 +84,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private CompletionItem CreateItem(
             string displayText,
             string insertionText,
-            List<ISymbol> symbols,
+            List<(ISymbol, CompletionItemRules)> items,
             SyntaxContext context,
-            Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
+            Dictionary<(ISymbol, CompletionItemRules), List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
             bool preselect)
         {
-            Contract.ThrowIfNull(symbols);
+            Contract.ThrowIfNull(items);
 
             SupportedPlatformData supportedPlatformData = null;
             if (invalidProjectMap != null)
             {
                 List<ProjectId> invalidProjects = null;
-                foreach (var symbol in symbols)
+                foreach (var item in items)
                 {
-                    if (invalidProjectMap.TryGetValue(symbol, out invalidProjects))
+                    if (invalidProjectMap.TryGetValue(item, out invalidProjects))
                     {
                         break;
                     }
@@ -110,24 +110,29 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return CreateItem(displayText, insertionText, symbols, context, preselect, supportedPlatformData);
+            return CreateItem(displayText, insertionText, items, context, preselect, supportedPlatformData);
         }
 
         protected virtual CompletionItem CreateItem(
             string displayText, string insertionText,
-            List<ISymbol> symbols,
+            List<(ISymbol symbol, CompletionItemRules)> items,
             SyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
+            // TODO: 1. Do we need to make CreateWithSymbolId take the tuple? 
+            // TODO: 2. if we do (1) then we need to remove .Select(item => item.symbol).ToImmutableArray()
+            // TODO: 3. Rename symbols to items
+            // TODO: 4. Remove GetCompletionItemRules
+
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 insertionText: insertionText,
-                filterText: GetFilterText(symbols[0], displayText, context),
+                filterText: GetFilterText(items[0].symbol, displayText, context),
                 contextPosition: context.Position,
-                symbols: symbols,
+                symbols: items.Select(item => item.symbol).ToImmutableArray(),
                 supportedPlatforms: supportedPlatformData,
                 matchPriority: preselect ? MatchPriority.Preselect : MatchPriority.Default,
-                rules: GetCompletionItemRules(symbols, context));
+                rules: GetCompletionItemRules(items, context));
         }
 
         protected virtual string GetFilterText(ISymbol symbol, string displayText, SyntaxContext context)
@@ -250,22 +255,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private HashSet<ISymbol> UnionSymbols(List<Tuple<DocumentId, SyntaxContext, ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>>> linkedContextCompletionItemLists, out Dictionary<ISymbol, SyntaxContext> originDictionary)
+        private HashSet<(ISymbol, CompletionItemRules)> UnionSymbols(List<Tuple<DocumentId, SyntaxContext, ImmutableArray<(ISymbol symbol, CompletionItemRules)>>> linkedContextCompletionItemLists, out Dictionary<(ISymbol, CompletionItemRules), SyntaxContext> originDictionary)
         {
             // To correctly map symbols back to their SyntaxContext, we do care about assembly identity.
-            originDictionary = new Dictionary<ISymbol, SyntaxContext>(LinkedFilesSymbolEquivalenceComparer.Instance);
+            originDictionary = new Dictionary<(ISymbol, CompletionItemRules), SyntaxContext>(LinkedFilesItemEquivalenceComparer.Instance);
 
             // We don't care about assembly identity when creating the union.
-            var set = new HashSet<ISymbol>(LinkedFilesSymbolEquivalenceComparer.Instance);
+            var set = new HashSet<(ISymbol, CompletionItemRules)>(LinkedFilesItemEquivalenceComparer.Instance);
             foreach (var linkedContextCompletionItemList in linkedContextCompletionItemLists)
             {
                 // We need to use the SemanticModel any particular symbol came from in order to generate its description correctly.
                 // Therefore, when we add a symbol to set of union symbols, add a mapping from it to its SyntaxContext.
-                foreach (var (symbol, _) in linkedContextCompletionItemList.Item3.GroupBy(item => new { item.symbol.Name, item.symbol.Kind }).Select(g => g.First()))
+                foreach (var item in linkedContextCompletionItemList.Item3.GroupBy(item => new { item.symbol.Name, item.symbol.Kind }).Select(g => g.First()))
                 {
-                    if (set.Add(symbol))
+                    if (set.Add(item))
                     {
-                        originDictionary.Add(symbol, linkedContextCompletionItemList.Item2);
+                        originDictionary.Add(item, linkedContextCompletionItemList.Item2);
                     }
                 }
             }
@@ -323,15 +328,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <param name="expectedSymbols">The symbols recommended in the active context.</param>
         /// <param name="linkedContextItemLists">The symbols recommended in linked documents</param>
         /// <returns>The list of projects each recommended symbol did NOT appear in.</returns>
-        protected Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(
-            HashSet<ISymbol> expectedSymbols,
+        protected Dictionary<(ISymbol, CompletionItemRules), List<ProjectId>> FindSymbolsMissingInLinkedContexts(
+            HashSet<(ISymbol symbol, CompletionItemRules)> expectedSymbols,
             IEnumerable<Tuple<DocumentId, SyntaxContext, ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>>> linkedContextItemLists)
         {
-            var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
+            var missingSymbols = new Dictionary<(ISymbol, CompletionItemRules), List<ProjectId>>(LinkedFilesItemEquivalenceComparer.Instance);
 
             foreach (var linkedContextItemList in linkedContextItemLists)
             {
-                var symbolsMissingInLinkedContext = expectedSymbols.Except(linkedContextItemList.Item3.Select(item => item.symbol), LinkedFilesSymbolEquivalenceComparer.Instance);
+                ImmutableArray<(ISymbol symbol, CompletionItemRules)> v = linkedContextItemList.Item3;
+                var symbolsMissingInLinkedContext = expectedSymbols.Except(v, LinkedFilesItemEquivalenceComparer.Instance);
                 foreach (var missingSymbol in symbolsMissingInLinkedContext)
                 {
                     missingSymbols.GetOrAdd(missingSymbol, (m) => new List<ProjectId>()).Add(linkedContextItemList.Item1.ProjectId);
