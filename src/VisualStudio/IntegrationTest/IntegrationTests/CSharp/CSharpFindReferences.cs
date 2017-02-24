@@ -61,6 +61,12 @@ class SomeOtherClass
                 {
                     reference =>
                     {
+                        Assert.Equal(expected: "class Program", actual: reference.Code);
+                        Assert.Equal(expected: 1, actual: reference.Line);
+                        Assert.Equal(expected: 6, actual: reference.Column);
+                    },
+                    reference =>
+                    {
                         Assert.Equal(expected: "Program p = new Program();", actual: reference.Code);
                         Assert.Equal(expected: 5, actual: reference.Line);
                         Assert.Equal(expected: 24, actual: reference.Column);
@@ -94,6 +100,12 @@ class Program
                 results,
                 new Action<Reference>[]
                 {
+                    reference =>
+                    {
+                        Assert.Equal(expected: "int local = 1;", actual: reference.Code);
+                        Assert.Equal(expected: 5, actual: reference.Line);
+                        Assert.Equal(expected: 12, actual: reference.Column);
+                    },
                     reference =>
                     {
                         Assert.Equal(expected: "Console.WriteLine(local);", actual: reference.Code);

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using EnvDTE80;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
@@ -29,6 +30,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var tableControlAndCommandTargetType = toolWindowControl.GetType();
                 var tableControlField = tableControlAndCommandTargetType.GetField("TableControl");
                 var tableControl = (IWpfTableControl2)tableControlField.GetValue(toolWindowControl);
+
+                // Remove all grouping
+                var columnStates = tableControl.ColumnStates;
+                var newColumnsStates = new List<ColumnState2>();
+                foreach (ColumnState2 state in columnStates)
+                {
+                    var newState = new ColumnState2(
+                        state.Name,
+                        state.IsVisible,
+                        state.Width,
+                        state.SortPriority,
+                        state.DescendingSort,
+                        groupingPriority: 0);
+                    newColumnsStates.Add(newState);
+                }
+                tableControl.SetColumnStates(newColumnsStates);
 
                 // Force a refresh, if necessary. This doesn't re-run the Find References or
                 // Find Implementations operation itself, it just forces the results to be

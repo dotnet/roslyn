@@ -48,6 +48,12 @@ End Class
                 {
                     reference =>
                     {
+                        Assert.Equal(expected: "Dim local = 1", actual: reference.Code);
+                        Assert.Equal(expected: 3, actual: reference.Line);
+                        Assert.Equal(expected: 10, actual: reference.Column);
+                    },
+                    reference =>
+                    {
                         Assert.Equal(expected: "Console.WriteLine(local)", actual: reference.Code);
                         Assert.Equal(expected: 4, actual: reference.Line);
                         Assert.Equal(expected: 24, actual: reference.Column);
@@ -87,6 +93,12 @@ End Class
                 results,
                 new Action<Reference>[]
                 {
+                    reference =>
+                    {
+                        Assert.Equal(expected: "Public Shared Alpha As Int32", actual: reference.Code);
+                        Assert.Equal(expected: 2, actual: reference.Line);
+                        Assert.Equal(expected: 18, actual: reference.Column);
+                    },
                     reference =>
                     {
                         Assert.Equal(expected: "Console.WriteLine(Program.Alpha)", actual: reference.Code);
