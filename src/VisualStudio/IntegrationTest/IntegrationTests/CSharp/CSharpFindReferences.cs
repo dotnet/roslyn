@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -48,18 +49,23 @@ class SomeOtherClass
 
             SendKeys(Shift(VirtualKey.F12));
 
-            VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(FeatureAttribute.FindReferences);
-
             const string programReferencesCaption = "'Program' references";
+            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(programReferencesCaption);
+
             var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
             Assert.Equal(expected: programReferencesCaption, actual: activeWindowCaption);
 
-            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(programReferencesCaption);
-
-            var reference = results.Single();
-            Assert.Equal(expected: "Program p = new Program();", actual: reference.Code);
-            Assert.Equal(expected: 5, actual: reference.Line);
-            Assert.Equal(expected: 24, actual: reference.Column);
+            Assert.Collection(
+                results,
+                new Action<Reference>[]
+                {
+                    reference =>
+                    {
+                        Assert.Equal(expected: "Program p = new Program();", actual: reference.Code);
+                        Assert.Equal(expected: 5, actual: reference.Line);
+                        Assert.Equal(expected: 24, actual: reference.Column);
+                    }
+                });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
@@ -78,18 +84,23 @@ class Program
 
             SendKeys(Shift(VirtualKey.F12));
 
-            VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(FeatureAttribute.FindReferences);
-
             const string localReferencesCaption = "'local' references";
+            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(localReferencesCaption);
+
             var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
             Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
 
-            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(localReferencesCaption);
-
-            var reference = results.Single();
-            Assert.Equal(expected: "Console.WriteLine(local);", actual: reference.Code);
-            Assert.Equal(expected: 6, actual: reference.Line);
-            Assert.Equal(expected: 26, actual: reference.Column);
+            Assert.Collection(
+                results,
+                new Action<Reference>[]
+                {
+                    reference =>
+                    {
+                        Assert.Equal(expected: "Console.WriteLine(local);", actual: reference.Code);
+                        Assert.Equal(expected: 6, actual: reference.Line);
+                        Assert.Equal(expected: 26, actual: reference.Column);
+                    }
+                });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
@@ -107,16 +118,18 @@ class Program
 
             SendKeys(Shift(VirtualKey.F12));
 
-            VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(FeatureAttribute.FindReferences);
-
             const string findReferencesCaption = "Find References";
+            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(findReferencesCaption);
+
             var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
             Assert.Equal(expected: findReferencesCaption, actual: activeWindowCaption);
 
-            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(findReferencesCaption);
-
-            var reference = results.Single();
-            Assert.Equal(expected: "Search found no results", actual: reference.Code);
+            Assert.Collection(
+                results,
+                new Action<Reference>[]
+                {
+                    reference => Assert.Equal(expected: "Search found no results", actual: reference.Code)
+                });
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
@@ -19,13 +20,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         }
 
         /// <summary>
-        /// Returns the set of currently-displayed results.
+        /// Waits for any in-progress Find Reference operations to complete and returns the set of displayed results.
         /// </summary>
         /// <param name="windowCaption">The name of the window. Generally this will be something like
         /// "'Alpha' references" or "'Beta' implementations".</param>
         /// <returns>An array of <see cref="Reference"/> items capturing the current contents of the 
         /// Find References window.</returns>
         public Reference[] GetContents(string windowCaption)
-            => _inProc.GetContents(windowCaption);
+        {
+            // Wait for any pending FindReferences operation to complete.
+            // Go to Definition/Go to Implementation are synchronous so we don't need to wait for them
+            // (and currently can't, anyway); if they are made asynchronous we will need to wait for
+            // them here as well.
+            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.FindReferences);
+
+            return _inProc.GetContents(windowCaption);
+        }
     }
 }

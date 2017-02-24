@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -34,18 +36,23 @@ End Class
 
             SendKeys(Shift(VirtualKey.F12));
 
-            VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(FeatureAttribute.FindReferences);
-
             const string localReferencesCaption = "'local' references";
+            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(localReferencesCaption);
+
             var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
             Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
 
-            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(localReferencesCaption);
-
-            var reference = results.Single();
-            Assert.Equal(expected: "Console.WriteLine(local)", actual: reference.Code);
-            Assert.Equal(expected: 4, actual: reference.Line);
-            Assert.Equal(expected: 24, actual: reference.Column);
+            Assert.Collection(
+                results,
+                new Action<Reference>[]
+                {
+                    reference =>
+                    {
+                        Assert.Equal(expected: "Console.WriteLine(local)", actual: reference.Code);
+                        Assert.Equal(expected: 4, actual: reference.Line);
+                        Assert.Equal(expected: 24, actual: reference.Column);
+                    }
+                });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
@@ -70,18 +77,23 @@ End Class
 
             SendKeys(Shift(VirtualKey.F12));
 
-            VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(FeatureAttribute.FindReferences);
-
             const string alphaReferencesCaption = "'Alpha' references";
+            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(alphaReferencesCaption);
+
             var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
             Assert.Equal(expected: alphaReferencesCaption, actual: activeWindowCaption);
 
-            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(alphaReferencesCaption);
-
-            var reference = results.Single();
-            Assert.Equal(expected: "Console.WriteLine(Program.Alpha)", actual: reference.Code);
-            Assert.Equal(expected: 3, actual: reference.Line);
-            Assert.Equal(expected: 34, actual: reference.Column);
+            Assert.Collection(
+                results,
+                new Action<Reference>[]
+                {
+                    reference =>
+                    {
+                        Assert.Equal(expected: "Console.WriteLine(Program.Alpha)", actual: reference.Code);
+                        Assert.Equal(expected: 3, actual: reference.Line);
+                        Assert.Equal(expected: 34, actual: reference.Column);
+                    }
+                });
         }
     }
 }
