@@ -9,14 +9,12 @@ Imports Microsoft.CodeAnalysis.OrganizeImports
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
     Public Class OrganizeImportsTests
-        Private Async Function CheckAsync(initial As XElement, final As XElement, Optional placeSystemNamespaceFirst As Boolean? = Nothing) As Task
+        Private Async Function CheckAsync(initial As XElement, final As XElement, Optional placeSystemNamespaceFirst As Boolean = False) As Task
             Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initial.NormalizedValue)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
-                If placeSystemNamespaceFirst IsNot Nothing Then
-                    Dim workspaceOptions = workspace.Options
-                    Dim newOptionSet = workspaceOptions.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst.Value)
-                    workspace.Options = newOptionSet
-                End If
+                Dim workspaceOptions = workspace.Options
+                Dim newOptionSet = workspaceOptions.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
+                workspace.Options = newOptionSet
                 Dim newRoot = Await (Await OrganizeImportsService.OrganizeImportsAsync(document)).GetSyntaxRootAsync()
                 Assert.Equal(final.NormalizedValue, newRoot.ToFullString())
             End Using
@@ -88,7 +86,7 @@ Imports System.Linq
 Imports M1
 Imports M2
 </content>
-            Await CheckAsync(initial, final)
+            Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>

@@ -14,18 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 {
     public class OrganizeUsingsTests
     {
-        protected async Task CheckAsync(string initial, string final, bool? placeSystemNamespaceFirst = null, CSharpParseOptions options = null)
+        protected async Task CheckAsync(string initial, string final, bool placeSystemNamespaceFirst = false, CSharpParseOptions options = null)
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(initial))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-                if (placeSystemNamespaceFirst != null)
-                {
-                    var workspaceOptions = workspace.Options;
-                    var newOptionSet = workspaceOptions.WithChangedOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst.Value);
-                    workspace.Options = newOptionSet;
-                }
-
+                var workspaceOptions = workspace.Options;
+                var newOptionSet = workspaceOptions.WithChangedOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst);
+                workspace.Options = newOptionSet;
                 var newRoot = await (await OrganizeImportsService.OrganizeImportsAsync(document)).GetSyntaxRootAsync();
                 Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
             }
@@ -189,7 +185,7 @@ using System.Linq;
 using M1;
 using M2;
 ";
-            await CheckAsync(initial, final);
+            await CheckAsync(initial, final, placeSystemNamespaceFirst: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
@@ -211,7 +207,7 @@ using M2;
 using static System.BitConverter;
 using static Microsoft.Win32.Registry;
 ";
-            await CheckAsync(initial, final);
+            await CheckAsync(initial, final, placeSystemNamespaceFirst: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
@@ -230,7 +226,7 @@ using System;
 using System.Linq;
 ";
 
-            await CheckAsync(initial, final, placeSystemNamespaceFirst: false);
+            await CheckAsync(initial, final);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
@@ -251,7 +247,7 @@ using System;
 using System.Linq;
 using static Microsoft.Win32.Registry;
 using static System.BitConverter;";
-            await CheckAsync(initial, final, placeSystemNamespaceFirst: false);
+            await CheckAsync(initial, final);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
