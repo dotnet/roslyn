@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             DkmClrModuleInstance mscorlib = null;
             foreach (var module in list)
             {
-                if (module.Assembly.GetReferencedAssemblies().Length == 0)
+                if (IsMscorlib(module.Assembly))
                 {
                     Debug.Assert(mscorlib == null);
                     mscorlib = module;
@@ -110,6 +110,11 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             {
                 yield return mscorlib;
             }
+        }
+
+        private static bool IsMscorlib(Assembly assembly)
+        {
+            return assembly.GetReferencedAssemblies().Length == 0 && (object)assembly.GetType("System.Object") != null;
         }
 
         internal DkmClrModuleInstance FindClrModuleInstance(Guid mvid)

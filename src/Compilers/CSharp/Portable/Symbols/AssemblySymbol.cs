@@ -822,9 +822,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static bool IsInCorLib(NamedTypeSymbol type)
+        private bool IsInCorLib(NamedTypeSymbol type)
         {
-            return type.ContainingAssembly == type.ContainingAssembly.CorLibrary;
+            return (object)type.ContainingAssembly == CorLibrary;
         }
 
         private bool IsValidWellKnownType(NamedTypeSymbol result)
