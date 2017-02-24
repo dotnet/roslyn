@@ -107,5 +107,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void MessageBox(string message)
             => _inProc.MessageBox(message);
+
+        public void VerifyDialog(string dialogName, bool isOpen)
+            => _inProc.VerifyDialog(dialogName, isOpen);
+
+        public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
+            => _inProc.PressDialogButton(dialogAutomationName, buttonAutomationName);
     }
 }
