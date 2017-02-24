@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return (displayText, insertionText);
         }
 
-        protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
+        protected override CompletionItemRules GetCompletionItemRules(List<(ISymbol symbol, CompletionItemRules rules)> items, SyntaxContext context, bool preselect)
         {
             cachedRules.TryGetValue(ValueTuple.Create(context.IsInImportsDirective, preselect, context.IsPossibleTupleContext), out var rule);
 
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return rule;
         }
 
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context)
+        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<(ISymbol symbol, CompletionItemRules rules)> items, SyntaxContext context)
         {
             // Unused
             throw new NotImplementedException();

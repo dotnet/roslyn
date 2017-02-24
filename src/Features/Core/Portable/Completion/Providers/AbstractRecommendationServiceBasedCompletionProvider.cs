@@ -57,27 +57,32 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbol.GetSymbolType();
         }
 
-        protected override CompletionItem CreateItem(string displayText, string insertionText, List<ISymbol> symbols, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
+        protected override CompletionItem CreateItem(string displayText, string insertionText, List<(ISymbol symbol, CompletionItemRules)> items, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
         {
-            var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0]) : MatchPriority.Default;
-            var rules = GetCompletionItemRules(symbols, context, preselect);
+            var matchPriority = preselect ? ComputeSymbolMatchPriority(items[0].symbol) : MatchPriority.Default;
+            var rules = GetCompletionItemRules(items, context, preselect);
             if (preselect)
             {
                 rules = rules.WithSelectionBehavior(PreselectedItemSelectionBehavior);
             }
 
+            // TODO: 1. Do we need to make CreateWithNameAndKind take the tuple? 
+            // TODO: 2. if we do (1) then we need to remove .Select(item => item.symbol).ToImmutableArray()
+            // TODO: 3. Rename symbols to items
+            // TODO: 4. Remove GetCompletionItemRules
+
             return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText: displayText,
                 insertionText: insertionText,
-                filterText: GetFilterText(symbols[0], displayText, context),
+                filterText: GetFilterText(items[0].symbol, displayText, context),
                 contextPosition: context.Position,
-                symbols: symbols,
+                symbols: items.Select(item => item.symbol).ToImmutableArray(),
                 supportedPlatforms: supportedPlatformData,
                 matchPriority: matchPriority,
                 rules: rules);
         }
 
-        protected abstract CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect);
+        protected abstract CompletionItemRules GetCompletionItemRules(List<(ISymbol symbol, CompletionItemRules rules)> items, SyntaxContext context, bool preselect);
 
         protected abstract CompletionItemSelectionBehavior PreselectedItemSelectionBehavior { get; }
 
