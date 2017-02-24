@@ -139,13 +139,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     codeActionTypeName;
             }
 
-            public override string EquivalenceKey
-            {
-                get
-                {
-                    return _equivalenceKey;
-                }
-            }
+            public override string EquivalenceKey => _equivalenceKey;
 
             private static string GetDescription(ISymbol throughMember)
             {
