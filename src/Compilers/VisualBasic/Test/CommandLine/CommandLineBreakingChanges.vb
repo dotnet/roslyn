@@ -43,16 +43,16 @@ SRC.VB(7) : warning BC42104: Variable 'x' is used before it has been assigned a 
 
         <Fact, WorkItem(530668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
         Public Sub WarnAsErrorPrecedence2()
-            Dim src As String = Temp.CreateFile().WriteAllText(<text>
+            Dim src As String = Temp.CreateFile().WriteAllText("
 Module M1
     Sub Main
     End Sub
     Sub M(a as Object)
-        if (a.Something &lt;&gt; 2)
+        if (a.Something <> 2)
         end if
     End Sub
 End Module
-</text>.Value).Path
+").Path
             Dim tempOut = Temp.CreateFile()
             Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /optionstrict:custom /nowarn:41008 /warnaserror+ " & src & " > " & tempOut.Path, expectedRetCode:=1)
             Assert.Equal("", output.Trim())
@@ -79,16 +79,16 @@ SRC.VB(6) : error BC42016: Implicit conversion from 'Object' to 'Boolean'.
 
         <Fact, WorkItem(530668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
         Public Sub WarnAsErrorPrecedence3()
-            Dim src As String = Temp.CreateFile().WriteAllText(<text>
+            Dim src As String = Temp.CreateFile().WriteAllText("
 Module M1
     Sub Main
     End Sub
     Sub M(a as Object)
-        if (a.Something &lt;&gt; 2)
+        if (a.Something <> 2)
         end if
     End Sub
 End Module
-</text>.Value).Path
+").Path
             Dim tempOut = Temp.CreateFile()
             Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /optionstrict:custom /warnaserror-:42025 /warnaserror+ " & src & " > " & tempOut.Path, expectedRetCode:=1)
             Assert.Equal("", output.Trim())

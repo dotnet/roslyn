@@ -19,14 +19,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
         Private ReadOnly _baseDirectory As String = TempRoot.Root
 
-        Private ReadOnly _helloWorldCS As String = <text>
+        Private ReadOnly _helloWorldCS As String = "
 Imports System
 Class C
     Shared Sub Main(args As String())
-        Console.WriteLine("Hello, world")
+        Console.WriteLine(""Hello, world"")
     End Sub
 End Class
-</text>.Value
+"
 
         <Fact>
         Public Sub TrivialSourceFileOnlyVbc()
@@ -96,13 +96,13 @@ End Class
         <Fact>
         Public Sub XmlDocumentFileVbc()
             Dim sourcePath = Temp.CreateFile().WriteAllText(
-<text><![CDATA[
+"
 ''' <summary>
-''' A subtype of <see cref="object" />.
+''' A subtype of <see cref=""Object"" />.
 ''' </summary>
 Public Class C
 End Class
-]]></text>.Value).Path
+").Path
             Dim xml = Temp.CreateFile()
             Dim touchedDir = Temp.CreateDirectory()
             Dim touchedBase = Path.Combine(touchedDir.Path, "touched")
@@ -126,8 +126,8 @@ End Class
             Dim exitCode = cmd.Run(writer, Nothing)
             Assert.Equal(String.Empty, writer.ToString().Trim())
             Assert.Equal(0, exitCode)
-            Dim expectedDoc = <![CDATA[
-<?xml version="1.0"?>
+            Dim expectedDoc = "
+<?xml version=""1.0""?>
 <doc>
 <assembly>
 <name>
@@ -135,13 +135,13 @@ End Class
 </name>
 </assembly>
 <members>
-<member name="T:C">
+<member name=""T:C"">
  <summary>
- A subtype of <see cref="T:System.Object" />.
+ A subtype of <see cref=""T:System.Object"" />.
  </summary>
 </member>
 </members>
-</doc>]]>.Value.Trim()
+</doc>".Trim()
             expectedDoc = String.Format(expectedDoc,
                                         Path.GetFileNameWithoutExtension(sourcePath))
             expectedDoc = expectedDoc.Replace(vbLf, vbCrLf)

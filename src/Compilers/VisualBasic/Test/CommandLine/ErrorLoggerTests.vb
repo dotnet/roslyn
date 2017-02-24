@@ -19,14 +19,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
         <Fact>
         Public Sub NoDiagnostics()
-            Dim helloWorldVB As String = <text>
+            Dim helloWorldVB As String = "
 Imports System
 Class C
     Shared Sub Main(args As String())
-        Console.WriteLine("Hello, world")
+        Console.WriteLine(""Hello, world"")
     End Sub
 End Class
-</text>.Value
+"
 
             Dim hello = Temp.CreateFile().WriteAllText(helloWorldVB).Path
             Dim errorLogDir = Temp.CreateDirectory()
@@ -61,13 +61,13 @@ End Class
 
         <Fact>
         Public Sub SimpleCompilerDiagnostics()
-            Dim source As String = <text>
+            Dim source As String = "
 Public Class C
     Public Sub Method()
         Dim x As Integer
     End Sub
 End Class
-</text>.Value
+"
 
             Dim sourceFilePath = Temp.CreateFile().WriteAllText(source).Path
             Dim errorLogDir = Temp.CreateDirectory()
@@ -160,7 +160,7 @@ End Class
 
         <Fact>
         Public Sub SimpleCompilerDiagnostics_Suppressed()
-            Dim source As String = <text>
+            Dim source As String = "
 Public Class C
     Public Sub Method()
 #Disable Warning BC42024
@@ -168,7 +168,7 @@ Public Class C
 #Enable Warning BC42024
     End Sub
 End Class
-</text>.Value
+"
 
             Dim sourceFilePath = Temp.CreateFile().WriteAllText(source).Path
             Dim errorLogDir = Temp.CreateDirectory()
@@ -265,11 +265,11 @@ End Class
 
         <Fact>
         Public Sub AnalyzerDiagnosticsWithAndWithoutLocation()
-            Dim source As String = <text>
+            Dim source As String = "
 Imports System
 Class C
 End Class
-</text>.Value
+"
 
             Dim sourceFilePath = Temp.CreateFile().WriteAllText(source).Path
             Dim outputDir = Temp.CreateDirectory()
