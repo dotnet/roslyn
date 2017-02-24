@@ -49,13 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private ImmutableDictionary<string, Lazy<IEnumerable<CodeRefactoringProvider>>> LanguageToProvidersMap
-        {
-            get
-            {
-                return _lazyLanguageToProvidersMap.Value;
-            }
-        }
+        private ImmutableDictionary<string, Lazy<IEnumerable<CodeRefactoringProvider>>> LanguageToProvidersMap => _lazyLanguageToProvidersMap.Value;
 
         private IEnumerable<CodeRefactoringProvider> GetProviders(Document document)
         {

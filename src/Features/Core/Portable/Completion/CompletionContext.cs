@@ -15,10 +15,7 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private readonly List<CompletionItem> _items;
 
-        internal IReadOnlyList<CompletionItem> Items
-        {
-            get { return _items; }
-        }
+        internal IReadOnlyList<CompletionItem> Items => _items;
 
         internal CompletionProvider Provider { get; }
 

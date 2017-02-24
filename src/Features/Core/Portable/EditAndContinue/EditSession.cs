@@ -102,44 +102,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _documentsWithReportedRudeEdits = new HashSet<DocumentId>();
         }
 
-        internal CancellationTokenSource Cancellation
-        {
-            get { return _cancellation; }
-        }
+        internal CancellationTokenSource Cancellation => _cancellation;
 
-        internal Solution BaseSolution
-        {
-            get
-            {
-                return _baseSolution;
-            }
-        }
+        internal Solution BaseSolution => _baseSolution;
 
-        internal IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatementSpan>> BaseActiveStatements
-        {
-            get
-            {
-                return _baseActiveStatements;
-            }
-        }
+        internal IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatementSpan>> BaseActiveStatements => _baseActiveStatements;
 
-        private Solution CurrentSolution
-        {
-            get
-            {
-                return _baseSolution.Workspace.CurrentSolution;
-            }
-        }
+        private Solution CurrentSolution => _baseSolution.Workspace.CurrentSolution;
 
-        public bool StoppedAtException
-        {
-            get { return _stoppedAtException; }
-        }
+        public bool StoppedAtException => _stoppedAtException;
 
-        public IReadOnlyDictionary<ProjectId, ProjectReadOnlyReason> Projects
-        {
-            get { return _projects; }
-        }
+        public IReadOnlyDictionary<ProjectId, ProjectReadOnlyReason> Projects => _projects;
 
         internal bool HasProject(ProjectId id)
         {

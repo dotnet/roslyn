@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
 
+        internal abstract SyntaxTrivia EndOfLine(string text);
+
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>

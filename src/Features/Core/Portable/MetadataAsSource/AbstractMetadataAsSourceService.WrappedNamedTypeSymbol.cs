@@ -118,13 +118,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 return _members;
             }
 
-            public IEnumerable<string> MemberNames
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
+            public IEnumerable<string> MemberNames => throw new NotImplementedException();
 
             public override ImmutableArray<ISymbol> GetMembers(string name)
             {

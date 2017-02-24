@@ -35,10 +35,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 _title = title;
             }
 
-            public override string Title
-            {
-                get { return _title; }
-            }
+            public override string Title => _title;
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
