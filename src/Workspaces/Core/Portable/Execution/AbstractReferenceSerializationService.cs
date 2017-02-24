@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private readonly IDocumentationProviderService _documentationService;
 
         protected AbstractReferenceSerializationService(
-            ITemporaryStorageService storageService, 
+            ITemporaryStorageService storageService,
             IDocumentationProviderService documentationService)
         {
             _storageService = storageService;
@@ -265,9 +265,11 @@ namespace Microsoft.CodeAnalysis.Execution
                 // an alternative approach of this is synching content of xml doc comment to remote host as well
                 // so that we can put xml doc comment as part of snapshot. but until we believe that is necessary,
                 // it will go with simpler approach
+                var documentProvider = filePath != null && _documentationService != null ?
+                    _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
+
                 return new SerializedMetadataReference(
-                    properties, filePath, tuple.Value.metadata, tuple.Value.storages,
-                    _documentationService?.GetDocumentationProvider(filePath) ?? XmlDocumentationProvider.Default);
+                    properties, filePath, tuple.Value.metadata, tuple.Value.storages, documentProvider);
             }
 
             throw ExceptionUtilities.UnexpectedValue(kind);
