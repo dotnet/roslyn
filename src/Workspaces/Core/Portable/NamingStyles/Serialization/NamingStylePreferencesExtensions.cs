@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal static class NamingStylePreferencesExtensions
     {
-        public static NamingStylePreferences AppendNamingStylePreferencesToFront(this NamingStylePreferences original, NamingStylePreferences newPreferences)
+        public static NamingStylePreferences PrependNamingStylePreferences(this NamingStylePreferences original, NamingStylePreferences newPreferences)
         {
             var symbolSpecifications = original.SymbolSpecifications.InsertRange(0, newPreferences.SymbolSpecifications);
             var namingStyles = original.NamingStyles.InsertRange(0, newPreferences.NamingStyles);
