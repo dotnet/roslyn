@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
 
         private static bool IsMscorlib(Assembly assembly)
         {
-            return assembly.GetReferencedAssemblies().Length == 0 && assembly.GetType("System.Object") != null;
+            return assembly.GetReferencedAssemblies().Length == 0 && (object)assembly.GetType("System.Object") != null;
         }
 
         internal DkmClrModuleInstance FindClrModuleInstance(Guid mvid)

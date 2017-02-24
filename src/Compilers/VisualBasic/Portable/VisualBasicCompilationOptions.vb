@@ -210,11 +210,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          "_embedVbCoreRuntime and _suppressEmbeddedDeclarations are mutually exclusive")
         End Sub
 
-        Private Sub New(other As VisualBasicCompilationOptions)
+        Friend Sub New(other As VisualBasicCompilationOptions)
             MyClass.New(
                 outputKind:=other.OutputKind,
                 reportSuppressedDiagnostics:=other.ReportSuppressedDiagnostics,
-                moduleName:=other.ModuleName,
+                ModuleName:=other.ModuleName,
                 mainTypeName:=other.MainTypeName,
                 scriptClassName:=other.ScriptClassName,
                 globalImports:=other.GlobalImports,
@@ -247,6 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataImportOptions:=other.MetadataImportOptions,
                 referencesSupersedeLowerVersions:=other.ReferencesSupersedeLowerVersions,
                 publicSign:=other.PublicSign)
+            _ignoreCorLibraryDuplicatedTypes = other.IgnoreCorLibraryDuplicatedTypes
         End Sub
 
         Public Overrides ReadOnly Property Language As String
