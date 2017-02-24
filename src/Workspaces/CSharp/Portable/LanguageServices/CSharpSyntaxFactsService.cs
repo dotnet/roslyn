@@ -1597,6 +1597,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsVerbatimStringLiteral(SyntaxToken token)
             => token.IsVerbatimStringLiteral();
 
+        public bool IsNumericLiteral(SyntaxToken token)
+            => token.Kind() == SyntaxKind.NumericLiteralToken;
+
+        public bool IsCharacterLiteral(SyntaxToken token)
+            => token.Kind() == SyntaxKind.CharacterLiteralToken;
+
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
         {
             return ((invocationExpression as InvocationExpressionSyntax)?.ArgumentList.Arguments).Value;

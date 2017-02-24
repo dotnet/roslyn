@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -47,7 +49,18 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // CallThirdPartyExtensionsAsync will happen on the UI thread.  We need
             // this to maintain the threading guarantee we had around that method
             // from pre-Roslyn days.
-            var findReferencesProgress = await FindReferencesWorkerAsync(
+            var cancellationToken = context.CancellationToken;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // First, see if we're on a literal.  If so search for literals in the solution with
+            // the same value.
+            var found = await TryFindLiteralReferencesAsync(document, position, context).ConfigureAwait(true);
+            if (found)
+            {
+                return;
+            }
+
+            var findReferencesProgress = await FindSymbolReferencesAsync(
                 document, position, context).ConfigureAwait(true);
             if (findReferencesProgress == null)
             {
@@ -60,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 context.CancellationToken).ConfigureAwait(true);
         }
 
-        private async Task<ProgressAdapter> FindReferencesWorkerAsync(
+        private async Task<FindReferencesProgressAdapter> FindSymbolReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -80,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             context.SetSearchTitle(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol)));
 
-            var progressAdapter = new ProgressAdapter(project.Solution, context);
+            var progressAdapter = new FindReferencesProgressAdapter(project.Solution, context);
 
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
@@ -94,6 +107,72 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return progressAdapter;
+        }
+
+        private async Task<bool> TryFindLiteralReferencesAsync(
+            Document document, int position, IFindUsagesContext context)
+        {
+            var cancellationToken = context.CancellationToken;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var token = await syntaxTree.GetTouchingTokenAsync(
+                position,
+                t => syntaxFacts.IsNumericLiteral(t) ||
+                     syntaxFacts.IsCharacterLiteral(t) ||
+                     syntaxFacts.IsStringLiteral(t),
+                cancellationToken).ConfigureAwait(false);
+
+            if (token.RawKind == 0)
+            {
+                return false;
+            }
+
+            // Searching for decimals not supported currently.
+            var tokenValue = token.Value;
+            if (tokenValue == null || tokenValue is decimal)
+            {
+                return false;
+            }
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var symbol = semanticModel.GetSymbolInfo(token.Parent).Symbol ?? semanticModel.GetDeclaredSymbol(token.Parent);
+            if (symbol is ILabelSymbol)
+            {
+                return false;
+            }
+
+            // Use the literal to make the title.  Trim literal if it's too long.
+            var title = syntaxFacts.ConvertToSingleLine(token.Parent).ToString();
+            if (title.Length >= 10)
+            {
+                title = title.Substring(0, 10) + "...";
+            }
+
+            var searchTitle = string.Format(EditorFeaturesResources._0_references, title);
+            context.SetSearchTitle(searchTitle);
+
+            var solution = document.Project.Solution;
+
+            // There will only be one 'definition' that all matching literal reference.
+            // So just create it now and report to the context what it is.
+            var definition = DefinitionItem.CreateNonNavigableItem(
+                ImmutableArray.Create(TextTags.StringLiteral),
+                ImmutableArray.Create(new TaggedText(TextTags.Text, searchTitle)));
+
+            await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
+
+            var progressAdapter = new FindLiteralsProgressAdapter(context, definition);
+
+            // Now call into the underlying FAR engine to find reference.  The FAR
+            // engine will push results into the 'progress' instance passed into it.
+            // We'll take those results, massage them, and forward them along to the 
+            // FindUsagesContext instance we were given.
+            await SymbolFinder.FindLiteralReferencesAsync(
+                tokenValue, solution, progressAdapter, cancellationToken).ConfigureAwait(false);
+
+            return true;
         }
     }
 }
