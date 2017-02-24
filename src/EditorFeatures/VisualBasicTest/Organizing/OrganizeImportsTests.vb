@@ -12,9 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
         Private Async Function CheckAsync(initial As XElement, final As XElement, Optional placeSystemNamespaceFirst As Boolean = False) As Task
             Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initial.NormalizedValue)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
-                Dim workspaceOptions = workspace.Options
-                Dim newOptionSet = workspaceOptions.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
-                workspace.Options = newOptionSet
+                workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
                 Dim newRoot = Await (Await OrganizeImportsService.OrganizeImportsAsync(document)).GetSyntaxRootAsync()
                 Assert.Equal(final.NormalizedValue, newRoot.ToFullString())
             End Using

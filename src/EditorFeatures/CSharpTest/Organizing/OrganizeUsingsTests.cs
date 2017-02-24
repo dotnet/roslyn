@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             using (var workspace = await TestWorkspace.CreateCSharpAsync(initial))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-                var workspaceOptions = workspace.Options;
-                var newOptionSet = workspaceOptions.WithChangedOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst);
-                workspace.Options = newOptionSet;
+                workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst);
                 var newRoot = await (await OrganizeImportsService.OrganizeImportsAsync(document)).GetSyntaxRootAsync();
                 Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
             }

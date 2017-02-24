@@ -3,7 +3,6 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
@@ -12,7 +11,6 @@ using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Organizing;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;

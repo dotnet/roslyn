@@ -1,10 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.OrganizeImports
-Imports System.Composition
-Imports Microsoft.CodeAnalysis.Editing
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
     <ExportLanguageService(GetType(IOrganizeImportsService), LanguageNames.VisualBasic), [Shared]>
@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
                                         cancellationToken As CancellationToken) As Task(Of Document) Implements IOrganizeImportsService.OrganizeImportsAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim options = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
-            Dim placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language)
+            Dim placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst)
             Dim rewriter = New Rewriter(placeSystemNamespaceFirst)
             Dim newRoot = rewriter.Visit(root)
             Return document.WithSyntaxRoot(newRoot)
