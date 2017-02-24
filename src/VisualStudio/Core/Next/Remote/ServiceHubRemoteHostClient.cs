@@ -1,21 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
@@ -121,6 +124,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             const int max_retry = 10;
             const int retry_delayInMS = 50;
 
+            Exception lastException = null;
+
+            var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
+
             // call to get service can fail due to this bug - devdiv#288961
             // until root cause is fixed, we decide to have retry rather than fail right away
             for (var i = 0; i < max_retry; i++)
@@ -129,22 +136,80 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 try
                 {
-                    var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
                     return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
                 }
                 catch (RemoteInvocationException ex)
                 {
-                    // RequestServiceAsync should never fail unless service itself is actually broken.
-                    // right now, we know only 1 case where it can randomly fail. but there might be more cases so 
-                    // adding non fatal watson here.
-                    FatalError.ReportWithoutCrash(ex);
+                    // save info only if it failed with different issue than before.
+                    if (lastException?.Message != ex.Message)
+                    {
+                        // RequestServiceAsync should never fail unless service itself is actually broken.
+                        // So far, we catched multiple issues from this NFW. so we will keep this NFW.
+                        WatsonReporter.Report("RequestServiceAsync Failed", ex, ReportDetailInfo);
+
+                        lastException = ex;
+                    }
                 }
 
                 // wait for retry_delayInMS before next try
                 await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
             }
 
-            return Contract.FailWithReturn<Stream>("Fail to get service. look FatalError.s_reportedException for more detail");
+            // crash right away to get better dump. otherwise, we will get dump from async exception
+            // which most likely lost all valuable data
+            FatalError.ReportUnlessCanceled(lastException);
+            GC.KeepAlive(lastException);
+
+            // unreachable
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        private static int ReportDetailInfo(IFaultUtility faultUtility)
+        {
+            // 0 means send watson, otherwise, cancel watson
+            // we always send watson since dump itself can have valuable data
+            var exitCode = 0;
+
+            try
+            {
+                var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
+                if (!Directory.Exists(logPath))
+                {
+                    return exitCode;
+                }
+
+                // attach all log files that are modified less than 1 day before.
+                var now = DateTime.UtcNow;
+                var oneDay = TimeSpan.FromDays(1);
+
+                foreach (var file in Directory.EnumerateFiles(logPath, "*.log"))
+                {
+                    var lastWrite = File.GetLastWriteTimeUtc(file);
+                    if (now - lastWrite > oneDay)
+                    {
+                        continue;
+                    }
+
+                    faultUtility.AddFile(file);
+                }
+            }
+            catch (Exception ex) when (ReportNonIOException(ex))
+            {
+            }
+
+            return exitCode;
+        }
+
+        private static bool ReportNonIOException(Exception ex)
+        {
+            // IOException is expected. log other exceptions
+            if (!(ex is IOException))
+            {
+                WatsonReporter.Report(ex);
+            }
+
+            // catch all exception. not worth crashing VS.
+            return true;
         }
     }
 }
