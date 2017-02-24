@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Options
             }
             else if (type == typeof(CodeStyleOption<bool>))
             {
-                return ParseEditorConfigCodeStyleOption(s);
+                var value = CodeStyleOption<bool>.Default;
+                return TryParseEditorConfigCodeStyleOption(s, out value) ? value : null;
             }
             else
             {
