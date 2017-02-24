@@ -168,7 +168,7 @@ public class D
     end operator
     public shared operator&(string s, D d) as boolean
     end operator
-end class 
+end class
 
 Public Class C
     Sub M()
@@ -182,7 +182,7 @@ public class D
     end operator
     public shared operator&(string s, D d) as boolean
     end operator
-end class 
+end class
 
 Public Class C
     Sub M()
@@ -201,12 +201,68 @@ public class D
     end operator
     public shared operator&(string s, D d) as boolean
     end operator
-end class 
+end class
 
 Public Class C
     Sub M()
         dim d as D = nothing
         dim v = d & [||]""string"" & 1
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestWithMultipleStringConcatinations() As Task
+            Await TestAsync(
+"
+Public Class C
+    Sub M()
+        dim v = ""A"" & 1 & [||]""B"" & ""C""
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim v = $""A{1}BC""
+    End Sub
+End Class")
+        End Function
+
+
+        <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestWithMultipleStringConcatinations2() As Task
+            Await TestAsync(
+"
+Public Class C
+    Sub M()
+        dim v = ""A"" & [||]""B"" & ""C"" & 1
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim v = $""ABC{1}""
+    End Sub
+End Class")
+        End Function
+
+
+        <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestWithMultipleStringConcatinations3() As Task
+            Await TestAsync(
+"
+Public Class C
+    Sub M()
+        dim v = ""A"" & 1 & [||]""B"" & ""C"" & 2 & ""D"" & ""E"" & ""F"" & 3  
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim v = $""A{1}BC{2}DEF{3}""
     End Sub
 End Class")
         End Function
