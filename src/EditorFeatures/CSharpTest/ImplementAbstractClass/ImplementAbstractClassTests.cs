@@ -1499,7 +1499,6 @@ namespace My
 }",
 @"// Copyright ...
 
-using System;
 using System.Collections.Generic;
 using Microsoft.Win32;
 
@@ -1514,7 +1513,7 @@ namespace My
     {
         public override void Bar(List<object> values)
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }", compareTokens: false);

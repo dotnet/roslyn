@@ -3458,7 +3458,9 @@ class A<T>
     {
     }
 }",
-@"class A<T>
+@"using System;
+
+class A<T>
 {
     class B
     {
@@ -3540,9 +3542,7 @@ class A<T>
     {
     }
 }",
-@"using System;
-
-class A<T>
+@"class A<T>
 {
     class B
     {
@@ -3770,7 +3770,8 @@ interface IFoo
 public class C : [|IFoo|]
 {
 }",
-@"using System.Runtime.CompilerServices;
+@"using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 interface IFoo
@@ -3880,8 +3881,7 @@ interface IFoo
 public class C : [|IFoo|]
 {
 }",
-@"using System;
-using System.Runtime.CompilerServices;
+@"using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 interface IFoo
