@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <returns></returns>
         public static ObjectPool<PooledStringBuilder> CreatePool(int size = 32)
         {
-            const int lower_bound = 32;
-            const int upper_bound = 256;
+            const int LowerBound = 32;
+            const int UpperBound = 256;
             ObjectPool<PooledStringBuilder> pool = null;
-            size = (size < lower_bound ? lower_bound: (size > upper_bound ? upper_bound : size));
+            size = (size < LowerBound ? LowerBound: (size > UpperBound ? UpperBound : size));
             pool = new ObjectPool<PooledStringBuilder>(() => new PooledStringBuilder(pool), size);
             return pool;
         }
