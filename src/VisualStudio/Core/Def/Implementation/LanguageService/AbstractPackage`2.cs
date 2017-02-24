@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 // start remote host
                 EnableRemoteHostClientService();
 
-                Workspace.AdviseSolutionEvents(GetService(typeof(SVsSolution)) as IVsSolution);
+                Workspace.AdviseSolutionEvents((IVsSolution)GetService(typeof(SVsSolution)));
             }
 
             // Ensure services that must be created on the UI thread have been.
