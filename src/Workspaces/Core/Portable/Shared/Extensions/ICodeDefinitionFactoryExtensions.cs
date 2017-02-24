@@ -15,21 +15,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ICodeDefinitionFactoryExtensions
     {
-        public static SyntaxNode CreateThrowNotImplementStatement(
+        public static SyntaxNode CreateThrowNotImplementedStatement(
             this SyntaxGenerator codeDefinitionFactory,
             Compilation compilation)
         {
             return codeDefinitionFactory.ThrowStatement(
-                codeDefinitionFactory.ObjectCreationExpression(
-                    compilation.NotImplementedExceptionType(),
-                    SpecializedCollections.EmptyList<SyntaxNode>()));
+               codeDefinitionFactory.ObjectCreationExpression(
+                   codeDefinitionFactory.TypeExpression(compilation.NotImplementedExceptionType(), addImport: false),
+                   SpecializedCollections.EmptyList<SyntaxNode>()));
         }
 
         public static IList<SyntaxNode> CreateThrowNotImplementedStatementBlock(
             this SyntaxGenerator codeDefinitionFactory,
             Compilation compilation)
         {
-            return new[] { CreateThrowNotImplementStatement(codeDefinitionFactory, compilation) };
+            return new[] { CreateThrowNotImplementedStatement(codeDefinitionFactory, compilation) };
         }
 
         public static IList<SyntaxNode> CreateArguments(
@@ -223,8 +223,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (overriddenProperty.IsAbstract)
             {
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                getBody = codeFactory.CreateThrowNotImplementStatement(compilation);
-                setBody = getBody;
+                var statement = codeFactory.CreateThrowNotImplementedStatement(compilation);
+
+                getBody = statement;
+                setBody = statement;
             }
             else if (overriddenProperty.IsIndexer() && document.Project.Language == LanguageNames.CSharp)
             {
@@ -361,11 +363,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (overriddenMethod.IsAbstract)
             {
                 var compilation = await newDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var statement = codeFactory.CreateThrowNotImplementedStatement(compilation);
+
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenMethod,
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
-                    statements: new[] { codeFactory.CreateThrowNotImplementStatement(compilation) });
+                    statements: new[] { statement });
             }
             else
             {

@@ -22,6 +22,7 @@ Microsoft.CodeAnalysis.DocumentActiveContextChangedEventArgs.OldActiveContextDoc
 Microsoft.CodeAnalysis.DocumentActiveContextChangedEventArgs.Solution.get -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.DocumentActiveContextChangedEventArgs.SourceTextContainer.get -> Microsoft.CodeAnalysis.Text.SourceTextContainer
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TypeExpression(Microsoft.CodeAnalysis.ITypeSymbol typeSymbol, bool addImport) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Options.DocumentOptionSet
 Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option) -> T
 Microsoft.CodeAnalysis.Options.IOption.StorageLocations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Options.OptionStorageLocation>
