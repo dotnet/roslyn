@@ -865,6 +865,7 @@ class Program
             Assert.Equal("System.Int32?", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("System.Int32?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.False(model.GetConstantValue(def).HasValue);
             Assert.True(model.GetConversion(def).IsNullLiteral);
         }
 
@@ -1067,11 +1068,19 @@ class C
             Assert.Equal("System.Int16", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Null(model.GetDeclaredSymbol(def));
+            Assert.Equal("System.Int16", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.Equal((short)0, model.GetConstantValue(def).Value);
+            Assert.True(model.GetConversion(def).IsIdentity);
 
-            var conversion = nodes.OfType<CastExpressionSyntax>().Single();
-            var conversionTypeInfo = model.GetTypeInfo(conversion);
+            var conversionSyntax = nodes.OfType<CastExpressionSyntax>().Single();
+            var conversionTypeInfo = model.GetTypeInfo(conversionSyntax);
             Assert.Equal("System.Int16", conversionTypeInfo.Type.ToTestDisplayString());
             Assert.Equal("System.Int32", conversionTypeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal((short)0, model.GetConstantValue(conversionSyntax).Value);
+            Conversion conversion = model.GetConversion(conversionSyntax);
+            Assert.True(conversion.IsNumeric);
+            Assert.True(conversion.IsImplicit);
         }
 
         [Fact]
