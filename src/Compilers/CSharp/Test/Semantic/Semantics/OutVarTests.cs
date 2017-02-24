@@ -215,11 +215,11 @@ public class Cls
 
             var x1Decl = GetDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
-            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x1Decl, x1Ref);
 
             var x2Decl = GetDeclaration(tree, "x2");
             var x2Ref = GetReference(tree, "x2");
-            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -271,11 +271,11 @@ public class Cls
 
             var x1Decl = GetDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
-            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x1Decl, x1Ref);
 
             var x2Decl = GetDeclaration(tree, "x2");
             var x2Ref = GetReference(tree, "x2");
-            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -337,15 +337,15 @@ public class Cls
 
             var x1Decl = GetDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
-            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x1Decl, x1Ref);
 
             var x2Decl = GetDeclaration(tree, "x2");
             var x2Ref = GetReference(tree, "x2");
-            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x2Decl, x2Ref);
 
             var x3Decl = GetDeclaration(tree, "x3");
             var x3Ref = GetReference(tree, "x3");
-            VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref);
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x3Decl, x3Ref);
         }
 
         [Fact]
@@ -927,6 +927,11 @@ public class Cls
             VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: false, verifyDataFlow: false, references: references);
         }
 
+        private static void VerifyModelForDeclarationVarWithoutDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
+        {
+            VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: false, verifyDataFlow: false, expectedLocalKind: LocalDeclarationKind.DeclarationExpressionVariable, references: references);
+        }
+
         private static void VerifyModelForOutVar(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
         {
             VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: false, verifyDataFlow: true, references: references);
@@ -954,6 +959,7 @@ public class Cls
             bool isExecutableCode,
             bool isShadowed,
             bool verifyDataFlow = true,
+            LocalDeclarationKind expectedLocalKind = LocalDeclarationKind.OutVariable,
             params IdentifierNameSyntax[] references)
         {
             var variableDeclaratorSyntax = GetVariableDesignation(decl);
@@ -961,7 +967,7 @@ public class Cls
             Assert.NotNull(symbol);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDeclaratorSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
-            Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Equal(expectedLocalKind, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
 
             var other = model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single();
@@ -1089,7 +1095,7 @@ public class Cls
             var symbol = model.GetDeclaredSymbol(variableDesignationSyntax);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDesignationSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
-            Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Equal(LocalDeclarationKind.OutVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDesignationSyntax));
             Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single());
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));

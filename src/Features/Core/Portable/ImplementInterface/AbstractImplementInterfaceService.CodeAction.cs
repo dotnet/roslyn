@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var useExplicitInterfaceSymbol = generateInvisibly || !Service.CanImplementImplicitly;
                 var accessibility = member.Name == memberName || generateAbstractly
-                    ? Accessibility.Public 
+                    ? Accessibility.Public
                     : Accessibility.Private;
 
                 if (member.Kind == SymbolKind.Method)
@@ -413,11 +413,32 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                         modifiers: modifiers,
                         explicitInterfaceSymbol: useExplicitInterfaceSymbol ? @event : null,
                         name: memberName,
-                        addMethod: generateInvisibly ? accessor : null,
-                        removeMethod: generateInvisibly ? accessor : null);
+                        addMethod: GetAddOrRemoveMethod(generateInvisibly, accessor, memberName, factory.AddEventHandler),
+                        removeMethod: GetAddOrRemoveMethod(generateInvisibly, accessor, memberName, factory.RemoveEventHandler));
                 }
 
                 return null;
+            }
+
+            private IMethodSymbol GetAddOrRemoveMethod(bool generateInvisibly,
+                                                       IMethodSymbol accessor,
+                                                       string memberName,
+                                                       Func<SyntaxNode, SyntaxNode, SyntaxNode> createAddOrRemoveHandler)
+            {
+                if (ThroughMember != null)
+                {
+                    var factory = Document.GetLanguageService<SyntaxGenerator>();
+                    var throughExpression = CreateThroughExpression(factory);
+                    var statement = factory.ExpressionStatement(createAddOrRemoveHandler(
+                        factory.MemberAccessExpression(throughExpression, memberName), factory.IdentifierName("value")));
+
+                    return CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                           attributes: null,
+                           accessibility: Accessibility.NotApplicable,
+                           statements: SpecializedCollections.SingletonList(statement));
+                }
+
+                return generateInvisibly ? accessor : null;
             }
 
             private SyntaxNode CreateThroughExpression(SyntaxGenerator factory)
