@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Instrument(node, result) Then
-                result = _instrumenter.InstrumentRaiseEventStatement(node, result)
+                result = _instrumenterOpt.InstrumentRaiseEventStatement(node, result)
             End If
 
             Return result

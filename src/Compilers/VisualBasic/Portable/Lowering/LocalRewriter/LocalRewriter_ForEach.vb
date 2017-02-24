@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Instrument(node) Then
                 ' first sequence point to highlight the for each statement
-                boundCollectionAssignment = _instrumenter.InstrumentForEachLoopInitialization(node, boundCollectionAssignment)
+                boundCollectionAssignment = _instrumenterOpt.InstrumentForEachLoopInitialization(node, boundCollectionAssignment)
             End If
 
             statements.Add(boundCollectionAssignment)
@@ -435,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Instrument(forEachStatement) Then
-                epilogue = _instrumenter.InstrumentForEachLoopEpilogue(forEachStatement, epilogue)
+                epilogue = _instrumenterOpt.InstrumentForEachLoopEpilogue(forEachStatement, epilogue)
             End If
 
             If epilogue IsNot Nothing Then
@@ -577,7 +577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Instrument(node) Then
                 ' first sequence point; highlight for each statement
-                boundEnumeratorAssignment = _instrumenter.InstrumentForEachLoopInitialization(node, boundEnumeratorAssignment)
+                boundEnumeratorAssignment = _instrumenterOpt.InstrumentForEachLoopInitialization(node, boundEnumeratorAssignment)
             End If
 
             Debug.Assert(enumeratorInfo.EnumeratorPlaceholder IsNot Nothing)
@@ -614,7 +614,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Instrument(node) Then
-                bodyEpilogue = _instrumenter.InstrumentForEachLoopEpilogue(node, bodyEpilogue)
+                bodyEpilogue = _instrumenterOpt.InstrumentForEachLoopEpilogue(node, bodyEpilogue)
             End If
 
             rewrittenBodyBlock = AppendToBlock(rewrittenBodyBlock, bodyEpilogue)
