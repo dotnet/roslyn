@@ -46,10 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
             get { return ImmutableArray.Create(CS0103, CS0104, CS0246, CS0305, CS0308); }
         }
 
-        protected override bool IgnoreCase
-        {
-            get { return false; }
-        }
+        protected override bool IgnoreCase => false;
 
         protected override bool CanFullyQualify(Diagnostic diagnostic, ref SyntaxNode node)
         {

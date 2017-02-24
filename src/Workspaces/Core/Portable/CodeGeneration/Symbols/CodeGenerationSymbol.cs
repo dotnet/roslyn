@@ -67,61 +67,19 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public abstract SymbolKind Kind { get; }
 
-        public string Language
-        {
-            get
-            {
-                return "Code Generation Agnostic Language";
-            }
-        }
+        public string Language => "Code Generation Agnostic Language";
 
-        public ISymbol ContainingSymbol
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public ISymbol ContainingSymbol => null;
 
-        public IAssemblySymbol ContainingAssembly
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public IAssemblySymbol ContainingAssembly => null;
 
-        public IMethodSymbol ContainingMethod
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public IMethodSymbol ContainingMethod => null;
 
-        public IModuleSymbol ContainingModule
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public IModuleSymbol ContainingModule => null;
 
-        public INamespaceSymbol ContainingNamespace
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public INamespaceSymbol ContainingNamespace => null;
 
-        public bool IsDefinition
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool IsDefinition => true;
 
         public bool IsStatic
         {
@@ -163,29 +121,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public bool IsExtern
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsExtern => false;
 
-        public bool IsImplicitlyDeclared
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsImplicitlyDeclared => false;
 
-        public bool CanBeReferencedByName
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool CanBeReferencedByName => true;
 
         public ImmutableArray<Location> Locations
         {
@@ -279,13 +219,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public bool HasUnsupportedMetadata
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool HasUnsupportedMetadata => false;
 
         public bool Equals(ISymbol other)
         {

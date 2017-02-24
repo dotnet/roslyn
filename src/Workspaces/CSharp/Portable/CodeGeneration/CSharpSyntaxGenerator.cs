@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     {
         internal override SyntaxTrivia CarriageReturnLineFeed => SyntaxFactory.CarriageReturnLineFeed;
 
+        internal override SyntaxTrivia EndOfLine(string text)
+            => SyntaxFactory.EndOfLine(text);
+
         public static readonly SyntaxGenerator Instance = new CSharpSyntaxGenerator();
 
         #region Declarations

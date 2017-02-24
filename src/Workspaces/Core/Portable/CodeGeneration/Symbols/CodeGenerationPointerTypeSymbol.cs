@@ -20,21 +20,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return new CodeGenerationPointerTypeSymbol(this.PointedAtType);
         }
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return TypeKind.Pointer;
-            }
-        }
+        public override TypeKind TypeKind => TypeKind.Pointer;
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.PointerType;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.PointerType;
 
         public override void Accept(SymbolVisitor visitor)
         {
