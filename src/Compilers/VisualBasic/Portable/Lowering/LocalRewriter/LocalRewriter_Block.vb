@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 Dim synthesizedLocal As LocalSymbol = Nothing
-                Dim prologue As BoundStatement = _instrumenter.CreateBlockPrologue(original, node, synthesizedLocal)
+                Dim prologue As BoundStatement = _instrumenterOpt.CreateBlockPrologue(original, node, synthesizedLocal)
                 If prologue IsNot Nothing Then
                     builder.Insert(0, prologue)
                 End If

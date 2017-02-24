@@ -570,7 +570,7 @@ class C
             var tree2 = await document.GetSyntaxTreeAsync();
             var basemethod2 = tree2.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<CSharp.Syntax.BaseMethodDeclarationSyntax>();
 
-            var service = new CSharp.CSharpSemanticFactsService();
+            var service = CSharp.CSharpSemanticFactsService.Instance;
             var m = service.TryGetSpeculativeSemanticModel(firstModel, basemethod1, basemethod2, out var testModel);
 
             var xSymbol = testModel.LookupSymbols(position).First(s => s.Name == "x");

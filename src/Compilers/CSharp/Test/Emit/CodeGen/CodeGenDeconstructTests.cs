@@ -2395,7 +2395,7 @@ Deconstructing (1, hello)
 
         private static void VerifyModelForDeconstructionLocal(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.RegularVariable, references);
+            VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.DeconstructionVariable, references);
         }
 
         private static void VerifyModelForLocal(SemanticModel model, SingleVariableDesignationSyntax decl, LocalDeclarationKind kind, params IdentifierNameSyntax[] references)
@@ -5850,7 +5850,7 @@ class Program
             var x2Ref = GetReference(tree, "x2");
             Assert.Equal("string[]", model.GetTypeInfo(x2Ref).Type.ToDisplayString());
 
-            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref);
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.OutVariable, x1Ref);
             VerifyModelForLocal(model, x2, LocalDeclarationKind.PatternVariable, x2Ref);
         }
 
@@ -5884,7 +5884,7 @@ class Program
             var x1Ref = GetReference(tree, "x1");
             Assert.Equal("int", model.GetTypeInfo(x1Ref).Type.ToDisplayString());
 
-            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref);
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.OutVariable, x1Ref);
         }
 
         [Fact]
@@ -5925,7 +5925,7 @@ class Program
             var x2Ref = GetReferences(tree, "x2");
             Assert.Equal("string[]", model.GetTypeInfo(x2Ref.First()).Type.ToDisplayString());
 
-            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref.ToArray());
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.OutVariable, x1Ref.ToArray());
             VerifyModelForLocal(model, x2, LocalDeclarationKind.PatternVariable, x2Ref.ToArray());
         }
 
@@ -5974,8 +5974,8 @@ class C
             var x2Ref = GetReference(tree, "x2");
             Assert.Equal("string", model.GetTypeInfo(x2Ref).Type.ToDisplayString());
 
-            VerifyModelForDeconstructionLocal(model, x1, x1Ref);
-            VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+            VerifyModelForDeconstruction(model, x1, LocalDeclarationKind.DeclarationExpressionVariable, x1Ref);
+            VerifyModelForDeconstruction(model, x2, LocalDeclarationKind.DeclarationExpressionVariable, x2Ref);
         }
 
         [Fact]
@@ -6159,7 +6159,235 @@ public class MyClass
                 // (9,18): error CS8186: A foreach loop must declare its iteration variables.
                 //         foreach ((arr[out int size], int b) in data) {}
                 Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(arr[out int size], int b)").WithLocation(9, 18)
+                );
+        }
+        
+        [Fact]
+        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        public void Events_01()
+        {
+            string source = @"
+class C
+{
+    static event System.Action E;
 
+    static void Main()
+    {
+        (E, _) = (null, 1);
+        System.Console.WriteLine(E == null);
+        (E, _) = (Handler, 1);
+        E();
+    }
+
+    static void Handler()
+    {
+        System.Console.WriteLine(""Handler"");
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput:
+@"True
+Handler", additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        public void Events_02()
+        {
+            string source = @"
+struct S
+{
+    event System.Action E;
+
+    class C
+    {
+        static void Main()
+        {
+            var s = new S();
+            (s.E, _) = (null, 1);
+            System.Console.WriteLine(s.E == null);
+            (s.E, _) = (Handler, 1);
+            s.E();
+        }
+
+        static void Handler()
+        {
+            System.Console.WriteLine(""Handler"");
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput:
+@"True
+Handler", additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        public void Events_03()
+        {
+            string source1 = @"
+public interface EventInterface
+{
+	event System.Action E;
+}
+";
+
+            var comp1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular);
+
+            string source2 = @"
+class C : EventInterface
+{
+    public event System.Action E;
+
+    static void Main()
+    {
+        var c = new C();
+        c.Test();
+    }
+
+    void Test()
+    {
+        (E, _) = (null, 1);
+        System.Console.WriteLine(E == null);
+        (E, _) = (Handler, 1);
+        E();
+    }
+
+    static void Handler()
+    {
+        System.Console.WriteLine(""Handler"");
+    }
+}
+";
+
+            var comp2 = CompileAndVerify(source2, expectedOutput:
+@"True
+Handler", additionalRefs: WinRtRefs.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference() }));
+            comp2.VerifyDiagnostics();
+
+            Assert.True(comp2.Compilation.GetMember<EventSymbol>("C.E").IsWindowsRuntimeEvent);
+        }
+
+        [Fact]
+        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        public void Events_04()
+        {
+            string source1 = @"
+public interface EventInterface
+{
+	event System.Action E;
+}
+";
+
+            var comp1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular);
+
+            string source2 = @"
+struct S : EventInterface
+{
+    public event System.Action E;
+
+    class C
+    {
+        S s = new S();
+
+        static void Main()
+        {
+            var c = new C();
+            (GetC(c).s.E, _) = (null, GetInt(1));
+            System.Console.WriteLine(c.s.E == null);
+            (GetC(c).s.E, _) = (Handler, GetInt(2));
+            c.s.E();
+        }
+
+        static int GetInt(int i)
+        {
+            System.Console.WriteLine(i);
+            return i;
+        }
+
+        static C GetC(C c)
+        {
+            System.Console.WriteLine(""GetC"");
+            return c;
+        }
+
+        static void Handler()
+        {
+            System.Console.WriteLine(""Handler"");
+        }
+    }
+}
+";
+
+            var comp2 = CompileAndVerify(source2, expectedOutput:
+@"GetC
+1
+True
+GetC
+2
+Handler", additionalRefs: WinRtRefs.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference() }));
+            comp2.VerifyDiagnostics();
+
+            Assert.True(comp2.Compilation.GetMember<EventSymbol>("S.E").IsWindowsRuntimeEvent);
+        }
+
+        [Fact]
+        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        public void Events_05()
+        {
+            string source = @"
+class C
+{
+    public static event System.Action E;
+}
+
+class Program
+{
+    static void Main()
+    {
+        (C.E, _) = (null, 1);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            compilation.VerifyDiagnostics(
+                // (11,12): error CS0070: The event 'C.E' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                //         (C.E, _) = (null, 1);
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "E").WithArguments("C.E", "C").WithLocation(11, 12)
+                );
+        }
+
+        [Fact]
+        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        public void Events_06()
+        {
+            string source = @"
+class C
+{
+    static event System.Action E
+    {
+        add {}
+        remove {}
+    }
+
+    static void Main()
+    {
+        (E, _) = (null, 1);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            compilation.VerifyDiagnostics(
+                // (12,10): error CS0079: The event 'C.E' can only appear on the left hand side of += or -=
+                //         (E, _) = (null, 1);
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E").WithArguments("C.E").WithLocation(12, 10)
                 );
         }
 

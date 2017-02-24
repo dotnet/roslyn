@@ -334,5 +334,32 @@ class Program
     }
 }", compareTokens: false);
         }
+
+        [WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestInExpressionOfT()
+        {
+            await TestAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void Main(string s, string y)
+    {
+        Expression<Func<string>> e = () => [||]s != null ? s : y;
+    }
+}",
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void Main(string s, string y)
+    {
+        Expression<Func<string>> e = () => {|Warning:s ?? y|};
+    }
+}");
+        }
     }
 }

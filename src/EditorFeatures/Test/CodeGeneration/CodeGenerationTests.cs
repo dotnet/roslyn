@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             DeclarationModifiers modifiers = default(DeclarationModifiers),
             IList<Func<SemanticModel, IParameterSymbol>> parameters = null,
             Type type = null,
-            IEventSymbol explicitInterfaceSymbol = null,
+            Func<SemanticModel, IEventSymbol> explicitInterfaceSymbol = null,
             IMethodSymbol addMethod = null,
             IMethodSymbol removeMethod = null,
             IMethodSymbol raiseMethod = null,
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     accessibility,
                     modifiers,
                     typeSymbol,
-                    explicitInterfaceSymbol,
+                    explicitInterfaceSymbol?.Invoke(context.SemanticModel),
                     name,
                     addMethod,
                     removeMethod,
@@ -669,12 +669,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 null, accessibility, modifiers, GetTypeSymbol(type)(s), name);
         }
 
-        private static Func<SemanticModel, ITypeSymbol> GetTypeSymbol(Type type)
+        private static Func<SemanticModel, INamedTypeSymbol> GetTypeSymbol(Type type)
         {
             return GetTypeSymbol(type.FullName);
         }
 
-        private static Func<SemanticModel, ITypeSymbol> GetTypeSymbol(string typeMetadataName)
+        private static Func<SemanticModel, INamedTypeSymbol> GetTypeSymbol(string typeMetadataName)
         {
             return s => s == null ? null : s.Compilation.GetTypeByMetadataName(typeMetadataName);
         }

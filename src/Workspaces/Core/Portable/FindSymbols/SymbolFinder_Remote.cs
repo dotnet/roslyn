@@ -93,14 +93,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // the 'progress' parameter which will then update the UI.
             var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
 
-            using (var session = await client.CreateCodeAnalysisServiceSessionAsync(
-                solution, serverCallback, cancellationToken).ConfigureAwait(false))
-            {
-                await session.InvokeAsync(
-                    nameof(IRemoteSymbolFinder.FindReferencesAsync),
-                    SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
-                    documents?.Select(d => d.Id).ToArray()).ConfigureAwait(false);
-            }
+            await client.RunCodeAnalysisServiceOnRemoteHostAsync(
+                solution, serverCallback,
+                nameof(IRemoteSymbolFinder.FindReferencesAsync),
+                new object[] { SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId), documents?.Select(d => d.Id).ToArray() },
+                cancellationToken).ConfigureAwait(false);
         }
 
         internal static Task FindLiteralReferencesInCurrentProcessAsync(

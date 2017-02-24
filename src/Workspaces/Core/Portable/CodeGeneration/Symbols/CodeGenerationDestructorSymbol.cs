@@ -25,13 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
         }
 
-        public override MethodKind MethodKind
-        {
-            get
-            {
-                return MethodKind.Destructor;
-            }
-        }
+        public override MethodKind MethodKind => MethodKind.Destructor;
 
         protected override CodeGenerationSymbol Clone()
         {

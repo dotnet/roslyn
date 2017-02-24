@@ -39,18 +39,12 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// The <see cref="Document"/> specified when the editor was first created.
         /// </summary>
-        public Document OriginalDocument
-        {
-            get { return _document; }
-        }
+        public Document OriginalDocument => _document;
 
         /// <summary>
         /// The <see cref="CodeAnalysis.SemanticModel"/> of the original document.
         /// </summary>
-        public SemanticModel SemanticModel
-        {
-            get { return _model; }
-        }
+        public SemanticModel SemanticModel => _model;
 
         /// <summary>
         /// Returns the changed <see cref="Document"/>.
