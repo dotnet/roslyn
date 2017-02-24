@@ -816,9 +816,12 @@ namespace Microsoft.CodeAnalysis
                     newSolution = newSolution.WithDocumentSourceCodeKind(documentId, newInfo.SourceCodeKind);
                 }
 
-                SetCurrentSolution(newSolution);
+                if (newSolution != oldSolution)
+                {
+                    SetCurrentSolution(newSolution);
 
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentInfoChanged, oldSolution, newSolution, documentId: documentId);
+                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentInfoChanged, oldSolution, newSolution, documentId: documentId);
+                }
             }
         }
 
@@ -1125,7 +1128,14 @@ namespace Microsoft.CodeAnalysis
                 throw new NotSupportedException(WorkspacesResources.Removing_documents_is_not_supported);
             }
 
-            if (projectChanges.GetChangedDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.ChangeDocument))
+            if (!this.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo)
+                && projectChanges.GetChangedDocuments().Any(id => projectChanges.NewProject.GetDocument(id).HasInfoChanged(projectChanges.OldProject.GetDocument(id))))
+            {
+                throw new NotSupportedException(WorkspacesResources.Changing_document_property_is_not_supported);
+            }
+
+            if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument)
+                && projectChanges.GetChangedDocuments().Any(id => projectChanges.NewProject.GetDocument(id).HasContentChanged(projectChanges.OldProject.GetDocument(id))))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_documents_is_not_supported);
             }
