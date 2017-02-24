@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis
         String,
         Decimal,
         DateTime,
-        DefaultLiteral,
     }
 
     internal abstract partial class ConstantValue : IEquatable<ConstantValue>

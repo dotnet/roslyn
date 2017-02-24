@@ -57,6 +57,7 @@ class C
             Assert.Equal("System.Int32", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Equal("0", model.GetConstantValue(def).Value.ToString());
+            Assert.True(model.GetConversion(def).IsNullLiteral);
         }
 
         [Fact]
@@ -126,6 +127,7 @@ struct S
             Assert.Equal("S", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.False(model.GetConstantValue(def).HasValue);
+            Assert.True(model.GetConversion(def).IsNullLiteral);
         }
 
         [Fact]
@@ -153,6 +155,7 @@ class C
             Assert.Equal("T", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.False(model.GetConstantValue(def).HasValue);
+            Assert.True(model.GetConversion(def).IsNullLiteral);
         }
 
         [Fact]
@@ -862,6 +865,7 @@ class Program
             Assert.Equal("System.Int32?", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("System.Int32?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.True(model.GetConversion(def).IsNullLiteral);
         }
 
         [Fact]

@@ -4971,6 +4971,49 @@ namespace ConsoleApplication1
                 expectedOutput: expectedOutput);
         }
 
+        [Fact]
+        public void EnumEqualityWithDefault()
+        {
+            string source =
+@"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication1
+{
+    enum YesNo
+    {
+        Yes,
+        No
+    }
+
+    class MyType
+    {
+        public string Name { get; set; }
+        public YesNo? YesNo { get; set; }
+
+        public int? Age { get; set; }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            Expression<Func<MyType, bool>> expr = (MyType x) => x.YesNo == (YesNo?)default;
+            Console.WriteLine(expr.Dump());
+        }
+    }
+
+}";
+            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Convert(Constant(null Type:System.Object) Lifted LiftedToNull Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput,
+                parseOptions: TestOptions.ExperimentalParseOptions);
+        }
+
         [WorkItem(546618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546618")]
         [Fact]
         public void TildeNullableEnum()
