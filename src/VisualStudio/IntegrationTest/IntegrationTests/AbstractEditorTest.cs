@@ -251,7 +251,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             FixAllScope? fixAllScope = null)
         {
             var expectedItems = new[] { expectedItem };
-            VerifyCodeActions(expectedItems, expectedItem, verifyNotShowing, ensureExpectedItemsAreOrdered, fixAllScope);
+            VerifyCodeActions(expectedItems, applyFix ? expectedItem : null, verifyNotShowing, ensureExpectedItemsAreOrdered, fixAllScope);
         }
 
         public void VerifyCodeActions(
@@ -295,6 +295,16 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 // wait for action to complete
                 WaitForAsyncOperations(FeatureAttribute.LightBulb);
             }
+        }
+
+        public void VerifyDialog(string dialogName, bool isOpen)
+        {
+            Editor.VerifyDialog(dialogName, isOpen);
+        }
+
+        public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
+        {
+            Editor.PressDialogButton(dialogAutomationName, buttonAutomationName);
         }
     }
 }

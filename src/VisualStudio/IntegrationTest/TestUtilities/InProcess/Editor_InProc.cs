@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Windows.Automation;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -361,5 +362,93 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void MessageBox(string message)
             => ExecuteOnActiveView(view =>  System.Windows.MessageBox.Show(message));
+
+        public void VerifyDialog(string dialogAutomationId, bool isOpen)
+        {
+            var dialogAutomationElement = FindDialog(dialogAutomationId, isOpen);
+
+            if ((isOpen && dialogAutomationElement == null) ||
+                (!isOpen && dialogAutomationElement != null))
+            {
+                throw new InvalidOperationException($"Expected the {dialogAutomationId} dialog to be {(isOpen ? "open" : "closed")}, but it is not.");
+            }
+        }
+
+        public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
+        {
+            var dialogAutomationElement = FindDialog(dialogAutomationName, isOpen: true);
+            if (dialogAutomationElement == null)
+            {
+                throw new InvalidOperationException($"Expected the {dialogAutomationName} dialog to be open, but it is not.");
+            }
+
+            Condition condition = new PropertyCondition(AutomationElement.AutomationIdProperty, buttonAutomationName);
+
+            var buttonAutomationElement = dialogAutomationElement.FindFirst(TreeScope.Descendants, condition);
+
+            if (buttonAutomationElement == null)
+            {
+                throw new InvalidOperationException($"Could not find the {buttonAutomationName} button in the {dialogAutomationName} dialog");
+            }
+
+            if (buttonAutomationElement.TryGetCurrentPattern(InvokePattern.Pattern, out var invokePattern))
+            {
+                (invokePattern as InvokePattern).Invoke();
+            }
+            else
+            {
+                throw new InvalidOperationException($"The element {buttonAutomationName} does not have an InvokePattern. Please make sure that it is the correct control");
+            }
+        }
+
+        private AutomationElement FindDialog(string dialogAutomationName, bool isOpen)
+        {
+            return Retry(
+                () => FindDialogWorker(dialogAutomationName), 
+                stoppingCondition: automationElement => isOpen ? automationElement != null : automationElement == null,
+                delay: TimeSpan.FromMilliseconds(250));
+        }
+
+        private static AutomationElement FindDialogWorker(string dialogAutomationName)
+        {
+            var vsAutomationElement = AutomationElement.FromHandle(new IntPtr(GetDTE().MainWindow.HWnd));
+
+            Condition elementCondition = new AndCondition(
+                new PropertyCondition(AutomationElement.AutomationIdProperty, dialogAutomationName),
+                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
+
+            return vsAutomationElement.FindFirst(TreeScope.Descendants, elementCondition);
+        }
+
+        private T Retry<T>(Func<T> action, Func<T, bool> stoppingCondition, TimeSpan delay)
+        {
+            DateTime beginTime = DateTime.UtcNow;
+            T retval = default(T);
+
+            do
+            {
+                try
+                {
+                    retval = action();
+                }
+                catch (COMException)
+                {
+                    // Devenv can throw COMExceptions if it's busy when we make DTE calls.
+
+                    Thread.Sleep(delay);
+                    continue;
+                }
+
+                if (stoppingCondition(retval))
+                {
+                    return retval;
+                }
+                else
+                {
+                    Thread.Sleep(delay);
+                }
+            }
+            while (true);
+        }
     }
 }
