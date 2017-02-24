@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
 using Xunit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 {
@@ -506,13 +507,14 @@ class C
         }
 
         [Fact]
-        public void ReadonlyRefReturningExpressionBodiedProperty()
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void RefReadonlyReturningExpressionBodiedProperty()
         {
             var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     int field = 0;
-    public readonly ref int P => ref field;
+    public ref readonly int P => ref field;
 }");
             comp.VerifyDiagnostics();
 
@@ -524,7 +526,7 @@ class C
             Assert.NotNull(p.GetMethod);
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
             Assert.True(p.IsExpressionBodied);
-            //PROTOTYPE(readonlyRef): binding is currently NYI so it is "Ref" for now.
+            //PROTOTYPE(readonlyRefs): binding is currently NYI so it is "Ref" for now.
             Assert.Equal(RefKind.Ref, p.GetMethod.RefKind);
         }
     }

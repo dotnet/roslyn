@@ -1979,9 +1979,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         [Fact]
-        public void TestDelegateWithReadonlyRefReturnType()
+        public void TestDelegateWithRefReadonlyReturnType()
         {
-            var text = "delegate readonly ref a b();";
+            var text = "delegate ref readonly a b();";
             var file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
@@ -1993,7 +1993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
-            Assert.Equal("readonly ref a", ds.ReturnType.ToString());
+            Assert.Equal("ref readonly a", ds.ReturnType.ToString());
             Assert.NotNull(ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
             Assert.NotNull(ds.ParameterList.OpenParenToken);
@@ -2496,9 +2496,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         [Fact]
-        public void TestClassMethodWithReadonlyRefReturn()
+        public void TestClassMethodWithRefReadonlyReturn()
         {
-            var text = "class a { readonly ref b X() { } }";
+            var text = "class a { ref readonly b X() { } }";
             var file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
@@ -2525,7 +2525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.NotNull(ms.ReturnType);
-            Assert.Equal("readonly ref b", ms.ReturnType.ToString());
+            Assert.Equal("ref readonly b", ms.ReturnType.ToString());
             Assert.NotNull(ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
             Assert.NotNull(ms.ParameterList.OpenParenToken);
@@ -2570,9 +2570,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         [Fact]
-        public void TestClassMethodWithReadonlyRef()
+        public void TestClassMethodWithRefReadonly()
         {
-            var text = "class a { readonly ref }";
+            var text = "class a { ref readonly }";
             var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
 
             Assert.NotNull(file);
@@ -3944,9 +3944,9 @@ class Class1<T>{
 
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         [Fact]
-        public void TestClassPropertyWithReadonlyRefReturn()
+        public void TestClassPropertyWithRefReadonlyReturn()
         {
-            var text = "class a { readonly ref b c { get; set; } }";
+            var text = "class a { ref readonly b c { get; set; } }";
             var file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
@@ -3974,7 +3974,7 @@ class Class1<T>{
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
-            Assert.Equal("readonly ref b", ps.Type.ToString());
+            Assert.Equal("ref readonly b", ps.Type.ToString());
             Assert.NotNull(ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
@@ -4887,9 +4887,9 @@ class Class1<T>{
 
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         [Fact]
-        public void TestClassIndexerWithReadonlyRefReturn()
+        public void TestClassIndexerWithRefReadonlyReturn()
         {
-            var text = "class a { readonly ref b this[c d] { get; set; } }";
+            var text = "class a { ref readonly b this[c d] { get; set; } }";
             var file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
@@ -4917,7 +4917,7 @@ class Class1<T>{
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
-            Assert.Equal("readonly ref b", ps.Type.ToString());
+            Assert.Equal("ref readonly b", ps.Type.ToString());
             Assert.NotNull(ps.ThisKeyword);
             Assert.Equal("this", ps.ThisKeyword.ToString());
 

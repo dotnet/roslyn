@@ -1231,6 +1231,10 @@ d.cs
             parsedArgs.Errors.Verify();
             Assert.Equal(LanguageVersion.CSharp7, parsedArgs.ParseOptions.LanguageVersion);
 
+            parsedArgs = DefaultParse(new[] { "/langversion:7.1", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(LanguageVersion.CSharp7_1, parsedArgs.ParseOptions.LanguageVersion);
+
             parsedArgs = DefaultParse(new[] { "/langversion:default", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(LanguageVersion.Default, parsedArgs.ParseOptions.SpecifiedLanguageVersion);

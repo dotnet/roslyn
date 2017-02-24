@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -733,16 +734,17 @@ class C
         }
 
         [Fact]
-        public void ReadonlyRefReturningDelegate()
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void RefReadonlyReturningDelegate()
         {
-            var source = @"delegate readonly ref int D();";
+            var source = @"delegate ref readonly int D();";
 
             var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
             var d = global.GetMembers("D")[0] as NamedTypeSymbol;
-            //PROTOTYPE(readonlyRefeences): this will work as regular RefKind.Ref for now since binding is NYI
+            //PROTOTYPE(readonlyRefs): this will work as regular RefKind.Ref for now since binding is NYI
             Assert.Equal(RefKind.Ref, d.DelegateInvokeMethod.RefKind);
             Assert.Equal(RefKind.Ref, ((MethodSymbol)d.GetMembers("EndInvoke").Single()).RefKind);
         }

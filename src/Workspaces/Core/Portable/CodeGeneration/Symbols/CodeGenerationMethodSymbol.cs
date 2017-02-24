@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes)
         {
             _returnType = returnType;
-            // PROTOTYPE(readonlyRef): NYI 
+            // PROTOTYPE(readonlyRefs): NYI 
             _refKind = returnsByRef ? RefKind.Ref: RefKind.None;
             _typeParameters = typeParameters.AsImmutableOrEmpty();
             _parameters = parameters.AsImmutableOrEmpty();
@@ -119,11 +119,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override bool ReturnsByReadonlyRef
+        public override bool ReturnsByRefReadonly
         {
             get
             {
-                return _refKind == RefKind.In;
+                return _refKind == RefKind.RefReadOnly;
             }
         }
 

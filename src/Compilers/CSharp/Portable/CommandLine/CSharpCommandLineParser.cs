@@ -1779,10 +1779,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     version = LanguageVersion.CSharp2;
                     return true;
 
-                case "7":
-                    version = LanguageVersion.CSharp7;
-                    return true;
-
                 case "default":
                     version = LanguageVersion.Default;
                     return true;
@@ -1792,18 +1788,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 default:
-                    // We are likely to introduce minor version numbers after C# 7, thus breaking the
-                    // one-to-one correspondence between the integers and the corresponding
-                    // LanguageVersion enum values. But for compatibility we continue to accept any
-                    // integral value parsed by int.TryParse for its corresponding LanguageVersion enum
-                    // value for language version C# 6 and earlier (e.g. leading zeros are allowed)
-                    int versionNumber;
-                    if (int.TryParse(str, NumberStyles.None, CultureInfo.InvariantCulture, out versionNumber) &&
-                        versionNumber <= 6 &&
-                        ((LanguageVersion)versionNumber).IsValid())
+                    if (float.TryParse(str, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out float versionNumber))
                     {
-                        version = (LanguageVersion)versionNumber;
-                        return true;
+                        if ((int)versionNumber == versionNumber && 1 <= versionNumber && versionNumber <= 7)
+                        {
+                            version = (LanguageVersion)versionNumber;
+                            return true;
+                        }
+                        else if (versionNumber == 7.1f)
+                        {
+                            version = LanguageVersion.CSharp7_1;
+                            return true;
+                        }
                     }
 
                     version = LanguageVersion.Default;

@@ -2663,6 +2663,7 @@ public static class GenExtensions<X>
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         public void InParametersWouldErrorOutInEarlierCSharpVersions()
         {
             var code = @"
@@ -2737,6 +2738,7 @@ public static class GenExtensions<X>
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         public void BadInWithThis()
         {
             var test = @"
@@ -2752,7 +2754,6 @@ public static class Extensions
 ";
 
             ParseAndValidate(test,
-                new CSharpParseOptions(LanguageVersion.CSharp7_1),
                 // (5,34): error CS8205:  The parameter modifier 'in' cannot be used with 'this' 
                 //     public static void Test(this in int i) {}
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "this").WithLocation(5, 34),
@@ -2765,6 +2766,7 @@ public static class Extensions
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         public void BadRefWithInParameterModifiers()
         {
             var test = @"
@@ -2785,7 +2787,6 @@ public class TestType
 ";
 
             ParseAndValidate(test,
-                 new CSharpParseOptions(LanguageVersion.CSharp7_1),
                 // (5,29): error CS8205:  The parameter modifier 'in' cannot be used with 'ref' 
                 //     public void Method1(ref in int i) { }
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(5, 29),
@@ -2807,6 +2808,7 @@ public class TestType
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         public void BadOutWithInParameterModifiers()
         {
             var test = @"
@@ -2827,7 +2829,6 @@ public class TestType
 ";
 
             ParseAndValidate(test,
-                new CSharpParseOptions(LanguageVersion.CSharp7_1),
                 // (5,36): error CS8205:  The parameter modifier 'in' cannot be used with 'out' 
                 //     public static void Method1(out in int i) { }
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "out").WithLocation(5, 36),
@@ -2848,52 +2849,10 @@ public class TestType
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "in").WithLocation(14, 44));
         }
 
-        [Fact]
-        public void BadRefWithOutParameterModifiers()
-        {
-            var test = @"
-public class TestType
-{
-    // No type parameters
-    public static void Method1(ref out int i) { }
-    public static void Method2(out ref int i) { }
-
-    // Single type parameters
-    public static void Method3<T>(ref out int i) { }
-    public static void Method4<T>(out ref int i) { }
-
-    // Multiple type parameters
-    public static void Method5<T, U, V>(ref out int i) { }
-    public static void Method6<T, U, V>(out ref int i) { }
-}
-";
-
-            ParseAndValidate(test,
-                // (5,36): error CS8205:  The parameter modifier 'out' cannot be used with 'ref' 
-                //     public static void Method1(ref out int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(5, 36),
-                // (6,36): error CS8205:  The parameter modifier 'ref' cannot be used with 'out' 
-                //     public static void Method2(out ref int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(6, 36),
-                // (9,39): error CS8205:  The parameter modifier 'out' cannot be used with 'ref' 
-                //     public static void Method3<T>(ref out int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(9, 39),
-                // (10,39): error CS8205:  The parameter modifier 'ref' cannot be used with 'out' 
-                //     public static void Method4<T>(out ref int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(10, 39),
-                // (13,45): error CS8205:  The parameter modifier 'out' cannot be used with 'ref' 
-                //     public static void Method5<T, U, V>(ref out int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(13, 45),
-                // (14,45): error CS8205:  The parameter modifier 'ref' cannot be used with 'out' 
-                //     public static void Method6<T, U, V>(out ref int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(14, 45));
-        }
-
         [WorkItem(863402, "DevDiv/Personal")]
         [Fact]
         public void CS1104ERR_BadParamModThis()
         {
-            // NO error
             var test = @"
 using System;
 public static class Extensions
@@ -2934,7 +2893,6 @@ Diagnostic(ErrorCode.ERR_BadParamModThis, "params"));
         [Fact, WorkItem(535930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535930")]
         public void CS1107ERR_DupParamMod()
         {
-            // Diff errors
             var test = @"
 using System;
 public static class Extensions
@@ -2947,7 +2905,6 @@ public static class Extensions
     public static void Foo(int this) {}
 }
 ";
-            // Extra errors
             ParseAndValidate(test,
     // (6,33): error CS1107: A parameter can only have one 'this' modifier
     //     public static void Foo(this this t) {}
@@ -3044,6 +3001,7 @@ public static class GenExtensions<X>
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         public void DuplicateParameterModifiersWillErrorOut()
         {
             var test = @"
@@ -3054,11 +3012,11 @@ public static class TestType
     public static void Test(in in int i) {}
     public static void Test(this this int i) {}
     public static void Test(params params int[] i) {}
+    public static void Test(ref readonly ref readonly int[] i) {}
 }
 ";
 
             ParseAndValidate(test,
-                new CSharpParseOptions(LanguageVersion.CSharp7_1),
                 // (4,33): error CS1107: A parameter can only have one 'ref' modifier
                 //     public static void Test(ref ref int i) {}
                 Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(4, 33),
@@ -3073,10 +3031,263 @@ public static class TestType
                 Diagnostic(ErrorCode.ERR_DupParamMod, "this").WithArguments("this").WithLocation(7, 34),
                 // (8,36): error CS1107: A parameter can only have one 'params' modifier
                 //     public static void Test(params params int[] i) {}
-                Diagnostic(ErrorCode.ERR_DupParamMod, "params").WithArguments("params").WithLocation(8, 36));
+                Diagnostic(ErrorCode.ERR_DupParamMod, "params").WithArguments("params").WithLocation(8, 36),
+                // (9,42): error CS1107: A parameter can only have one 'ref' modifier
+                //     public static void Test(ref readonly ref readonly int[] i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(9, 42),
+                // (9,46): error CS1107: A parameter can only have one 'readonly' modifier
+                //     public static void Test(ref readonly ref readonly int[] i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "readonly").WithArguments("readonly").WithLocation(9, 46));
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void BadRefReadOnlyWithRefParameterModifiers()
+        {
+            var test = @"
+public class TestType
+{
+// No type parameters
+public static void Method1(ref readonly ref int i) { }
+public static void Method2(ref ref readonly int i) { }
+
+// Single type parameters
+public static void Method3<T>(ref readonly ref int i) { }
+public static void Method4<T>(ref ref readonly int i) { }
+
+// Multiple type parameters
+public static void Method5<T, U, V>(ref readonly ref int i) { }
+public static void Method6<T, U, V>(ref ref readonly int i) { }
+}
+";
+
+            ParseAndValidate(test,
+                // (5,41): error CS1107: A parameter can only have one 'ref' modifier
+                // public static void Method1(ref readonly ref int i) { }
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(5, 41),
+                // (6,32): error CS1107: A parameter can only have one 'ref' modifier
+                // public static void Method2(ref ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(6, 32),
+                // (9,44): error CS1107: A parameter can only have one 'ref' modifier
+                // public static void Method3<T>(ref readonly ref int i) { }
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(9, 44),
+                // (10,35): error CS1107: A parameter can only have one 'ref' modifier
+                // public static void Method4<T>(ref ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(10, 35),
+                // (13,50): error CS1107: A parameter can only have one 'ref' modifier
+                // public static void Method5<T, U, V>(ref readonly ref int i) { }
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(13, 50),
+                // (14,41): error CS1107: A parameter can only have one 'ref' modifier
+                // public static void Method6<T, U, V>(ref ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(14, 41));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void BadRefReadOnlyWithInParameterModifiers()
+        {
+            var test = @"
+public class TestType
+{
+// No type parameters
+public static void Method1(ref readonly in int i) { }
+public static void Method2(in ref readonly int i) { }
+
+// Single type parameters
+public static void Method3<T>(ref readonly in int i) { }
+public static void Method4<T>(in ref readonly int i) { }
+
+// Multiple type parameters
+public static void Method5<T, U, V>(ref readonly in int i) { }
+public static void Method6<T, U, V>(in ref readonly int i) { }
+}
+";
+
+            ParseAndValidate(test,
+                // (5,41): error CS8205:  The parameter modifier 'in' cannot be used with 'ref' 
+                // public static void Method1(ref readonly in int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(5, 41),
+                // (6,31): error CS8205:  The parameter modifier 'ref' cannot be used with 'in' 
+                // public static void Method2(in ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(6, 31),
+                // (6,35): error CS8205:  The parameter modifier 'readonly' cannot be used with 'in' 
+                // public static void Method2(in ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "in").WithLocation(6, 35),
+                // (9,44): error CS8205:  The parameter modifier 'in' cannot be used with 'ref' 
+                // public static void Method3<T>(ref readonly in int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(9, 44),
+                // (10,34): error CS8205:  The parameter modifier 'ref' cannot be used with 'in' 
+                // public static void Method4<T>(in ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(10, 34),
+                // (10,38): error CS8205:  The parameter modifier 'readonly' cannot be used with 'in' 
+                // public static void Method4<T>(in ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "in").WithLocation(10, 38),
+                // (13,50): error CS8205:  The parameter modifier 'in' cannot be used with 'ref' 
+                // public static void Method5<T, U, V>(ref readonly in int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(13, 50),
+                // (14,40): error CS8205:  The parameter modifier 'ref' cannot be used with 'in' 
+                // public static void Method6<T, U, V>(in ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(14, 40),
+                // (14,44): error CS8205:  The parameter modifier 'readonly' cannot be used with 'in' 
+                // public static void Method6<T, U, V>(in ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "in").WithLocation(14, 44));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void BadRefReadOnlyWithThisParameterModifiers()
+        {
+            var test = @"
+public class TestType
+{
+// No type parameters
+public static void Method1(ref readonly this int i) { }
+public static void Method2(this ref readonly int i) { }
+
+// Single type parameters
+public static void Method3<T>(ref readonly this int i) { }
+public static void Method4<T>(this ref readonly int i) { }
+
+// Multiple type parameters
+public static void Method5<T, U, V>(ref readonly this int i) { }
+public static void Method6<T, U, V>(this ref readonly int i) { }
+}
+";
+
+            ParseAndValidate(test,
+                // (5,41): error CS8205:  The parameter modifier 'this' cannot be used with 'ref' 
+                // public static void Method1(ref readonly this int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(5, 41),
+                // (6,33): error CS8205:  The parameter modifier 'ref' cannot be used with 'this' 
+                // public static void Method2(this ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "this").WithLocation(6, 33),
+                // (6,37): error CS8205:  The parameter modifier 'readonly' cannot be used with 'this' 
+                // public static void Method2(this ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "this").WithLocation(6, 37),
+                // (9,44): error CS8205:  The parameter modifier 'this' cannot be used with 'ref' 
+                // public static void Method3<T>(ref readonly this int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(9, 44),
+                // (10,36): error CS8205:  The parameter modifier 'ref' cannot be used with 'this' 
+                // public static void Method4<T>(this ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "this").WithLocation(10, 36),
+                // (10,40): error CS8205:  The parameter modifier 'readonly' cannot be used with 'this' 
+                // public static void Method4<T>(this ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "this").WithLocation(10, 40),
+                // (13,50): error CS8205:  The parameter modifier 'this' cannot be used with 'ref' 
+                // public static void Method5<T, U, V>(ref readonly this int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(13, 50),
+                // (14,42): error CS8205:  The parameter modifier 'ref' cannot be used with 'this' 
+                // public static void Method6<T, U, V>(this ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "this").WithLocation(14, 42),
+                // (14,46): error CS8205:  The parameter modifier 'readonly' cannot be used with 'this' 
+                // public static void Method6<T, U, V>(this ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "this").WithLocation(14, 46));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void BadRefReadOnlyWithParamsParameterModifiers()
+        {
+            var test = @"
+public class TestType
+{
+// No type parameters
+public static void Method1(ref readonly params int i) { }
+public static void Method2(params ref readonly int i) { }
+
+// Single type parameters
+public static void Method3<T>(ref readonly params int i) { }
+public static void Method4<T>(params ref readonly int i) { }
+
+// Multiple type parameters
+public static void Method5<T, U, V>(ref readonly params int i) { }
+public static void Method6<T, U, V>(params ref readonly int i) { }
+}
+";
+
+            ParseAndValidate(test,
+                // (5,41): error CS8205:  The parameter modifier 'params' cannot be used with 'ref' 
+                // public static void Method1(ref readonly params int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(5, 41),
+                // (6,35): error CS1611: The params parameter cannot be declared as ref
+                // public static void Method2(params ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(6, 35),
+                // (6,39): error CS1611: The params parameter cannot be declared as readonly
+                // public static void Method2(params ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "readonly").WithArguments("readonly").WithLocation(6, 39),
+                // (9,44): error CS8205:  The parameter modifier 'params' cannot be used with 'ref' 
+                // public static void Method3<T>(ref readonly params int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(9, 44),
+                // (10,38): error CS1611: The params parameter cannot be declared as ref
+                // public static void Method4<T>(params ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(10, 38),
+                // (10,42): error CS1611: The params parameter cannot be declared as readonly
+                // public static void Method4<T>(params ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "readonly").WithArguments("readonly").WithLocation(10, 42),
+                // (13,50): error CS8205:  The parameter modifier 'params' cannot be used with 'ref' 
+                // public static void Method5<T, U, V>(ref readonly params int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(13, 50),
+                // (14,44): error CS1611: The params parameter cannot be declared as ref
+                // public static void Method6<T, U, V>(params ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(14, 44),
+                // (14,48): error CS1611: The params parameter cannot be declared as readonly
+                // public static void Method6<T, U, V>(params ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "readonly").WithArguments("readonly").WithLocation(14, 48));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void BadRefReadOnlyWithOutParameterModifiers()
+        {
+            var test = @"
+public class TestType
+{
+// No type parameters
+public static void Method1(ref readonly out int i) { }
+public static void Method2(out ref readonly int i) { }
+
+// Single type parameters
+public static void Method3<T>(ref readonly out int i) { }
+public static void Method4<T>(out ref readonly int i) { }
+
+// Multiple type parameters
+public static void Method5<T, U, V>(ref readonly out int i) { }
+public static void Method6<T, U, V>(out ref readonly int i) { }
+}
+";
+
+            ParseAndValidate(test,
+                // (5,41): error CS8205:  The parameter modifier 'out' cannot be used with 'ref' 
+                // public static void Method1(ref readonly out int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(5, 41),
+                // (6,32): error CS8205:  The parameter modifier 'ref' cannot be used with 'out' 
+                // public static void Method2(out ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(6, 32),
+                // (6,36): error CS8205:  The parameter modifier 'readonly' cannot be used with 'out' 
+                // public static void Method2(out ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "out").WithLocation(6, 36),
+                // (9,44): error CS8205:  The parameter modifier 'out' cannot be used with 'ref' 
+                // public static void Method3<T>(ref readonly out int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(9, 44),
+                // (10,35): error CS8205:  The parameter modifier 'ref' cannot be used with 'out' 
+                // public static void Method4<T>(out ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(10, 35),
+                // (10,39): error CS8205:  The parameter modifier 'readonly' cannot be used with 'out' 
+                // public static void Method4<T>(out ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "out").WithLocation(10, 39),
+                // (13,50): error CS8205:  The parameter modifier 'out' cannot be used with 'ref' 
+                // public static void Method5<T, U, V>(ref readonly out int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(13, 50),
+                // (14,41): error CS8205:  The parameter modifier 'ref' cannot be used with 'out' 
+                // public static void Method6<T, U, V>(out ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(14, 41),
+                // (14,45): error CS8205:  The parameter modifier 'readonly' cannot be used with 'out' 
+                // public static void Method6<T, U, V>(out ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "out").WithLocation(14, 45));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         public void InParametersAreParsedCorrectly()
         {
             var test = @"
@@ -3105,7 +3316,7 @@ public class Test
 }
 ";
 
-            var tree = ParseTree(test, new CSharpParseOptions(LanguageVersion.CSharp7_1));
+            var tree = ParseTree(test, TestOptions.Regular);
             tree.GetDiagnostics().Verify();
 
             var methodDeclaration = (MethodDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is MethodDeclarationSyntax);
@@ -3131,13 +3342,75 @@ public class Test
 
             void verifyModifier(SeparatedSyntaxList<ParameterSyntax> list)
             {
-                Assert.Equal(1, list.Count);
-
-                var parameter = list.First();
+                var parameter = list.Single();
                 Assert.Equal(1, parameter.Modifiers.Count);
 
                 var modifier = parameter.Modifiers.First();
                 Assert.Equal(SyntaxKind.InKeyword, modifier.Kind());
+            }
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void RefReadonlyParametersAreParsedCorrectly()
+        {
+            var test = @"
+public class Test
+{
+    public delegate int Delegate(ref readonly int a);
+
+    public void Method(ref readonly int b)
+    {
+        void localFunc(ref readonly int c) { }
+
+        Delegate lambda = (ref readonly int d) => d;
+
+        Delegate anonymousDelegate = delegate (ref readonly int e) { return e; };
+    }
+
+    public int this [ref readonly int f]
+    {
+        get { return f; }
+    }
+
+    public static bool operator ! (ref readonly Test g)
+    {
+        return false;
+    }
+}
+";
+
+            var tree = ParseTree(test, TestOptions.Regular);
+            tree.GetDiagnostics().Verify();
+
+            var methodDeclaration = (MethodDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is MethodDeclarationSyntax);
+            verifyModifier(methodDeclaration.ParameterList.Parameters);
+
+            var delegateDeclaration = (DelegateDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is DelegateDeclarationSyntax);
+            verifyModifier(delegateDeclaration.ParameterList.Parameters);
+
+            var localFunctionStatement = (LocalFunctionStatementSyntax)tree.GetRoot().DescendantNodes().Single(node => node is LocalFunctionStatementSyntax);
+            verifyModifier(localFunctionStatement.ParameterList.Parameters);
+
+            var lambdaExpression = (ParenthesizedLambdaExpressionSyntax)tree.GetRoot().DescendantNodes().Single(node => node is ParenthesizedLambdaExpressionSyntax);
+            verifyModifier(lambdaExpression.ParameterList.Parameters);
+
+            var anonymousMethodExpression = (AnonymousMethodExpressionSyntax)tree.GetRoot().DescendantNodes().Single(node => node is AnonymousMethodExpressionSyntax);
+            verifyModifier(anonymousMethodExpression.ParameterList.Parameters);
+
+            var indexerDeclaration = (IndexerDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is IndexerDeclarationSyntax);
+            verifyModifier(indexerDeclaration.ParameterList.Parameters);
+
+            var operatorDeclaration = (OperatorDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is OperatorDeclarationSyntax);
+            verifyModifier(operatorDeclaration.ParameterList.Parameters);
+
+            void verifyModifier(SeparatedSyntaxList<ParameterSyntax> list)
+            {
+                var parameter = list.Single();
+                Assert.Equal(2, parameter.Modifiers.Count);
+
+                Assert.Equal(SyntaxKind.RefKeyword, parameter.Modifiers.First().Kind());
+                Assert.Equal(SyntaxKind.ReadOnlyKeyword, parameter.Modifiers.Last().Kind());
             }
         }
 
@@ -4249,7 +4522,6 @@ public class Test
 ";
 
             ParseAndValidate(test,
-                new CSharpParseOptions(LanguageVersion.CSharp7_1),
                 // (4,45): error CS1611: The params parameter cannot be declared as ref
                 //     public static void ParamsWithRef(params ref int[] a) 
                 Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(4, 45),

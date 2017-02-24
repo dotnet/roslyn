@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -2074,18 +2075,19 @@ static class C
         }
 
         [Fact]
-        public void ReadonlyRefReturningVoidMethod()
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void RefReadonlyReturningVoidMethod()
         {
             var source = @"
 static class C
 {
-    static readonly ref void M() { }
+    static ref readonly void M() { }
 }
 ";
 
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (4,25): error CS1547: Keyword 'void' cannot be used in this context
-                //     static readonly ref void M() { }
+                //     static ref readonly void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 25)
                 );
         }
@@ -2114,7 +2116,8 @@ static class C
         }
 
         [Fact]
-        public void ReadonlyRefReturningVoidMethodNested()
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void RefReadonlyReturningVoidMethodNested()
         {
             var source = @"
 static class C
@@ -2122,10 +2125,10 @@ static class C
     static void Main()
     {
         // valid
-        readonly ref int M1() {throw null;}
+        ref readonly int M1() {throw null;}
 
         // not valid
-        readonly ref void M2() {M1(); throw null;}
+        ref readonly void M2() {M1(); throw null;}
 
         M2();
     }
@@ -2135,7 +2138,7 @@ static class C
             var parseOptions = TestOptions.Regular;
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (10,22): error CS1547: Keyword 'void' cannot be used in this context
-                //         readonly ref void M2() {M1(); throw null;}
+                //         ref readonly void M2() {M1(); throw null;}
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(10, 22)
             );
         }
@@ -2164,24 +2167,25 @@ static class C
         }
 
         [Fact]
-        public void ReadonlyRefReturningAsyncMethod()
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void RefReadonlyReturningAsyncMethod()
         {
             var source = @"
 static class C
 {
-    static async readonly ref int M() { }
+    static async ref readonly int M() { }
 }
 ";
 
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (4,18): error CS1073: Unexpected token 'readonly'
-                //     static async readonly ref int M() { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "readonly").WithArguments("readonly").WithLocation(4, 18),
+                // (4,18): error CS1073: Unexpected token 'ref'
+                //     static async ref readonly int M() { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
                 // (4,35): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async readonly ref int M() { }
+                //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 35),
                 // (4,35): error CS0161: 'C.M()': not all code paths return a value
-                //     static async readonly ref int M() { }
+                //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 35)
                 );
         }

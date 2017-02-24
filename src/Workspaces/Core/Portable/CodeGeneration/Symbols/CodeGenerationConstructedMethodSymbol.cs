@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override bool ReturnsByReadonlyRef
+        public override bool ReturnsByRefReadonly
         {
             get
             {
-                return _constructedFrom.ReturnsByReadonlyRef;
+                return _constructedFrom.ReturnsByRefReadonly;
             }
         }
 

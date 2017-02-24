@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-    public class CodeGenReadonlyRefReturnTests : CompilingTestBase
+    public class CodeGenRefReadonlyReturnTests : CompilingTestBase
     {
         [Fact]
         public void RefReturnArrayAccess()
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"
 class Program
 {
-    static readonly ref int M()
+    static ref readonly int M()
     {
         return ref (new int[1])[0];
     }

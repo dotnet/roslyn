@@ -138,7 +138,7 @@
     <Compile Include="Syntax\SyntaxTriviaListTests.cs" />
     <Compile Include="Syntax\TrackNodeTests.cs" />
     <Compile Include="TextExtensions.cs" />
-    <Compile Include="Parsing\ReadonlyRefReturnsTests.cs" />
+    <Compile Include="Parsing\RefReadonlyReturnsTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">
