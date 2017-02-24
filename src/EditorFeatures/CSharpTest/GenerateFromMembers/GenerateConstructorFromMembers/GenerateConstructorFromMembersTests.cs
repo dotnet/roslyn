@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -8,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
+using Microsoft.CodeAnalysis.PickMembers;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,7 +19,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructorFrom
     public class GenerateConstructorFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
-            => new GenerateConstructorFromMembersCodeRefactoringProvider((ImmutableArray<string>?)fixProviderData);
+            => new GenerateConstructorFromMembersCodeRefactoringProvider(new TestPickMembersService((ImmutableArray<string>?)fixProviderData));
+
+        private class TestPickMembersService : IPickMembersService
+        {
+            private readonly ImmutableArray<string>? _memberNames;
+
+            public TestPickMembersService(ImmutableArray<string>? memberNames)
+                => _memberNames = memberNames;
+
+            public PickMembersResult PickMembers(string title, ImmutableArray<ISymbol> members)
+                => new PickMembersResult(_memberNames.Value.SelectAsArray(n => members.Single(m => m.Name == n)));
+        }
 
         private Task TestWithDialogAsync(
             string initialMarkup, string expectedMarkup, string[] chosenSymbols, int index = 0, bool compareTokens = true)

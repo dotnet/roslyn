@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
     internal partial class GenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
-        private readonly ImmutableArray<string>? _pickedMemberNames_forTesting;
+        private readonly IPickMembersService _pickMembersService_forTesting;
 
         public GenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
         {
@@ -29,9 +30,9 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         /// <summary>
         /// For testing purposes only.
         /// </summary>
-        internal GenerateConstructorFromMembersCodeRefactoringProvider(ImmutableArray<string>? pickedMemberNames)
+        internal GenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService_forTesting)
         {
-            _pickedMemberNames_forTesting = pickedMemberNames;
+            _pickMembersService_forTesting = pickMembersService_forTesting;
         }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)

@@ -40,13 +40,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                if (_service._pickedMemberNames_forTesting != null)
-                {
-                    return _service._pickedMemberNames_forTesting;
-                }
-
                 var workspace = _document.Project.Solution.Workspace;
-                var service = workspace.Services.GetService<IPickMembersService>();
+                var service = _service._pickMembersService_forTesting ?? workspace.Services.GetService<IPickMembersService>();
                 return service.PickMembers(
                     FeaturesResources.Pick_members_to_be_used_as_constructor_parameters, _viableMembers);
             }
@@ -54,28 +49,15 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
                 object options, CancellationToken cancellationToken)
             {
-                ImmutableArray<ISymbol> members;
-                switch (options)
+                var result = (PickMembersResult)options;
+                if (result.IsCanceled)
                 {
-                    case PickMembersResult result:
-                        if (result.IsCanceled)
-                        {
-                            return ImmutableArray<CodeActionOperation>.Empty;
-                        }
-                        members = result.Members;
-                        break;
-
-                    case ImmutableArray<string> testNames:
-                        members = testNames.SelectAsArray(n => _viableMembers.Single(m => m.Name == n));
-                        break;
-
-                    default:
-                        throw new InvalidOperationException();
+                    return ImmutableArray<CodeActionOperation>.Empty;
                 }
 
                 var state = State.TryGenerate(
                     _service, _document, _textSpan, _containingType, 
-                    members, cancellationToken);
+                    result.Members, cancellationToken);
 
                 // There was an existing constructor that matched what the user wants to create.
                 // Generate it if it's the implicit, no-arg, constructor, otherwise just navigate
