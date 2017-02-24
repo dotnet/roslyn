@@ -8,12 +8,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -1113,7 +1115,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             if (projectChanges.OldProject.ParseOptions != projectChanges.NewProject.ParseOptions
-                && !this.CanApplyChange(ApplyChangesKind.ChangeParseOptions))
+                && !this.CanApplyChange(ApplyChangesKind.ChangeParseOptions)
+                && !this.CanApplyParseOptionChange(projectChanges.OldProject.ParseOptions, projectChanges.NewProject.ParseOptions))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_parse_options_is_not_supported);
             }
@@ -1184,6 +1187,16 @@ namespace Microsoft.CodeAnalysis
             {
                 throw new NotSupportedException(WorkspacesResources.Removing_analyzer_references_is_not_supported);
             }
+        }
+
+        private bool CanApplyParseOptionChange(ParseOptions old, ParseOptions @new)
+        {
+            // only changes to C# LanguageVersion are supported at this point
+            if (old is CSharpParseOptions oldCsharp && @new is CSharpParseOptions newCsharp)
+            {
+                return oldCsharp.WithLanguageVersion(newCsharp.LanguageVersion) == newCsharp;
+            }
+            return false;
         }
 
         /// <summary>

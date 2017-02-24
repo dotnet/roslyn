@@ -501,6 +501,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="This_workspace_only_supports_opening_documents_on_the_UI_thread" xml:space="preserve">
     <value>This workspace only supports opening documents on the UI thread.</value>
   </data>
+  <data name="This_workspace_does_not_support_updating_VisualBasic_parse_options" xml:space="preserve">
+    <value>This workspace does not support updating VisualBasic parse options.</value>
+  </data>
   <data name="Synchronize_0" xml:space="preserve">
     <value>Synchronize {0}</value>
   </data>

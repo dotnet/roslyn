@@ -120,5 +120,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
         }
+
+        /// <summary>
+        /// Displays the version number in the format expected on the command-line (/langver flag).
+        /// For instance, "6", "7", "7.1", "latest".
+        /// </summary>
+        internal static string Display(this LanguageVersion version)
+        {
+            switch (version)
+            {
+                case LanguageVersion.CSharp1:
+                    return "1";
+                case LanguageVersion.CSharp2:
+                    return "2";
+                case LanguageVersion.CSharp3:
+                    return "3";
+                case LanguageVersion.CSharp4:
+                    return "4";
+                case LanguageVersion.CSharp5:
+                    return "5";
+                case LanguageVersion.CSharp6:
+                    return "6";
+                case LanguageVersion.CSharp7:
+                    return "7";
+                case LanguageVersion.Default:
+                    return "default";
+                case LanguageVersion.Latest:
+                    return "latest";
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(version);
+            }
+        }
     }
 }

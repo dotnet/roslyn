@@ -33,6 +33,8 @@ using VSLangProj;
 using VSLangProj140;
 using OLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -211,6 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.AddAdditionalDocument:
                 case ApplyChangesKind.RemoveAdditionalDocument:
                 case ApplyChangesKind.ChangeAdditionalDocument:
+                case ApplyChangesKind.ChangeParseOptions:
                     return true;
 
                 default:
@@ -269,6 +272,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string GetAnalyzerPath(AnalyzerReference analyzerReference)
         {
             return analyzerReference.FullPath;
+        }
+
+        protected override void ApplyParseOptionsChanged(ProjectId projectId, ParseOptions options)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
+            var configurationManager = project.ConfigurationManager;
+            foreach (string configurationName in (object[])configurationManager.ConfigurationRowNames)
+            {
+                var properties = configurationManager.ConfigurationRow(configurationName).Item(1).Object;
+                switch (hostProject.Language)
+                {
+                    case LanguageNames.CSharp:
+                        var newCSharpOptions = (CSharpParseOptions)options;
+                        string newCSharpVersion = newCSharpOptions.LanguageVersion.Display();
+
+                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)properties;
+                        if (csharpProperties.LanguageVersion.CompareTo(newCSharpVersion) != 0)
+                        {
+                            csharpProperties.LanguageVersion = newCSharpVersion;
+                        }
+
+                        break;
+                    case LanguageNames.VisualBasic:
+                        throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_VisualBasic_parse_options);
+                }
+
+            }
         }
 
         protected override void ApplyAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)

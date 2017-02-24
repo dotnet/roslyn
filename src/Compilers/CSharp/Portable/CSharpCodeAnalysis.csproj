@@ -853,6 +853,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CompilerServer" />
     <InternalsVisibleTo Include="VBCSCompiler" />
     <InternalsVisibleTo Include="VBCSCompilerPortable" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />

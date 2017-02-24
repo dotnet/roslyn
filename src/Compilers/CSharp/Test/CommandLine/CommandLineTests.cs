@@ -1324,6 +1324,28 @@ d.cs
             Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
         }
 
+        /// <summary>
+        /// When a new version is added, this test will break. This list must be checked:
+        /// - update the command-line error for bad /langver flag (<see cref="ErrorCode.ERR_BadCompatMode"/>)
+        /// - update the "UpgradeProject" codefixer
+        /// - update the IDE drop-down for selecting Language Version
+        /// </summary>
+        [Fact]
+        public void LangVersionDisplay()
+        {
+            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7", "latest" },
+                Versions().Select(v => v.Display()));
+            // For minor versions, the format should be "x.y", such as "7.1"
+
+            IEnumerable<LanguageVersion> Versions()
+            {
+                foreach (LanguageVersion version in Enum.GetValues(typeof(LanguageVersion)))
+                {
+                    yield return version;
+                }
+            }
+        }
+
         [Fact]
         public void RememberToUpdateDiagnosticsWhenUpdatingLangVersion()
         {

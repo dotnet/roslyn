@@ -169,6 +169,7 @@
     <Compile Include="TodoComments\AbstractTodoCommentService.cs" />
     <Compile Include="TodoComments\IRemoteTodoCommentService.cs" />
     <Compile Include="TodoComments\ITodoCommentService.cs" />
+    <Compile Include="UpgradeProject\AbstractUpgradeProjectCodeFixProvider.cs" />
     <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
