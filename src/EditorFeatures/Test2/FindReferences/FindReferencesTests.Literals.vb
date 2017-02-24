@@ -52,7 +52,7 @@ class C
 {
     void M()
     {
-        var i = [|'c'|];
+        var i = [|$$'c'|];
         var i = [|'c'|];
         var i = [|'\u0063'|];
         var i = 99; // 'c' in decimal
@@ -168,7 +168,7 @@ class C
 {
     void M()
     {
-        var i = [|"foo"|];
+        var i = [|$$"foo"|];
         var i = [|"foo"|];
         var i = [|@"foo"|];
         var i = "fo";
@@ -211,10 +211,43 @@ class C
 {
     void M()
     {
-        var i = [|"foo\nbar"|];
+        var i = [|$$"foo\nbar"|];
+        var i = @"foo
+bar";
+        var i = "foo\r\nbar";
+    }
+}
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+class C
+    dim i = "foo
+bar"
+    dim i = "foobar"
+end class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestStreamingFeature(test)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestStringLiterals3() As Task
+            Dim test =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+
+class C
+{
+    void M()
+    {
+        var i = [|$$"foo\r\nbar"|];
         var i = [|@"foo
 bar"|];
-        var i = "foo\r\nbar";
+        var i = "foo\nbar";
     }
 }
         </Document>

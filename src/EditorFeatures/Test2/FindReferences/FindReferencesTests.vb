@@ -44,6 +44,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 workspace.Options = workspace.Options.WithChangedOption(
                     SymbolFinderOptions.OutOfProcessAllowed, outOfProcess)
 
+                Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
+
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
                     Dim cursorPosition = cursorDocument.CursorPosition.Value
 
