@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,13 +11,12 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.UnitTests;
-using System;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
@@ -111,6 +111,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected static Document GetDocument(TestWorkspace workspace)
         {
             return workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+        }
+
+        private class TestPickMembersService : IPickMembersService
+        {
+            private readonly ImmutableArray<string> _memberNames;
+
+            public TestPickMembersService(ImmutableArray<string> memberNames)
+                => _memberNames = memberNames;
+
+            public PickMembersResult PickMembers(string title, ImmutableArray<ISymbol> members)
+                => new PickMembersResult(_memberNames.SelectAsArray(n => members.Single(m => m.Name == n)));
+        }
+
+        protected Task TestWithGenerateConstructorDialogAsync(
+            string initialMarkup, string expectedMarkup, string[] chosenSymbols, int index = 0, bool compareTokens = true)
+        {
+            var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrEmpty());
+            return TestAsync(initialMarkup, expectedMarkup, index, compareTokens,
+                fixProviderData: pickMembersService);
         }
     }
 }

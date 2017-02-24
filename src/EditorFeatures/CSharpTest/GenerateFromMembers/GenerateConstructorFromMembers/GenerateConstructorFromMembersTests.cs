@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -19,24 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructorFrom
     public class GenerateConstructorFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
-            => new GenerateConstructorFromMembersCodeRefactoringProvider(new TestPickMembersService((ImmutableArray<string>?)fixProviderData));
-
-        private class TestPickMembersService : IPickMembersService
-        {
-            private readonly ImmutableArray<string>? _memberNames;
-
-            public TestPickMembersService(ImmutableArray<string>? memberNames)
-                => _memberNames = memberNames;
-
-            public PickMembersResult PickMembers(string title, ImmutableArray<ISymbol> members)
-                => new PickMembersResult(_memberNames.Value.SelectAsArray(n => members.Single(m => m.Name == n)));
-        }
-
-        private Task TestWithDialogAsync(
-            string initialMarkup, string expectedMarkup, string[] chosenSymbols, int index = 0, bool compareTokens = true)
-        {
-            return TestAsync(initialMarkup, expectedMarkup, index, compareTokens, fixProviderData: chosenSymbols.AsImmutableOrEmpty());
-        }
+            => new GenerateConstructorFromMembersCodeRefactoringProvider((IPickMembersService)fixProviderData);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSingleField()
@@ -652,7 +633,7 @@ options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSu
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSingleFieldWithDialog()
         {
-            await TestWithDialogAsync(
+            await TestWithGenerateConstructorDialogAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -677,7 +658,7 @@ chosenSymbols: new[] { "a" });
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSingleFieldWithDialog2()
         {
-            await TestWithDialogAsync(
+            await TestWithGenerateConstructorDialogAsync(
 @"using System.Collections.Generic;
 
 class [||]Z
@@ -714,7 +695,7 @@ class Z
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestPickNoFieldWithDialog()
         {
-            await TestWithDialogAsync(
+            await TestWithGenerateConstructorDialogAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -738,7 +719,7 @@ chosenSymbols: new string[] { });
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestReorderFieldsWithDialog()
         {
-            await TestWithDialogAsync(
+            await TestWithGenerateConstructorDialogAsync(
 @"using System.Collections.Generic;
 
 class Z

@@ -1642,10 +1642,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsOnTypeHeader(root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsOnTypeHeader
-            Return False
+            Dim statement = root.FindToken(position).GetAncestor(Of TypeStatementSyntax)
+            If statement Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim start = If(statement.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart,
+                           statement.SpanStart)
+            Dim _end = If(statement.TypeParameterList?.GetLastToken().FullSpan.End,
+                         statement.Identifier.FullSpan.End)
+
+            Return position >= start AndAlso position <= _end
         End Function
 
         Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
+            Dim token = root.FindToken(position)
+            Dim typeDecl = token.GetAncestor(Of TypeBlockSyntax)
+            If typeDecl IsNot Nothing Then
+                Dim start = If(typeDecl.Implements.LastOrDefault()?.Span.End,
+                               If(typeDecl.Inherits.LastOrDefault()?.Span.End,
+                                  typeDecl.BlockStatement.Span.End))
+
+                If position >= start AndAlso
+                   position <= typeDecl.EndBlockStatement.Span.Start Then
+
+                    Dim line = sourceText.Lines.GetLineFromPosition(position)
+                    If Not line.IsEmptyOrWhitespace() Then
+                        Return False
+                    End If
+
+                    Dim member = typeDecl.Members.FirstOrDefault(Function(d) d.FullSpan.Contains(position))
+                    If member Is Nothing Then
+                        ' There are no members, Or we're after the last member.
+                        Return True
+                    Else
+                        ' We're within a member.  Make sure we're in the leading whitespace of
+                        ' the member.
+                        If position < member.SpanStart Then
+                            For Each trivia In member.GetLeadingTrivia()
+                                If Not trivia.IsWhitespaceOrEndOfLine() Then
+                                    Return False
+                                End If
+
+                                If trivia.FullSpan.Contains(position) Then
+                                    Return True
+                                End If
+                            Next
+                        End If
+                    End If
+                End If
+            End If
+
             Return False
         End Function
 
