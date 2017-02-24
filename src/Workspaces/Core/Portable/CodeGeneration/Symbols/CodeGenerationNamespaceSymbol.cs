@@ -18,34 +18,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             _members = members ?? SpecializedCollections.EmptyList<INamespaceOrTypeSymbol>();
         }
 
-        public override bool IsNamespace
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public override bool IsNamespace => true;
 
-        public override bool IsType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsType => false;
 
         protected override CodeGenerationSymbol Clone()
         {
             return new CodeGenerationNamespaceSymbol(this.Name, _members);
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Namespace;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Namespace;
 
         public override void Accept(SymbolVisitor visitor)
         {
@@ -80,23 +62,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public NamespaceKind NamespaceKind
-        {
-            get { return NamespaceKind.Module; }
-        }
+        public NamespaceKind NamespaceKind => NamespaceKind.Module;
 
-        public Compilation ContainingCompilation
-        {
-            get { return null; }
-        }
+        public Compilation ContainingCompilation => null;
 
-        public INamedTypeSymbol ImplicitType
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public INamedTypeSymbol ImplicitType => null;
 
         public ImmutableArray<INamespaceSymbol> ConstituentNamespaces
         {

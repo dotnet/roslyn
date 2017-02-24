@@ -48,21 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return new CodeGenerationArrayTypeSymbol(this.ElementType, this.Rank);
         }
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return TypeKind.Array;
-            }
-        }
+        public override TypeKind TypeKind => TypeKind.Array;
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.ArrayType;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.ArrayType;
 
         public override void Accept(SymbolVisitor visitor)
         {

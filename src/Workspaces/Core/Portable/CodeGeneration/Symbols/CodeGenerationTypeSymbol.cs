@@ -24,13 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public abstract TypeKind TypeKind { get; }
 
-        public virtual INamedTypeSymbol BaseType
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public virtual INamedTypeSymbol BaseType => null;
 
         public virtual ImmutableArray<INamedTypeSymbol> Interfaces
         {
@@ -48,29 +42,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public bool IsReferenceType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsReferenceType => false;
 
-        public bool IsValueType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsValueType => false;
 
-        public bool IsAnonymousType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsAnonymousType => false;
 
         public bool IsTupleType => false;
 
@@ -93,20 +69,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return null;
         }
 
-        public override bool IsNamespace
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsNamespace => false;
 
-        public override bool IsType
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public override bool IsType => true;
     }
 }
