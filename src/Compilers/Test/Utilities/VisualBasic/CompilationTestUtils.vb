@@ -16,9 +16,6 @@ Imports Microsoft.CodeAnalysis.Collections
 
 Friend Module CompilationUtils
 
-    Private ReadOnly _pooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = ParserTestUtilities.PooledStringBuilderPool
-    'PooledStringBuilder.CreatePool(64)
-
     Private Function ParseSources(sources As IEnumerable(Of String), parseOptions As VisualBasicParseOptions) As IEnumerable(Of SyntaxTree)
         Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
     End Function
@@ -1057,7 +1054,7 @@ Friend Module CompilationUtils
         Dim actualText = DumpAllDiagnostics(errors.ToArray(), suppressInfos)
         If expectedText <> actualText Then
 
-            Dim messages = PooledStringBuilderPool.Allocate()
+            Dim messages = ParserTestUtilities.PooledStringBuilderPool.Allocate()
             With messages.Builder
                 .AppendLine()
 
@@ -1090,10 +1087,12 @@ Friend Module CompilationUtils
 
                     If appendedLines > 0 Then
                         Assert.True(False, messages.ToStringAndFree())
+                        Exit Sub
                     Else
                         CompareLineByLine(expectedText, actualText)
                     End If
                 End If
+                messages.Free()
             End With
         End If
     End Sub
@@ -1102,8 +1101,8 @@ Friend Module CompilationUtils
         Dim expectedReader = New StringReader(expected)
         Dim actualReader = New StringReader(actual)
 
-        Dim expectedBuilder = _pooledStringBuilderPool.Allocate()
-        Dim actualBuilder = _pooledStringBuilderPool.Allocate()
+        Dim expectedBuilder = PooledStringBuilderPool.Allocate()
+        Dim actualBuilder = PooledStringBuilderPool.Allocate()
         Dim expectedLine = expectedReader.ReadLine()
         Dim actualLine = actualReader.ReadLine()
 
@@ -1155,7 +1154,7 @@ Friend Module CompilationUtils
 
         Array.Sort(diagnosticsAndIndices, Function(diag1, diag2) CompareErrors(diag1, diag2))
 
-        Dim builder = _pooledStringBuilderPool.Allocate()
+        Dim builder = PooledStringBuilderPool.Allocate()
         For Each e In diagnosticsAndIndices
             If Not suppressInfos OrElse e.Diagnostic.Severity > DiagnosticSeverity.Info Then
                 builder.Builder.Append(ErrorText(e.Diagnostic))
@@ -1389,7 +1388,7 @@ Friend Module CompilationUtils
 
     Public Function SortAndMergeStrings(ParamArray strings As String()) As String
         Array.Sort(strings)
-        Dim builder = _pooledStringBuilderPool.Allocate()
+        Dim builder = PooledStringBuilderPool.Allocate()
         For Each str In strings
             If builder.Length > 0 Then
                 builder.Builder.AppendLine()

@@ -80,9 +80,13 @@ Friend Module ParserTestUtilities
             Dim errors = PooledStringBuilderPool.Allocate()
             AppendSyntaxErrors(tree.GetDiagnostics(), errors.Builder)
             Assert.Equal(root.ContainsDiagnostics, errors.Builder.Length > 0)
-            Assert.False(root.ContainsDiagnostics, errors.ToStringAndFree())
+            If root.ContainsDiagnostics Then
+                errors.Free()
+            Else
+                Assert.False(root.ContainsDiagnostics, errors.ToStringAndFree())
+            End If
         Else
-            Assert.True(root.ContainsDiagnostics, "Tree was expected to contain errors.")
+                Assert.True(root.ContainsDiagnostics, "Tree was expected to contain errors.")
             If errorCodesOnly Then
                 tree.GetDiagnostics().VerifyErrorCodes(expectedDiagnostics)
             Else
@@ -643,7 +647,11 @@ Public Module VerificationHelpers
                 .AppendLine("Actual Errors (on " & node.Kind().ToString & node.Span.ToString & ")")
                 AppendSyntaxErrors(tree.GetDiagnostics(node), errorMessage.Builder)
             End With
-            Assert.False(errorScenarioFailed, errorMessage.ToStringAndFree())
+            If errorScenarioFailed Then
+                Assert.False(errorScenarioFailed, errorMessage.ToStringAndFree())
+            Else
+                errorMessage.Free()
+            End If
         End If
     End Sub
 
