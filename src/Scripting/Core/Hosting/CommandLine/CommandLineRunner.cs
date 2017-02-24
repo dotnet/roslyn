@@ -109,13 +109,16 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
 
             var scriptPathOpt = sourceFiles.IsEmpty ? null : sourceFiles[0].Path;
-            var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos);
 
             var errors = _compiler.Arguments.Errors.Concat(diagnosticsInfos.Select(Diagnostic.Create));
             if (_compiler.ReportErrors(errors, _console.Error, errorLogger))
             {
                 return CommonCompiler.Failed;
             }
+
+            // only emit symbols for non-interactive mode, and when encoding is known
+            var emitDebugInformation = !_compiler.Arguments.InteractiveMode && code.Encoding != null;
+            var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos, emitDebugInformation);
 
             var cancellationToken = new CancellationToken();
 
@@ -130,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private static ScriptOptions GetScriptOptions(CommandLineArguments arguments, string scriptPathOpt, CommonMessageProvider messageProvider, List<DiagnosticInfo> diagnostics)
+        private static ScriptOptions GetScriptOptions(CommandLineArguments arguments, string scriptPathOpt, CommonMessageProvider messageProvider, List<DiagnosticInfo> diagnostics, bool emitDebugInformation)
         {
             var touchedFilesLoggerOpt = (arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
 
@@ -150,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 namespaces: CommandLineHelpers.GetImports(arguments),
                 metadataResolver: metadataResolver,
                 sourceResolver: sourceResolver,
-                emitDebugInformation: true,
+                emitDebugInformation: emitDebugInformation,
                 fileEncoding: null);
         }
 
