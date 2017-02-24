@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
                 else
                 {
-                    await FindLiteralReferencesInServiceProcessAsync(
+                    await FindLiteralReferencesInServiceProcessOrFallBackToLocalProcessAsync(
                         value, solution, progress, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -110,7 +110,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return engine.FindReferencesAsync();
         }
 
-        private static async Task FindLiteralReferencesInServiceProcessAsync(
+        private static async Task FindLiteralReferencesInServiceProcessOrFallBackToLocalProcessAsync(
+            object value,
+            Solution solution,
+            IStreamingFindLiteralReferencesProgress progress,
+            CancellationToken cancellationToken)
+        {
+            var handled = await TryFindLiteralReferencesInServiceProcessAsync(
+                value, solution, progress, cancellationToken).ConfigureAwait(false);
+            if (handled)
+            {
+                return;
+            }
+
+            await FindLiteralReferencesInCurrentProcessAsync(
+                value, solution, progress, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<bool> TryFindLiteralReferencesInServiceProcessAsync(
             object value,
             Solution solution,
             IStreamingFindLiteralReferencesProgress progress,
@@ -119,9 +136,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var client = await solution.Workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                await FindLiteralReferencesInCurrentProcessAsync(
-                    value, solution, progress, cancellationToken).ConfigureAwait(false);
-                return;
+                return false;
             }
 
             // Create a callback that we can pass to the server process to hear about the 
@@ -129,13 +144,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // the 'progress' parameter which will then update the UI.
             var serverCallback = new FindLiteralsServerCallback(solution, progress, cancellationToken);
 
-            using (var session = await client.CreateCodeAnalysisServiceSessionAsync(
+            using (var session = await client.TryCreateCodeAnalysisServiceSessionAsync(
                 solution, serverCallback, cancellationToken).ConfigureAwait(false))
             {
+                if (session == null)
+                {
+                    return false;
+                }
+
                 await session.InvokeAsync(
                     nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
                     value).ConfigureAwait(false);
             }
+
+            return true;
         }
     }
 }
