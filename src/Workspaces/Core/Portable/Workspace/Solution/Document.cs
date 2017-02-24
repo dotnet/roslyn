@@ -36,13 +36,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The kind of source code this document contains.
         /// </summary>
-        public SourceCodeKind SourceCodeKind
-        {
-            get
-            {
-                return DocumentState.SourceCodeKind;
-            }
-        }
+        public SourceCodeKind SourceCodeKind => DocumentState.SourceCodeKind;
 
         /// <summary>
         /// Get the current syntax tree for the document if the text is already loaded and the tree is already parsed.
@@ -115,13 +109,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// If <code>false</code> then these methods will return <code>null</code> instead.
         /// </summary>
-        public bool SupportsSyntaxTree
-        {
-            get
-            {
-                return DocumentState.SupportsSyntaxTree;
-            }
-        }
+        public bool SupportsSyntaxTree => DocumentState.SupportsSyntaxTree;
 
         /// <summary>
         /// <code>true</code> if this Document supports providing data through the

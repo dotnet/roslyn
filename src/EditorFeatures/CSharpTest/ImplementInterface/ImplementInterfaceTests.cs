@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementInterfaceCodeFixProvider());
 
-        private static readonly Dictionary<OptionKey, object> AllOptionsOff =
+        private static readonly Dictionary<OptionKey, object> s_allOptionsOff =
             new Dictionary<OptionKey, object>
             {
                 {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.FalseWithNoneEnforcement },
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                 {  CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.FalseWithNoneEnforcement }
             };
 
-        private static readonly Dictionary<OptionKey, object> AllOptionsOn =
+        private static readonly Dictionary<OptionKey, object> s_allOptionsOn =
             new Dictionary<OptionKey, object>
             {
                 {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.TrueWithNoneEnforcement },
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                 {  CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.TrueWithNoneEnforcement }
             };
 
-        private static readonly Dictionary<OptionKey, object> AccessorOptionsOn =
+        private static readonly Dictionary<OptionKey, object> s_accessorOptionsOn =
             new Dictionary<OptionKey, object>
             {
                 {  CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.FalseWithNoneEnforcement },
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
             bool withScriptOption = false)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, compareTokens, options: AllOptionsOff, withScriptOption: withScriptOption);
+                index, compareTokens, options: s_allOptionsOff, withScriptOption: withScriptOption);
         }
 
         internal async Task TestWithAllCodeStyleOptionsOnAsync(
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
             bool withScriptOption = false)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, compareTokens, options: AllOptionsOn, withScriptOption: withScriptOption);
+                index, compareTokens, options: s_allOptionsOn, withScriptOption: withScriptOption);
         }
 
         internal async Task TestWithAccessorCodeStyleOptionsOnAsync(
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
             bool withScriptOption = false)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, compareTokens, options: AccessorOptionsOn, withScriptOption: withScriptOption);
+                index, compareTokens, options: s_accessorOptionsOn, withScriptOption: withScriptOption);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -2508,6 +2508,63 @@ class B : [|I|]
     }
 }",
 count: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementEventThroughMember()
+        {
+            await TestAsync(@"
+interface IFoo
+{
+    event System.EventHandler E;
+}
+
+class CanFoo : IFoo
+{
+    public event EventHandler E;
+}
+
+class HasCanFoo : [|IFoo|]
+{
+    CanFoo canFoo;
+}",
+@"
+using System;
+
+interface IFoo
+{ 
+    event System.EventHandler E; 
+}
+
+class CanFoo : IFoo
+{ 
+    public event EventHandler E;
+}
+
+class HasCanFoo : IFoo
+{ 
+    CanFoo canFoo;
+    public event EventHandler E
+    {
+        add
+        {
+            ((IFoo)canFoo).E += value;
+        }
+        remove
+        { 
+            ((IFoo)canFoo).E -= value;
+        }
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementEventThroughExplicitMember()
+        {
+            await TestAsync(
+@"interface IFoo { event System . EventHandler E ; } class CanFoo : IFoo { event IFoo.EventHandler E; } class HasCanFoo : [|IFoo|] { CanFoo canFoo; } ",
+@"using System ; interface IFoo { event System . EventHandler E ; } class CanFoo : IFoo { event IFoo.EventHandler E; } class HasCanFoo : IFoo { CanFoo canFoo; public event EventHandler E { add { ((IFoo)canFoo).E += value; } remove { ((IFoo)canFoo).E -= value; } } } ",
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]

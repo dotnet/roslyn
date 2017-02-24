@@ -600,19 +600,10 @@ namespace Microsoft.CodeAnalysis.Formatting
             return IsSpacingSuppressed(spanBetweenTwoTokens);
         }
 
-        public OptionSet OptionSet
-        {
-            get { return _engine.OptionSet; }
-        }
+        public OptionSet OptionSet => _engine.OptionSet;
 
-        public TreeData TreeData
-        {
-            get { return _engine.TreeData; }
-        }
+        public TreeData TreeData => _engine.TreeData;
 
-        public TokenStream TokenStream
-        {
-            get { return _tokenStream; }
-        }
+        public TokenStream TokenStream => _tokenStream;
     }
 }

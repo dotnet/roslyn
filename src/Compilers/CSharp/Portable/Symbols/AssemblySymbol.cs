@@ -543,13 +543,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="warnings">
         /// A diagnostic bag to receive warnings if we should allow multiple definitions and pick one.
         /// </param>
+        /// <param name="ignoreCorLibraryDuplicatedTypes">
+        /// In case duplicate types are found, ignore the one from corlib. This is useful for any kind of compilation at runtime
+        /// (EE/scripting/Powershell) using a type that is being migrated to corlib.
+        /// </param>
         /// <returns>Null if the type can't be found.</returns>
         internal NamedTypeSymbol GetTypeByMetadataName(
             string metadataName,
             bool includeReferences,
             bool isWellKnownType,
             bool useCLSCompliantNameArityEncoding = false,
-            DiagnosticBag warnings = null)
+            DiagnosticBag warnings = null,
+            bool ignoreCorLibraryDuplicatedTypes = false)
         {
             NamedTypeSymbol type;
             MetadataTypeName mdName;
@@ -559,7 +564,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var parts = metadataName.Split(s_nestedTypeNameSeparators);
                 Debug.Assert(parts.Length > 0);
                 mdName = MetadataTypeName.FromFullName(parts[0], useCLSCompliantNameArityEncoding);
-                type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType, warnings: warnings);
+                type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType,
+                    warnings: warnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
+
                 for (int i = 1; (object)type != null && !type.IsErrorType() && i < parts.Length; i++)
                 {
                     mdName = MetadataTypeName.FromTypeName(parts[i]);
@@ -570,7 +577,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 mdName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding);
-                type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType, warnings: warnings);
+                type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType,
+                    warnings: warnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
             }
 
             return ((object)type == null || type.IsErrorType()) ? null : type;
@@ -723,7 +731,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AssemblyIdentity assemblyOpt,
             bool includeReferences,
             bool isWellKnownType,
-            DiagnosticBag warnings = null)
+            DiagnosticBag warnings = null,
+            bool ignoreCorLibraryDuplicatedTypes = false)
         {
             NamedTypeSymbol result;
 
@@ -778,6 +787,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)result != null)
                 {
                     // duplicate
+                    if (ignoreCorLibraryDuplicatedTypes)
+                    {
+                        if (IsInCorLib(candidate))
+                        {
+                            // ignore candidate
+                            continue;
+                        }
+                        if (IsInCorLib(result))
+                        {
+                            // drop previous result
+                            result = candidate;
+                            continue;
+                        }
+                    }
+
                     if (warnings == null)
                     {
                         result = null;
@@ -796,6 +820,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             assemblies.Free();
             return result;
+        }
+
+        private static bool IsInCorLib(NamedTypeSymbol type)
+        {
+            return type.ContainingAssembly == type.ContainingAssembly.CorLibrary;
         }
 
         private bool IsValidWellKnownType(NamedTypeSymbol result)

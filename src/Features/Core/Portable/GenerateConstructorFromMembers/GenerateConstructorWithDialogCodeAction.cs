@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             public override object GetOptions(CancellationToken cancellationToken)
             {
                 var workspace = _document.Project.Solution.Workspace;
-                var service = workspace.Services.GetService<IPickMembersService>();
+                var service = _service._pickMembersService_forTesting ?? workspace.Services.GetService<IPickMembersService>();
                 return service.PickMembers(
                     FeaturesResources.Pick_members_to_be_used_as_constructor_parameters, _viableMembers);
             }

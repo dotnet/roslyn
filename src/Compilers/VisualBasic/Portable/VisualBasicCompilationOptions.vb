@@ -24,6 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' those should come from the user's code.
         Private _suppressEmbeddedDeclarations As Boolean
 
+        Private _ignoreCorLibraryDuplicatedTypes As Boolean
+
         ''' <summary>
         ''' Initializes a new instance of the VisualBasicCompilationOptions type with various options.
         ''' </summary>
@@ -202,6 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _embedVbCoreRuntime = embedVbCoreRuntime
             _suppressEmbeddedDeclarations = suppressEmbeddedDeclarations
             _parseOptions = parseOptions
+            _ignoreCorLibraryDuplicatedTypes = False
 
             Debug.Assert(Not (_embedVbCoreRuntime AndAlso _suppressEmbeddedDeclarations),
                          "_embedVbCoreRuntime and _suppressEmbeddedDeclarations are mutually exclusive")
@@ -356,6 +359,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property SuppressEmbeddedDeclarations As Boolean
             Get
                 Return _suppressEmbeddedDeclarations
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets the setting to ignore corlib types when duplicates are found.
+        ''' </summary>
+        Friend ReadOnly Property IgnoreCorLibraryDuplicatedTypes As Boolean
+            Get
+                Return _ignoreCorLibraryDuplicatedTypes
             End Get
         End Property
 
@@ -603,6 +615,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New VisualBasicCompilationOptions(Me) With {._suppressEmbeddedDeclarations = suppressEmbeddedDeclarations}
+        End Function
+
+        ''' <summary>
+        ''' Creates a new VisualBasicCompilationOptions instance with different ignoreCorLibraryDuplicatedTypes setting specified.
+        ''' </summary>
+        ''' <param name="ignoreCorLibraryDuplicatedTypes">The ignoreCorLibraryDuplicatedTypes setting. </param>
+        ''' <remarks>Only expected to be called from the expression compiler and interactive.</remarks>
+        Friend Function WithIgnoreCorLibraryDuplicatedTypes(ignoreCorLibraryDuplicatedTypes As Boolean) As VisualBasicCompilationOptions
+            If ignoreCorLibraryDuplicatedTypes = _ignoreCorLibraryDuplicatedTypes Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {._ignoreCorLibraryDuplicatedTypes = ignoreCorLibraryDuplicatedTypes}
         End Function
 
         ''' <summary>

@@ -33,12 +33,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
         }
 
-        public override MethodKind MethodKind
-        {
-            get
-            {
-                return MethodKind.Conversion;
-            }
-        }
+        public override MethodKind MethodKind => MethodKind.Conversion;
     }
 }

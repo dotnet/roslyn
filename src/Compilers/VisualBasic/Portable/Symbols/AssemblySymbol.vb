@@ -444,7 +444,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' I.e. arity is inferred from the name and matching type must have the same emitted name and arity.
         ''' </param>
         ''' <returns></returns>
-        Friend Function GetTypeByMetadataName(metadataName As String, includeReferences As Boolean, isWellKnownType As Boolean, Optional useCLSCompliantNameArityEncoding As Boolean = False) As NamedTypeSymbol
+        Friend Function GetTypeByMetadataName(metadataName As String, includeReferences As Boolean, isWellKnownType As Boolean,
+                                              Optional useCLSCompliantNameArityEncoding As Boolean = False, Optional ignoreCorLibraryDuplicatedTypes As Boolean = False) As NamedTypeSymbol
 
             If metadataName Is Nothing Then
                 Throw New ArgumentNullException(NameOf(metadataName))
@@ -470,7 +471,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End While
             Else
                 mdName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding)
-                type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType)
+                type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType,
+                                                     ignoreCorLibraryDuplicatedTypes:=ignoreCorLibraryDuplicatedTypes)
             End If
 
             Return If(type Is Nothing OrElse type.IsErrorType(), Nothing, type)
@@ -485,7 +487,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns>
         ''' Symbol for the type or Nothing if type cannot be found or ambiguous. 
         ''' </returns>
-        Friend Function GetTopLevelTypeByMetadataName(ByRef metadataName As MetadataTypeName, includeReferences As Boolean, isWellKnownType As Boolean) As NamedTypeSymbol
+        Friend Function GetTopLevelTypeByMetadataName(ByRef metadataName As MetadataTypeName, includeReferences As Boolean, isWellKnownType As Boolean,
+                                                      Optional ignoreCorLibraryDuplicatedTypes As Boolean = False) As NamedTypeSymbol
             Dim result As NamedTypeSymbol
 
             ' First try this assembly
@@ -516,6 +519,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If IsAcceptableMatchForGetTypeByNameAndArity(candidate) AndAlso Not candidate.IsHiddenByEmbeddedAttribute() AndAlso candidate <> result Then
                         If (result IsNot Nothing) Then
                             ' Ambiguity
+                            If ignoreCorLibraryDuplicatedTypes Then
+                                If IsInCorLib(candidate) Then
+                                    ' ignore candidate
+                                    Continue For
+                                End If
+                                If IsInCorLib(result) Then
+                                    ' drop previous result
+                                    result = candidate
+                                    Continue For
+                                End If
+                            End If
                             Return Nothing
                         End If
 
@@ -525,6 +539,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Return result
+        End Function
+
+        Private Shared Function IsInCorLib(type As NamedTypeSymbol) As Boolean
+            Return type.ContainingAssembly = type.ContainingAssembly.CorLibrary
         End Function
 
         Friend Shared Function IsAcceptableMatchForGetTypeByNameAndArity(candidate As NamedTypeSymbol) As Boolean

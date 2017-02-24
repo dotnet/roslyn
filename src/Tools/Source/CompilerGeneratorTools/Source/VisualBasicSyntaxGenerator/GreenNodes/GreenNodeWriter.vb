@@ -440,9 +440,7 @@ Friend Class GreenNodeWriter
 
     Private Function ReaderMethod(type As String) As String
         Select Case type
-            Case "Integer"
-                Return "ReadInt32"
-            Case "SyntaxKind"
+            Case "Integer", "SyntaxKind", "TypeCharacter"
                 Return "ReadInt32"
             Case "Boolean"
                 Return "ReadBoolean"
@@ -453,9 +451,7 @@ Friend Class GreenNodeWriter
 
     Private Function WriterMethod(type As String) As String
         Select Case type
-            Case "Integer"
-                Return "WriteInt32"
-            Case "SyntaxKind"
+            Case "Integer", "SyntaxKind", "TypeCharacter"
                 Return "WriteInt32"
             Case "Boolean"
                 Return "WriteBoolean"
