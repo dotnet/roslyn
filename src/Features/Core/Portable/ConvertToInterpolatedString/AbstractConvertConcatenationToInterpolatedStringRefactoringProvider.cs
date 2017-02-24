@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var previousContentWasStringLiteralExpression = false;
             foreach (var piece in pieces)
             {
-                if (syntaxFacts.IsStringLiteralExpression(piece))
+                var currentContentIsStringLiteral = syntaxFacts.IsStringLiteralExpression(piece);
+                if (currentContentIsStringLiteral)
                 {
                     var text = piece.GetFirstToken().Text;
                     var textWithoutQuotes = GetTextWithoutQuotes(text, isVerbatimStringLiteral);
@@ -127,8 +128,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         //      {InterpolatedStringText}{Interpolation}{InterpolatedStringText}
                         // not:
                         //      {InterpolatedStringText}{Interpolation}{InterpolatedStringText}{InterpolatedStringText}
-                        var existingingInterpolatedStringTextNode = content.Last();
-                        var newText = ConcatinateTextToTextNode(generator, existingingInterpolatedStringTextNode, textWithoutQuotes);
+                        var existingInterpolatedStringTextNode = content.Last();
+                        var newText = ConcatinateTextToTextNode(generator, existingInterpolatedStringTextNode, textWithoutQuotes);
                         content[content.Count - 1] = newText;
                     }
                     else
@@ -136,18 +137,15 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         // This is either the first string literal we have encountered or it is the most recent one we've seen
                         // after adding an interpolation.  Add a new interpolated-string-text-node to the list.
                         content.Add(generator.InterpolatedStringText(generator.InterpolatedStringTextToken(textWithoutQuotes)));
-                        // Update this variable to be true every time we encounter a new string literal expression
-                        // so we know to concatinate future string literals together if we encounter them.
-                        previousContentWasStringLiteralExpression = true;
                     }
                 }
                 else
                 {
                     content.Add(generator.Interpolation(piece.WithoutTrivia()));
-                    // Update this variable to be false every time we encounter an interpolation
-                    // so we know when we've encountered a new string literal expression later.
-                    previousContentWasStringLiteralExpression = false;
                 }
+                // Update this variable to be true every time we encounter a new string literal expression
+                // so we know to concatinate future string literals together if we encounter them.
+                previousContentWasStringLiteralExpression = currentContentIsStringLiteral;
             }
 
             return generator.InterpolatedStringExpression(startToken, content, endToken);
