@@ -126,8 +126,8 @@ End Class
             Dim exitCode = cmd.Run(writer, Nothing)
             Assert.Equal(String.Empty, writer.ToString().Trim())
             Assert.Equal(0, exitCode)
-            Dim expectedDoc = "
-<?xml version=""1.0""?>
+            Dim expectedDoc =
+"<?xml version=""1.0""?>
 <doc>
 <assembly>
 <name>

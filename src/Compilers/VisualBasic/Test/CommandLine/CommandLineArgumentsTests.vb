@@ -252,7 +252,11 @@ End Module
                              expectedOutput:="
 Blah
 blah
+<<<<<<< refs/remotes/origin/Multi-Line-UnitTests
             ]]")
+=======
+            ")
+>>>>>>> Use Multi-Line String Literal in VB Unit Test (39)
 
             text = "Blah=false,blah=true"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
