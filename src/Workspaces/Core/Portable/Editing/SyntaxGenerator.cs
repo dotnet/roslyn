@@ -1629,8 +1629,8 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode TypeExpression(ITypeSymbol typeSymbol);
 
         /// <summary>
-        /// Creates an expression that denotes a type.
-        /// Adds a <see cref="DoNotAddImportsAnnotation"/> which will prevent any
+        /// Creates an expression that denotes a type. If addImport is false,
+        /// adds a <see cref="DoNotAddImportsAnnotation"/> which will prevent any
         /// imports or usings from being added for the type.
         /// </summary>
         public SyntaxNode TypeExpression(ITypeSymbol typeSymbol, bool addImport)
