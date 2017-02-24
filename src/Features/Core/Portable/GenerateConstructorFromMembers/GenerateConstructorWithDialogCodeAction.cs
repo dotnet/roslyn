@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -38,6 +40,11 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
+                if (_service._pickedMemberNames_forTesting != null)
+                {
+                    return _service._pickedMemberNames_forTesting;
+                }
+
                 var workspace = _document.Project.Solution.Workspace;
                 var service = workspace.Services.GetService<IPickMembersService>();
                 return service.PickMembers(
@@ -47,15 +54,28 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
                 object options, CancellationToken cancellationToken)
             {
-                var result = (PickMembersResult)options;
-                if (result.IsCanceled)
+                ImmutableArray<ISymbol> members;
+                switch (options)
                 {
-                    return ImmutableArray<CodeActionOperation>.Empty;
+                    case PickMembersResult result:
+                        if (result.IsCanceled)
+                        {
+                            return ImmutableArray<CodeActionOperation>.Empty;
+                        }
+                        members = result.Members;
+                        break;
+
+                    case ImmutableArray<string> testNames:
+                        members = testNames.SelectAsArray(n => _viableMembers.Single(m => m.Name == n));
+                        break;
+
+                    default:
+                        throw new InvalidOperationException();
                 }
 
                 var state = State.TryGenerate(
                     _service, _document, _textSpan, _containingType, 
-                    result.Members, cancellationToken);
+                    members, cancellationToken);
 
                 // There was an existing constructor that matched what the user wants to create.
                 // Generate it if it's the implicit, no-arg, constructor, otherwise just navigate

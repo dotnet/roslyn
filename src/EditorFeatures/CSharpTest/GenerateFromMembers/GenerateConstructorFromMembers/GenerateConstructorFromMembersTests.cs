@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,8 +15,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructorFrom
 {
     public class GenerateConstructorFromMembersTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-            => new GenerateConstructorFromMembersCodeRefactoringProvider();
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+            => new GenerateConstructorFromMembersCodeRefactoringProvider((ImmutableArray<string>?)fixProviderData);
+
+        private Task TestWithDialogAsync(
+            string initialMarkup, string expectedMarkup, string[] chosenSymbols, int index = 0, bool compareTokens = true)
+        {
+            return TestAsync(initialMarkup, expectedMarkup, index, compareTokens, fixProviderData: chosenSymbols.AsImmutableOrEmpty());
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSingleField()
@@ -626,6 +633,152 @@ options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSu
     public int Number { get; }|]
 }",
 options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestSingleFieldWithDialog()
+        {
+            await TestWithDialogAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    [||]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+
+    public Z(int a)
+    {
+        this.a = a;
+    }
+}",
+chosenSymbols: new[] { "a" });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestSingleFieldWithDialog2()
+        {
+            await TestWithDialogAsync(
+@"using System.Collections.Generic;
+
+class [||]Z
+{
+    int a;
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+
+    public Z(int a)
+    {
+        this.a = a;
+    }
+}",
+chosenSymbols: new[] { "a" });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMissingOnClassAttributes()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+
+[X][||]
+class Z
+{
+    int a;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPickNoFieldWithDialog()
+        {
+            await TestWithDialogAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    [||]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+
+    public Z()
+    {
+    }
+}",
+chosenSymbols: new string[] { });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestReorderFieldsWithDialog()
+        {
+            await TestWithDialogAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+    [||]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(string b, int a)
+    {
+        this.b = b;
+        this.a = a;
+    }
+}",
+chosenSymbols: new string[] { "b", "a" });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMissingOnMember1()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+    [||]public void M() { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMissingOnMember2()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+    public void M()
+    {
+    }[||]
+
+    public void N() { }
+}");
         }
     }
 }

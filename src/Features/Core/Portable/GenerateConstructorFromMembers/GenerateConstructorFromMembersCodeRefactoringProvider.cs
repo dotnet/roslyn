@@ -20,6 +20,20 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
     internal partial class GenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
+        private readonly ImmutableArray<string>? _pickedMemberNames_forTesting;
+
+        public GenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
+        {
+        }
+
+        /// <summary>
+        /// For testing purposes only.
+        /// </summary>
+        internal GenerateConstructorFromMembersCodeRefactoringProvider(ImmutableArray<string>? pickedMemberNames)
+        {
+            _pickedMemberNames_forTesting = pickedMemberNames;
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;

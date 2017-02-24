@@ -16,27 +16,34 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.UnitTests;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
     public abstract class AbstractCodeActionTest : AbstractCodeActionOrUserDiagnosticTest
     {
-        protected abstract CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace);
+        protected virtual CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
+            => throw new NotImplementedException();
+
+        protected virtual CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+            => CreateCodeRefactoringProvider(workspace);
 
         protected override async Task<IList<CodeAction>> GetCodeActionsWorkerAsync(
             TestWorkspace workspace, string fixAllActionEquivalenceKey, object fixProviderData)
         {
-            return (await GetCodeRefactoringAsync(workspace))?.Actions?.ToList();
+            return (await GetCodeRefactoringAsync(workspace, fixProviderData))?.Actions?.ToList();
         }
 
-        internal async Task<CodeRefactoring> GetCodeRefactoringAsync(TestWorkspace workspace)
+        internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
+            TestWorkspace workspace, object fixProviderData)
         {
-            return (await GetCodeRefactoringsAsync(workspace)).FirstOrDefault();
+            return (await GetCodeRefactoringsAsync(workspace, fixProviderData)).FirstOrDefault();
         }
 
-        private async Task<IEnumerable<CodeRefactoring>> GetCodeRefactoringsAsync(TestWorkspace workspace)
+        private async Task<IEnumerable<CodeRefactoring>> GetCodeRefactoringsAsync(
+            TestWorkspace workspace, object fixProviderData)
         {
-            var provider = CreateCodeRefactoringProvider(workspace);
+            var provider = CreateCodeRefactoringProvider(workspace, fixProviderData);
             return SpecializedCollections.SingletonEnumerable(
                 await GetCodeRefactoringAsync(provider, workspace));
         }
