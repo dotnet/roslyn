@@ -105,22 +105,20 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
-
             var startToken = CreateInterpolatedStringStartToken(isVerbatimStringLiteral)
                                 .WithLeadingTrivia(pieces.First().GetLeadingTrivia());
             var endToken = CreateInterpolatedStringEndToken()
                                 .WithTrailingTrivia(pieces.Last().GetTrailingTrivia());
 
             var content = new List<SyntaxNode>(pieces.Count);
-            var previousIndex = -2;
-            var insertionIndex = -1;
-            for (var i = 0; i < pieces.Count; i++)
+            var previousContentWasStringLiteralExpression = false;
+            foreach (var piece in pieces)
             {
-                if (syntaxFacts.IsStringLiteralExpression(pieces[i]))
+                if (syntaxFacts.IsStringLiteralExpression(piece))
                 {
-                    var text = pieces[i].GetFirstToken().Text;
+                    var text = piece.GetFirstToken().Text;
                     var textWithoutQuotes = GetTextWithoutQuotes(text, isVerbatimStringLiteral);
-                    if (i - 1 == previousIndex)
+                    if (previousContentWasStringLiteralExpression)
                     {
                         // Last part we added to the content list was also an interpolated-string-text-node.
                         // We need to combine these as the API for creating an interpolated strings
@@ -129,28 +127,37 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         //      {InterpolatedStringText}{Interpolation}{InterpolatedStringText}
                         // not:
                         //      {InterpolatedStringText}{Interpolation}{InterpolatedStringText}{InterpolatedStringText}
-                        var interpolatedStringTextNode = content[insertionIndex];
-                        var existingText = interpolatedStringTextNode.GetFirstToken().Text;
-                        var newText = existingText + textWithoutQuotes;
-                        content[insertionIndex] = generator.InterpolatedStringText(generator.InterpolatedStringTextToken(newText));
+                        var existingingInterpolatedStringTextNode = content.Last();
+                        var newText = ConcatinateTextToTextNode(generator, existingingInterpolatedStringTextNode, textWithoutQuotes);
+                        content[content.Count - 1] = newText;
                     }
                     else
                     {
                         // This is either the first string literal we have encountered or it is the most recent one we've seen
                         // after adding an interpolation.  Add a new interpolated-string-text-node to the list.
                         content.Add(generator.InterpolatedStringText(generator.InterpolatedStringTextToken(textWithoutQuotes)));
-
-                        // Update the insertion index incase the next piece is also a interpolated-string-text-node.
-                        insertionIndex = i;
+                        // Update this variable to be true every time we encounter a new string literal expression
+                        // so we know to concatinate future string literals together if we encounter them.
+                        previousContentWasStringLiteralExpression = true;
                     }
-                    previousIndex = i;
                 }
                 else
                 {
-                    content.Add(generator.Interpolation(pieces[i].WithoutTrivia()));
+                    content.Add(generator.Interpolation(piece.WithoutTrivia()));
+                    // Update this variable to be false every time we encounter an interpolation
+                    // so we know when we've encountered a new string literal expression later.
+                    previousContentWasStringLiteralExpression = false;
                 }
             }
+
             return generator.InterpolatedStringExpression(startToken, content, endToken);
+        }
+
+        private static SyntaxNode ConcatinateTextToTextNode(SyntaxGenerator generator, SyntaxNode interpolatedStringTextNode, string textWithoutQuotes)
+        {
+            var existingText = interpolatedStringTextNode.GetFirstToken().Text;
+            var newText = existingText + textWithoutQuotes;
+            return generator.InterpolatedStringText(generator.InterpolatedStringTextToken(newText));
         }
 
         protected abstract string GetTextWithoutQuotes(string text, bool isVerbatimStringLiteral);
