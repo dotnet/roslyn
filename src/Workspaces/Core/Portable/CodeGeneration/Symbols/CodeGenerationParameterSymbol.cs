@@ -53,13 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Parameter;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Parameter;
 
         public override void Accept(SymbolVisitor visitor)
         {
@@ -71,13 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return visitor.VisitParameter(this);
         }
 
-        public bool IsThis
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsThis => false;
 
         public ImmutableArray<CustomModifier> RefCustomModifiers
         {

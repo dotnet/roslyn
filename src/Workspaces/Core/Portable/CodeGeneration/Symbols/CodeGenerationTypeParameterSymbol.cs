@@ -51,21 +51,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public ITypeParameterSymbol ReducedFrom
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public ITypeParameterSymbol ReducedFrom => null;
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.TypeParameter;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.TypeParameter;
 
         public override void Accept(SymbolVisitor visitor)
         {
@@ -77,13 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return visitor.VisitTypeParameter(this);
         }
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return TypeKind.TypeParameter;
-            }
-        }
+        public override TypeKind TypeKind => TypeKind.TypeParameter;
 
         public TypeParameterKind TypeParameterKind
         {

@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
 
+        internal abstract SyntaxTrivia EndOfLine(string text);
+
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
@@ -308,6 +310,16 @@ namespace Microsoft.CodeAnalysis.Editing
                 getAccessorStatements,
                 setAccessorStatements);
         }
+
+        /// <summary>
+        /// Creates a statement that adds the given handler to the given event.
+        /// </summary>
+        public abstract SyntaxNode AddEventHandler(SyntaxNode @event, SyntaxNode handler);
+
+        /// <summary>
+        /// Creates a statement that removes the given handler from the given event.
+        /// </summary>
+        public abstract SyntaxNode RemoveEventHandler(SyntaxNode @event, SyntaxNode handler);
 
         /// <summary>
         /// Creates an event declaration.

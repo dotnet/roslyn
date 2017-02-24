@@ -435,6 +435,22 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         }
 
         [Fact]
+        public void TestAddHandlerExpressions()
+        {
+            VerifySyntax<AssignmentExpressionSyntax>(
+                _g.AddEventHandler(_g.IdentifierName("@event"), _g.IdentifierName("handler")),
+                "@event += (handler)");
+        }
+
+        [Fact]
+        public void TestSubtractHandlerExpressions()
+        {
+            VerifySyntax<AssignmentExpressionSyntax>(
+                _g.RemoveEventHandler(_g.IdentifierName("@event"),
+                _g.IdentifierName("handler")), "@event -= (handler)");
+        }
+
+        [Fact]
         public void TestAwaitExpressions()
         {
             VerifySyntax<AwaitExpressionSyntax>(_g.AwaitExpression(_g.IdentifierName("x")), "await x");

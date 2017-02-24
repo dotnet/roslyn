@@ -1787,9 +1787,6 @@ public class X
                 // (115,15): error CS0103: The name 'u9' does not exist in the current context
                 //         Dummy(u9); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(115, 15),
-                // (108,50): error CS0165: Use of unassigned local variable 'z9'
-                //                   group x > y9 && 1 is var z9 && z9 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z9").WithArguments("z9").WithLocation(108, 50),
                 // (121,24): error CS1931: The range variable 'y10' conflicts with a previous declaration of 'y10'
                 //                   from y10 in new[] { 1 }
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y10").WithArguments("y10").WithLocation(121, 24),
@@ -2705,63 +2702,63 @@ public class X
 
             // error CS0412 is misleading and reported due to preexisting bug https://github.com/dotnet/roslyn/issues/12052
             compilation.VerifyDiagnostics(
-                // (15,47): error CS0412: 'y1': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (15,47): error CS0136: A local or parameter named 'y1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   from x2 in new[] { 1 is var y1 ? y1 : 1 }
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y1").WithArguments("y1").WithLocation(15, 47),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y1").WithArguments("y1").WithLocation(15, 47),
                 // (15,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   from x2 in new[] { 1 is var y1 ? y1 : 1 }
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y1").WithLocation(15, 47),
-                // (23,36): error CS0412: 'y2': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (23,36): error CS0136: A local or parameter named 'y2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                        on 2 is var y2 ? y2 : 0 
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y2").WithArguments("y2").WithLocation(23, 36),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y2").WithArguments("y2").WithLocation(23, 36),
                 // (23,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                        on 2 is var y2 ? y2 : 0 
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(23, 36),
-                // (33,40): error CS0412: 'y3': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (33,40): error CS0136: A local or parameter named 'y3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                        equals 3 is var y3 ? y3 : 0
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y3").WithArguments("y3").WithLocation(33, 40),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y3").WithArguments("y3").WithLocation(33, 40),
                 // (33,40): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                        equals 3 is var y3 ? y3 : 0
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y3").WithLocation(33, 40),
-                // (40,34): error CS0412: 'y4': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (40,34): error CS0136: A local or parameter named 'y4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   where 4 is var y4 && y4 == 1
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y4").WithArguments("y4").WithLocation(40, 34),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y4").WithArguments("y4").WithLocation(40, 34),
                 // (40,34): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   where 4 is var y4 && y4 == 1
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(40, 34),
-                // (47,36): error CS0412: 'y5': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (47,36): error CS0136: A local or parameter named 'y5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   orderby 5 is var y5 && y5 > 1, 
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y5").WithArguments("y5").WithLocation(47, 36),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y5").WithArguments("y5").WithLocation(47, 36),
                 // (47,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   orderby 5 is var y5 && y5 > 1, 
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(47, 36),
-                // (56,36): error CS0412: 'y6': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (56,36): error CS0136: A local or parameter named 'y6' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           6 is var y6 && y6 > 1 
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y6").WithArguments("y6").WithLocation(56, 36),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y6").WithArguments("y6").WithLocation(56, 36),
                 // (56,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                           6 is var y6 && y6 > 1 
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(56, 36),
-                // (63,34): error CS0412: 'y7': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (63,34): error CS0136: A local or parameter named 'y7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   group 7 is var y7 && y7 == 3 
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y7").WithArguments("y7").WithLocation(63, 34),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y7").WithArguments("y7").WithLocation(63, 34),
                 // (63,34): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   group 7 is var y7 && y7 == 3 
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(63, 34),
-                // (71,31): error CS0412: 'y8': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (71,31): error CS0136: A local or parameter named 'y8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   by 8 is var y8 && y8 == 3;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y8").WithArguments("y8").WithLocation(71, 31),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y8").WithArguments("y8").WithLocation(71, 31),
                 // (71,31): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   by 8 is var y8 && y8 == 3;
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(71, 31),
-                // (77,37): error CS0412: 'y9': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (77,37): error CS0136: A local or parameter named 'y9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   let x4 = 9 is var y9 && y9 > 0
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y9").WithArguments("y9").WithLocation(77, 37),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y9").WithArguments("y9").WithLocation(77, 37),
                 // (77,37): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   let x4 = 9 is var y9 && y9 > 0
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(77, 37),
-                // (84,36): error CS0412: 'y10': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (84,36): error CS0136: A local or parameter named 'y10' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   select 10 is var y10 && y10 > 0;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y10").WithArguments("y10").WithLocation(84, 36),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y10").WithArguments("y10").WithLocation(84, 36),
                 // (84,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   select 10 is var y10 && y10 > 0;
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(84, 36)

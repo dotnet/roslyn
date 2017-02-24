@@ -1456,6 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAsyncMethodBuilderTaskProperty = 8204,
         ERR_AttributesInLocalFuncDecl = 8205,
         ERR_TypeForwardedToMultipleAssemblies = 8206,
+        ERR_ExpressionTreeContainsDiscard = 8207,
         #endregion more stragglers for C# 7
     }
 }

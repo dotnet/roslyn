@@ -9,15 +9,15 @@ using Roslyn.Test.PdbUtilities;
 
 internal static class PdbToXmlApp
 {
-    public static void Main(string[] args)
+    public static int Main(string[] args)
     {
         if (args.Length == 0)
         {
-            Console.WriteLine("Usage: Pdb2Xml <PEFile | DeltaPdb> [<output file>] [/tokens] [/methodSpans] [/delta]");
-            return;
+            Console.WriteLine("Usage: Pdb2Xml <PEFile | DeltaPdb> [<output file>] [/tokens] [/methodSpans] [/delta] [/srcsvr]");
+            return 1;
         }
 
-        List<string> argList = new List<string>(args);
+        var argList = new List<string>(args);
 
         bool isDelta = argList.Remove("/delta");
 
@@ -31,6 +31,11 @@ internal static class PdbToXmlApp
         if (argList.Remove("/methodSpans"))
         {
             options |= PdbToXmlOptions.IncludeMethodSpans;
+        }
+
+        if (argList.Remove("/srcsvr"))
+        {
+            options |= PdbToXmlOptions.IncludeSourceServerInformation;
         }
 
         string peFile;
@@ -49,14 +54,14 @@ internal static class PdbToXmlApp
 
         if (peFile != null && !File.Exists(peFile))
         {
-            Console.WriteLine("File not found- {0}", peFile);
-            return;
+            Console.WriteLine($"File not found: {peFile}");
+            return 2;
         }
 
         if (!File.Exists(pdbFile))
         {
-            Console.WriteLine("PDB File not found- {0}", pdbFile);
-            return;
+            Console.WriteLine($"PDB File not found: {pdbFile}");
+            return 2;
         }
 
         string xmlFile;
@@ -75,19 +80,30 @@ internal static class PdbToXmlApp
             {
                 File.Delete(xmlFile);
             }
-            catch { }
+            catch
+            {
+            }
         }
 
-        if (isDelta)
+        try
         {
-            GenXmlFromDeltaPdb(pdbFile, xmlFile, options);
+            if (isDelta)
+            {
+                GenXmlFromDeltaPdb(pdbFile, xmlFile, options);
+            }
+            else
+            {
+                GenXmlFromPdb(peFile, pdbFile, xmlFile, options);
+            }
         }
-        else
+        catch (Exception e)
         {
-            GenXmlFromPdb(peFile, pdbFile, xmlFile, options);
+            Console.Error.WriteLine(e.Message);
+            return e.HResult;
         }
 
-        Console.WriteLine("PDB dump written to {0}", xmlFile);
+        Console.WriteLine($"PDB dump written to {xmlFile}");
+        return 0;
     }
 
     public static void GenXmlFromPdb(string exePath, string pdbPath, string outPath, PdbToXmlOptions options)

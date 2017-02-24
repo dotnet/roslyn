@@ -68,12 +68,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             var finalCondition = ifStatement.Condition.ReplaceNode(conditionPart, updatedConditionPart);
 
-            // Keep the trivia on the node we're removing.  But format the next statement so 
-            // they look ok when they move to it.
-            var removeOptions = localDeclaration.GetTrailingTrivia().Any(t => t.IsRegularOrDocComment())
-                ? SyntaxRemoveOptions.KeepLeadingTrivia | SyntaxRemoveOptions.KeepTrailingTrivia
-                : SyntaxRemoveOptions.KeepLeadingTrivia;
-            editor.RemoveNode(localDeclaration, removeOptions);
+            var block = (BlockSyntax)localDeclaration.Parent;
+            var declarationIndex = block.Statements.IndexOf(localDeclaration);
+
+            // Trivia on the local declaration will move to the next statement.
+            // use the callback form as the next statement may be the place where we're 
+            // inlining the declaration, and thus need to see the effects of that change.
+            editor.ReplaceNode(
+                block.Statements[declarationIndex + 1],
+                (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
+            editor.RemoveNode(localDeclaration, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+
             editor.ReplaceNode(ifStatement, (i, g) =>
             {
                 var currentIf = (IfStatementSyntax)i;

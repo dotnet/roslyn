@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (localSymbol != (object)null)
             {
-                if (InConstructorInitializer || InFieldInitializer)
+                if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                 {
                     Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, node);
                 }

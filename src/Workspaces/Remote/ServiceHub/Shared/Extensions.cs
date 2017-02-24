@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     // wait task to finish
                     await task.ConfigureAwait(false);
                 }
-                catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
+                catch (Exception ex) when (ReportUnlessCanceled(ex, mergedCancellation.Token, cancellationToken))
                 {
                     // important to use cancelationToken here rather than mergedCancellationToken.
                     // there is a slight delay when merged cancellation token will be notified once cancellation token
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     return result;
                 }
-                catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
+                catch (Exception ex) when (ReportUnlessCanceled(ex, mergedCancellation.Token, cancellationToken))
                 {
                     // important to use cancelationToken here rather than mergedCancellationToken.
                     // there is a slight delay when merged cancellation token will be notified once cancellation token
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     // wait task to finish
                     await task.ConfigureAwait(false);
                 }
-                catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
+                catch (Exception ex) when (ReportUnlessCanceled(ex, mergedCancellation.Token, cancellationToken))
                 {
                     // important to use cancelationToken here rather than mergedCancellationToken.
                     // there is a slight delay when merged cancellation token will be notified once cancellation token
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     return result;
                 }
-                catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
+                catch (Exception ex) when (ReportUnlessCanceled(ex, mergedCancellation.Token, cancellationToken))
                 {
                     // important to use cancelationToken here rather than mergedCancellationToken.
                     // there is a slight delay when merged cancellation token will be notified once cancellation token
@@ -164,15 +164,30 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static bool ReportUnlessCanceled(Exception ex, CancellationToken token)
+#pragma warning disable CA1068 // this method accepts 2 cancellation tokens
+        private static bool ReportUnlessCanceled(Exception ex, CancellationToken remoteToken, CancellationToken hostToken)
+#pragma warning restore CA1068 // CancellationToken parameters must come last
         {
             // check whether we are in cancellation mode
-            if (token.IsCancellationRequested)
+
+            // things are either cancelled by us (hostToken) or cancelled by OOP (remoteToken). 
+            // "cancelled by us" means operation user invoked is cancelled by another user action such as explicit cancel, or typing.
+            // "cancelled by OOP" means operation user invoked is cancelled due to issue on OOP such as user killed OOP process.
+
+            if (hostToken.IsCancellationRequested)
             {
-                // we are under cancellation, we don't care what the exception is.
+                // we are under our own cancellation, we don't care what the exception is.
                 // due to the way we do cancellation (forcefully closing connection in the middle of reading/writing)
                 // various exceptions can be thrown. for example, if we close our own named pipe stream in the middle of
                 // object reader/writer using it, we could get invalid operation exception or invalid cast exception.
+                return true;
+            }
+
+            if (remoteToken.IsCancellationRequested)
+            {
+                // now we allow connection to be closed by users by killing remote host process.
+                // in those case, it will be converted to remote token cancellation. we accept that as known
+                // exception, and allow us to not crash
                 return true;
             }
 
@@ -187,12 +202,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 try
                 {
-                    if (p.Exception != null && !cancellationToken.IsCancellationRequested)
-                    {
-                        // fail fast if we are here without cencellation raised.
-                        FatalError.Report(p.Exception);
-                    }
-
+                    // now, we allow user to kill OOP process, when that happen, 
+                    // just raise cancellation 
                     mergedCancellation.Cancel();
                 }
                 catch (ObjectDisposedException)

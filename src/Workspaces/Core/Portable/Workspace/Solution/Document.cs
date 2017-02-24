@@ -135,13 +135,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// If <code>false</code> then these methods will return <code>null</code> instead.
         /// </summary>
-        public bool SupportsSyntaxTree
-        {
-            get
-            {
-                return DocumentState.SupportsSyntaxTree;
-            }
-        }
+        public bool SupportsSyntaxTree => DocumentState.SupportsSyntaxTree;
 
         /// <summary>
         /// <code>true</code> if this Document supports providing data through the

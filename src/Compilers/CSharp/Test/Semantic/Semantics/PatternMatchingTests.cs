@@ -1089,6 +1089,33 @@ True");
         }
 
         [Fact]
+        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        public void FieldInitializers_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(Test1());
+    }
+
+    static System.Func<bool> Test1 = () => 1 is int x1 && Dummy(x1); 
+
+    static bool Dummy(int x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: @"1
+True");
+        }
+
+        [Fact]
         public void PropertyInitializers_01()
         {
             var source =
@@ -1121,6 +1148,34 @@ True");
                 );
 #endif
         }
+
+        [Fact]
+        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        public void PropertyInitializers_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(Test1());
+    }
+
+    static System.Func<bool> Test1 {get;} = () => 1 is int x1 && Dummy(x1); 
+
+    static bool Dummy(int x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: @"1
+True");
+        }
+
         [Fact]
         public void ConstructorInitializers_01()
         {
@@ -1177,6 +1232,54 @@ True");
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(17, 28)
                 );
 #endif
+        }
+
+        [Fact]
+        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        public void ConstructorInitializers_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        var x = new D();
+    }
+}
+
+class D : C
+{
+    public D(System.Func<bool> o) : base(() => 2 is int x1 && Dummy(x1)) 
+    {
+        System.Console.WriteLine(o());
+    }
+
+    public D() : this(() => 1 is int x1 && Dummy(x1)) 
+    {
+    }
+
+    static bool Dummy(int x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+}
+
+class C
+{
+    public C(System.Func<bool> b) 
+    { 
+        System.Console.WriteLine(b());
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"2
+True
+1
+True");
         }
 
         [Fact]
@@ -5488,6 +5591,33 @@ namespace System
                 //             case int _:
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int _").WithLocation(19, 18)
                 );
+        }
+
+        [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
+        public void DoubleEvaluation01()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        if (TryGet() is int index)
+        {
+            Console.WriteLine(index);
+        }
+    }
+
+    public static int? TryGet()
+    {
+        Console.WriteLine(""eval"");
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"eval";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }

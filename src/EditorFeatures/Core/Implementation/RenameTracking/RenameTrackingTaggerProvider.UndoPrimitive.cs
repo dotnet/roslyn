@@ -28,15 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 set { _parent = value; }
             }
 
-            public bool CanRedo
-            {
-                get { return true; }
-            }
+            public bool CanRedo => true;
 
-            public bool CanUndo
-            {
-                get { return true; }
-            }
+            public bool CanUndo => true;
 
             public UndoPrimitive(ITextBuffer textBuffer, int trackingSessionId, bool shouldRestoreStateOnUndo)
             {
