@@ -1389,11 +1389,22 @@
   
     <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
   </Node>
-  
+
   <Node Name="BoundDelegateCreationExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
+    <!-- Argument is one of the following:
+         1. A method group (before local lowering only). If the method is nonstatic or
+            converted as an extension method, the method group contains a receiver
+            expression (mg.ReceiverOpt) for the created delegate; or
+         2. A value of type dynamic (before local lowering only); or
+         3. A bound lambda (before lambda lowering only); or
+         4. A value of a delegate type with MethodOpt == null; or
+         5. The receiver of the method being converted to a delegate (after local lowering).
+            It may be a BoundTypeExpression if the method is static and not converted as an
+            extension method.
+         -->
     <Field Name="Argument" Type="BoundExpression"/>
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
     <Field Name="IsExtensionMethod" Type="bool"/>
