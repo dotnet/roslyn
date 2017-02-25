@@ -32,6 +32,7 @@
     <Compile Include="SharedIntegrationHostFixture.cs" />
     <Compile Include="VisualBasic\BasicAutomaticBraceCompletion.cs" />
     <Compile Include="VisualBasic\BasicBuild.cs" />
+    <Compile Include="VisualBasic\BasicGenerateEqualsAndGetHashCodeDialog.cs" />
     <Compile Include="VisualBasic\BasicGenerateConstructorDialog.cs" />
     <Compile Include="VisualBasic\BasicChangeSignatureDialog.cs" />
     <Compile Include="VisualBasic\BasicIntelliSense.cs" />
