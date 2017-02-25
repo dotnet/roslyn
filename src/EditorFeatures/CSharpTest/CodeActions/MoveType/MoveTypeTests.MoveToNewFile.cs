@@ -45,6 +45,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             var code =
 @"[|clas|]s Class1 { }
  class Class2 { }";
+
+            await TestMissingAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestForSpans2()
+        {
+            var code =
+@"[||]class Class1 { }
+ class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
             var expectedDocumentName = "Class1.cs";
@@ -62,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document Folders=""A\B""> 
-[|class|] Class1 { }
+[||]class Class1 { }
 class Class2 { }
         </Document>
     </Project>
@@ -78,21 +88,17 @@ class Class2 { }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task TestForSpans2()
+        public async Task TestForSpans3()
         {
             var code =
 @"[|class Class1|] { }
 class Class2 { }";
-            var codeAfterMove = @"class Class2 { }";
 
-            var expectedDocumentName = "Class1.cs";
-            var destinationDocumentText = @"class Class1 { }";
-
-            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+            await TestMissingAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task TestForSpans3()
+        public async Task TestForSpans4()
         {
             var code =
 @"class Class1[||] { }
@@ -798,7 +804,7 @@ class Outer
     {
     }
 
-    [|class|] Inner2
+    [||]class Inner2
     {
     }
 }";
@@ -836,7 +842,7 @@ class Outer
     {
     }
 
-    [|class|] Inner2
+    [||]class Inner2
     {
     }
 }";
@@ -879,7 +885,7 @@ class Outer
     {
     }
 
-    [|class|] Inner2
+    [||]class Inner2
     {
     }
 }";
