@@ -54,6 +54,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var iequatableType = compilation.GetTypeByMetadataName("System.IEquatable`1");
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
+            // Come up with a good name for the local variable we're going to compare against.
+            // For example, if the class name is "CustomerOrder" then we'll generate:
+            //
+            //      var order = obj as CustomerOrder;
+
             var parts = StringBreaker.BreakIntoWordParts(containingType.Name);
             var localName = "v";
             for (var i = parts.Count - 1; i >= 0; i--)
@@ -70,16 +75,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var objNameExpression = factory.IdentifierName(ObjName);
 
+            // These will be all the expressions that we'll '&&' together inside the final
+            // return statement of 'Equals'.
             var expressions = new List<SyntaxNode>();
 
             if (containingType.IsValueType)
             {
-#if false
-                if (!(obj is MyType))
-                {
-                    return false;
-                }
-#endif
+                // If we're a value type, then we need an is-check first to make sure
+                // the object is our type:
+                //
+                //      if (!(obj is MyType))
+                //      {
+                //          return false;
+                //      }
                 var ifStatement = factory.IfStatement(
                     factory.LogicalNotExpression(
                         factory.IsTypeExpression(
@@ -87,9 +95,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             containingType)),
                     new[] { factory.ReturnStatement(factory.FalseLiteralExpression()) });
 
-#if false
-                var myType = (MyType)obj;
-#endif
+                // Next, we cast the argument to our type:
+                //
+                //      var myType = (MyType)obj;
+
                 var localDeclaration = factory.LocalDeclarationStatement(localName, factory.CastExpression(containingType, objNameExpression));
 
                 statements.Add(ifStatement);
@@ -97,22 +106,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-#if false
-                var myType = obj as MyType;
-#endif
+                // It's not a value type, we can just use "as" to test the parameter is the right type:
+                //
+                //      var myType = obj as MyType;
+
                 var localDeclaration = factory.LocalDeclarationStatement(localName, factory.TryCastExpression(objNameExpression, containingType));
 
                 statements.Add(localDeclaration);
 
-#if false
-                myType != null
-#endif
+                // Ensure that the parameter we got was not null (which also ensures the 'as' test
+                // succeeded):
+                //
+                //      myType != null
                 expressions.Add(factory.ReferenceNotEqualsExpression(localNameExpression, factory.NullLiteralExpression()));
                 if (HasExistingBaseEqualsMethod(containingType, cancellationToken))
                 {
-#if false
-                    base.Equals(obj)
-#endif
+                    // If we're overriding something that also provided an overridden 'Equals',
+                    // then ensure the base type thinks it is equals as well.
+                    //
+                    //      base.Equals(obj)
                     expressions.Add(factory.InvocationExpression(
                         factory.MemberAccessExpression(
                             factory.BaseExpression(),
@@ -121,6 +133,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
+            // Now, iterate over all the supplied members and ensure that our instance
+            // and the parameter think they are equals.  Specialize how we do this for
+            // common types.  Fall-back to EqualityComparer<SType>.Default.Equals for
+            // everything else.
             foreach (var member in members)
             {
                 var symbolNameExpression = factory.IdentifierName(member.Name);
@@ -128,19 +144,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                                         .WithAdditionalAnnotations(Simplification.Simplifier.Annotation);
                 var otherSymbol = factory.MemberAccessExpression(localNameExpression, symbolNameExpression);
 
-#if false
-                EqualityComparer<SType>.Default.Equals(this.S1, myType.S1)
-#endif
                 var memberType = member.GetSymbolType();
 
                 if (IsPrimitiveValueType(memberType))
                 {
+                    // If we have one of the well known primitive types, then just use '==' to compare
+                    // the values.
+                    //
+                    //      this.a == other.a
                     var expression = factory.ValueEqualsExpression(thisSymbol, otherSymbol);
                     expressions.Add(expression);
                 }
                 else if (memberType?.IsValueType == true &&
                          ImplementsIEquatable(memberType, iequatableType))
                 {
+                    // If it's a value type and implements IEquatable<T>, then just call directly
+                    // into .Equals.  This keeps the code simple and avoids an unnecessary null
+                    // check
+                    //
+                    //      this.a.Equals(other.a)
                     var expression = factory.InvocationExpression(
                         factory.MemberAccessExpression(thisSymbol, nameof(object.Equals)),
                         otherSymbol);
@@ -148,6 +170,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
                 else
                 {
+                    // Otherwise call EqualityComparer<SType>.Default.Equals(this.a, other.a).
+                    // This will do the appropriate null checks as well as calling directly
+                    // into IEquatable<T>.Equals implementations if avaliable.
                     var expression =
                         factory.InvocationExpression(
                             factory.MemberAccessExpression(
@@ -160,9 +185,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-#if false
-            return myType != null && base.Equals(obj) && EqualityComparer<int>.Default.Equals(this.S1, myType.S1) && ...;
-#endif
+            // Now combine all the comparison expressions together into one final statement like:
+            //
+            //      return myType != null &&
+            //             base.Equals(obj) &&
+            //             this.S1 == myType.S1;
             statements.Add(factory.ReturnStatement(
                 expressions.Aggregate(factory.LogicalAndExpression)));
 
