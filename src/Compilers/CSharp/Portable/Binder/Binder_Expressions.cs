@@ -2213,7 +2213,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (isVar)
                 {
-                    return new OutVariablePendingInference(declarationExpression, localSymbol, null);
+                    if (localSymbol.DeclarationKind == LocalDeclarationKind.OutVariable)
+                    {
+                        return new OutVariablePendingInference(declarationExpression, localSymbol, null);
+                    }
+
+                    // in error recovery situations we treat "var" as an error type
+                    Debug.Assert(localSymbol.DeclarationKind == LocalDeclarationKind.DeclarationExpressionVariable);
+                    if (!declarationExpression.HasErrors)
+                    {
+                        // Normally the parser would produce an error, but when trees are assembled by hand we still need to report an error
+                        diagnostics.Add(ErrorCode.ERR_DeclarationExpressionNotPermitted, declarationExpression.Location);
+                    }
+
+                    declType = CreateErrorType("var");
                 }
 
                 CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
