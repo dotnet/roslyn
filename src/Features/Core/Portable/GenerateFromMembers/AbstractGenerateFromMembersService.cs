@@ -8,49 +8,39 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateFromMembers
 {
-    internal interface IGenerateFromMembersHelperService : ILanguageService
-    {
-        Task<ImmutableArray<SyntaxNode>> GetSelectedMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
-        IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
-    }
-
-    internal abstract class AbstractGenerateFromMembersCodeRefactoringProvider : CodeRefactoringProvider
+    internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvider : CodeRefactoringProvider
     {
         protected AbstractGenerateFromMembersCodeRefactoringProvider()
         {
         }
 
-        protected class SelectedMemberInfo
-        {
-            public INamedTypeSymbol ContainingType;
-            public IList<SyntaxNode> SelectedDeclarations;
-            public IList<ISymbol> SelectedMembers;
-        }
-
         protected async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var helper = document.GetLanguageService<IGenerateFromMembersHelperService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
-            var selectedDeclarations = await helper.GetSelectedMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var selectedDeclarations = syntaxFacts.GetSelectedMembers(root, textSpan);
 
             if (selectedDeclarations.Length > 0)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var selectedMembers = selectedDeclarations.SelectMany(
-                    d => helper.GetDeclaredSymbols(semanticModel, d, cancellationToken)).WhereNotNull().ToList();
-                if (selectedMembers.Count > 0)
+                    d => semanticFacts.GetDeclaredSymbols(semanticModel, d, cancellationToken)).WhereNotNull().ToImmutableArray();
+                if (selectedMembers.Length > 0)
                 {
                     var containingType = selectedMembers.First().ContainingType;
                     if (containingType != null)
                     {
-                        return new SelectedMemberInfo { ContainingType = containingType, SelectedDeclarations = selectedDeclarations, SelectedMembers = selectedMembers };
+                        return new SelectedMemberInfo(containingType, selectedDeclarations, selectedMembers);
                     }
                 }
             }
@@ -58,43 +48,34 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             return null;
         }
 
+        // Can use non const fields and properties with setters in them.
         protected static bool IsWritableInstanceFieldOrProperty(ISymbol symbol)
-        {
-            // Can use non const fields and properties with setters in them.
-            return
-                IsInstanceFieldOrProperty(symbol) &&
-                IsWritableFieldOrProperty(symbol);
-        }
+            => IsInstanceFieldOrProperty(symbol) &&
+               IsWritableFieldOrProperty(symbol);
 
         private static bool IsWritableFieldOrProperty(ISymbol symbol)
         {
             switch (symbol)
             {
-                case IFieldSymbol field: return !field.IsConst;
+                case IFieldSymbol field: return !field.IsConst && field.AssociatedSymbol == null;
                 case IPropertySymbol property: return property.IsWritableInConstructor();
                 default: return false;
             }
         }
 
         protected static bool IsInstanceFieldOrProperty(ISymbol symbol)
-        {
-            return !symbol.IsStatic && (IsField(symbol) || IsProperty(symbol));
-        }
+            => !symbol.IsStatic && (IsField(symbol) || IsProperty(symbol));
 
         private static bool IsProperty(ISymbol symbol)
-        {
-            return symbol.Kind == SymbolKind.Property;
-        }
+            => symbol.Kind == SymbolKind.Property;
 
         private static bool IsField(ISymbol symbol)
-        {
-            return symbol.Kind == SymbolKind.Field;
-        }
+            => symbol.Kind == SymbolKind.Field;
 
-        protected List<IParameterSymbol> DetermineParameters(
-            IList<ISymbol> selectedMembers)
+        protected ImmutableArray<IParameterSymbol> DetermineParameters(
+            ImmutableArray<ISymbol> selectedMembers)
         {
-            var parameters = new List<IParameterSymbol>();
+            var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
 
             foreach (var symbol in selectedMembers)
             {
@@ -110,19 +91,19 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                     name: symbol.Name.ToCamelCase().TrimStart(s_underscore)));
             }
 
-            return parameters;
+            return parameters.ToImmutableAndFree();
         }
 
         private static readonly char[] s_underscore = { '_' };
 
         protected IMethodSymbol GetDelegatedConstructor(
             INamedTypeSymbol containingType,
-            List<IParameterSymbol> parameters)
+            ImmutableArray<IParameterSymbol> parameters)
         {
             var q =
                 from c in containingType.InstanceConstructors
                 orderby c.Parameters.Length descending
-                where c.Parameters.Length > 0 && c.Parameters.Length < parameters.Count
+                where c.Parameters.Length > 0 && c.Parameters.Length < parameters.Length
                 where c.Parameters.All(p => p.RefKind == RefKind.None) && !c.Parameters.Any(p => p.IsParams)
                 let constructorTypes = c.Parameters.Select(p => p.Type)
                 let symbolTypes = parameters.Take(c.Parameters.Length).Select(p => p.Type)
@@ -132,19 +113,11 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             return q.FirstOrDefault();
         }
 
-        protected bool HasMatchingConstructor(
-            INamedTypeSymbol containingType,
-            List<IParameterSymbol> parameters)
-        {
-            return containingType.InstanceConstructors.Any(c => MatchesConstructor(c, parameters));
-        }
+        protected IMethodSymbol GetMatchingConstructor(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
+            => containingType.InstanceConstructors.FirstOrDefault(c => MatchesConstructor(c, parameters));
 
-        private bool MatchesConstructor(
-            IMethodSymbol constructor,
-            List<IParameterSymbol> parameters)
-        {
-            return parameters.Select(p => p.Type).SequenceEqual(constructor.Parameters.Select(p => p.Type));
-        }
+        private bool MatchesConstructor(IMethodSymbol constructor, ImmutableArray<IParameterSymbol> parameters)
+            => parameters.Select(p => p.Type).SequenceEqual(constructor.Parameters.Select(p => p.Type));
 
         protected static readonly SymbolDisplayFormat SimpleFormat =
             new SymbolDisplayFormat(

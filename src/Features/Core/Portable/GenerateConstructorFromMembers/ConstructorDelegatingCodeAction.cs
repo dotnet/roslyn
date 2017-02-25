@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,10 +43,11 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var factory = provider.GetService<SyntaxGenerator>();
                 var codeGenerationService = provider.GetService<ICodeGenerationService>();
 
-                var thisConstructorArguments = factory.CreateArguments(_state.DelegatedConstructor.Parameters);
+                var thisConstructorArguments = factory.CreateArguments(
+                    _state.Parameters.Take(_state.DelegatedConstructor.Parameters.Length).ToImmutableArray());
                 var statements = new List<SyntaxNode>();
 
-                for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Count; i++)
+                for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Length; i++)
                 {
                     var symbolName = _state.SelectedMembers[i].Name;
                     var parameterName = _state.Parameters[i].Name;
@@ -71,9 +73,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         parameters: _state.Parameters,
                         statements: statements,
                         thisConstructorArguments: thisConstructorArguments),
-                    new CodeGenerationOptions(contextLocation: syntaxTree.GetLocation(_state.TextSpan)),
-                    cancellationToken: cancellationToken)
-                    .ConfigureAwait(false);
+                    new CodeGenerationOptions(
+                        contextLocation: syntaxTree.GetLocation(_state.TextSpan),
+                        afterThisLocation: _state.TextSpan.IsEmpty ? syntaxTree.GetLocation(_state.TextSpan) : null),
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 return result;
             }

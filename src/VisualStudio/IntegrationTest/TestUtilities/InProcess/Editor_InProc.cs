@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Automation;
+using System.Windows.Forms;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -54,14 +55,25 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return (IWpfTextViewHost)wpfTextViewHost;
         }
 
+        /// <summary>
+        /// Non-blocking version of <see cref="ExecuteOnActiveView"/>
+        /// </summary>
+        private static void BeginInvokeExecuteOnActiveView(Action<IWpfTextView> action)
+            => BeginInvokeOnUIThread(GetExecuteOnActionViewCallback(action));
+
         private static void ExecuteOnActiveView(Action<IWpfTextView> action)
-            => InvokeOnUIThread(() => {
+            => InvokeOnUIThread(GetExecuteOnActionViewCallback(action));
+
+        private static Action GetExecuteOnActionViewCallback(Action<IWpfTextView> action)
+            => () =>
+            {
                 var view = GetActiveTextView();
                 action(view);
-            });
+            };
 
         private static T ExecuteOnActiveView<T>(Func<IWpfTextView, T> action)
-            => InvokeOnUIThread(() => {
+            => InvokeOnUIThread(() =>
+            {
                 var view = GetActiveTextView();
                 return action(view);
             });
@@ -73,14 +85,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => ExecuteOnActiveView(view => view.TextSnapshot.GetText());
 
         public void SetText(string text)
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var textSnapshot = view.TextSnapshot;
                 var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
                 view.TextBuffer.Replace(replacementSpan, text);
             });
 
         public string GetCurrentLineText()
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var subjectBuffer = view.GetBufferContainingCaret();
                 var bufferPosition = view.Caret.Position.BufferPosition;
                 var line = bufferPosition.GetContainingLine();
@@ -89,7 +103,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public int GetCaretPosition()
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var subjectBuffer = view.GetBufferContainingCaret();
                 var bufferPosition = view.Caret.Position.BufferPosition;
 
@@ -97,7 +112,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public string GetLineTextBeforeCaret()
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var subjectBuffer = view.GetBufferContainingCaret();
                 var bufferPosition = view.Caret.Position.BufferPosition;
                 var line = bufferPosition.GetContainingLine();
@@ -107,7 +123,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public string GetLineTextAfterCaret()
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var subjectBuffer = view.GetBufferContainingCaret();
                 var bufferPosition = view.Caret.Position.BufferPosition;
                 var line = bufferPosition.GetContainingLine();
@@ -117,7 +134,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public void MoveCaret(int position)
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var subjectBuffer = view.GetBufferContainingCaret();
                 var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
 
@@ -125,7 +143,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public string[] GetCompletionItems()
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var broker = GetComponentModelService<ICompletionBroker>();
 
                 var sessions = broker.GetSessions(view);
@@ -140,7 +159,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public string GetCurrentCompletionItem()
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var broker = GetComponentModelService<ICompletionBroker>();
 
                 var sessions = broker.GetSessions(view);
@@ -154,13 +174,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public bool IsCompletionActive()
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var broker = GetComponentModelService<ICompletionBroker>();
                 return broker.IsCompletionActive(view);
             });
 
         public Signature[] GetSignatures()
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var broken = GetComponentModelService<ISignatureHelpBroker>();
 
                 var sessions = broken.GetSessions(view);
@@ -173,7 +195,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public Signature GetCurrentSignature()
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var broken = GetComponentModelService<ISignatureHelpBroker>();
 
                 var sessions = broken.GetSessions(view);
@@ -186,7 +209,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public bool IsCaretOnScreen()
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var editorPrimitivesFactoryService = GetComponentModelService<IEditorPrimitivesFactoryService>();
                 var viewPrimitivies = editorPrimitivesFactoryService.GetViewPrimitives(view);
 
@@ -203,19 +227,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => InvokeOnUIThread(() => GetDTE().ExecuteCommand("View.ShowSmartTag"));
 
         public void WaitForLightBulbSession()
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
                 LightBulbHelper.WaitForLightBulbSession(broker, view);
             });
 
         public void DismissLightBulbSession()
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
                 broker.DismissSession(view);
             });
 
         public bool IsLightBulbSessionExpanded()
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
 
                 if (!broker.IsLightBulbSessionActive(view))
@@ -233,7 +260,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public string[] GetLightBulbActions()
-            => ExecuteOnActiveView(view => {
+            => ExecuteOnActiveView(view =>
+            {
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
                 return GetLightBulbActions(broker, view).Select(a => a.DisplayText).ToArray();
             });
@@ -261,8 +289,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return SelectActions(actionSets);
         }
 
-        public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope)
-            => ExecuteOnActiveView(view => {
+        public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete)
+        {
+            var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope);
+            if (blockUntilComplete)
+            {
+                ExecuteOnActiveView(lightBulbAction);
+            }
+            else
+            {
+                BeginInvokeExecuteOnActiveView(lightBulbAction);
+            }
+        }
+
+        private Action<IWpfTextView> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope)
+        {
+            return view =>
+            {
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
 
                 var actions = GetLightBulbActions(broker, view).ToArray();
@@ -305,7 +348,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
 
                 action.Invoke(CancellationToken.None);
-            });
+            };
+        }
 
         private IEnumerable<ISuggestedAction> SelectActions(IEnumerable<SuggestedActionSet> actionSets)
         {
@@ -361,7 +405,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void MessageBox(string message)
-            => ExecuteOnActiveView(view =>  System.Windows.MessageBox.Show(message));
+            => ExecuteOnActiveView(view => System.Windows.MessageBox.Show(message));
 
         public void VerifyDialog(string dialogAutomationId, bool isOpen)
         {
@@ -372,6 +416,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 throw new InvalidOperationException($"Expected the {dialogAutomationId} dialog to be {(isOpen ? "open" : "closed")}, but it is not.");
             }
+        }
+
+        public void DialogSendKeys(string dialogAutomationName, string keys)
+        {
+            var dialogAutomationElement = FindDialog(dialogAutomationName, isOpen: true);
+            if (dialogAutomationElement == null)
+            {
+                throw new InvalidOperationException($"Expected the {dialogAutomationName} dialog to be open, but it is not.");
+            }
+
+            dialogAutomationElement.SetFocus();
+            SendKeys.SendWait(keys);
         }
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
@@ -404,7 +460,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private AutomationElement FindDialog(string dialogAutomationName, bool isOpen)
         {
             return Retry(
-                () => FindDialogWorker(dialogAutomationName), 
+                () => FindDialogWorker(dialogAutomationName),
                 stoppingCondition: automationElement => isOpen ? automationElement != null : automationElement == null,
                 delay: TimeSpan.FromMilliseconds(250));
         }

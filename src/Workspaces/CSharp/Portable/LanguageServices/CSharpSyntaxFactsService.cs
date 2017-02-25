@@ -1896,5 +1896,77 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return rewritten;
             }
         }
+
+        public bool IsOnTypeHeader(SyntaxNode root, int position)
+        {
+            var token = root.FindToken(position);
+            if (token.Kind() == SyntaxKind.EndOfFileToken)
+            {
+                token = token.GetPreviousToken();
+            }
+
+            var typeDecl = token.GetAncestor<TypeDeclarationSyntax>();
+            if (typeDecl == null)
+            {
+                return false;
+            }
+
+            var start = typeDecl.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
+                        typeDecl.SpanStart;
+            var end = typeDecl.TypeParameterList?.GetLastToken().FullSpan.End ??
+                      typeDecl.Identifier.FullSpan.End;
+
+            return position >= start && position <= end;
+        }
+
+        public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)
+        {
+            var token = root.FindToken(position);
+            var typeDecl = token.GetAncestor<TypeDeclarationSyntax>();
+            if (typeDecl != null)
+            {
+                if (position >= typeDecl.OpenBraceToken.Span.End &&
+                    position <= typeDecl.CloseBraceToken.Span.Start)
+                {
+                    var line = sourceText.Lines.GetLineFromPosition(position);
+                    if (!line.IsEmptyOrWhitespace())
+                    {
+                        return false;
+                    }
+
+                    var member = typeDecl.Members.FirstOrDefault(d => d.FullSpan.Contains(position));
+                    if (member == null)
+                    {
+                        // There are no members, or we're after the last member.
+                        return true;
+                    }
+                    else
+                    {
+                        // We're within a member.  Make sure we're in the leading whitespace of
+                        // the member.
+                        if (position < member.SpanStart)
+                        {
+                            foreach (var trivia in member.GetLeadingTrivia())
+                            {
+                                if (!trivia.IsWhitespaceOrEndOfLine())
+                                {
+                                    return false;
+                                }
+
+                                if (trivia.FullSpan.Contains(position))
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan)
+            => ImmutableArray<SyntaxNode>.CastUp(root.GetMembersInSpan(textSpan));
     }
 }
