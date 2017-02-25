@@ -88,8 +88,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string[] GetLightBulbActions()
             => _inProc.GetLightBulbActions();
 
-        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope)
-            => _inProc.ApplyLightBulbAction(action, fixAllScope);
+        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope, bool blockUntilComplete = true)
+            => _inProc.ApplyLightBulbAction(action, fixAllScope, blockUntilComplete);
 
         public bool IsCaretOnScreen()
             => _inProc.IsCaretOnScreen();

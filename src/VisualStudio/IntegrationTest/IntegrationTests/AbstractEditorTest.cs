@@ -38,7 +38,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected abstract string LanguageName { get; }
 
-        private void WaitForAsyncOperations(string featuresToWaitFor)
+        protected void WaitForAsyncOperations(string featuresToWaitFor)
             => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(featuresToWaitFor);
 
         protected void ClearEditor()
@@ -278,10 +278,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
             bool applyFix = false,
             bool verifyNotShowing = false,
             bool ensureExpectedItemsAreOrdered = false,
-            FixAllScope? fixAllScope = null)
+            FixAllScope? fixAllScope = null,
+            bool blockUntilComplete = true)
         {
             var expectedItems = new[] { expectedItem };
-            VerifyCodeActions(expectedItems, applyFix ? expectedItem : null, verifyNotShowing, ensureExpectedItemsAreOrdered, fixAllScope);
+            VerifyCodeActions(
+                expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
+                ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete);
         }
 
         public void VerifyCodeActions(
@@ -289,7 +292,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
             string applyFix = null,
             bool verifyNotShowing = false,
             bool ensureExpectedItemsAreOrdered = false,
-            FixAllScope? fixAllScope = null)
+            FixAllScope? fixAllScope = null,
+            bool blockUntilComplete = true)
         {
             Editor.ShowLightBulb();
             Editor.WaitForLightBulbSession();
@@ -320,10 +324,19 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
             if (!string.IsNullOrEmpty(applyFix) || fixAllScope.HasValue)
             {
-                Editor.ApplyLightBulbAction(applyFix, fixAllScope);
+                Editor.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
 
-                // wait for action to complete
-                WaitForAsyncOperations(FeatureAttribute.LightBulb);
+                if (blockUntilComplete)
+                {
+                    // wait for action to complete
+                    WaitForAsyncOperations(FeatureAttribute.LightBulb);
+                }
+                //else
+                //{
+                //    // We're not blocking.
+                //    WaitForAsyncOperations(FeatureAttribute.Workspace);
+                //    Editor.BeginInvokeApplyLightBulbAction(applyFix, fixAllScope);
+                //}
             }
         }
 
