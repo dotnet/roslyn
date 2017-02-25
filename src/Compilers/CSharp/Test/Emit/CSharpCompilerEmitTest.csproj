@@ -71,6 +71,7 @@
     <Compile Include="Attributes\AttributeTests_Synthesized.cs" />
     <Compile Include="Attributes\AttributeTests_Tuples.cs" />
     <Compile Include="Attributes\AttributeTests_WellKnownAttributes.cs" />
+    <Compile Include="CodeGen\CodeGenInParametersTests.cs" />
     <Compile Include="CodeGen\CodeGenCapturing.cs" />
     <Compile Include="CodeGen\CodeGenRefReadonlyReturnTests.cs" />
     <Compile Include="Emit\BinaryCompatibility.cs" />

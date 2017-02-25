@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariantAllowEmbedded();
-                return this.RefKind == RefKind.Ref;
+                return this.RefKind.IsManagedReference();
             }
         }
 

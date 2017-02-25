@@ -64,6 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     AddRefIfRequired();
                 }
+                else if (symbol.ReturnsByRefReadonly)
+                {
+                    AddRefReadonlyIfRequired();
+                }
 
                 AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
 
@@ -236,6 +240,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (symbol.ReturnsByRef)
                             {
                                 AddRefIfRequired();
+                            }
+                            else if (symbol.ReturnsByRefReadonly)
+                            {
+                                AddRefReadonlyIfRequired();
                             }
 
                             AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
@@ -709,6 +717,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void AddRefReadonlyIfRequired()
+        {
+            if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef))
+            {
+                AddKeyword(SyntaxKind.RefKeyword);
+                AddSpace();
+                AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                AddSpace();
+            }
+        }
+
         private void AddRefKindIfRequired(RefKind refKind)
         {
             if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
@@ -721,6 +740,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case RefKind.Ref:
                         AddKeyword(SyntaxKind.RefKeyword);
+                        AddSpace();
+                        break;
+                    case RefKind.RefReadOnly:
+                        AddKeyword(SyntaxKind.RefKeyword);
+                        AddSpace();
+                        AddKeyword(SyntaxKind.ReadOnlyKeyword);
                         AddSpace();
                         break;
                 }
