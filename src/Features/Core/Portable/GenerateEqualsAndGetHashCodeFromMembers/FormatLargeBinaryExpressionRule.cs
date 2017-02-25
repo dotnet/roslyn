@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     if (_syntaxFacts.IsReturnStatement(node))
                     {
                         var expr = _syntaxFacts.GetExpressionOfReturnStatement(node);
-                        if (expr != null)
+                        if (expr?.ChildNodesAndTokens().Count > 1)
                         {
                             list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(
                                 expr.GetFirstToken(),
