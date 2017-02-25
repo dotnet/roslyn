@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -11,6 +12,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicGenerateConstructorDialog : AbstractEditorTest
     {
+        private const string DialogName = "PickMembersDialog";
+
         protected override string LanguageName => LanguageNames.VisualBasic;
 
         public BasicGenerateConstructorDialog(VisualStudioInstanceFactory instanceFactory)
@@ -78,13 +81,82 @@ Class C
 End Class");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public void VerifyReordering()
+        {
+            SetUpEditor(
+@"
+Class C
+    Dim i as Integer
+    Dim j as String
+    Dim k as Boolean
+
+$$
+End Class");
+
+            InvokeCodeActionList();
+            VerifyCodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
+            VerifyDialog(isOpen: true);
+            Editor.DialogSendKeys(DialogName, "{TAB}");
+            PressDialogButton(DialogName, "Down");
+            Dialog_ClickOk();
+            WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            VerifyTextContains(
+@"
+Class C
+    Dim i as Integer
+    Dim j as String
+    Dim k as Boolean
+
+    Public Sub New(j As String, i As Integer, k As Boolean)
+        Me.j = j
+        Me.i = i
+        Me.k = k
+    End Sub
+End Class");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public void VerifyDeselect()
+        {
+            SetUpEditor(
+@"
+Class C
+    Dim i as Integer
+    Dim j as String
+    Dim k as Boolean
+
+$$
+End Class");
+
+            InvokeCodeActionList();
+            VerifyCodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
+            VerifyDialog(isOpen: true);
+            Editor.DialogSendKeys(DialogName, "{TAB}");
+            Editor.DialogSendKeys(DialogName, " ");
+            Dialog_ClickOk();
+            WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            VerifyTextContains(
+@"
+Class C
+    Dim i as Integer
+    Dim j as String
+    Dim k as Boolean
+
+    Public Sub New(j As String, k As Boolean)
+        Me.j = j
+        Me.k = k
+    End Sub
+End Class");
+        }
+
         private void VerifyDialog(bool isOpen)
-            => VerifyDialog("PickMembersDialog", isOpen);
+            => VerifyDialog(DialogName, isOpen);
 
         private void Dialog_ClickCancel()
-            => PressDialogButton("PickMembersDialog", "CancelButton");
+            => PressDialogButton(DialogName, "CancelButton");
 
         private void Dialog_ClickOk()
-            => PressDialogButton("PickMembersDialog", "OkButton");
+            => PressDialogButton(DialogName, "OkButton");
     }
 }

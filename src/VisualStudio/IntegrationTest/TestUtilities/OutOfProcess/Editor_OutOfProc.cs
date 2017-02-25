@@ -113,5 +113,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
             => _inProc.PressDialogButton(dialogAutomationName, buttonAutomationName);
+
+        public void DialogSendKeys(string dialogAutomationName, string keys)
+            => _inProc.DialogSendKeys(dialogAutomationName, keys);
     }
 }

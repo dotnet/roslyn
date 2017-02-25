@@ -331,12 +331,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
                     // wait for action to complete
                     WaitForAsyncOperations(FeatureAttribute.LightBulb);
                 }
-                //else
-                //{
-                //    // We're not blocking.
-                //    WaitForAsyncOperations(FeatureAttribute.Workspace);
-                //    Editor.BeginInvokeApplyLightBulbAction(applyFix, fixAllScope);
-                //}
             }
         }
 

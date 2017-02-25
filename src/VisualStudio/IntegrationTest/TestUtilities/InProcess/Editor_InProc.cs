@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Automation;
+using System.Windows.Forms;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -415,6 +416,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 throw new InvalidOperationException($"Expected the {dialogAutomationId} dialog to be {(isOpen ? "open" : "closed")}, but it is not.");
             }
+        }
+
+        public void DialogSendKeys(string dialogAutomationName, string keys)
+        {
+            var dialogAutomationElement = FindDialog(dialogAutomationName, isOpen: true);
+            if (dialogAutomationElement == null)
+            {
+                throw new InvalidOperationException($"Expected the {dialogAutomationName} dialog to be open, but it is not.");
+            }
+
+            dialogAutomationElement.SetFocus();
+            SendKeys.SendWait(keys);
         }
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
