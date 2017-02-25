@@ -633,7 +633,7 @@ options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSu
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSingleFieldWithDialog()
         {
-            await TestWithGenerateConstructorDialogAsync(
+            await TestWithPickMembersDialogAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -658,7 +658,7 @@ chosenSymbols: new[] { "a" });
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSingleFieldWithDialog2()
         {
-            await TestWithGenerateConstructorDialogAsync(
+            await TestWithPickMembersDialogAsync(
 @"using System.Collections.Generic;
 
 class [||]Z
@@ -695,7 +695,7 @@ class Z
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestPickNoFieldWithDialog()
         {
-            await TestWithGenerateConstructorDialogAsync(
+            await TestWithPickMembersDialogAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -719,7 +719,7 @@ chosenSymbols: new string[] { });
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestReorderFieldsWithDialog()
         {
-            await TestWithGenerateConstructorDialogAsync(
+            await TestWithPickMembersDialogAsync(
 @"using System.Collections.Generic;
 
 class Z

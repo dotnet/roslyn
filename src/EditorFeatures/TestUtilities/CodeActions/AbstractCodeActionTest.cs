@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 => new PickMembersResult(_memberNames.SelectAsArray(n => members.Single(m => m.Name == n)));
         }
 
-        protected Task TestWithGenerateConstructorDialogAsync(
+        protected Task TestWithPickMembersDialogAsync(
             string initialMarkup, string expectedMarkup, string[] chosenSymbols, int index = 0, bool compareTokens = true)
         {
             var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrEmpty());

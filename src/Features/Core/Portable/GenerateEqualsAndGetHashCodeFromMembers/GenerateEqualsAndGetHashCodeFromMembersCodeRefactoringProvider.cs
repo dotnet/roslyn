@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -24,6 +25,17 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
     {
         private const string EqualsName = nameof(object.Equals);
         private const string GetHashCodeName = nameof(object.GetHashCode);
+
+        private readonly IPickMembersService _pickMembersService_forTestingPurposes;
+
+        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider() : this(null)
+        {
+        }
+
+        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService)
+        {
+            _pickMembersService_forTestingPurposes = pickMembersService;
+        }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

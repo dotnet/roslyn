@@ -9,13 +9,14 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.PickMembers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHashCodeFromMembers
 {
-    public class GenerateEqualsAndGetHashCodeTests : AbstractCSharpCodeActionTest
+    public class GenerateEqualsAndGetHashCodeFromMembersTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-            => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider();
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+            => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)fixProviderData);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsSingleField()
@@ -687,6 +688,101 @@ class Program
 index: 1,
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialog1()
+        {
+            await TestWithPickMembersDialogAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+    string b;
+    [||]
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+    string b;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               a == program.a &&
+               b == program.b;
+    }
+}",
+chosenSymbols: new[] { "a", "b" },
+compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialog2()
+        {
+            await TestWithPickMembersDialogAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+    string b;
+    bool c;
+    [||]
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+    string b;
+    bool c;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               c == program.c &&
+               b == program.b;
+    }
+}",
+chosenSymbols: new[] { "c", "b" },
+compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialog3()
+        {
+            await TestWithPickMembersDialogAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+    string b;
+    bool c;
+    [||]
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+    string b;
+    bool c;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null;
+    }
+}",
+chosenSymbols: new string[] { },
+compareTokens: false);
         }
     }
 }
