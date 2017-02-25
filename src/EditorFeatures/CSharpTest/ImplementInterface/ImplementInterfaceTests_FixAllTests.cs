@@ -65,8 +65,6 @@ class B3 : I1, I2
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
-using System;
-
 public interface I1
 {
     void F1();
@@ -81,14 +79,14 @@ class B1 : I1, I2
 {
     public void F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C1 : I1, I2
     {
         public void F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
@@ -172,8 +170,6 @@ class B3 : I1, I2
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
-using System;
-
 public interface I1
 {
     void F1();
@@ -188,33 +184,31 @@ class B1 : I1, I2
 {
     public void F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C1 : I1, I2
     {
         public void F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
         </Document>
         <Document>
-using System;
-
 class B2 : I1, I2
 {
     public void F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C2 : I1, I2
     {
         public void F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
@@ -290,8 +284,6 @@ class B3 : I1, I2
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
-using System;
-
 public interface I1
 {
     void F1();
@@ -306,33 +298,31 @@ class B1 : I1, I2
 {
     void I2.F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C1 : I1, I2
     {
         void I2.F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
         </Document>
         <Document>
-using System;
-
 class B2 : I1, I2
 {
     void I2.F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C2 : I1, I2
     {
         void I2.F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
@@ -341,20 +331,18 @@ class B2 : I1, I2
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
         <ProjectReference>Assembly1</ProjectReference>
         <Document>
-using System;
-
 class B3 : I1, I2
 {
     void I2.F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C3 : I1, I2
     {
         void I2.F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
@@ -428,8 +416,6 @@ class B3 : I1, I2
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
-using System;
-
 public interface I1
 {
     void F1();
@@ -444,33 +430,31 @@ class B1 : I1, I2
 {
     void I2.F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C1 : I1, I2
     {
         void I2.F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
         </Document>
         <Document>
-using System;
-
 class B2 : I1, I2
 {
     void I2.F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C2 : I1, I2
     {
         void I2.F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }

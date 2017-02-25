@@ -443,6 +443,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' While resolving the name, consider only types following CLS-compliant generic type names and arity encoding (ECMA-335, section 10.7.2).
         ''' I.e. arity is inferred from the name and matching type must have the same emitted name and arity.
         ''' </param>
+        ''' <param name="ignoreCorLibraryDuplicatedTypes">
+        ''' When set, any duplicate coming from corlib is ignored.
+        ''' </param>
         ''' <returns></returns>
         Friend Function GetTypeByMetadataName(metadataName As String, includeReferences As Boolean, isWellKnownType As Boolean,
                                               Optional useCLSCompliantNameArityEncoding As Boolean = False, Optional ignoreCorLibraryDuplicatedTypes As Boolean = False) As NamedTypeSymbol
@@ -541,8 +544,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
-        Private Shared Function IsInCorLib(type As NamedTypeSymbol) As Boolean
-            Return type.ContainingAssembly = type.ContainingAssembly.CorLibrary
+        Private Function IsInCorLib(type As NamedTypeSymbol) As Boolean
+            Return type.ContainingAssembly Is CorLibrary
         End Function
 
         Friend Shared Function IsAcceptableMatchForGetTypeByNameAndArity(candidate As NamedTypeSymbol) As Boolean

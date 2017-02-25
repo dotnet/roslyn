@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
@@ -1626,6 +1627,19 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that denotes a type.
         /// </summary>
         public abstract SyntaxNode TypeExpression(ITypeSymbol typeSymbol);
+
+        /// <summary>
+        /// Creates an expression that denotes a type. If addImport is false,
+        /// adds a <see cref="DoNotAddImportsAnnotation"/> which will prevent any
+        /// imports or usings from being added for the type.
+        /// </summary>
+        public SyntaxNode TypeExpression(ITypeSymbol typeSymbol, bool addImport)
+        {
+            var expression = TypeExpression(typeSymbol);
+            return addImport
+                ? expression
+                : expression.WithAdditionalAnnotations(DoNotAddImportsAnnotation.Annotation);
+        }
 
         /// <summary>
         /// Creates an expression that denotes a special type name.

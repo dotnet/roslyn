@@ -1390,6 +1390,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return (TryCast(interpolatedString, InterpolatedStringExpressionSyntax)?.Contents).Value
         End Function
 
+        Public Function IsNumericLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsNumericLiteral
+            Return token.Kind = SyntaxKind.DecimalLiteralToken OrElse
+                   token.Kind = SyntaxKind.FloatingLiteralToken OrElse
+                   token.Kind = SyntaxKind.IntegerLiteralToken
+        End Function
+
+        Public Function IsCharacterLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsCharacterLiteral
+            Return token.Kind() = SyntaxKind.CharacterLiteralToken
+        End Function
+
         Public Function IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
             Return token.IsKind(SyntaxKind.StringLiteralToken)
         End Function
