@@ -12,6 +12,10 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
     {
         private partial class GenerateEqualsAndGetHashCodeAction : CodeAction
         {
+            /// <summary>
+            /// Specialized formatter for the "return a == obj.a && b == obj.b && c == obj.c && ...
+            /// code that we spit out.
+            /// </summary>
             private class FormatLargeBinaryExpressionRule : AbstractFormattingRule
             {
                 private ISyntaxFactsService _syntaxFacts;
@@ -21,6 +25,9 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     _syntaxFacts = syntaxFacts;
                 }
 
+                /// <summary>
+                /// Wrap the large && expression after every && token.
+                /// </summary>
                 public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
                     SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
                 {
@@ -32,6 +39,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     return nextOperation.Invoke();
                 }
 
+                /// <summary>
+                /// Align all the wrapped parts of the expression with the token after 'return'.
+                /// That way we get:
+                /// 
+                /// return a == obj.a &&
+                ///        b == obj.b &&
+                ///        ...
+                /// </summary>
                 public override void AddIndentBlockOperations(
                     List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
                 {
