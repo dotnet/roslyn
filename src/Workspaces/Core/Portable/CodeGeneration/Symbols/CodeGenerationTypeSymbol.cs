@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -12,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         protected CodeGenerationTypeSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name,
@@ -27,20 +26,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public virtual INamedTypeSymbol BaseType => null;
 
         public virtual ImmutableArray<INamedTypeSymbol> Interfaces
-        {
-            get
-            {
-                return ImmutableArray.Create<INamedTypeSymbol>();
-            }
-        }
+            => ImmutableArray.Create<INamedTypeSymbol>();
 
         public ImmutableArray<INamedTypeSymbol> AllInterfaces
-        {
-            get
-            {
-                return ImmutableArray.Create<INamedTypeSymbol>();
-            }
-        }
+            => ImmutableArray.Create<INamedTypeSymbol>();
 
         public bool IsReferenceType => false;
 
@@ -56,18 +45,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public INamedTypeSymbol TupleUnderlyingType => null;
 
-        public new ITypeSymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public new ITypeSymbol OriginalDefinition => this;
 
-        public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember)
-        {
-            return null;
-        }
+        public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember) => null;
 
         public override bool IsNamespace => false;
 

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public CodeGenerationParameterSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             RefKind refKind,
             bool isParams,
             ITypeSymbol type,

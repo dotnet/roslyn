@@ -117,11 +117,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var isThis = namedType.Equals(delegatedConstructor.ContainingType);
                 var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
-                var baseConstructorArguments = isThis ? null : delegatingArguments;
-                var thisConstructorArguments = isThis ? delegatingArguments : null;
+                var baseConstructorArguments = isThis ? default(ImmutableArray<SyntaxNode>) : delegatingArguments;
+                var thisConstructorArguments = isThis ? delegatingArguments : default(ImmutableArray<SyntaxNode>);
 
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     accessibility: Accessibility.Public,
                     modifiers: default(DeclarationModifiers),
                     typeName: _state.TypeToGenerateIn.Name,
@@ -205,20 +205,20 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var fields = syntaxFactory.CreateFieldsForParameters(remainingParameters, parameterToNewFieldMap);
                 var assignStatements = syntaxFactory.CreateAssignmentStatements(remainingParameters, parameterToExistingFieldMap, parameterToNewFieldMap);
 
-                var allParameters = delegatedConstructor.Parameters.Concat(remainingParameters).ToList();
+                var allParameters = delegatedConstructor.Parameters.Concat(remainingParameters);
 
                 var isThis = namedType.Equals(_state.TypeToGenerateIn);
                 var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
-                var baseConstructorArguments = isThis ? null : delegatingArguments;
-                var thisConstructorArguments = isThis ? delegatingArguments : null;
+                var baseConstructorArguments = isThis ? default(ImmutableArray<SyntaxNode>) : delegatingArguments;
+                var thisConstructorArguments = isThis ? delegatingArguments : default(ImmutableArray<SyntaxNode>);
 
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     accessibility: Accessibility.Public,
                     modifiers: default(DeclarationModifiers),
                     typeName: _state.TypeToGenerateIn.Name,
                     parameters: allParameters,
-                    statements: assignStatements.ToList(),
+                    statements: assignStatements.ToImmutableArray(),
                     baseConstructorArguments: baseConstructorArguments,
                     thisConstructorArguments: thisConstructorArguments);
 
@@ -279,11 +279,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 ImmutableArray<ParameterName> parameterNames,
                 out Dictionary<string, ISymbol> parameterToExistingFieldMap,
                 out Dictionary<string, string> parameterToNewFieldMap,
-                out List<IParameterSymbol> parameters)
+                out ImmutableArray<IParameterSymbol> parameters)
             {
                 parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
                 parameterToNewFieldMap = new Dictionary<string, string>();
-                parameters = new List<IParameterSymbol>();
+                var result = ArrayBuilder<IParameterSymbol>.GetInstance();
 
                 for (var i = 0; i < parameterNames.Length; i++)
                 {
@@ -301,13 +301,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         }
                     }
 
-                    parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        attributes: null,
+                    result.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
+                        attributes: default(ImmutableArray<AttributeData>),
                         refKind: _service.GetRefKind(arguments[i]),
                         isParams: false,
                         type: parameterTypes[i],
                         name: parameterNames[i].BestNameForParameter));
                 }
+
+                parameters = result.ToImmutableAndFree();
             }
 
             private bool TryFindMatchingField(

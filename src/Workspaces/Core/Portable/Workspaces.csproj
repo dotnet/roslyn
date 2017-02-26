@@ -363,6 +363,9 @@
     <Compile Include="Execution\SolutionAsset.cs" />
     <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
     <Compile Include="Experiments\IExperimentationService.cs" />
+    <Compile Include="FindSymbols\FindLiterals\FindLiteralsSearchEngine.cs" />
+    <Compile Include="FindSymbols\SymbolFinder.FindLiteralsServerCallback.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.LiteralInfo.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigSeverityStrings.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingRule.cs" />
@@ -522,7 +525,7 @@
     <Compile Include="Packaging\IPackageInstallerService.cs" />
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="FindSymbols\StreamingProgressCollector.cs" />
-    <Compile Include="FindSymbols\SymbolFinder.ServerCallback.cs" />
+    <Compile Include="FindSymbols\SymbolFinder.FindReferencesServerCallback.cs" />
     <Compile Include="SymbolKey\SymbolKey.ComparisonOptions.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyComparer.cs" />
     <Compile Include="SymbolKey\SymbolKey.PropertySymbolKey.cs" />

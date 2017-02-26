@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGeneration
@@ -48,8 +49,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 explicitInterfaceSymbol:=Nothing,
                 name:=WellKnownMemberNames.DestructorName,
                 typeParameters:=Nothing,
-                parameters:=SpecializedCollections.EmptyList(Of IParameterSymbol),
-                statements:={finalizeCall})
+                parameters:=ImmutableArray(Of IParameterSymbol).Empty,
+                statements:=ImmutableArray.Create(finalizeCall))
 
             finalizerMethodSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(finalizerMethodSymbol)
 

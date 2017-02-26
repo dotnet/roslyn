@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Options
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
@@ -62,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim statements = result.Data
 
                 Dim methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
+                    attributes:=ImmutableArray(Of AttributeData).Empty,
                     accessibility:=Accessibility.Private,
                     modifiers:=CreateMethodModifiers(),
                     returnType:=Me.AnalyzerResult.ReturnType,
@@ -71,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     name:=_methodName.ToString(),
                     typeParameters:=CreateMethodTypeParameters(cancellationToken),
                     parameters:=CreateMethodParameters(),
-                    statements:=statements.Cast(Of SyntaxNode).ToList())
+                    statements:=statements.Cast(Of SyntaxNode).ToImmutableArray())
 
                 Return result.With(
                     Me.MethodDefinitionAnnotation.AddAnnotationToSymbol(

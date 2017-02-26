@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected void LogError(string message)
         {
-            Logger.TraceEvent(TraceEventType.Error, 0, $"{DebugInstanceString} : " + message);
+            Log(TraceEventType.Error, message);
         }
 
         public virtual void Initialize(int sessionId, byte[] solutionChecksum)
@@ -132,6 +132,11 @@ namespace Microsoft.CodeAnalysis.Remote
             // do nothing
         }
 
+        protected void Log(TraceEventType errorType, string message)
+        {
+            Logger.TraceEvent(errorType, 0, $"{DebugInstanceString} : " + message);
+        }
+
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
             // raise cancellation
@@ -141,7 +146,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (e.Reason != DisconnectedReason.Disposed)
             {
-                LogError($"Client stream disconnected unexpectedly: {e.Exception?.GetType().Name} {e.Exception?.Message}");
+                // this is common for us since we close connection forcefully when operation
+                // is cancelled. use Warning level so that by default, it doesn't write out to
+                // servicehub\log files. one can still make this to write logs by opting in.
+                Log(TraceEventType.Warning, $"Client stream disconnected unexpectedly: {e.Exception?.GetType().Name} {e.Exception?.Message}");
             }
         }
     }

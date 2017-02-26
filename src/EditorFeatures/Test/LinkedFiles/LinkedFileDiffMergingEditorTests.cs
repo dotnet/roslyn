@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         {
             using (var workspace = await TestWorkspace.CreateAsync(WorkspaceXml))
             {
-                var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace);
+                var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, fixProviderData: null);
 
                 var expectedCode = "private class D { }";
 

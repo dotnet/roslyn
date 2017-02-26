@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public CodeGenerationFieldSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility accessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol type,
