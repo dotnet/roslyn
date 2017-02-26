@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var result = await CreateMethodBodyAsync(cancellationToken).ConfigureAwait(false);
 
                 var methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                    attributes: ImmutableArray<AttributeData>.Empty,
                     accessibility: Accessibility.Private,
                     modifiers: CreateMethodModifiers(),
                     returnType: this.AnalyzerResult.ReturnType,
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 SyntaxKind.OutKeyword : SyntaxKind.None;
             }
 
-            private async Task<OperationStatus<List<SyntaxNode>>> CreateMethodBodyAsync(CancellationToken cancellationToken)
+            private async Task<OperationStatus<ImmutableArray<SyntaxNode>>> CreateMethodBodyAsync(CancellationToken cancellationToken)
             {
                 var statements = GetInitialStatementsForMethodDefinitions();
 
@@ -228,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 // set output so that we can use it in negative preview
                 var wrapped = WrapInCheckStatementIfNeeded(statements);
-                return CheckActiveStatements(statements).With(wrapped.ToList<SyntaxNode>());
+                return CheckActiveStatements(statements).With(wrapped.ToImmutableArray<SyntaxNode>());
             }
 
             private IEnumerable<StatementSyntax> WrapInCheckStatementIfNeeded(IEnumerable<StatementSyntax> statements)

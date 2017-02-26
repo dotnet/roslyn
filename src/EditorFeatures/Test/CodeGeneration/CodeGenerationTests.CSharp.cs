@@ -21,6 +21,7 @@ using Xunit;
 using Microsoft.CodeAnalysis.CodeStyle;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var input = "class [|C|] { public C(int i) { } }";
                 var expected = "class C { public C() : this(42) { } public C(int i) { } }";
                 await TestAddConstructorAsync(input, expected,
-                    thisArguments: new[] { CS.SyntaxFactory.ParseExpression("42") });
+                    thisArguments: ImmutableArray.Create<SyntaxNode>(CS.SyntaxFactory.ParseExpression("42")));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -288,8 +289,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var input = "class [|C|] { }";
                 var expected = "class C { public event System.Action E { add { } remove { } } }";
                 await TestAddEventAsync(input, expected,
-                    addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(SpecializedCollections.EmptyList<AttributeData>(), Accessibility.NotApplicable, SpecializedCollections.EmptyList<SyntaxNode>()),
-                    removeMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(SpecializedCollections.EmptyList<AttributeData>(), Accessibility.NotApplicable, SpecializedCollections.EmptyList<SyntaxNode>()),
+                    addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
+                    removeMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
                     codeGenerationOptions: new CodeGenerationOptions(addImports: false));
             }
 
@@ -362,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var expected = "class C { public int M<T>() { $$ } }";
                 await TestAddMethodAsync(input, expected,
                     returnType: typeof(int),
-                    typeParameters: new[] { CodeGenerationSymbolFactory.CreateTypeParameterSymbol("T") },
+                    typeParameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateTypeParameterSymbol("T")),
                     statements: "return new T().GetHashCode();");
             }
 
@@ -1019,9 +1020,9 @@ public static class C
     public int f2;
 }";
                 var getField = CreateField(Accessibility.Public, new DeclarationModifiers(), typeof(int), "f2");
-                var getMembers = new List<Func<SemanticModel, ISymbol>>();
-                getMembers.Add(getField);
-                await TestUpdateDeclarationAsync<ClassDeclarationSyntax>(input, expected, getNewMembers: getMembers);
+                var getMembers = ImmutableArray.Create(getField);
+                await TestUpdateDeclarationAsync<ClassDeclarationSyntax>(
+                    input, expected, getNewMembers: getMembers);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1045,8 +1046,7 @@ public static class C
     public static char F() { return 0; }
 }";
                 var getField = CreateField(Accessibility.Public, new DeclarationModifiers(), typeof(int), "f2");
-                var getMembers = new List<Func<SemanticModel, ISymbol>>();
-                getMembers.Add(getField);
+                var getMembers = ImmutableArray.Create(getField);
                 await TestUpdateDeclarationAsync<ClassDeclarationSyntax>(input, expected, getNewMembers: getMembers, declareNewMembersAtTop: true);
             }
 

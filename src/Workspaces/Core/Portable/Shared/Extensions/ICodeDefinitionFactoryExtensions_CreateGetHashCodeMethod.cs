@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
@@ -15,29 +16,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
-            IList<ISymbol> symbols,
+            ImmutableArray<ISymbol> symbols,
             CancellationToken cancellationToken)
         {
             var statements = CreateGetHashCodeMethodStatements(factory, compilation, containingType, symbols, cancellationToken);
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(isOverride: true),
                 returnType: compilation.GetSpecialType(SpecialType.System_Int32),
                 returnsByRef: false,
                 explicitInterfaceSymbol: null,
                 name: GetHashCodeName,
-                typeParameters: null,
-                parameters: null,
+                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                parameters: default(ImmutableArray<IParameterSymbol>),
                 statements: statements);
         }
 
-        private static IList<SyntaxNode> CreateGetHashCodeMethodStatements(
+        private static ImmutableArray<SyntaxNode> CreateGetHashCodeMethodStatements(
             SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
-            IList<ISymbol> members,
+            ImmutableArray<ISymbol> members,
             CancellationToken cancellationToken)
         {
             const string HashCodeName = "hashCode";
@@ -46,12 +47,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var permuteValue = factory.NegateExpression(
                 factory.LiteralExpression(1521134295));
 
-            var statements = new List<SyntaxNode>();
+            var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
             var hashCodeNameExpression = factory.IdentifierName(HashCodeName);
 
             var firstHashValue = ComputeHashValue(factory, compilation, members[0]);
-            if (members.Count == 1)
+            if (members.Length == 1)
             {
 #if false
                 return this.S1.GetHashCode();
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 #endif
                 statements.Add(factory.LocalDeclarationStatement(HashCodeName, firstHashValue));
 
-                for (var i = 1; i < members.Count; i++)
+                for (var i = 1; i < members.Length; i++)
                 {
 #if false
                     hashCode = hashCode * 0xA5555529 + value
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 statements.Add(factory.ReturnStatement(hashCodeNameExpression));
             }
 
-            return statements;
+            return statements.ToImmutableAndFree();
         }
 
         private static SyntaxNode ComputeHashValue(

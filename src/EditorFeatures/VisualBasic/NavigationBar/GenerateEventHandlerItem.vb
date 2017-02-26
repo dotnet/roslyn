@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGeneration
@@ -59,8 +60,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 explicitInterfaceSymbol:=Nothing,
                 name:=methodName,
                 typeParameters:=Nothing,
-                parameters:=delegateInvokeMethod.Parameters.OfType(Of IParameterSymbol).ToList(),
-                handlesExpressions:={handlesSyntax})
+                parameters:=delegateInvokeMethod.Parameters,
+                handlesExpressions:=ImmutableArray.Create(Of SyntaxNode)(handlesSyntax))
             methodSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(methodSymbol)
 
             Return Await CodeGenerator.AddMethodDeclarationAsync(document.Project.Solution,
