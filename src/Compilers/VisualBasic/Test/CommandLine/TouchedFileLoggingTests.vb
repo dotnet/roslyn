@@ -94,6 +94,7 @@ End Class
 Public Class C
 End Class
 ").Path
+
             Dim xml = Temp.CreateFile()
             Dim touchedDir = Temp.CreateDirectory()
             Dim touchedBase = Path.Combine(touchedDir.Path, "touched")
@@ -117,8 +118,8 @@ End Class
             Dim exitCode = cmd.Run(writer, Nothing)
             Assert.Equal(String.Empty, writer.ToString().Trim())
             Assert.Equal(0, exitCode)
-            Dim expectedDoc =
-"<?xml version=""1.0""?>
+            Dim expectedDoc = <![CDATA[
+<?xml version="1.0"?>
 <doc>
 <assembly>
 <name>
@@ -126,13 +127,13 @@ End Class
 </name>
 </assembly>
 <members>
-<member name=""T:C"">
+<member name = "T:C" >
  <summary>
- A subtype of <see cref=""T:System.Object"" />.
+ A subtype of <see cref="T:System.Object"/>.
  </summary>
-</member>
+            </member>
 </members>
-</doc>".Trim()
+</doc>]]>.Value.Trim()
             expectedDoc = String.Format(expectedDoc,
                                         Path.GetFileNameWithoutExtension(sourcePath))
             expectedDoc = expectedDoc.Replace(vbLf, vbCrLf)
