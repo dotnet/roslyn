@@ -18,8 +18,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             : base(instanceFactory, nameof(BasicChangeSignatureDialog))
         {
         }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17393"),
+         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCodeRefactoringOffered()
         {
             SetUpEditor(@"
