@@ -127,11 +127,11 @@ $"<?xml version=""1.0""?>
 </name>
 </assembly>
 <members>
-<member name = "T:C" >
+<member name=""T:C"">
  <summary>
- A subtype of <see cref="T:System.Object"/>.
+ A subtype of <see cref=""T:System.Object"" />.
  </summary>
-            </member>
+</member>
 </members>
 </doc>"
             Assert.Equal(expectedDoc, xml.ReadAllText().Trim())
