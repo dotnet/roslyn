@@ -379,7 +379,7 @@ class Program<T>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestGetHashCodeSingleField()
+        public async Task TestGetHashCodeSingleField1()
         {
             await TestAsync(
 @"using System.Collections.Generic;
@@ -396,9 +396,102 @@ class Program
 
     public override int GetHashCode()
     {
-        return i.GetHashCode();
+        return -1936752161 + i.GetHashCode();
     }
 }",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGetHashCodeSingleField2()
+        {
+            await TestAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|int j;|]
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int j;
+
+    public override int GetHashCode()
+    {
+        return -415617866 + j.GetHashCode();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGetHashCodeWithBaseHashCode1()
+        {
+            await TestAsync(
+@"using System.Collections.Generic;
+
+class Base {
+    public override int GetHashCode() => 0;
+}
+
+class Program : Base
+{
+    [|int j;|]
+}",
+@"using System.Collections.Generic;
+
+class Base {
+    public override int GetHashCode() => 0;
+}
+
+class Program : Base
+{
+    int j;
+
+    public override int GetHashCode()
+    {
+        var hashCode = -842352698;
+        hashCode = hashCode * -1521134295 + base.GetHashCode();
+        hashCode = hashCode * -1521134295 + j.GetHashCode();
+        return hashCode;
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGetHashCodeWithBaseHashCode2()
+        {
+            await TestWithPickMembersDialogAsync(
+@"using System.Collections.Generic;
+
+class Base {
+    public override int GetHashCode() => 0;
+}
+
+class Program : Base
+{
+    int j;
+    [||]
+}",
+@"using System.Collections.Generic;
+
+class Base {
+    public override int GetHashCode() => 0;
+}
+
+class Program : Base
+{
+    int j;
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+}",
+chosenSymbols: new string[] { },
 index: 1);
         }
 
@@ -418,7 +511,7 @@ class Program
 {
     int i;
 
-    public override int GetHashCode() => i.GetHashCode();
+    public override int GetHashCode() => -1936752161 + i.GetHashCode();
 }",
 index: 1,
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
@@ -442,7 +535,7 @@ class Program<T>
 
     public override int GetHashCode()
     {
-        return EqualityComparer<T>.Default.GetHashCode(i);
+        return -1936752161 + EqualityComparer<T>.Default.GetHashCode(i);
     }
 }",
 index: 1);
@@ -466,7 +559,7 @@ class Program<T>
 
     public override int GetHashCode()
     {
-        return EqualityComparer<Program<T>>.Default.GetHashCode(i);
+        return -1936752161 + EqualityComparer<Program<T>>.Default.GetHashCode(i);
     }
 }",
 index: 1);
@@ -494,7 +587,8 @@ class Program
 
     public override int GetHashCode()
     {
-        var hashCode = i.GetHashCode();
+        var hashCode = 1515862476;
+        hashCode = hashCode * -1521134295 + i.GetHashCode();
         hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
         return hashCode;
     }
@@ -657,7 +751,7 @@ class Program
 
     public override int GetHashCode()
     {
-        return EqualityComparer<(int, string)>.Default.GetHashCode(i);
+        return -1936752161 + i.GetHashCode();
     }
 }",
 index: 1,
@@ -682,7 +776,7 @@ class Program
 
     public override int GetHashCode()
     {
-        return EqualityComparer<(int x, string y)>.Default.GetHashCode(i);
+        return -1936752161 + i.GetHashCode();
     }
 }",
 index: 1,
