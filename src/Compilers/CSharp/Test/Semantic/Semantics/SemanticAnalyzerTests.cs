@@ -636,6 +636,43 @@ class C
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "b.W").WithArguments("W", "method group").WithLocation(57, 9));
         }
 
+        [Fact, WorkItem(13882, "https://github.com/dotnet/roslyn/issues/13882")]
+        public void TestStaticMemberAccess()
+        {
+            string source = @"
+class A
+{
+    public static bool Z;
+}
+class B : A
+{
+    void C()
+    {
+        bool b1;
+
+        b1 = object.Equals(""1"", ""1"");
+        b1 = object.Equals(1, ""1"");
+        b1 = string.Equals(""1"", ""1"");
+        b1 = string.Equals(1, ""1""); // CS8208
+        A.Z = b1;
+        b1 = A.Z;
+        B.Z = b1; // CS8208
+        b1 = B.Z; // CS8208
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (15,14): warning CS8208: A reference to static member 'object.Equals(object, object)' was made through the derived type 'string'.
+                //         b1 = string.Equals(1, ""1""); // CS8208
+                Diagnostic(ErrorCode.WRN_StaticMemberAccessThroughDerivedType, "string.Equals(1, \"1\")").WithArguments("object.Equals(object, object)", "string").WithLocation(15, 14),
+                // (18,9): warning CS8208: A reference to static member 'A.Z' was made through the derived type 'B'.
+                //         B.Z = b1; // CS8208
+                Diagnostic(ErrorCode.WRN_StaticMemberAccessThroughDerivedType, "B.Z").WithArguments("A.Z", "B").WithLocation(18, 9),
+                // (19,14): warning CS8208: A reference to static member 'A.Z' was made through the derived type 'B'.
+                //         b1 = B.Z; // CS8208
+                Diagnostic(ErrorCode.WRN_StaticMemberAccessThroughDerivedType, "B.Z").WithArguments("A.Z", "B").WithLocation(19, 14));
+        }
+
         [Fact]
         public void TestAssignmentErrors01()
         {

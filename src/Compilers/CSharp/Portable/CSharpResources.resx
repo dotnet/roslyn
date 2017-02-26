@@ -5014,4 +5014,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TypeForwardedToMultipleAssemblies" xml:space="preserve">
     <value>Module '{0}' in assembly '{1}' is forwarding the type '{2}' to multiple assemblies: '{3}' and '{4}'.</value>
   </data>
+  <data name="WRN_StaticMemberAccessThroughDerivedType" xml:space="preserve">
+    <value>A reference to static member '{0}' was made through the derived type '{1}'.</value>
+  </data>
 </root>

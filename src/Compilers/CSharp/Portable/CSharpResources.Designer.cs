@@ -13553,6 +13553,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A reference to static member &apos;{0}&apos; was made through the derived type &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_StaticMemberAccessThroughDerivedType {
+            get {
+                return ResourceManager.GetString("WRN_StaticMemberAccessThroughDerivedType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Source file has exceeded the limit of 16,707,565 lines representable in the PDB; debug information will be incorrect.
         /// </summary>
         internal static string WRN_TooManyLinesForDebugger {

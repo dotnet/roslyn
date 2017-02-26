@@ -223,6 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_MainIgnored:
                 case ErrorCode.WRN_UnqualifiedNestedTypeInCref:
                 case ErrorCode.WRN_NoRuntimeMetadataVersion:
+                case ErrorCode.WRN_StaticMemberAccessThroughDerivedType:
                     return 2;
                 case ErrorCode.WRN_IsAlwaysTrue:
                 case ErrorCode.WRN_IsAlwaysFalse:
