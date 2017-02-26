@@ -396,7 +396,7 @@ class Program
 
     public override int GetHashCode()
     {
-        return -1936752161 + i.GetHashCode();
+        return -165851236 + i.GetHashCode();
     }
 }",
 index: 1);
@@ -420,7 +420,7 @@ class Program
 
     public override int GetHashCode()
     {
-        return -415617866 + j.GetHashCode();
+        return 1424088837 + j.GetHashCode();
     }
 }",
 index: 1);
@@ -452,7 +452,7 @@ class Program : Base
 
     public override int GetHashCode()
     {
-        var hashCode = -842352698;
+        var hashCode = -284411267;
         hashCode = hashCode * -1521134295 + base.GetHashCode();
         hashCode = hashCode * -1521134295 + j.GetHashCode();
         return hashCode;
@@ -511,7 +511,7 @@ class Program
 {
     int i;
 
-    public override int GetHashCode() => -1936752161 + i.GetHashCode();
+    public override int GetHashCode() => 165851236 + i.GetHashCode();
 }",
 index: 1,
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
@@ -535,7 +535,7 @@ class Program<T>
 
     public override int GetHashCode()
     {
-        return -1936752161 + EqualityComparer<T>.Default.GetHashCode(i);
+        return 165851236 + EqualityComparer<T>.Default.GetHashCode(i);
     }
 }",
 index: 1);
@@ -559,7 +559,7 @@ class Program<T>
 
     public override int GetHashCode()
     {
-        return -1936752161 + EqualityComparer<Program<T>>.Default.GetHashCode(i);
+        return 165851236 + EqualityComparer<Program<T>>.Default.GetHashCode(i);
     }
 }",
 index: 1);
@@ -587,7 +587,7 @@ class Program
 
     public override int GetHashCode()
     {
-        var hashCode = 1515862476;
+        var hashCode = -538000506;
         hashCode = hashCode * -1521134295 + i.GetHashCode();
         hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
         return hashCode;
@@ -751,7 +751,7 @@ class Program
 
     public override int GetHashCode()
     {
-        return -1936752161 + i.GetHashCode();
+        return 165851236 + i.GetHashCode();
     }
 }",
 index: 1,
@@ -776,7 +776,7 @@ class Program
 
     public override int GetHashCode()
     {
-        return -1936752161 + i.GetHashCode();
+        return 165851236 + i.GetHashCode();
     }
 }",
 index: 1,

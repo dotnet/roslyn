@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var initHash = 0;
             foreach (var symbol in members)
             {
-                initHash = initHash * hashFactor + symbol.Name.GetHashCode();
+                initHash = initHash * hashFactor + Hash.GetFNVHashCode(symbol.Name);
             }
 
             if (members.Length == 1 && !hasBaseGetHashCode)
