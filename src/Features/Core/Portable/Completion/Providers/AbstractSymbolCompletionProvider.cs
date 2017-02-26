@@ -329,15 +329,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <param name="linkedContextItemLists">The symbols recommended in linked documents</param>
         /// <returns>The list of projects each recommended symbol did NOT appear in.</returns>
         protected Dictionary<(ISymbol, CompletionItemRules), List<ProjectId>> FindSymbolsMissingInLinkedContexts(
-            HashSet<(ISymbol symbol, CompletionItemRules)> expectedSymbols,
+            HashSet<(ISymbol, CompletionItemRules)> expectedSymbols,
             IEnumerable<Tuple<DocumentId, SyntaxContext, ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>>> linkedContextItemLists)
         {
             var missingSymbols = new Dictionary<(ISymbol, CompletionItemRules), List<ProjectId>>(LinkedFilesItemEquivalenceComparer.Instance);
 
             foreach (var linkedContextItemList in linkedContextItemLists)
             {
-                ImmutableArray<(ISymbol symbol, CompletionItemRules)> v = linkedContextItemList.Item3;
-                var symbolsMissingInLinkedContext = expectedSymbols.Except(v, LinkedFilesItemEquivalenceComparer.Instance);
+                var symbolsMissingInLinkedContext = expectedSymbols.Except<(ISymbol, CompletionItemRules)>(linkedContextItemList.Item3, LinkedFilesItemEquivalenceComparer.Instance);
                 foreach (var missingSymbol in symbolsMissingInLinkedContext)
                 {
                     missingSymbols.GetOrAdd(missingSymbol, (m) => new List<ProjectId>()).Add(linkedContextItemList.Item1.ProjectId);
