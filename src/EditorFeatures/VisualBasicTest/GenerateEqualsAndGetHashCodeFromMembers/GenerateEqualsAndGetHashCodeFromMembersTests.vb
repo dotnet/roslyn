@@ -42,7 +42,7 @@ End Class",
     Private a As Integer
 
     Public Overrides Function GetHashCode() As Integer
-        Return a.GetHashCode()
+        Return 1642387607 + a.GetHashCode()
     End Function
 End Class",
 index:=1)
@@ -65,7 +65,7 @@ End Class",
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Return a.GetHashCode()
+        Return 1642387607 + a.GetHashCode()
     End Function
 End Class",
 index:=2, compareTokens:=False)
