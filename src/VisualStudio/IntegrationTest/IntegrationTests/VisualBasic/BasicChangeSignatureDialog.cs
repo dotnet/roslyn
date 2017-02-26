@@ -19,13 +19,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
         
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17393"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCodeRefactoringOffered()
         {
             SetUpEditor(@"
 Class C
-    Sub Method$$(a As Integer, b As Integer)
+    Sub $$NewMethod(a As Integer, b As Integer)
     End Sub
 End Class");
 
