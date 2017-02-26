@@ -32,11 +32,15 @@ End Class
             Dim errorLogDir = Temp.CreateDirectory()
             Dim errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt")
 
-            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
-                {"/nologo",
-                 $"/errorlog:{errorLogFile}",
-                 hello})
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim cmd = New MockVisualBasicCompiler(Nothing,
+                                                   _baseDirectory,
+                                                   {"/nologo",
+                                                     "/errorlog:" & errorLogFile,
+                                                     hello
+                                                   }
+                                                 )
+
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
 
             Dim exitCode = cmd.Run(outWriter, Nothing)
             Assert.Equal("", outWriter.ToString().Trim())
@@ -73,12 +77,15 @@ End Class
             Dim errorLogDir = Temp.CreateDirectory()
             Dim errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt")
 
-            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
-                {"/nologo",
-                "/preferreduilang:en",
-                 $"/errorlog:{errorLogFile}",
-                 sourceFilePath})
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim cmd As New MockVisualBasicCompiler(Nothing,
+                                                    _baseDirectory,
+                                                    {"/nologo",
+                                                      "/preferreduilang:en",
+                                                      "/errorlog:" & errorLogFile,
+                                                      sourceFilePath
+                                                    }
+                                                  )
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
 
             Dim exitCode = cmd.Run(outWriter, Nothing)
             Dim actualConsoleOutput = outWriter.ToString().Trim()
@@ -174,12 +181,14 @@ End Class
             Dim errorLogDir = Temp.CreateDirectory()
             Dim errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt")
 
-            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
-                {"/nologo",
-                "/preferreduilang:en",
-                 $"/errorlog:{errorLogFile}",
-                 sourceFilePath})
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim cmd As New MockVisualBasicCompiler(Nothing,
+                                                    _baseDirectory,
+                                                    {"/nologo",
+                                                      "/preferreduilang:en",
+                                                      "/errorlog:" & errorLogFile,
+                                                      sourceFilePath
+                                                    })
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
 
             Dim exitCode = cmd.Run(outWriter, Nothing)
             Dim actualConsoleOutput = outWriter.ToString().Trim()
@@ -276,15 +285,19 @@ End Class
             Dim errorLogFile = Path.Combine(outputDir.Path, "ErrorLog.txt")
             Dim outputFilePath = Path.Combine(outputDir.Path, "test.dll")
 
-            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
-                {"/nologo",
-                 "/preferreduilang:en",
-                 "/t:library",
-                 $"/out:{outputFilePath}",
-                 $"/errorlog:{errorLogFile}",
-                 sourceFilePath},
-                analyzer:=New AnalyzerForErrorLogTest())
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim cmd As New MockVisualBasicCompiler(Nothing,
+                                                    _baseDirectory,
+                                                    {"/nologo",
+                                                      "/preferreduilang:en",
+                                                      "/t:library",
+                                                      "/out:" & outputFilePath,
+                                                      "/errorlog:" & errorLogFile,
+                                                      sourceFilePath
+                                                    },
+                                                    analyzer:=New AnalyzerForErrorLogTest()
+                                                  )
+
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
 
             Dim exitCode = cmd.Run(outWriter, Nothing)
             Dim actualConsoleOutput = outWriter.ToString().Trim()
@@ -294,11 +307,10 @@ End Class
             Assert.NotEqual(0, exitCode)
 
             Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
-
             Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
             Dim expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation)
-
             Dim expectedText = expectedHeader + expectedIssues
+
             Assert.Equal(expectedText, actualOutput)
 
             CleanupAllGeneratedFiles(sourceFilePath)
