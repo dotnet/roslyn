@@ -252,11 +252,7 @@ End Module
                              expectedOutput:="
 Blah
 blah
-<<<<<<< refs/remotes/origin/Multi-Line-UnitTests
-            ]]")
-=======
             ")
->>>>>>> Use Multi-Line String Literal in VB Unit Test (39)
 
             text = "Blah=false,blah=true"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
@@ -276,7 +272,7 @@ blah
         End Sub
 
         <Fact()>
-            <WorkItem(546035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546035")>
+        <WorkItem(546035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546035")>
         Public Sub TestParseConditionalCompilationSymbolsInSingleQuote()
             Dim errors As IEnumerable(Of Diagnostic) = Nothing
 
@@ -286,3 +282,4 @@ blah
         End Sub
     End Class
 End Namespace
+
