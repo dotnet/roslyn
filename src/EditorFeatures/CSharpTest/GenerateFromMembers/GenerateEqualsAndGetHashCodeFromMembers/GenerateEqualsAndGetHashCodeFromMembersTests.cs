@@ -396,7 +396,7 @@ class Program
 
     public override int GetHashCode()
     {
-        return -165851236 + i.GetHashCode();
+        return 165851236 + i.GetHashCode();
     }
 }",
 index: 1);
