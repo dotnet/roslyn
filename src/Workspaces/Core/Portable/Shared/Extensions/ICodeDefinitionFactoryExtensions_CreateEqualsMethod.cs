@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
-            IList<ISymbol> symbols,
+            ImmutableArray<ISymbol> symbols,
             SyntaxAnnotation statementAnnotation,
             CancellationToken cancellationToken)
         {
@@ -32,15 +32,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(isOverride: true),
                 returnType: compilation.GetSpecialType(SpecialType.System_Boolean),
                 returnsByRef: false,
                 explicitInterfaceSymbol: null,
                 name: EqualsName,
-                typeParameters: null,
-                parameters: new[] { CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object), ObjName) },
+                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object), ObjName)),
                 statements: statements);
         }
 

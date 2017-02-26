@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editing;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -24,15 +22,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var statements = CreateGetHashCodeMethodStatements(factory, compilation, containingType, symbols, cancellationToken);
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(isOverride: true),
                 returnType: compilation.GetSpecialType(SpecialType.System_Int32),
                 returnsByRef: false,
                 explicitInterfaceSymbol: null,
                 name: GetHashCodeName,
-                typeParameters: null,
-                parameters: null,
+                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                parameters: default(ImmutableArray<IParameterSymbol>),
                 statements: statements);
         }
 

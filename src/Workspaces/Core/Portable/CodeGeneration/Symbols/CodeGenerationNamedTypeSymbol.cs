@@ -12,33 +12,33 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
     {
         private readonly TypeKind _typeKind;
-        private readonly IList<ITypeParameterSymbol> _typeParameters;
+        private readonly ImmutableArray<ITypeParameterSymbol> _typeParameters;
         private readonly INamedTypeSymbol _baseType;
-        private readonly IList<INamedTypeSymbol> _interfaces;
-        private readonly IList<ISymbol> _members;
+        private readonly ImmutableArray<INamedTypeSymbol> _interfaces;
+        private readonly ImmutableArray<ISymbol> _members;
         private readonly INamedTypeSymbol _enumUnderlyingType;
 
         public CodeGenerationNamedTypeSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             TypeKind typeKind,
             string name,
-            IList<ITypeParameterSymbol> typeParameters,
+            ImmutableArray<ITypeParameterSymbol> typeParameters,
             INamedTypeSymbol baseType,
-            IList<INamedTypeSymbol> interfaces,
+            ImmutableArray<INamedTypeSymbol> interfaces,
             SpecialType specialType,
-            IList<ISymbol> members,
-            IList<CodeGenerationAbstractNamedTypeSymbol> typeMembers,
+            ImmutableArray<ISymbol> members,
+            ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers,
             INamedTypeSymbol enumUnderlyingType)
             : base(containingType, attributes, declaredAccessibility, modifiers, name, specialType, typeMembers)
         {
             _typeKind = typeKind;
-            _typeParameters = typeParameters ?? SpecializedCollections.EmptyList<ITypeParameterSymbol>();
+            _typeParameters = typeParameters.NullToEmpty();
             _baseType = baseType;
-            _interfaces = interfaces ?? SpecializedCollections.EmptyList<INamedTypeSymbol>();
-            _members = members ?? SpecializedCollections.EmptyList<ISymbol>();
+            _interfaces = interfaces.NullToEmpty();
+            _members = members.NullToEmpty();
             _enumUnderlyingType = enumUnderlyingType;
 
             this.OriginalDefinition = this;

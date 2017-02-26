@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 var thisConstructorArguments = factory.CreateArguments(
                     _state.Parameters.Take(_state.DelegatedConstructor.Parameters.Length).ToImmutableArray());
-                var statements = new List<SyntaxNode>();
+                var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
                 for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Length; i++)
                 {
@@ -66,12 +66,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     _document.Project.Solution,
                     _state.ContainingType,
                     CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                        attributes: null,
+                        attributes: default(ImmutableArray<AttributeData>),
                         accessibility: Accessibility.Public,
                         modifiers: new DeclarationModifiers(),
                         typeName: _state.ContainingType.Name,
                         parameters: _state.Parameters,
-                        statements: statements,
+                        statements: statements.ToImmutableAndFree(),
                         thisConstructorArguments: thisConstructorArguments),
                     new CodeGenerationOptions(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),

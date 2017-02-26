@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 cancellationToken);
 
             var extractedInterfaceSymbol = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: ShouldIncludeAccessibilityModifier(refactoringResult.TypeNode) ? refactoringResult.TypeToExtractFrom.DeclaredAccessibility : Accessibility.NotApplicable,
                 modifiers: new DeclarationModifiers(),
                 typeKind: TypeKind.Interface,
@@ -323,9 +323,9 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return formattedSolution;
         }
 
-        private IList<ISymbol> CreateInterfaceMembers(IEnumerable<ISymbol> includedMembers)
+        private ImmutableArray<ISymbol> CreateInterfaceMembers(IEnumerable<ISymbol> includedMembers)
         {
-            var interfaceMembers = new List<ISymbol>();
+            var interfaceMembers = ArrayBuilder<ISymbol>.GetInstance();
 
             foreach (var member in includedMembers)
             {
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     case SymbolKind.Event:
                         var @event = member as IEventSymbol;
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreateEventSymbol(
-                            attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                            attributes: ImmutableArray<AttributeData>.Empty,
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true),
                             type: @event.Type,
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     case SymbolKind.Method:
                         var method = member as IMethodSymbol;
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreateMethodSymbol(
-                            attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                            attributes: ImmutableArray<AttributeData>.Empty,
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: method.IsUnsafe()),
                             returnType: method.ReturnType,
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     case SymbolKind.Property:
                         var property = member as IPropertySymbol;
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
-                            attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                            attributes: ImmutableArray<AttributeData>.Empty,
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: property.IsUnsafe()),
                             type: property.Type,
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 }
             }
 
-            return interfaceMembers;
+            return interfaceMembers.ToImmutableAndFree();
         }
 
         internal virtual bool IsExtractableMember(ISymbol m)
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return false;
         }
 
-        private IList<ITypeParameterSymbol> GetTypeParameters(INamedTypeSymbol type, IEnumerable<ISymbol> includedMembers)
+        private ImmutableArray<ITypeParameterSymbol> GetTypeParameters(INamedTypeSymbol type, IEnumerable<ISymbol> includedMembers)
         {
             var potentialTypeParameters = GetPotentialTypeParameters(type);
 
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 }
             }
 
-            return potentialTypeParameters.Where(p => allReferencedTypeParameters.Contains(p)).ToList();
+            return potentialTypeParameters.Where(allReferencedTypeParameters.Contains).ToImmutableArray();
         }
 
         private List<ITypeParameterSymbol> GetPotentialTypeParameters(INamedTypeSymbol type)

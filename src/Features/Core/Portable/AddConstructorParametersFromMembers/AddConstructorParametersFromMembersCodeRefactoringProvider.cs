@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
 
             var parameters = state.Parameters.Select(p => CodeGenerationSymbolFactory.CreateParameterSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 refKind: p.RefKind,
                 isParams: p.IsParams,
                 type: p.Type,
