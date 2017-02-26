@@ -55,10 +55,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
         <Fact, WorkItem(546322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546322")>
         Public Sub NowarnWarnaserrorTest()
-            Dim src As String = Temp.CreateFile().WriteAllText(<text>
-Class C
-End Class
-</text>.Value).Path
+            Dim src As String = Temp.CreateFile().WriteAllText(
+"Class C
+End Class").Path
             Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/t:library", "/nowarn", "/warnaserror-", src})
             Assert.Equal(cmd.Arguments.CompilationOptions.GeneralDiagnosticOption, ReportDiagnostic.Suppress)
 
@@ -86,13 +85,12 @@ End Class
         Public Sub CommandLineCompilationWithQuotedMainArgument()
             ' Arguments with quoted rootnamespace and main type are unquoted when
             ' the arguments are read in by the command line compiler.
-            Dim src As String = Temp.CreateFile().WriteAllText(<text>
-Module Module1
+            Dim src As String = Temp.CreateFile().WriteAllText(
+"Module Module1
     Sub Main()
     
     End Sub
-End Module
-</text>.Value).Path
+End Module").Path
 
             Dim output As New StringWriter()
             Dim vbc As New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/target:exe", "/rootnamespace:""test""", "/main:""test.Module1""", src})
@@ -138,10 +136,9 @@ End Module
         <WorkItem(722561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722561")>
         <Fact>
         Public Sub Bug_722561()
-            Dim src As String = Temp.CreateFile().WriteAllText(<text>
-Public Class C
-End Class
-</text>.Value).Path
+            Dim src As String = Temp.CreateFile().WriteAllText(
+"Public Class C
+End Class").Path
 
             ' Previous versions of the compiler used to report warnings (BC2026, BC2014)
             ' whenever an unrecognized warning code was supplied via /nowarn or /warnaserror.
@@ -177,12 +174,15 @@ End Class
             Assert.True(output.ToString().StartsWith(s_logoLine1, StringComparison.Ordinal), "vbc should print logo and help if no args specified")
         End Sub
 
+        Private Function CreateFile() As String
+            Return Temp.CreateFile().WriteAllText(
+"Class C
+End Class").Path
+        End Function
+
         <Fact>
         Public Sub VbcNologo_1()
-            Dim src As String = Temp.CreateFile().WriteAllText(<text>
-Class C
-End Class
-</text>.Value).Path
+            Dim src As String = CreateFile()
 
             Dim output As StringWriter = New StringWriter()
 
@@ -198,10 +198,7 @@ End Class
 
         <Fact>
         Public Sub VbcNologo_1a()
-            Dim src As String = Temp.CreateFile().WriteAllText(<text>
-Class C
-End Class
-</text>.Value).Path
+            Dim src As String = CreateFile()
 
             Dim output As StringWriter = New StringWriter()
 
@@ -217,10 +214,7 @@ End Class
 
         <Fact>
         Public Sub VbcNologo_2()
-            Dim src As String = Temp.CreateFile().WriteAllText(<text>
-Class C
-End Class
-</text>.Value).Path
+            Dim src As String = CreateFile()
 
             Dim output As StringWriter = New StringWriter()
 
@@ -242,10 +236,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 
         <Fact>
         Public Sub VbcNologo_2a()
-            Dim src As String = Temp.CreateFile().WriteAllText(<text>
-Class C
-End Class
-</text>.Value).Path
+            Dim src As String = CreateFile()
 
             Dim output As StringWriter = New StringWriter()
 
@@ -306,14 +297,14 @@ SRC.VB(1) : error BC30037: Character is not valid.
 
         <Fact()>
         Public Sub ResponseFiles1()
-            Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
+            Dim rsp As String = Temp.CreateFile().WriteAllText("
 /r:System.dll
 /nostdlib
 /vbruntime-
 # this is ignored
-System.Console.WriteLine(&quot;*?&quot;);  # this is error
+System.Console.WriteLine(""*?"");  # this is error
 a.vb
-</text>.Value).Path
+").Path
             Dim cmd = New MockVisualBasicCompiler(rsp, _baseDirectory, {"b.vb"})
 
             AssertEx.Equal({"System.dll"}, cmd.Arguments.MetadataReferences.Select(Function(r) r.Reference))
@@ -332,11 +323,11 @@ a.vb
         <WorkItem(685392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685392")>
         <Fact()>
         Public Sub ResponseFiles_RootNamespace()
-            Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
+            Dim rsp As String = Temp.CreateFile().WriteAllText("
 /r:System.dll
-/rootnamespace:"Hello"
+/rootnamespace:""Hello""
 a.vb
-</text>.Value).Path
+").Path
             Dim cmd = New MockVisualBasicCompiler(rsp, _baseDirectory, {"b.vb"})
 
             Assert.Equal("Hello", cmd.Arguments.CompilationOptions.RootNamespace)
@@ -475,7 +466,7 @@ a.vb
 
         <Fact>
         Public Sub ResponseFiles2()
-            Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
+            Dim rsp As String = Temp.CreateFile().WriteAllText("
     /r:System
     /r:System.Core
     /r:System.Data
@@ -485,7 +476,7 @@ a.vb
     /imports:System
     /imports:System.Collections.Generic
     /imports:System.Linq
-    /imports:System.Text</text>.Value).Path
+    /imports:System.Text").Path
             Dim cmd = New MockVbi(rsp, _baseDirectory, {"b.vbx"})
 
             ' TODO (tomat): mscorlib, vbruntime order
@@ -1990,7 +1981,10 @@ End Module").Path
 
         <Fact>
         Public Sub Analyzers_Found()
-            Dim source = "Imports System " + vbCrLf + "Public Class Tester" + vbCrLf + "End Class"
+            Dim source =
+"Imports System 
+Public Class Tester
+End Class"
 
             Dim dir = Temp.CreateDirectory()
 
@@ -2012,7 +2006,10 @@ End Module").Path
 
         <Fact>
         Public Sub Analyzers_WithRuleSet()
-            Dim source = "Imports System " + vbCrLf + "Public Class Tester" + vbCrLf + "End Class"
+            Dim source =
+"Imports System 
+Public Class Tester
+End Class"
 
             Dim dir = Temp.CreateDirectory()
 
@@ -2046,7 +2043,10 @@ End Module").Path
 
         <Fact>
         Public Sub Analyzers_CommandLineOverridesRuleset1()
-            Dim source = "Imports System " + vbCrLf + "Public Class Tester" + vbCrLf + "End Class"
+            Dim source =
+"Imports System 
+Public Class Tester
+End Class"
 
             Dim dir = Temp.CreateDirectory()
 
@@ -2093,7 +2093,10 @@ End Module").Path
 
         <Fact>
         Public Sub Analyzer_CommandLineOverridesRuleset2()
-            Dim source = "Imports System " + vbCrLf + "Public Class Tester" + vbCrLf + "End Class"
+            Dim source =
+"Imports System 
+Public Class Tester
+End Class"
 
             Dim dir = Temp.CreateDirectory()
 
@@ -3142,12 +3145,12 @@ a
 
             Dim src = dir.CreateFile("a.vb")
             src.WriteAllText(
-    <text>
-''' &lt;summary&gt;ABC&lt;/summary&gt;
+"
+''' <summary>ABC</summary>
 Class C: End Class
-''' &lt;summary&gt;XYZ&lt;/summary&gt;
+''' <summary>XYZ</summary>
 Class E: End Class
-</text>.Value.Replace(vbLf, vbCrLf))
+")
 
             Dim xml = dir.CreateFile("a.xml")
             xml.WriteAllText("EMPTY")
@@ -3222,11 +3225,11 @@ a
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
             src.WriteAllText(
-    <text>
-''' &lt;summary&gt;ABC...XYZ&lt;/summary&gt;
+"
+''' <summary>ABC...XYZ</summary>
 Class C
 End Class
-</text>.Value.Replace(vbLf, vbCrLf))
+")
 
             Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:abcdfg.xyz /doc+ {0}", src.ToString()), startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
@@ -3241,13 +3244,11 @@ End Class
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
             src.WriteAllText(
-    <text>
-''' &lt;summary&gt;ABC...XYZ&lt;/summary&gt;
+"''' <summary>ABC...XYZ</summary>
 Class C
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
+End Class")
 
-            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc /out:MyXml.dll {0}", src.ToString()), startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format(" /nologo /t:library /doc /out:MyXml.dll {0}", src.ToString()), startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "MyXml.xml")))
@@ -3260,11 +3261,11 @@ End Class
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
             src.WriteAllText(
-    <text>
-''' &lt;summary&gt;ABC...XYZ&lt;/summary&gt;
+"
+''' <summary>ABC...XYZ</summary>
 Class C
 End Class
-</text>.Value.Replace(vbLf, vbCrLf))
+")
 
             Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /doc+ {0}", src.ToString()), startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
@@ -3279,11 +3280,11 @@ End Class
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
             src.WriteAllText(
-    <text>
-''' &lt;summary&gt;ABC...XYZ&lt;/summary&gt;
+"
+''' <summary>ABC...XYZ</summary>
 Class C
 End Class
-</text>.Value.Replace(vbLf, vbCrLf))
+")
 
             Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /out:out.dll {0}", src.ToString()), startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
@@ -3298,11 +3299,11 @@ End Class
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
             src.WriteAllText(
-    <text>
-''' &lt;summary&gt;ABC...XYZ&lt;/summary&gt;
+"
+''' <summary>ABC...XYZ</summary>
 Class C
 End Class
-</text>.Value.Replace(vbLf, vbCrLf))
+")
 
             Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /doc /out:out.dll {0}", src.ToString()), startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
@@ -3317,11 +3318,11 @@ End Class
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
             src.WriteAllText(
-    <text>
-''' &lt;summary&gt;ABC...XYZ&lt;/summary&gt;
+"
+''' <summary>ABC...XYZ</summary>
 Class C
 End Class
-</text>.Value.Replace(vbLf, vbCrLf))
+")
 
             Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /out:out.dll /doc+ {0}", src.ToString()), startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
@@ -4116,10 +4117,8 @@ Dim b = Loc
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("src.vb")
             src.WriteAllText(
-    <text>
-Class C
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
+"Class C
+End Class")
 
             Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /sdkpath:l:\x /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
             AssertOutput(
@@ -4223,16 +4222,17 @@ vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
+
         <Fact()>
         Public Sub NostdlibInAction()
 
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("src.vb")
             src.WriteAllText(
-    <text>
+"
 Class C
 End Class
-</text>.Value.Replace(vbLf, vbCrLf))
+")
 
             Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /t:library " & src.ToString(), startFolder:=dir.Path, expectedRetCode:=1)
             Assert.Contains("error BC30002: Type 'Global.System.ComponentModel.EditorBrowsable' is not defined.", output, StringComparison.Ordinal)
@@ -4339,17 +4339,17 @@ Class C
 
         <Fact>
         Public Sub OutputFileName1()
-            Dim source1 = <![CDATA[
+            Dim source1 = "
 Class A
 End Class
-]]>
+"
 
-            Dim source2 = <![CDATA[
+            Dim source2 = "
 Class B
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
             ' Name comes from name of first file.
             CheckOutputFileName(
@@ -4361,17 +4361,17 @@ End Class
 
         <Fact>
         Public Sub OutputFileName2()
-            Dim source1 = <![CDATA[
+            Dim source1 = "
 Class A
 End Class
-]]>
+"
 
-            Dim source2 = <![CDATA[
+            Dim source2 = "
 Class B
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
             ' Name comes from command-line option.
             CheckOutputFileName(
@@ -4383,17 +4383,17 @@ End Class
 
         <Fact>
         Public Sub OutputFileName3()
-            Dim source1 = <![CDATA[
+            Dim source1 = "
 Class A
 End Class
-]]>
+"
 
-            Dim source2 = <![CDATA[
+            Dim source2 = "
 Class B
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
             ' Name comes from name of first file.
             CheckOutputFileName(
@@ -4405,17 +4405,17 @@ End Class
 
         <Fact>
         Public Sub OutputFileName4()
-            Dim source1 = <![CDATA[
+            Dim source1 = "
 Class A
 End Class
-]]>
+"
 
-            Dim source2 = <![CDATA[
+            Dim source2 = "
 Class B
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
             ' Name comes from command-line option.
             CheckOutputFileName(
@@ -4427,19 +4427,19 @@ End Class
 
         <Fact>
         Public Sub OutputFileName5()
-            Dim source1 = <![CDATA[
+            Dim source1 = "
 Class A
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
-            Dim source2 = <![CDATA[
+            Dim source2 = "
 Class B
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
             ' Name comes from name of first file.
             CheckOutputFileName(
@@ -4451,19 +4451,19 @@ End Class
 
         <Fact>
         Public Sub OutputFileName6()
-            Dim source1 = <![CDATA[
+            Dim source1 = "
 Class A
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
-            Dim source2 = <![CDATA[
+            Dim source2 = "
 Class B
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
             ' Name comes from name of first file.
             CheckOutputFileName(
@@ -4476,17 +4476,17 @@ End Class
         <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName7()
-            Dim source1 = <![CDATA[
+            Dim source1 = "
 Class A
 End Class
-]]>
+"
 
-            Dim source2 = <![CDATA[
+            Dim source2 = "
 Class B
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
             ' Name comes from command-line option.
             CheckOutputFileName(
@@ -4499,17 +4499,17 @@ End Class
         <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName8()
-            Dim source1 = <![CDATA[
+            Dim source1 = "
 Class A
 End Class
-]]>
+"
 
-            Dim source2 = <![CDATA[
+            Dim source2 = "
 Class B
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
             ' Name comes from command-line option.
             CheckOutputFileName(
@@ -4522,17 +4522,17 @@ End Class
         <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName9()
-            Dim source1 = <![CDATA[
+            Dim source1 = "
 Class A
 End Class
-]]>
+"
 
-            Dim source2 = <![CDATA[
+            Dim source2 = "
 Class B
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
             ' Name comes from command-line option.
             CheckOutputFileName(
@@ -4545,17 +4545,17 @@ End Class
         <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName10()
-            Dim source1 = <![CDATA[
+            Dim source1 = "
 Class A
 End Class
-]]>
+"
 
-            Dim source2 = <![CDATA[
+            Dim source2 = "
 Class B
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
             ' Name comes from command-line option.
             CheckOutputFileName(
@@ -4568,17 +4568,17 @@ End Class
         <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName11()
-            Dim source1 = <![CDATA[
+            Dim source1 = "
 Class A
 End Class
-]]>
+"
 
-            Dim source2 = <![CDATA[
+            Dim source2 = "
 Class B
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
             ' Name comes from command-line option.
             CheckOutputFileName(
@@ -4591,17 +4591,17 @@ End Class
         <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName12()
-            Dim source1 = <![CDATA[
+            Dim source1 = "
 Class A
 End Class
-]]>
+"
 
-            Dim source2 = <![CDATA[
+            Dim source2 = "
 Class B
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
             ' Name comes from command-line option.
             CheckOutputFileName(
@@ -4613,17 +4613,17 @@ End Class
 
         <Fact>
         Public Sub OutputFileName13()
-            Dim source1 = <![CDATA[
+            Dim source1 = "
 Class A
 End Class
-]]>
+"
 
-            Dim source2 = <![CDATA[
+            Dim source2 = "
 Class B
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
             ' Name comes from name of first file.
             CheckOutputFileName(
@@ -4635,17 +4635,17 @@ End Class
 
         <Fact>
         Public Sub OutputFileName14()
-            Dim source1 = <![CDATA[
+            Dim source1 = "
 Class A
 End Class
-]]>
+"
 
-            Dim source2 = <![CDATA[
+            Dim source2 = "
 Class B
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
 
             ' Name comes from name of first file.
             CheckOutputFileName(
@@ -4655,14 +4655,14 @@ End Class
                 expectedOutputName:="p.exe")
         End Sub
 
-        Private Sub CheckOutputFileName(source1 As XCData, source2 As XCData, inputName1 As String, inputName2 As String, commandLineArguments As String(), expectedOutputName As String)
+        Private Sub CheckOutputFileName(source1 As String, source2 As String, inputName1 As String, inputName2 As String, commandLineArguments As String(), expectedOutputName As String)
             Dim dir = Temp.CreateDirectory()
 
             Dim file1 = dir.CreateFile(inputName1)
-            file1.WriteAllText(source1.Value)
+            file1.WriteAllText(source1)
 
             Dim file2 = dir.CreateFile(inputName2)
-            file2.WriteAllText(source2.Value)
+            file2.WriteAllText(source2)
 
             Dim outWriter As New StringWriter()
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, commandLineArguments.Concat({inputName1, inputName2}).ToArray())
@@ -4779,24 +4779,24 @@ End Class
         <WorkItem(545025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")>
         <Fact()>
         Public Sub CompilationWithWarnAsError()
-            Dim source = <![CDATA[
+            Dim source = "
 Class A
     Shared Sub Main()
     End Sub
 End Class
-]]>
+"
             ' Baseline without warning options (expect success)
-            Dim exitCode As Integer = GetExitCode(source.Value, "a.vb", {})
+            Dim exitCode As Integer = GetExitCode(source, "a.vb", {})
             Assert.Equal(0, exitCode)
 
             ' The case with /warnaserror (expect to be success, since there will be no warning)
-            exitCode = GetExitCode(source.Value, "b.vb", {"/warnaserror"})
+            exitCode = GetExitCode(source, "b.vb", {"/warnaserror"})
             Assert.Equal(0, exitCode)
 
             ' The case with /warnaserror and /nowarn:1 (expect success)
             ' Note that even though the command line option has a warning, it is not going to become an error
             ' in order to avoid the halt of compilation. 
-            exitCode = GetExitCode(source.Value, "c.vb", {"/warnaserror", "/nowarn:1"})
+            exitCode = GetExitCode(source, "c.vb", {"/warnaserror", "/nowarn:1"})
             Assert.Equal(0, exitCode)
         End Sub
 
@@ -5394,10 +5394,8 @@ Class ??
             Dim dir = Temp.CreateDirectory()
             Dim file = dir.CreateFile("a.vb")
             file.WriteAllText(
-    <text>
-    Class C
-    End Class
-</text>.Value.Replace(vbLf, vbCrLf))
+"    Class C
+    End Class")
 
             Dim comp = VisualBasicCompilation.Create("a.dll", options:=TestOptions.ReleaseDll)
             Dim peHeaders = New PEHeaders(comp.EmitToStream(New EmitOptions(subsystemVersion:=SubsystemVersion.Create(5, 1))))
@@ -5807,19 +5805,16 @@ End Module
         <WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
         <Fact()>
         Public Sub ResponseFilesWithNoconfig_01()
-            Dim source As String = Temp.CreateFile().WriteAllText(<text>
-Imports System
+            Dim source As String = Temp.CreateFile().WriteAllText(
+"Imports System
 
 Module Module1
     Sub Main()
         Dim x As Integer    
     End Sub
-End Module
-</text>.Value).Path
+End Module").Path
 
-            Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
-/warnaserror                                                               
-</text>.Value).Path
+            Dim rsp As String = Temp.CreateFile().WriteAllText("/warnaserror                                                               ").Path
 
             ' Checks the base case without /noconfig (expect to see error)
             Dim vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en"})
@@ -5856,18 +5851,17 @@ End Module
         <WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
         <Fact()>
         Public Sub ResponseFilesWithNoconfig_02()
-            Dim source As String = Temp.CreateFile().WriteAllText(<text>
-Imports System
+            Dim source As String = Temp.CreateFile().WriteAllText(
+"Imports System
 
 Module Module1
     Sub Main()
     End Sub
-End Module
-</text>.Value).Path
+End Module").Path
 
-            Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
+            Dim rsp As String = Temp.CreateFile().WriteAllText("
 /noconfig                                        
-</text>.Value).Path
+").Path
 
             ' Checks the case with /noconfig inside the response file (expect to see warning)
             Dim vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en"})
@@ -5890,18 +5884,18 @@ End Module
         <WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
         <Fact()>
         Public Sub ResponseFilesWithNoconfig_03()
-            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+            Dim source As String = Temp.CreateFile().WriteAllText("
 Imports System
 
 Module Module1
     Sub Main()
     End Sub
 End Module
-</text>.Value).Path
+").Path
 
-            Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
+            Dim rsp As String = Temp.CreateFile().WriteAllText("
 /NOCONFIG       
-</text>.Value).Path
+").Path
 
             ' Checks the case with /noconfig inside the response file (expect to see warning)
             Dim vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en"})
@@ -5924,18 +5918,18 @@ End Module
         <WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
         <Fact()>
         Public Sub ResponseFilesWithNoconfig_04()
-            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+            Dim source As String = Temp.CreateFile().WriteAllText("
 Imports System
 
 Module Module1
     Sub Main()
     End Sub
 End Module
-</text>.Value).Path
+").Path
 
-            Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
+            Dim rsp As String = Temp.CreateFile().WriteAllText("
 -noconfig
-</text>.Value).Path
+").Path
 
             ' Checks the case with /noconfig inside the response file (expect to see warning)
             Dim vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en"})
@@ -5958,9 +5952,9 @@ End Module
         <WorkItem(545832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545832")>
         <Fact()>
         Public Sub ResponseFilesWithEmptyAliasReference()
-            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+            Dim source As String = Temp.CreateFile().WriteAllText("
 Imports System
-</text>.Value).Path
+").Path
 
             Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
 -nologo
@@ -5982,9 +5976,9 @@ Imports System
         <WorkItem(546033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546033")>
         <Fact()>
         Public Sub InvalidDefineSwitch()
-            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+            Dim source As String = Temp.CreateFile().WriteAllText("
 Imports System
-</text>.Value).Path
+").Path
 
             Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"-nologo", "/preferreduilang:en", "/t:libraRY", "/define", source})
             Dim output As New StringWriter()
@@ -6144,7 +6138,7 @@ Imports System
 
         <Fact(), WorkItem(546114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546114")>
         Public Sub TestFilterCommandLineDiagnostics()
-            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+            Dim source As String = Temp.CreateFile().WriteAllText("
 Module Module1
     Function blah() As Integer
     End Function
@@ -6152,7 +6146,7 @@ Module Module1
     Sub Main()
     End Sub
 End Module
-</text>.Value).Path
+").Path
 
             ' Previous versions of the compiler used to report warnings (BC2026)
             ' whenever an unrecognized warning code was supplied via /nowarn or /warnaserror.
@@ -6168,12 +6162,12 @@ End Module
         <WorkItem(546305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546305")>
         <Fact()>
         Public Sub Bug15539()
-            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+            Dim source As String = Temp.CreateFile().WriteAllText("
 Module Module1
     Sub Main()
     End Sub
 End Module
-</text>.Value).Path
+").Path
 
             Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", "/define:I(", source})
             Dim output As New StringWriter()
@@ -6205,12 +6199,12 @@ End Module
         Public Sub TestCommandLineSwitchThatNoLongerAreImplemented()
             ' These switches are no longer implemented and should fail silently
             ' the switches have various arguments that can be used
-            Dim source As String = Temp.CreateFile().WriteAllText(<text>
-Module Module1
+            Dim source As String = Temp.CreateFile().WriteAllText(
+"Module Module1
     Sub Main()
     End Sub
 End Module
-</text>.Value).Path
+").Path
 
             Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/netcf", source})
             Dim output = New StringWriter()
@@ -6224,7 +6218,7 @@ End Module
             Assert.Equal(0, exitCode)
             Assert.Equal("", output.ToString().Trim())
 
-            vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/bugreport:test.dmp", source})
+            vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/bugreport: Test.dmp", source})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
@@ -6352,12 +6346,12 @@ End Module
 
         <Fact()>
         Public Sub ReservedDeviceNameAsFileName2()
-            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+            Dim source As String = Temp.CreateFile().WriteAllText("
 Module Module1
     Sub Main()
     End Sub
 End Module
-</text>.Value).Path
+").Path
             ' Make sure these reserved device names don't affect compiler
             Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/r:.\com3.dll", "/preferreduilang:en", source})
             Dim output = New StringWriter()
@@ -6400,7 +6394,7 @@ End Module
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("src.vb")
             src.WriteAllText(
-    <text><![CDATA[
+"
 Imports System.Runtime.CompilerServices
 Imports System.Collections
 
@@ -6413,14 +6407,13 @@ Friend Module AutoPropAttributesmod
     Class HasProps
         <CompilerGenerated()>
         Public Property Scen1() As <CompilerGenerated()> Func(Of String)
-        <CLSCompliant(False), Obsolete("obsolete message!")>
+        <CLSCompliant(False), Obsolete(""obsolete message!"")>
                 <AttrInThisAsmAttribute()>
         Public Property Scen2() As String
     End Class
 
 End Module
-]]>
-    </text>.Value.Replace(vbLf, vbCrLf))
+")
 
             Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /t:library /langversion:9 /preferreduilang:en " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
             AssertOutput(
@@ -6864,6 +6857,7 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
+
 
         <WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
         <WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
