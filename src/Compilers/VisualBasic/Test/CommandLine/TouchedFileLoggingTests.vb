@@ -40,14 +40,12 @@ End Class
             Dim expectedReads As List(Of String) = Nothing
             Dim expectedWrites As List(Of String) = Nothing
             BuildTouchedFiles(cmd, Path.ChangeExtension(hello, "exe"), expectedReads, expectedWrites)
-
             Dim exitCode = cmd.Run(outWriter, Nothing)
+
             Assert.Equal("", outWriter.ToString().Trim())
             Assert.Equal(0, exitCode)
 
-            AssertTouchedFilesEqual(expectedReads,
-                                    expectedWrites,
-                                    touchedBase)
+            AssertTouchedFilesEqual(expectedReads, expectedWrites, touchedBase)
 
             CleanupAllGeneratedFiles(hello)
         End Sub
@@ -59,16 +57,20 @@ End Class
             Dim touchedDir = Temp.CreateDirectory()
             Dim touchedBase = Path.Combine(touchedDir.Path, "touched")
 
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
-                {"/nologo", "/touchedfiles:" & touchedBase, "/keyfile:" & snkPath, hello})
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
+            Dim cmd As New MockVisualBasicCompiler(Nothing,
+                                                    _baseDirectory,
+                                                    {"/nologo",
+                                                     "/touchedfiles:" & touchedBase,
+                                                     "/keyfile:" & snkPath,
+                                                     hello
+                                                    }
+                                                  )
 
             Dim expectedReads As List(Of String) = Nothing
             Dim expectedWrites As List(Of String) = Nothing
-            BuildTouchedFiles(cmd,
-                              Path.ChangeExtension(hello, "exe"),
-                              expectedReads,
-                              expectedWrites)
+            BuildTouchedFiles(cmd, Path.ChangeExtension(hello, "exe"), expectedReads, expectedWrites)
+
             expectedReads.Add(snkPath)
 
             Dim exitCode = cmd.Run(outWriter, Nothing)
@@ -76,9 +78,7 @@ End Class
             Assert.Equal(String.Empty, outWriter.ToString().Trim())
             Assert.Equal(0, exitCode)
 
-            AssertTouchedFilesEqual(expectedReads,
-                                    expectedWrites,
-                                    touchedBase)
+            AssertTouchedFilesEqual(expectedReads, expectedWrites, touchedBase)
 
             CleanupAllGeneratedFiles(hello)
             CleanupAllGeneratedFiles(snkPath)
@@ -95,35 +95,35 @@ Public Class C
 End Class
 ").Path
 
-            Dim xml = Temp.CreateFile()
-            Dim touchedDir = Temp.CreateDirectory()
+            Dim xml As TempFile = Temp.CreateFile()
+            Dim touchedDir As TempDirectory = Temp.CreateDirectory()
             Dim touchedBase = Path.Combine(touchedDir.Path, "touched")
 
-            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
-                {"/nologo",
-                 "/target:library",
-                 "/doc:" + xml.Path,
-                 "/touchedfiles:" + touchedBase,
-                 sourcePath})
+            Dim cmd As New MockVisualBasicCompiler(Nothing,
+                                                    _baseDirectory,
+                                                    {"/nologo",
+                                                     "/target:library",
+                                                     "/doc:" & xml.Path,
+                                                     "/touchedfiles:" & touchedBase,
+                                                     sourcePath
+                                                    }
+                                                  )
             ' Build touched files
             Dim expectedReads As List(Of String) = Nothing
             Dim expectedWrites As List(Of String) = Nothing
-            BuildTouchedFiles(cmd,
-                              Path.ChangeExtension(sourcePath, "dll"),
-                              expectedReads,
-                              expectedWrites)
+            BuildTouchedFiles(cmd, Path.ChangeExtension(sourcePath, "dll"), expectedReads, expectedWrites)
             expectedWrites.Add(xml.Path)
 
-            Dim writer = New StringWriter(CultureInfo.InvariantCulture)
+            Dim writer As New StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = cmd.Run(writer, Nothing)
             Assert.Equal(String.Empty, writer.ToString().Trim())
             Assert.Equal(0, exitCode)
-            Dim expectedDoc = <![CDATA[
-<?xml version="1.0"?>
+            Dim expectedDoc =
+$"<?xml version=""1.0""?>
 <doc>
 <assembly>
 <name>
-{0}
+{Path.GetFileNameWithoutExtension(sourcePath)}
 </name>
 </assembly>
 <members>
@@ -133,15 +133,10 @@ End Class
  </summary>
             </member>
 </members>
-</doc>]]>.Value.Trim()
-            expectedDoc = String.Format(expectedDoc,
-                                        Path.GetFileNameWithoutExtension(sourcePath))
-            expectedDoc = expectedDoc.Replace(vbLf, vbCrLf)
+</doc>"
             Assert.Equal(expectedDoc, xml.ReadAllText().Trim())
 
-            AssertTouchedFilesEqual(expectedReads,
-                                    expectedWrites,
-                                    touchedBase)
+            AssertTouchedFilesEqual(expectedReads, expectedWrites, touchedBase)
 
             CleanupAllGeneratedFiles(sourcePath)
             CleanupAllGeneratedFiles(xml.Path)
@@ -152,36 +147,36 @@ End Class
             Dim folderList As New List(Of String)
             Dim filelist As New List(Of String)
 
-            For i = 0 To 2 - 1
+            For i = 0 To 1
+
                 Dim source1 = Temp.CreateFile().WriteAllText(_helloWorldCS).Path
                 Dim touchedDir = Temp.CreateDirectory()
                 Dim touchedBase = Path.Combine(touchedDir.Path, "touched")
                 filelist.Add(source1)
                 folderList.Add(touchedDir.Path)
 
-                Dim outWriter = New StringWriter()
-                Dim cmd = New VisualBasicCompilerServer(
-                    DesktopCompilerServerHost.SharedAssemblyReferenceProvider,
-                    {"/nologo",
-                     "/touchedfiles:" + touchedBase,
-                     source1},
-                    New BuildPaths(Nothing, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
-                    s_libDirectory,
-                    New TestAnalyzerAssemblyLoader())
+                Dim cmd As New VisualBasicCompilerServer(
+                                                          DesktopCompilerServerHost.SharedAssemblyReferenceProvider,
+                                                          {"/nologo", "/touchedfiles:" & touchedBase, source1},
+                                                          New BuildPaths(Nothing,
+                                                                          _baseDirectory,
+                                                                          RuntimeEnvironment.GetRuntimeDirectory(),
+                                                                          Path.GetTempPath()
+                                                                        ),
+                                                          s_libDirectory,
+                                                          New TestAnalyzerAssemblyLoader()
+                                                        )
+
                 Dim expectedReads As List(Of String) = Nothing
                 Dim expectedWrites As List(Of String) = Nothing
-                BuildTouchedFiles(cmd,
-                                  Path.ChangeExtension(source1, "exe"),
-                                  expectedReads,
-                                  expectedWrites)
+                BuildTouchedFiles(cmd, Path.ChangeExtension(source1, "exe"), expectedReads, expectedWrites)
 
+                Dim outWriter As New StringWriter()
                 Dim exitCode = cmd.Run(outWriter, Nothing)
                 Assert.Equal(String.Empty, outWriter.ToString().Trim())
                 Assert.Equal(0, exitCode)
 
-                AssertTouchedFilesEqual(expectedReads,
-                                        expectedWrites,
-                                        touchedBase)
+                AssertTouchedFilesEqual(expectedReads, expectedWrites, touchedBase)
             Next
 
             For Each f In filelist
@@ -196,35 +191,37 @@ End Class
         ''' Vbc.Run.
         ''' </summary>
         ''' <param name="cmd"></param>
-        Private Shared Sub BuildTouchedFiles(cmd As VisualBasicCompiler,
-                                                  outputPath As String,
-                                                  <Out> ByRef expectedReads As List(Of String),
-                                                  <Out> ByRef expectedWrites As List(Of String))
+        Private Shared Sub BuildTouchedFiles(
+                                              cmd As VisualBasicCompiler,
+                                              outputPath As String,
+                                  <Out> ByRef expectedReads As List(Of String),
+                                  <Out> ByRef expectedWrites As List(Of String)
+                                            )
+
             expectedReads = cmd.Arguments.MetadataReferences.Select(Function(r) r.Reference).ToList()
 
             Dim coreLibrary = cmd.Arguments.DefaultCoreLibraryReference
-            If coreLibrary.HasValue Then
-                expectedReads.Add(coreLibrary.GetValueOrDefault().Reference)
-            End If
+            If coreLibrary.HasValue Then expectedReads.Add(coreLibrary.GetValueOrDefault().Reference)
 
             For Each file In cmd.Arguments.SourceFiles
                 expectedReads.Add(file.Path)
             Next
 
-            Dim writes = New List(Of String)
-            writes.Add(outputPath)
+            Dim writes As New List(Of String) From {outputPath}
             expectedWrites = writes
         End Sub
 
-        Private Shared Sub AssertTouchedFilesEqual(expectedReads As List(Of String),
-                                                   expectedWrites As List(Of String),
-                                                   touchedFilesBase As String)
-            Dim touchedReadPath = touchedFilesBase + ".read"
-            Dim touchedWritesPath = touchedFilesBase + ".write"
+        Private Shared Sub AssertTouchedFilesEqual(
+                                                    expectedReads As List(Of String),
+                                                    expectedWrites As List(Of String),
+                                                    touchedFilesBase As String
+                                                  )
+
+            Dim touchedReadPath = touchedFilesBase & ".read"
+            Dim touchedWritesPath = touchedFilesBase & ".write"
 
             Dim expected = expectedReads.Select(Function(s) s.ToUpperInvariant()).OrderBy(Function(s) s)
-            Assert.Equal(String.Join(vbCrLf, expected),
-                         File.ReadAllText(touchedReadPath).Trim())
+            Assert.Equal(String.Join(vbCrLf, expected), File.ReadAllText(touchedReadPath).Trim())
 
             expected = expectedWrites.Select(Function(s) s.ToUpperInvariant()).OrderBy(Function(s) s)
             Assert.Equal(String.Join(vbCrLf, expected),
@@ -244,4 +241,5 @@ End Class
         End Class
 
     End Class
+
 End Namespace
