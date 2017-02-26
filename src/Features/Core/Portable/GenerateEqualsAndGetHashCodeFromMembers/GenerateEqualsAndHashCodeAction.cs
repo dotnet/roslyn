@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly INamedTypeSymbol _containingType;
-            private readonly IList<ISymbol> _selectedMembers;
+            private readonly ImmutableArray<ISymbol> _selectedMembers;
             private readonly TextSpan _textSpan;
 
             public GenerateEqualsAndHashCodeAction(
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
-                IList<ISymbol> selectedMembers,
+                ImmutableArray<ISymbol> selectedMembers,
                 bool generateEquals = false,
                 bool generateGetHashCode = false)
             {

@@ -78,23 +78,26 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             Document document,
             TextSpan textSpan,
             INamedTypeSymbol containingType,
-            IList<ISymbol> selectedMembers,
+            ImmutableArray<ISymbol> selectedMembers,
             bool hasEquals,
             bool hasGetHashCode)
         {
             if (!hasEquals)
             {
-                yield return new GenerateEqualsAndHashCodeAction(this, document, textSpan, containingType, selectedMembers, generateEquals: true);
+                yield return new GenerateEqualsAndHashCodeAction(
+                    this, document, textSpan, containingType, selectedMembers, generateEquals: true);
             }
 
             if (!hasGetHashCode)
             {
-                yield return new GenerateEqualsAndHashCodeAction(this, document, textSpan, containingType, selectedMembers, generateGetHashCode: true);
+                yield return new GenerateEqualsAndHashCodeAction(
+                    this, document, textSpan, containingType, selectedMembers, generateGetHashCode: true);
             }
 
             if (!hasEquals && !hasGetHashCode)
             {
-                yield return new GenerateEqualsAndHashCodeAction(this, document, textSpan, containingType, selectedMembers, generateEquals: true, generateGetHashCode: true);
+                yield return new GenerateEqualsAndHashCodeAction(
+                    this, document, textSpan, containingType, selectedMembers, generateEquals: true, generateGetHashCode: true);
             }
         }
     }

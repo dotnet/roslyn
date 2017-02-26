@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.ExplicitInterfaceImplementations.FirstOrDefault(),
                 method.Name,
                 updatedTypeParameters,
-                method.Parameters.Select(p =>
+                method.Parameters.SelectAsArray(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.Type.SubstituteTypes(mapping, typeGenerator), p.Name, p.IsOptional,
-                        p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)).ToList());
+                        p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)));
         }
 
         public static IMethodSymbol RenameParameters(
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 parameters);
         }
 
-        private static IList<ITypeParameterSymbol> RenameTypeParameters(
+        private static ImmutableArray<ITypeParameterSymbol> RenameTypeParameters(
             IList<ITypeParameterSymbol> typeParameters,
             IList<string> newNames,
             ITypeGenerator typeGenerator)
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 newTypeParameter.ConstraintTypes = ImmutableArray.CreateRange(newTypeParameter.ConstraintTypes, t => t.SubstituteTypes(mapping, typeGenerator));
             }
 
-            return newTypeParameters.Cast<ITypeParameterSymbol>().ToList();
+            return newTypeParameters.Cast<ITypeParameterSymbol>().ToImmutableArray();
         }
 
         public static IMethodSymbol EnsureNonConflictingNames(
@@ -172,17 +172,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IMethodSymbol RemoveInaccessibleAttributesAndAttributesOfTypes(
-            this IMethodSymbol method, ISymbol accessibleWithin, params INamedTypeSymbol[] removeAttributeTypes)
+            this IMethodSymbol method, ISymbol accessibleWithin,
+            params INamedTypeSymbol[] removeAttributeTypes)
         {
             Func<AttributeData, bool> shouldRemoveAttribute = a =>
                 removeAttributeTypes.Any(attr => attr != null && attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
 
-            return method.RemoveAttributesCore(shouldRemoveAttribute, statements: null, handlesExpressions: null);
+            return method.RemoveAttributesCore(
+                shouldRemoveAttribute,
+                statements: default(ImmutableArray<SyntaxNode>),
+                handlesExpressions: default(ImmutableArray<SyntaxNode>));
         }
 
         private static IMethodSymbol RemoveAttributesCore(
             this IMethodSymbol method, Func<AttributeData, bool> shouldRemoveAttribute,
-            IList<SyntaxNode> statements, IList<SyntaxNode> handlesExpressions)
+            ImmutableArray<SyntaxNode> statements, ImmutableArray<SyntaxNode> handlesExpressions)
         {
             var methodHasAttribute = method.GetAttributes().Any(shouldRemoveAttribute);
 
@@ -198,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 method.ContainingType,
-                method.GetAttributes().Where(a => !shouldRemoveAttribute(a)).ToList(),
+                method.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
                 method.DeclaredAccessibility,
                 method.GetSymbolModifiers(),
                 method.ReturnType,
@@ -206,14 +210,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.ExplicitInterfaceImplementations.FirstOrDefault(),
                 method.Name,
                 method.TypeParameters,
-                method.Parameters.Select(p =>
+                method.Parameters.SelectAsArray(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        p.GetAttributes().Where(a => !shouldRemoveAttribute(a)).ToList(),
+                        p.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
                         p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
-                        p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)).ToList(),
+                        p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
                 statements,
                 handlesExpressions,
-                method.GetReturnTypeAttributes().Where(a => !shouldRemoveAttribute(a)).ToList());
+                method.GetReturnTypeAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)));
         }
 
         public static bool? IsMoreSpecificThan(this IMethodSymbol method1, IMethodSymbol method2)

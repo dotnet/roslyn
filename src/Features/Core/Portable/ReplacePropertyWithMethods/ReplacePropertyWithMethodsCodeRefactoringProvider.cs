@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 n => !property.ContainingType.GetMembers(n).Any());
 
             return CodeGenerationSymbolFactory.CreateFieldSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: field.DeclaredAccessibility,
                 modifiers: DeclarationModifiers.From(field),
                 type: field.Type,

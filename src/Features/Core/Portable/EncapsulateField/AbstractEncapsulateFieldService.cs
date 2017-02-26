@@ -301,14 +301,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var factory = document.GetLanguageService<SyntaxGenerator>();
 
             var propertySymbol = annotation.AddAnnotationToSymbol(CodeGenerationSymbolFactory.CreatePropertySymbol(containingType: containingSymbol,
-                attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                attributes: ImmutableArray<AttributeData>.Empty,
                 accessibility: ComputeAccessibility(accessibility, field.Type),
                 modifiers: new DeclarationModifiers(isStatic: field.IsStatic, isReadOnly: field.IsReadOnly, isUnsafe: field.IsUnsafe()),
                 type: field.Type,
                 returnsByRef: false,
                 explicitInterfaceSymbol: null,
                 name: propertyName,
-                parameters: SpecializedCollections.EmptyList<IParameterSymbol>(),
+                parameters: ImmutableArray<IParameterSymbol>.Empty,
                 getMethod: CreateGet(fieldName, field, factory),
                 setMethod: field.IsReadOnly || field.IsConst ? null : CreateSet(fieldName, field, factory)));
 
@@ -344,9 +344,10 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     assigned.WithAdditionalAnnotations(Simplifier.Annotation),
                 factory.IdentifierName("value")));
 
-            return CodeGenerationSymbolFactory.CreateAccessorSymbol(SpecializedCollections.EmptyList<AttributeData>(),
+            return CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                ImmutableArray<AttributeData>.Empty,
                 Accessibility.NotApplicable,
-                new[] { body }.ToList());
+                ImmutableArray.Create(body));
         }
 
         protected IMethodSymbol CreateGet(string originalFieldName, IFieldSymbol field, SyntaxGenerator factory)
@@ -360,9 +361,10 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var body = factory.ReturnStatement(
                 value.WithAdditionalAnnotations(Simplifier.Annotation));
 
-            return CodeGenerationSymbolFactory.CreateAccessorSymbol(SpecializedCollections.EmptyList<AttributeData>(),
+            return CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                ImmutableArray<AttributeData>.Empty,
                 Accessibility.NotApplicable,
-                new[] { body }.ToList());
+                ImmutableArray.Create(body));
         }
 
         private static readonly char[] s_underscoreCharArray = new[] { '_' };
