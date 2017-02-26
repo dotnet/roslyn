@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub SourceNamedTypeDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-                Unit.Make("SourceNamedTypeDeclaringSyntax").WithFile("a.vb",
+                Unit.Make("SourceNamedTypeDeclaringSyntax").With_a_vb(
 "
 Namespace N1
     Public Class C1(Of T)
@@ -187,7 +187,7 @@ End Namespace"))
         <Fact>
         Public Sub NonSourceTypeDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-                Unit.Make("NonSourceTypeDeclaringSyntax").WithFile("a.vb",
+                Unit.Make("NonSourceTypeDeclaringSyntax").With_a_vb(
 "
 Namespace N1
     Public Class C1
@@ -212,7 +212,7 @@ End Namespace    "))
         <Fact>
         Public Sub AnonTypeDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    Unit.Make("AnonTypeDeclaringSyntax").WithFile("a.vb",
+    Unit.Make("AnonTypeDeclaringSyntax").With_a_vb(
 "Public Class C1
     Sub f()
         Dim a1 = New With {.a = 5, .b = ""hi""}
@@ -245,7 +245,7 @@ End Class
         <Fact()>
         Public Sub AnonTypeDeclaringSyntaxStaticLocal()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-                Unit.Make("AnonTypeDeclaringSyntax").WithFile("a.vb",
+                Unit.Make("AnonTypeDeclaringSyntax").With_a_vb(
 "Public Class C1
     Sub f()
         Static a1 = New With {.a = 5, .b = ""hi""}
@@ -284,7 +284,7 @@ End Class"))
             'This should be fixed when multiple modifiers issues is resolved so that this should work in the same
             'way as static and not normal local declarations as at present.
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-                Unit.Make("AnonTypeDeclaringSyntax").WithFile("a.vb",
+                Unit.Make("AnonTypeDeclaringSyntax").With_a_vb(
 "Public Class C1
     Sub f()
         Static Dim a1 = New With {.a = 5, .b = ""hi""}
@@ -322,7 +322,7 @@ End Class"))
         <Fact>
         Public Sub NamespaceDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-                Unit.Make("NamespaceDeclaringSyntax").WithFile("a.vb",
+                Unit.Make("NamespaceDeclaringSyntax").With_a_vb(
 "Namespace N1
     Namespace N2
         Namespace N3
@@ -354,7 +354,7 @@ End Namespace"))
         <Fact>
         Public Sub NamespaceDeclaringSyntax2()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(sourceUnit:=
-                Unit.Make("NamespaceDeclaringSyntax").WithFile("a.vb",
+                Unit.Make("NamespaceDeclaringSyntax").With_a_vb(
 "Namespace N2
     Namespace N3
     End Namespace
@@ -381,7 +381,7 @@ End Namespace
         <Fact>
         Public Sub TypeParameterDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-                Unit.Make("TypeParameterDeclaringSyntax").WithFile("a.vb",
+                Unit.Make("TypeParameterDeclaringSyntax").With_a_vb(
 "Imports System
 Imports System.Collections.Generic
 
@@ -434,7 +434,7 @@ End Namespace
         <Fact>
         Public Sub MemberDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-Unit.Make("SourceNamedTypeDeclaringSyntax").WithFile("a.vb",
+Unit.Make("SourceNamedTypeDeclaringSyntax").With_a_vb(
 "Namespace N1
     Enum E1
         Red
@@ -588,7 +588,7 @@ End Namespace
         <Fact>
         Public Sub LocalDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    Unit.Make("LocalDeclaringSyntax").WithFile("a.vb",
+    Unit.Make("LocalDeclaringSyntax").With_a_vb(
 "Imports System
 Imports System.Collections.Generic
 
@@ -630,7 +630,7 @@ End Class
         <Fact>
         Public Sub LabelDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-    Unit.Make("LabelDeclaringSyntax").WithFile("a.vb",
+    Unit.Make("LabelDeclaringSyntax").With_a_vb(
 "
 Imports System
 Imports System.Collections.Generic
@@ -654,7 +654,7 @@ End Class
         <Fact>
         Public Sub AliasDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-Unit.Make("AliasDeclaringSyntax").WithFile("a.vb",
+Unit.Make("AliasDeclaringSyntax").With_a_vb(
 "
 Imports System
 Imports System.Collections.Generic
@@ -675,7 +675,7 @@ End Namespace
         <Fact>
         Public Sub RangeVariableDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-Unit.Make("RangeVariableDeclaringSyntax").WithFile("a.vb",
+Unit.Make("RangeVariableDeclaringSyntax").With_a_vb(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -705,7 +705,7 @@ End Class
         <Fact>
         Public Sub LambdaDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
-Unit.Make("RangeVariableDeclaringSyntax").WithFile("a.vb",
+Unit.Make("RangeVariableDeclaringSyntax").With_a_vb(
 "
 Imports System
 Imports System.Collections.Generic

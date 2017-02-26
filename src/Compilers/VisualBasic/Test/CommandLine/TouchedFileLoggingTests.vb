@@ -34,18 +34,12 @@ End Class
             Dim touchedDir = Temp.CreateDirectory()
             Dim touchedBase = Path.Combine(touchedDir.Path, "touched")
 
-            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
-                {"/nologo",
-                 "/touchedfiles:" + touchedBase,
-                 hello})
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim cmd As New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/touchedfiles:" + touchedBase, hello})
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
 
             Dim expectedReads As List(Of String) = Nothing
             Dim expectedWrites As List(Of String) = Nothing
-            BuildTouchedFiles(cmd,
-                              Path.ChangeExtension(hello, "exe"),
-                              expectedReads,
-                              expectedWrites)
+            BuildTouchedFiles(cmd, Path.ChangeExtension(hello, "exe"), expectedReads, expectedWrites)
 
             Dim exitCode = cmd.Run(outWriter, Nothing)
             Assert.Equal("", outWriter.ToString().Trim())
@@ -67,10 +61,7 @@ End Class
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
-                {"/nologo",
-                 "/touchedfiles:" + touchedBase,
-                 "/keyfile:" + snkPath,
-                 hello})
+                {"/nologo", "/touchedfiles:" & touchedBase, "/keyfile:" & snkPath, hello})
 
             Dim expectedReads As List(Of String) = Nothing
             Dim expectedWrites As List(Of String) = Nothing

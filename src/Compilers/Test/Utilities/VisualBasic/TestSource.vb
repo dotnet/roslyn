@@ -31,7 +31,18 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Shared Function Make(Optional Name As String = Nothing) As UnitTests.Unit
             Return New Unit(Name)
         End Function
-
+        Public Function With_a_vb(Text As String) As UnitTests.Unit
+            Dim tmp = TestFile.Create("a.vb", Text)
+            Return WithFile(tmp)
+        End Function
+        Public Function With_b_vb(Text As String) As UnitTests.Unit
+            Dim tmp = TestFile.Create("b.vb", Text)
+            Return WithFile(tmp)
+        End Function
+        Public Function With_c_vb(Text As String) As UnitTests.Unit
+            Dim tmp = TestFile.Create("c.vb", Text)
+            Return WithFile(tmp)
+        End Function
         Public Class TestFile
             Public ReadOnly Property Name As String
             Public ReadOnly Property Source As SourceText

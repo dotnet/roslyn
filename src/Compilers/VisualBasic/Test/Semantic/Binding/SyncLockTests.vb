@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.Binding
         <Fact()>
         Public Sub SyncLockDecimal()
             CreateCompilationWithMscorlibAndVBRuntime(
-                Unit.Make("SyncLockDecimal").WithFile("a.vb",
+                Unit.Make("SyncLockDecimal").With_a_vb(
 "Class C1
     Shared Sub Main()
         SyncLock (1.0)
@@ -25,7 +25,7 @@ End Class
         <Fact()>
         Public Sub SyncLockMultiDimensionalArray()
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("SyncLockMultiDimensionalArray").WithFile("a.vb",
+Unit.Make("SyncLockMultiDimensionalArray").With_a_vb(
 "Class Test
     Public Shared Sub Main()
         Dim y(,) = New Integer(,) {{1}, {2}}
@@ -38,7 +38,7 @@ End Class")).VerifyDiagnostics()
         <Fact()>
         Public Sub SyncLockGenericType()
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("SyncLockGenericType").WithFile("a.vb",
+Unit.Make("SyncLockGenericType").With_a_vb(
 "Class Program
     Private Shared Sub ABC(Of T)(x As T)
         SyncLock x
@@ -63,7 +63,7 @@ End Class
         Public Sub SyncLockQuery()
 
             CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-Unit.Make("SyncLockQuery").WithFile("a.vb",
+Unit.Make("SyncLockQuery").With_a_vb(
 "Option Strict On
 Imports System.Linq
 Class Program
@@ -82,7 +82,7 @@ End Class
         <Fact()>
         Public Sub DeclareVarInSyncLock()
             CreateCompilationWithMscorlibAndVBRuntime(
-                Unit.Make().WithFile("a.vb",
+                Unit.Make().With_a_vb(
 "Class Program
     Public Shared Sub Main(args As String())
         SyncLock d As Object = New Object()
@@ -96,7 +96,7 @@ End Class
         <Fact()>
         Public Sub SyncLockLambda()
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("SyncLockLambda").WithFile("a.vb",
+Unit.Make("SyncLockLambda").With_a_vb(
 "Class Program
     Public Shared Sub Main(args As String())
         SyncLock Function(x) x
@@ -132,7 +132,7 @@ End Class")).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExitWhileNotWithinWhile, "Ex
         Public Sub SyncLockExtend()
 
             CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-Unit.Make("SyncLockExtend").WithFile("a.vb",
+Unit.Make("SyncLockExtend").With_a_vb(
 "Option Strict On
 Imports System.Runtime.CompilerServices
 Module StringExtensions
@@ -170,7 +170,7 @@ End Module
         Public Sub SyncLockAnonymous()
 
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("SyncLockAnonymous").WithFile("a.vb",
+Unit.Make("SyncLockAnonymous").With_a_vb(
 "Module M1
     Sub Main()
         Dim p1 = New With {Key .p1 = 1.0D, .p2 = """"}
@@ -191,7 +191,7 @@ End Module
         Public Sub SyncLockMe_InvalidCase()
 
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("SyncLockMe_InvalidCase").WithFile("a.vb",
+Unit.Make("SyncLockMe_InvalidCase").With_a_vb(
 "Structure S1
     Sub FOO()
         SyncLock Me
@@ -220,7 +220,7 @@ End Class
         Public Sub SyncLockMultiResource()
 
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("SyncLockMultiResource").WithFile("a.vb",
+Unit.Make("SyncLockMultiResource").With_a_vb(
 "Public Class D
     Public Sub foo()
         Dim x1, x2 As New Object
@@ -243,7 +243,7 @@ End Class
         Public Sub SyncLockMalformed()
 
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("SyncLockMalformed").WithFile("a.vb",
+Unit.Make("SyncLockMalformed").With_a_vb(
 "Public Class D
     Public Sub foo()
         SyncLock
@@ -260,7 +260,7 @@ End Class
         Public Sub ExitPropertyInSyncLock()
 
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("ExitPropertyInSyncLock").WithFile("a.vb",
+Unit.Make("ExitPropertyInSyncLock").With_a_vb(
 "Module M1
     Property Age() As Integer
         Get
@@ -288,7 +288,7 @@ End Module
         Public Sub SyncLockInSelect()
 
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("SyncLockInSelect").WithFile("a.vb",
+Unit.Make("SyncLockInSelect").With_a_vb(
 "Option Infer On
 Imports System
 Class Program
@@ -312,7 +312,7 @@ End Class
         Public Sub UnreachableCode()
 
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("UnreachableCode").WithFile("a.vb",
+Unit.Make("UnreachableCode").With_a_vb(
 "Option Infer On
 Imports System
 Class Program
@@ -331,7 +331,7 @@ End Class")).VerifyDiagnostics()
         Public Sub AssignmentInSyncLock()
 
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("AssignmentInSyncLock").WithFile("a.vb",
+Unit.Make("AssignmentInSyncLock").With_a_vb(
 "Option Infer On
 Class Program
     Shared Sub Main()
@@ -348,7 +348,7 @@ End Class
         Public Sub SyncLockEndSyncLockMismatch()
 
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("SyncLockEndSyncLockMismatch").WithFile("a.vb",
+Unit.Make("SyncLockEndSyncLockMismatch").With_a_vb(
 "Imports System
 Class Test
     Public Shared Sub Main()
@@ -367,7 +367,7 @@ End Class
         <Fact>
         Public Sub SyncLockOutOfMethod()
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("SyncLockOutOfMethod").WithFile("a.vb",
+Unit.Make("SyncLockOutOfMethod").With_a_vb(
 "        SyncLock Nothing
         End SyncLock
 ")).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "SyncLock Nothing"),
@@ -378,7 +378,7 @@ Unit.Make("SyncLockOutOfMethod").WithFile("a.vb",
         <Fact>
         Public Sub SyncLockOutOfMethod_1()
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("SyncLockOutOfMethod").WithFile("a.vb",
+Unit.Make("SyncLockOutOfMethod").With_a_vb(
 "Class m1
     SyncLock New Object()
     End SyncLock
@@ -390,7 +390,7 @@ End Class
         <Fact(), WorkItem(529059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529059")>
         Public Sub SingleElseInSyncLock()
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("SingleElseInSyncLock").WithFile("a.vb",
+Unit.Make("SingleElseInSyncLock").With_a_vb(
 "Module Program
     Sub Main(args As String())
         SyncLock Nothing
@@ -404,7 +404,7 @@ End Module")).VerifyDiagnostics(Diagnostic(ERRID.ERR_ElseNoMatchingIf, "Else"))
         <Fact()>
         Public Sub SingleCaseElseInSyncLock()
             CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("SingleCaseElseInSyncLock").WithFile("a.vb",
+Unit.Make("SingleCaseElseInSyncLock").With_a_vb(
 "Module M
     Sub Main()
         Dim doublevar As Double

@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Assert.Equal(True, dict("blah"))
 
             Dim source =
-Unit.Make("TestArrayLiteralInferredType").WithFile("a.vb",
+Unit.Make("TestArrayLiteralInferredType").With_a_vb(
 "
 Imports System
 

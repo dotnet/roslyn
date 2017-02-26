@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             <Fact>
             Public Sub MemberAccessNoContainingWith()
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-                Unit.Make("MemberAccessNoContainingWith").WithFile("a.vb",
+                Unit.Make("MemberAccessNoContainingWith").With_a_vb(
 "Imports System        
 Module M1
     Sub Main()
@@ -40,7 +40,7 @@ BC30157: Leading '.' or '!' can only appear inside a 'With' statement.
             ' Test field access off a local variable of structure type.
             <Fact>
             Public Sub FieldAccessInLocalStruct()
-                CompileAndVerify(Unit.Make("FieldAccessInLocalStruct").WithFile("a.vb", "
+                CompileAndVerify(Unit.Make("FieldAccessInLocalStruct").With_a_vb( "
 Imports System        
 
 Module M1
@@ -60,7 +60,7 @@ expectedOutput:="123")
             <WorkItem(679765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
             <Fact>
             Public Sub Bug679765()
-                CompileAndVerify(Unit.Make().WithFile("a.vb", My.Resources.Resource.T_68086), additionalRefs:={MsvbRef})
+                CompileAndVerify(Unit.Make().With_a_vb( My.Resources.Resource.T_68086), additionalRefs:={MsvbRef})
             End Sub
 
             <WorkItem(707924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707924")>
@@ -74,7 +74,7 @@ expectedOutput:="123")
             ' Test access to a local variable and assignment of them..
             <Fact>
             Public Sub LocalVariable1()
-                CompileAndVerify(Unit.Make("LocalVariable1").WithFile("a.vb",
+                CompileAndVerify(Unit.Make("LocalVariable1").With_a_vb(
 "
 Imports System        
 
@@ -95,7 +95,7 @@ End Module
             <Fact>
             Public Sub LocalVariableWrongArity()
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-                Unit.Make("LocalVariable1").WithFile("a.vb", "
+                Unit.Make("LocalVariable1").With_a_vb( "
 Imports System        
 
 Module M1
@@ -139,7 +139,7 @@ BC32045: 'U' has no type parameters and so cannot have type arguments.
             ' Test access to a local variable and assignment of them..
             <Fact>
             Public Sub ArrayAssignment1()
-                CompileAndVerify(Unit.Make("ArrayAssignment1").WithFile("a.vb",
+                CompileAndVerify(Unit.Make("ArrayAssignment1").With_a_vb(
 "Imports System        
 
 Module M1
@@ -159,7 +159,7 @@ End Module
             <Fact>
             Public Sub ArrayAssignmentError1()
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-                Unit.Make("ArrayAssignmentError1").WithFile("a.vb",
+                Unit.Make("ArrayAssignmentError1").With_a_vb(
 "
 Imports System        
 
@@ -187,7 +187,7 @@ BC30105: Number of indices is less than the number of dimensions of the indexed 
             <WorkItem(4225, "DevDiv_Projects/Roslyn")>
             <Fact>
             Public Sub CheckArrayUpperBound()
-                Dim compilation = CompileAndVerify(Unit.Make("ArrayAssignmentError1").WithFile("a.vb",
+                Dim compilation = CompileAndVerify(Unit.Make("ArrayAssignmentError1").With_a_vb(
 "Imports System        
 Module M
   Sub Main()
@@ -208,7 +208,7 @@ End Module
             <Fact()>
             Public Sub ArrayAssignmentError2()
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-                Unit.Make("ArrayAssignmentErrors2").WithFile("a.vb",
+                Unit.Make("ArrayAssignmentErrors2").With_a_vb(
 "Option strict on     
 Imports System        
 
@@ -234,7 +234,7 @@ BC30512: Option Strict On disallows implicit conversions from 'UInteger' to 'Int
             <Fact>
             Public Sub Parameter1()
                 CompileAndVerify(
-                Unit.Make("Parameter1").WithFile("a.vb", "
+                Unit.Make("Parameter1").With_a_vb( "
 Imports System        
 
 Module M1
@@ -276,7 +276,7 @@ y = 189
             <Fact>
             Public Sub SimpleObjectCreation1()
                 CompileAndVerify(
-                Unit.Make("SimpleObjectCreation").WithFile("a.vb", "
+                Unit.Make("SimpleObjectCreation").With_a_vb( "
 Imports System   
 
 Class C1
@@ -302,7 +302,7 @@ End Module
             ' Test object creation expression
             <Fact>
             Public Sub MeReference()
-                CompileAndVerify(Unit.Make("MeReference").WithFile("a.vb",
+                CompileAndVerify(Unit.Make("MeReference").With_a_vb(
 "Imports System   
 
 Class C1
@@ -327,7 +327,7 @@ End Module
             ' Test access to simple identifier that isn't found anywhere.
             <Fact>
             Public Sub SimpleNameNotFound()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make("SimpleNameNotFound").WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make("SimpleNameNotFound").With_a_vb(
 "Imports System        
 
 Module M1
@@ -350,7 +350,7 @@ BC30451: 'foo' is not declared. It may be inaccessible due to its protection lev
             <Fact>
             Public Sub QualifiedNameBeforeDotNotFound()
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("QualifiedNameBeforeDotNotFound").WithFile("a.vb", "
+Unit.Make("QualifiedNameBeforeDotNotFound").With_a_vb( "
 Imports System
 
 Module MainModule
@@ -379,7 +379,7 @@ BC30456: 'B' is not a member of 'MainModule.A'.
             <Fact>
             Public Sub QualifiedNameNotFound()
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("QualifiedNameNotFound").WithFile("a.vb", "
+Unit.Make("QualifiedNameNotFound").With_a_vb( "
 Imports System        
 
 Namespace N
@@ -421,7 +421,7 @@ BC30456: 'foo' is not a member of 'M1'.
             ' Test access qualified identifier off of type parameter
             <Fact>
             Public Sub TypeParamCantQualify()
-                Dim compilation = CreateCompilationWithMscorlib(Unit.Make("TypeParamCantQualify").WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlib(Unit.Make("TypeParamCantQualify").With_a_vb(
 "Imports System        
 
 Class C(Of T)
@@ -444,7 +444,7 @@ BC32098: Type parameters cannot be used as qualifiers.
             <Fact>
             Public Sub BadSimpleName()
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-                Unit.Make("BadSimpleName").WithFile("a.vb", "
+                Unit.Make("BadSimpleName").With_a_vb( "
 Imports System
 
 Class Foo(Of T)
@@ -471,7 +471,7 @@ BC32042: Too few type arguments to 'Foo(Of T)'.
             <Fact>
             Public Sub BadQualifiedName()
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-                Unit.Make("BadQualifiedName").WithFile("a.vb", "
+                Unit.Make("BadQualifiedName").With_a_vb( "
 Imports System
 Namespace N
     Class Foo(Of T)
@@ -520,7 +520,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
             <Fact>
             Public Sub AccessInstanceFromStatic()
                 Dim compilation = CreateCompilationWithMscorlib(
-Unit.Make("AccessInstanceFromStatic").WithFile("a.vb", "
+Unit.Make("AccessInstanceFromStatic").With_a_vb( "
 Class K
     Public Sub y()
     End Sub
@@ -578,7 +578,7 @@ BC30469: Reference to a non-shared member requires an object reference.
             <Fact>
             Public Sub AccessStaticViaInstance()
                 Dim compilation = CreateCompilationWithMscorlib(
-                Unit.Make("AccessStaticViaInstance").WithFile("a.vb",
+                Unit.Make("AccessStaticViaInstance").With_a_vb(
 "Class K
     Public Shared Sub y()
     End Sub
@@ -623,7 +623,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
 
             <Fact(), WorkItem(531587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531587")>
             Public Sub CircularSharedMemberAccessThroughInstance()
-                Dim source = Unit.Make("FieldsConst").WithFile("a.vb",
+                Dim source = Unit.Make("FieldsConst").With_a_vb(
 "Option Strict On
 Option Infer On
 
@@ -644,7 +644,7 @@ End Class
             <Fact>
             Public Sub ConstantFields1()
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("VBConstantFields1").WithFile("a.vb",
+Unit.Make("VBConstantFields1").With_a_vb(
 "Module Module1
 
     Sub Main()
@@ -694,7 +694,7 @@ Int64Value: Int64Value
             <Fact>
             Public Sub MemberOfBuiltInType()
                 CompileAndVerify(
-                Unit.Make("MeReference").WithFile("a.vb",
+                Unit.Make("MeReference").With_a_vb(
 "Imports System   
 
 Module M1
@@ -712,7 +712,7 @@ End Module
             <Fact>
             Public Sub MemberOfNullableType()
                 CompileAndVerify(
-                Unit.Make("MeReference").WithFile("a.vb",
+                Unit.Make("MeReference").With_a_vb(
 "Imports System   
 
 Module M1
@@ -729,7 +729,7 @@ End Module
             <Fact>
             Public Sub Bug4272()
 
-                Dim compilationDef = Unit.Make("Bug4272").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("Bug4272").With_a_vb(
 "Option Strict On
 
 Module M
@@ -751,7 +751,7 @@ BC42105: Function 'Foo' doesn't return a value on all code paths. A null referen
   ~~~~~~~~~~~~
 </expected>)
 
-                compilationDef = Unit.Make("Bug4272").WithFile("a.vb",
+                compilationDef = Unit.Make("Bug4272").With_a_vb(
 "Module Module1
 
     Sub Main()
@@ -807,7 +807,7 @@ val
 3
 ")
 
-                compilationDef = Unit.Make("Bug4272").WithFile("a.vb",
+                compilationDef = Unit.Make("Bug4272").With_a_vb(
 "Option Strict On
 Module M
   Function Foo(x As Integer) As Integer()
@@ -840,7 +840,7 @@ BC42105: Function 'Foo' doesn't return a value on all code paths. A null referen
             <Fact>
             Public Sub MethodAccessibilityChecking()
                 CompileAndVerify(
-                 Unit.Make("MeReference").WithFile("a.vb",
+                 Unit.Make("MeReference").With_a_vb(
 "Imports System
 
 Public Class C1
@@ -866,7 +866,7 @@ End Module
             <Fact>
             Public Sub Bug4249()
 
-                Dim compilationDef = Unit.Make("Bug4249").WithFile("a.vb", "
+                Dim compilationDef = Unit.Make("Bug4249").With_a_vb( "
 Module Program
   Sub Main()
     Main().ToString
@@ -887,7 +887,7 @@ BC30491: Expression does not produce a value.
             <Fact>
             Public Sub Bug4250()
 
-                Dim compilationDef = Unit.Make("Bug4250").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("Bug4250").With_a_vb(
 "Module Program
   Sub Main()
     System.Console.WriteLine(Foo.ToString)
@@ -911,7 +911,7 @@ End Module
 231
 ")
 
-                compilationDef = Unit.Make("Bug4250").WithFile("a.vb",
+                compilationDef = Unit.Make("Bug4250").With_a_vb(
 "Module Program
   Sub Main()
     System.Console.WriteLine(Foo.ToString)
@@ -937,7 +937,7 @@ BC30455: Argument not specified for parameter 'x' of 'Public Function Foo(x As I
             <Fact>
             Public Sub Bug4277()
 
-                Dim compilationDef = Unit.Make("Bug4277").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("Bug4277").With_a_vb(
 "Option Strict Off
 
 Module M
@@ -986,7 +986,7 @@ BC30108: 'S' is a type and cannot be used as an expression.
             <Fact>
             Public Sub TestRangeExpressionAllowableLowerBounds()
 
-                Dim compilationDef = Unit.Make("TestRangeExpressionAllowableLowerBounds").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("TestRangeExpressionAllowableLowerBounds").With_a_vb(
 "
     Friend Module ExpArrBounds0LowerBound
         Sub ExpArrBounds0LowerBound()
@@ -1038,7 +1038,7 @@ BC32059: Array lower bounds can be only '0'.
 
             <Fact>
             Public Sub LocalShadowsGenericMethod()
-                Dim compilationDef = Unit.Make("LocalShadowsGenericMethod").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("LocalShadowsGenericMethod").With_a_vb(
 "Class Y
     Sub f()
         Dim foo As Integer
@@ -1070,7 +1070,7 @@ BC32045: 'foo' has no type parameters and so cannot have type arguments.
             <Fact>
             Public Sub AccessingMemberOffOfNothing()
                 Dim compilationDef =
-Unit.Make("AccessingMemberOffOfNothing").WithFile("a.vb",
+Unit.Make("AccessingMemberOffOfNothing").With_a_vb(
 "Class Y
     Sub f()
         Dim x As System.Type = Nothing.GetType()
@@ -1093,7 +1093,7 @@ End Class
 
             <Fact>
             Public Sub ColorColor()
-                Dim compilationDef = Unit.Make("AccessingMemberOffOfNothing").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("AccessingMemberOffOfNothing").With_a_vb(
 "Option Strict On
 
 Imports System
@@ -1170,7 +1170,7 @@ End Class
 
             <Fact>
             Public Sub FalseColorColor()
-                Dim compilationDef = Unit.Make("AccessingMemberOffOfNothing").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("AccessingMemberOffOfNothing").With_a_vb(
 "
 Imports Q = B
 
@@ -1202,7 +1202,7 @@ BC30369: Cannot refer to an instance member of a class from within a shared meth
 
             <Fact>
             Public Sub ColorColor1()
-                Dim compilationDef = Unit.Make("AccessingMemberOffOfNothing").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("AccessingMemberOffOfNothing").With_a_vb(
 "Option Strict On
 
 Imports System
@@ -1252,7 +1252,7 @@ BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property c
 
             <Fact>
             Public Sub ColorColor2()
-                Dim compilationDef = Unit.Make("AccessingMemberOffOfNothing").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("AccessingMemberOffOfNothing").With_a_vb(
 "Option Strict On
 
 Imports System
@@ -1295,7 +1295,7 @@ End Class
 
             <Fact>
             Public Sub ColorColorOverloaded()
-                Dim compilationDef = Unit.Make("ColorColorOverloaded").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("ColorColorOverloaded").With_a_vb(
 "
 Option Strict On
 
@@ -1363,7 +1363,7 @@ End Module
 
             <Fact()>
             Public Sub ColorColorOverloadedOptional()
-                Dim compilationDef = Unit.Make("ColorColorOverloaded").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("ColorColorOverloaded").With_a_vb(
 "Option Strict On
 
 Imports System
@@ -1432,7 +1432,7 @@ End Module
 
             <Fact>
             Public Sub ColorColorOverloadedErr()
-                Dim compilationDef = Unit.Make("ColorColorOverloaded").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("ColorColorOverloaded").With_a_vb(
 "Option Strict On
 
 Imports System
@@ -1492,7 +1492,7 @@ BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property C
 
             <Fact>
             Public Sub ColorColorOverloadedErr2()
-                Dim compilationDef = Unit.Make("ColorColorOverloaded").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("ColorColorOverloaded").With_a_vb(
 "Option Strict On
 
 Imports System
@@ -1545,7 +1545,7 @@ End Module
 
             <Fact>
             Public Sub ColorColorOverloadedAddressOf()
-                Dim compilationDef = Unit.Make("ColorColorOverloadedAddressOf").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("ColorColorOverloadedAddressOf").With_a_vb(
 "Option Strict On
 
 Imports System
@@ -1622,7 +1622,7 @@ End Module
 
             <Fact>
             Public Sub ColorColorOverloadedAddressOfRelaxed()
-                Dim compilationDef = Unit.Make("ColorColorOverloadedAddressOfRelaxed").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("ColorColorOverloadedAddressOfRelaxed").With_a_vb(
 "Option Strict On
 
 Imports System
@@ -1702,7 +1702,7 @@ End Module
 
             <Fact>
             Public Sub ColorColorExtension()
-                Dim compilationDef = Unit.Make("ColorColorOverloaded").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("ColorColorOverloaded").With_a_vb(
 "
 Option Strict On
 
@@ -1783,7 +1783,7 @@ End Module
 
             <Fact()>
             Public Sub ColorColorAlias()
-                Dim compilationDef = Unit.Make("ColorColorAlias").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("ColorColorAlias").With_a_vb(
 "Option Strict On
 
 Imports System
@@ -1836,7 +1836,7 @@ End Class
 
             <Fact()>
             Public Sub ColorColorWrongAlias()
-                Dim compilationDef = Unit.Make("ColorColorWrongAlias").WithFile("a.vb",
+                Dim compilationDef = Unit.Make("ColorColorWrongAlias").With_a_vb(
 "
 Option Strict On
 Imports System
@@ -1883,7 +1883,7 @@ BC30369: Cannot refer to an instance member of a class from within a shared meth
 
             <Fact>
             Public Sub ModulesWhereTypesShouldBe()
-                Dim text = Unit.Make("ModulesWhereTypesShouldBe").WithFile("a.vb",
+                Dim text = Unit.Make("ModulesWhereTypesShouldBe").With_a_vb(
 "Module M
 
     Sub GG()
@@ -1925,7 +1925,7 @@ BC30371: Module 'M' cannot be used as a type.
 
             <Fact>
             Public Sub GetTypeOnNSAlias()
-                Dim text = Unit.Make("GetTypeOnNSAlias").WithFile("a.vb",
+                Dim text = Unit.Make("GetTypeOnNSAlias").With_a_vb(
 "
 Imports NS=System.Collections
 Module M
@@ -1947,7 +1947,7 @@ BC30182: Type expected.
             <WorkItem(542383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542383")>
             <Fact>
             Public Sub GetTypeOnModuleName()
-                Dim text = Unit.Make("GetTypeForModuleName").WithFile("a.vb",
+                Dim text = Unit.Make("GetTypeForModuleName").With_a_vb(
 "
 Imports System
 
@@ -1970,7 +1970,7 @@ End Namespace
 
             <Fact>
             Public Sub GetTypeOnAlias()
-                Dim text = Unit.Make("GetTypeOnAlias").WithFile("a.vb",
+                Dim text = Unit.Make("GetTypeOnAlias").With_a_vb(
 "Imports System
 Imports Con = System.Console
 
@@ -1991,7 +1991,7 @@ Imports Con = System.Console
 
             <Fact>
             Public Sub Bug9300_1()
-                Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make("NotYetImplementedInRoslyn").WithFile("a.vb",
+                Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make("NotYetImplementedInRoslyn").With_a_vb(
 "
 Imports System.Runtime.CompilerServices
 Imports System.Collections
@@ -2033,7 +2033,7 @@ BC30251: Type 'Object()' has no constructors.
 
             <Fact>
             Public Sub Bug9300_2()
-                Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make("NotYetImplementedInRoslyn").WithFile("a.vb",
+                Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make("NotYetImplementedInRoslyn").With_a_vb(
 "
 Imports System.Runtime.CompilerServices
 Imports System.Collections
@@ -2077,7 +2077,7 @@ BC30282: Constructor call is valid only as the first statement in an instance co
             <Fact>
             Public Sub Bug9300_3()
                 Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("NotYetImplementedInRoslyn").WithFile("a.vb",
+Unit.Make("NotYetImplementedInRoslyn").With_a_vb(
 "Imports System.Runtime.CompilerServices
 Imports System.Collections
 Imports System
@@ -2121,7 +2121,7 @@ Action(Of IEnumerable)
 
             <Fact>
             Public Sub IllegalTypeExpressionsFromParserShouldNotBlowUpBinding()
-                Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make("IllegalTypeExpressionsFromParserShouldNotBlowUpBinding").WithFile("a.vb",
+                Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make("IllegalTypeExpressionsFromParserShouldNotBlowUpBinding").With_a_vb(
 "
 Class Outer(Of T)
     Public Shared Sub Print()
@@ -2154,7 +2154,7 @@ BC30182: Type expected.
 
             <Fact()>
             Public Sub Bug10335_1()
-                Dim source1_with = Unit.Make("Unavailable").WithFile("a.vb",
+                Dim source1_with = Unit.Make("Unavailable").With_a_vb(
 "
             Public Interface IUnavailable
                 ReadOnly Default Property Item(p as Integer) as Integer
@@ -2165,7 +2165,7 @@ BC30182: Type expected.
 
                 Dim baseBuffer = CompileAndVerify(c1).EmittedAssemblyData
 
-                Dim source2 = Unit.Make().WithFile("a.vb",
+                Dim source2 = Unit.Make().With_a_vb(
 "Public Class Class1
     Implements IUnavailable
     Public Default ReadOnly Property Item(p as Integer) as Integer implements IUnavailable.Item
@@ -2189,7 +2189,7 @@ End Class
 
                 Dim derivedBuffer = CompileAndVerify(c2).EmittedAssemblyData
 
-                Dim source3 = Unit.Make().WithFile("a.vb",
+                Dim source3 = Unit.Make().With_a_vb(
 "Module M1
     Sub Main()
         Dim x as new Class2()
@@ -2200,7 +2200,7 @@ End Class
 End Module
 ")
 
-                Dim source1_without = Unit.Make("Unavailable").WithFile("a.vb",
+                Dim source1_without = Unit.Make("Unavailable").With_a_vb(
 "
 Class Unused
 End Class
@@ -2221,7 +2221,7 @@ BC30545: Property access must assign to the property or use its value.
 
             <Fact>
             Public Sub ColorColorOverriddenProperty()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make("Bug12687").WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make("Bug12687").With_a_vb(
 "Class TypeSubstitution
     Shared Function Create() As Integer
       Return 1
@@ -2252,7 +2252,7 @@ End Class
 
             <Fact>
             Public Sub ColorColorPropertyWithParam()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make("Bug12687").WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make("Bug12687").With_a_vb(
 "Class TypeSubstitution
     Shared Function Create() As Integer
       Return 1
@@ -2283,7 +2283,7 @@ BC30455: Argument not specified for parameter 'a' of 'Public Overridable ReadOnl
             <Fact>
             Public Sub ColorColorPropertyWithOverloading()
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("Bug12687").WithFile("a.vb",
+Unit.Make("Bug12687").With_a_vb(
 "
 Class TypeSubstitution
     Shared Function Create() As Integer
@@ -2318,7 +2318,7 @@ End Class
             ' and IsLValueFieldAccess for FieldAccess.
             <Fact>
             Public Sub IsValidAssignmentTarget()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "
 Structure S
     Public F As Object
@@ -2353,7 +2353,7 @@ BC30068: Expression is a value and therefore cannot be the target of an assignme
 
             <Fact>
             Public Sub Bug12900()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make("MemberAccessNoContainingWith").WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make("MemberAccessNoContainingWith").With_a_vb(
 "
 Imports System        
 Module Program
@@ -2376,7 +2376,7 @@ BC30203: Identifier expected.
 
             <Fact>
             Public Sub Bug13080()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "
 Imports System        
 Module Program
@@ -2400,7 +2400,7 @@ BC30438: Constants must have a value.
             <WorkItem(546469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546469")>
             <Fact>
             Public Sub GetTypeAllowsArrayOfModules()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "Imports System
 Imports System.Collections.Generic
 Imports VoidAlias = System.Void
@@ -2460,7 +2460,7 @@ BC31422: 'System.Void' can only be used in a GetType expression.
             <WorkItem(546469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546469")>
             <Fact()>
             Public Sub GetTypeAllowsModuleAlias()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "
 Imports ModuleAlias = Bar.Test
 Imports System
@@ -2481,7 +2481,7 @@ End Namespace
 
             <Fact()>
             Public Sub RangeVariableColorColor()
-                Dim source = Unit.Make().WithFile("a.vb",
+                Dim source = Unit.Make().With_a_vb(
 "
 Imports System.Linq
 
@@ -2515,7 +2515,7 @@ End Class
             <WorkItem(1108036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108036")>
             <Fact()>
             Public Sub Bug1108036()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "
 Class Color
     Public Shared Sub Cat()
@@ -2554,7 +2554,7 @@ BC30521: Overload resolution failed because no accessible 'Color' is most specif
             <WorkItem(1108036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108036")>
             <Fact()>
             Public Sub Bug1108036_2()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "Class Color
     Public Shared Sub Cat()
     End Sub
@@ -2591,7 +2591,7 @@ BC30521: Overload resolution failed because no accessible 'Color' is most specif
             <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
             <Fact()>
             Public Sub Bug969006_1()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "Enum E
     A
 End Enum
@@ -2634,7 +2634,7 @@ End Class
             <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
             <Fact()>
             Public Sub Bug969006_2()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "
 Enum E
     A
@@ -2678,7 +2678,7 @@ End Class
             <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
             <Fact()>
             Public Sub Bug969006_3()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "
 Enum E
     A
@@ -2727,7 +2727,7 @@ BC42104: Variable 'e' is used before it has been assigned a value. A null refere
             <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
             <Fact()>
             Public Sub Bug969006_4()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "Enum E
     A
 End Enum
@@ -2775,7 +2775,7 @@ BC42104: Variable 'e' is used before it has been assigned a value. A null refere
             <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
             <Fact()>
             Public Sub Bug1108007_1()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "Class Color
     Public Shared Sub M(x As Integer)
         System.Console.WriteLine(x)
@@ -2812,7 +2812,7 @@ End Class
             <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
             <Fact>
             Public Sub Bug1108007_2()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "Imports System
 
 Class Color
@@ -2855,7 +2855,7 @@ End Class
             <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
             <Fact()>
             Public Sub Bug1108007_3()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "Class MyAttribute
     Inherits System.Attribute
 
@@ -2894,7 +2894,7 @@ End Class
             <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
             <Fact()>
             Public Sub Bug1108007_4()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "Imports System
 
 Class Color
@@ -2942,7 +2942,7 @@ End Class
             <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
             <Fact()>
             Public Sub Bug1108007_5()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "Imports System
 
 Class Color
@@ -2993,7 +2993,7 @@ End Class
             <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
             <Fact()>
             Public Sub Bug1108007_6()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "Imports System
 
 Class Color
@@ -3038,7 +3038,7 @@ End Class
             <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
             <Fact()>
             Public Sub Bug1108007_7()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "Imports System
 
 Class Color
@@ -3079,7 +3079,7 @@ End Class
             <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
             <Fact>
             Public Sub Bug1108007_8()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "Imports System
 
 Class Color
@@ -3129,7 +3129,7 @@ End Class
             <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
             <Fact()>
             Public Sub Bug1108007_9()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "Class Color
     Public Shared Sub M(x As Integer)
         System.Console.WriteLine(x)
@@ -3172,7 +3172,7 @@ End Class"), options:=TestOptions.ReleaseExe)
             <WorkItem(1114969, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114969")>
             <Fact()>
             Public Sub Bug1114969()
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().WithFile("a.vb",
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Unit.Make().With_a_vb(
 "Class Color
     Public Function M() As Integer
         Return 42

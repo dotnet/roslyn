@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Public Sub TestScopes1()
                 Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     Unit.Make("Compilation").
-        WithFile("a.vb",
+        With_a_vb(
 "Option Strict On
 
 Imports System
@@ -136,7 +136,7 @@ End Namespace")
             <Fact(), WorkItem(546396, "http:     //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
             Public Sub TestScopes2()
                 Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("Compilation").WithFile("a.vb",
+Unit.Make("Compilation").With_a_vb(
 "Option Strict On
 
 Imports System
@@ -181,7 +181,7 @@ End Namespace
             <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
             Public Sub TestScopes3()
                 Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("Compilation").WithFile("a.vb",
+Unit.Make("Compilation").With_a_vb(
 "Public Class Apple(Of TBravo)
     Public Sub Mango(Of TRind)(yellow as Integer) 
         Dim red As String  
@@ -220,7 +220,7 @@ End Class 'hello"))
             <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
             Public Sub TestScopes4()
                 Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-Unit.Make("Compilation").WithFile("a.vb",
+Unit.Make("Compilation").With_a_vb(
 "Public Class Apple(Of TBravo)
     Public Sub Mango(Of TRind)(yellow as Integer) 
         Dim red As String  

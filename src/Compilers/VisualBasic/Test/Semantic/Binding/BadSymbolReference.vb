@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Binding
             Dim cl3 = TestReferences.SymbolsTests.MissingTypes.CL3
 
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-                Unit.Make("MissingTypes1_1").WithFile("a.vb", "Option Strict Off
+                Unit.Make("MissingTypes1_1").With_a_vb( "Option Strict Off
 
 Module Module1
 
@@ -293,7 +293,7 @@ BC30652: Reference required to assembly 'CL2, Version=0.0.0.0, Culture=neutral, 
 
             CompilationUtils.AssertTheseDiagnostics(compilation2, errors)
 
-            Dim cl3Source = Unit.Make("cl3").WithFile("a.vb", TestResources.SymbolsTests.MissingTypes.CL3_VB)
+            Dim cl3Source = Unit.Make("cl3").With_a_vb( TestResources.SymbolsTests.MissingTypes.CL3_VB)
 
             Dim cl3Compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(cl3Source, {cl2})
 
@@ -484,7 +484,7 @@ BC30002: Type 'CL2_I1' is not defined.
     Inherits CL2_I1
              ~~~~~~
 </errors>
-            Dim cl4Source = Unit.Make("cl4").WithFile(a_vb).WithFile("b.vb", TestResources.SymbolsTests.MissingTypes.CL3_VB)
+            Dim cl4Source = Unit.Make("cl4").WithFile(a_vb).With_b_vb( TestResources.SymbolsTests.MissingTypes.CL3_VB)
 
 
             Dim compilation6 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(cl4Source)
@@ -497,7 +497,7 @@ BC30002: Type 'CL2_I1' is not defined.
         <Fact>
         Public Sub MissingTypes2()
 
-            Dim source = Unit.Make("MissingTypes1_1").WithFile("a.vb",
+            Dim source = Unit.Make("MissingTypes1_1").With_a_vb(
 "
 Option Strict Off
 
@@ -621,7 +621,7 @@ BC31143: Method 'Public Sub Test2(x As Integer)' does not have a signature compa
 </errors>
 
 
-            Dim cl3Source = Unit.Make("cl3").WithFile("a.vb", TestResources.SymbolsTests.MissingTypes.CL3_VB)
+            Dim cl3Source = Unit.Make("cl3").With_a_vb( TestResources.SymbolsTests.MissingTypes.CL3_VB)
 
             Dim cl3BadCompilation = CompilationUtils.CreateCompilationWithMscorlib(cl3Source)
 

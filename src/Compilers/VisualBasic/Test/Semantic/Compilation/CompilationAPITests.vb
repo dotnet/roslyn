@@ -678,12 +678,12 @@ End Namespace
             <Fact()>
             Public Sub MissedModuleA()
                 Dim netModule1 = CreateCompilationWithMscorlibAndVBRuntime(
-                    Unit.Make("missing1").WithFile("a.vb", "Class C1
+                    Unit.Make("missing1").With_a_vb( "Class C1
 End Class"), options:=TestOptions.ReleaseModule)
                 netModule1.VerifyDiagnostics()
 
                 Dim netModule2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-                    Unit.Make("missing2").WithFile("a.vb", "Class C2
+                    Unit.Make("missing2").With_a_vb( "Class C2
     Public Shared Sub M()
         Dim a As New C1()
     End Sub
@@ -691,7 +691,7 @@ End Class"), additionalRefs:={netModule1.EmitToImageReference()}, options:=TestO
                 netModule2.VerifyDiagnostics()
 
                 Dim assembly = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-                    Unit.Make("missing").WithFile("a.vb", "Class C3
+                    Unit.Make("missing").With_a_vb( "Class C3
     Public Shared Sub Main(args() As String)
         Dim a As New C2()
     End Sub
@@ -699,7 +699,7 @@ End Class"), additionalRefs:={netModule2.EmitToImageReference()})
                 assembly.VerifyDiagnostics(Diagnostic(ERRID.ERR_MissingNetModuleReference).WithArguments("missing1.netmodule"))
 
                 assembly = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-                    Unit.Make("MissedModuleA").WithFile("a.vb", "Class C3
+                    Unit.Make("MissedModuleA").With_a_vb( "Class C3
     Public Shared Sub Main(args() As String)
         Dim a As New C2()
     End Sub
@@ -713,12 +713,12 @@ End Class"), additionalRefs:={netModule1.EmitToImageReference(), netModule2.Emit
             <Fact()>
             Public Sub MissedModuleB_OneError()
                 Dim netModule1 = CreateCompilationWithMscorlibAndVBRuntime(
-                    Unit.Make("a1").WithFile("a.vb", "Class C1
+                    Unit.Make("a1").With_a_vb( "Class C1
 End Class"), options:=TestOptions.ReleaseModule)
                 CompilationUtils.AssertNoDiagnostics(netModule1)
 
                 Dim netModule2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-                    Unit.Make("a2").WithFile("a.vb", "Class C2
+                    Unit.Make("a2").With_a_vb( "Class C2
     Public Shared Sub M()
         Dim a As New C1()
     End Sub
@@ -726,7 +726,7 @@ End Class"), additionalRefs:={netModule1.EmitToImageReference()}, options:=TestO
                 CompilationUtils.AssertNoDiagnostics(netModule2)
 
                 Dim netModule3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-                    Unit.Make("a3").WithFile("a.vb", "Class C22
+                    Unit.Make("a3").With_a_vb( "Class C22
     Public Shared Sub M()
         Dim a As New C1()
     End Sub
@@ -734,7 +734,7 @@ End Class"), additionalRefs:={netModule1.EmitToImageReference()}, options:=TestO
                 CompilationUtils.AssertNoDiagnostics(netModule3)
 
                 Dim assembly = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-                    Unit.Make("a4").WithFile("a.vb", "Class C3
+                    Unit.Make("a4").With_a_vb( "Class C3
     Public Shared Sub Main(args() As String)
         Dim a As New C2()
         Dim b As New C22()
@@ -752,7 +752,7 @@ BC37221: Reference to 'a1.netmodule' netmodule missing.
             <Fact()>
             Public Sub MissedModuleB_NoErrorForUnmanagedModules()
                 Dim netModule1 = CreateCompilationWithMscorlibAndVBRuntime(
-                    Unit.Make("a1").WithFile("a.vb", "Imports System.Runtime.InteropServices
+                    Unit.Make("a1").With_a_vb( "Imports System.Runtime.InteropServices
 
 Public Class ClassDLLImports
     Declare Function getUserName Lib ""advapi32.dll"" Alias ""GetUserNameA"" (
@@ -761,7 +761,7 @@ End Class"), options:=TestOptions.ReleaseModule)
                 CompilationUtils.AssertNoDiagnostics(netModule1)
 
                 Dim assembly = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-    Unit.Make("a").WithFile("a.vb", "
+    Unit.Make("a").With_a_vb( "
 Class C3
     Public Shared Sub Main(args() As String)
     End Sub
@@ -776,19 +776,19 @@ End Class
             <Fact()>
             Public Sub MissedModuleC()
                 Dim netModule1 = CreateCompilationWithMscorlibAndVBRuntime(
-                Unit.Make("a1").WithFile("a.vb", "Class C1
+                Unit.Make("a1").With_a_vb( "Class C1
 End Class"), options:=TestOptions.ReleaseModule)
                 CompilationUtils.AssertNoDiagnostics(netModule1)
 
                 Dim netModule2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-                    Unit.Make("a1").WithFile("a.vb", "Class C2
+                    Unit.Make("a1").With_a_vb( "Class C2
     Public Shared Sub M()
     End Sub
 End Class"), additionalRefs:={netModule1.EmitToImageReference()}, options:=TestOptions.ReleaseModule)
                 CompilationUtils.AssertNoDiagnostics(netModule2)
 
                 Dim assembly = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
-                    Unit.Make("a").WithFile("a.vb", "Class C3
+                    Unit.Make("a").With_a_vb( "Class C3
     Public Shared Sub Main(args() As String)
         Dim a As New C2()
     End Sub
@@ -1405,7 +1405,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
             <Fact()>
             Public Sub GetEntryPoint_Exe()
-                Dim x = Unit.Make("Name1").WithFile("a.vb", "Class A
+                Dim x = Unit.Make("Name1").With_a_vb( "Class A
     Shared Sub Main()
     End Sub
 End Class")
@@ -1423,7 +1423,7 @@ End Class")
 
             <Fact()>
             Public Sub GetEntryPoint_Dll()
-                Dim source = Unit.Make("Name1").WithFile("a.vb", "
+                Dim source = Unit.Make("Name1").With_a_vb( "
 Class A
     Shared Sub Main()
     End Sub
@@ -1438,7 +1438,7 @@ End Class
 
             <Fact()>
             Public Sub GetEntryPoint_Module()
-                Dim source = Unit.Make("Name1").WithFile("a.vb", "
+                Dim source = Unit.Make("Name1").With_a_vb( "
 Class A
     Shared Sub Main()
     End Sub
@@ -1587,7 +1587,7 @@ End Class
 
             <Fact()>
             Public Sub GetEntryPoint_MainType()
-                Dim source = Unit.Make("Name1").WithFile("a.vb", "
+                Dim source = Unit.Make("Name1").With_a_vb( "
 Class A
     Shared Sub Main()
     End Sub
