@@ -22,13 +22,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             _tokenBeingRenamed = tokenBeingRenamed;
         }
 
-        public IEnumerable<SyntaxToken> ConflictingTokens
-        {
-            get
-            {
-                return _conflictingTokensToReport;
-            }
-        }
+        public IEnumerable<SyntaxToken> ConflictingTokens => _conflictingTokensToReport;
 
         public void AddIdentifier(SyntaxToken token)
         {

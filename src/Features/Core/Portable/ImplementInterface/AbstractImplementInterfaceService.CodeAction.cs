@@ -139,13 +139,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     codeActionTypeName;
             }
 
-            public override string EquivalenceKey
-            {
-                get
-                {
-                    return _equivalenceKey;
-                }
-            }
+            public override string EquivalenceKey => _equivalenceKey;
 
             private static string GetDescription(ISymbol throughMember)
             {
@@ -389,7 +383,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var useExplicitInterfaceSymbol = generateInvisibly || !Service.CanImplementImplicitly;
                 var accessibility = member.Name == memberName || generateAbstractly
-                    ? Accessibility.Public 
+                    ? Accessibility.Public
                     : Accessibility.Private;
 
                 if (member.Kind == SymbolKind.Method)
@@ -409,7 +403,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     var @event = (IEventSymbol)member;
 
                     var accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        attributes: null,
+                        attributes: default(ImmutableArray<AttributeData>),
                         accessibility: Accessibility.NotApplicable,
                         statements: factory.CreateThrowNotImplementedStatementBlock(compilation));
 
@@ -419,11 +413,32 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                         modifiers: modifiers,
                         explicitInterfaceSymbol: useExplicitInterfaceSymbol ? @event : null,
                         name: memberName,
-                        addMethod: generateInvisibly ? accessor : null,
-                        removeMethod: generateInvisibly ? accessor : null);
+                        addMethod: GetAddOrRemoveMethod(generateInvisibly, accessor, memberName, factory.AddEventHandler),
+                        removeMethod: GetAddOrRemoveMethod(generateInvisibly, accessor, memberName, factory.RemoveEventHandler));
                 }
 
                 return null;
+            }
+
+            private IMethodSymbol GetAddOrRemoveMethod(bool generateInvisibly,
+                                                       IMethodSymbol accessor,
+                                                       string memberName,
+                                                       Func<SyntaxNode, SyntaxNode, SyntaxNode> createAddOrRemoveHandler)
+            {
+                if (ThroughMember != null)
+                {
+                    var factory = Document.GetLanguageService<SyntaxGenerator>();
+                    var throughExpression = CreateThroughExpression(factory);
+                    var statement = factory.ExpressionStatement(createAddOrRemoveHandler(
+                        factory.MemberAccessExpression(throughExpression, memberName), factory.IdentifierName("value")));
+
+                    return CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                           attributes: default(ImmutableArray<AttributeData>),
+                           accessibility: Accessibility.NotApplicable,
+                           statements: ImmutableArray.Create(statement));
+                }
+
+                return generateInvisibly ? accessor : null;
             }
 
             private SyntaxNode CreateThroughExpression(SyntaxGenerator factory)

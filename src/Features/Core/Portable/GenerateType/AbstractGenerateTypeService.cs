@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         protected abstract bool TryGetArgumentList(TObjectCreationExpressionSyntax objectCreationExpression, out IList<TArgumentSyntax> argumentList);
 
         protected abstract string DefaultFileExtension { get; }
-        protected abstract IList<ITypeParameterSymbol> GetTypeParameters(State state, SemanticModel semanticModel, CancellationToken cancellationToken);
+        protected abstract ImmutableArray<ITypeParameterSymbol> GetTypeParameters(State state, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract Accessibility GetAccessibility(State state, SemanticModel semanticModel, bool intoNamespace, CancellationToken cancellationToken);
         protected abstract IList<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IList<TArgumentSyntax> arguments);
 
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 : state.Name;
         }
 
-        protected IList<ITypeParameterSymbol> GetTypeParameters(
+        protected ImmutableArray<ITypeParameterSymbol> GetTypeParameters(
             State state,
             SemanticModel semanticModel,
             IEnumerable<SyntaxNode> typeArguments,
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         {
             var arguments = typeArguments.ToList();
             var arity = arguments.Count;
-            var typeParameters = new List<ITypeParameterSymbol>();
+            var typeParameters = ArrayBuilder<ITypeParameterSymbol>.GetInstance();
 
             // For anything that was a type parameter, just use the name (if we haven't already
             // used it).  Otherwise, synthesize new names for the parameters.
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            return typeParameters;
+            return typeParameters.ToImmutableAndFree();
         }
 
         protected Accessibility DetermineDefaultAccessibility(

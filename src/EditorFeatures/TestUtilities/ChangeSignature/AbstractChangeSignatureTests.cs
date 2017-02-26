@@ -4,12 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
 using Roslyn.Utilities;
 using Xunit;
@@ -39,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     optionsService.IsCancelled = isCancelled;
                     optionsService.UpdatedSignature = updatedSignature;
 
-                    var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace);
+                    var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, fixProviderData: null);
                     await TestActionsAsync(workspace, expectedCode, index, codeIssueOrRefactoring.Actions.ToList(),
                         conflictSpans: null, renameSpans: null, warningSpans: null, compareTokens: true);
                 }

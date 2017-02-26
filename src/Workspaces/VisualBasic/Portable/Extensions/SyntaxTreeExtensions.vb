@@ -252,12 +252,10 @@ recurse:
         End Function
 
         <Extension()>
-        Public Function GetMembersInSpan(
-            syntaxTree As SyntaxTree,
-            textSpan As TextSpan,
-            cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
+        Public Function GetMembersInSpan(root As SyntaxNode,
+                                         textSpan As TextSpan) As ImmutableArray(Of StatementSyntax)
 
-            Dim token = syntaxTree.GetRoot(cancellationToken).FindToken(textSpan.Start)
+            Dim token = root.FindToken(textSpan.Start)
             Dim firstMember = token.GetAncestors(Of StatementSyntax).
                                     Where(Function(s) TypeOf s.Parent Is TypeBlockSyntax).
                                     FirstOrDefault()

@@ -198,20 +198,8 @@ class Class1
 
             SendKeys("Mai(");
 
-            var expectedParameter = new Parameter
-            {
-                Name = "args"
-            };
-
-            var expectedSignature = new Signature
-            {
-                Content = "void Class1.Main(string[] args)",
-                CurrentParameter = expectedParameter,
-                Parameters = new[] { expectedParameter },
-                PrettyPrintedContent = "void Class1.Main(string[] args)"
-            };
-
-            VerifyCurrentSignature(expectedSignature);
+            VerifyCurrentSignature("void Class1.Main(string[] args)");
+            VerifyCurrentParameter("args", "");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
