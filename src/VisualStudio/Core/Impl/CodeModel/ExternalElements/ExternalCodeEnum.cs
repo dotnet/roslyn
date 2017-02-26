@@ -25,10 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
         }
 
-        public override vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementEnum; }
-        }
+        public override vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementEnum;
 
         public EnvDTE.CodeVariable AddMember(string name, object value, object position)
         {

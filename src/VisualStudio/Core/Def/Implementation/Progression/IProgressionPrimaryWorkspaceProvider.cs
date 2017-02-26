@@ -22,12 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _workspace = workspace;
         }
 
-        public Workspace PrimaryWorkspace
-        {
-            get
-            {
-                return _workspace;
-            }
-        }
+        public Workspace PrimaryWorkspace => _workspace;
     }
 }

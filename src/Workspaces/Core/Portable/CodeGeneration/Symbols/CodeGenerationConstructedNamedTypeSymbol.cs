@@ -53,32 +53,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return null;
         }
 
-        public override ImmutableArray<IMethodSymbol> InstanceConstructors
-        {
-            get
-            {
+        public override ImmutableArray<IMethodSymbol> InstanceConstructors =>
                 // TODO(cyrusn): construct these.
-                return this.OriginalDefinition.InstanceConstructors;
-            }
-        }
+                this.OriginalDefinition.InstanceConstructors;
 
-        public override ImmutableArray<IMethodSymbol> StaticConstructors
-        {
-            get
-            {
+        public override ImmutableArray<IMethodSymbol> StaticConstructors =>
                 // TODO(cyrusn): construct these.
-                return this.OriginalDefinition.StaticConstructors;
-            }
-        }
+                this.OriginalDefinition.StaticConstructors;
 
-        public override ImmutableArray<IMethodSymbol> Constructors
-        {
-            get
-            {
+        public override ImmutableArray<IMethodSymbol> Constructors =>
                 // TODO(cyrusn): construct these.
-                return this.OriginalDefinition.Constructors;
-            }
-        }
+                this.OriginalDefinition.Constructors;
 
         public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
         {

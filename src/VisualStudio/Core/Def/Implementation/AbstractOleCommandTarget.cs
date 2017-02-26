@@ -48,18 +48,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _serviceProvider = serviceProvider;
         }
 
-        public IVsEditorAdaptersFactoryService EditorAdaptersFactory
-        {
-            get { return _editorAdaptersFactory; }
-        }
+        public IVsEditorAdaptersFactoryService EditorAdaptersFactory => _editorAdaptersFactory;
 
         /// <summary>
         /// The IWpfTextView that this command filter is attached to.
         /// </summary>
-        public IWpfTextView WpfTextView
-        {
-            get { return _wpfTextView; }
-        }
+        public IWpfTextView WpfTextView => _wpfTextView;
 
         /// <summary>
         /// The command handler service to use for dispatching commands. This is set by

@@ -25,26 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _tree = tree;
                 }
 
-                public override SyntaxTree SyntaxTree
-                {
-                    get
-                    {
-                        return _tree;
-                    }
-                }
+                public override SyntaxTree SyntaxTree => _tree;
 
                 public override SyntaxNode GetSyntax(CancellationToken cancellationToken)
                 {
                     return null;
                 }
 
-                public override TextSpan Span
-                {
-                    get
-                    {
-                        throw new NotSupportedException(CSharpWorkspaceResources.Cannot_retrieve_the_Span_of_a_null_syntax_reference);
-                    }
-                }
+                public override TextSpan Span => throw new NotSupportedException(CSharpWorkspaceResources.Cannot_retrieve_the_Span_of_a_null_syntax_reference);
             }
         }
     }

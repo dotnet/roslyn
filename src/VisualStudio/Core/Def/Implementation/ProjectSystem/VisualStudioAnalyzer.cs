@@ -39,10 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _language = language;
         }
 
-        public string FullPath
-        {
-            get { return _fullPath; }
-        }
+        public string FullPath => _fullPath;
 
         public bool HasLoadErrors
         {

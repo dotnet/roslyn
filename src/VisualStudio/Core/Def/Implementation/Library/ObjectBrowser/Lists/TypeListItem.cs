@@ -14,9 +14,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             _typeKind = typeSymbol.TypeKind;
         }
 
-        public TypeKind Kind
-        {
-            get { return _typeKind; }
-        }
+        public TypeKind Kind => _typeKind;
     }
 }

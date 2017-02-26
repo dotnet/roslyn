@@ -108,21 +108,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         public abstract int GetText(out VSTREETEXTOPTIONS tto, out string ppszText);
         public abstract int GetTipText(out VSTREETOOLTIPTYPE eTipType, out string ppszText);
 
-        public virtual int CanRecurse
-        {
-            get
-            {
-                return 1;
-            }
-        }
+        public virtual int CanRecurse => 1;
 
-        public virtual int IsExpandable
-        {
-            get
-            {
-                return 1;
-            }
-        }
+        public virtual int IsExpandable => 1;
 
         public abstract int OnRequestSource(object pIUnknownTextView);
         public abstract void UpdatePreview();

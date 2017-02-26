@@ -71,10 +71,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             public TextSpan InseparableRegionSpan { get; }
             public IndentBlockOperation Operation { get; }
 
-            public SyntaxToken EndToken
-            {
-                get { return this.Operation.EndToken; }
-            }
+            public SyntaxToken EndToken => this.Operation.EndToken;
         }
 
         int IIntervalIntrospector<IndentationData>.GetStart(IndentationData value)

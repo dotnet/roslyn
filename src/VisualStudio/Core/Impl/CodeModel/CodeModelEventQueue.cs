@@ -67,9 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _eventQueue.Dequeue();
         }
 
-        public int Count
-        {
-            get { return _eventQueue.Count; }
-        }
+        public int Count => _eventQueue.Count;
     }
 }

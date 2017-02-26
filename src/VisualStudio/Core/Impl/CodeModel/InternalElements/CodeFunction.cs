@@ -87,10 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return CodeModelService.GetFunctionExtender(name, LookupNode(), LookupSymbol());
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementFunction; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementFunction;
 
         public bool CanOverride
         {

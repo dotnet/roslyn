@@ -29,10 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _state = state;
         }
 
-        protected bool IsZombied
-        {
-            get { return _zombied; }
-        }
+        protected bool IsZombied => _zombied;
 
         internal CodeModelState State
         {
@@ -48,30 +45,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
-        internal ICodeGenerationService CodeGenerationService
-        {
-            get { return this.State.CodeGenerator; }
-        }
+        internal ICodeGenerationService CodeGenerationService => this.State.CodeGenerator;
 
-        internal ICodeModelService CodeModelService
-        {
-            get { return this.State.CodeModelService; }
-        }
+        internal ICodeModelService CodeModelService => this.State.CodeModelService;
 
-        internal IServiceProvider ServiceProvider
-        {
-            get { return this.State.ServiceProvider; }
-        }
+        internal IServiceProvider ServiceProvider => this.State.ServiceProvider;
 
-        internal ISyntaxFactsService SyntaxFactsService
-        {
-            get { return this.State.SyntaxFactsService; }
-        }
+        internal ISyntaxFactsService SyntaxFactsService => this.State.SyntaxFactsService;
 
-        internal VisualStudioWorkspace Workspace
-        {
-            get { return this.State.Workspace; }
-        }
+        internal VisualStudioWorkspace Workspace => this.State.Workspace;
 
         internal virtual void Shutdown()
         {
@@ -84,10 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             get { return (DTE)this.ServiceProvider.GetService(typeof(SDTE)); }
         }
 
-        public string Language
-        {
-            get { return this.CodeModelService.Language; }
-        }
+        public string Language => this.CodeModelService.Language;
 
         protected EnvDTE.CodeElements GetCollection<T>(object parentObject)
         {

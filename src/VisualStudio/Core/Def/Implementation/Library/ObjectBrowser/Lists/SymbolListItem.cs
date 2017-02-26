@@ -33,35 +33,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             _supportsFindAllReferences = symbol.Kind != SymbolKind.Namespace;
         }
 
-        public Accessibility Accessibility
-        {
-            get { return _accessibility; }
-        }
+        public Accessibility Accessibility => _accessibility;
 
-        public override string DisplayText
-        {
-            get { return _displayText; }
-        }
+        public override string DisplayText => _displayText;
 
-        public override string FullNameText
-        {
-            get { return _fullNameText; }
-        }
+        public override string FullNameText => _fullNameText;
 
-        public override string SearchText
-        {
-            get { return _searchText; }
-        }
+        public override string SearchText => _searchText;
 
-        public override bool SupportsGoToDefinition
-        {
-            get { return _supportsGoToDefinition; }
-        }
+        public override bool SupportsGoToDefinition => _supportsGoToDefinition;
 
-        public override bool SupportsFindAllReferences
-        {
-            get { return _supportsFindAllReferences; }
-        }
+        public override bool SupportsFindAllReferences => _supportsFindAllReferences;
 
         public ISymbol ResolveSymbol(Compilation compilation)
         {

@@ -168,10 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             get { return EmptyCollection.Create(this.State, this); }
         }
 
-        public virtual EnvDTE.CodeElements Children
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public virtual EnvDTE.CodeElements Children => throw new NotImplementedException();
 
         EnvDTE.CodeElements ICodeElementContainer<AbstractExternalCodeElement>.GetCollection()
         {
@@ -219,10 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             get { return GetParent(); }
         }
 
-        public EnvDTE.TextPoint EndPoint
-        {
-            get { throw Exceptions.ThrowEFail(); }
-        }
+        public EnvDTE.TextPoint EndPoint => throw Exceptions.ThrowEFail();
 
         public string FullName
         {
@@ -252,15 +246,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             throw Exceptions.ThrowEFail();
         }
 
-        public EnvDTE.vsCMInfoLocation InfoLocation
-        {
-            get { return EnvDTE.vsCMInfoLocation.vsCMInfoLocationExternal; }
-        }
+        public EnvDTE.vsCMInfoLocation InfoLocation => EnvDTE.vsCMInfoLocation.vsCMInfoLocationExternal;
 
-        public virtual bool IsCodeType
-        {
-            get { return false; }
-        }
+        public virtual bool IsCodeType => false;
 
         public abstract EnvDTE.vsCMElement Kind { get; }
 
@@ -277,20 +265,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             }
         }
 
-        public EnvDTE.ProjectItem ProjectItem
-        {
-            get { throw Exceptions.ThrowEFail(); }
-        }
+        public EnvDTE.ProjectItem ProjectItem => throw Exceptions.ThrowEFail();
 
-        public EnvDTE.TextPoint StartPoint
-        {
-            get { throw Exceptions.ThrowEFail(); }
-        }
+        public EnvDTE.TextPoint StartPoint => throw Exceptions.ThrowEFail();
 
-        public string ExtenderCATID
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public string ExtenderCATID => throw new NotImplementedException();
 
         protected virtual object GetExtenderNames()
         {
@@ -312,10 +291,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             return GetExtender(extenderName);
         }
 
-        public string ElementID
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public string ElementID => throw new NotImplementedException();
 
         public EnvDTE.CodeAttribute AddAttribute(string name, string value, object position)
         {

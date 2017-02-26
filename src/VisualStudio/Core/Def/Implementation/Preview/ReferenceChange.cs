@@ -67,9 +67,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             }
         }
 
-        protected ProjectId ProjectId { get { return _projectId; } }
-        internal bool IsAddedReference { get { return _isAddedReference; } }
-        protected string ProjectName { get { return _projectName; } }
+        protected ProjectId ProjectId => _projectId;
+        internal bool IsAddedReference => _isAddedReference;
+        protected string ProjectName => _projectName;
 
         protected abstract string GetDisplayText();
         internal abstract Solution AddToSolution(Solution solution);

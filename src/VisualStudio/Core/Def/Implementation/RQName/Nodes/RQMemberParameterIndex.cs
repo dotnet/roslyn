@@ -20,10 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName.Nodes
             this.ParameterIndex = parameterIndex;
         }
 
-        protected override string RQKeyword
-        {
-            get { return RQNameStrings.MemberParamIndex; }
-        }
+        protected override string RQKeyword => RQNameStrings.MemberParamIndex;
 
         protected override void AppendChildren(List<SimpleTreeNode> childList)
         {

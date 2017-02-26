@@ -21,10 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName.SimpleTr
 
         public SimpleGroupNode(string text, params SimpleTreeNode[] children) : this(text, children.ToList()) { }
 
-        public IList<SimpleTreeNode> Children { get { return _children; } }
+        public IList<SimpleTreeNode> Children => _children;
 
         public SimpleTreeNode this[int index] { get { return Children[index]; } }
 
-        public int Count { get { return Children.Count; } }
+        public int Count => Children.Count;
     }
 }

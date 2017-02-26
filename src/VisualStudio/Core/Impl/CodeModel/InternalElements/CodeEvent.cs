@@ -59,15 +59,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             get { return (IEventSymbol)LookupSymbol(); }
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementEvent; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementEvent;
 
-        public override EnvDTE.CodeElements Children
-        {
-            get { return this.Attributes; }
-        }
+        public override EnvDTE.CodeElements Children => this.Attributes;
 
         public EnvDTE.CodeFunction Adder
         {

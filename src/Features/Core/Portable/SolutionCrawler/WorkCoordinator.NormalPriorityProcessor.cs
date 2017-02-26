@@ -175,21 +175,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    protected override Task HigherQueueOperationTask
-                    {
-                        get
-                        {
-                            return this.Processor._highPriorityProcessor.Running;
-                        }
-                    }
+                    protected override Task HigherQueueOperationTask => this.Processor._highPriorityProcessor.Running;
 
-                    protected override bool HigherQueueHasWorkItem
-                    {
-                        get
-                        {
-                            return this.Processor._highPriorityProcessor.HasAnyWork;
-                        }
-                    }
+                    protected override bool HigherQueueHasWorkItem => this.Processor._highPriorityProcessor.HasAnyWork;
 
                     protected override void PauseOnGlobalOperation()
                     {

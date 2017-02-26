@@ -14,9 +14,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName.Nodes
             : base(containingType, memberName, typeParameterCount, parameters)
         { }
 
-        protected override string RQKeyword
-        {
-            get { return RQNameStrings.Prop; }
-        }
+        protected override string RQKeyword => RQNameStrings.Prop;
     }
 }

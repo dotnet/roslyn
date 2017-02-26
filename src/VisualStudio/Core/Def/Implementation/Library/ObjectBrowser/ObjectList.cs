@@ -545,10 +545,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return base.GetBrowseObject(index);
         }
 
-        protected override bool SupportsNavInfo
-        {
-            get { return true; }
-        }
+        protected override bool SupportsNavInfo => true;
 
         protected override IVsNavInfo GetNavInfo(uint index)
         {
@@ -656,10 +653,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return index != 0xffffffffu;
         }
 
-        protected override bool SupportsDescription
-        {
-            get { return true; }
-        }
+        protected override bool SupportsDescription => true;
 
         protected override bool TryFillDescription(uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description)
         {
@@ -836,10 +830,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return true;
         }
 
-        protected override bool SupportsBrowseContainers
-        {
-            get { return true; }
-        }
+        protected override bool SupportsBrowseContainers => true;
 
         protected override bool TryFindBrowseContainer(VSCOMPONENTSELECTORDATA data, out uint index)
         {
@@ -969,10 +960,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return true;
         }
 
-        public ObjectListKind Kind
-        {
-            get { return _kind; }
-        }
+        public ObjectListKind Kind => _kind;
 
         public ObjectListKind ParentKind
         {
@@ -984,9 +972,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        public ObjectListItem ParentListItem
-        {
-            get { return _parentListItem; }
-        }
+        public ObjectListItem ParentListItem => _parentListItem;
     }
 }

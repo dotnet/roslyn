@@ -45,13 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract IMethodSymbol PartialDefinitionPart { get; }
         public abstract IMethodSymbol PartialImplementationPart { get; }
 
-        public virtual ITypeSymbol ReceiverType
-        {
-            get
-            {
-                return this.ContainingType;
-            }
-        }
+        public virtual ITypeSymbol ReceiverType => this.ContainingType;
 
         public override void Accept(SymbolVisitor visitor)
         {
@@ -77,13 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public virtual bool IsExtensionMethod => false;
 
-        public virtual bool IsAsync
-        {
-            get
-            {
-                return this.Modifiers.IsAsync;
-            }
-        }
+        public virtual bool IsAsync => this.Modifiers.IsAsync;
 
         public virtual bool IsVararg => false;
 

@@ -45,13 +45,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public MethodKind MethodKind => _symbol.MethodKind;
 
-            public new IMethodSymbol OriginalDefinition
-            {
-                get
-                {
-                    return this;
-                }
-            }
+            public new IMethodSymbol OriginalDefinition => this;
 
             public IMethodSymbol OverriddenMethod => _symbol.OverriddenMethod;
 

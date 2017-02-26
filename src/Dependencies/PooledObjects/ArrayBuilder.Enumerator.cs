@@ -38,13 +38,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            object System.Collections.IEnumerator.Current
-            {
-                get
-                {
-                    return this.Current;
-                }
-            }
+            object System.Collections.IEnumerator.Current => this.Current;
 
             public void Reset()
             {

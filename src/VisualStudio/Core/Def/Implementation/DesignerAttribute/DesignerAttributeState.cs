@@ -16,13 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
             private const string FormatVersion = "1";
 
-            protected override string StateName
-            {
-                get
-                {
-                    return "<DesignerAttribute>";
-                }
-            }
+            protected override string StateName => "<DesignerAttribute>";
 
             protected override int GetCount(Data data)
             {

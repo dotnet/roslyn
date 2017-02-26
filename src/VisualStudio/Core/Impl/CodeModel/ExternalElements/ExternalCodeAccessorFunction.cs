@@ -87,10 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             return _parentHandle.Value;
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementFunction; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementFunction;
 
         public EnvDTE.vsCMFunction FunctionKind
         {
@@ -115,15 +112,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             }
         }
 
-        public bool IsOverloaded
-        {
-            get { return false; }
-        }
+        public bool IsOverloaded => false;
 
-        public EnvDTE.CodeElements Overloads
-        {
-            get { throw Exceptions.ThrowEFail(); }
-        }
+        public EnvDTE.CodeElements Overloads => throw Exceptions.ThrowEFail();
 
         public EnvDTE.CodeTypeRef Type
         {

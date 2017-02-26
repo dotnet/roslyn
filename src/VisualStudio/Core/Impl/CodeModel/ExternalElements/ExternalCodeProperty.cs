@@ -33,10 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             return this.Parameters;
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementProperty; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementProperty;
 
         public EnvDTE.CodeFunction Getter
         {
@@ -107,10 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             }
         }
 
-        public bool IsGeneric
-        {
-            get { return false; }
-        }
+        public bool IsGeneric => false;
 
         public EnvDTE80.vsCMOverrideKind OverrideKind
         {

@@ -44,10 +44,7 @@ namespace Microsoft.CodeAnalysis
                 /// <summary>
                 /// The final compilation if available, otherwise an empty <see cref="ValueSource{Compilation}"/>.
                 /// </summary>
-                public virtual ValueSource<Compilation> FinalCompilation
-                {
-                    get { return ConstantValueSource<Compilation>.Empty; }
-                }
+                public virtual ValueSource<Compilation> FinalCompilation => ConstantValueSource<Compilation>.Empty;
 
                 protected State(ValueSource<Compilation> compilation, Compilation declarationOnlyCompilation)
                 {

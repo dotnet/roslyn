@@ -23,20 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementDelegate; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementDelegate;
 
-        public EnvDTE.CodeClass BaseClass
-        {
-            get { throw Exceptions.ThrowEFail(); }
-        }
+        public EnvDTE.CodeClass BaseClass => throw Exceptions.ThrowEFail();
 
-        public EnvDTE.CodeElements Parameters
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public EnvDTE.CodeElements Parameters => throw new NotImplementedException();
 
         public EnvDTE.CodeTypeRef Type
         {
@@ -51,9 +42,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             }
         }
 
-        public bool IsGeneric
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public bool IsGeneric => throw new NotImplementedException();
     }
 }

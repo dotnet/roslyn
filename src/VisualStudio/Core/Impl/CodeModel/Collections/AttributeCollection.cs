@@ -33,10 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             get { return (AbstractCodeElement)Parent; }
         }
 
-        private FileCodeModel FileCodeModel
-        {
-            get { return this.ParentElement.FileCodeModel; }
-        }
+        private FileCodeModel FileCodeModel => this.ParentElement.FileCodeModel;
 
         private SyntaxNode LookupNode()
         {

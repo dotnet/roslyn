@@ -35,13 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this.Modifiers, this.Type, this.Name, this.HasConstantValue, this.ConstantValue);
         }
 
-        public new IFieldSymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public new IFieldSymbol OriginalDefinition => this;
 
         public IFieldSymbol CorrespondingTupleField => null;
 
@@ -57,21 +51,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return visitor.VisitField(this);
         }
 
-        public bool IsConst
-        {
-            get
-            {
-                return this.Modifiers.IsConst;
-            }
-        }
+        public bool IsConst => this.Modifiers.IsConst;
 
-        public bool IsReadOnly
-        {
-            get
-            {
-                return this.Modifiers.IsReadOnly;
-            }
-        }
+        public bool IsReadOnly => this.Modifiers.IsReadOnly;
 
         public bool IsVolatile => false;
 

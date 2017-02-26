@@ -33,23 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 this.Spaces = space;
             }
 
-            public override bool ContainsChanges
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            public override bool ContainsChanges => false;
 
-            public override bool TreatAsElastic
-            {
-                get { return _original.TreatAsElastic; }
-            }
+            public override bool TreatAsElastic => _original.TreatAsElastic;
 
-            public override bool IsWhitespaceOnlyTrivia
-            {
-                get { return false; }
-            }
+            public override bool IsWhitespaceOnlyTrivia => false;
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
             {

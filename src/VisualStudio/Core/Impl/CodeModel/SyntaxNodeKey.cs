@@ -61,15 +61,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return $"{{{_name}, {_ordinal}}}";
         }
 
-        public string Name
-        {
-            get { return _name; }
-        }
+        public string Name => _name;
 
-        public int Ordinal
-        {
-            get { return _ordinal; }
-        }
+        public int Ordinal => _ordinal;
 
         public bool IsEmpty
         {

@@ -32,18 +32,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         internal static event Action TEST_DialogLoaded;
 
         // Expose localized strings for binding
-        public string GenerateTypeDialogTitle { get { return ServicesVSResources.Generate_Type; } }
-        public string TypeDetails { get { return ServicesVSResources.Type_Details_colon; } }
-        public string Access { get { return ServicesVSResources.Access_colon; } }
-        public string Kind { get { return ServicesVSResources.Kind_colon; } }
-        public string NameLabel { get { return ServicesVSResources.Name_colon1; } }
-        public string Location { get { return ServicesVSResources.Location_colon; } }
-        public string Project { get { return ServicesVSResources.Project_colon; } }
-        public string FileName { get { return ServicesVSResources.File_Name_colon; } }
-        public string CreateNewFile { get { return ServicesVSResources.Create_new_file; } }
-        public string AddToExistingFile { get { return ServicesVSResources.Add_to_existing_file; } }
-        public string OK { get { return ServicesVSResources.OK; } }
-        public string Cancel { get { return ServicesVSResources.Cancel; } }
+        public string GenerateTypeDialogTitle => ServicesVSResources.Generate_Type;
+        public string TypeDetails => ServicesVSResources.Type_Details_colon;
+        public string Access => ServicesVSResources.Access_colon;
+        public string Kind => ServicesVSResources.Kind_colon;
+        public string NameLabel => ServicesVSResources.Name_colon1;
+        public string Location => ServicesVSResources.Location_colon;
+        public string Project => ServicesVSResources.Project_colon;
+        public string FileName => ServicesVSResources.File_Name_colon;
+        public string CreateNewFile => ServicesVSResources.Create_new_file;
+        public string AddToExistingFile => ServicesVSResources.Add_to_existing_file;
+        public string OK => ServicesVSResources.OK;
+        public string Cancel => ServicesVSResources.Cancel;
 
         public GenerateTypeDialog(GenerateTypeDialogViewModel viewModel)
             : base("vsl.GenerateFromUsage")

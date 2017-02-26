@@ -25,10 +25,7 @@ namespace Microsoft.CodeAnalysis.Collections
             _pool = pool;
         }
 
-        public int Length
-        {
-            get { return this.Builder.Length; }
-        }
+        public int Length => this.Builder.Length;
 
         public void Free()
         {

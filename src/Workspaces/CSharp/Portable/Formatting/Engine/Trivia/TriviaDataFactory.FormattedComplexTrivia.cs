@@ -38,15 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _textChanges = _formatter.FormatToTextChanges(cancellationToken);
             }
 
-            public override bool TreatAsElastic
-            {
-                get { return false; }
-            }
+            public override bool TreatAsElastic => false;
 
-            public override bool IsWhitespaceOnlyTrivia
-            {
-                get { return false; }
-            }
+            public override bool IsWhitespaceOnlyTrivia => false;
 
             public override bool ContainsChanges
             {

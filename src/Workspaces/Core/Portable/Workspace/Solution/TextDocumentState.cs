@@ -55,30 +55,15 @@ namespace Microsoft.CodeAnalysis
             _lazyChecksums = new AsyncLazy<DocumentStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
-        public DocumentId Id
-        {
-            get { return this.info.Id; }
-        }
+        public DocumentId Id => this.info.Id;
 
-        public string FilePath
-        {
-            get { return this.info.FilePath; }
-        }
+        public string FilePath => this.info.FilePath;
 
-        public DocumentInfo Info
-        {
-            get { return this.info; }
-        }
+        public DocumentInfo Info => this.info;
 
-        public IReadOnlyList<string> Folders
-        {
-            get { return this.info.Folders; }
-        }
+        public IReadOnlyList<string> Folders => this.info.Folders;
 
-        public string Name
-        {
-            get { return this.info.Name; }
-        }
+        public string Name => this.info.Name;
 
         public static TextDocumentState Create(DocumentInfo info, SolutionServices services)
         {

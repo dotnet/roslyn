@@ -69,10 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return node != null;
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementAttribute; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementAttribute;
 
         public override object Parent
         {
@@ -89,10 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             get { return AttributeArgumentCollection.Create(this.State, this); }
         }
 
-        public override EnvDTE.CodeElements Children
-        {
-            get { return Arguments; }
-        }
+        public override EnvDTE.CodeElements Children => Arguments;
 
         protected override void SetName(string value)
         {
