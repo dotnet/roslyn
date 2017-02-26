@@ -92,7 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static ConstructorInitializerSyntax GenerateConstructorInitializer(
             IMethodSymbol constructor)
         {
-            var arguments = CodeGenerationConstructorInfo.GetThisConstructorArgumentsOpt(constructor) ?? CodeGenerationConstructorInfo.GetBaseConstructorArgumentsOpt(constructor);
+            var thisArguments = CodeGenerationConstructorInfo.GetThisConstructorArgumentsOpt(constructor);
+
+            var arguments = !thisArguments.IsDefault ? thisArguments : CodeGenerationConstructorInfo.GetBaseConstructorArgumentsOpt(constructor);
             var kind = CodeGenerationConstructorInfo.GetThisConstructorArgumentsOpt(constructor) != null
                 ? SyntaxKind.ThisConstructorInitializer
                 : SyntaxKind.BaseConstructorInitializer;

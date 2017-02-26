@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -216,15 +217,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 ITypeSymbol expressionType)
             {
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                    attributes: ImmutableArray<AttributeData>.Empty,
                     accessibility: default(Accessibility),
                     modifiers: default(DeclarationModifiers),
                     returnType: expressionType,
                     returnsByRef: false,
                     explicitInterfaceSymbol: null,
                     name: null,
-                    typeParameters: SpecializedCollections.EmptyList<ITypeParameterSymbol>(),
-                    parameters: SpecializedCollections.EmptyList<IParameterSymbol>());
+                    typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+                    parameters: ImmutableArray<IParameterSymbol>.Empty);
             }
         }
     }

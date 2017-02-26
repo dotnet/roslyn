@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         protected CodeGenerationAbstractMethodSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name,
-            IList<AttributeData> returnTypeAttributes)
+            ImmutableArray<AttributeData> returnTypeAttributes)
             : base(containingType, attributes, declaredAccessibility, modifiers, name)
         {
-            _returnTypeAttributes = returnTypeAttributes.AsImmutableOrEmpty();
+            _returnTypeAttributes = returnTypeAttributes.NullToEmpty();
         }
 
         public abstract int Arity { get; }

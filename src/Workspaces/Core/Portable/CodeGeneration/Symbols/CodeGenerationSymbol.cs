@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         protected CodeGenerationSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name)
         {
             this.ContainingType = containingType;
-            _attributes = attributes.AsImmutableOrEmpty();
+            _attributes = attributes.NullToEmpty();
             this.DeclaredAccessibility = declaredAccessibility;
             this.Modifiers = modifiers;
             this.Name = name;

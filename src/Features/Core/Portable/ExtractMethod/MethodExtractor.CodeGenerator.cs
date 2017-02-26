@@ -268,16 +268,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return new HashSet<SyntaxAnnotation>(annotations.Select(t => t.Item2));
             }
 
-            protected IList<ITypeParameterSymbol> CreateMethodTypeParameters(CancellationToken cancellationToken)
+            protected ImmutableArray<ITypeParameterSymbol> CreateMethodTypeParameters(CancellationToken cancellationToken)
             {
                 if (this.AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0)
                 {
-                    return SpecializedCollections.EmptyList<ITypeParameterSymbol>();
+                    return ImmutableArray<ITypeParameterSymbol>.Empty;
                 }
 
                 var set = new HashSet<ITypeParameterSymbol>(this.AnalyzerResult.MethodTypeParametersInConstraintList);
 
-                var typeParameters = new List<ITypeParameterSymbol>();
+                var typeParameters = ArrayBuilder<ITypeParameterSymbol>.GetInstance();
                 foreach (var parameter in this.AnalyzerResult.MethodTypeParametersInDeclaration)
                 {
                     if (parameter != null && set.Contains(parameter))
@@ -291,12 +291,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         parameter.HasConstructorConstraint, parameter.HasReferenceTypeConstraint, parameter.HasValueTypeConstraint, parameter.Ordinal));
                 }
 
-                return typeParameters;
+                return typeParameters.ToImmutableAndFree();
             }
 
-            protected IList<IParameterSymbol> CreateMethodParameters()
+            protected ImmutableArray<IParameterSymbol> CreateMethodParameters()
             {
-                var parameters = new List<IParameterSymbol>();
+                var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
 
                 foreach (var parameter in this.AnalyzerResult.MethodParameters)
                 {
@@ -305,14 +305,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                     parameters.Add(
                         CodeGenerationSymbolFactory.CreateParameterSymbol(
-                            attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                            attributes: ImmutableArray<AttributeData>.Empty,
                             refKind: refKind,
                             isParams: false,
                             type: type,
                             name: parameter.Name));
                 }
 
-                return parameters;
+                return parameters.ToImmutableAndFree();
             }
 
             private static RefKind GetRefKind(ParameterBehavior parameterBehavior)

@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         _document.Project.Solution,
                         _state.TypeToGenerateIn,
                         CodeGenerationSymbolFactory.CreatePropertySymbol(
-                            attributes: null,
+                            attributes: default(ImmutableArray<AttributeData>),
                             accessibility: DetermineMaximalAccessibility(_state),
                             modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
                             type: _state.TypeMemberType,
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         _document.Project.Solution,
                         _state.TypeToGenerateIn,
                         CodeGenerationSymbolFactory.CreateFieldSymbol(
-                            attributes: null,
+                            attributes: default(ImmutableArray<AttributeData>),
                             accessibility: DetermineMinimalAccessibility(_state),
                             modifiers: _isConstant ?
                                 new DeclarationModifiers(isConst: true, isUnsafe: generateUnsafe) :
@@ -104,12 +105,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 Accessibility accessibility, CancellationToken cancellationToken)
             {
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     accessibility: accessibility,
                     statements: GenerateStatements(cancellationToken));
             }
 
-            private IList<SyntaxNode> GenerateStatements(
+            private ImmutableArray<SyntaxNode> GenerateStatements(
                 CancellationToken cancellationToken)
             {
                 var syntaxFactory = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
@@ -118,8 +119,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     syntaxFactory, this._document, "System.NotImplementedException", cancellationToken);
 
                 return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _returnsByRef
-                    ? new[] { throwStatement }
-                    : null;
+                    ? ImmutableArray.Create(throwStatement)
+                    : default(ImmutableArray<SyntaxNode>);
             }
 
             private Accessibility DetermineMaximalAccessibility(State state)

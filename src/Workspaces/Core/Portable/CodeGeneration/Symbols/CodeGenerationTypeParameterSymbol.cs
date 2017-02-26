@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public CodeGenerationTypeParameterSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             VarianceKind varianceKind,
             string name,
             ImmutableArray<ITypeSymbol> constraintTypes,
@@ -43,13 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this.HasValueTypeConstraint, this.Ordinal);
         }
 
-        public new ITypeParameterSymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public new ITypeParameterSymbol OriginalDefinition => this;
 
         public ITypeParameterSymbol ReducedFrom => null;
 

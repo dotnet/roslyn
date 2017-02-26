@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     var @event = (IEventSymbol)member;
 
                     var accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        attributes: null,
+                        attributes: default(ImmutableArray<AttributeData>),
                         accessibility: Accessibility.NotApplicable,
                         statements: factory.CreateThrowNotImplementedStatementBlock(compilation));
 
@@ -433,9 +433,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                         factory.MemberAccessExpression(throughExpression, memberName), factory.IdentifierName("value")));
 
                     return CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                           attributes: null,
+                           attributes: default(ImmutableArray<AttributeData>),
                            accessibility: Accessibility.NotApplicable,
-                           statements: SpecializedCollections.SingletonList(statement));
+                           statements: ImmutableArray.Create(statement));
                 }
 
                 return generateInvisibly ? accessor : null;
