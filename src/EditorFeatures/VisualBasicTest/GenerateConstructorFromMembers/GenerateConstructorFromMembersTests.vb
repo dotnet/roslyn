@@ -215,7 +215,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestWithDialog1() As Task
-            Await TestWithGenerateConstructorDialogAsync(
+            Await TestWithPickMembersDialogAsync(
 "Class Program
     Private i As Integer
     [||]
@@ -230,7 +230,7 @@ End Class", chosenSymbols:={"i"})
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestWithDialog2() As Task
-            Await TestWithGenerateConstructorDialogAsync(
+            Await TestWithPickMembersDialogAsync(
 "Class Program
     Private i As Integer
     [||]
@@ -244,7 +244,7 @@ End Class", chosenSymbols:={})
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestWithDialog3() As Task
-            Await TestWithGenerateConstructorDialogAsync(
+            Await TestWithPickMembersDialogAsync(
 "Class Program
     Private i As Integer
     Private j As String
@@ -262,7 +262,7 @@ End Class", chosenSymbols:={"j", "i"})
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestWithDialog4() As Task
-            Await TestWithGenerateConstructorDialogAsync(
+            Await TestWithPickMembersDialogAsync(
 "Class [||]Program
     Private i As Integer
 End Class",
