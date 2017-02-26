@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
         <Fact, WorkItem(530256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530256")>
         Public Sub WarnAsErrorPrecedence1()
-            Dim src As String = Temp.CreateFile().WriteAllText("
+            Dim src As String = Temp.CreateFile().WriteAllText(
+"
 Imports System
 
 Module Module1
@@ -29,12 +30,11 @@ End Module
             'See bug 15593. This is not strictly a 'breaking' change.
             'In Dev11, /warnaserror+ trumps /warnaserror- in the above case and warnings are reported as errors.
             'In Roslyn, /warnaserror- (i.e. last one) wins.
-            Assert.Equal(<text>
-SRC.VB(7) : warning BC42104: Variable 'x' is used before it has been assigned a value. A null reference exception could result at runtime.
+            Assert.Equal(
+"SRC.VB(7) : warning BC42104: Variable 'x' is used before it has been assigned a value. A null reference exception could result at runtime.
 
         Console.WriteLine(x.ToString)
-                          ~
-</text>.Value.Trim().Replace(vbLf, vbCrLf), tempLog.ReadAllText().Trim().Replace(src, "SRC.VB"))
+                          ~", tempLog.ReadAllText().Trim().Replace(src, "SRC.VB"))
 
             CleanupAllGeneratedFiles(src)
             CleanupAllGeneratedFiles(tempBinary.Path)
@@ -61,20 +61,19 @@ End Module
             'In Dev11, /warnaserror+ does not come into effect strangely and the code only reports warnings.
             'In Roslyn, /warnaserror+ does come into effect and the code reports the warnings as errors.
 
-            Assert.Equal(<text>
-SRC.VB(6) : error BC42017: Late bound resolution; runtime errors could occur.
+            Assert.Equal(
+"SRC.VB(6) : error BC42017: Late bound resolution; runtime errors could occur.
 
-        if (a.Something &lt;&gt; 2)
+        if (a.Something <> 2)
             ~~~~~~~~~~~      
-SRC.VB(6) : error BC42032: Operands of type Object used for operator '&lt;&gt;'; use the 'IsNot' operator to test object identity.
+SRC.VB(6) : error BC42032: Operands of type Object used for operator '<>'; use the 'IsNot' operator to test object identity.
 
-        if (a.Something &lt;&gt; 2)
+        if (a.Something <> 2)
             ~~~~~~~~~~~      
 SRC.VB(6) : error BC42016: Implicit conversion from 'Object' to 'Boolean'.
 
-        if (a.Something &lt;&gt; 2)
-           ~~~~~~~~~~~~~~~~~~
-</text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
+        if (a.Something <> 2)
+           ~~~~~~~~~~~~~~~~~~", tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
         End Sub
 
         <Fact, WorkItem(530668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
@@ -97,20 +96,19 @@ End Module
             'In Dev11, /warnaserror+ does not come into effect strangely and the code only reports warnings.
             'In Roslyn, /warnaserror+ does come into effect and the code reports the warnings as errors.
 
-            Assert.Equal(<text>
-SRC.VB(6) : error BC42017: Late bound resolution; runtime errors could occur.
+            Assert.Equal(
+"SRC.VB(6) : error BC42017: Late bound resolution; runtime errors could occur.
 
-        if (a.Something &lt;&gt; 2)
+        if (a.Something <> 2)
             ~~~~~~~~~~~      
-SRC.VB(6) : error BC42032: Operands of type Object used for operator '&lt;&gt;'; use the 'IsNot' operator to test object identity.
+SRC.VB(6) : error BC42032: Operands of type Object used for operator '<>'; use the 'IsNot' operator to test object identity.
 
-        if (a.Something &lt;&gt; 2)
+        if (a.Something <> 2)
             ~~~~~~~~~~~      
 SRC.VB(6) : error BC42016: Implicit conversion from 'Object' to 'Boolean'.
 
-        if (a.Something &lt;&gt; 2)
-           ~~~~~~~~~~~~~~~~~~
-</text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
+        if (a.Something <> 2)
+           ~~~~~~~~~~~~~~~~~~", tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
 
             CleanupAllGeneratedFiles(src)
             CleanupAllGeneratedFiles(tempOut.Path)
