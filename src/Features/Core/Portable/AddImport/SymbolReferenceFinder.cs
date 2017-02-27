@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var typesContainedDirectlyInNamespaces = accessibleSymbols.WhereAsArray(s => s.Symbol.ContainingSymbol is INamespaceSymbol);
                 var typesContainedDirectlyInTypes = accessibleSymbols.WhereAsArray(s => s.Symbol.ContainingType != null);
 
-                var namespaceReferences = GetSymbolReferences(searchScope,
+                var namespaceReferences = GetNamespaceSymbolReferences(searchScope,
                     typesContainedDirectlyInNamespaces.SelectAsArray(r => r.WithSymbol(r.Symbol.ContainingNamespace)));
 
                 var typeReferences = typesContainedDirectlyInTypes.SelectAsArray(
@@ -193,6 +193,38 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return (arity == 0 || symbol.GetArity() == arity || hasIncompleteParentMember)
                        && symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly)
                        && (!inAttributeContext || symbol.IsAttribute());
+            }
+
+            /// <summary>
+            /// Searches for namespaces that match the name the user has written.  Returns <see cref="SymbolReference"/>s
+            /// to the <see cref="INamespaceSymbol"/>s those namespaces are contained in.
+            /// </summary>
+            private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingNamespacesAsync(
+                SearchScope searchScope)
+            {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+                if (!_owner.CanAddImportForNamespace(_diagnostic, _node, out var nameNode))
+                {
+                    return ImmutableArray<SymbolReference>.Empty;
+                }
+
+                _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
+
+                if (arity > 0)
+                {
+                    return ImmutableArray<SymbolReference>.Empty;
+                }
+
+                if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: searchScope.CancellationToken))
+                {
+                    return ImmutableArray<SymbolReference>.Empty;
+                }
+
+                var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Namespace).ConfigureAwait(false);
+                var namespaceSymbols = OfType<INamespaceSymbol>(symbols);
+                var containingNamespaceSymbols = OfType<INamespaceSymbol>(symbols).SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
+
+                return GetNamespaceSymbolReferences(searchScope, containingNamespaceSymbols);
             }
 
             internal async Task FindNugetOrReferenceAssemblyReferencesAsync(
@@ -446,33 +478,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return symbolInfo.Symbol != null;
             }
 
-            private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingNamespacesAsync(
-                SearchScope searchScope)
-            {
-                searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (!_owner.CanAddImportForNamespace(_diagnostic, _node, out var nameNode))
-                {
-                    return ImmutableArray<SymbolReference>.Empty;
-                }
-
-                _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
-
-                if (arity > 0)
-                {
-                    return ImmutableArray<SymbolReference>.Empty;
-                }
-
-                if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: searchScope.CancellationToken))
-                {
-                    return ImmutableArray<SymbolReference>.Empty;
-                }
-
-                var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Namespace).ConfigureAwait(false);
-
-                return GetSymbolReferences(
-                    searchScope, OfType<INamespaceSymbol>(symbols).SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace)));
-            }
-
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingExtensionMethodsAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
@@ -501,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
 
                 var methodSymbols = await GetAddMethodsAsync(searchScope, _node.Parent).ConfigureAwait(false);
-                return GetSymbolReferences(searchScope, methodSymbols.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
+                return GetNamespaceSymbolReferences(searchScope, methodSymbols.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
             }
 
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingFieldsAndPropertiesAsync(
@@ -615,11 +620,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     .WhereAsArray(s => s.Symbol.IsExtensionMethod && _owner.IsViableExtensionMethod(s.Symbol, type))
                     .SelectAsArray(s => s.WithDesiredName(null));
 
-                return GetSymbolReferences(
+                return GetNamespaceSymbolReferences(
                     searchScope, extensionMethodSymbols.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace)));
             }
 
-            private ImmutableArray<SymbolReference> GetSymbolReferences(
+            private ImmutableArray<SymbolReference> GetNamespaceSymbolReferences(
                 SearchScope scope, ImmutableArray<SymbolResult<INamespaceSymbol>> namespaces)
             {
                 var references = ArrayBuilder<SymbolReference>.GetInstance();
@@ -665,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                                 s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
                                 _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, searchScope.CancellationToken));
 
-                return GetSymbolReferences(
+                return GetNamespaceSymbolReferences(
                     searchScope, extensionMethodSymbols.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace)));
             }
 
