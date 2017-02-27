@@ -222,21 +222,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
             if (propertyDeclaration.ExpressionBody != null)
             {
-                methodDeclaration = methodDeclaration.WithBody(null)
-                                                     .WithExpressionBody(propertyDeclaration.ExpressionBody)
-                                                     .WithSemicolonToken(propertyDeclaration.SemicolonToken);
+                return methodDeclaration.WithBody(null)
+                                        .WithExpressionBody(propertyDeclaration.ExpressionBody)
+                                        .WithSemicolonToken(propertyDeclaration.SemicolonToken);
             }
             else
             {
                 var getAccessorDeclaration = (AccessorDeclarationSyntax)getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                if (getAccessorDeclaration?.ExpressionBody != null)
+                {
+                    return methodDeclaration.WithBody(null)
+                                            .WithExpressionBody(getAccessorDeclaration.ExpressionBody)
+                                            .WithSemicolonToken(getAccessorDeclaration.SemicolonToken);
+                }
                 if (getAccessorDeclaration?.Body != null)
                 {
-                    methodDeclaration = methodDeclaration.WithBody(getAccessorDeclaration.Body);
+                    return methodDeclaration.WithBody(getAccessorDeclaration.Body)
+                                            .WithAdditionalAnnotations(Formatter.Annotation);
                 }
                 else if (propertyBackingField != null)
                 {
                     var fieldReference = GetFieldReference(generator, propertyBackingField);
-                    methodDeclaration = methodDeclaration.WithBody(
+                    return methodDeclaration.WithBody(
                         SyntaxFactory.Block(
                             (StatementSyntax)generator.ReturnStatement(fieldReference)));
                 }

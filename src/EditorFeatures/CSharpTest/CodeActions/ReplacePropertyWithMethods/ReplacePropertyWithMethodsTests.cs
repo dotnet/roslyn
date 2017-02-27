@@ -1,6 +1,10 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1175,5 +1179,153 @@ compareTokens: false);
     }
 }");
         }
+
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestCodeStyle1()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}",
+@"class C
+{
+    private int GetProp() => 0;
+}", compareTokens: false, options: PreferExpressionBodiedMethods);
+        }
+
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestCodeStyle2()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+            throw e;
+        }
+    }
+}",
+@"class C
+{
+    private int GetProp() => 0;
+    private void SetProp(int value) => throw e;
+}", compareTokens: false, options: PreferExpressionBodiedMethods);
+        }
+
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestCodeStyle3()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop
+    {
+        get => 0;
+
+        set => throw e;
+    }
+}",
+@"class C
+{
+    private int GetProp() => 0;
+    private void SetProp(int value) => throw e;
+}", compareTokens: false, options: PreferExpressionBodiedMethods);
+        }
+
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestCodeStyle4()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop => 0;
+}",
+@"class C
+{
+    private int GetProp() => 0;
+}", compareTokens: false, options: PreferExpressionBodiedMethods);
+        }
+
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestCodeStyle5()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop { get; }
+}",
+@"class C
+{
+    private readonly int prop;
+
+    private int GetProp() => prop;
+}", compareTokens: false, options: PreferExpressionBodiedMethods);
+        }
+
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestCodeStyle6()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop { get; set; }
+}",
+@"class C
+{
+    private int prop;
+
+    private int GetProp() => prop;
+    private void SetProp(int value) => prop = value;
+}", compareTokens: false, options: PreferExpressionBodiedMethods);
+        }
+
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestCodeStyle7()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+            A();
+            return B();
+        }
+    }
+}",
+@"class C
+{
+    private int GetProp()
+    {
+        A();
+        return B();
+    }
+}", compareTokens: false, options: PreferExpressionBodiedMethods);
+        }
+
+        private IDictionary<OptionKey, object> PreferExpressionBodiedMethods =>
+            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithSuggestionEnforcement));
     }
 }
