@@ -4020,6 +4020,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 statement: CreateBlock(statements));
         }
 
+        public override SyntaxNode LockStatement(SyntaxNode expression, IEnumerable<SyntaxNode> statements)
+        {
+            return SyntaxFactory.LockStatement(
+                expression: (ExpressionSyntax)expression,
+                statement: CreateBlock(statements));
+        }
+
         public override SyntaxNode TryCatchStatement(IEnumerable<SyntaxNode> tryStatements, IEnumerable<SyntaxNode> catchClauses, IEnumerable<SyntaxNode> finallyStatements = null)
         {
             return SyntaxFactory.TryStatement(
