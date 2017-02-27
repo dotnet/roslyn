@@ -26,11 +26,14 @@
     <Compile Include="CaptureTestNameAttribute.cs" />
     <Compile Include="Common\Comparison.cs" />
     <Compile Include="Common\Parameter.cs" />
+    <Compile Include="Common\Reference.cs" />
     <Compile Include="Common\Signature.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="HostWaitHelper.cs" />
     <Compile Include="InProcess\CSharpInteractiveWindow_InProc.cs" />
+    <Compile Include="InProcess\FindReferencesWindow_InProc.cs" />
     <Compile Include="InProcess\InProcComponent.cs" />
+    <Compile Include="InProcess\Shell_InProc.cs" />
     <Compile Include="InProcess\SolutionExplorer_InProc.cs" />
     <Compile Include="InProcess\VisualStudio_InProc.cs" />
     <Compile Include="Input\KeyPress.cs" />
@@ -41,7 +44,9 @@
     <Compile Include="InProcess\Editor_InProc.cs" />
     <Compile Include="Interop\NativeMethods.cs" />
     <Compile Include="LightBulbHelper.cs" />
+    <Compile Include="OutOfProcess\FindReferencesWindow_OutOfProc.cs" />
     <Compile Include="OutOfProcess\OutOfProcComponent.cs" />
+    <Compile Include="OutOfProcess\Shell_OutOfProc.cs" />
     <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.cs" />
     <Compile Include="InProcess\VisualStudioWorkspace_InProc.cs" />
     <Compile Include="ScreenshotService.cs" />
