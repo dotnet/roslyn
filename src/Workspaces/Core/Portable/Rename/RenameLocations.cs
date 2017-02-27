@@ -112,9 +112,9 @@ namespace Microsoft.CodeAnalysis.Rename
         public ISet<RenameLocation> Locations => _mergedResult.Locations;
         public SymbolAndProjectId SymbolAndProjectId => _symbolAndProjectId;
         public ISymbol Symbol => _symbolAndProjectId.Symbol;
-        public Solution Solution { get { return _solution; } }
+        public Solution Solution => _solution;
         public IEnumerable<SymbolAndProjectId> ReferencedSymbols => _mergedResult.ReferencedSymbols;
-        public IEnumerable<ReferenceLocation> ImplicitLocations { get { return _mergedResult.ImplicitLocations; } }
+        public IEnumerable<ReferenceLocation> ImplicitLocations => _mergedResult.ImplicitLocations;
 
         /// <summary>
         /// Find the locations that need to be renamed.

@@ -1181,4 +1181,13 @@ This version used in: {2}</value>
   <data name="Add_parameter_to_0" xml:space="preserve">
     <value>Add parameter to '{0}'</value>
   </data>
+  <data name="Generate_constructor" xml:space="preserve">
+    <value>Generate constructor...</value>
+  </data>
+  <data name="Pick_members_to_be_used_as_constructor_parameters" xml:space="preserve">
+    <value>Pick members to be used as constructor parameters</value>
+  </data>
+  <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
+    <value>Changes to expression trees may result in behavior changes at runtime</value>
+  </data>
 </root>

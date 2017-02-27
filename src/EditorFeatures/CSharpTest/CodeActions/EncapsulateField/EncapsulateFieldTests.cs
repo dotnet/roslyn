@@ -1032,7 +1032,7 @@ partial class Program {
 
             using (var workspace = await CreateWorkspaceFromFileAsync(text, null, null))
             {
-                var result = await GetCodeRefactoringAsync(workspace);
+                var result = await GetCodeRefactoringAsync(workspace, fixProviderData: null);
                 Assert.NotNull(result);
             }
         }
@@ -1051,7 +1051,7 @@ class Program
 
             using (var workspace = await CreateWorkspaceFromFileAsync(text, null, null))
             {
-                var result = await GetCodeRefactoringAsync(workspace);
+                var result = await GetCodeRefactoringAsync(workspace, fixProviderData: null);
                 Assert.NotNull(result);
             }
         }

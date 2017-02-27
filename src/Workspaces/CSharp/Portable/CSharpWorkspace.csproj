@@ -191,6 +191,7 @@
     <Compile Include="Formatting\Rules\WrappingFormattingRule.cs" />
     <Compile Include="LanguageServices\CSharpCompilationFactoryService.cs" />
     <Compile Include="LanguageServices\CSharpSemanticFactsService.cs" />
+    <Compile Include="LanguageServices\CSharpSemanticFactsServiceFactory.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDeclarationService.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxFactsServiceFactory.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxFactsService.cs" />

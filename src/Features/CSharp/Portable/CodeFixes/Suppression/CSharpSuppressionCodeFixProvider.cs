@@ -61,21 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             return triviaList;
         }
 
-        protected override string DefaultFileExtension
-        {
-            get
-            {
-                return ".cs";
-            }
-        }
+        protected override string DefaultFileExtension => ".cs";
 
-        protected override string SingleLineCommentStart
-        {
-            get
-            {
-                return "//";
-            }
-        }
+        protected override string SingleLineCommentStart => "//";
 
         protected override bool IsAttributeListWithAssemblyAttributes(SyntaxNode node)
         {

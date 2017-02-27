@@ -22,10 +22,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
-        protected IIntervalIntrospector<T> Introspector
-        {
-            get { return _introspector; }
-        }
+        protected IIntervalIntrospector<T> Introspector => _introspector;
 
         public IEnumerable<T> GetOverlappingIntervals(int start, int length)
         {

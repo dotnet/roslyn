@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
@@ -30,6 +31,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLiteral(SyntaxToken token);
         bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);
 
+        bool IsNumericLiteral(SyntaxToken token);
+        bool IsCharacterLiteral(SyntaxToken token);
         bool IsStringLiteral(SyntaxToken token);
         bool IsStringLiteralExpression(SyntaxNode node);
         bool IsVerbatimStringLiteral(SyntaxToken token);
@@ -44,7 +47,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsDocumentationComment(SyntaxTrivia trivia);
 
         bool IsDocumentationComment(SyntaxNode node);
-
         bool IsNumericLiteralExpression(SyntaxNode node);
         bool IsNullLiteralExpression(SyntaxNode node);
 
@@ -259,6 +261,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// that arguments name.
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
+
+        ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan);
+        bool IsOnTypeHeader(SyntaxNode root, int position);
+        bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
 
         // Walks the tree, starting from contextNode, looking for the first construct
         // with a missing close brace.  If found, the close brace will be added and the

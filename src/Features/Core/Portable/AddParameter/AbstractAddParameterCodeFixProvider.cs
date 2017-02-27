@@ -201,7 +201,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
             if (!string.IsNullOrWhiteSpace(argumentName))
             {
                 var newParameterSymbol = CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    null, RefKind.None,
+                    attributes: default(ImmutableArray<AttributeData>),
+                    refKind: RefKind.None,
                     isParams: false,
                     type: parameterType,
                     name: argumentName);
@@ -215,7 +216,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var uniqueName = NameGenerator.EnsureUniqueness(name, method.Parameters.Select(p => p.Name));
 
                 var newParameterSymbol = CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    null, RefKind.None,
+                    attributes: default(ImmutableArray<AttributeData>),
+                    refKind: RefKind.None,
                     isParams: false,
                     type: parameterType,
                     name: uniqueName);

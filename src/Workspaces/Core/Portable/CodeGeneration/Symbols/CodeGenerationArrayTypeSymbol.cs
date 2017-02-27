@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public CodeGenerationArrayTypeSymbol(ITypeSymbol elementType, int rank)
-            : base(null, null, Accessibility.NotApplicable, default(DeclarationModifiers), string.Empty, SpecialType.None)
+            : base(null, default(ImmutableArray<AttributeData>), Accessibility.NotApplicable, default(DeclarationModifiers), string.Empty, SpecialType.None)
         {
             this.ElementType = elementType;
             this.Rank = rank;
@@ -48,21 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return new CodeGenerationArrayTypeSymbol(this.ElementType, this.Rank);
         }
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return TypeKind.Array;
-            }
-        }
+        public override TypeKind TypeKind => TypeKind.Array;
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.ArrayType;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.ArrayType;
 
         public override void Accept(SymbolVisitor visitor)
         {

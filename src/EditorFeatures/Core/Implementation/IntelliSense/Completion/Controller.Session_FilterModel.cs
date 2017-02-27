@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var filterTextStartsWithANumber = filterText.Length > 0 && char.IsNumber(filterText[0]);
                 if (filterTextStartsWithANumber)
                 {
-                    if (!IsAfterDot(model, textSnapshot, textSpanToText))
+                    if (!IsAfterDot(model, model.TriggerSnapshot, textSpanToText))
                     {
                         return null;
                     }
@@ -211,12 +211,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             private bool IsAfterDot(Model model, ITextSnapshot textSnapshot, Dictionary<TextSpan, string> textSpanToText)
             {
-                var span = model.OriginalList.Span;
+                var originalSpan = model.OriginalList.Span;
 
                 // Move the span back one character if possible.
-                span = TextSpan.FromBounds(Math.Max(0, span.Start - 1), span.End);
+                var span = Span.FromBounds(Math.Max(0, originalSpan.Start - 1), originalSpan.End);
 
-                var text = model.GetCurrentTextInSnapshot(span, textSnapshot, textSpanToText);
+                // Because we are adjusting the span, it's not safe to call
+                // model.GetCurrentTextInSnapshot. GetCurrentTextInSnapshot starts by
+                // mapping the span into the ViewBuffer. In debugger intellisense, if the
+                // caret is at the start of the immediate/watch window, moving the span 
+                // start backwards results in a span that is outside the view.
+
+                // Since we just need to look at the Document's contents, it should
+                // be safe to do this check by inspecting model.TriggerSnapshot
+                var text = model.TriggerSnapshot.GetText(span);
                 return text.Length > 0 && text[0] == '.';
             }
 
