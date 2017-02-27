@@ -1027,8 +1027,6 @@ End Class
 BC32045: 'foo' has no type parameters and so cannot have type arguments.
         foo(Of Integer)()
            ~~~~~~~~~~~~")
-
-
             End Sub
 
             <Fact>
@@ -1127,9 +1125,7 @@ End Class
 ")
 
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
-
                 AssertNoErrors(compilation)
-
             End Sub
 
             <Fact>
@@ -1154,14 +1150,10 @@ End Class
 ")
 
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
-
                 AssertTheseDiagnostics(compilation,
-                                               <errors>
-BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.
+"BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.
         Dim x As Integer = Q.Zip 'this should be an error
-                           ~
-                                               </errors>)
-
+                           ~")
             End Sub
 
             <Fact>
@@ -1210,7 +1202,6 @@ End Class
 BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property color(x As Integer) As Color'.
         Return color.G(of Long)(1)          ' error, missing parameter to color property
                ~~~~~")
-
             End Sub
 
             <Fact>
@@ -1251,9 +1242,7 @@ End Class
 ")
 
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
-
                 AssertNoErrors(compilation)
-
             End Sub
 
             <Fact>
@@ -1440,8 +1429,6 @@ End Module
 ")
 
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
-
-
                 AssertTheseDiagnostics(compilation,
 "BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property Color(x As Integer) As Module1.Color'.
             c1 = Color.G(1)          ' missing parameter x
@@ -1498,11 +1485,8 @@ End Module
 ")
 
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
-
-
                 AssertNoDiagnostics(compilation)
             End Sub
-
 
             <Fact>
             Public Sub ColorColorOverloadedAddressOf()
@@ -2657,14 +2641,13 @@ End Class
 
                 Assert.Equal("e As System.Object", symbolInfo.Symbol.ToTestDisplayString())
 
-                AssertTheseDiagnostics(compilation, <expected>
-BC30500: Constant 'e' cannot depend on its own value.
+                AssertTheseDiagnostics(compilation,
+"BC30500: Constant 'e' cannot depend on its own value.
         Const e = E.A
                   ~
 BC42104: Variable 'e' is used before it has been assigned a value. A null reference exception could result at runtime.
         Const e = E.A
-                  ~
-                                                </expected>)
+                  ~")
             End Sub
 
             <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
@@ -2705,14 +2688,13 @@ End Class
 
                 Assert.Equal("e As ?", symbolInfo.Symbol.ToTestDisplayString())
 
-                AssertTheseDiagnostics(compilation, <expected>
-BC30980: Type of 'e' cannot be inferred from an expression containing 'e'.
+                AssertTheseDiagnostics(compilation,
+"BC30980: Type of 'e' cannot be inferred from an expression containing 'e'.
         Dim e = E.A
                 ~
 BC42104: Variable 'e' is used before it has been assigned a value. A null reference exception could result at runtime.
         Dim e = E.A
-                ~
-                                                </expected>)
+                ~")
             End Sub
 
             <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
