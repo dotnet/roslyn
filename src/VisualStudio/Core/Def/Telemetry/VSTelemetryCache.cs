@@ -18,24 +18,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         private static readonly ConcurrentDictionary<Key, string> s_propertyMap = new ConcurrentDictionary<Key, string>();
 
         public static string GetEventName(this FunctionId functionId, string eventKey = null)
-        {
-            return s_eventMap.GetOrAdd(new Key(functionId, eventKey), CreateEventName);
-        }
+            => s_eventMap.GetOrAdd(new Key(functionId, eventKey), CreateEventName);
 
         public static string GetPropertyName(this FunctionId functionId, string propertyKey)
-        {
-            return s_propertyMap.GetOrAdd(new Key(functionId, propertyKey), CreatePropertyName);
-        }
+            => s_propertyMap.GetOrAdd(new Key(functionId, propertyKey), CreatePropertyName);
 
-        private static string CreateEventName(Key key)
-        {
-            return (EventPrefix + Enum.GetName(typeof(FunctionId), key.FunctionId).Replace('_', '/') + (key.ItemKey == null ? string.Empty : ("/" + key.ItemKey))).ToLowerInvariant();
-        }
+        private static Func<Key, string> CreateEventName = key =>
+            (EventPrefix + Enum.GetName(typeof(FunctionId), key.FunctionId).Replace('_', '/') + (key.ItemKey == null ? string.Empty : ("/" + key.ItemKey))).ToLowerInvariant();
 
-        private static string CreatePropertyName(Key key)
-        {
-            return (PropertyPrefix + Enum.GetName(typeof(FunctionId), key.FunctionId).Replace('_', '.') + "." + key.ItemKey).ToLowerInvariant();
-        }
+        private static Func<Key, string> CreatePropertyName = key =>
+            (PropertyPrefix + Enum.GetName(typeof(FunctionId), key.FunctionId).Replace('_', '.') + "." + key.ItemKey).ToLowerInvariant();
 
         private struct Key : IEquatable<Key>
         {
@@ -49,19 +41,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             }
 
             public override int GetHashCode()
-            {
-                return Hash.Combine((int)FunctionId, ItemKey == null ? 0 : ItemKey.GetHashCode());
-            }
+                => Hash.Combine((int)FunctionId, ItemKey == null ? 0 : ItemKey.GetHashCode());
 
-            public override bool Equals(object obj)
-            {
-                return obj is Key && Equals((Key)obj);
-            }
+            public override bool Equals(object obj) => Equals((Key)obj);
 
             public bool Equals(Key key)
-            {
-                return this.FunctionId == key.FunctionId && this.ItemKey == key.ItemKey;
-            }
+                => this.FunctionId == key.FunctionId && this.ItemKey == key.ItemKey;
         }
     }
 }

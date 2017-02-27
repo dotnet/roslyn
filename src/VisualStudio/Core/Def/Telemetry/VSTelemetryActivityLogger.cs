@@ -17,7 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         private static readonly HashSet<FunctionId> s_functionIds
             = new HashSet<FunctionId>()
             {
-                FunctionId.NavigateTo_Search,
                 FunctionId.Rename_CommitCore,
                 FunctionId.CommandHandler_FindAllReference,
                 FunctionId.CommandHandler_FormatCommand

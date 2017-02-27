@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             private readonly INavigateToItemDisplayFactory _displayFactory;
             private readonly INavigateToCallback _callback;
             private readonly string _searchPattern;
-            private readonly bool _searchCurrentDocument;
+            private readonly bool SearchCurrentDocument;
             private readonly Document _currentDocument;
             private readonly ProgressTracker _progress;
             private readonly IAsynchronousOperationListener _asyncListener;
@@ -39,12 +39,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _displayFactory = displayFactory;
                 _callback = callback;
                 _searchPattern = searchPattern;
-                _searchCurrentDocument = searchCurrentDocument;
+                SearchCurrentDocument = searchCurrentDocument;
                 _cancellationToken = cancellationToken;
                 _progress = new ProgressTracker(callback.ReportProgress);
                 _asyncListener = asyncListener;
 
-                if (_searchCurrentDocument)
+                if (SearchCurrentDocument)
                 {
                     var documentService = _solution.Workspace.Services.GetService<IDocumentTrackingService>();
                     var activeId = documentService.GetActiveDocument();
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 try
                 {
-                    using (var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, _cancellationToken))
+                    using (var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, CreateLogMessage(_cancellationToken), _cancellationToken))
                     using (var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search"))
                     {
                         _progress.AddItems(_solution.Projects.Count());
@@ -77,6 +77,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
+            private LogMessage CreateLogMessage(CancellationToken cancellationToken)
+                => KeyValueLogMessage.Create(d =>
+                {
+                    d[nameof(SearchCurrentDocument)] = SearchCurrentDocument;
+                });
+
             private async Task SearchAsync(Project project)
             {
                 try
@@ -91,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             private async Task SearchAsyncWorker(Project project)
             {
-                if (_searchCurrentDocument && _currentDocument?.Project != project)
+                if (SearchCurrentDocument && _currentDocument?.Project != project)
                 {
                     return;
                 }
