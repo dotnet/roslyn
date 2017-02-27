@@ -166,11 +166,9 @@ End Class").Path
 
         <Fact>
         Public Sub VbcTest()
-            Dim output As StringWriter = New StringWriter()
-
-            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:en"})
+            Dim output As New StringWriter()
+            Dim cmd As New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:en"})
             cmd.Run(output, Nothing)
-
             Assert.True(output.ToString().StartsWith(s_logoLine1, StringComparison.Ordinal), "vbc should print logo and help if no args specified")
         End Sub
 
@@ -237,18 +235,16 @@ Copyright (C) Microsoft Corporation. All rights reserved."
         <Fact()>
         Public Sub VbcUtf8Output_WithRedirecting_Off()
             Dim src As String = Temp.CreateFile().WriteAllText("♚", New System.Text.UTF8Encoding(False)).Path
-
             Dim tempOut = Temp.CreateFile()
-
-            Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /t:library " & src & " > " & tempOut.Path, expectedRetCode:=1)
+            Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /t:library " & src & " > " & tempOut.Path,
+                                                           expectedRetCode:=1)
             Assert.Equal("", output.Trim())
 
-            Assert.Equal(<text>
-SRC.VB(1) : error BC30037: Character is not valid.
+            Assert.Equal(
+"SRC.VB(1) : error BC30037: Character is not valid.
 
 ?
-~
-</text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
+~", tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
 
             CleanupAllGeneratedFiles(src)
         End Sub
