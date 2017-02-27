@@ -218,7 +218,45 @@ Public MustInherit Class BasicTestBase
             emitOptions,
             verify)
     End Function
+    Friend Shadows Function CompileAndVerify(
+        source As Unit,
+        Optional expectedOutput As String = Nothing,
+        Optional additionalRefs As MetadataReference() = Nothing,
+        Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
+        Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
+        Optional validator As Action(Of PEAssembly) = Nothing,
+        Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
+        Optional expectedSignatures As SignatureDescription() = Nothing,
+        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional verify As Boolean = True,
+        Optional useLatestFramework As Boolean = False
+    ) As CompilationVerifier
 
+        Dim defaultRefs = If(useLatestFramework, LatestVbReferences, DefaultVbReferences)
+        Dim allReferences = If(additionalRefs IsNot Nothing, defaultRefs.Concat(additionalRefs), defaultRefs)
+        If options Is Nothing Then
+            options = If(expectedOutput Is Nothing, TestOptions.ReleaseDll, TestOptions.ReleaseExe)
+        End If
+
+        Dim assemblyName As String = Nothing
+        Dim sourceTrees = ParseUnit(source, parseOptions, assemblyName)
+        Dim compilation = CreateCompilation(sourceTrees, allReferences, options, assemblyName)
+
+        Return MyBase.CompileAndVerify(
+    compilation,
+    Nothing,
+    dependencies,
+    Translate(sourceSymbolValidator),
+    validator,
+    Translate(symbolValidator),
+    expectedSignatures,
+    expectedOutput,
+    emitOptions,
+    verify)
+
+    End Function
     Friend Shadows Function CompileAndVerifyOnWin8Only(
         source As XElement,
         allReferences As IEnumerable(Of MetadataReference),
@@ -470,7 +508,7 @@ Public MustInherit Class BasicTestBaseBase
                </sequencePoints>
     End Function
 
-    Public Shared ReadOnly ClassesWithReadWriteProperties As XCData = <![CDATA[
+    Public Shared ReadOnly ClassesWithReadWriteProperties As String = "
 .class public auto ansi beforefieldinit B
        extends [mscorlib]System.Object
 {
@@ -675,8 +713,7 @@ Public MustInherit Class BasicTestBaseBase
     .get instance int32 D2::get_P_rw_rw_r()
   } // end of property D2::P_rw_rw_r
 } // end of class D2
-]]>
-
+"
     Public Class NameSyntaxFinder
         Inherits VisualBasicSyntaxWalker
 

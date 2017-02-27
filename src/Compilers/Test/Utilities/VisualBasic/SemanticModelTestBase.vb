@@ -62,7 +62,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
 
         Dim bindMarker As String
         If which > 0 Then
-            bindMarker = "'BIND" & which.ToString() & ":"""
+            bindMarker = $"'BIND{which.ToString()}:"""
         Else
             bindMarker = "'BIND:"""
         End If
@@ -99,9 +99,8 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
     End Function
 
     Protected Function GetStartSpanErrorMessage(syntax As SyntaxNode, tpSymbol As ISymbol) As String
-        Return "    Syntax.SpanStart : " & syntax.SpanStart &
-               "    Location1.SourceSpan.Start : " & tpSymbol.Locations.Item(0).SourceSpan.Start &
-               "    Location2.SourceSpan.Start : " & tpSymbol.Locations.Item(0).SourceSpan.Start
+        Return _ 
+        $"    Syntax.SpanStart : { syntax.SpanStart }    Location1.SourceSpan.Start : {tpSymbol.Locations.Item(0).SourceSpan.Start}    Location2.SourceSpan.Start : {tpSymbol.Locations.Item(0).SourceSpan.Start}"
     End Function
 
     Friend Function GetAliasInfoForTest(compilation As Compilation, fileName As String, Optional which As Integer = 0) As AliasSymbol

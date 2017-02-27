@@ -8,7 +8,6 @@ Imports Roslyn.Test.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
-
     Partial Public Class GeneratedTests
 
         Private Shared Function GenerateGreenIdentifierToken() As IdentifierTokenSyntax
@@ -105,6 +104,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Friend Class GreenNodeVisitor
         Inherits InternalSyntax.VisualBasicSyntaxVisitor
     End Class
-
 End Namespace
-

@@ -230,31 +230,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Assert.Equal(True, dict("blah"))
 
             Dim source =
-<compilation name="TestArrayLiteralInferredType">
-    <file name="a.vb">
-        <![CDATA[
+Unit.Make("TestArrayLiteralInferredType").With_a_vb(
+"
 Imports System
 
 Module M1
     Sub Main
         #if Blah
-            Console.WriteLine("Blah")
+            Console.WriteLine(""Blah"")
         #end if
         #if blah
-            Console.WriteLine("blah")
+            Console.WriteLine(""blah"")
         #end if
     End Sub
 End Module
-]]></file>
-</compilation>
+")
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source,
                                                                                                options:=TestOptions.ReleaseExe,
                                                                                                parseOptions:=New VisualBasicParseOptions(preprocessorSymbols:=dict.AsImmutable()))
             CompileAndVerify(comp,
-                             expectedOutput:=<![CDATA[
+                             expectedOutput:="
 Blah
 blah
-            ]]>)
+            ")
 
             text = "Blah=false,blah=true"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
@@ -267,10 +265,10 @@ blah
                                                                                                options:=TestOptions.ReleaseExe,
                                                                                                parseOptions:=New VisualBasicParseOptions(preprocessorSymbols:=dict.AsImmutable()))
             CompileAndVerify(comp,
-                             expectedOutput:=<![CDATA[
+                             expectedOutput:="
 Blah
 blah
-            ]]>)
+            ")
         End Sub
 
         <Fact()>
@@ -284,3 +282,4 @@ blah
         End Sub
     End Class
 End Namespace
+

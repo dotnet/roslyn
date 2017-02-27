@@ -1,110 +1,112 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Roslyn.Test.Utilities
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
+    Namespace Parser.InterpolatedString
 
-Public Class InterpolatedStringParsingTests
-    Inherits BasicTestBase
+        Public Class InterpolatedStringParsingTests
+            Inherits BasicTestBase
 
-    <Fact>
-    Public Sub EmptyString()
+            <Fact>
+            Public Sub EmptyString()
 
-        ParseAndVerify(
+                ParseAndVerify(
 "Module Program
     Sub Main()
         Console.WriteLine($"""")
     End Sub
 End Module")
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub NoInterpolations()
+            <Fact>
+            Public Sub NoInterpolations()
 
-        ParseAndVerify(
+                ParseAndVerify(
 "Module Program
     Sub Main()
         Console.WriteLine($""Hello, World!"")
     End Sub
 End Module")
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub OnlyInterpolation()
+            <Fact>
+            Public Sub OnlyInterpolation()
 
-        ParseAndVerify(
+                ParseAndVerify(
 "Module Program
     Sub Main()
         Console.WriteLine($""{""Hello, World!""}"")
     End Sub
 End Module")
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub SimpleInterpolation()
+            <Fact>
+            Public Sub SimpleInterpolation()
 
-        ParseAndVerify(
+                ParseAndVerify(
 "Module Program
     Sub Main()
         Console.WriteLine($""Hello, {name}!"")
     End Sub
 End Module")
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ParenthesizedInterpolation()
+            <Fact>
+            Public Sub ParenthesizedInterpolation()
 
-        ParseAndVerify(
+                ParseAndVerify(
 "Module Program
     Sub Main()
         Console.WriteLine($""Hello, {(firstName & lastName)}!"")
     End Sub
 End Module")
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ComplexInterpolation_QueryExpression()
+            <Fact>
+            Public Sub ComplexInterpolation_QueryExpression()
 
-        ParseAndVerify(
+                ParseAndVerify(
 "Module Program
     Sub Main()
         Console.WriteLine($""Hello, {From name In names Select name.Length}!"")
     End Sub
 End Module")
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub EscapedBraces()
+            <Fact>
+            Public Sub EscapedBraces()
 
-        ParseAndVerify(
+                ParseAndVerify(
 "Module Program
     Sub Main()
         Console.WriteLine($""{{ {x}, {y} }}"")
     End Sub
 End Module")
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub EmbeddedBracesWorkaround()
+            <Fact>
+            Public Sub EmbeddedBracesWorkaround()
 
-        ParseAndVerify(
+                ParseAndVerify(
 "Module Program
     Sub Main()
         Console.WriteLine($""{""{""}{x}, {y}{""}""}"")
     End Sub
 End Module")
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub AlignmentClause()
+            <Fact>
+            Public Sub AlignmentClause()
 
-        ParseAndVerify(
+                ParseAndVerify(
 "Module Program
     Sub Main()
         Console.WriteLine(""Header 1 | Header 2 | Header 3"")
@@ -112,48 +114,48 @@ End Module")
     End Sub
 End Module")
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub FormatStringClause()
+            <Fact>
+            Public Sub FormatStringClause()
 
-        ParseAndVerify(
+                ParseAndVerify(
 "Module Program
     Sub Main()
         Console.WriteLine($""You owe: {balanceDue:C02}."")
     End Sub
 End Module")
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub FormatStringClause_WithTwoColons()
+            <Fact>
+            Public Sub FormatStringClause_WithTwoColons()
 
-        ParseAndVerify(
+                ParseAndVerify(
 "Module Program
     Sub Main()
         Console.WriteLine($""You owe: {balanceDue::C02}."")
     End Sub
 End Module")
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub AlignmentClauseAndFormatClause()
+            <Fact>
+            Public Sub AlignmentClauseAndFormatClause()
 
-        ParseAndVerify(
+                ParseAndVerify(
 "Module Program
     Sub Main()
         Console.WriteLine($""You owe: {balanceDue,10:C02}."")
     End Sub
 End Module")
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub MultilineText()
+            <Fact>
+            Public Sub MultilineText()
 
-        ParseAndVerify(
+                ParseAndVerify(
 "Module Program
     Sub Main()
         Console.WriteLine(
@@ -165,11 +167,11 @@ Age:
     End Sub
 End Module")
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ERR_InterpolationFormatWhitespace()
-        Parse(
+            <Fact>
+            Public Sub ERR_InterpolationFormatWhitespace()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""Hello, {EventArgs.Empty:C02 }!"")
@@ -182,11 +184,11 @@ BC37249: Format specifier may not contain trailing whitespace.
                                                     ~~~
 </expected>)
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub Error_NewLineAfterAfterOpenBraceAndBeforeCloseBraceWithoutFormatClause()
-        Parse(
+            <Fact>
+            Public Sub Error_NewLineAfterAfterOpenBraceAndBeforeCloseBraceWithoutFormatClause()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""Hello, {
@@ -216,11 +218,11 @@ BC30648: String constants must end with a double quote.
   ~~~
 </expected>)
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub Error_NewLineAfterAlignmentClause()
-        Parse(
+            <Fact>
+            Public Sub Error_NewLineAfterAlignmentClause()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""Hello, {EventArgs.Empty,-10
@@ -251,11 +253,11 @@ BC30648: String constants must end with a double quote.
 :C02}!")
       ~~~
 </expected>)
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub Error_NewLineAfterAlignmentClauseCommaToken()
-        Parse(
+            <Fact>
+            Public Sub Error_NewLineAfterAlignmentClauseCommaToken()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""Hello, {EventArgs.Empty,
@@ -292,11 +294,11 @@ BC30648: String constants must end with a double quote.
 -10:C02}!")
          ~~~
 </expected>)
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub Error_NewLineAfterFormatClause()
-        Parse(
+            <Fact>
+            Public Sub Error_NewLineAfterFormatClause()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""Hello, {EventArgs.Empty:C02
@@ -321,11 +323,11 @@ BC30648: String constants must end with a double quote.
 }!")
   ~~~
 </expected>)
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub Error_NewLineAfterFormatClauseColonToken()
-        Parse(
+            <Fact>
+            Public Sub Error_NewLineAfterFormatClauseColonToken()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""Hello, {EventArgs.Empty:
@@ -356,513 +358,513 @@ BC30648: String constants must end with a double quote.
 C02}!")
      ~~~
 </expected>)
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_DollarSignMissingDoubleQuote()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_DollarSignMissingDoubleQuote()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($)
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingClosingDoubleQuote()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingClosingDoubleQuote()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingCloseBrace()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingCloseBrace()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingExpressionWithAlignment()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingExpressionWithAlignment()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{,5}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingExpressionWithFormatString()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingExpressionWithFormatString()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{:C02}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingExpressionWithAlignmentAndFormatString()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingExpressionWithAlignmentAndFormatString()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{,5:C02}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingExpressionAndAlignment()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingExpressionAndAlignment()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{,}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingExpressionAndAlignmentAndFormatString()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingExpressionAndAlignmentAndFormatString()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{,:}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_NonExpressionKeyword()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_NonExpressionKeyword()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{For}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_NonExpressionCharacter()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_NonExpressionCharacter()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{`}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_IncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_IncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{(1 +}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingAlignment()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingAlignment()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1,}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_BadAlignment()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_BadAlignment()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1,&}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingFormatString()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingFormatString()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1:}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_AlignmentWithMissingFormatString()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_AlignmentWithMissingFormatString()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1,5:}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1:C02,-5}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingOpenBrace()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingOpenBrace()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_DollarSignMissingDoubleQuote_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_DollarSignMissingDoubleQuote_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingClosingDoubleQuote_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingClosingDoubleQuote_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingCloseBrace_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingCloseBrace_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{""
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingExpression_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingExpression_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{}""
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_NonExpressionKeyword_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_NonExpressionKeyword_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{For}""
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_NonExpressionCharacter_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_NonExpressionCharacter_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{`}""
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_IncompleteExpression_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_IncompleteExpression_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{(1 +}""
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingAlignment_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingAlignment_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1,}""
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_BadAlignment_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_BadAlignment_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1,&}""
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingFormatString_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingFormatString_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1:}""
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_AlignmentWithMissingFormatString_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_AlignmentWithMissingFormatString_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1,5:}""
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1:C02,-5}""
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingOpenBrace_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingOpenBrace_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""}""
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_NonExpressionKeyword_InUnclosedInterpolation()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_NonExpressionKeyword_InUnclosedInterpolation()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{For"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_NonExpressionCharacter_InUnclosedInterpolation()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_NonExpressionCharacter_InUnclosedInterpolation()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{`"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_IncompleteExpression_InUnclosedInterpolation()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_IncompleteExpression_InUnclosedInterpolation()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{(1 +"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingAlignment_InUnclosedInterpolation()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingAlignment_InUnclosedInterpolation()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1,"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_BadAlignment_InUnclosedInterpolation()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_BadAlignment_InUnclosedInterpolation()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1,&"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingFormatString_InUnclosedInterpolation()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingFormatString_InUnclosedInterpolation()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1:"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_AlignmentWithMissingFormatString_InUnclosedInterpolation()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_AlignmentWithMissingFormatString_InUnclosedInterpolation()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1,5:"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder_InUnclosedInterpolation()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder_InUnclosedInterpolation()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1:C02,-5"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_NonExpressionKeyword_InUnclosedInterpolation_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_NonExpressionKeyword_InUnclosedInterpolation_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{For
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_NonExpressionCharacter_InUnclosedInterpolation_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_NonExpressionCharacter_InUnclosedInterpolation_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{`
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_IncompleteExpression_InUnclosedInterpolation_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_IncompleteExpression_InUnclosedInterpolation_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{(1 +
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingAlignment_InUnclosedInterpolation_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingAlignment_InUnclosedInterpolation_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1,
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_BadAlignment_InUnclosedInterpolation_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_BadAlignment_InUnclosedInterpolation_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1,&
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_MissingFormatString_InUnclosedInterpolation_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_MissingFormatString_InUnclosedInterpolation_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1:
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_AlignmentWithMissingFormatString_InUnclosedInterpolation_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_AlignmentWithMissingFormatString_InUnclosedInterpolation_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1,5:
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder_InUnclosedInterpolation_NestedInIncompleteExpression()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_AlignmentAndFormatStringOutOfOrder_InUnclosedInterpolation_NestedInIncompleteExpression()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1:C02,-5
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_IncompleteExpression_FollowedByAColon()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_IncompleteExpression_FollowedByAColon()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{CStr(:C02}"")
         Console.WriteLine($""{CStr(1:C02}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_IncompleteExpression_FollowedByATwoColons()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_IncompleteExpression_FollowedByATwoColons()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{CStr(::C02}"")
         Console.WriteLine($""{CStr(1::C02}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ErrorRecovery_ExtraCloseBraceFollowingInterpolationWithNoFormatClause()
-        Parse(
+            <Fact>
+            Public Sub ErrorRecovery_ExtraCloseBraceFollowingInterpolationWithNoFormatClause()
+                Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""{1}}"")
     End Sub
 End Module")
-    End Sub
+            End Sub
 
-    <Fact, WorkItem(6341, "https://github.com/dotnet/roslyn/issues/6341")>
-    Public Sub LineBreakInInterpolation_1()
-        Parse(
+            <Fact, WorkItem(6341, "https://github.com/dotnet/roslyn/issues/6341")>
+            Public Sub LineBreakInInterpolation_1()
+                Parse(
 "Module Program
     Sub Main()
         Dim x = $""{ " + vbCr + vbCr + "1 
@@ -892,11 +894,11 @@ BC30648: String constants must end with a double quote.
  ~~
 </expected>)
 
-    End Sub
+            End Sub
 
-    <Fact, WorkItem(6341, "https://github.com/dotnet/roslyn/issues/6341")>
-    Public Sub LineBreakInInterpolation_2()
-        Parse(
+            <Fact, WorkItem(6341, "https://github.com/dotnet/roslyn/issues/6341")>
+            Public Sub LineBreakInInterpolation_2()
+                Parse(
 "Module Program
     Sub Main()
         Dim x = $""{ 1 " + vbCr + vbCr + " 
@@ -920,6 +922,8 @@ BC30648: String constants must end with a double quote.
  ~~
 </expected>)
 
-    End Sub
+            End Sub
 
-End Class
+        End Class
+    End Namespace
+End Namespace

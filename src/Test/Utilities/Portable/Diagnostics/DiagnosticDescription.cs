@@ -305,76 +305,77 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override string ToString()
         {
-            var sb = new StringBuilder();
+            var sb =_PSBP.Allocate();
 
-            sb.Append("Diagnostic(");
+            sb.Builder.Append("Diagnostic(");
             if (_errorCodeType == typeof(string))
             {
-                sb.Append("\"").Append(_code).Append("\"");
+                sb.Builder.Append("\"").Append(_code).Append("\"");
             }
             else
             {
-                sb.Append(_errorCodeType.Name);
-                sb.Append(".");
-                sb.Append(Enum.GetName(_errorCodeType, _code));
+                sb.Builder.Append(_errorCodeType.Name);
+                sb.Builder.Append(".");
+                sb.Builder.Append(Enum.GetName(_errorCodeType, _code));
             }
 
             if (_squiggledText != null)
             {
                 if (_squiggledText.Contains("\n") || _squiggledText.Contains("\\") || _squiggledText.Contains("\""))
                 {
-                    sb.Append(", @\"");
-                    sb.Append(_squiggledText.Replace("\"", "\"\""));
+                    sb.Builder.Append(", @\"");
+                    sb.Builder.Append(_squiggledText.Replace("\"", "\"\""));
                 }
                 else
                 {
-                    sb.Append(", \"");
-                    sb.Append(_squiggledText);
+                    sb.Builder.Append(", \"");
+                    sb.Builder.Append(_squiggledText);
                 }
 
-                sb.Append('"');
+                sb.Builder.Append('"');
             }
 
-            sb.Append(")");
+            sb.Builder.Append(")");
 
             if (_arguments != null)
             {
-                sb.Append(".WithArguments(");
+                sb.Builder.Append(".WithArguments(");
                 var argumentStrings = GetArgumentsAsStrings().GetEnumerator();
                 for (int i = 0; argumentStrings.MoveNext(); i++)
                 {
-                    sb.Append("\"");
-                    sb.Append(argumentStrings.Current);
-                    sb.Append("\"");
+                    sb.Builder.Append("\"");
+                    sb.Builder.Append(argumentStrings.Current);
+                    sb.Builder.Append("\"");
                     if (i < _arguments.Length - 1)
                     {
-                        sb.Append(", ");
+                        sb.Builder.Append(", ");
                     }
                 }
-                sb.Append(")");
+                sb.Builder.Append(")");
             }
 
             if (_startPosition != null && _showPosition)
             {
-                sb.Append(".WithLocation(");
-                sb.Append(_startPosition.Value.Line + 1);
-                sb.Append(", ");
-                sb.Append(_startPosition.Value.Character + 1);
-                sb.Append(")");
+                sb.Builder.Append(".WithLocation(");
+                sb.Builder.Append(_startPosition.Value.Line + 1);
+                sb.Builder.Append(", ");
+                sb.Builder.Append(_startPosition.Value.Character + 1);
+                sb.Builder.Append(")");
             }
 
             if (_isWarningAsError)
             {
-                sb.Append(".WithWarningAsError(true)");
+                sb.Builder.Append(".WithWarningAsError(true)");
             }
 
             if (_syntaxPredicate != null && _showPredicate)
             {
-                sb.Append(".WhereSyntax(...)");
+                sb.Builder.Append(".WhereSyntax(...)");
             }
 
-            return sb.ToString();
+            return sb.ToStringAndFree();
         }
+        private static readonly ObjectPool<Collections.PooledStringBuilder> _PSBP =  Collections.PooledStringBuilder.CreatePool();
 
         public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual)
         {
@@ -384,13 +385,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var includeDiagnosticMessagesAsComments = (language == CSharp);
             int indentDepth = (language == CSharp) ? 4 : 1;
 
-            StringBuilder assertText = new StringBuilder();
-            assertText.AppendLine();
+            Collections.PooledStringBuilder assertText = _PSBP.Allocate();
+            assertText.Builder.AppendLine();
 
             // write out the error baseline as method calls
             int i;
-            assertText.AppendLine("Expected:");
-            var expectedText = new StringBuilder();
+            assertText.Builder.AppendLine("Expected:");
+            var expectedText =_PSBP.Allocate();
             for (i = 0; i < expected.Length; i++)
             {
                 var d = expected[i];
@@ -398,16 +399,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (i < expected.Length - 1)
                 {
-                    expectedText.Append(",");
+                    expectedText.Builder.Append(",");
                 }
 
-                expectedText.AppendLine();
+                expectedText.Builder.AppendLine();
             }
-            assertText.Append(expectedText);
+            assertText.Builder.Append(expectedText);
 
             // write out the actual results as method calls (copy/paste this to update baseline)
-            assertText.AppendLine("Actual:");
-            var actualText = new StringBuilder();
+            assertText.Builder.AppendLine("Actual:");
+            var actualText = _PSBP.Allocate();
             var e = actual.GetEnumerator();
             for (i = 0; e.MoveNext(); i++)
             {
@@ -420,21 +421,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (i > 0)
                 {
-                    assertText.AppendLine(",");
-                    actualText.AppendLine(",");
+                    assertText.Builder.AppendLine(",");
+                    actualText.Builder.AppendLine(",");
                 }
 
                 if (includeDiagnosticMessagesAsComments)
                 {
                     Indent(assertText, indentDepth);
-                    assertText.Append("// ");
-                    assertText.AppendLine(d.ToString());
+                    assertText.Builder.Append("// ");
+                    assertText.Builder.AppendLine(d.ToString());
                     var l = d.Location;
                     if (l.IsInSource)
                     {
                         Indent(assertText, indentDepth);
-                        assertText.Append("// ");
-                        assertText.AppendLine(l.SourceTree.GetText().Lines.GetLineFromPosition(l.SourceSpan.Start).ToString());
+                        assertText.Builder.Append("// ");
+                        assertText.Builder.AppendLine(l.SourceTree.GetText().Lines.GetLineFromPosition(l.SourceSpan.Start).ToString());
                     }
                 }
 
@@ -450,25 +451,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             if (i > 0)
             {
-                assertText.AppendLine();
-                actualText.AppendLine();
+                assertText.Builder.AppendLine();
+                actualText.Builder.AppendLine();
             }
 
-            assertText.AppendLine("Diff:");
-            assertText.Append(DiffUtil.DiffReport(expectedText.ToString(), actualText.ToString()));
+            assertText.Builder.AppendLine("Diff:");
+            assertText.Builder.Append(DiffUtil.DiffReport(expectedText.ToStringAndFree(), actualText.ToStringAndFree()));
 
-            return assertText.ToString();
+            return assertText.ToStringAndFree();
         }
 
-        private static void AppendDiagnosticDescription(StringBuilder sb, DiagnosticDescription d, int indentDepth)
+        private static void AppendDiagnosticDescription(Collections.PooledStringBuilder sb, DiagnosticDescription d, int indentDepth)
         {
             Indent(sb, indentDepth);
-            sb.Append(d.ToString());
+            sb.Builder.Append(d.ToString());
         }
 
-        private static void Indent(StringBuilder sb, int count)
+        private static void Indent(Collections.PooledStringBuilder sb, int count)
         {
-            sb.Append(' ', 4 * count);
+            sb.Builder.Append(' ', 4 * count);
         }
     }
 }

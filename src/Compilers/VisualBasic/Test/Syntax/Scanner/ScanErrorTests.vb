@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     ' this place is dedicated to scan related error tests
     Public Class ScanErrorTests
@@ -36,10 +36,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <WorkItem(881821, "DevDiv/Personal")>
         <Fact>
         Public Sub BC30004ERR_IllegalCharConstant_ScanTwoCharLiteralFollowedByQuote1()
-            ParseAndVerify(<![CDATA[
-                "  "C
-                "
-            ]]>,
+            ParseAndVerify("
+                ""  ""C
+                ""
+            ",
             <errors>
                 <error id="30648"/>
                 <error id="30004"/>

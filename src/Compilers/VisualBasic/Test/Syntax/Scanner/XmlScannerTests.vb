@@ -352,11 +352,11 @@ Public Class XmlInternalSyntax
     <WorkItem(541284, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541284")>
     <Fact>
     Public Sub ParseWithChrw0()
-        Dim code = <![CDATA[
+        Dim code = "
         Sub SUB0113 ()
         I<
 
-        ]]>.Value
+        "
 
         code = code & ChrW(0)
         VisualBasicSyntaxTree.ParseText(code)

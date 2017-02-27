@@ -5,120 +5,92 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
-<CLSCompliant(False)>
-Public Class ParseImports
-    Inherits BasicTestBase
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
+    Namespace Parser.Imports
 
-    <Fact>
-    Public Sub ParseImportsPass()
-        ParseAndVerify(<![CDATA[
-            Imports System.Text
-            Imports Roslyn.Compilers
+        <CLSCompliant(False)>
+        Public Class ParseImports
+            Inherits BasicTestBase
+
+            <Fact>
+            Public Sub ParseImportsPass()
+                ParseAndVerify(
+"Imports System.Text
+Imports Roslyn.Compilers
 Imports Roslyn.Compilers.Common
-            Imports Roslyn.Compilers.VisualBasic
-        ]]>)
+Imports Roslyn.Compilers.VisualBasic")
 
-        ParseAndVerify(<![CDATA[
-                Imports t1 = System.Text
-                Imports t2 = 
-                    Microsoft.Languages.Text
-                Imports s1 = Microsoft.VisualBasic.Syntax
-        ]]>)
-    End Sub
+                ParseAndVerify(
+"Imports t1 = System.Text
+Imports t2 = 
+    Microsoft.Languages.Text
+Imports s1 = Microsoft.VisualBasic.Syntax")
+            End Sub
 
-    <Fact>
-    Public Sub BC31398ERR_NoTypecharInAlias_ParseImportsFail()
-        ParseAndVerify(<![CDATA[
-            Imports s$ = System.Text
-        ]]>,
-        <errors>
-            <error id="31398"/>
-        </errors>)
-    End Sub
+            <Fact>
+            Public Sub BC31398ERR_NoTypecharInAlias_ParseImportsFail()
+                ParseAndVerify("Imports s$ = System.Text", <errors><error id="31398"/></errors>)
+            End Sub
 
-    <Fact>
-    Public Sub BC30203ERR_ExpectedIdentifier_Bug863004()
-        ParseAndVerify(<![CDATA[
-            Imports (ModImpErrGen003.Scen25) =
-            Default Imports
-        ]]>,
+            <Fact>
+            Public Sub BC30203ERR_ExpectedIdentifier_Bug863004()
+                ParseAndVerify(
+"Imports (ModImpErrGen003.Scen25) =
+Default Imports",
         <errors>
             <error id="30193"/>
             <error id="30203"/>
             <error id="30203"/>
         </errors>)
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub BC30180ERR_UnrecognizedTypeKeyword_Bug869085()
-        ParseAndVerify(<![CDATA[
-            imports ns1.GenClass(of of string)
-        ]]>,
-        <errors>
-            <error id="30180"/>
-        </errors>)
-    End Sub
+            <Fact>
+            Public Sub BC30180ERR_UnrecognizedTypeKeyword_Bug869085()
+                ParseAndVerify("imports ns1.GenClass(of of string)", <errors><error id="30180"/></errors>)
+            End Sub
 
-    <Fact>
-    Public Sub ParseXmlNamespace()
-        ParseAndVerify(<![CDATA[
-            imports <xmlns:p="ns1">
-        ]]>)
-    End Sub
+            <Fact>
+            Public Sub ParseXmlNamespace()
+                ParseAndVerify("imports <xmlns:p=""ns1"">")
+            End Sub
 
-    <Fact>
-    Public Sub ParseXmlNamespaceStart()
-        ParseAndVerify(<![CDATA[
-            imports <
-        ]]>,
-            Diagnostic(ERRID.ERR_ExpectedXmlns, ""),
-            Diagnostic(ERRID.ERR_ExpectedGreater, "")
-        )
-    End Sub
+            <Fact>
+            Public Sub ParseXmlNamespaceStart()
+                ParseAndVerify("imports <",
+                       Diagnostic(ERRID.ERR_ExpectedXmlns, ""),
+                       Diagnostic(ERRID.ERR_ExpectedGreater, ""))
+            End Sub
 
-    <Fact>
-    Public Sub BC31187ERR_ExpectedXmlns()
-        ParseAndVerify(<![CDATA[
-            imports <xml:p="ns1">
-        ]]>,
-        Diagnostic(ERRID.ERR_ExpectedXmlns, ""),
-        Diagnostic(ERRID.ERR_ExpectedGreater, "xml"))
-    End Sub
+            <Fact>
+            Public Sub BC31187ERR_ExpectedXmlns()
+                ParseAndVerify("imports <xml:p=""ns1"">",
+                       Diagnostic(ERRID.ERR_ExpectedXmlns, ""),
+                       Diagnostic(ERRID.ERR_ExpectedGreater, "xml"))
+            End Sub
 
-    <Fact>
-    Public Sub BC31187ERR_ExpectedXmlns_2()
-        ParseAndVerify(<![CDATA[
-            imports <p:xmlns="ns1">
-        ]]>,
-        Diagnostic(ERRID.ERR_ExpectedXmlns, ""),
-        Diagnostic(ERRID.ERR_ExpectedGreater, "p"))
-    End Sub
+            <Fact>
+            Public Sub BC31187ERR_ExpectedXmlns_2()
+                ParseAndVerify("imports <p:xmlns=""ns1"">",
+                       Diagnostic(ERRID.ERR_ExpectedXmlns, ""),
+                       Diagnostic(ERRID.ERR_ExpectedGreater, "p"))
+            End Sub
 
-    <WorkItem(879682, "DevDiv/Personal")>
-    <Fact()>
-    Public Sub BC30465ERR_ImportsMustBeFirst()
-        ParseAndVerify(<![CDATA[
-            Class Class1
-            End Class
-            Imports System
-        ]]>,
-        <errors>
-            <error id="30465"/>
-        </errors>)
-    End Sub
+            <WorkItem(879682, "DevDiv/Personal")>
+            <Fact()>
+            Public Sub BC30465ERR_ImportsMustBeFirst()
+                ParseAndVerify(
+"Class Class1
+End Class
+Imports System", <errors><error id="30465"/></errors>)
+            End Sub
 
-    <WorkItem(541486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541486")>
-    <Fact>
-    Public Sub ImportsAliasMissingIdentifier()
-        Dim tree = ParseAndVerify(<![CDATA[
-            Imports = System
-        ]]>,
-        <errors>
-            <error id="30203"/>
-        </errors>)
+            <WorkItem(541486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541486")>
+            <Fact>
+            Public Sub ImportsAliasMissingIdentifier()
+                Dim tree = ParseAndVerify("Imports = System", <errors><error id="30203"/></errors>)
 
 
-        VerifySyntaxKinds(tree.GetRoot().DescendantNodes.OfType(Of ImportsStatementSyntax).First,
+                VerifySyntaxKinds(tree.GetRoot().DescendantNodes.OfType(Of ImportsStatementSyntax).First,
                           SyntaxKind.ImportsStatement,
                                 SyntaxKind.ImportsKeyword,
                                 SyntaxKind.SimpleImportsClause,
@@ -127,19 +99,14 @@ Imports Roslyn.Compilers.Common
                                             SyntaxKind.EqualsToken,
                                       SyntaxKind.IdentifierName,
                                             SyntaxKind.IdentifierToken)
-    End Sub
+            End Sub
 
-    <WorkItem(541486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541486")>
-    <Fact()>
-    Public Sub ImportsMissingIdentifierBeforeComma()
-        Dim tree = ParseAndVerify(<![CDATA[
-            Imports ,System
-        ]]>,
-        <errors>
-            <error id="30203"/>
-        </errors>)
+            <WorkItem(541486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541486")>
+            <Fact()>
+            Public Sub ImportsMissingIdentifierBeforeComma()
+                Dim tree = ParseAndVerify("Imports ,System", <errors><error id="30203"/></errors>)
 
-        VerifySyntaxKinds(tree.GetRoot().DescendantNodes.OfType(Of ImportsStatementSyntax).First,
+                VerifySyntaxKinds(tree.GetRoot().DescendantNodes.OfType(Of ImportsStatementSyntax).First,
                           SyntaxKind.ImportsStatement,
                                 SyntaxKind.ImportsKeyword,
                                 SyntaxKind.SimpleImportsClause,
@@ -149,21 +116,19 @@ Imports Roslyn.Compilers.Common
                                 SyntaxKind.SimpleImportsClause,
                                         SyntaxKind.IdentifierName,
                                             SyntaxKind.IdentifierToken)
-    End Sub
+            End Sub
 
-    <WorkItem(541803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541803")>
-    <Fact>
-    Public Sub AnotherImportsAfterComma()
-        Dim tree = ParseAndVerify(<![CDATA[
-Imports System.Collections.Generic,
+            <WorkItem(541803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541803")>
+            <Fact>
+            Public Sub AnotherImportsAfterComma()
+                Dim tree = ParseAndVerify(
+"Imports System.Collections.Generic,
                 System  ' no errors here
 
 Imports System.Collections,
-Imports System
-        ]]>,
-        <errors>
-            <error id="30183"/>
-        </errors>)
-    End Sub
+Imports System", <errors><error id="30183"/></errors>)
+            End Sub
 
-End Class
+        End Class
+    End Namespace
+End Namespace

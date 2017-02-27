@@ -5,45 +5,48 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
-Public Class ParseXmlDocComments
-    Inherits BasicTestBase
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
+    Namespace Parser.XMLDocComments
 
-    <Fact()>
-    Public Sub ParseOneLineText()
-        ParseAndVerify(<![CDATA[
+        Public Class ParseXmlDocComments
+            Inherits BasicTestBase
+
+            <Fact()>
+            Public Sub ParseOneLineText()
+                ParseAndVerify("
                 ''' hello doc comments!
                 Module m1
                 End Module
-            ]]>)
-    End Sub
+            ")
+            End Sub
 
-    <Fact>
-    Public Sub ParseImmediateXmlDocText()
-        ParseAndVerify(<![CDATA['''hello doc comments!
+            <Fact>
+            Public Sub ParseImmediateXmlDocText()
+                ParseAndVerify("'''hello doc comments!
                 Module m1
                 End Module
-            ]]>)
-    End Sub
+            ")
+            End Sub
 
-    <Fact>
-    Public Sub ParseImmediateXmlDocElement()
-        ParseAndVerify(<![CDATA['''<qqq> blah </qqq>
+            <Fact>
+            Public Sub ParseImmediateXmlDocElement()
+                ParseAndVerify("'''<qqq> blah </qqq>
                 Module m1
                 End Module
-            ]]>)
-    End Sub
+            ")
+            End Sub
 
-    <Fact>
-    Public Sub ParseImmediateXmlDocComment()
-        ParseAndVerify(<![CDATA['''<!-- qqqqq -->
+            <Fact>
+            Public Sub ParseImmediateXmlDocComment()
+                ParseAndVerify("'''<!-- qqqqq -->
                 Module m1
                 End Module
-            ]]>)
-    End Sub
+            ")
+            End Sub
 
-    <Fact>
-    Public Sub ParseMultilineXmlDocElement()
-        ParseAndVerify(<![CDATA[
+            <Fact>
+            Public Sub ParseMultilineXmlDocElement()
+                ParseAndVerify("
                 '''
                 '''<qqq> 
                 '''<aaa>blah 
@@ -52,158 +55,158 @@ Public Class ParseXmlDocComments
 
                 Module m1
                 End Module
-            ]]>)
-    End Sub
+            ")
+            End Sub
 
-    <Fact>
-    Public Sub ParseMultiLineText()
-        Dim multiline = ParseAndVerify(<![CDATA[
+            <Fact>
+            Public Sub ParseMultiLineText()
+                Dim multiline = ParseAndVerify("
                 ''' hello doc comments!
                 ''' hello doc comments!
                 Module m1
                 End Module
-            ]]>).GetRoot()
+            ").GetRoot()
 
-        Dim comments = multiline.GetFirstToken.LeadingTrivia
+                Dim comments = multiline.GetFirstToken.LeadingTrivia
 
-        Assert.Equal(4, comments.Count)
+                Assert.Equal(4, comments.Count)
 
-        Dim struct = DirectCast(comments(2).GetStructure, DocumentationCommentTriviaSyntax)
+                Dim struct = DirectCast(comments(2).GetStructure, DocumentationCommentTriviaSyntax)
 
-        Assert.DoesNotContain(vbCr, struct.GetInteriorXml(), StringComparison.Ordinal)
-        Assert.DoesNotContain(vbLf, struct.GetInteriorXml(), StringComparison.Ordinal)
-        Assert.Equal(" hello doc comments! hello doc comments!", struct.GetInteriorXml)
-    End Sub
+                Assert.DoesNotContain(vbCr, struct.GetInteriorXml(), StringComparison.Ordinal)
+                Assert.DoesNotContain(vbLf, struct.GetInteriorXml(), StringComparison.Ordinal)
+                Assert.Equal(" hello doc comments! hello doc comments!", struct.GetInteriorXml)
+            End Sub
 
-    <Fact>
-    Public Sub ParseOneLineTextAndMarkup()
-        Dim node = ParseAndVerify(<![CDATA[
+            <Fact>
+            Public Sub ParseOneLineTextAndMarkup()
+                Dim node = ParseAndVerify("
                 ''' hello doc comments! <!-- qqqqq --> <qqq> blah </qqq> 
                 Module m1
                 End Module
-            ]]>)
+            ")
 
-        Dim tk = node.GetRoot().FindToken(25)
+                Dim tk = node.GetRoot().FindToken(25)
 
-        Dim docComment = DirectCast(tk.LeadingTrivia(2).GetStructure, DocumentationCommentTriviaSyntax)
-        Dim txt = docComment.GetInteriorXml
+                Dim docComment = DirectCast(tk.LeadingTrivia(2).GetStructure, DocumentationCommentTriviaSyntax)
+                Dim txt = docComment.GetInteriorXml
 
-        Assert.Equal(" hello doc comments! <!-- qqqqq --> <qqq> blah </qqq> ", txt)
-    End Sub
+                Assert.Equal(" hello doc comments! <!-- qqqqq --> <qqq> blah </qqq> ", txt)
+            End Sub
 
-    <Fact()>
-    Public Sub ParseTwoLineTextAndMarkup()
-        Dim node = ParseAndVerify(<![CDATA[
+            <Fact()>
+            Public Sub ParseTwoLineTextAndMarkup()
+                Dim node = ParseAndVerify("
                 ''' hello doc comments! <!-- qqqqq --> <qqq> blah </qqq> 
                 ''' hello doc comments! <!-- qqqqq --> <qqq> blah </qqq>
                 Module m1
                 End Module
-            ]]>)
+            ")
 
 
-        Dim tk = node.GetRoot().FindToken(25)
+                Dim tk = node.GetRoot().FindToken(25)
 
-        Dim docComment = DirectCast(tk.LeadingTrivia(2).GetStructure, DocumentationCommentTriviaSyntax)
-        Dim docComment1 = DirectCast(tk.LeadingTrivia(2).GetStructure, DocumentationCommentTriviaSyntax)
+                Dim docComment = DirectCast(tk.LeadingTrivia(2).GetStructure, DocumentationCommentTriviaSyntax)
+                Dim docComment1 = DirectCast(tk.LeadingTrivia(2).GetStructure, DocumentationCommentTriviaSyntax)
 
-        Assert.Same(docComment, docComment1)
+                Assert.Same(docComment, docComment1)
 
-        Dim txt = docComment.GetInteriorXml
+                Dim txt = docComment.GetInteriorXml
 
-        Assert.Equal(" hello doc comments! <!-- qqqqq --> <qqq> blah </qqq> " &
+                Assert.Equal(" hello doc comments! <!-- qqqqq --> <qqq> blah </qqq> " &
                      " hello doc comments! <!-- qqqqq --> <qqq> blah </qqq>", txt)
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub XmlDocCommentsSpanLines()
-        ParseAndVerify(<![CDATA[
+            <Fact>
+            Public Sub XmlDocCommentsSpanLines()
+                ParseAndVerify("
                 ''' hello doc comments! <!-- qqqqq 
                 '''--> <qqq> blah </qqq> 
                 ''' hello doc comments! <!--
                 ''' qqqqq --> <qqq> blah </qqq>
                 Module m1
                 End Module
-            ]]>)
-    End Sub
+            ")
+            End Sub
 
-    <Fact>
-    Public Sub XmlDocCommentsAttrSpanLines()
-        ParseAndVerify(<![CDATA[
-                ''' <qqq a
-                '''=
-                '''
-                '''"
-                '''h
-                ''' &lt;
-                ''' "
-                '''> blah </qqq>
-                Module m1
-                End Module
-            ]]>)
-    End Sub
+            <Fact>
+            Public Sub XmlDocCommentsAttrSpanLines()
+                ParseAndVerify("
+''' <qqq a
+'''=
+'''
+'''""
+'''h
+''' <
+''' ""
+'''> blah </qqq>
+Module m1
+End Module
+")
+            End Sub
 
-    <WorkItem(893656, "DevDiv/Personal")>
-    <WorkItem(923711, "DevDiv/Personal")>
-    <Fact>
-    Public Sub TickTickTickKind()
-        ParseAndVerify(
-            " '''<qqq> blah </qqq>" & vbCrLf &
-            "Module m1" & vbCrLf &
-            "End Module"
+            <WorkItem(893656, "DevDiv/Personal")>
+            <WorkItem(923711, "DevDiv/Personal")>
+            <Fact>
+            Public Sub TickTickTickKind()
+                ParseAndVerify(
+"'''<qqq> blah </qqq>
+Module m1
+End Module"
         ).
         FindNodeOrTokenByKind(SyntaxKind.XmlElementStartTag).VerifyPrecedingCommentIsTrivia()
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub TickTickTickString()
-        ParseAndVerify(
-             "'''<qqq aa=""qq" & vbCrLf &
-             "'''qqqqqqqqqqqqqqqqqq""> </qqq>" & vbCrLf &
-             "Module m1" & vbCrLf &
-             "End Module"
+            <Fact>
+            Public Sub TickTickTickString()
+                ParseAndVerify(
+"'''<qqq aa=""qq
+'''qqqqqqqqqqqqqqqqqq""""> </qqq>
+Module m1
+End Module"
          ).
          FindNodeOrTokenByKind(SyntaxKind.XmlTextLiteralToken, 2).VerifyPrecedingCommentIsTrivia()
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub TickTickTickSpaceString()
-        ParseAndVerify(
-             "'''<qqq aa=""qq" & vbCrLf &
-             " '''qqqqqqqqqqqqqqqqqq""> </qqq>" & vbCrLf &
-             "Module m1" & vbCrLf &
-             "End Module"
+            <Fact>
+            Public Sub TickTickTickSpaceString()
+                ParseAndVerify(
+"'''<qqq aa=""qq
+ '''qqqqqqqqqqqqqqqqqq""""> </qqq>
+Module m1
+End Module"
          ).
          FindNodeOrTokenByKind(SyntaxKind.XmlTextLiteralToken, 2).VerifyPrecedingCommentIsTrivia()
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub TickTickTickMarkup()
-        ParseAndVerify(
-            "'''<qqq " & vbCrLf &
-            "'''aaaaaaaaaaaaaaa=""qq""> " & vbCrLf &
-            "'''</qqq>" & vbCrLf &
-            "Module m1" & vbCrLf &
-            "End Module"
+            <Fact>
+            Public Sub TickTickTickMarkup()
+                ParseAndVerify(
+"'''<qqq 
+'''aaaaaaaaaaaaaaa=""""qq""""> 
+'''</qqq>
+Module m1
+End Module"
         ).
         FindNodeOrTokenByKind(SyntaxKind.XmlNameToken, 2).VerifyPrecedingCommentIsTrivia()
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub TickTickTickSpaceMarkup()
-        ParseAndVerify(
-            "'''<qqq " & vbCrLf &
-            " '''aaaaaaaaaaaaaaa=""qq""> " & vbCrLf &
-            "'''</qqq>" & vbCrLf &
-            "Module m1" & vbCrLf &
-            "End Module"
+            <Fact>
+            Public Sub TickTickTickSpaceMarkup()
+                ParseAndVerify(
+"'''<qqq 
+'''aaaaaaaaaaaaaaa=""""qq""""> 
+'''</qqq>""
+Module m1
+End Module"
         ).
         FindNodeOrTokenByKind(SyntaxKind.XmlNameToken, 2).VerifyPrecedingCommentIsTrivia()
-    End Sub
+            End Sub
 
-    <WorkItem(900384, "DevDiv/Personal")>
-    <Fact>
-    Public Sub InvalidCastExceptionWithEvent()
-        ParseAndVerify(<![CDATA[Class Foo
+            <WorkItem(900384, "DevDiv/Personal")>
+            <Fact>
+            Public Sub InvalidCastExceptionWithEvent()
+                ParseAndVerify("Class Foo
     ''' <summary>
     ''' Foo
     ''' </summary>
@@ -216,13 +219,13 @@ Public Class ParseXmlDocComments
         End RaiseEvent
     End Event
 End Class
-            ]]>)
-    End Sub
+            ")
+            End Sub
 
-    <WorkItem(904414, "DevDiv/Personal")>
-    <Fact>
-    Public Sub ParseMalformedDocComments()
-        ParseAndVerify(<![CDATA[
+            <WorkItem(904414, "DevDiv/Personal")>
+            <Fact>
+            Public Sub ParseMalformedDocComments()
+                ParseAndVerify("
 Module M1
 '''<doc>
 '''    <></>
@@ -239,51 +242,51 @@ Module M2
 Sub Foo()
 End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
     <errors>
         <error id="42304" warning="True"/>
         <error id="42304" warning="True"/>
         <error id="42304" warning="True"/>
         <error id="42304" warning="True"/>
     </errors>)
-    End Sub
+            End Sub
 
-    <WorkItem(904903, "DevDiv/Personal")>
-    <Fact>
-    Public Sub ParseShortEndTag()
-        ParseAndVerify(<![CDATA[
-                '''<qqq> 
-                '''<a><b></></>
-                '''</>
-                Module m1
-                End Module
-            ]]>)
-    End Sub
+            <WorkItem(904903, "DevDiv/Personal")>
+            <Fact>
+            Public Sub ParseShortEndTag()
+                ParseAndVerify("
+'''<qqq> 
+'''<a><b></></>
+'''</>
+Module m1
+End Module
+")
+            End Sub
 
-    <WorkItem(927580, "DevDiv/Personal")>
-    <WorkItem(927696, "DevDiv/Personal")>
-    <Fact>
-    Public Sub ParseXmlDocBadNamespacePrefix()
-        ParseAndVerify(<![CDATA[Module M1
-'''<doc xmlns:a:b="abc"/>
+            <WorkItem(927580, "DevDiv/Personal")>
+            <WorkItem(927696, "DevDiv/Personal")>
+            <Fact>
+            Public Sub ParseXmlDocBadNamespacePrefix()
+                ParseAndVerify("Module M1
+'''<doc xmlns:a:b=""abc""/>
 Sub Main()
 End Sub
-End Module]]>)
-        ParseAndVerify(<![CDATA[Module M1
-'''<doc xmlns:a:b="abc"/>
+End Module")
+                ParseAndVerify("Module M1
+'''<doc xmlns:a:b=""abc""/>
 Sub Main()
 End Sub
-End Module]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+End Module", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
         </errors>)
-    End Sub
+            End Sub
 
-    <WorkItem(927781, "DevDiv/Personal")>
-    <Fact>
-    Public Sub ParseXmlDocCommentMalformedEndTag()
-        ParseAndVerify(<![CDATA[Module M1
+            <WorkItem(927781, "DevDiv/Personal")>
+            <Fact>
+            Public Sub ParseXmlDocCommentMalformedEndTag()
+                ParseAndVerify("Module M1
 '''<test>
 '''</test
 Sub Main()
@@ -292,17 +295,17 @@ End Sub
 Sub Foo()
 End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
         </errors>)
-    End Sub
+            End Sub
 
-    <WorkItem(927785, "DevDiv/Personal")>
-    <Fact>
-    Public Sub ParseXmlDocCommentMalformedPI()
-        ParseAndVerify(<![CDATA[Module M1
+            <WorkItem(927785, "DevDiv/Personal")>
+            <Fact>
+            Public Sub ParseXmlDocCommentMalformedPI()
+                ParseAndVerify("Module M1
 '''<doc><? ?></doc>
 Sub Main()
 End Sub
@@ -311,12 +314,12 @@ End Module
 Sub Foo()
 End Sub
 End Module
-]]>,
+",
         <errors>
             <error id="30622"/>
         </errors>)
 
-        ParseAndVerify(<![CDATA[Module M1
+                ParseAndVerify("Module M1
 '''<doc><? ?></doc>
 Sub Main()
 End Sub
@@ -325,51 +328,51 @@ End Module
 Sub Foo()
 End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
             <error id="30622"/>
         </errors>)
-    End Sub
+            End Sub
 
-    <WorkItem(929146, "DevDiv/Personal")>
-    <WorkItem(929147, "DevDiv/Personal")>
-    <WorkItem(929684, "DevDiv/Personal")>
-    <Fact>
-    Public Sub ParseDTDInXmlDoc()
-        ParseAndVerify(<![CDATA[Module Module1
+            <WorkItem(929146, "DevDiv/Personal")>
+            <WorkItem(929147, "DevDiv/Personal")>
+            <WorkItem(929684, "DevDiv/Personal")>
+            <Fact>
+            Public Sub ParseDTDInXmlDoc()
+                ParseAndVerify("Module Module1
     '''<!DOCTYPE Foo []>
     '''<summary>
     '''</summary>
     Sub Main()
     End Sub
 End Module
-]]>)
+")
 
-        ParseAndVerify(<![CDATA[Module Module1
+                ParseAndVerify("Module Module1
     '''<!DOCTYPE Foo []>
     '''<summary>
     '''</summary>
     Sub Main()
     End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
         </errors>)
-    End Sub
+            End Sub
 
-    <WorkItem(930282, "DevDiv/Personal")>
-    <Fact>
-    Public Sub ParseIncorrectCharactersInDocComment()
-        '!!!!!!!!!!!!!! BELOW TEXT CONTAINS INVISIBLE UNICODE CHARACTERS !!!!!!!!!!!!!!
-        ParseAndVerify("'''<doc/>" & vbCrLf &
+            <WorkItem(930282, "DevDiv/Personal")>
+            <Fact>
+            Public Sub ParseIncorrectCharactersInDocComment()
+                '!!!!!!!!!!!!!! BELOW TEXT CONTAINS INVISIBLE UNICODE CHARACTERS !!!!!!!!!!!!!!
+                ParseAndVerify("'''<doc/>" & vbCrLf &
                        "'''<doc/>" & vbCrLf &
                        "'''<doc/>" & vbCrLf &
                        "'''<doc/>")
 
-        ParseAndVerify("'''<doc/>" & vbCrLf &
+                ParseAndVerify("'''<doc/>" & vbCrLf &
                        "'''<doc/>" & vbCrLf &
                        "'''<doc/>" & vbCrLf &
                        "'''<doc/>", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
@@ -383,12 +386,12 @@ End Module
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
         </errors>)
-    End Sub
+            End Sub
 
-    <WorkItem(530663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
-    <Fact()>
-    Public Sub Bug16663()
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            <WorkItem(530663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
+            <Fact()>
+            Public Sub Bug16663()
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
 Module M
@@ -400,8 +403,8 @@ Module M
 End Module
     ]]></file>
 </compilation>)
-        compilation.AssertNoErrors()
-        compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                compilation.AssertNoErrors()
+                compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
 Module M
@@ -413,8 +416,8 @@ Module M
 End Module
     ]]></file>
 </compilation>)
-        compilation.AssertNoErrors()
-        compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                compilation.AssertNoErrors()
+                compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
 Module M
@@ -426,66 +429,66 @@ Module M
 End Module
     ]]></file>
 </compilation>)
-        compilation.AssertNoErrors()
-    End Sub
+                compilation.AssertNoErrors()
+            End Sub
 
-    <WorkItem(530663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
-    <Fact()>
-    Public Sub ParseXmlNameWithLeadingSpaces()
-        ParseAndVerify(<![CDATA[
+            <WorkItem(530663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
+            <Fact()>
+            Public Sub ParseXmlNameWithLeadingSpaces()
+                ParseAndVerify("
 ''' < summary/>
 Module M
 End Module
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+                ParseAndVerify("
 ''' < summary/>
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
         </errors>)
-        ParseAndVerify(<![CDATA[
+                ParseAndVerify("
 ''' < 
 ''' summary/>
 Module M
 End Module
-]]>)
-        ParseAndVerify(<![CDATA[
+")
+                ParseAndVerify("
 ''' < 
 ''' summary/>
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
             <error id="42304" warning="True"/>
         </errors>)
-    End Sub
+            End Sub
 
-    <WorkItem(530663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
-    <WorkItem(547297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547297")>
-    <Fact>
-    Public Sub ParseOpenBracket()
-        ParseAndVerify(<![CDATA[
+            <WorkItem(530663, "http:    //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
+            <WorkItem(547297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547297")>
+            <Fact>
+            Public Sub ParseOpenBracket()
+                ParseAndVerify("
 ''' < 
 Module M
 End Module
-]]>)
-    End Sub
+")
+            End Sub
 
-    <WorkItem(697115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697115")>
-    <Fact()>
-    Public Sub Bug697115()
-        ParseAndVerify(<![CDATA[
+            <WorkItem(697115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697115")>
+            <Fact()>
+            Public Sub Bug697115()
+                ParseAndVerify("
 Module M
     Dim x = <x><%= Function()
     ''' <summary/>
     Sub M()
     End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None),
         <errors>
             <error id="30625"/>
             <error id="31151"/>
@@ -494,14 +497,14 @@ End Module
             <error id="31165"/>
             <error id="30636"/>
         </errors>)
-        ParseAndVerify(<![CDATA[
+                ParseAndVerify("
 Module M
     Dim x = <x><%= Function()
     ''' <summary/>
     Sub M()
     End Sub
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse),
         <errors>
             <error id="30625"/>
             <error id="31151"/>
@@ -510,33 +513,33 @@ End Module
             <error id="31165"/>
             <error id="30636"/>
         </errors>)
-    End Sub
+            End Sub
 
-    <WorkItem(697269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697269")>
-    <Fact()>
-    Public Sub Bug697269()
-        ParseAndVerify(<![CDATA[
+            <WorkItem(697269, "http: //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697269")>
+            <Fact()>
+            Public Sub Bug697269()
+                ParseAndVerify("
 '''<?a
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304"/>
         </errors>)
-        ParseAndVerify(<![CDATA[
+                ParseAndVerify("
 '''<?a
 '''b c<x/>
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304"/>
         </errors>)
-        ParseAndVerify(<![CDATA[
+                ParseAndVerify("
 '''<x><?
 Module M
 End Module
-]]>, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
+", VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
             <error id="42304"/>
             <error id="42304"/>
@@ -544,19 +547,19 @@ End Module
             <error id="42304"/>
             <error id="42304"/>
         </errors>)
-    End Sub
+            End Sub
 
-    <Fact>
-    <Trait("Feature", "Xml Documentation Comments")>
-    Public Sub TestDocumentationComment()
-        Dim expected =
+            <Fact>
+            <Trait("Feature", "Xml Documentation Comments")>
+            Public Sub TestDocumentationComment()
+                Dim expected =
             "''' <summary>\r\n" &
             "''' This class provides extension methods for the <see cref=""TypeName""/> class.\r\n" &
             "''' </summary>\r\n" &
             "''' <threadsafety static=""true"" instance=""false""/>\r\n" &
             "''' <preliminary/>"
 
-        Dim documentationComment As DocumentationCommentTriviaSyntax =
+                Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
                     SyntaxFactory.XmlNewLine("\r\n"),
@@ -571,40 +574,40 @@ End Module
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlPreliminaryElement())
 
-        Dim actual = documentationComment.ToFullString()
+                Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
-    End Sub
+                Assert.Equal(Of String)(expected, actual)
+            End Sub
 
-    <Fact>
-    <Trait("Feature", "Xml Documentation Comments")>
-    Public Sub TestXmlSummaryElement()
-        Dim expected =
+            <Fact>
+            <Trait("Feature", "Xml Documentation Comments")>
+            Public Sub TestXmlSummaryElement()
+                Dim expected =
             "''' <summary>\r\n" &
             "''' This class provides extension methods.\r\n" &
             "''' </summary>"
 
-        Dim documentationComment As DocumentationCommentTriviaSyntax =
+                Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
                     SyntaxFactory.XmlNewLine("\r\n"),
                     SyntaxFactory.XmlText("This class provides extension methods."),
                     SyntaxFactory.XmlNewLine("\r\n")))
 
-        Dim actual = documentationComment.ToFullString()
+                Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
-    End Sub
+                Assert.Equal(Of String)(expected, actual)
+            End Sub
 
-    <Fact>
-    <Trait("Feature", "Xml Documentation Comments")>
-    Public Sub TestXmlSeeElementAndXmlSeeAlsoElement()
-        Dim expected =
+            <Fact>
+            <Trait("Feature", "Xml Documentation Comments")>
+            Public Sub TestXmlSeeElementAndXmlSeeAlsoElement()
+                Dim expected =
             "''' <summary>\r\n" &
             "''' This class provides extension methods for the <see cref=""TypeName""/> class and the <seealso cref=""TypeName2""/> class.\r\n" &
             "''' </summary>"
 
-        Dim documentationComment As DocumentationCommentTriviaSyntax =
+                Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
                     SyntaxFactory.XmlNewLine("\r\n"),
@@ -619,15 +622,15 @@ End Module
                     SyntaxFactory.XmlText(" class."),
                     SyntaxFactory.XmlNewLine("\r\n")))
 
-        Dim actual = documentationComment.ToFullString()
+                Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
-    End Sub
+                Assert.Equal(Of String)(expected, actual)
+            End Sub
 
-    <Fact>
-    <Trait("Feature", "Xml Documentation Comments")>
-    Public Sub TestXmlNewLineElement()
-        Dim expected =
+            <Fact>
+            <Trait("Feature", "Xml Documentation Comments")>
+            Public Sub TestXmlNewLineElement()
+                Dim expected =
             "''' <summary>\r\n" &
             "''' This is a summary.\r\n" &
             "''' </summary>\r\n" &
@@ -637,7 +640,7 @@ End Module
             "''' \r\n" &
             "''' </remarks>"
 
-        Dim documentationComment As DocumentationCommentTriviaSyntax =
+                Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
                     SyntaxFactory.XmlNewLine("\r\n"),
@@ -650,22 +653,22 @@ End Module
                     SyntaxFactory.XmlNewLine("\r\n"),
                     SyntaxFactory.XmlNewLine("\r\n")))
 
-        Dim actual = documentationComment.ToFullString()
+                Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
-    End Sub
+                Assert.Equal(Of String)(expected, actual)
+            End Sub
 
-    <Fact>
-    <Trait("Feature", "Xml Documentation Comments")>
-    Public Sub TestXmlParamAndParamRefElement()
-        Dim expected =
+            <Fact>
+            <Trait("Feature", "Xml Documentation Comments")>
+            Public Sub TestXmlParamAndParamRefElement()
+                Dim expected =
             "''' <summary>\r\n" &
             "''' <paramref name=""b""/>\r\n" &
             "''' </summary>\r\n" &
             "''' <param name=""a""></param>\r\n" &
             "''' <param name=""b""></param>"
 
-        Dim documentationComment As DocumentationCommentTriviaSyntax =
+                Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
                     SyntaxFactory.XmlNewLine("\r\n"),
@@ -676,15 +679,15 @@ End Module
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlParamElement("b"))
 
-        Dim actual = documentationComment.ToFullString()
+                Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
-    End Sub
+                Assert.Equal(Of String)(expected, actual)
+            End Sub
 
-    <Fact>
-    <Trait("Feature", "Xml Documentation Comments")>
-    Public Sub TestXmlReturnsElement()
-        Dim expected =
+            <Fact>
+            <Trait("Feature", "Xml Documentation Comments")>
+            Public Sub TestXmlReturnsElement()
+                Dim expected =
             "''' <summary>\r\n" &
             "''' \r\n" &
             "''' </summary>\r\n" &
@@ -692,7 +695,7 @@ End Module
             "''' Returns a value.\r\n" &
             "''' </returns>"
 
-        Dim documentationComment As DocumentationCommentTriviaSyntax =
+                Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
                     SyntaxFactory.XmlNewLine("\r\n"),
@@ -703,15 +706,15 @@ End Module
                     SyntaxFactory.XmlText("Returns a value."),
                     SyntaxFactory.XmlNewLine("\r\n")))
 
-        Dim actual = documentationComment.ToFullString()
+                Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
-    End Sub
+                Assert.Equal(Of String)(expected, actual)
+            End Sub
 
-    <Fact>
-    <Trait("Feature", "Xml Documentation Comments")>
-    Public Sub TestXmlRemarksElement()
-        Dim expected =
+            <Fact>
+            <Trait("Feature", "Xml Documentation Comments")>
+            Public Sub TestXmlRemarksElement()
+                Dim expected =
             "''' <summary>\r\n" &
             "''' \r\n" &
             "''' </summary>\r\n" &
@@ -719,7 +722,7 @@ End Module
             "''' Same as in class <see cref=""TypeName""/>.\r\n" &
             "''' </remarks>"
 
-        Dim documentationComment As DocumentationCommentTriviaSyntax =
+                Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
                     SyntaxFactory.XmlNewLine("\r\n"),
@@ -734,21 +737,21 @@ End Module
                     SyntaxFactory.XmlText("."),
                     SyntaxFactory.XmlNewLine("\r\n")))
 
-        Dim actual = documentationComment.ToFullString()
+                Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
-    End Sub
+                Assert.Equal(Of String)(expected, actual)
+            End Sub
 
-    <Fact>
-    <Trait("Feature", "Xml Documentation Comments")>
-    Public Sub TestXmlExceptionElement()
-        Dim expected =
+            <Fact>
+            <Trait("Feature", "Xml Documentation Comments")>
+            Public Sub TestXmlExceptionElement()
+                Dim expected =
             "''' <summary>\r\n" &
             "''' \r\n" &
             "''' </summary>\r\n" &
             "''' <exception cref=""InvalidOperationException"">This exception will be thrown if the object is in an invalid state when calling this method.</exception>"
 
-        Dim documentationComment As DocumentationCommentTriviaSyntax =
+                Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
                     SyntaxFactory.XmlNewLine("\r\n"),
@@ -759,21 +762,21 @@ End Module
                         SyntaxFactory.ParseTypeName("InvalidOperationException")),
                     SyntaxFactory.XmlText("This exception will be thrown if the object is in an invalid state when calling this method.")))
 
-        Dim actual = documentationComment.ToFullString()
+                Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
-    End Sub
+                Assert.Equal(Of String)(expected, actual)
+            End Sub
 
-    <Fact>
-    <Trait("Feature", "Xml Documentation Comments")>
-    Public Sub TestXmlPermissionElement()
-        Dim expected =
+            <Fact>
+            <Trait("Feature", "Xml Documentation Comments")>
+            Public Sub TestXmlPermissionElement()
+                Dim expected =
             "''' <summary>\r\n" &
             "''' \r\n" &
             "''' </summary>\r\n" &
             "''' <permission cref=""MyPermission"">Needs MyPermission to execute.</permission>"
 
-        Dim documentationComment As DocumentationCommentTriviaSyntax =
+                Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
                     SyntaxFactory.XmlNewLine("\r\n"),
@@ -784,9 +787,11 @@ End Module
                         SyntaxFactory.ParseTypeName("MyPermission")),
                     SyntaxFactory.XmlText("Needs MyPermission to execute.")))
 
-        Dim actual = documentationComment.ToFullString()
+                Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
-    End Sub
+                Assert.Equal(Of String)(expected, actual)
+            End Sub
 
-End Class
+        End Class
+    End Namespace
+End Namespace

@@ -8,13 +8,15 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Friend Module SyntaxDifferences
-
+    Private _HashSet As ObjectPool(Of Collections.PooledHashSet(Of GreenNode) ) = Collections.PooledHashSet(Of GreenNode).CreatePool
     Public Function GetRebuiltNodes(oldTree As SyntaxTree, newTree As SyntaxTree) As ImmutableArray(Of SyntaxNodeOrToken)
-        Dim hashSet = New HashSet(Of GreenNode)
+        Dim hashSet = _HashSet.Allocate 'New HashSet(Of GreenNode)
         GatherNodes(oldTree.GetRoot(), hashSet)
 
         Dim nodes = ArrayBuilder(Of SyntaxNodeOrToken).GetInstance()
         GetRebuiltNodes(newTree.GetRoot(), hashSet, nodes)
+
+        hashSet.Free
         Return nodes.ToImmutableAndFree()
     End Function
 

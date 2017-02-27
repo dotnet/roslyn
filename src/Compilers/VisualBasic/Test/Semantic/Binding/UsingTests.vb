@@ -13,9 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub UsingSimpleWithSingleAsNewDeclarations()
-            Dim source =
-<compilation name="UsingSimpleWithSingleAsNewDeclarations">
-    <file name="a.vb">
+            Dim source = Unit.Make("UsingSimpleWithSingleAsNewDeclarations").With_a_vb(
+"
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -32,27 +31,26 @@ End Class
 Class C1
     Public Shared Sub Main()
         Using foo As New MyDisposable()
-            Console.WriteLine("Inside Using.")
+            Console.WriteLine(""Inside Using."")
         End Using
     End Sub
 End Class        
-    </file>
-</compilation>
+")
 
             CompileAndVerify(source,
-                            expectedOutput:=<![CDATA[
+                            expectedOutput:="
 Inside Using.
-]]>).VerifyIL("C1.Main", <![CDATA[
+").VerifyIL("C1.Main", "
 {
   // Code size       29 (0x1d)
   .maxstack  1
   .locals init (MyDisposable V_0) //foo
-  IL_0000:  newobj     "Sub MyDisposable..ctor()"
+  IL_0000:  newobj     ""Sub MyDisposable..ctor()""
   IL_0005:  stloc.0
   .try
 {
-  IL_0006:  ldstr      "Inside Using."
-  IL_000b:  call       "Sub System.Console.WriteLine(String)"
+  IL_0006:  ldstr      ""Inside Using.""
+  IL_000b:  call       ""Sub System.Console.WriteLine(String)""
   IL_0010:  leave.s    IL_001c
 }
   finally
@@ -60,19 +58,18 @@ Inside Using.
   IL_0012:  ldloc.0
   IL_0013:  brfalse.s  IL_001b
   IL_0015:  ldloc.0
-  IL_0016:  callvirt   "Sub System.IDisposable.Dispose()"
+  IL_0016:  callvirt   ""Sub System.IDisposable.Dispose()""
   IL_001b:  endfinally
 }
   IL_001c:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
         Public Sub UsingSimpleWithAsNewDeclarations()
-            Dim source =
-<compilation name="UsingSimpleWithAsNewDeclarations">
-    <file name="a.vb">
+            Dim source = Unit.Make("UsingSimpleWithAsNewDeclarations").With_a_vb(
+"
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -89,32 +86,30 @@ End Class
 Class C1
     Public Shared Sub Main()
         Using foo As New MyDisposable(), foo2 as New MyDisposable()
-            Console.WriteLine("Inside Using.")
+            Console.WriteLine(""Inside Using."")
         End Using
     End Sub
 End Class        
-    </file>
-</compilation>
-
+")
             CompileAndVerify(source,
-                            expectedOutput:=<![CDATA[
+                            expectedOutput:="
 Inside Using.
-]]>).VerifyIL("C1.Main", <![CDATA[
+").VerifyIL("C1.Main", "
 {
   // Code size       45 (0x2d)
   .maxstack  1
   .locals init (MyDisposable V_0, //foo
   MyDisposable V_1) //foo2
-  IL_0000:  newobj     "Sub MyDisposable..ctor()"
+  IL_0000:  newobj     ""Sub MyDisposable..ctor()""
   IL_0005:  stloc.0
   .try
 {
-  IL_0006:  newobj     "Sub MyDisposable..ctor()"
+  IL_0006:  newobj     ""Sub MyDisposable..ctor()""
   IL_000b:  stloc.1
   .try
 {
-  IL_000c:  ldstr      "Inside Using."
-  IL_0011:  call       "Sub System.Console.WriteLine(String)"
+  IL_000c:  ldstr      ""Inside Using.""
+  IL_0011:  call       ""Sub System.Console.WriteLine(String)""
   IL_0016:  leave.s    IL_002c
 }
   finally
@@ -122,7 +117,7 @@ Inside Using.
   IL_0018:  ldloc.1
   IL_0019:  brfalse.s  IL_0021
   IL_001b:  ldloc.1
-  IL_001c:  callvirt   "Sub System.IDisposable.Dispose()"
+  IL_001c:  callvirt   ""Sub System.IDisposable.Dispose()""
   IL_0021:  endfinally
 }
 }
@@ -131,19 +126,18 @@ Inside Using.
   IL_0022:  ldloc.0
   IL_0023:  brfalse.s  IL_002b
   IL_0025:  ldloc.0
-  IL_0026:  callvirt   "Sub System.IDisposable.Dispose()"
+  IL_0026:  callvirt   ""Sub System.IDisposable.Dispose()""
   IL_002b:  endfinally
 }
   IL_002c:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
         Public Sub UsingSimpleWithMultipleVariablesInAsNewDeclarations()
-            Dim source =
-<compilation name="UsingSimpleWithMultipleVariablesInAsNewDeclarations">
-    <file name="a.vb">
+            Dim source = Unit.Make("UsingSimpleWithMultipleVariablesInAsNewDeclarations").With_a_vb(
+"
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -160,42 +154,41 @@ End Class
 Class C1
     Public Shared Sub Main()
         Using foo, foo2 As New MyDisposable(), foo3, foo4 As New MyDisposable()
-            Console.WriteLine("Inside Using.")
+            Console.WriteLine(""Inside Using."")
         End Using
     End Sub
 End Class        
-    </file>
-</compilation>
+")
 
             CompileAndVerify(source,
-                            expectedOutput:=<![CDATA[
+                            expectedOutput:="
 Inside Using.
-]]>).VerifyIL("C1.Main", <![CDATA[
-{
+").VerifyIL("C1.Main",
+"{
   // Code size       77 (0x4d)
   .maxstack  1
   .locals init (MyDisposable V_0, //foo
   MyDisposable V_1, //foo2
   MyDisposable V_2, //foo3
   MyDisposable V_3) //foo4
-  IL_0000:  newobj     "Sub MyDisposable..ctor()"
+  IL_0000:  newobj     ""Sub MyDisposable..ctor()""
   IL_0005:  stloc.0
   .try
 {
-  IL_0006:  newobj     "Sub MyDisposable..ctor()"
+  IL_0006:  newobj     ""Sub MyDisposable..ctor()""
   IL_000b:  stloc.1
   .try
 {
-  IL_000c:  newobj     "Sub MyDisposable..ctor()"
+  IL_000c:  newobj     ""Sub MyDisposable..ctor()""
   IL_0011:  stloc.2
   .try
 {
-  IL_0012:  newobj     "Sub MyDisposable..ctor()"
+  IL_0012:  newobj     ""Sub MyDisposable..ctor()""
   IL_0017:  stloc.3
   .try
 {
-  IL_0018:  ldstr      "Inside Using."
-  IL_001d:  call       "Sub System.Console.WriteLine(String)"
+  IL_0018:  ldstr      ""Inside Using.""
+  IL_001d:  call       ""Sub System.Console.WriteLine(String)""
   IL_0022:  leave.s    IL_004c
 }
   finally
@@ -203,7 +196,7 @@ Inside Using.
   IL_0024:  ldloc.3
   IL_0025:  brfalse.s  IL_002d
   IL_0027:  ldloc.3
-  IL_0028:  callvirt   "Sub System.IDisposable.Dispose()"
+  IL_0028:  callvirt   ""Sub System.IDisposable.Dispose()""
   IL_002d:  endfinally
 }
 }
@@ -212,7 +205,7 @@ Inside Using.
   IL_002e:  ldloc.2
   IL_002f:  brfalse.s  IL_0037
   IL_0031:  ldloc.2
-  IL_0032:  callvirt   "Sub System.IDisposable.Dispose()"
+  IL_0032:  callvirt   ""Sub System.IDisposable.Dispose()""
   IL_0037:  endfinally
 }
 }
@@ -221,7 +214,7 @@ Inside Using.
   IL_0038:  ldloc.1
   IL_0039:  brfalse.s  IL_0041
   IL_003b:  ldloc.1
-  IL_003c:  callvirt   "Sub System.IDisposable.Dispose()"
+  IL_003c:  callvirt   ""Sub System.IDisposable.Dispose()""
   IL_0041:  endfinally
 }
 }
@@ -230,19 +223,18 @@ Inside Using.
   IL_0042:  ldloc.0
   IL_0043:  brfalse.s  IL_004b
   IL_0045:  ldloc.0
-  IL_0046:  callvirt   "Sub System.IDisposable.Dispose()"
+  IL_0046:  callvirt   ""Sub System.IDisposable.Dispose()""
   IL_004b:  endfinally
 }
   IL_004c:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
         Public Sub UsingSimpleWithAsDeclarations()
-            Dim source =
-<compilation name="UsingSimpleWithAsDeclarations">
-    <file name="a.vb">
+            Dim source = Unit.Make("UsingSimpleWithAsDeclarations").With_a_vb(
+"
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -259,32 +251,31 @@ End Class
 Class C1
     Public Shared Sub Main()
         Using foo As MyDisposable = new MyDisposable(), foo2 as MyDisposable = New MyDisposable()
-            Console.WriteLine("Inside Using.")
+            Console.WriteLine(""Inside Using."")
         End Using
     End Sub
 End Class        
-    </file>
-</compilation>
+")
 
             CompileAndVerify(source,
-                            expectedOutput:=<![CDATA[
+                            expectedOutput:="
 Inside Using.
-]]>).VerifyIL("C1.Main", <![CDATA[
+").VerifyIL("C1.Main", "
 {
   // Code size       45 (0x2d)
   .maxstack  1
   .locals init (MyDisposable V_0, //foo
   MyDisposable V_1) //foo2
-  IL_0000:  newobj     "Sub MyDisposable..ctor()"
+  IL_0000:  newobj     ""Sub MyDisposable..ctor()""
   IL_0005:  stloc.0
   .try
 {
-  IL_0006:  newobj     "Sub MyDisposable..ctor()"
+  IL_0006:  newobj     ""Sub MyDisposable..ctor()""
   IL_000b:  stloc.1
   .try
 {
-  IL_000c:  ldstr      "Inside Using."
-  IL_0011:  call       "Sub System.Console.WriteLine(String)"
+  IL_000c:  ldstr      ""Inside Using.""
+  IL_0011:  call       ""Sub System.Console.WriteLine(String)""
   IL_0016:  leave.s    IL_002c
 }
   finally
@@ -292,7 +283,7 @@ Inside Using.
   IL_0018:  ldloc.1
   IL_0019:  brfalse.s  IL_0021
   IL_001b:  ldloc.1
-  IL_001c:  callvirt   "Sub System.IDisposable.Dispose()"
+  IL_001c:  callvirt   ""Sub System.IDisposable.Dispose()""
   IL_0021:  endfinally
 }
 }
@@ -301,19 +292,18 @@ Inside Using.
   IL_0022:  ldloc.0
   IL_0023:  brfalse.s  IL_002b
   IL_0025:  ldloc.0
-  IL_0026:  callvirt   "Sub System.IDisposable.Dispose()"
+  IL_0026:  callvirt   ""Sub System.IDisposable.Dispose()""
   IL_002b:  endfinally
 }
   IL_002c:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
         Public Sub UsingSimpleWithExpression()
-            Dim source =
-<compilation name="UsingSimpleWithExpression">
-    <file name="a.vb">
+            Dim source = Unit.Make("UsingSimpleWithExpression").With_a_vb(
+"
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -330,27 +320,26 @@ End Class
 Class C1
     Public Shared Sub Main()
         Using new MyDisposable()
-            Console.WriteLine("Inside Using.")
+            Console.WriteLine(""Inside Using."")
         End Using
     End Sub
 End Class        
-    </file>
-</compilation>
+")
 
             CompileAndVerify(source,
-                            expectedOutput:=<![CDATA[
+                            expectedOutput:="
 Inside Using.
-]]>).VerifyIL("C1.Main", <![CDATA[
+").VerifyIL("C1.Main", "
 {
   // Code size       29 (0x1d)
   .maxstack  1
   .locals init (MyDisposable V_0)
-  IL_0000:  newobj     "Sub MyDisposable..ctor()"
+  IL_0000:  newobj     ""Sub MyDisposable..ctor()""
   IL_0005:  stloc.0
   .try
   {
-    IL_0006:  ldstr      "Inside Using."
-    IL_000b:  call       "Sub System.Console.WriteLine(String)"
+    IL_0006:  ldstr      ""Inside Using.""
+    IL_000b:  call       ""Sub System.Console.WriteLine(String)""
     IL_0010:  leave.s    IL_001c
   }
   finally
@@ -358,19 +347,18 @@ Inside Using.
     IL_0012:  ldloc.0
     IL_0013:  brfalse.s  IL_001b
     IL_0015:  ldloc.0
-    IL_0016:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_0016:  callvirt   ""Sub System.IDisposable.Dispose()""
     IL_001b:  endfinally
   }
   IL_001c:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
         Public Sub UsingSimpleWithValueTypeExpression()
-            Dim source =
-<compilation name="UsingSimpleWithValueTypeExpression">
-    <file name="a.vb">
+            Dim source = Unit.Make("UsingSimpleWithValueTypeExpression").With_a_vb(
+"
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -387,46 +375,44 @@ End Structure
 Class C1
     Public Shared Sub Main()
         Using new MyDisposable()
-            Console.WriteLine("Inside Using.")
+            Console.WriteLine(""Inside Using."")
         End Using
     End Sub
 End Class        
-    </file>
-</compilation>
+")
 
             CompileAndVerify(source,
-                            expectedOutput:=<![CDATA[
+                            expectedOutput:="
 Inside Using.
-]]>).VerifyIL("C1.Main", <![CDATA[
+").VerifyIL("C1.Main", "
 {
   // Code size       35 (0x23)
   .maxstack  1
   .locals init (MyDisposable V_0)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    "MyDisposable"
+  IL_0002:  initobj    ""MyDisposable""
   .try
   {
-    IL_0008:  ldstr      "Inside Using."
-    IL_000d:  call       "Sub System.Console.WriteLine(String)"
+    IL_0008:  ldstr      ""Inside Using.""
+    IL_000d:  call       ""Sub System.Console.WriteLine(String)""
     IL_0012:  leave.s    IL_0022
   }
   finally
   {
     IL_0014:  ldloca.s   V_0
-    IL_0016:  constrained. "MyDisposable"
-    IL_001c:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_0016:  constrained. ""MyDisposable""
+    IL_001c:  callvirt   ""Sub System.IDisposable.Dispose()""
     IL_0021:  endfinally
   }
   IL_0022:  ret
 }
-]]>)
+")
         End Sub
 
         <Fact()>
         Public Sub UsingSimpleWithPropertyAccessExpression()
-            Dim source =
-<compilation name="UsingSimpleWithPropertyAccessExpression">
-    <file name="a.vb">
+            Dim source = Unit.Make("UsingSimpleWithPropertyAccessExpression").With_a_vb(
+"
 Option Strict On
 Option Infer On
 Option Explicit On
@@ -449,7 +435,7 @@ Class C1
 
     Public Sub DoStuff()
         Using ADisposable
-            Console.WriteLine("Inside Using.")
+            Console.WriteLine(""Inside Using."")
         End Using
     End Sub
 
@@ -459,21 +445,18 @@ Class C1
     End Sub
 
 End Class        
-    </file>
-</compilation>
+")
 
             CompileAndVerify(source,
-                           expectedOutput:=<![CDATA[
+                           expectedOutput:="
 Inside Using.
-]]>)
+")
         End Sub
 
         <Fact()>
         Public Sub UsingSimpleWithPropertyAccessInitialization()
-            Dim source =
-<compilation name="UsingSimpleWithPropertyAccessInitialization">
-    <file name="a.vb">
-Option Strict On
+            Dim source = Unit.Make("UsingSimpleWithPropertyAccessInitialization").With_a_vb(
+"Option Strict On
 Option Infer On
 Option Explicit On
 
@@ -495,7 +478,7 @@ Class C1
 
     Public Sub DoStuff()
         Using foo As IDisposable = ADisposable
-            Console.WriteLine("Inside Using.")
+            Console.WriteLine(""Inside Using."")
         End Using
     End Sub
 
@@ -505,20 +488,18 @@ Class C1
     End Sub
 
 End Class        
-    </file>
-</compilation>
+")
 
             CompileAndVerify(source,
-                           expectedOutput:=<![CDATA[
+                           expectedOutput:="
 Inside Using.
-]]>)
+")
         End Sub
 
         <Fact()>
         Public Sub UsingHideFieldsAndProperties()
-            Dim source =
-<compilation name="UsingHideFieldsAndProperties">
-    <file name="a.vb">
+            Dim source = Unit.Make("UsingHideFieldsAndProperties").With_a_vb(
+"
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -539,24 +520,22 @@ Class C1
 
     Public Shared Sub Main()
         Using field as New MyDisposable(), MyProperty as New MyDisposable()
-            Console.WriteLine("Inside Using.")
+            Console.WriteLine(""Inside Using."")
         End Using
     End Sub
 End Class        
-    </file>
-</compilation>
+")
 
             CompileAndVerify(source,
-                           expectedOutput:=<![CDATA[
+                           expectedOutput:="
 Inside Using.
-]]>)
+")
         End Sub
 
         <Fact()>
         Public Sub UsingCannotHideLocalsParametersAndTypeParameters()
-            Dim source =
-<compilation name="UsingCannotHideLocalsParametersAndTypeParameters">
-    <file name="a.vb">
+            Dim source = Unit.Make("UsingCannotHideLocalsParametersAndTypeParameters").With_a_vb(
+"
 Option Strict On
 Option Infer Off
 Option Explicit Off
@@ -579,25 +558,24 @@ Class C1
         Dim local as Object = nothing
 
         Using local as New MyDisposable()
-            Console.WriteLine("Inside Using.")
+            Console.WriteLine(""Inside Using."")
         End Using
 
         Using usingLocal as New MyDisposable()
             Dim usingLocal as New MyDisposable()
-            Console.WriteLine("Inside Using.")
+            Console.WriteLine(""Inside Using."")
         End Using
 
     End Sub
 
     Public Sub DoStuff(Of P)(param as P)
         Using p as New MyDisposable(), param as new MyDisposable()
-            Console.WriteLine("Inside Using.")
+            Console.WriteLine(""Inside Using."")
         End Using
     End Sub
 
 End Class        
-    </file>
-</compilation>
+")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>

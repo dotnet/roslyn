@@ -72,10 +72,18 @@ namespace Microsoft.CodeAnalysis.Collections
         private static readonly ObjectPool<PooledStringBuilder> s_poolInstance = CreatePool();
 
         // if someone needs to create a private pool;
-        public static ObjectPool<PooledStringBuilder> CreatePool()
+        /// <summary>
+        /// If someone need to create a private pool
+        /// </summary>
+        /// <param name="size">Initial size of the pool. Bounded to 32 &lt;= Size &lt;= 256)</param>
+        /// <returns></returns>
+        public static ObjectPool<PooledStringBuilder> CreatePool(int size = 32)
         {
+            const int LowerBound = 32;
+            const int UpperBound = 256;
             ObjectPool<PooledStringBuilder> pool = null;
-            pool = new ObjectPool<PooledStringBuilder>(() => new PooledStringBuilder(pool), 32);
+            size = (size < LowerBound ? LowerBound: (size > UpperBound ? UpperBound : size));
+            pool = new ObjectPool<PooledStringBuilder>(() => new PooledStringBuilder(pool), size);
             return pool;
         }
 

@@ -5,13 +5,15 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic.UnitTests
+    Namespace Parser.Async
 
-Public Class ParseAsyncTests
-    Inherits BasicTestBase
+        Public Class ParseAsyncTests
+            Inherits BasicTestBase
 
-    <Fact>
-    Public Sub ParseAsyncModifier()
-        Dim tree = ParseAndVerify(<![CDATA[
+            <Fact>
+            Public Sub ParseAsyncModifier()
+                Dim tree = ParseAndVerify("
 Imports Async = System.Threading.Tasks.Task
 
 Module Program
@@ -39,18 +41,18 @@ Class AsyncAttribute
     Sub New(p)
 
     End Sub
-End Class]]>)
+End Class")
 
-        Assert.Equal(2, Aggregate t In tree.GetRoot().DescendantTokens Where t.Kind = SyntaxKind.AsyncKeyword Into Count())
+                Assert.Equal(2, Aggregate t In tree.GetRoot().DescendantTokens Where t.Kind = SyntaxKind.AsyncKeyword Into Count())
 
-        Dim fields = tree.GetRoot().DescendantNodes.OfType(Of FieldDeclarationSyntax)().ToArray()
-        Assert.Equal(2, Aggregate f In fields Where f.Declarators(0).Names(0).Identifier.ValueText = "Async" Into Count())
+                Dim fields = tree.GetRoot().DescendantNodes.OfType(Of FieldDeclarationSyntax)().ToArray()
+                Assert.Equal(2, Aggregate f In fields Where f.Declarators(0).Names(0).Identifier.ValueText = "Async" Into Count())
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ParseAwaitExpressions()
-        Dim tree = ParseAndVerify(<![CDATA[
+            <Fact>
+            Public Sub ParseAwaitExpressions()
+                Dim tree = ParseAndVerify("
 Imports System.Console
 
 Module Program
@@ -89,7 +91,7 @@ Module Program
 
     End Function
 
-End Module]]>,
+End Module",
 <errors>
     <error id="30800" message="Method arguments must be enclosed in parentheses." start="206" end="208"/>
     <error id="32017" message="Comma, ')', or a valid expression continuation expected." start="234" end="236"/>
@@ -97,66 +99,66 @@ End Module]]>,
     <error id="30198" message="')' expected." start="424" end="424"/>
 </errors>)
 
-        Dim awaitExpressions = tree.GetRoot().DescendantNodes.OfType(Of AwaitExpressionSyntax)()
+                Dim awaitExpressions = tree.GetRoot().DescendantNodes.OfType(Of AwaitExpressionSyntax)()
 
-        Assert.Equal(4, awaitExpressions.Count)
+                Assert.Equal(4, awaitExpressions.Count)
 
-        Dim firstStatementOfM = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax).First.Statements.First
+                Dim firstStatementOfM = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax).First.Statements.First
 
-        Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM.Kind)
-        Assert.Equal(SyntaxKind.AwaitExpression, CType(firstStatementOfM, ExpressionStatementSyntax).Expression.Kind)
+                Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM.Kind)
+                Assert.Equal(SyntaxKind.AwaitExpression, CType(firstStatementOfM, ExpressionStatementSyntax).Expression.Kind)
 
-        Dim firstStatementOfM2 = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax)()(1).Statements.First
+                Dim firstStatementOfM2 = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax)()(1).Statements.First
 
-        Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM2.Kind)
-        Assert.Equal(SyntaxKind.InvocationExpression, CType(firstStatementOfM2, ExpressionStatementSyntax).Expression.Kind)
+                Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM2.Kind)
+                Assert.Equal(SyntaxKind.InvocationExpression, CType(firstStatementOfM2, ExpressionStatementSyntax).Expression.Kind)
 
-        Dim firstStatementOfN = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax)()(2).Statements.First
+                Dim firstStatementOfN = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax)()(2).Statements.First
 
-        Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM.Kind)
-        Assert.Equal(SyntaxKind.AwaitExpression, CType(firstStatementOfM, ExpressionStatementSyntax).Expression.Kind)
+                Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM.Kind)
+                Assert.Equal(SyntaxKind.AwaitExpression, CType(firstStatementOfM, ExpressionStatementSyntax).Expression.Kind)
 
-        Dim firstStatementOfN2 = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax)()(3).Statements.First
+                Dim firstStatementOfN2 = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax)()(3).Statements.First
 
-        Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM2.Kind)
-        Assert.Equal(SyntaxKind.InvocationExpression, CType(firstStatementOfM2, ExpressionStatementSyntax).Expression.Kind)
+                Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM2.Kind)
+                Assert.Equal(SyntaxKind.InvocationExpression, CType(firstStatementOfM2, ExpressionStatementSyntax).Expression.Kind)
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ParseAwaitExpressionsWithPrecedence()
-        Dim tree = ParseAndVerify(<![CDATA[
+            <Fact>
+            Public Sub ParseAwaitExpressionsWithPrecedence()
+                Dim tree = ParseAndVerify("
 Module Program
     Async Function M(a As Task(Of Integer), x As Task(Of Integer), y As Task(Of Integer), b As Task(Of Integer)) As Task(Of Integer)
 
         Return Await a * Await x ^ Await y + Await b
         
     End Function
-End Module]]>)
+End Module")
 
-        Dim returnStatement = tree.GetRoot().DescendantNodes.OfType(Of ReturnStatementSyntax).Single()
+                Dim returnStatement = tree.GetRoot().DescendantNodes.OfType(Of ReturnStatementSyntax).Single()
 
-        Dim expression = CType(returnStatement.Expression, BinaryExpressionSyntax)
+                Dim expression = CType(returnStatement.Expression, BinaryExpressionSyntax)
 
-        Assert.Equal(SyntaxKind.AddExpression, expression.Kind)
+                Assert.Equal(SyntaxKind.AddExpression, expression.Kind)
 
-        Assert.Equal(SyntaxKind.MultiplyExpression, expression.Left.Kind)
+                Assert.Equal(SyntaxKind.MultiplyExpression, expression.Left.Kind)
 
-        Dim left = CType(expression.Left, BinaryExpressionSyntax)
+                Dim left = CType(expression.Left, BinaryExpressionSyntax)
 
-        Assert.Equal(SyntaxKind.AwaitExpression, left.Left.Kind)
+                Assert.Equal(SyntaxKind.AwaitExpression, left.Left.Kind)
 
-        Assert.Equal(SyntaxKind.ExponentiateExpression, left.Right.Kind)
+                Assert.Equal(SyntaxKind.ExponentiateExpression, left.Right.Kind)
 
-        Dim right = expression.Right
+                Dim right = expression.Right
 
-        Assert.Equal(SyntaxKind.AwaitExpression, right.Kind)
+                Assert.Equal(SyntaxKind.AwaitExpression, right.Kind)
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ParseAwaitStatements()
-        Dim tree = ParseAndVerify(<![CDATA[
+            <Fact>
+            Public Sub ParseAwaitStatements()
+                Dim tree = ParseAndVerify("
 Imports System.Console
 
 Module Program
@@ -200,7 +202,7 @@ Module Program
 
     End Function    
 
-End Module]]>,
+End Module",
 <errors>
     <error id="30800" message="Method arguments must be enclosed in parentheses." start="177" end="179"/>
     <error id="30800" message="Method arguments must be enclosed in parentheses." start="407" end="409"/>
@@ -208,35 +210,35 @@ End Module]]>,
     <error id="30205" message="End of statement expected." start="588" end="589"/>
 </errors>)
 
-        Dim awaitExpressions = tree.GetRoot().DescendantNodes.OfType(Of AwaitExpressionSyntax)().ToArray()
+                Dim awaitExpressions = tree.GetRoot().DescendantNodes.OfType(Of AwaitExpressionSyntax)().ToArray()
 
-        Assert.Equal(6, awaitExpressions.Count)
+                Assert.Equal(6, awaitExpressions.Count)
 
-        Dim firstStatementOfM = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax).First.Statements.First
+                Dim firstStatementOfM = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax).First.Statements.First
 
-        Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM.Kind)
-        Assert.Equal(SyntaxKind.AwaitExpression, CType(firstStatementOfM, ExpressionStatementSyntax).Expression.Kind)
+                Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM.Kind)
+                Assert.Equal(SyntaxKind.AwaitExpression, CType(firstStatementOfM, ExpressionStatementSyntax).Expression.Kind)
 
-        Dim firstStatementOfM2 = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax)()(1).Statements.First
+                Dim firstStatementOfM2 = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax)()(1).Statements.First
 
-        Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM2.Kind)
-        Assert.Equal(SyntaxKind.InvocationExpression, CType(firstStatementOfM2, ExpressionStatementSyntax).Expression.Kind)
+                Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM2.Kind)
+                Assert.Equal(SyntaxKind.InvocationExpression, CType(firstStatementOfM2, ExpressionStatementSyntax).Expression.Kind)
 
-        Dim firstStatementOfN = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax)()(2).Statements.First
+                Dim firstStatementOfN = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax)()(2).Statements.First
 
-        Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM.Kind)
-        Assert.Equal(SyntaxKind.AwaitExpression, CType(firstStatementOfM, ExpressionStatementSyntax).Expression.Kind)
+                Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM.Kind)
+                Assert.Equal(SyntaxKind.AwaitExpression, CType(firstStatementOfM, ExpressionStatementSyntax).Expression.Kind)
 
-        Dim firstStatementOfN2 = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax)()(3).Statements.First
+                Dim firstStatementOfN2 = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockBaseSyntax)()(3).Statements.First
 
-        Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM2.Kind)
-        Assert.Equal(SyntaxKind.InvocationExpression, CType(firstStatementOfM2, ExpressionStatementSyntax).Expression.Kind)
+                Assert.Equal(SyntaxKind.ExpressionStatement, firstStatementOfM2.Kind)
+                Assert.Equal(SyntaxKind.InvocationExpression, CType(firstStatementOfM2, ExpressionStatementSyntax).Expression.Kind)
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ParseAsyncLambdas()
-        Dim tree = ParseAndVerify(<![CDATA[
+            <Fact>
+            Public Sub ParseAsyncLambdas()
+                Dim tree = ParseAndVerify("
 Module Program
 
     Private t1 As Task
@@ -272,32 +274,32 @@ Module Program
                                End Function
 
     End Sub
-End Module]]>)
+End Module")
 
-        Dim lambdas = tree.GetRoot().DescendantNodes.OfType(Of LambdaExpressionSyntax)().ToArray()
+                Dim lambdas = tree.GetRoot().DescendantNodes.OfType(Of LambdaExpressionSyntax)().ToArray()
 
-        Assert.Equal(7, lambdas.Count)
+                Assert.Equal(7, lambdas.Count)
 
-        Assert.Equal(4, lambdas.Count(Function(l) SyntaxFacts.IsSingleLineLambdaExpression(l.Kind)))
+                Assert.Equal(4, lambdas.Count(Function(l) SyntaxFacts.IsSingleLineLambdaExpression(l.Kind)))
 
-        Assert.Equal(SyntaxKind.ExpressionStatement, CType(lambdas(0), SingleLineLambdaExpressionSyntax).Body.Kind)
-        Assert.Equal(SyntaxKind.AwaitExpression, CType(CType(lambdas(0), SingleLineLambdaExpressionSyntax).Body, ExpressionStatementSyntax).Expression.Kind)
+                Assert.Equal(SyntaxKind.ExpressionStatement, CType(lambdas(0), SingleLineLambdaExpressionSyntax).Body.Kind)
+                Assert.Equal(SyntaxKind.AwaitExpression, CType(CType(lambdas(0), SingleLineLambdaExpressionSyntax).Body, ExpressionStatementSyntax).Expression.Kind)
 
-        Assert.Equal(SyntaxKind.SimpleAssignmentStatement, CType(lambdas(1), SingleLineLambdaExpressionSyntax).Body.Kind)
-        Assert.Equal(SyntaxKind.AwaitExpression, CType(CType(lambdas(1), SingleLineLambdaExpressionSyntax).Body, AssignmentStatementSyntax).Right.Kind)
+                Assert.Equal(SyntaxKind.SimpleAssignmentStatement, CType(lambdas(1), SingleLineLambdaExpressionSyntax).Body.Kind)
+                Assert.Equal(SyntaxKind.AwaitExpression, CType(CType(lambdas(1), SingleLineLambdaExpressionSyntax).Body, AssignmentStatementSyntax).Right.Kind)
 
-        Assert.Equal(SyntaxKind.AwaitExpression, CType(lambdas(2), SingleLineLambdaExpressionSyntax).Body.Kind)
+                Assert.Equal(SyntaxKind.AwaitExpression, CType(lambdas(2), SingleLineLambdaExpressionSyntax).Body.Kind)
 
-        Assert.Equal(SyntaxKind.EqualsExpression, CType(lambdas(3), SingleLineLambdaExpressionSyntax).Body.Kind)
-        Assert.Equal(SyntaxKind.AwaitExpression, CType(CType(lambdas(3), SingleLineLambdaExpressionSyntax).Body, BinaryExpressionSyntax).Right.Kind)
+                Assert.Equal(SyntaxKind.EqualsExpression, CType(lambdas(3), SingleLineLambdaExpressionSyntax).Body.Kind)
+                Assert.Equal(SyntaxKind.AwaitExpression, CType(CType(lambdas(3), SingleLineLambdaExpressionSyntax).Body, BinaryExpressionSyntax).Right.Kind)
 
-        Assert.Equal(3, lambdas.Count(Function(l) SyntaxFacts.IsMultiLineLambdaExpression(l.Kind)))
+                Assert.Equal(3, lambdas.Count(Function(l) SyntaxFacts.IsMultiLineLambdaExpression(l.Kind)))
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ParseAsyncWithNesting()
-        Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
+            <Fact>
+            Public Sub ParseAsyncWithNesting()
+                Dim tree = VisualBasicSyntaxTree.ParseText("
 Imports Async = System.Threading.Tasks.Task
 
 Class C
@@ -361,27 +363,27 @@ Class AsyncAttribute
     Sub New(p)
 
     End Sub
-End Class]]>.Value)
+End Class")
 
-        ' Error BC30800: Method arguments must be enclosed in parentheses.
-        Assert.True(Aggregate d In tree.GetDiagnostics() Into All(d.Code = ERRID.ERR_ObsoleteArgumentsNeedParens))
+                ' Error BC30800: Method arguments must be enclosed in parentheses.
+                Assert.True(Aggregate d In tree.GetDiagnostics() Into All(d.Code = ERRID.ERR_ObsoleteArgumentsNeedParens))
 
-        Dim asyncExpressions = tree.GetRoot().DescendantNodes.OfType(Of AwaitExpressionSyntax).ToArray()
+                Dim asyncExpressions = tree.GetRoot().DescendantNodes.OfType(Of AwaitExpressionSyntax).ToArray()
 
-        Assert.Equal(9, asyncExpressions.Count)
+                Assert.Equal(9, asyncExpressions.Count)
 
-        Dim invocationExpression = tree.GetRoot().DescendantNodes.OfType(Of InvocationExpressionSyntax).ToArray()
+                Dim invocationExpression = tree.GetRoot().DescendantNodes.OfType(Of InvocationExpressionSyntax).ToArray()
 
-        Assert.Equal(9, asyncExpressions.Count)
+                Assert.Equal(9, asyncExpressions.Count)
 
-        Dim allParsedExpressions = tree.GetRoot().DescendantNodes.OfType(Of ExpressionSyntax)()
-        Dim parsedExpressions = From expression In allParsedExpressions
-                                Where expression.Kind = SyntaxKind.AwaitExpression OrElse
+                Dim allParsedExpressions = tree.GetRoot().DescendantNodes.OfType(Of ExpressionSyntax)()
+                Dim parsedExpressions = From expression In allParsedExpressions
+                                        Where expression.Kind = SyntaxKind.AwaitExpression OrElse
                                                 (expression.Kind = SyntaxKind.IdentifierName AndAlso DirectCast(expression, IdentifierNameSyntax).Identifier.ValueText.Equals("Await"))
-                                Order By expression.Position
-                                Select expression.Kind
+                                        Order By expression.Position
+                                        Select expression.Kind
 
-        Dim expected = {SyntaxKind.AwaitExpression,
+                Dim expected = {SyntaxKind.AwaitExpression,
                         SyntaxKind.IdentifierName,
                         SyntaxKind.IdentifierName,
                         SyntaxKind.AwaitExpression,
@@ -402,14 +404,14 @@ End Class]]>.Value)
                         SyntaxKind.IdentifierName,
                         SyntaxKind.IdentifierName}
 
-        Assert.Equal(expected, parsedExpressions)
+                Assert.Equal(expected, parsedExpressions)
 
-    End Sub
+            End Sub
 
-    <Fact>
-    Public Sub ParseAwaitInScriptingAndInteractive()
+            <Fact>
+            Public Sub ParseAwaitInScriptingAndInteractive()
 
-        Dim source = "
+                Dim source = "
 Dim i = Await T + Await(T)      ' Yes, Yes
 
 Dim l = Sub()
@@ -429,14 +431,16 @@ Async Function F()
     Return Await(T)             ' Yes
 End Function"
 
-        Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
+                Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
 
-        Dim awaitExpressions = tree.GetRoot().DescendantNodes.OfType(Of AwaitExpressionSyntax).ToArray()
+                Dim awaitExpressions = tree.GetRoot().DescendantNodes.OfType(Of AwaitExpressionSyntax).ToArray()
 
-        Assert.Equal(5, awaitExpressions.Count)
+                Assert.Equal(5, awaitExpressions.Count)
 
-        Dim awaitParsedAsIdentifier = tree.GetRoot().DescendantNodes.OfType(Of IdentifierNameSyntax).Where(Function(id) id.Identifier.ValueText.Equals("Await")).ToArray()
+                Dim awaitParsedAsIdentifier = tree.GetRoot().DescendantNodes.OfType(Of IdentifierNameSyntax).Where(Function(id) id.Identifier.ValueText.Equals("Await")).ToArray()
 
-        Assert.Equal(2, awaitParsedAsIdentifier.Count)
-    End Sub
-End Class
+                Assert.Equal(2, awaitParsedAsIdentifier.Count)
+            End Sub
+        End Class
+    End Namespace
+End Namespace

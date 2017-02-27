@@ -8,9 +8,8 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
-    Public Class TestSyntaxNodes
+Public Class TestSyntaxNodes
         Inherits BasicTestBase
 
         Private _spaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
@@ -3783,4 +3782,3 @@ End Module
         End Sub
 #End Region
     End Class
-End Namespace

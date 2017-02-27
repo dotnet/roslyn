@@ -2221,7 +2221,7 @@ End Class
             Dim comp As VisualBasicCompilation
 
             ' create file with no file sharing allowed and verify ERR_PermissionSetAttributeFileReadError during emit
-            Using File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.None)
+            Using IO.File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.None)
                 comp = VisualBasicCompilation.Create(
                     GetUniqueName(),
                     {syntaxTree},

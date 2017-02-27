@@ -11,8 +11,8 @@ Imports Roslyn.Test.Utilities
 Public Class StatementSyntaxWalkerTests
     <ConditionalFact(GetType(WindowsOnly))>
     Public Sub TestStatementSyntaxWalker()
-        Dim tree = ParseAndVerify(<![CDATA[
-Option Explicit Off
+        Dim tree = ParseAndVerify(
+"Option Explicit Off
 Imports System
 <Assembly: CLSCompliant(False)> 
 
@@ -32,11 +32,11 @@ Namespace Foo.Bar
             Catch e As Exception
                 Throw e
             Finally
-                Console.WriteLine("finally!")
+                Console.WriteLine(""finally!"")
             End Try
             Select Case r
                 Case 4
-                    Console.WriteLine("f")
+                    Console.WriteLine(""f"")
                 Case Else
                     Return 4 + s
             End Select
@@ -48,14 +48,14 @@ Namespace Foo.Bar
         End Function
     End Class
 End Namespace
-            ]]>)
+")
 
         Dim writer As New StringWriter()
         Dim myWalker = New TestWalker(writer)
         myWalker.Visit(tree.GetRoot())
 
-        Dim expected = <![CDATA[
-Option Explicit Off
+        Dim expected =
+"Option Explicit Off
 Imports System
 <Assembly: CLSCompliant(False)>
 Namespace Foo.Bar
@@ -77,11 +77,11 @@ End If
 Catch e As Exception
 Throw e
 Finally
-Console.WriteLine("finally!")
+Console.WriteLine(""finally!"")
 End Try
 Select Case r
 Case 4
-Console.WriteLine("f")
+Console.WriteLine(""f"")
 Case Else
 Return 4 + s
 End Select
@@ -93,10 +93,10 @@ Return s
 End Function
 End Class
 End Namespace
-                           ]]>.Value
+"
 
-        expected = expected.Replace(vbLf, vbCrLf).Trim()
-        Dim actual = writer.ToString().Trim()
+        expected = expected
+        Dim actual = writer.ToString()
 
         Assert.Equal(expected, actual)
     End Sub

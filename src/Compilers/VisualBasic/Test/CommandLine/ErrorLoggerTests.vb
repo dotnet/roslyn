@@ -19,24 +19,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
         <Fact>
         Public Sub NoDiagnostics()
-            Dim helloWorldVB As String = <text>
+            Dim helloWorldVB As String = "
 Imports System
 Class C
     Shared Sub Main(args As String())
-        Console.WriteLine("Hello, world")
+        Console.WriteLine(""Hello, world"")
     End Sub
 End Class
-</text>.Value
+"
 
             Dim hello = Temp.CreateFile().WriteAllText(helloWorldVB).Path
             Dim errorLogDir = Temp.CreateDirectory()
             Dim errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt")
 
-            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
-                {"/nologo",
-                 $"/errorlog:{errorLogFile}",
-                 hello})
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim cmd = New MockVisualBasicCompiler(Nothing,
+                                                   _baseDirectory,
+                                                   {"/nologo",
+                                                     "/errorlog:" & errorLogFile,
+                                                     hello
+                                                   }
+                                                 )
+
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
 
             Dim exitCode = cmd.Run(outWriter, Nothing)
             Assert.Equal("", outWriter.ToString().Trim())
@@ -61,24 +65,27 @@ End Class
 
         <Fact>
         Public Sub SimpleCompilerDiagnostics()
-            Dim source As String = <text>
+            Dim source As String = "
 Public Class C
     Public Sub Method()
         Dim x As Integer
     End Sub
 End Class
-</text>.Value
+"
 
             Dim sourceFilePath = Temp.CreateFile().WriteAllText(source).Path
             Dim errorLogDir = Temp.CreateDirectory()
             Dim errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt")
 
-            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
-                {"/nologo",
-                "/preferreduilang:en",
-                 $"/errorlog:{errorLogFile}",
-                 sourceFilePath})
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim cmd As New MockVisualBasicCompiler(Nothing,
+                                                    _baseDirectory,
+                                                    {"/nologo",
+                                                      "/preferreduilang:en",
+                                                      "/errorlog:" & errorLogFile,
+                                                      sourceFilePath
+                                                    }
+                                                  )
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
 
             Dim exitCode = cmd.Run(outWriter, Nothing)
             Dim actualConsoleOutput = outWriter.ToString().Trim()
@@ -90,66 +97,11 @@ End Class
             Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
             Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
-            Dim expectedIssues = String.Format("
-      ""results"": [
-        {{
-          ""ruleId"": ""BC42024"",
-          ""level"": ""warning"",
-          ""message"": ""Unused local variable: 'x'."",
-          ""locations"": [
-            {{
-              ""resultFile"": {{
-                ""uri"": ""{0}"",
-                ""region"": {{
-                  ""startLine"": 4,
-                  ""startColumn"": 13,
-                  ""endLine"": 4,
-                  ""endColumn"": 14
-                }}
-              }}
-            }}
-          ],
-          ""properties"": {{
-            ""warningLevel"": 1
-          }}
-        }},
-        {{
-          ""ruleId"": ""BC30420"",
-          ""level"": ""error"",
-          ""message"": ""'Sub Main' was not found in '{1}'.""
-        }}
-      ],
-      ""rules"": {{
-        ""BC30420"": {{
-          ""id"": ""BC30420"",
-          ""defaultLevel"": ""error"",
-          ""properties"": {{
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": true,
-            ""tags"": [
-              ""Compiler"",
-              ""Telemetry"",
-              ""NotConfigurable""
-            ]
-          }}
-        }},
-        ""BC42024"": {{
-          ""id"": ""BC42024"",
-          ""shortDescription"": ""Unused local variable"",
-          ""defaultLevel"": ""warning"",
-          ""properties"": {{
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": true,
-            ""tags"": [
-              ""Compiler"",
-              ""Telemetry""
-            ]
-          }}
-        }}
-      }}
-    }}
-  ]
-}}", AnalyzerForErrorLogTest.GetUriForPath(sourceFilePath), Path.GetFileNameWithoutExtension(sourceFilePath))
+            Dim expectedIssues = MakeExpected(suppressions:="",
+                                               uri:=AnalyzerForErrorLogTest.GetUriForPath(sourceFilePath),
+                                               message:=Path.GetFileNameWithoutExtension(sourceFilePath),
+                                               startLine:=4,
+                                               endLine:=4)
 
             Dim expectedText = expectedHeader + expectedIssues
             Assert.Equal(expectedText, actualOutput)
@@ -160,7 +112,7 @@ End Class
 
         <Fact>
         Public Sub SimpleCompilerDiagnostics_Suppressed()
-            Dim source As String = <text>
+            Dim source As String = "
 Public Class C
     Public Sub Method()
 #Disable Warning BC42024
@@ -168,18 +120,20 @@ Public Class C
 #Enable Warning BC42024
     End Sub
 End Class
-</text>.Value
+"
 
             Dim sourceFilePath = Temp.CreateFile().WriteAllText(source).Path
             Dim errorLogDir = Temp.CreateDirectory()
             Dim errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt")
 
-            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
-                {"/nologo",
-                "/preferreduilang:en",
-                 $"/errorlog:{errorLogFile}",
-                 sourceFilePath})
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim cmd As New MockVisualBasicCompiler(Nothing,
+                                                    _baseDirectory,
+                                                    {"/nologo",
+                                                      "/preferreduilang:en",
+                                                      "/errorlog:" & errorLogFile,
+                                                      sourceFilePath
+                                                    })
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
 
             Dim exitCode = cmd.Run(outWriter, Nothing)
             Dim actualConsoleOutput = outWriter.ToString().Trim()
@@ -192,23 +146,84 @@ End Class
             Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
             Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
-            Dim expectedIssues = String.Format("
+            Dim expectedIssues = MakeExpected(suppressions:=
+"          ""suppressionStates"": [
+            ""suppressedInSource""
+          ],
+", uri:=AnalyzerForErrorLogTest.GetUriForPath(sourceFilePath),
+                                              message:=Path.GetFileNameWithoutExtension(sourceFilePath),
+                                              startLine:=5,
+                                              endLine:=5)
+
+            Dim expectedText = expectedHeader + expectedIssues
+            Assert.Equal(expectedText, actualOutput)
+
+            CleanupAllGeneratedFiles(sourceFilePath)
+            CleanupAllGeneratedFiles(errorLogFile)
+        End Sub
+
+        <Fact>
+        Public Sub AnalyzerDiagnosticsWithAndWithoutLocation()
+            Dim source As String = "
+Imports System
+Class C
+End Class
+"
+
+            Dim sourceFilePath = Temp.CreateFile().WriteAllText(source).Path
+            Dim outputDir = Temp.CreateDirectory()
+            Dim errorLogFile = Path.Combine(outputDir.Path, "ErrorLog.txt")
+            Dim outputFilePath = Path.Combine(outputDir.Path, "test.dll")
+
+            Dim cmd As New MockVisualBasicCompiler(Nothing,
+                                                    _baseDirectory,
+                                                    {"/nologo",
+                                                      "/preferreduilang:en",
+                                                      "/t:library",
+                                                      "/out:" & outputFilePath,
+                                                      "/errorlog:" & errorLogFile,
+                                                      sourceFilePath
+                                                    },
+                                                    analyzer:=New AnalyzerForErrorLogTest()
+                                                  )
+
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
+
+            Dim exitCode = cmd.Run(outWriter, Nothing)
+            Dim actualConsoleOutput = outWriter.ToString().Trim()
+
+            Assert.Contains(AnalyzerForErrorLogTest.Descriptor1.Id, actualConsoleOutput)
+            Assert.Contains(AnalyzerForErrorLogTest.Descriptor2.Id, actualConsoleOutput)
+            Assert.NotEqual(0, exitCode)
+
+            Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
+            Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
+            Dim expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation)
+            Dim expectedText = expectedHeader + expectedIssues
+
+            Assert.Equal(expectedText, actualOutput)
+
+            CleanupAllGeneratedFiles(sourceFilePath)
+            CleanupAllGeneratedFiles(outputFilePath)
+            CleanupAllGeneratedFiles(errorLogFile)
+        End Sub
+
+
+        Function MakeExpected(suppressions As String, uri As String, message As String, startLine As Int32, endLine As Int32) As String
+            Return $"
       ""results"": [
         {{
           ""ruleId"": ""BC42024"",
           ""level"": ""warning"",
           ""message"": ""Unused local variable: 'x'."",
-          ""suppressionStates"": [
-            ""suppressedInSource""
-          ],
-          ""locations"": [
+{suppressions}          ""locations"": [
             {{
               ""resultFile"": {{
-                ""uri"": ""{0}"",
+                ""uri"": ""{uri}"",
                 ""region"": {{
-                  ""startLine"": 5,
+                  ""startLine"": {startLine},
                   ""startColumn"": 13,
-                  ""endLine"": 5,
+                  ""endLine"": {endLine},
                   ""endColumn"": 14
                 }}
               }}
@@ -221,7 +236,7 @@ End Class
         {{
           ""ruleId"": ""BC30420"",
           ""level"": ""error"",
-          ""message"": ""'Sub Main' was not found in '{1}'.""
+          ""message"": ""'Sub Main' was not found in '{message}'.""
         }}
       ],
       ""rules"": {{
@@ -254,56 +269,7 @@ End Class
       }}
     }}
   ]
-}}", AnalyzerForErrorLogTest.GetUriForPath(sourceFilePath), Path.GetFileNameWithoutExtension(sourceFilePath))
-
-            Dim expectedText = expectedHeader + expectedIssues
-            Assert.Equal(expectedText, actualOutput)
-
-            CleanupAllGeneratedFiles(sourceFilePath)
-            CleanupAllGeneratedFiles(errorLogFile)
-        End Sub
-
-        <Fact>
-        Public Sub AnalyzerDiagnosticsWithAndWithoutLocation()
-            Dim source As String = <text>
-Imports System
-Class C
-End Class
-</text>.Value
-
-            Dim sourceFilePath = Temp.CreateFile().WriteAllText(source).Path
-            Dim outputDir = Temp.CreateDirectory()
-            Dim errorLogFile = Path.Combine(outputDir.Path, "ErrorLog.txt")
-            Dim outputFilePath = Path.Combine(outputDir.Path, "test.dll")
-
-            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
-                {"/nologo",
-                 "/preferreduilang:en",
-                 "/t:library",
-                 $"/out:{outputFilePath}",
-                 $"/errorlog:{errorLogFile}",
-                 sourceFilePath},
-                analyzer:=New AnalyzerForErrorLogTest())
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-
-            Dim exitCode = cmd.Run(outWriter, Nothing)
-            Dim actualConsoleOutput = outWriter.ToString().Trim()
-
-            Assert.Contains(AnalyzerForErrorLogTest.Descriptor1.Id, actualConsoleOutput)
-            Assert.Contains(AnalyzerForErrorLogTest.Descriptor2.Id, actualConsoleOutput)
-            Assert.NotEqual(0, exitCode)
-
-            Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
-
-            Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
-            Dim expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation)
-
-            Dim expectedText = expectedHeader + expectedIssues
-            Assert.Equal(expectedText, actualOutput)
-
-            CleanupAllGeneratedFiles(sourceFilePath)
-            CleanupAllGeneratedFiles(outputFilePath)
-            CleanupAllGeneratedFiles(errorLogFile)
-        End Sub
+}}"
+        End Function
     End Class
 End Namespace

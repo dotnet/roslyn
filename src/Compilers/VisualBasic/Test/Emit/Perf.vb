@@ -23,11 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
             ' If you absolutely need to change the benchmark code - PLEASE SHOOT A MAIL TO SHYAM (GNAMBOO)
             ' so that he can apply the same changes to the copy of this benchmark code that is used in the perf test.
-            CompileAndVerify(<compilation>
-                                 <file name="VBPerfTest.vb">
-                                     <%= TestResources.PerfTests.VBPerfTest %>
-                                 </file>
-                             </compilation>, additionalRefs:={SystemCoreRef}).VerifyDiagnostics()
+            CompileAndVerify(Unit.Make().WithFile("VBPerfTest.vb", TestResources.PerfTests.VBPerfTest), additionalRefs:={SystemCoreRef}).VerifyDiagnostics()
         End Sub
     End Class
 End Namespace

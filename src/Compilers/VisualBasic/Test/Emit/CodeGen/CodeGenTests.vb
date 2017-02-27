@@ -1123,7 +1123,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ClassesWithReadWriteProperties.Value, TestOptions.ReleaseDll).
+            CompileWithCustomILSource(vbSource, ClassesWithReadWriteProperties, TestOptions.ReleaseDll).
             VerifyIL("D3.Test",
             <![CDATA[
 {

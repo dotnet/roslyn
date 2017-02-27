@@ -7,7 +7,6 @@ Imports Roslyn.Test.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
-
     Partial Public Class GeneratedTests
 
         <Fact>
@@ -27,11 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim c = SyntaxFactory.ClassBlock(SyntaxFactory.ClassStatement("C").AddTypeParameterListParameters(SyntaxFactory.TypeParameter("T"))) _
                           .AddImplements(SyntaxFactory.ImplementsStatement(SyntaxFactory.ParseTypeName("X"), SyntaxFactory.ParseTypeName("Y")))
 
-            Dim expectedText As String = _
-                "Class C(Of T)" + vbCrLf + _
-                "    Implements X, Y" + vbCrLf + _
-                vbCrLf + _
-                "End Class"
+            Dim expectedText As String =
+"Class C(Of T)
+    Implements X, Y
+
+End Class"
 
             Dim actualText = c.NormalizeWhitespace().ToFullString()
             Assert.Equal(expectedText, actualText)
@@ -39,13 +38,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestCastExpression()
-            Dim objUnderTest As VisualBasicSyntaxNode = SyntaxFactory.CTypeExpression(SyntaxFactory.Token(SyntaxKind.CTypeKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateRedCharacterLiteralExpression(), SyntaxFactory.Token(SyntaxKind.CommaToken), GenerateRedArrayType(), SyntaxFactory.Token(SyntaxKind.CloseParenToken))
+            Dim objUnderTest As VisualBasicSyntaxNode = SyntaxFactory.CTypeExpression(
+            SyntaxFactory.Token(SyntaxKind.CTypeKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+            GenerateRedCharacterLiteralExpression(), SyntaxFactory.Token(SyntaxKind.CommaToken), GenerateRedArrayType(), SyntaxFactory.Token(SyntaxKind.CloseParenToken))
             Assert.True(Not objUnderTest Is Nothing, "obj can't be Nothing")
         End Sub
 
         <Fact()>
         Public Sub TestOnErrorGoToStatement()
-            Dim objUnderTest As VisualBasicSyntaxNode = SyntaxFactory.OnErrorGoToStatement(SyntaxKind.OnErrorGoToLabelStatement, SyntaxFactory.Token(SyntaxKind.OnKeyword), SyntaxFactory.Token(SyntaxKind.ErrorKeyword), SyntaxFactory.Token(SyntaxKind.GoToKeyword), Nothing, SyntaxFactory.IdentifierLabel(GenerateRedIdentifierToken()))
+            Dim objUnderTest As VisualBasicSyntaxNode = SyntaxFactory.OnErrorGoToStatement(SyntaxKind.OnErrorGoToLabelStatement,
+                                                                                           SyntaxFactory.Token(SyntaxKind.OnKeyword),
+                                                                                           SyntaxFactory.Token(SyntaxKind.ErrorKeyword),
+                                                                                           SyntaxFactory.Token(SyntaxKind.GoToKeyword),
+                                                                                           Nothing,
+                                                                                           SyntaxFactory.IdentifierLabel(
+                                                                                           GenerateRedIdentifierToken()))
             Assert.True(Not objUnderTest Is Nothing, "obj can't be Nothing")
         End Sub
 
@@ -69,13 +76,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub TestParsedSyntaxTreeToString()
 
-            Dim input = "    Module m1" + vbCrLf + _
-                        "Sub      Main(args As String())" + vbCrLf + _
-                        "Sub1  (   Function(p   As   Integer   )" + vbCrLf + _
-                        "Sub2(    )" + vbCrLf + _
-                        "End FUNCTION)" + vbCrLf + _
-                        "End              Sub" + vbCrLf + _
-                        "End       Module                     "
+            Dim input =
+"    Module m1
+Sub      Main(args As String())
+Sub1  (   Function(p   As   Integer   )
+Sub2()
+End FUNCTION)
+End              Su
+End       Module                     "
 
             Dim node = VisualBasicSyntaxTree.ParseText(input)
             Assert.Equal(input, node.ToString())
@@ -120,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         <Fact()>
         Public Sub SyntaxTreeIsHidden_Bug13776()
-            Dim source = <![CDATA[
+            Dim source = "
 Module Program
 Sub Main()
 If a Then
@@ -134,7 +142,7 @@ c()
 End If
 End Sub
 End Module
-]]>.Value
+"
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source)
 
@@ -212,14 +220,13 @@ End Module
 
         <Fact(), WorkItem(701158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/701158")>
         Public Sub FindTokenOnStartOfContinuedLine()
-            Dim code =
-                <code>
-                Namespace a
-                    &lt;TestClass&gt; _
-                    Public Class UnitTest1
-                   End Class
-                End Namespace
-            </code>.Value
+            Dim code = "
+Namespace a
+    <TestClass> _
+    Public Class UnitTest1
+   End Class
+End Namespace
+"
             Dim text = SourceText.From(code)
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim token = tree.GetRoot().FindToken(text.Lines.Item(3).Start)
@@ -232,4 +239,5 @@ End Module
             Assert.True(parsedTypeName.ContainsSkippedText)
         End Sub
     End Class
+
 End Namespace
