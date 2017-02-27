@@ -912,14 +912,13 @@ Friend Module CompilationUtils
                     Next
 
                     If appendedLines > 0 Then
-                        Assert.True(False, messages.ToStringAndFree())
-                        Exit Sub
+                        Assert.True(False, messages.Builder.ToString())
                     Else
                         CompareLineByLine(expectedText, actualText)
                     End If
                 End If
-                messages.Free()
             End With
+            messages.Free()
         End If
     End Sub
 

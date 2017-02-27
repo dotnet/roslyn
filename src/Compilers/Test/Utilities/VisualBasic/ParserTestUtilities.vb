@@ -80,13 +80,9 @@ Friend Module ParserTestUtilities
             Dim errors = PooledStringBuilderPool.Allocate()
             AppendSyntaxErrors(tree.GetDiagnostics(), errors.Builder)
             Assert.Equal(root.ContainsDiagnostics, errors.Builder.Length > 0)
-            If root.ContainsDiagnostics Then
-                errors.Free()
-            Else
-                Assert.False(root.ContainsDiagnostics, errors.ToStringAndFree())
-            End If
+            Assert.False(root.ContainsDiagnostics, errors.ToStringAndFree())
         Else
-                Assert.True(root.ContainsDiagnostics, "Tree was expected to contain errors.")
+            Assert.True(root.ContainsDiagnostics, "Tree was expected to contain errors.")
             If errorCodesOnly Then
                 tree.GetDiagnostics().VerifyErrorCodes(expectedDiagnostics)
             Else
