@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            // Not supported if this is "new Foo { ... }" (as there are no parameters at all.
+            // Not supported if this is "new { ... }" (as there are no parameters at all.
             var typeNode = syntaxFacts.GetObjectCreationType(objectCreation);
             if (typeNode == null)
             {
