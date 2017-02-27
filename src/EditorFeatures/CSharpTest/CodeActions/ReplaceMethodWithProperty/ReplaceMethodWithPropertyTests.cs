@@ -1484,6 +1484,7 @@ compareTokens: false);
 }");
         }
 
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle1()
         {
@@ -1504,6 +1505,7 @@ compareTokens: false);
 }", options: PreferExpressionBodiedAccessors);
         }
 
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle2()
         {
@@ -1521,6 +1523,7 @@ compareTokens: false);
 }", options: PreferExpressionBodiedProperties);
         }
 
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle3()
         {
@@ -1538,6 +1541,7 @@ compareTokens: false);
 }", options: PreferExpressionBodiedAccessorsAndProperties);
         }
 
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle4()
         {
@@ -1566,6 +1570,7 @@ index: 1,
 options: PreferExpressionBodiedAccessors);
         }
 
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle5()
         {
@@ -1594,6 +1599,7 @@ index: 1,
 options: PreferExpressionBodiedProperties);
         }
 
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle6()
         {
@@ -1622,8 +1628,8 @@ index: 1,
 options: PreferExpressionBodiedAccessorsAndProperties);
         }
 
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(6034, "https://github.com/dotnet/roslyn/issues/6034")]
         public async Task TestCodeStyle7()
         {
             await TestAsync(
@@ -1637,8 +1643,8 @@ options: PreferExpressionBodiedAccessorsAndProperties);
 }", options: PreferExpressionBodiedProperties);
         }
 
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(6034, "https://github.com/dotnet/roslyn/issues/6034")]
         public async Task TestCodeStyle8()
         {
             await TestAsync(
@@ -1652,8 +1658,8 @@ options: PreferExpressionBodiedAccessorsAndProperties);
 }", options: PreferExpressionBodiedAccessors);
         }
 
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(6034, "https://github.com/dotnet/roslyn/issues/6034")]
         public async Task TestCodeStyle9()
         {
             await TestAsync(
@@ -1667,8 +1673,8 @@ options: PreferExpressionBodiedAccessorsAndProperties);
 }", options: PreferExpressionBodiedAccessors);
         }
 
+        [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem(6034, "https://github.com/dotnet/roslyn/issues/6034")]
         public async Task TestCodeStyle10()
         {
             await TestAsync(
