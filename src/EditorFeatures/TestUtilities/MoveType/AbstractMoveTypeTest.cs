@@ -20,10 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
         private string RenameFileCodeActionTitle = FeaturesResources.Rename_file_to_0;
         private string RenameTypeCodeActionTitle = FeaturesResources.Rename_type_to_0;
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new MoveTypeCodeRefactoringProvider();
-        }
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+            => new MoveTypeCodeRefactoringProvider();
 
         protected async Task TestRenameTypeToMatchFileAsync(
            string originalCode,

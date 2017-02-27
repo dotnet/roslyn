@@ -25,18 +25,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                    SpecializedCollections.EmptyList<SyntaxNode>()));
         }
 
-        public static IList<SyntaxNode> CreateThrowNotImplementedStatementBlock(
-            this SyntaxGenerator codeDefinitionFactory,
-            Compilation compilation)
-        {
-            return new[] { CreateThrowNotImplementedStatement(codeDefinitionFactory, compilation) };
-        }
+        public static ImmutableArray<SyntaxNode> CreateThrowNotImplementedStatementBlock(
+            this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
+            => ImmutableArray.Create(CreateThrowNotImplementedStatement(codeDefinitionFactory, compilation));
 
-        public static IList<SyntaxNode> CreateArguments(
+        public static ImmutableArray<SyntaxNode> CreateArguments(
             this SyntaxGenerator factory,
             ImmutableArray<IParameterSymbol> parameters)
         {
-            return parameters.Select(p => CreateArgument(factory, p)).ToList();
+            return parameters.SelectAsArray(p => CreateArgument(factory, p));
         }
 
         private static SyntaxNode CreateArgument(
@@ -54,20 +51,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // Create a constructor that calls the base constructor.  Note: if there are no
             // parameters then don't bother writing out "base()" it's automatically implied.
             return CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 typeName: typeName,
                 parameters: constructor.Parameters,
-                statements: null,
-                baseConstructorArguments: constructor.Parameters.Length == 0 ? null : factory.CreateArguments(constructor.Parameters));
+                statements: default(ImmutableArray<SyntaxNode>),
+                baseConstructorArguments: constructor.Parameters.Length == 0 
+                    ? default(ImmutableArray<SyntaxNode>)
+                    : factory.CreateArguments(constructor.Parameters));
         }
 
         public static IEnumerable<ISymbol> CreateFieldDelegatingConstructor(
             this SyntaxGenerator factory,
             string typeName,
             INamedTypeSymbol containingTypeOpt,
-            IList<IParameterSymbol> parameters,
+            ImmutableArray<IParameterSymbol> parameters,
             IDictionary<string, ISymbol> parameterToExistingFieldMap,
             IDictionary<string, string> parameterToNewFieldMap,
             CancellationToken cancellationToken)
@@ -82,16 +81,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             yield return CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 typeName: typeName,
                 parameters: parameters,
-                statements: statements.ToList(),
+                statements: statements.ToImmutableArray(),
                 thisConstructorArguments: GetThisConstructorArguments(containingTypeOpt, parameterToExistingFieldMap));
         }
 
-        private static IList<SyntaxNode> GetThisConstructorArguments(
+        private static ImmutableArray<SyntaxNode> GetThisConstructorArguments(
             INamedTypeSymbol containingTypeOpt,
             IDictionary<string, ISymbol> parameterToExistingFieldMap)
         {
@@ -110,11 +109,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // We have less field assignments than actual fields.  Generate a call to the
                     // default constructor as well.
-                    return new List<SyntaxNode>();
+                    return ImmutableArray<SyntaxNode>.Empty;
                 }
             }
 
-            return null;
+            return default(ImmutableArray<SyntaxNode>);
         }
 
         public static IEnumerable<IFieldSymbol> CreateFieldsForParameters(
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (TryGetValue(parameterToNewFieldMap, parameterName, out var fieldName))
                     {
                         yield return CodeGenerationSymbolFactory.CreateFieldSymbol(
-                            attributes: null,
+                            attributes: default(ImmutableArray<AttributeData>),
                             accessibility: Accessibility.Private,
                             modifiers: default(DeclarationModifiers),
                             type: parameterType,
@@ -309,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessorGet = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenProperty.GetMethod,
                     accessibility: getAccessibility,
-                    statements: new[] { getBody },
+                    statements: ImmutableArray.Create(getBody),
                     modifiers: modifiers);
             }
 
@@ -322,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessorSet = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenProperty.SetMethod,
                     accessibility: setAccessibility,
-                    statements: new[] { setBody },
+                    statements: ImmutableArray.Create(setBody),
                     modifiers: modifiers);
             }
 
@@ -344,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return CodeGenerationSymbolFactory.CreateEventSymbol(
                 overriddenEvent,
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: overriddenEvent.ComputeResultantAccessibility(newContainingType),
                 modifiers: modifiers,
                 explicitInterfaceSymbol: null,
@@ -369,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     overriddenMethod,
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
-                    statements: new[] { statement });
+                    statements: ImmutableArray.Create(statement));
             }
             else
             {
@@ -387,8 +386,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
                     statements: overriddenMethod.ReturnsVoid
-                        ? new SyntaxNode[] { codeFactory.ExpressionStatement(body) }
-                        : new SyntaxNode[] { codeFactory.ReturnStatement(body) });
+                        ? ImmutableArray.Create(codeFactory.ExpressionStatement(body))
+                        : ImmutableArray.Create(codeFactory.ReturnStatement(body)));
             }
         }
     }

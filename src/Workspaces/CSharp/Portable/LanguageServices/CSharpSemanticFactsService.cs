@@ -243,5 +243,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
             return syntaxRefs.Any(n => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword));
         }
+
+        public IEnumerable<ISymbol> GetDeclaredSymbols(
+            SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
+        {
+            if (memberDeclaration is FieldDeclarationSyntax field)
+            {
+                return field.Declaration.Variables.Select(
+                    v => semanticModel.GetDeclaredSymbol(v, cancellationToken));
+            }
+
+            return SpecializedCollections.SingletonEnumerable(
+                semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken));
+        }
     }
 }

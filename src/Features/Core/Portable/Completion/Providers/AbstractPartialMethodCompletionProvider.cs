@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var method = (IMethodSymbol)member;
-            return CodeGenerationSymbolFactory.CreateMethodSymbol(attributes: new List<AttributeData>(),
+            return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                attributes: ImmutableArray<AttributeData>.Empty,
                 accessibility: Accessibility.NotApplicable,
                 modifiers: MemberInsertionCompletionItem.GetModifiers(item),
                 returnType: semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 explicitInterfaceSymbol: null,
                 name: member.Name,
                 typeParameters: method.TypeParameters,
-                parameters: method.Parameters.Select(p => CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.Type, p.Name)).ToList(),
+                parameters: method.Parameters.SelectAsArray(p => CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.Type, p.Name)),
                 statements: syntaxFactory.CreateThrowNotImplementedStatementBlock(semanticModel.Compilation));
         }
 

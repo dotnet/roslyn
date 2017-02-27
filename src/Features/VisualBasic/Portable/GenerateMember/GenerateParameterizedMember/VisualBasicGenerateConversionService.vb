@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -137,15 +138,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 typeToGenerateIn = typeToGenerateIn.ConstructUnboundGenericType.ConstructedFrom
             End If
             Return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes:=SpecializedCollections.EmptyList(Of AttributeData),
+                attributes:=ImmutableArray(Of AttributeData).Empty,
                 accessibility:=Nothing,
                 modifiers:=Nothing,
                 returnType:=typeToGenerateIn,
                 returnsByRef:=False,
                 explicitInterfaceSymbol:=Nothing,
                 name:=Nothing,
-                typeParameters:=SpecializedCollections.EmptyList(Of ITypeParameterSymbol),
-                parameters:={CodeGenerationSymbolFactory.CreateParameterSymbol(parameterSymbol, "v")},
+                typeParameters:=ImmutableArray(Of ITypeParameterSymbol).Empty,
+                parameters:=ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(parameterSymbol, "v")),
                 statements:=Nothing,
                 handlesExpressions:=Nothing,
                 returnTypeAttributes:=Nothing,

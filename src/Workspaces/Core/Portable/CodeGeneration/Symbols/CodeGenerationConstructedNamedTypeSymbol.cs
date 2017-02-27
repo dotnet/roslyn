@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
     {
         private readonly CodeGenerationAbstractNamedTypeSymbol _constructedFrom;
-        private readonly IList<ITypeSymbol> _typeArguments;
+        private readonly ImmutableArray<ITypeSymbol> _typeArguments;
 
         public CodeGenerationConstructedNamedTypeSymbol(
             CodeGenerationAbstractNamedTypeSymbol constructedFrom,
-            IList<ITypeSymbol> typeArguments,
-            IList<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
+            ImmutableArray<ITypeSymbol> typeArguments,
+            ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
             : base(constructedFrom.ContainingType, constructedFrom.GetAttributes(),
                    constructedFrom.DeclaredAccessibility, constructedFrom.Modifiers,
                    constructedFrom.Name, constructedFrom.SpecialType, typeMembers)
@@ -24,13 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             _typeArguments = typeArguments;
         }
 
-        public override ImmutableArray<ITypeSymbol> TypeArguments
-        {
-            get
-            {
-                return ImmutableArray.CreateRange(_typeArguments);
-            }
-        }
+        public override ImmutableArray<ITypeSymbol> TypeArguments => _typeArguments;
 
         public override int Arity => _constructedFrom.Arity;
 

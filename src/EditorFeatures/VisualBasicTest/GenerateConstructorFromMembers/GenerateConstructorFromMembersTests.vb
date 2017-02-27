@@ -3,13 +3,14 @@
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateConstructorFromMembers
+Imports Microsoft.CodeAnalysis.PickMembers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructorFromMembers
     Public Class GenerateConstructorFromMembersTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
-            Return New GenerateConstructorFromMembersCodeRefactoringProvider()
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, fixProviderData As Object) As CodeRefactoringProvider
+            Return New GenerateConstructorFromMembersCodeRefactoringProvider(DirectCast(fixProviderData, IPickMembersService))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
@@ -209,6 +210,98 @@ index:=0)
 "Class Contribution
   [|MustOverride ReadOnly Property Title As String
     ReadOnly Property Number As Integer|]
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialog1() As Task
+            Await TestWithGenerateConstructorDialogAsync(
+"Class Program
+    Private i As Integer
+    [||]
+End Class",
+"Class Program
+    Private i As Integer
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Class", chosenSymbols:={"i"})
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialog2() As Task
+            Await TestWithGenerateConstructorDialogAsync(
+"Class Program
+    Private i As Integer
+    [||]
+End Class",
+"Class Program
+    Private i As Integer
+    Public Sub New()
+    End Sub
+End Class", chosenSymbols:={})
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialog3() As Task
+            Await TestWithGenerateConstructorDialogAsync(
+"Class Program
+    Private i As Integer
+    Private j As String
+    [||]
+End Class",
+"Class Program
+    Private i As Integer
+    Private j As String
+    Public Sub New(j As String, i As Integer)
+        Me.j = j
+        Me.i = i
+    End Sub
+End Class", chosenSymbols:={"j", "i"})
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialog4() As Task
+            Await TestWithGenerateConstructorDialogAsync(
+"Class [||]Program
+    Private i As Integer
+End Class",
+"Class Program
+    Private i As Integer
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Class", chosenSymbols:={"i"})
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMissingOnMember1() As Task
+            Await TestMissingAsync(
+"Class Program
+    Private i As Integer
+    [||]Sub M()
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMissingOnMember2() As Task
+            Await TestMissingAsync(
+"Class Program
+    Private i As Integer
+    Sub M()
+    End Sub[||]
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMissingOnAttributes() As Task
+            Await TestMissingAsync(
+"<X>[||]
+Class Program
+    Private i As Integer
+    Sub M()
+    End Sub
 End Class")
         End Function
     End Class

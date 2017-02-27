@@ -1431,6 +1431,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode UsingStatement(SyntaxNode expression, IEnumerable<SyntaxNode> statements);
 
         /// <summary>
+        /// Creates a statement that represents a lock-block pattern.
+        /// </summary>
+        public abstract SyntaxNode LockStatement(SyntaxNode expression, IEnumerable<SyntaxNode> statements);
+
+        /// <summary>
         /// Creates a try-catch or try-catch-finally statement.
         /// </summary>
         public abstract SyntaxNode TryCatchStatement(IEnumerable<SyntaxNode> tryStatements, IEnumerable<SyntaxNode> catchClauses, IEnumerable<SyntaxNode> finallyStatements = null);

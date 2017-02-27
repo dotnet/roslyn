@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertToInterpola
     Public Class ConvertPlaceholderToInterpolatedStringTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, fixProviderData As Object) As CodeRefactoringProvider
             Return New VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider()
         End Function
 

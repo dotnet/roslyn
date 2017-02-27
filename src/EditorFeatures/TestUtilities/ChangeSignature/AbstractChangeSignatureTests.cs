@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     optionsService.IsCancelled = isCancelled;
                     optionsService.UpdatedSignature = updatedSignature;
 
-                    var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace);
+                    var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, fixProviderData: null);
                     await TestActionsAsync(workspace, expectedCode, index, codeIssueOrRefactoring.Actions.ToList(),
                         conflictSpans: null, renameSpans: null, warningSpans: null, compareTokens: true);
                 }

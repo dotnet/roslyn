@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -124,7 +125,7 @@ End Class";
                 var input = "Class [|C|]\n Public Sub New(i As Integer)\n End Sub\n End Class";
                 var expected = "Class C\n Public Sub New()\n Me.New(42)\n End Sub\n Public Sub New(i As Integer)\n End Sub\n End Class";
                 await TestAddConstructorAsync(input, expected,
-                    thisArguments: new[] { VB.SyntaxFactory.ParseExpression("42") });
+                    thisArguments: ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExpression("42")));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544476")]
@@ -303,7 +304,8 @@ End Class";
                 Func<SemanticModel, IEventSymbol> getExplicitInterfaceEvent = semanticModel =>
                         {
                             var parameterSymbols = SpecializedCollections.EmptyList<AttributeData>();
-                            return new CodeGenerationEventSymbol(GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel), null,
+                            return new CodeGenerationEventSymbol(GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel), 
+                                default(ImmutableArray<AttributeData>),
                                 Accessibility.Public,
                                 default(DeclarationModifiers),
                                 GetTypeSymbol(typeof(System.ComponentModel.PropertyChangedEventHandler))(semanticModel),
@@ -311,7 +313,7 @@ End Class";
                                 nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null);
                         };
                 await TestAddEventAsync(input, expected,
-                    addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(SpecializedCollections.EmptyList<AttributeData>(), Accessibility.NotApplicable, SpecializedCollections.EmptyList<SyntaxNode>()),
+                    addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
                     explicitInterfaceSymbol: getExplicitInterfaceEvent,
                     type: typeof(System.ComponentModel.PropertyChangedEventHandler),
                     codeGenerationOptions: new CodeGenerationOptions(addImports: false));
@@ -339,7 +341,7 @@ Class C
     End Event
 End Class";
                 await TestAddEventAsync(input, expected,
-                    addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(SpecializedCollections.EmptyList<AttributeData>(), Accessibility.NotApplicable, SpecializedCollections.EmptyList<SyntaxNode>()),
+                    addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
                     codeGenerationOptions: new CodeGenerationOptions(addImports: false));
             }
 
@@ -366,16 +368,16 @@ Class C
         End RaiseEvent
     End Event
 End Class";
-                var addStatements = new List<SyntaxNode>() { VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(0)") };
-                var removeStatements = new List<SyntaxNode>() { VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(1)") };
-                var raiseStatements = new List<SyntaxNode>() { VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(2)") };
+                var addStatements = ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(0)"));
+                var removeStatements = ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(1)"));
+                var raiseStatements = ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(2)"));
                 await TestAddEventAsync(input, expected,
                     addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        SpecializedCollections.EmptyList<AttributeData>(), Accessibility.NotApplicable, addStatements),
+                        ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, addStatements),
                     removeMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        SpecializedCollections.EmptyList<AttributeData>(), Accessibility.NotApplicable, removeStatements),
+                        ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, removeStatements),
                     raiseMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        SpecializedCollections.EmptyList<AttributeData>(), Accessibility.NotApplicable, raiseStatements),
+                        ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, raiseStatements),
                     codeGenerationOptions: new CodeGenerationOptions(addImports: false));
             }
 
@@ -449,7 +451,7 @@ End Class";
                 var expected = "Class C\n Public Function M(Of T)() As Integer\n $$ \nEnd Function\n End Class";
                 await TestAddMethodAsync(input, expected,
                     returnType: typeof(int),
-                    typeParameters: new[] { CodeGenerationSymbolFactory.CreateTypeParameterSymbol("T") },
+                    typeParameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateTypeParameterSymbol("T")),
                     statements: "Return new T().GetHashCode()");
             }
 
@@ -1242,8 +1244,7 @@ Public Shared Class C
     Public Shared f2 As Integer
 End Class";
                 var getField = CreateField(Accessibility.Public, new DeclarationModifiers(isStatic: true), typeof(int), "f2");
-                var getMembers = new List<Func<SemanticModel, ISymbol>>();
-                getMembers.Add(getField);
+                var getMembers = ImmutableArray.Create(getField);
                 await TestUpdateDeclarationAsync<ClassBlockSyntax>(input, expected, getNewMembers: getMembers);
             }
 

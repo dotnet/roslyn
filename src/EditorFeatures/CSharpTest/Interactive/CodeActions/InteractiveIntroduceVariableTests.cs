@@ -10,10 +10,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     public class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new IntroduceVariableCodeRefactoringProvider();
-        }
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+            => new IntroduceVariableCodeRefactoringProvider();
 
         protected Task TestAsync(string initial, string expected, int index = 0, bool compareTokens = true)
         {
