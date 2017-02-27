@@ -313,14 +313,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode) &&
                     nameNode != null)
                 {
-                    var symbols = await GetSymbolsAsync(searchScope, nameNode).ConfigureAwait(false);
-                    var methodSymbols = OfType<IMethodSymbol>(symbols);
+                    searchScope.CancellationToken.ThrowIfCancellationRequested();
 
-                    var extensionMethodSymbols = GetViableExtensionMethods(
-                        methodSymbols, nameNode.Parent, searchScope.CancellationToken);
+                    // See if the name binds.  If it does, there's nothing further we need to do.
+                    if (!ExpressionBinds(nameNode, checkForExtensionMethods: true, cancellationToken: searchScope.CancellationToken))
+                    {
+                        _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
+                        if (name != null)
+                        {
+                            var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Member).ConfigureAwait(false);
 
-                    var namespaceSymbols = extensionMethodSymbols.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
-                    return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
+                            var methodSymbols = OfType<IMethodSymbol>(symbols);
+
+                            var extensionMethodSymbols = GetViableExtensionMethods(
+                                methodSymbols, nameNode.Parent, searchScope.CancellationToken);
+
+                            var namespaceSymbols = extensionMethodSymbols.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
+                            return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
+                        }
+                    }
                 }
 
                 return ImmutableArray<SymbolReference>.Empty;
@@ -333,6 +344,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return GetViableExtensionMethodsWorker(methodSymbols, cancellationToken).WhereAsArray(
                     s => _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, cancellationToken));
             }
+
             private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethods(
                 ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols,
                 ITypeSymbol typeSymbol, CancellationToken cancellationToken)
@@ -653,25 +665,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
 
                 return references.ToImmutableAndFree();
-            }
-
-            private Task<ImmutableArray<SymbolResult<ISymbol>>> GetSymbolsAsync(SearchScope searchScope, TSimpleNameSyntax nameNode)
-            {
-                searchScope.CancellationToken.ThrowIfCancellationRequested();
-
-                // See if the name binds.  If it does, there's nothing further we need to do.
-                if (ExpressionBinds(nameNode, checkForExtensionMethods: true, cancellationToken: searchScope.CancellationToken))
-                {
-                    return SpecializedTasks.EmptyImmutableArray<SymbolResult<ISymbol>>();
-                }
-
-                _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
-                if (name == null)
-                {
-                    return SpecializedTasks.EmptyImmutableArray<SymbolResult<ISymbol>>();
-                }
-
-                return searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Member);
             }
 
             private ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol
