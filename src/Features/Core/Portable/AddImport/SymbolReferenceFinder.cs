@@ -573,8 +573,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private bool HasAccessibleStaticFieldOrProperty(ISymbol symbol, string fieldOrPropertyName)
             {
-                var namedType = (INamedTypeSymbol)symbol;
-                if (namedType != null)
+                if (symbol is INamedTypeSymbol namedType)
                 {
                     var members = namedType.GetMembers(fieldOrPropertyName);
                     var query = from m in members
