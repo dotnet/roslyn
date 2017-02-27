@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public ProjectSearchScope(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 Project project,
-                bool ignoreCase,
+                bool exact,
                 CancellationToken cancellationToken)
-                : base(provider, ignoreCase, cancellationToken)
+                : base(provider, exact, cancellationToken)
             {
                 _project = project;
             }
@@ -126,8 +126,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public SourceSymbolsProjectSearchScope(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
-                Project project, bool ignoreCase, CancellationToken cancellationToken)
-                : base(provider, project, ignoreCase, cancellationToken)
+                Project project, bool exact, CancellationToken cancellationToken)
+                : base(provider, project, exact, cancellationToken)
             {
                 _projectToAssembly = projectToAssembly;
             }

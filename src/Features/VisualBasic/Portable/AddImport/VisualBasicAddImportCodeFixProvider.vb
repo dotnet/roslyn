@@ -189,6 +189,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return CanAddImportForTypeOrNamespaceCore(node, nameNode)
         End Function
 
+        Protected Overrides Function CanAddImportForDeconstruct(diagnostic As Diagnostic, node As SyntaxNode) As Boolean
+            ' Not supported yet.
+            Return False
+        End Function
+
         Protected Overrides Function CanAddImportForQuery(diagnostic As Diagnostic, node As SyntaxNode) As Boolean
             If diagnostic.Id <> BC36593 Then
                 Return False
@@ -279,6 +284,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
 
         Protected Overrides Function GetImportNamespacesInScope(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISet(Of INamespaceSymbol)
             Return semanticModel.GetImportNamespacesInScope(node)
+        End Function
+
+        Protected Overrides Function GetDeconstructInfo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ITypeSymbol
+            Return Nothing
         End Function
 
         Protected Overrides Function GetQueryClauseInfo(
