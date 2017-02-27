@@ -389,6 +389,7 @@
     <Compile Include="PatternMatching\PatternMatcher.TextChunk.cs" />
     <Compile Include="PatternMatching\PatternMatches.cs" />
     <Compile Include="PatternMatching\PatternMatchKind.cs" />
+    <Compile Include="Remote\IRemoteHostService.cs" />
     <Compile Include="Remote\RemoteSupportedLanguages.cs" />
     <Compile Include="NamingStyles\Capitalization.cs" />
     <Compile Include="NamingStyles\NamingRule.cs" />

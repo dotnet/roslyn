@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -24,6 +25,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private readonly ConcurrentDictionary<int, AssetSource> _assetSources =
             new ConcurrentDictionary<int, AssetSource>(concurrencyLevel: 4, capacity: 10);
+
+        private readonly ConcurrentDictionary<Checksum, Entry> _globalAssets =
+            new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
 
         private readonly ConcurrentDictionary<Checksum, Entry> _assets =
             new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
@@ -63,9 +67,28 @@ namespace Microsoft.CodeAnalysis.Remote
             _assetSources.TryRemove(sessionId, out dummy);
         }
 
+        public bool TryAddGlobalAsset(Checksum checksum, object value)
+        {
+            return _globalAssets.TryAdd(checksum, new Entry(value));
+        }
+
         public bool TryAddAsset(Checksum checksum, object value)
         {
             return _assets.TryAdd(checksum, new Entry(value));
+        }
+
+        public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
+        {
+            foreach (var asset in _globalAssets)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var value = asset.Value.Object;
+                if (value is T)
+                {
+                    yield return (T)value;
+                }
+            }
         }
 
         public bool TryGetAsset<T>(Checksum checksum, out T value)
@@ -74,7 +97,8 @@ namespace Microsoft.CodeAnalysis.Remote
             using (Logger.LogBlock(FunctionId.AssetStorage_TryGetAsset, Checksum.GetChecksumLogInfo, checksum, CancellationToken.None))
             {
                 Entry entry;
-                if (!_assets.TryGetValue(checksum, out entry))
+                if (!_globalAssets.TryGetValue(checksum, out entry) &&
+                    !_assets.TryGetValue(checksum, out entry))
                 {
                     return false;
                 }

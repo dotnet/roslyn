@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     await remoteHostClient.RunOnRemoteHostAsync(
                         WellKnownRemoteHostServices.RemoteHostService, solution,
-                        WellKnownRemoteHostServices.RemoteHostService_SynchronizePrimaryWorkspaceAsync, checksum, cancellationToken).ConfigureAwait(false);
+                        nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync), checksum, cancellationToken).ConfigureAwait(false);
                 }
             }
 
