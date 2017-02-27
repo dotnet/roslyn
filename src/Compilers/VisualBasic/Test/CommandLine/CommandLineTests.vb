@@ -252,18 +252,15 @@ Copyright (C) Microsoft Corporation. All rights reserved."
         <Fact()>
         Public Sub VbcUtf8Output_WithRedirecting_On()
             Dim src As String = Temp.CreateFile().WriteAllText("♚", New System.Text.UTF8Encoding(False)).Path
-
             Dim tempOut = Temp.CreateFile()
-
             Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /utf8output /nologo /preferreduilang:en /t:library " & src & " > " & tempOut.Path, expectedRetCode:=1)
             Assert.Equal("", output.Trim())
 
-            Assert.Equal(<text>
-SRC.VB(1) : error BC30037: Character is not valid.
+            Assert.Equal(
+"SRC.VB(1) : error BC30037: Character is not valid.
 
 ♚
-~
-</text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
+~", tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
 
 
             CleanupAllGeneratedFiles(src)
@@ -279,8 +276,7 @@ SRC.VB(1) : error BC30037: Character is not valid.
 System.Console.WriteLine(""*?"");  # this is error
 a.vb
 ").Path
-            Dim cmd = New MockVisualBasicCompiler(rsp, _baseDirectory, {"b.vb"})
-
+            Dim cmd As New MockVisualBasicCompiler(rsp, _baseDirectory, {"b.vb"})
             AssertEx.Equal({"System.dll"}, cmd.Arguments.MetadataReferences.Select(Function(r) r.Reference))
             AssertEx.Equal(
             {
@@ -289,8 +285,6 @@ a.vb
             },
             cmd.Arguments.SourceFiles.Select(Function(file) file.Path))
             Assert.NotEmpty(cmd.Arguments.Errors)
-
-
             CleanupAllGeneratedFiles(rsp)
         End Sub
 
@@ -302,10 +296,8 @@ a.vb
 /rootnamespace:""Hello""
 a.vb
 ").Path
-            Dim cmd = New MockVisualBasicCompiler(rsp, _baseDirectory, {"b.vb"})
-
+            Dim cmd As New MockVisualBasicCompiler(rsp, _baseDirectory, {"b.vb"})
             Assert.Equal("Hello", cmd.Arguments.CompilationOptions.RootNamespace)
-
             CleanupAllGeneratedFiles(rsp)
         End Sub
 
