@@ -74,15 +74,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ParseOptions parseOptions,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null,
-            bool withScriptOption = false)
+            object fixProviderData = null)
         {
             await TestMissingAsync(initialMarkup, parseOptions, compilationOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
-
-            if (withScriptOption)
-            {
-                await TestMissingAsync(initialMarkup, parseOptions.WithKind(SourceCodeKind.Script), compilationOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
-            }
         }
 
         protected async Task TestMissingAsync(

@@ -276,8 +276,7 @@ index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
     {
         this.i = i;
     }
-}",
-parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -349,8 +348,7 @@ index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
     {
         this.i = i;
     }
-}",
-parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]

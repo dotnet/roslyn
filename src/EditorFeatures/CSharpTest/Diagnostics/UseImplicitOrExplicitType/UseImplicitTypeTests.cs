@@ -1558,7 +1558,7 @@ namespace System
             await TestAsync(before, after, options: ImplicitTypeEverywhere(), parseOptions: TestOptions.Regular, withScriptOption: true);
 
             // We would rather this refactoring also worked. See https://github.com/dotnet/roslyn/issues/11094
-            await TestMissingAsync(before, options: ImplicitTypeWhereApparent(), parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestMissingAsync(before, options: ImplicitTypeWhereApparent());
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/11154"), Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1599,9 +1599,7 @@ withScriptOption: true);
         [|(int, string)|] s = (c: 1, d: ""hello"");
     }
 }",
-options: ImplicitTypeEverywhere(),
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+options: ImplicitTypeEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1637,9 +1635,7 @@ class Program
         }
     }
 }",
-options: ImplicitTypeEverywhere(),
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+options: ImplicitTypeEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
