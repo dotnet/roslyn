@@ -145,6 +145,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     .ToImmutableArray();
             }
 
+            /// <summary>
+            /// Searches for types that match the name the user has written.  Returns <see cref="SymbolReference"/>s
+            /// to the <see cref="INamespaceSymbol"/>s or <see cref="INamedTypeSymbol"/>s those types are
+            /// contained in.
+            /// </summary>
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingTypesAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
@@ -158,9 +163,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // Find types in the search scope with the same name as what the user wrote.
                 var symbols = await GetTypeSymbols(searchScope, name, nameNode, inAttributeContext).ConfigureAwait(false);
 
+                // Only keep symbols which are accessible from the current location.
                 var accessibleSymbols = symbols.WhereAsArray(
                     s => ArityAccessibilityAndAttributeContextAreCorrect(
-                        _semanticModel, s.Symbol, arity, inAttributeContext, hasIncompleteParentMember));
+                        s.Symbol, arity, inAttributeContext, hasIncompleteParentMember));
 
                 // These types may be contained within namespaces, or they may be nested 
                 // inside generic types.  Record these namespaces/types if it would be 
@@ -176,6 +182,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     r => searchScope.CreateReference(r.WithSymbol(r.Symbol.ContainingType)));
 
                 return namespaceReferences.Concat(typeReferences);
+            }
+
+            private bool ArityAccessibilityAndAttributeContextAreCorrect(
+                ITypeSymbol symbol,
+                int arity,
+                bool inAttributeContext,
+                bool hasIncompleteParentMember)
+            {
+                return (arity == 0 || symbol.GetArity() == arity || hasIncompleteParentMember)
+                       && symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly)
+                       && (!inAttributeContext || symbol.IsAttribute());
             }
 
             internal async Task FindNugetOrReferenceAssemblyReferencesAsync(
