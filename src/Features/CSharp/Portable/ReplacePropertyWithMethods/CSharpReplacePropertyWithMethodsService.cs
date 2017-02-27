@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
 using Roslyn.Utilities;
 
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             return containingProperty;
         }
 
-        public override IList<SyntaxNode> GetReplacementMembers(
+        public override async Task<IList<SyntaxNode>> GetReplacementMembersAsync(
             Document document,
             IPropertySymbol property,
             SyntaxNode propertyDeclarationNode,
@@ -55,7 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 return SpecializedCollections.EmptyList<SyntaxNode>();
             }
 
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var parseOptions = syntaxTree.Options;
+
             return ConvertPropertyToMembers(
+                documentOptions, parseOptions,
                 SyntaxGenerator.GetGenerator(document), property,
                 propertyDeclaration, propertyBackingField,
                 desiredGetMethodName, desiredSetMethodName,
@@ -63,6 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         }
 
         private List<SyntaxNode> ConvertPropertyToMembers(
+            DocumentOptionSet documentOptions,
+            ParseOptions parseOptions,
             SyntaxGenerator generator, 
             IPropertySymbol property,
             PropertyDeclarationSyntax propertyDeclaration,
@@ -83,6 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             if (getMethod != null)
             {
                 result.Add(GetGetMethod(
+                    documentOptions, parseOptions, 
                     generator, propertyDeclaration, propertyBackingField,
                     getMethod, desiredGetMethodName, cancellationToken));
             }
@@ -91,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             if (setMethod != null)
             {
                 result.Add(GetSetMethod(
+                    documentOptions, parseOptions,
                     generator, propertyDeclaration, propertyBackingField, 
                     setMethod, desiredSetMethodName, cancellationToken));
             }
@@ -99,6 +111,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         }
 
         private static SyntaxNode GetSetMethod(
+            DocumentOptionSet documentOptions,
+            ParseOptions parseOptions,
+            SyntaxGenerator generator,
+            PropertyDeclarationSyntax propertyDeclaration,
+            IFieldSymbol propertyBackingField,
+            IMethodSymbol setMethod,
+            string desiredSetMethodName,
+            CancellationToken cancellationToken)
+        {
+            var methodDeclaration = GetSetMethodWorker(
+                generator, propertyDeclaration, propertyBackingField,
+                setMethod, desiredSetMethodName, cancellationToken);
+
+            return UseExpressionOrBlockBodyIfDesired(
+                documentOptions, parseOptions, methodDeclaration,
+                createReturnStatementForExpression: false);
+        }
+
+        private static MethodDeclarationSyntax GetSetMethodWorker(
             SyntaxGenerator generator, 
             PropertyDeclarationSyntax propertyDeclaration, 
             IFieldSymbol propertyBackingField,
@@ -107,27 +138,34 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             CancellationToken cancellationToken)
         {
             var setAccessorDeclaration = (AccessorDeclarationSyntax)setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+            var methodDeclaration = (MethodDeclarationSyntax)generator.MethodDeclaration(setMethod, desiredSetMethodName);
 
-            var statements = new List<SyntaxNode>();
-            if (setAccessorDeclaration?.Body != null)
+            if (setAccessorDeclaration.Body != null)
             {
-                statements.AddRange(setAccessorDeclaration.Body.Statements.Select(WithFormattingAnnotation));
+                return methodDeclaration.WithBody(setAccessorDeclaration.Body)
+                                        .WithAdditionalAnnotations(Formatter.Annotation);
+            }
+            else if (setAccessorDeclaration.ExpressionBody != null)
+            {
+                return methodDeclaration.WithBody(null)
+                                        .WithExpressionBody(setAccessorDeclaration.ExpressionBody)
+                                        .WithSemicolonToken(setAccessorDeclaration.SemicolonToken);
             }
             else if (propertyBackingField != null)
             {
-                statements.Add(generator.ExpressionStatement(
-                    generator.AssignmentStatement(
-                        GetFieldReference(generator, propertyBackingField),
-                        generator.IdentifierName("value"))));
+                return methodDeclaration.WithBody(SyntaxFactory.Block(
+                    (StatementSyntax)generator.ExpressionStatement(
+                        generator.AssignmentStatement(
+                            GetFieldReference(generator, propertyBackingField),
+                            generator.IdentifierName("value")))));
             }
 
-            return generator.MethodDeclaration(setMethod, desiredSetMethodName, statements);
+            return methodDeclaration;
         }
 
-        private static StatementSyntax WithFormattingAnnotation(StatementSyntax statement)
-            => statement.WithAdditionalAnnotations(Formatter.Annotation);
-
         private static SyntaxNode GetGetMethod(
+            DocumentOptionSet documentOptions,
+            ParseOptions parseOptions,
             SyntaxGenerator generator,
             PropertyDeclarationSyntax propertyDeclaration,
             IFieldSymbol propertyBackingField,
@@ -135,34 +173,76 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             string desiredGetMethodName,
             CancellationToken cancellationToken)
         {
-            var statements = new List<SyntaxNode>();
+            var methodDeclaration = GetGetMethodWorker(
+                generator, propertyDeclaration, propertyBackingField, getMethod,
+                desiredGetMethodName, cancellationToken);
+            return UseExpressionOrBlockBodyIfDesired(
+                documentOptions, parseOptions, methodDeclaration,
+                createReturnStatementForExpression: true);
+        }
+
+        private static SyntaxNode UseExpressionOrBlockBodyIfDesired(
+            DocumentOptionSet documentOptions, ParseOptions parseOptions,
+            MethodDeclarationSyntax methodDeclaration, bool createReturnStatementForExpression)
+        {
+            var preferExpressionBody = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
+            if (methodDeclaration?.Body != null && preferExpressionBody)
+            {
+                if (methodDeclaration.Body.TryConvertToExpressionBody(
+                        parseOptions, out var arrowExpression, out var semicolonToken))
+                {
+                    return methodDeclaration.WithBody(null)
+                                            .WithExpressionBody(arrowExpression)
+                                            .WithSemicolonToken(semicolonToken)
+                                            .WithAdditionalAnnotations(Formatter.Annotation);
+                }
+            }
+            else if (methodDeclaration?.ExpressionBody != null && !preferExpressionBody)
+            {
+                var block = methodDeclaration?.ExpressionBody.ConvertToBlock(
+                    methodDeclaration.SemicolonToken, createReturnStatementForExpression);
+                return methodDeclaration.WithExpressionBody(null)
+                                        .WithSemicolonToken(default(SyntaxToken))
+                                        .WithBody(block)
+                                        .WithAdditionalAnnotations(Formatter.Annotation);
+            }
+
+            return methodDeclaration;
+        }
+
+        private static MethodDeclarationSyntax GetGetMethodWorker(
+            SyntaxGenerator generator,
+            PropertyDeclarationSyntax propertyDeclaration,
+            IFieldSymbol propertyBackingField,
+            IMethodSymbol getMethod,
+            string desiredGetMethodName,
+            CancellationToken cancellationToken)
+        {
+            var methodDeclaration = (MethodDeclarationSyntax)generator.MethodDeclaration(getMethod, desiredGetMethodName);
 
             if (propertyDeclaration.ExpressionBody != null)
             {
-                var returnKeyword = SyntaxFactory.Token(SyntaxKind.ReturnKeyword)
-                                                 .WithTrailingTrivia(propertyDeclaration.ExpressionBody.ArrowToken.TrailingTrivia);
-
-                var returnStatement = SyntaxFactory.ReturnStatement(
-                    returnKeyword, 
-                    propertyDeclaration.ExpressionBody.Expression,
-                    propertyDeclaration.SemicolonToken);
-                statements.Add(returnStatement);
+                methodDeclaration = methodDeclaration.WithBody(null)
+                                                     .WithExpressionBody(propertyDeclaration.ExpressionBody)
+                                                     .WithSemicolonToken(propertyDeclaration.SemicolonToken);
             }
             else
             {
                 var getAccessorDeclaration = (AccessorDeclarationSyntax)getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
                 if (getAccessorDeclaration?.Body != null)
                 {
-                    statements.AddRange(getAccessorDeclaration.Body.Statements.Select(WithFormattingAnnotation));
+                    methodDeclaration = methodDeclaration.WithBody(getAccessorDeclaration.Body);
                 }
                 else if (propertyBackingField != null)
                 {
                     var fieldReference = GetFieldReference(generator, propertyBackingField);
-                    statements.Add(generator.ReturnStatement(fieldReference));
+                    methodDeclaration = methodDeclaration.WithBody(
+                        SyntaxFactory.Block(
+                            (StatementSyntax)generator.ReturnStatement(fieldReference)));
                 }
             }
 
-            return generator.MethodDeclaration(getMethod, desiredGetMethodName, statements);
+            return methodDeclaration;
         }
 
         public override SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration)

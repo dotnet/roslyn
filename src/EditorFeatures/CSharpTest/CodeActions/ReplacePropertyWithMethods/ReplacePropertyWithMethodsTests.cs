@@ -681,7 +681,8 @@ compareTokens: false);
 {
     public int GetProp()
     {
-        return /* return 42 */ 42;
+        /* return 42 */
+        return 42;
     }
 }", compareTokens: false);
         }
@@ -1160,18 +1161,18 @@ compareTokens: false);
 }",
 @"public class Foo
 {
-	private readonly bool any;
+    private readonly bool any;
 
-	public bool GetAny()
-	{
-		return any;
-	}
+    public bool GetAny()
+    {
+        return any;
+    }
 
-	public static void Bar()
-	{
-		var foo = new Foo();
-		bool f = foo?.GetAny() == true;
-	}
+    public static void Bar()
+    {
+        var foo = new Foo();
+        bool f = foo?.GetAny() == true;
+    }
 }");
         }
     }
