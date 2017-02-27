@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
 {
     public class EncapsulateFieldTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
             => new EncapsulateFieldRefactoringProvider();
 
         private static readonly Dictionary<OptionKey, object> AllOptionsOff =
@@ -1032,7 +1032,7 @@ partial class Program {
 
             using (var workspace = await CreateWorkspaceFromFileAsync(text, null, null))
             {
-                var result = await GetCodeRefactoringAsync(workspace);
+                var result = await GetCodeRefactoringAsync(workspace, fixProviderData: null);
                 Assert.NotNull(result);
             }
         }
@@ -1051,7 +1051,7 @@ class Program
 
             using (var workspace = await CreateWorkspaceFromFileAsync(text, null, null))
             {
-                var result = await GetCodeRefactoringAsync(workspace);
+                var result = await GetCodeRefactoringAsync(workspace, fixProviderData: null);
                 Assert.NotNull(result);
             }
         }

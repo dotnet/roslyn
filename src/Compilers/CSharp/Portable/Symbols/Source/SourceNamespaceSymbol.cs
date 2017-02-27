@@ -232,7 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // We may produce a SymbolDeclaredEvent for the enclosing namespace before events for its contained members
                     DeclaringCompilation.SymbolDeclaredEvent(this);
-                    _state.NotePartComplete(CompletionPart.NameToMembersMap);
+                    var wasSetThisThread = _state.NotePartComplete(CompletionPart.NameToMembersMap);
+                    Debug.Assert(wasSetThisThread);
                 }
 
                 diagnostics.Free();

@@ -112,6 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
+        }
+
         // TODO: structs
         public override bool IsThis
         {
@@ -137,11 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override MarshalPseudoCustomAttributeData MarshallingInformation
         {
             get { return null; }
-        }
-
-        internal sealed override ushort CountOfCustomModifiersPrecedingByRef
-        {
-            get { return 0; }
         }
     }
 }

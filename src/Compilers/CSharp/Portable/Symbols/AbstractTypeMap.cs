@@ -64,14 +64,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ImmutableArray<TypeSymbol> oldTypeArguments = previous.TypeArgumentsNoUseSiteDiagnostics;
             bool changed = !ReferenceEquals(oldConstructedFrom, newConstructedFrom);
-
-            ImmutableArray<ImmutableArray<CustomModifier>> modifiers = previous.HasTypeArgumentsCustomModifiers ? previous.TypeArgumentsCustomModifiers : default(ImmutableArray<ImmutableArray<CustomModifier>>);
-
+            bool hasModifiers = previous.HasTypeArgumentsCustomModifiers;
             var newTypeArguments = ArrayBuilder<TypeWithModifiers>.GetInstance(oldTypeArguments.Length);
 
             for (int i = 0; i < oldTypeArguments.Length; i++)
             {
-                var oldArgument = modifiers.IsDefault ? new TypeWithModifiers(oldTypeArguments[i]) : new TypeWithModifiers(oldTypeArguments[i], modifiers[i]);
+                var oldArgument = hasModifiers ? new TypeWithModifiers(oldTypeArguments[i], previous.GetTypeArgumentCustomModifiers(i)) : new TypeWithModifiers(oldTypeArguments[i]);
                 var newArgument = oldArgument.SubstituteTypeWithTupleUnification(this);
 
                 if (!changed && oldArgument != newArgument)

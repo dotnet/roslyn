@@ -147,11 +147,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return local?.DeclarationKind == LocalDeclarationKind.CatchVariable ? local : null;
                         }
 
-                    case BoundKind.ForEachStatement:
-                        {
-                            return ((BoundForEachStatement)node).IterationVariableOpt;
-                        }
-
                     case BoundKind.RangeVariable:
                         {
                             return ((BoundRangeVariable)node).RangeVariableSymbol;

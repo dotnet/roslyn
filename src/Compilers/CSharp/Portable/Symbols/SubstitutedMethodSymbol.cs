@@ -252,11 +252,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
-                return OriginalDefinition.CountOfCustomModifiersPrecedingByRef;
+                return Map.SubstituteCustomModifiers(OriginalDefinition.RefCustomModifiers);
             }
         }
 

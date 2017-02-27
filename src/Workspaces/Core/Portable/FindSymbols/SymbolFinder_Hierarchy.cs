@@ -356,8 +356,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return false;
             }
 
-            Compilation symbolToMatchCompilation = null;
-            if (!TryGetCompilation(symbolToMatch, solution, out symbolToMatchCompilation, cancellationToken))
+            if (!TryGetCompilation(symbolToMatch, solution, out var symbolToMatchCompilation, cancellationToken))
             {
                 return false;
             }

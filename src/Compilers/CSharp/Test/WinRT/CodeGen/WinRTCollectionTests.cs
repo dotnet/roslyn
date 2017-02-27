@@ -84,7 +84,7 @@ b
 1
 0";
 
-            var verifier = CompileAndVerifyOnWin8Only(source, expectedOutput: expectedOutput);
+            var verifier = this.CompileAndVerifyOnWin8Only(source, expectedOutput: expectedOutput);
 
             verifier.VerifyIL("Class1.Main",
 @"{
@@ -182,7 +182,7 @@ public class Class1
     }
 }";
             var expectedOut = "param1test";
-            var verifier = CompileAndVerifyOnWin8Only(
+            var verifier = this.CompileAndVerifyOnWin8Only(
                 source,
                 expectedOutput: expectedOut);
 
@@ -247,7 +247,7 @@ testValue1
 testValue2
 testKey2testValue3
 ";
-            var verifier = CompileAndVerifyOnWin8Only(
+            var verifier = this.CompileAndVerifyOnWin8Only(
                 source,
                 expectedOutput: expectedOut);
 

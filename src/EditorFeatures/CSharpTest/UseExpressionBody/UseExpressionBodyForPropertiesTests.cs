@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -17,10 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
     public class UseExpressionBodyForPropertiesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new UseExpressionBodyForPropertiesDiagnosticAnalyzer(),
-                new UseExpressionBodyForPropertiesCodeFixProvider());
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new UseExpressionBodyForPropertiesDiagnosticAnalyzer(), new UseExpressionBodyForPropertiesCodeFixProvider());
 
         private static readonly Dictionary<OptionKey, object> UseExpressionBody =
             new Dictionary<OptionKey, object>
@@ -231,6 +228,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
     }
 }", compareTokens: false, options: UseBlockBody);
+        }
+
+        [WorkItem(16386, "https://github.com/dotnet/roslyn/issues/16386")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseExpressionBodyKeepTrailingTrivia()
+        {
+            await TestAsync(
+@"class C
+{
+    private string _prop = ""HELLO THERE!"";
+    public string Prop { get { [|return|] _prop; } }
+
+    public string OtherThing => ""Pickles"";
+}",
+@"class C
+{
+    private string _prop = ""HELLO THERE!"";
+    public string Prop => _prop;
+
+    public string OtherThing => ""Pickles"";
+}", compareTokens: false, options: UseExpressionBody);
         }
     }
 }

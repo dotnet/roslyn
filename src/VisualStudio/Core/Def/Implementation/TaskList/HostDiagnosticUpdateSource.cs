@@ -110,8 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var raiseEvent = false;
             lock (_gate)
             {
-                HashSet<object> projectDiagnosticKeys;
-                if (_diagnosticMap.TryGetValue(projectId, out projectDiagnosticKeys))
+                if (_diagnosticMap.TryGetValue(projectId, out var projectDiagnosticKeys))
                 {
                     raiseEvent = projectDiagnosticKeys.Remove(key);
                 }

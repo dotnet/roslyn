@@ -1,14 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.EditorFeatures</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -48,12 +50,8 @@
       <Name>EditorFeatures</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
@@ -111,6 +109,7 @@
     <Compile Include="ExtractInterface\ExtractInterfaceCommandHandler.cs" />
     <Compile Include="ExtractMethod\ExtractMethodCommandHandler.cs" />
     <Compile Include="FindReferences\CSharpFindReferencesService.cs" />
+    <Compile Include="FindUsages\CSharpFindUsagesService.cs" />
     <Compile Include="Formatting\CSharpEditorFormattingService.cs" />
     <Compile Include="Formatting\Indentation\CSharpIndentationService.cs" />
     <Compile Include="Formatting\Indentation\CSharpIndentationService.Indenter.cs" />
@@ -119,7 +118,6 @@
     <Compile Include="Formatting\Indentation\WhitespaceExtensions.cs" />
     <Compile Include="Formatting\CSharpEditorFormattingService.PasteFormattingRule.cs" />
     <Compile Include="GoToDefinition\CSharpGoToDefinitionService.cs" />
-    <Compile Include="GoToImplementation\CSharpGoToImplementationService.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AbstractAsyncHighlighter.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AsyncAnonymousMethodHighlighter.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AsyncMethodHighlighter.cs" />

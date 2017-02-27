@@ -50,6 +50,27 @@ namespace Microsoft.CodeAnalysis
         private Action<string> _testMessageLogger;
 
         /// <summary>
+        /// <see cref="OnProjectRemoved"/> takes the <see cref="_serializationLock"/>, but can also
+        /// cause Shared Project IVsHierarchys to notify us that their context hierarchy has
+        /// changed while we are still holding the lock. In response to this, we try to set the new
+        /// active context document for open files, which also tries to take the lock, and we 
+        /// deadlock.
+        /// 
+        /// For.NET Framework Projects that reference Shared Projects, two things prevent deadlocks
+        /// when projects unload. During solution close, any Shared Projects are disconnected
+        /// before the projects start to unload, so no IVsHierarchy events are fired. During a
+        /// single project unload, we receive notification of the context hierarchy change before
+        /// the project is unloaded, avoiding any IVsHierarchy events if we tell the shared
+        /// hierarchy to set its context hierarchy to what it already is.
+        /// 
+        /// Neither of these behaviors are safe to rely on with .NET Standard (CPS) projects, so we
+        /// have to prevent the deadlock ourselves. We do this by remembering if we're already in 
+        /// the serialization lock due to project unload, and then not take the lock to update 
+        /// document contexts if so (but continuing to lock if it's not during a project unload).
+        /// </summary>
+        private ThreadLocal<bool> _isProjectUnloading = new ThreadLocal<bool>(() => false);
+
+        /// <summary>
         /// Constructs a new workspace instance.
         /// </summary>
         /// <param name="host">The <see cref="HostServices"/> this workspace uses</param>
@@ -63,7 +84,7 @@ namespace Microsoft.CodeAnalysis
 
             // queue used for sending events
             var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
-            _taskQueue = workspaceTaskSchedulerFactory.CreateTaskQueue();
+            _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
 
             // initialize with empty solution
             _latestSolution = CreateSolution(SolutionId.CreateNewId());
@@ -86,36 +107,24 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Services provider by the host for implementing workspace features.
         /// </summary>
-        public HostWorkspaceServices Services
-        {
-            get { return _services; }
-        }
+        public HostWorkspaceServices Services => _services;
 
         /// <summary>
         /// primary branch id that current solution has
         /// </summary>
-        internal BranchId PrimaryBranchId
-        {
-            get { return _primaryBranchId; }
-        }
+        internal BranchId PrimaryBranchId => _primaryBranchId;
 
         /// <summary>
         /// Override this property if the workspace supports partial semantics for documents.
         /// </summary>
-        protected internal virtual bool PartialSemanticsEnabled
-        {
-            get { return false; }
-        }
+        protected internal virtual bool PartialSemanticsEnabled => false;
 
         /// <summary>
         /// The kind of the workspace. 
         /// This is generally <see cref="WorkspaceKind.Host"/> if originating from the host environment, but may be 
         /// any other name used for a specific kind of workspace.
         /// </summary>
-        public string Kind
-        {
-            get { return _workspaceKind; }
-        }
+        public string Kind => _workspaceKind;
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace.
@@ -415,15 +424,24 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
-                CheckProjectIsInCurrentSolution(projectId);
-                this.CheckProjectCanBeRemoved(projectId);
+                _isProjectUnloading.Value = true;
 
-                var oldSolution = this.CurrentSolution;
+                try
+                {
+                    CheckProjectIsInCurrentSolution(projectId);
+                    this.CheckProjectCanBeRemoved(projectId);
 
-                this.ClearProjectData(projectId);
-                var newSolution = this.SetCurrentSolution(oldSolution.RemoveProject(projectId));
+                    var oldSolution = this.CurrentSolution;
 
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectRemoved, oldSolution, newSolution, projectId);
+                    this.ClearProjectData(projectId);
+                    var newSolution = this.SetCurrentSolution(oldSolution.RemoveProject(projectId));
+
+                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectRemoved, oldSolution, newSolution, projectId);
+                }
+                finally
+                {
+                    _isProjectUnloading.Value = false;
+                }
             }
         }
 
@@ -903,11 +921,10 @@ namespace Microsoft.CodeAnalysis
                     var pemeta = meta as PortableExecutableReference;
                     if (pemeta != null)
                     {
-                        ProjectId matchingProjectId;
 
                         // check both Display and FilePath. FilePath points to the actually bits, but Display should match output path if 
                         // the metadata reference is shadow copied.
-                        if ((!string.IsNullOrEmpty(pemeta.Display) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.Display, out matchingProjectId)) ||
+                        if ((!string.IsNullOrEmpty(pemeta.Display) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.Display, out var matchingProjectId)) ||
                             (!string.IsNullOrEmpty(pemeta.FilePath) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.FilePath, out matchingProjectId)))
                         {
                             var newProjRef = new ProjectReference(matchingProjectId, pemeta.Properties.Aliases, pemeta.Properties.EmbedInteropTypes);
@@ -931,6 +948,8 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Apply Changes
+
+        internal virtual bool CanRenameFilesDuringCodeActions(Project project) => true;
 
         /// <summary>
         /// Determines if the specific kind of change is supported by the <see cref="TryApplyChanges(Solution)"/> method.
@@ -1226,20 +1245,16 @@ namespace Microsoft.CodeAnalysis
         {
             var oldDoc = projectChanges.OldProject.GetDocument(documentId);
             var newDoc = projectChanges.NewProject.GetDocument(documentId);
-
             // see whether we can get oldText
-            SourceText oldText;
-            if (!oldDoc.TryGetText(out oldText))
+            if (!oldDoc.TryGetText(out var oldText))
             {
                 // we can't get old text, there is not much we can do except replacing whole text.
                 var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
                 this.ApplyDocumentTextChanged(documentId, currentText);
                 return;
             }
-
             // see whether we can get new text
-            SourceText newText;
-            if (!newDoc.TryGetText(out newText))
+            if (!newDoc.TryGetText(out var newText))
             {
                 // okay, we have old text, but no new text. let document determine text changes
                 var textChanges = newDoc.GetTextChangesAsync(oldDoc, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
@@ -1279,7 +1294,7 @@ namespace Microsoft.CodeAnalysis
                 project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)));
         }
 
-        private SourceText GetTextForced(TextDocument doc)
+        internal SourceText GetTextForced(TextDocument doc)
         {
             return doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait (called during TryApplyChanges)
         }
@@ -1289,7 +1304,7 @@ namespace Microsoft.CodeAnalysis
             return CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(GetTextForced(doc), VersionStamp.Create(), doc.FilePath)));
         }
 
-        private DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
+        internal DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
         {
             var sourceDoc = doc as Document;
             return DocumentInfo.Create(

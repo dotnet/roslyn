@@ -366,8 +366,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
             End If
 
-            CheckAssemblyName(assemblyName)
-
             Dim validatedReferences = ValidateReferences(Of VisualBasicCompilationReference)(references)
 
             Dim c As VisualBasicCompilation = Nothing
@@ -535,8 +533,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Creates a new compilation with the specified name.
         ''' </summary>
         Public Shadows Function WithAssemblyName(assemblyName As String) As VisualBasicCompilation
-            CheckAssemblyName(assemblyName)
-
             ' Can't reuse references since the source assembly name changed and the referenced symbols might 
             ' have internals-visible-to relationship with this compilation or they might had a circular reference 
             ' to this compilation.
@@ -673,7 +669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _embeddedTrees,
                 _declarationTable,
                 info?.PreviousScriptCompilation,
-                info?.ReturnType,
+                info?.ReturnTypeOpt,
                 info?.GlobalsType,
                 info IsNot Nothing,
                 _referenceManager,
@@ -1774,12 +1770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The Script class symbol or null if it is not defined.
         ''' </returns>
         Private Function BindScriptClass() As ImplicitNamedTypeSymbol
-            If Options.ScriptClassName Is Nothing OrElse Not Options.ScriptClassName.IsValidClrTypeName() Then
-                Return Nothing
-            End If
-
-            Dim namespaceOrType = Me.Assembly.GlobalNamespace.GetNamespaceOrTypeByQualifiedName(Options.ScriptClassName.Split("."c)).AsSingleton()
-            Return TryCast(namespaceOrType, ImplicitNamedTypeSymbol)
+            Return DirectCast(CommonBindScriptClass(), ImplicitNamedTypeSymbol)
         End Function
 
         ''' <summary>
@@ -1942,6 +1933,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Add declaration errors
             If (stage = CompilationStage.Declare OrElse stage > CompilationStage.Declare AndAlso includeEarlierStages) Then
+                CheckAssemblyName(builder)
                 builder.AddRange(Options.Errors)
                 builder.AddRange(GetBoundReferenceManager().Diagnostics)
                 builder.AddRange(SourceAssembly.GetAllDeclarationErrors(cancellationToken))
@@ -2569,8 +2561,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides Function CreateErrorTypeSymbol(container As INamespaceOrTypeSymbol, name As String, arity As Integer) As INamedTypeSymbol
-            Return New ExtendedErrorTypeSymbol(DirectCast(container, NamespaceOrTypeSymbol), name, arity)
+        Protected Overrides Function CommonCreateErrorTypeSymbol(container As INamespaceOrTypeSymbol, name As String, arity As Integer) As INamedTypeSymbol
+            Return New ExtendedErrorTypeSymbol(
+                       container.EnsureVbSymbolOrNothing(Of NamespaceOrTypeSymbol)(NameOf(container)),
+                       name, arity)
+        End Function
+
+        Protected Overrides Function CommonCreateErrorNamespaceSymbol(container As INamespaceSymbol, name As String) As INamespaceSymbol
+            Return New MissingNamespaceSymbol(
+                       container.EnsureVbSymbolOrNothing(Of NamespaceSymbol)(NameOf(container)),
+                       name)
         End Function
 
         Protected Overrides Function CommonCreateArrayTypeSymbol(elementType As ITypeSymbol, rank As Integer) As IArrayTypeSymbol
@@ -2589,7 +2589,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TupleTypeSymbol.Create(locationOpt:=Nothing,
                                           elementTypes:=typesBuilder.ToImmutableAndFree(),
                                           elementLocations:=elementLocations,
-                                          elementNames:=elementNames, compilation:=Me)
+                                          elementNames:=elementNames, compilation:=Me,
+                                          shouldCheckConstraints:=False)
         End Function
 
         Protected Overrides Function CommonCreateTupleTypeSymbol(
@@ -2702,6 +2703,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return If(IOperationFeatureFlag Is Nothing, False, options.Features.ContainsKey(IOperationFeatureFlag))
         End Function
+
+        Friend Overrides Function IsUnreferencedAssemblyIdentityDiagnosticCode(code As Integer) As Boolean
+            Select Case code
+                Case ERRID.ERR_UnreferencedAssemblyEvent3,
+                     ERRID.ERR_UnreferencedAssembly3
+                    Return True
+
+                Case Else
+                    Return False
+            End Select
+        End Function
+
 #End Region
 
         Private Class SymbolSearcher

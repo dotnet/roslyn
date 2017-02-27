@@ -104,11 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             var expr = SyntaxFactory.GetStandaloneExpression(expression);
-
-            ExpressionSyntax qualifier;
-            string name;
-            int arity;
-            DecomposeName(expr, out qualifier, out name, out arity);
+            DecomposeName(expr, out var qualifier, out var name, out var arity);
 
             INamespaceOrTypeSymbol symbol = null;
             if (qualifier != null)
@@ -258,9 +254,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return type.CreateParameterName(capitalize);
         }
 
-        public static IList<ParameterName> GenerateParameterNames(
-            this SemanticModel semanticModel,
-            ArgumentListSyntax argumentList)
+        public static ImmutableArray<ParameterName> GenerateParameterNames(
+            this SemanticModel semanticModel, ArgumentListSyntax argumentList)
         {
             return semanticModel.GenerateParameterNames(argumentList.Arguments);
         }
@@ -272,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return semanticModel.GenerateParameterNames(argumentList.Arguments);
         }
 
-        public static IList<ParameterName> GenerateParameterNames(
+        public static ImmutableArray<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
             IEnumerable<ArgumentSyntax> arguments,
             IList<string> reservedNames = null)
@@ -289,11 +284,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return GenerateNames(reservedNames, isFixed, parameterNames);
         }
 
-        private static IList<ParameterName> GenerateNames(IList<string> reservedNames, List<bool> isFixed, List<string> parameterNames)
+        private static ImmutableArray<ParameterName> GenerateNames(IList<string> reservedNames, List<bool> isFixed, List<string> parameterNames)
         {
             return NameGenerator.EnsureUniqueness(parameterNames, isFixed)
                                 .Select((name, index) => new ParameterName(name, isFixed[index]))
-                                .Skip(reservedNames.Count).ToList();
+                                .Skip(reservedNames.Count).ToImmutableArray();
         }
 
         public static IList<ParameterName> GenerateParameterNames(

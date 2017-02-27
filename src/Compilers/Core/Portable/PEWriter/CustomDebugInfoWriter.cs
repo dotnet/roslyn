@@ -57,7 +57,7 @@ namespace Microsoft.Cci
             return false;
         }
 
-        public byte[] SerializeMethodDebugInfo(EmitContext context, IMethodBody methodBody, int methodToken, bool isEncDelta, bool suppressNewCustomDebugInfo, out bool emitExternNamespaces)
+        public byte[] SerializeMethodDebugInfo(EmitContext context, IMethodBody methodBody, int methodToken, bool emitEncInfo, bool suppressNewCustomDebugInfo, out bool emitExternNamespaces)
         {
             emitExternNamespaces = false;
 
@@ -102,8 +102,7 @@ namespace Microsoft.Cci
                 SerializeDynamicLocalInfo(methodBody, customDebugInfo);
                 SerializeTupleElementNames(methodBody, customDebugInfo);
 
-                // delta doesn't need this information - we use information recorded by previous generation emit
-                if (!isEncDelta)
+                if (emitEncInfo)
                 {
                     var encMethodInfo = MetadataWriter.GetEncMethodDebugInfo(methodBody);
                     SerializeCustomDebugInformation(encMethodInfo, customDebugInfo);

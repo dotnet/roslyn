@@ -52,8 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
                 var imageListData = Microsoft.Internal.VisualStudio.PlatformUI.Utilities.GetObjectData(uiObject) as IVsUIWin32ImageList;
                 if (imageListData != null)
                 {
-                    int imageListInt;
-                    if (ErrorHandler.Succeeded(imageListData.GetHIMAGELIST(out imageListInt)))
+                    if (ErrorHandler.Succeeded(imageListData.GetHIMAGELIST(out var imageListInt)))
                     {
                         imageList = (IntPtr)imageListInt;
                         index = 0;
@@ -69,8 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 
         public static bool TryGetImageListAndIndex(this VisualStudioWorkspaceImpl workspace, IVsImageService2 imageService, ProjectId id, out IntPtr imageList, out int index)
         {
-            ushort ushortIndex;
-            var result = TryGetImageListAndIndex(workspace, imageService, id, out imageList, out ushortIndex);
+            var result = TryGetImageListAndIndex(workspace, imageService, id, out imageList, out ushort ushortIndex);
 
             index = ushortIndex;
             return result;

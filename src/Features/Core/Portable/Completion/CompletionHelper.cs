@@ -127,15 +127,13 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             lock (_gate)
             {
-                Dictionary<string, PatternMatcher> innerMap;
-                if (!map.TryGetValue(culture, out innerMap))
+                if (!map.TryGetValue(culture, out var innerMap))
                 {
                     innerMap = new Dictionary<string, PatternMatcher>();
                     map[culture] = innerMap;
                 }
 
-                PatternMatcher patternMatcher;
-                if (!innerMap.TryGetValue(value, out patternMatcher))
+                if (!innerMap.TryGetValue(value, out var patternMatcher))
                 {
                     patternMatcher = new PatternMatcher(value, culture,
                         verbatimIdentifierPrefixIsWordCharacter: true,
@@ -183,6 +181,12 @@ namespace Microsoft.CodeAnalysis.Completion
                 return 1;
             }
 
+            var preselectionDiff = ComparePreselection(item1, item2);
+            if (preselectionDiff != 0)
+            {
+                return preselectionDiff;
+            }
+
             // Prefer things with a keyword tag, if the filter texts are the same.
             if (!TagsEqual(item1, item2) && item1.FilterText == item2.FilterText)
             {
@@ -222,17 +226,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 return diff;
             }
 
-            // If they both seemed just as good, but they differ on preselection, then
-            // item1 is better if it is preselected, otherwise it is worse.
-            if (item1.Rules.MatchPriority == MatchPriority.Preselect &&
-                item2.Rules.MatchPriority != MatchPriority.Preselect)
+            var preselectionDiff = ComparePreselection(item1, item2);
+            if (preselectionDiff != 0)
             {
-                return -1;
-            }
-            else if (item1.Rules.MatchPriority != MatchPriority.Preselect &&
-                     item2.Rules.MatchPriority == MatchPriority.Preselect)
-            {
-                return 1;
+                return preselectionDiff;
             }
 
             // At this point we have two items which we're matching in a rather similar fasion.
@@ -258,6 +255,24 @@ namespace Microsoft.CodeAnalysis.Completion
             if (diff != 0)
             {
                 return diff;
+            }
+
+            return 0;
+        }
+
+        private int ComparePreselection(CompletionItem item1, CompletionItem item2)
+        {
+            // If they both seemed just as good, but they differ on preselection, then
+            // item1 is better if it is preselected, otherwise it is worse.
+            if (item1.Rules.MatchPriority == MatchPriority.Preselect &&
+                item2.Rules.MatchPriority != MatchPriority.Preselect)
+            {
+                return -1;
+            }
+            else if (item1.Rules.MatchPriority != MatchPriority.Preselect &&
+                     item2.Rules.MatchPriority == MatchPriority.Preselect)
+            {
+                return 1;
             }
 
             return 0;

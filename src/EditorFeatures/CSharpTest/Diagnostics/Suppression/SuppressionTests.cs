@@ -183,9 +183,7 @@ class Class
                             SpecializedCollections.EmptyEnumerable<Lazy<IErrorLoggerService>>(),
                             SpecializedCollections.EmptyEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>(),
                             SpecializedCollections.SingletonEnumerable(suppressionProviderFactory));
-
-                        TextSpan span;
-                        var document = GetDocumentAndSelectSpan(workspace, out span);
+                        var document = GetDocumentAndSelectSpan(workspace, out var span);
                         var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span);
                         Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
 

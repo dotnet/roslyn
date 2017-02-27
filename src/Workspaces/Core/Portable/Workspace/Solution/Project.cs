@@ -284,13 +284,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The project version. This equates to the version of the project file.
         /// </summary>
-        public VersionStamp Version
-        {
-            get
-            {
-                return _projectState.Version;
-            }
-        }
+        public VersionStamp Version => _projectState.Version;
 
         /// <summary>
         /// The version of the most recently modified document.

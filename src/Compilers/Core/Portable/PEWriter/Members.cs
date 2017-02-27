@@ -119,7 +119,7 @@ namespace Microsoft.Cci
         /// The compile time value of the field. This value should be used directly in IL, rather than a reference to the field.
         /// If the field does not have a valid compile time value, Dummy.Constant is returned.
         /// </summary>
-        IMetadataConstant GetCompileTimeValue(EmitContext context);
+        MetadataConstant GetCompileTimeValue(EmitContext context);
 
         /// <summary>
         /// Mapped field data, or null if the field is not mapped.
@@ -229,7 +229,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The compile time value of the definition, if it is a local constant.
         /// </summary>
-        IMetadataConstant CompileTimeValue
+        MetadataConstant CompileTimeValue
         {
             get;
         }
@@ -654,7 +654,7 @@ namespace Microsoft.Cci
         /// A compile time constant value that should be supplied as the corresponding argument value by callers that do not explicitly specify an argument value for this parameter.
         /// Null if the parameter doesn't have default value.
         /// </summary>
-        IMetadataConstant GetDefaultValue(EmitContext context);
+        MetadataConstant GetDefaultValue(EmitContext context);
 
         /// <summary>
         /// True if the parameter has a default value that should be supplied as the argument value by a caller for which the argument value has not been explicitly specified.
@@ -718,7 +718,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A compile time constant value that provides the default value for the property. (Who uses this and why?)
         /// </summary>
-        IMetadataConstant DefaultValue
+        MetadataConstant DefaultValue
         {
             get;
             // ^ requires this.HasDefaultValue;
@@ -777,9 +777,17 @@ namespace Microsoft.Cci
         ImmutableArray<IParameterTypeInformation> GetParameters(EmitContext context);
 
         /// <summary>
-        /// Returns the list of custom modifiers, if any, associated with the returned value. 
+        /// Returns the list of custom modifiers, if any, associated with the return type. 
         /// </summary>
         ImmutableArray<ICustomModifier> ReturnValueCustomModifiers
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Returns the list of custom modifiers, if any, associated with the ref modifier. 
+        /// </summary>
+        ImmutableArray<ICustomModifier> RefCustomModifiers
         {
             get;
         }
@@ -788,11 +796,6 @@ namespace Microsoft.Cci
         /// True if the return value is passed by reference (using a managed pointer).
         /// </summary>
         bool ReturnValueIsByRef { get; }
-
-        /// <summary>
-        /// In order to avoid breaking interop scenarios, we need to support such signatures. 
-        /// </summary>
-        ushort CountOfCustomModifiersPrecedingByRef { get; }
 
         /// <summary>
         /// The return type of the method or type of the property.

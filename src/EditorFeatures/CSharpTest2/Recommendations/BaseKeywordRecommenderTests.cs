@@ -120,5 +120,16 @@ class C
     {
         var c = new C { x = 2, y = 3, $$");
         }
+
+        [WorkItem(16335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/16335")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task InExpressionBodyAcessor()
+        {
+            await VerifyKeywordAsync(@"
+class B
+{
+    public virtual int T { get => bas$$ }
+}");
+        }
     }
 }

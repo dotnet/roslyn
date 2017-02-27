@@ -241,9 +241,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
         }
 
-        ushort Cci.ISignature.CountOfCustomModifiersPrecedingByRef
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
         {
-            get { return 0; }
+            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
         }
 
         bool Cci.ISignature.ReturnValueIsByRef

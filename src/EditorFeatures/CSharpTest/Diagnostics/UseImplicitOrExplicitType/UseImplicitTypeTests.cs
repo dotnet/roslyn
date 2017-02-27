@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -10,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,10 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
 {
     public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace) =>
-            new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpUseImplicitTypeDiagnosticAnalyzer(),
-                new UseImplicitTypeCodeFixProvider());
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpUseImplicitTypeDiagnosticAnalyzer(), new UseImplicitTypeCodeFixProvider());
 
         private static readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
         private static readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
@@ -65,11 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
 
         private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
-        {
-            var options = new Dictionary<OptionKey, object>();
-            options.Add(option, value);
-            return options;
-        }
+            => new Dictionary<OptionKey, object> { { option, value } };
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnFieldDeclaration()
@@ -764,6 +756,7 @@ class C
         {
             await TestAsync(
 @"using System;
+using System.Collections.Generic;
 
 class C
 {
@@ -776,6 +769,7 @@ class C
     }
 }",
 @"using System;
+using System.Collections.Generic;
 
 class C
 {
@@ -1229,10 +1223,10 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule()
         {
-            // The option settings here say 
+            // The option settings here say
             // "use explicit type for built-in types" and
             // "use implicit type where apparent".
-            // The rationale for preferring explicit type for built-in types is 
+            // The rationale for preferring explicit type for built-in types is
             // they have short names and using var doesn't gain anything.
             // Accordingly, the `built-in type` rule precedes over the `where apparent` rule
             // and we do not suggest `use var` here.
@@ -1603,6 +1597,110 @@ withScriptOption: true);
     static void M()
     {
         [|(int, string)|] s = (c: 1, d: ""hello"");
+    }
+}",
+options: ImplicitTypeEverywhere(),
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(14052, "https://github.com/dotnet/roslyn/issues/14052")]
+        public async Task DoNotOfferOnForEachConversionIfItChangesSemantics()
+        {
+            await TestMissingAsync(
+@"using System;
+using System.Collections.Generic;
+
+interface IContractV1
+{
+}
+
+interface IContractV2 : IContractV1
+{
+}
+
+class ContractFactory
+{
+    public IEnumerable<IContractV1> GetContracts()
+    {
+    }
+}
+
+class Program
+{
+    static void M()
+    {
+        var contractFactory = new ContractFactory();
+        foreach ([|IContractV2|] contract in contractFactory.GetContracts())
+        {
+        }
+    }
+}",
+options: ImplicitTypeEverywhere(),
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(14052, "https://github.com/dotnet/roslyn/issues/14052")]
+        public async Task OfferOnForEachConversionIfItDoesNotChangesSemantics()
+        {
+            await TestAsync(
+@"using System;
+using System.Collections.Generic;
+
+interface IContractV1
+{
+}
+
+interface IContractV2 : IContractV1
+{
+}
+
+class ContractFactory
+{
+    public IEnumerable<IContractV1> GetContracts()
+    {
+    }
+}
+
+class Program
+{
+    static void M()
+    {
+        var contractFactory = new ContractFactory();
+        foreach ([|IContractV1|] contract in contractFactory.GetContracts())
+        {
+        }
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+interface IContractV1
+{
+}
+
+interface IContractV2 : IContractV1
+{
+}
+
+class ContractFactory
+{
+    public IEnumerable<IContractV1> GetContracts()
+    {
+    }
+}
+
+class Program
+{
+    static void M()
+    {
+        var contractFactory = new ContractFactory();
+        foreach (var contract in contractFactory.GetContracts())
+        {
+        }
     }
 }",
 options: ImplicitTypeEverywhere(),

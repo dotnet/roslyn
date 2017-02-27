@@ -69,9 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             _textView = cursorDocument.GetTextView();
             _subjectBuffer = cursorDocument.GetTextBuffer();
 
-            IList<Text.TextSpan> selectionSpanList;
-
-            if (cursorDocument.AnnotatedSpans.TryGetValue("Selection", out selectionSpanList))
+            if (cursorDocument.AnnotatedSpans.TryGetValue("Selection", out var selectionSpanList))
             {
                 var firstSpan = selectionSpanList.First();
                 var lastSpan = selectionSpanList.Last();
@@ -416,6 +414,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public void SendSelectAll(Action<SelectAllCommandArgs, Action> commandHandler, Action nextHandler)
         {
             commandHandler(new SelectAllCommandArgs(TextView, SubjectBuffer), nextHandler);
+        }
+
+        public void SendToggleCompletionMode(Action<ToggleCompletionModeCommandArgs, Action> commandHandler, Action nextHandler)
+        {
+            commandHandler(new ToggleCompletionModeCommandArgs(TextView, SubjectBuffer), nextHandler);
         }
         #endregion
     }

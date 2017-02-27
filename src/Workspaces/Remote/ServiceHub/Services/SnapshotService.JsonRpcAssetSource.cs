@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, sessionId, checksums, mergedCancellationToken.Token))
                 {
                     return await _owner.Rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
-                        new object[] { sessionId, checksums.Select(c => c.ToArray()).ToArray() },
+                        new object[] { sessionId, checksums.ToArray() },
                         (s, c) => ReadAssets(s, sessionId, checksums, c), mergedCancellationToken.Token).ConfigureAwait(false);
                 }
             }
@@ -55,8 +56,12 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var results = new List<ValueTuple<Checksum, object>>();
 
-                using (var reader = new ObjectReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
+                    Debug.Assert(reader != null,
+@"We only ge a reader for data transmitted between live processes.
+This data should always be correct as we're never persisting the data between sessions.");
+
                     var responseSessionId = reader.ReadInt32();
                     Contract.ThrowIfFalse(sessionId == responseSessionId);
 

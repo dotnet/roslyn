@@ -562,8 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     if (oldIdentifier != _renamedSymbol.Name)
                     {
-                        string withoutSuffix;
-                        if (currentNewIdentifier.TryGetWithoutAttributeSuffix(out withoutSuffix))
+                        if (currentNewIdentifier.TryGetWithoutAttributeSuffix(out var withoutSuffix))
                         {
                             currentNewIdentifier = withoutSuffix;
                         }

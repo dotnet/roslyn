@@ -1078,6 +1078,144 @@ End Module
 
 #End Region
 
+#Region "Tuples"
+
+        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <Fact>
+        Public Sub NotDeclaredTupleDeconstructionsAreConsideredObjects_ExplicitOff()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            <compilation><file name="a.vb">
+Option Explicit Off
+Module TestModule
+    Sub Main()
+        Dim tuple = (member1, member2)
+        System.Console.WriteLine(tuple) 'BIND1:"tuple"
+    End Sub
+End Module
+            </file></compilation>,
+            additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+            options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+    <![CDATA[
+BC42104: Variable 'member1' is used before it has been assigned a value. A null reference exception could result at runtime.
+        Dim tuple = (member1, member2)
+                     ~~~~~~~
+BC42104: Variable 'member2' is used before it has been assigned a value. A null reference exception could result at runtime.
+        Dim tuple = (member1, member2)
+                              ~~~~~~~
+]]></expected>)
+
+            Dim model = GetSemanticModel(compilation, "a.vb")
+
+            Dim tupleSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 1)
+            Dim tupleSymbolInfo = model.GetSymbolInfo(tupleSyntax)
+            Assert.NotNull(tupleSymbolInfo.Symbol)
+
+            Dim tupleSymbol = TryCast(tupleSymbolInfo.Symbol, LocalSymbol)
+            Assert.NotNull(tupleSymbol)
+            Assert.Equal("tuple", tupleSymbol.Name)
+            Assert.Equal(2, tupleSymbol.Type.TupleElementTypes.Length)
+            Assert.Equal("Object", tupleSymbol.Type.TupleElementTypes(0).Name)
+            Assert.Equal("Object", tupleSymbol.Type.TupleElementTypes(1).Name)
+        End Sub
+
+        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <Fact>
+        Public Sub NotDeclaredTupleDeconstructionsProduceErrors_ExplicitOn()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            <compilation><file name="a.vb">
+Option Explicit On
+Module TestModule
+    Sub Main()
+        Dim tuple = (member1, member2)
+        System.Console.WriteLine(tuple)
+    End Sub
+End Module
+            </file></compilation>,
+            additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+            options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+    <![CDATA[
+BC30451: 'member1' is not declared. It may be inaccessible due to its protection level.
+        Dim tuple = (member1, member2)
+                     ~~~~~~~
+BC30451: 'member2' is not declared. It may be inaccessible due to its protection level.
+        Dim tuple = (member1, member2)
+                              ~~~~~~~
+]]></expected>)
+        End Sub
+
+        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <Fact>
+        Public Sub DeclaringImplicitlyDeclaredTupleArgumentsAgainInSameScopeErrorsOut()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            <compilation><file name="a.vb">
+Option Explicit Off
+Module TestModule
+    Sub Main()
+        Dim tuple = (notDeclaredYet, 0)
+        Dim notDeclaredYet = 0
+    End Sub
+End Module
+            </file></compilation>,
+            additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+            options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+    <![CDATA[
+BC32000: Local variable 'notDeclaredYet' cannot be referred to before it is declared.
+        Dim tuple = (notDeclaredYet, 0)
+                     ~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <Fact>
+        Public Sub DeclaringImplicitlyDeclaredTupleArgumentsAgainInAnotherScopeErrorsOut()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            <compilation><file name="a.vb">
+Option Explicit Off
+Module TestModule
+    Sub Main()
+        Dim tuple As (Integer, Integer)
+        If False Then
+            tuple = (notDefinedYet1, notDefinedYet2)
+        End If
+        Dim notDefinedYet2 = 0
+    End Sub
+End Module
+            </file></compilation>,
+            additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+            options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+    <![CDATA[
+BC42104: Variable 'notDefinedYet1' is used before it has been assigned a value. A null reference exception could result at runtime.
+            tuple = (notDefinedYet1, notDefinedYet2)
+                     ~~~~~~~~~~~~~~
+BC32000: Local variable 'notDefinedYet2' cannot be referred to before it is declared.
+            tuple = (notDefinedYet1, notDefinedYet2)
+                                     ~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <Fact>
+        Public Sub TupleArgumentsAreNotConsideredAsImplicitVariables()
+            VerifyImplicitDeclarationLookupSymbols(<![CDATA[
+                Dim tuple = (a: a, b: 0) 'BIND:"a"
+            ]]>,
+            expected:={"a"}) ' No "b" there
+        End Sub
+
+#End Region
+
 #Region "Helpers"
 
         Friend Shared Function GetSourceXElementFromTemplate(code As XCData) As XElement

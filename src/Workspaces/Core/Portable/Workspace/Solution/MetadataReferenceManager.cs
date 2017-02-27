@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis
         internal static bool TryGetCompilationForMetadataReference(ProjectState projectState, out Compilation referenceCompilation)
         {
             referenceCompilation = null;
-            WeakReference<Compilation> weakReference;
-            return s_compilationReferenceMap.TryGetValue(projectState, out weakReference) && weakReference.TryGetTarget(out referenceCompilation);
+            return s_compilationReferenceMap.TryGetValue(projectState, out var weakReference) && weakReference.TryGetTarget(out referenceCompilation);
         }
     }
 }

@@ -52,9 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CompilationWithAnalyzers analyzerDriverOpt, Document document, StateSet stateSet, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 // get log title and functionId
-                string title;
-                FunctionId functionId;
-                GetLogFunctionIdAndTitle(kind, out functionId, out title);
+                GetLogFunctionIdAndTitle(kind, out var functionId, out var title);
 
                 using (Logger.LogBlock(functionId, GetDocumentLogMessage, title, document, stateSet.Analyzer, cancellationToken))
                 {
@@ -183,12 +181,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     //       this can happen since caller could have created the driver with different set of analyzers that are different
                     //       than what we used to create the cache.
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    ImmutableArray<DiagnosticAnalyzer> analyzersToRun;
-                    if (TryReduceAnalyzersToRun(analyzerDriverOpt, version, existing, out analyzersToRun))
+                    if (TryReduceAnalyzersToRun(analyzerDriverOpt, version, existing, out var analyzersToRun))
                     {
                         // it looks like we can reduce the set. create new CompilationWithAnalyzer.
-                        var analyzerDriverWithReducedSet = await _owner._compilationManager.CreateAnalyzerDriverAsync(
-                            project, analyzersToRun, analyzerDriverOpt.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                        // if we reduced to 0, we just pass in null for analyzer drvier. it could be reduced to 0
+                        // since we might have up to date results for analyzers from compiler but not for 
+                        // workspace analyzers.
+                        var analyzerDriverWithReducedSet = 
+                            analyzersToRun.Length == 0 ? 
+                                null : await _owner._compilationManager.CreateAnalyzerDriverAsync(
+                                        project, analyzersToRun, analyzerDriverOpt.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                         var result = await ComputeDiagnosticsAsync(analyzerDriverWithReducedSet, project, stateSets, cancellationToken).ConfigureAwait(false);
                         return MergeExistingDiagnostics(version, existing, result);
@@ -242,8 +244,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
                 foreach (var analyzer in existingAnalyzers)
                 {
-                    DiagnosticAnalysisResult analysisResult;
-                    if (existing.TryGetValue(analyzer, out analysisResult) &&
+                    if (existing.TryGetValue(analyzer, out var analysisResult) &&
                         analysisResult.Version == version)
                     {
                         // we already have up to date result.
@@ -253,9 +254,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // analyzer that is out of date.
                     builder.Add(analyzer);
                 }
-
-                // if this condition is true, it shouldn't be called.
-                Contract.ThrowIfTrue(builder.Count == 0);
 
                 // all of analyzers are out of date.
                 if (builder.Count == existingAnalyzers.Length)

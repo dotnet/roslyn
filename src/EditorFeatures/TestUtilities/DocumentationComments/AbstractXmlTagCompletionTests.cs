@@ -32,10 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                 var nextHandler = CreateInsertTextHandler(view, typeChar.ToString());
 
                 commandHandler.ExecuteCommand(args, nextHandler);
-
-                string expectedCode;
-                int expectedPosition;
-                MarkupTestFile.GetPosition(expectedMarkup, out expectedCode, out expectedPosition);
+                MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
 
                 Assert.Equal(expectedCode, view.TextSnapshot.GetText());
 

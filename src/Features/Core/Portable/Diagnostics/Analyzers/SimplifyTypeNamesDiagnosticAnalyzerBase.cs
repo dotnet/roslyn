@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                                     DiagnosticSeverity.Hidden,
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
-        
+
         private static readonly DiagnosticDescriptor s_descriptorPreferIntrinsicTypeInDeclarations = new DiagnosticDescriptor(IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId,
                                                             s_localizableTitleSimplifyNames,
                                                             s_localizableMessage,
@@ -58,17 +59,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                             isEnabledByDefault: true,
                                                             customTags: DiagnosticCustomTags.Unnecessary);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return ImmutableArray.Create(
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+            = ImmutableArray.Create(
                     s_descriptorSimplifyNames,
                     s_descriptorSimplifyMemberAccess,
                     s_descriptorRemoveThisOrMe,
                     s_descriptorPreferIntrinsicTypeInDeclarations,
                     s_descriptorPreferIntrinsicTypeInMemberAccess);
-            }
+
+        private readonly ImmutableArray<TLanguageKindEnum> _kindsOfInterest;
+
+        protected SimplifyTypeNamesDiagnosticAnalyzerBase(ImmutableArray<TLanguageKindEnum> kindsOfInterest)
+        {
+            _kindsOfInterest = kindsOfInterest;
         }
 
         public bool OpenFileOnly(Workspace workspace)
@@ -82,6 +85,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                      preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
         }
 
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.RegisterSyntaxNodeAction(AnalyzeNode, _kindsOfInterest);
+        }
+
         protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
 
         protected abstract bool CanSimplifyTypeNameExpressionCore(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken);
@@ -92,11 +101,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
         {
             diagnostic = default(Diagnostic);
 
-            var optionSet = analyzerOptions.GetOptionSet();
-            string diagnosticId;
+            var syntaxTree = node.SyntaxTree;
+            var optionSet = analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return false;
+            }
 
-            TextSpan issueSpan;
-            if (!CanSimplifyTypeNameExpressionCore(model, node, optionSet, out issueSpan, out diagnosticId, cancellationToken))
+            if (!CanSimplifyTypeNameExpressionCore(model, node, optionSet, out var issueSpan, out string diagnosticId, cancellationToken))
             {
                 return false;
             }
@@ -135,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(diagnosticId);
             }
 
             if (descriptor == null)
@@ -193,8 +205,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-        }
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

@@ -10,10 +10,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
     Public Class UseCoalesceExpressionTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                New VisualBasicUseCoalesceExpressionDiagnosticAnalyzer(),
-                New UseCoalesceExpressionCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New VisualBasicUseCoalesceExpressionDiagnosticAnalyzer(),
+                    New UseCoalesceExpressionCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
@@ -234,6 +233,30 @@ End Class",
 Class C
     Sub M(x as string, y as string, z as string)
         dim w = If(x, If(y, z))
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        Public Async Function TestInExpressionOfT() As Task
+            Await TestAsync(
+"
+Imports System
+Imports System.Linq.Expressions
+
+Class C
+    Sub M(x as string, y as string)
+        dim e as Expression(of Func(of string)) = function() [||]If (x isnot Nothing, x, y)
+    End Sub
+End Class",
+"
+Imports System
+Imports System.Linq.Expressions
+
+Class C
+    Sub M(x as string, y as string)
+        dim e as Expression(of Func(of string)) = function() {|Warning:If (x, y)|}
     End Sub
 End Class")
         End Function

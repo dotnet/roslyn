@@ -82,13 +82,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            public override string EquivalenceKey
-            {
-                get
-                {
-                    return _equivalenceKey;
-                }
-            }
+            public override string EquivalenceKey => _equivalenceKey;
         }
 
         private class GenerateTypeCodeActionWithOption : CodeActionWithOptions
@@ -104,21 +98,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 _state = state;
             }
 
-            public override string Title
-            {
-                get
-                {
-                    return FeaturesResources.Generate_new_type;
-                }
-            }
+            public override string Title => FeaturesResources.Generate_new_type;
 
-            public override string EquivalenceKey
-            {
-                get
-                {
-                    return _state.Name;
-                }
-            }
+            public override string EquivalenceKey => _state.Name;
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
@@ -144,9 +126,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private TypeKindOptions GetTypeKindOption(State state)
             {
-                TypeKindOptions typeKindValue;
-
-                var gotPreassignedTypeOptions = GetPredefinedTypeKindOption(state, out typeKindValue);
+                var gotPreassignedTypeOptions = GetPredefinedTypeKindOption(state, out var typeKindValue);
                 if (!gotPreassignedTypeOptions)
                 {
                     typeKindValue = state.IsSimpleNameGeneric ? TypeKindOptionsHelper.RemoveOptions(typeKindValue, TypeKindOptions.GenericInCompatibleTypes) : typeKindValue;

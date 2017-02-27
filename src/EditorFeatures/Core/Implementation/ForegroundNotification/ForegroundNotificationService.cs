@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             _workQueue = new PriorityQueue();
             _lastProcessedTimeInMS = Environment.TickCount;
 
-            Contract.ThrowIfFalse(IsValid());
-            Debug.Assert(IsForeground());
             Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken.None, TaskScheduler.Default);
         }
 
@@ -67,13 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             _workQueue.Enqueue(new PendingWork(current + delay, action, asyncToken, cancellationToken));
         }
 
-        public bool IsEmpty_TestOnly
-        {
-            get
-            {
-                return _workQueue.IsEmpty;
-            }
-        }
+        public bool IsEmpty_TestOnly => _workQueue.IsEmpty;
 
         private async Task ProcessAsync()
         {
@@ -119,9 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             {
                 var processedCount = 0;
                 var startProcessingTime = Environment.TickCount;
-
-                PendingWork pendingWork;
-                while (_workQueue.TryGetWorkItem(startProcessingTime, out pendingWork))
+                while (_workQueue.TryGetWorkItem(startProcessingTime, out var pendingWork))
                 {
                     var done = true;
 

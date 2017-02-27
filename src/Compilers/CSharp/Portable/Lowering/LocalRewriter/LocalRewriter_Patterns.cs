@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -67,14 +68,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeIsDeclarationPattern(BoundDeclarationPattern loweredPattern, BoundExpression loweredInput)
         {
-            Debug.Assert(loweredPattern.Variable.GetTypeOrReturnType() == loweredPattern.DeclaredType.Type);
+            Debug.Assert(((object)loweredPattern.Variable == null && loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression) ||
+                         loweredPattern.Variable.GetTypeOrReturnType() == loweredPattern.DeclaredType.Type);
 
             if (loweredPattern.IsVar)
             {
-                Debug.Assert(loweredInput.Type == loweredPattern.Variable.GetTypeOrReturnType());
-                var assignment = _factory.AssignmentExpression(loweredPattern.VariableAccess, loweredInput);
                 var result = _factory.Literal(true);
+
+                if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression)
+                {
+                    return result;
+                }
+
+                Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type == loweredPattern.Variable.GetTypeOrReturnType());
+
+                var assignment = _factory.AssignmentExpression(loweredPattern.VariableAccess, loweredInput);
                 return _factory.MakeSequence(assignment, result);
+            }
+
+            if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression)
+            {
+                LocalSymbol temp;
+                BoundLocal discard = _factory.MakeTempForDiscard((BoundDiscardExpression)loweredPattern.VariableAccess, out temp);
+
+                return _factory.Sequence(ImmutableArray.Create(temp),
+                         sideEffects: ImmutableArray<BoundExpression>.Empty,
+                         result: MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, discard, requiresNullTest: true));
             }
 
             return MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, loweredPattern.VariableAccess, requiresNullTest: true);
@@ -117,8 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _factory.StaticCall(
                 _factory.SpecialType(SpecialType.System_Object),
                 "Equals",
-                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), input),
-                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), boundConstant)
+                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), boundConstant),
+                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), input)
                 );
         }
 
@@ -175,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Literal(true));
                 }
 
-                // It would be possible to improve this code by only assigning t when returning
+                // It may be possible to improve this code by only assigning t when returning
                 // true (avoid returning a new default value)
                 // bool Is<T>(object e, out T t) where T : struct // non-Nullable value type
                 // {
@@ -184,26 +203,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return tmp.HasValue;
                 // }
                 var tmpType = _factory.SpecialType(SpecialType.System_Nullable_T).Construct(type);
-                if (tmpType == loweredInput.Type)
-                {
-                    var value = _factory.Call(
-                        loweredInput,
-                        GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                    var asg2 = _factory.AssignmentExpression(loweredTarget, value);
-                    var result = requiresNullTest ? MakeNullableHasValue(syntax, loweredInput) : _factory.Literal(true);
-                    return _factory.MakeSequence(asg2, result);
-                }
-                else
-                {
-                    var tmp = _factory.SynthesizedLocal(tmpType, syntax);
-                    var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), _factory.As(loweredInput, tmpType));
-                    var value = _factory.Call(
-                        _factory.Local(tmp),
-                        GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                    var asg2 = _factory.AssignmentExpression(loweredTarget, value);
-                    var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
-                    return _factory.MakeSequence(tmp, asg1, asg2, result);
-                }
+                var tmp = _factory.SynthesizedLocal(tmpType, syntax);
+                var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), tmpType == loweredInput.Type ? loweredInput : _factory.As(loweredInput, tmpType));
+                var value = _factory.Call(
+                    _factory.Local(tmp),
+                    GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                var asg2 = _factory.AssignmentExpression(loweredTarget, value);
+                var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
+                return _factory.MakeSequence(tmp, asg1, asg2, result);
             }
             else // type parameter
             {

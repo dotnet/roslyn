@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -15,12 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     public partial class CSharpInlineDeclarationTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpInlineDeclarationDiagnosticAnalyzer(),
-                new CSharpInlineDeclarationCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpInlineDeclarationDiagnosticAnalyzer(), new CSharpInlineDeclarationCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task InlineVariable1()
@@ -666,8 +661,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
+        // prefix comment
         {
-            // prefix comment
             if (int.TryParse(v, out int i))
             {
             }
@@ -696,8 +691,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
+        // suffix comment
         {
-            // suffix comment
             if (int.TryParse(v, out int i))
             {
             }
@@ -727,9 +722,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
+        // prefix comment
+        // suffix comment
         {
-            // prefix comment
-            // suffix comment
             if (int.TryParse(v, out int i))
             {
             }
@@ -921,6 +916,286 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
     }
 }", compareTokens: false);
+        }
+
+        [WorkItem(15994, "https://github.com/dotnet/roslyn/issues/15994")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestCommentsTrivia1()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(""Foo"");
+
+        int [|result|];
+        if (int.TryParse(""12"", out result))
+        {
+
+        }
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(""Foo"");
+
+        if (int.TryParse(""12"", out int result))
+        {
+
+        }
+    }
+}", compareTokens: false);
+        }
+
+        [WorkItem(15994, "https://github.com/dotnet/roslyn/issues/15994")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestCommentsTrivia2()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(""Foo"");
+
+
+
+
+
+        // Foo
+
+
+
+        int [|result|];
+        if (int.TryParse(""12"", out result))
+        {
+
+        }
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(""Foo"");
+
+
+
+
+
+        // Foo
+
+
+
+        if (int.TryParse(""12"", out int result))
+        {
+
+        }
+    }
+}", compareTokens: false);
+        }
+
+        [WorkItem(15336, "https://github.com/dotnet/roslyn/issues/15336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotMissingIfCapturedInLambdaAndNotUsedAfterwards()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        string [|s|];  
+        Bar(() => Baz(out s));
+    }
+
+    void Baz(out string s) { }
+
+    void Bar(Action a) { }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Bar(() => Baz(out string s));
+    }
+
+    void Baz(out string s) { }
+
+    void Bar(Action a) { }
+}");
+        }
+
+        [WorkItem(15336, "https://github.com/dotnet/roslyn/issues/15336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingIfCapturedInLambdaAndUsedAfterwards()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        string [|s|];  
+        Bar(() => Baz(out s));
+        Console.WriteLine(s);
+    }
+
+    void Baz(out string s) { }
+
+    void Bar(Action a) { }
+}");
+        }
+
+        [WorkItem(15408, "https://github.com/dotnet/roslyn/issues/15408")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestDataFlow1()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    void Foo(string x)
+    {
+        object [|s|] = null; 
+        if (x != null || TryBaz(out s))
+        {
+            Console.WriteLine(s); 
+        }
+    }
+
+    private bool TryBaz(out object s)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(15408, "https://github.com/dotnet/roslyn/issues/15408")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestDataFlow2()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void Foo(string x)
+    {
+        object [|s|] = null; 
+        if (x != null && TryBaz(out s))
+        {
+            Console.WriteLine(s); 
+        }
+    }
+
+    private bool TryBaz(out object s)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void Foo(string x)
+    {
+        if (x != null && TryBaz(out object s))
+        {
+            Console.WriteLine(s); 
+        }
+    }
+
+    private bool TryBaz(out object s)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(16028, "https://github.com/dotnet/roslyn/issues/16028")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestExpressionTree1()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int [|result|];
+        Method(() => GetValue(out result));
+    }
+
+    public static void GetValue(out int result)
+    {
+        result = 0;
+    }
+
+    public static void Method(Expression<Action> expression)
+    {
+
+    }
+}");
+        }
+
+        [WorkItem(16198, "https://github.com/dotnet/roslyn/issues/16198")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestIndentation1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    private int Bar()
+    {
+        IProjectRuleSnapshot [|unresolvedReferenceSnapshot|] = null;
+        var itemType = GetUnresolvedReferenceItemType(originalItemSpec,
+                                                      updatedUnresolvedSnapshots,
+                                                      catalogs,
+                                                      out unresolvedReferenceSnapshot);
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private int Bar()
+    {
+        var itemType = GetUnresolvedReferenceItemType(originalItemSpec,
+                                                      updatedUnresolvedSnapshots,
+                                                      catalogs,
+                                                      out IProjectRuleSnapshot unresolvedReferenceSnapshot);
+    }
+}");
         }
     }
 }

@@ -41,9 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
             Contract.ThrowIfFalse(contentType != null);
 
             var key = Tuple.Create(typeof(T), contentType.TypeName);
-            object commandHandlerList = null;
-
-            if (!_commandHandlersByTypeAndContentType.TryGetValue(key, out commandHandlerList))
+            if (!_commandHandlersByTypeAndContentType.TryGetValue(key, out var commandHandlerList))
             {
                 var stronglyTypedHandlers = from handler in _commandHandlers
                                             where handler.Value is ICommandHandler<T>

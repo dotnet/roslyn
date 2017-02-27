@@ -9,9 +9,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class MessageProvider : CommonMessageProvider, IObjectWritable, IObjectReadable
+    internal sealed class MessageProvider : CommonMessageProvider, IObjectWritable
     {
         public static readonly MessageProvider Instance = new MessageProvider();
+
+        static MessageProvider()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(MessageProvider), r => Instance);
+        }
 
         private MessageProvider()
         {
@@ -20,11 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             // write nothing, always read/deserialized as global Instance
-        }
-
-        Func<ObjectReader, object> IObjectReadable.GetReader()
-        {
-            return (r) => Instance;
         }
 
         public override DiagnosticSeverity GetSeverity(int code)
@@ -259,5 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var node = (AttributeSyntax)attributeSyntax;
             diagnostics.Add(ErrorCode.ERR_AttributeParameterRequired2, node.Name.Location, parameterName1, parameterName2);
         }
+
+        public override int ERR_BadAssemblyName => (int)ErrorCode.ERR_BadAssemblyName;
     }
 }

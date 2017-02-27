@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,12 +20,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
         }
 
-        private async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        private Task<Document> FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        {
+            return FixAllWithEditorAsync(document,
+                editor => FixAllAsync(document, diagnostics, editor, cancellationToken),
+                cancellationToken);
+        }
+
+        protected async Task<Document> FixAllWithEditorAsync(
+            Document document,
+            Func<SyntaxEditor, Task> editAsync,
+            CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
-            await FixAllAsync(document, diagnostics, editor, cancellationToken).ConfigureAwait(false);
+            await editAsync(editor).ConfigureAwait(false);
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);

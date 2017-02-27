@@ -1,13 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
@@ -15,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
     Public Class GenerateTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New GenerateTypeCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New GenerateTypeCodeFixProvider())
         End Function
 
         Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
@@ -121,6 +118,46 @@ End Class",
     Dim f As Foo = New Foo()
     Private Class Foo
         Public Sub New()
+        End Sub
+    End Class
+End Class",
+index:=2)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function TestGenerateClassWithCtorFromObjectCreationWithTuple() As Task
+            Await TestAsync(
+"Class C
+    Dim f = New [|Generated|]((1, 2))
+End Class",
+"Class C
+    Dim f = New Generated((1, 2))
+
+    Private Class Generated
+        Private p As (Integer, Integer)
+
+        Public Sub New(p As (Integer, Integer))
+            Me.p = p
+        End Sub
+    End Class
+End Class",
+index:=2)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function TestGenerateClassWithCtorFromObjectCreationWithTupleWithNames() As Task
+            Await TestAsync(
+"Class C
+    Dim f = New [|Generated|]((a:=1, b:=2, 3))
+End Class",
+"Class C
+    Dim f = New Generated((a:=1, b:=2, 3))
+
+    Private Class Generated
+        Private p As (a As Integer, b As Integer, Integer)
+
+        Public Sub New(p As (a As Integer, b As Integer, Integer))
+            Me.p = p
         End Sub
     End Class
 End Class",
@@ -1325,8 +1362,8 @@ Friend Class Customer
         Me.x = x
         Me.y = y
     End Sub
-    Public Property Age As Date
     Public Property Name As String
+    Public Property Age As Date
 End Class",
 index:=1)
         End Function
@@ -1354,8 +1391,8 @@ Friend Class Customer
         Me.x = x
         Me.y = y
     End Sub
-    Public Property Age As Date
     Public Property Name As Object
+    Public Property Age As Date
 End Class",
 index:=1)
         End Function
@@ -1383,8 +1420,8 @@ Friend Class Customer
         Me.x = x
         Me.y = y
     End Sub
-    Public Property Age As Date
     Public Property Name As Object
+    Public Property Age As Date
 End Class",
 index:=1)
         End Function
@@ -1406,8 +1443,8 @@ Module Program
     End Sub
 End Module
 Friend Class Customer
-    Public Property Age As Date
     Public Property Name As String
+    Public Property Age As Date
 End Class",
 index:=1)
         End Function
@@ -1653,10 +1690,9 @@ index:=2)
         Public Class AddImportTestsWithAddImportDiagnosticProvider
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-                Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                    New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
-                    New GenerateTypeCodeFixProvider())
+            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+                Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
+                        New GenerateTypeCodeFixProvider())
             End Function
 
             Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)

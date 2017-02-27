@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -44,13 +45,13 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
         internal abstract bool ShouldIncludeAccessibilityModifier(SyntaxNode typeNode);
 
-        public async Task<IEnumerable<ExtractInterfaceCodeAction>> GetExtractInterfaceCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ExtractInterfaceCodeAction>> GetExtractInterfaceCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, TypeDiscoveryRule.TypeNameOnly, cancellationToken).ConfigureAwait(false);
 
             return typeAnalysisResult.CanExtractInterface
-                ? SpecializedCollections.SingletonEnumerable(new ExtractInterfaceCodeAction(this, typeAnalysisResult))
-                : SpecializedCollections.EmptyEnumerable<ExtractInterfaceCodeAction>();
+                ? ImmutableArray.Create(new ExtractInterfaceCodeAction(this, typeAnalysisResult))
+                : ImmutableArray<ExtractInterfaceCodeAction>.Empty;
         }
 
         public ExtractInterfaceResult ExtractInterface(
@@ -126,21 +127,18 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public ExtractInterfaceResult ExtractInterfaceFromAnalyzedType(ExtractInterfaceTypeAnalysisResult refactoringResult, ExtractInterfaceOptionsResult extractInterfaceOptions, CancellationToken cancellationToken)
         {
             var solution = refactoringResult.DocumentToExtractFrom.Project.Solution;
-            List<DocumentId> documentIds;
-            SyntaxAnnotation typeNodeSyntaxAnnotation;
-
             var containingNamespaceDisplay = GetContainingNamespaceDisplay(refactoringResult.TypeToExtractFrom, refactoringResult.DocumentToExtractFrom.Project.CompilationOptions);
 
             var symbolToDeclarationAnnotationMap = CreateSymbolToDeclarationAnnotationMap(
                 extractInterfaceOptions.IncludedMembers,
                 ref solution,
-                out documentIds,
+                out var documentIds,
                 refactoringResult.TypeNode,
-                out typeNodeSyntaxAnnotation,
+                out var typeNodeSyntaxAnnotation,
                 cancellationToken);
 
             var extractedInterfaceSymbol = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: ShouldIncludeAccessibilityModifier(refactoringResult.TypeNode) ? refactoringResult.TypeToExtractFrom.DeclaredAccessibility : Accessibility.NotApplicable,
                 modifiers: new DeclarationModifiers(),
                 typeKind: TypeKind.Interface,
@@ -199,9 +197,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             {
                 var location = includedMember.Locations.Single();
                 var tree = location.SourceTree;
-
-                SyntaxNode root;
-                if (!currentRoots.TryGetValue(tree, out root))
+                if (!currentRoots.TryGetValue(tree, out var root))
                 {
                     root = tree.GetRoot(cancellationToken);
                     documentIds.Add(solution.GetDocument(tree).Id);
@@ -327,9 +323,9 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return formattedSolution;
         }
 
-        private IList<ISymbol> CreateInterfaceMembers(IEnumerable<ISymbol> includedMembers)
+        private ImmutableArray<ISymbol> CreateInterfaceMembers(IEnumerable<ISymbol> includedMembers)
         {
-            var interfaceMembers = new List<ISymbol>();
+            var interfaceMembers = ArrayBuilder<ISymbol>.GetInstance();
 
             foreach (var member in includedMembers)
             {
@@ -338,7 +334,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     case SymbolKind.Event:
                         var @event = member as IEventSymbol;
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreateEventSymbol(
-                            attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                            attributes: ImmutableArray<AttributeData>.Empty,
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true),
                             type: @event.Type,
@@ -348,10 +344,11 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     case SymbolKind.Method:
                         var method = member as IMethodSymbol;
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreateMethodSymbol(
-                            attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                            attributes: ImmutableArray<AttributeData>.Empty,
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: method.IsUnsafe()),
                             returnType: method.ReturnType,
+                            returnsByRef: method.ReturnsByRef,
                             explicitInterfaceSymbol: null,
                             name: method.Name,
                             typeParameters: method.TypeParameters,
@@ -360,10 +357,11 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     case SymbolKind.Property:
                         var property = member as IPropertySymbol;
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
-                            attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                            attributes: ImmutableArray<AttributeData>.Empty,
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: property.IsUnsafe()),
                             type: property.Type,
+                            returnsByRef: property.ReturnsByRef,
                             explicitInterfaceSymbol: null,
                             name: property.Name,
                             parameters: property.Parameters,
@@ -377,7 +375,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 }
             }
 
-            return interfaceMembers;
+            return interfaceMembers.ToImmutableAndFree();
         }
 
         internal virtual bool IsExtractableMember(ISymbol m)
@@ -403,7 +401,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return false;
         }
 
-        private IList<ITypeParameterSymbol> GetTypeParameters(INamedTypeSymbol type, IEnumerable<ISymbol> includedMembers)
+        private ImmutableArray<ITypeParameterSymbol> GetTypeParameters(INamedTypeSymbol type, IEnumerable<ISymbol> includedMembers)
         {
             var potentialTypeParameters = GetPotentialTypeParameters(type);
 
@@ -433,7 +431,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 }
             }
 
-            return potentialTypeParameters.Where(p => allReferencedTypeParameters.Contains(p)).ToList();
+            return potentialTypeParameters.Where(allReferencedTypeParameters.Contains).ToImmutableArray();
         }
 
         private List<ITypeParameterSymbol> GetPotentialTypeParameters(INamedTypeSymbol type)

@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Dim interfaceHandle As EntityHandle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface
                     Dim typeSymbol As TypeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle)
 
-                    typeSymbol = DirectCast(TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceHandle, moduleSymbol), NamedTypeSymbol)
+                    typeSymbol = DirectCast(TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceImpl, moduleSymbol), NamedTypeSymbol)
 
                     'TODO: how to pass reason to unsupported
                     Dim namedTypeSymbol As NamedTypeSymbol = TryCast(typeSymbol, NamedTypeSymbol)
@@ -1202,7 +1202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         Dim setMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, methods.Setter)
 
                         If (getMethod IsNot Nothing) OrElse (setMethod IsNot Nothing) Then
-                            members.Add(New PEPropertySymbol(moduleSymbol, Me, propertyDef, getMethod, setMethod))
+                            members.Add(PEPropertySymbol.Create(moduleSymbol, Me, propertyDef, getMethod, setMethod))
                         End If
                     Catch mrEx As BadImageFormatException
                     End Try

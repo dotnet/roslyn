@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -23,17 +24,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
     internal sealed class Request
     {
-        internal readonly List<Address> _resolvedAddresses;
+        private readonly List<Address> _resolvedAddresses;
 
-        internal Request(string moduleName, RequestSignature signature)
+        internal Request(string moduleName, RequestSignature signature, Guid languageId = default(Guid))
         {
             ModuleName = moduleName;
             Signature = signature;
+            LanguageId = languageId;
             _resolvedAddresses = new List<Address>();
         }
 
         internal readonly string ModuleName;
         internal readonly RequestSignature Signature;
+        internal readonly Guid LanguageId;
 
         internal void OnFunctionResolved(Module module, int token, int version, int ilOffset)
         {

@@ -16,11 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
 {
     public partial class GenerateTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                null, new GenerateTypeCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new GenerateTypeCodeFixProvider());
 
         protected override IList<CodeAction> MassageActions(IList<CodeAction> codeActions)
             => FlattenActions(codeActions);
@@ -264,6 +261,56 @@ index: 1);
     {
         public Foo()
         {
+        }
+    }
+}",
+index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateClassWithCtorFromObjectCreationWithTuple()
+        {
+            await TestAsync(
+@"class Class
+{
+    var f = new [|Generated|]((1, 2));
+}",
+@"class Class
+{
+    var f = new Generated((1, 2));
+
+    private class Generated
+    {
+        private (int, int) p;
+
+        public Generated((int, int) p)
+        {
+            this.p = p;
+        }
+    }
+}",
+index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateClassWithCtorFromObjectCreationWithTupleWithNames()
+        {
+            await TestAsync(
+@"class Class
+{
+    var f = new [|Generated|]((a: 1, b: 2, 3));
+}",
+@"class Class
+{
+    var f = new Generated((a: 1, b: 2, 3));
+
+    private class Generated
+    {
+        private (int a, int b, int) p;
+
+        public Generated((int a, int b, int) p)
+        {
+            this.p = p;
         }
     }
 }",
@@ -515,13 +562,13 @@ class Class
         {
         }
 
-        public ExType(string message) : base(message)
-        {
-        }
-
         public ExType(int v)
         {
             this.v = v;
+        }
+
+        public ExType(string message) : base(message)
+        {
         }
 
         public ExType(string message, Exception innerException) : base(message, innerException)
@@ -4397,7 +4444,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new [|Customer|](x: 1, y: ""Hello"") {Name = ""John"",�Age = DateTime.Today};
+        var c = new [|Customer|](x: 1, y: ""Hello"") {Name = ""John"", Age = DateTime.Today};
     }
 }";
 
@@ -4407,7 +4454,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new Customer(x: 1, y: ""Hello"") {Name = ""John"",�Age = DateTime.Today};
+        var c = new Customer(x: 1, y: ""Hello"") {Name = ""John"", Age = DateTime.Today};
     }
 }
 
@@ -4422,8 +4469,8 @@ internal class Customer
         this.y = y;
     }
 
-    public DateTime Age { get; set; }
     public string Name { get; set; }
+    public DateTime Age { get; set; }
 }";
 
             await TestAsync(code, expected, index: 1);
@@ -4439,7 +4486,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new [|Customer|](x: 1, y: ""Hello"") {Name = null,�Age = DateTime.Today};
+        var c = new [|Customer|](x: 1, y: ""Hello"") {Name = null, Age = DateTime.Today};
     }
 }";
 
@@ -4449,7 +4496,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new Customer(x: 1, y: ""Hello"") {Name = null,�Age = DateTime.Today};
+        var c = new Customer(x: 1, y: ""Hello"") {Name = null, Age = DateTime.Today};
     }
 }
 
@@ -4464,8 +4511,8 @@ internal class Customer
         this.y = y;
     }
 
-    public DateTime Age { get; set; }
     public object Name { get; set; }
+    public DateTime Age { get; set; }
 }";
 
             await TestAsync(code, expected, index: 1);
@@ -4481,7 +4528,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new [|Customer|](x: 1, y: ""Hello"") {Name = Foo,�Age = DateTime.Today};
+        var c = new [|Customer|](x: 1, y: ""Hello"") {Name = Foo, Age = DateTime.Today};
     }
 }";
 
@@ -4491,7 +4538,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new Customer(x: 1, y: ""Hello"") {Name = Foo,�Age = DateTime.Today};
+        var c = new Customer(x: 1, y: ""Hello"") {Name = Foo, Age = DateTime.Today};
     }
 }
 
@@ -4506,8 +4553,8 @@ internal class Customer
         this.y = y;
     }
 
-    public DateTime Age { get; set; }
     public object Name { get; set; }
+    public DateTime Age { get; set; }
 }";
 
             await TestAsync(code, expected, index: 1);
@@ -4523,7 +4570,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new [|Customer|] {Name = ""John"",�Age = DateTime.Today};
+        var c = new [|Customer|] {Name = ""John"", Age = DateTime.Today};
     }
 }";
 
@@ -4533,14 +4580,14 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new Customer {Name = ""John"",�Age = DateTime.Today};
+        var c = new Customer {Name = ""John"", Age = DateTime.Today};
     }
 }
 
 internal class Customer
 {
-    public DateTime Age { get; set; }
     public string Name { get; set; }
+    public DateTime Age { get; set; }
 }";
 
             await TestAsync(code, expected, index: 1);
@@ -4752,11 +4799,8 @@ index: 2);
 
     public partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new GenerateTypeCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new GenerateTypeCodeFixProvider());
 
         protected override IList<CodeAction> MassageActions(IList<CodeAction> codeActions)
             => FlattenActions(codeActions);

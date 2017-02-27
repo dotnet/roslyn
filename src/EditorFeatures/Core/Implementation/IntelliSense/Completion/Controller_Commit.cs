@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // TODO(cyrusn): We still have a general reentrancy problem where calling into a custom
             // commit provider (or just calling into the editor) may cause something to call back
             // into us.  However, for now, we just hope that no such craziness will occur.
-            this.StopModelComputation();
+            this.DismissSessionIfActive();
 
             CompletionChange completionChange;
             using (var transaction = CaretPreservingEditTransaction.TryCreate(

@@ -88,7 +88,7 @@ namespace Roslyn.Test.Performance.Utilities
         /// <returns>
         /// The path to TAO
         /// </returns>
-        public string TaoPath => Path.Combine(MyBinaries(), "Tao");
+        public string TaoPath => Path.Combine(MyBinaries(), "exes", "EditorTestApp", "Tao");
 
         /// Downloads a zip from azure store and extracts it into
         /// the ./temp directory.

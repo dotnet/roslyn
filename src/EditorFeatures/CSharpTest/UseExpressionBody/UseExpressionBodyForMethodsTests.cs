@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -17,10 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
     public class UseExpressionBodyForMethodsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new UseExpressionBodyForMethodsDiagnosticAnalyzer(),
-                new UseExpressionBodyForMethodsCodeFixProvider());
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new UseExpressionBodyForMethodsDiagnosticAnalyzer(), new UseExpressionBodyForMethodsCodeFixProvider());
 
         private static readonly Dictionary<OptionKey, object> UseExpressionBody =
             new Dictionary<OptionKey, object>
@@ -278,6 +275,74 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     void Foo() => throw Bar(); // Comment
+}", options: UseExpressionBody, compareTokens: false);
+        }
+
+        [WorkItem(17120, "https://github.com/dotnet/roslyn/issues/17120")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestDirectives1()
+        {
+            await TestAsync(
+@"
+#define DEBUG
+using System;
+
+class Program
+{
+    void Method()
+    {
+#if DEBUG
+        [|Console|].WriteLine();
+#endif
+    }
+}",
+@"
+#define DEBUG
+using System;
+
+class Program
+{
+    void Method() =>
+#if DEBUG
+        Console.WriteLine();
+#endif
+
+}", options: UseExpressionBody, compareTokens: false);
+        }
+
+        [WorkItem(17120, "https://github.com/dotnet/roslyn/issues/17120")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestDirectives2()
+        {
+            await TestAsync(
+@"
+#define DEBUG
+using System;
+
+class Program
+{
+    void Method()
+    {
+#if DEBUG
+        [|Console|].WriteLine(a);
+#else
+        Console.WriteLine(b);
+#endif
+    }
+}",
+@"
+#define DEBUG
+using System;
+
+class Program
+{
+    void Method() =>
+#if DEBUG
+        Console.WriteLine(a);
+#else
+        Console.WriteLine(b);
+#endif
+
 }", options: UseExpressionBody, compareTokens: false);
         }
     }

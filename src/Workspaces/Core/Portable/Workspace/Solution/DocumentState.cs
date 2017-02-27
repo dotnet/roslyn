@@ -73,7 +73,10 @@ namespace Microsoft.CodeAnalysis
                 language,
                 services);
 
-            // remove any initial loader so we don't keep source alive
+            // ownership of TextLoader information has moved to document state. clear out textloader the info is
+            // holding on. otherwise, these information will be held onto unnecesarily by documentInfo even after
+            // the info has changed by DocumentState.
+            // we hold onto the info so that we don't need to duplicate all information info already has in the state
             info = info.WithTextLoader(null);
 
             return new DocumentState(
@@ -479,14 +482,12 @@ namespace Microsoft.CodeAnalysis
 
             // determine encoding
             Encoding encoding;
-            SyntaxTree priorTree;
-            SourceText priorText;
-            if (this.TryGetSyntaxTree(out priorTree))
+            if (this.TryGetSyntaxTree(out var priorTree))
             {
                 // this is most likely available since UpdateTree is normally called after modifying the existing tree.
                 encoding = priorTree.Encoding;
             }
-            else if (this.TryGetText(out priorText))
+            else if (this.TryGetText(out var priorText))
             {
                 encoding = priorText.Encoding;
             }
@@ -518,9 +519,7 @@ namespace Microsoft.CodeAnalysis
                 return newTextVersion;
             }
 
-            TreeAndVersion oldTreeAndVersion;
-            SyntaxNode oldRoot;
-            if (!_treeSource.TryGetValue(out oldTreeAndVersion) || !oldTreeAndVersion.Tree.TryGetRoot(out oldRoot))
+            if (!_treeSource.TryGetValue(out var oldTreeAndVersion) || !oldTreeAndVersion.Tree.TryGetRoot(out var oldRoot))
             {
                 return newTextVersion;
             }
@@ -584,14 +583,12 @@ namespace Microsoft.CodeAnalysis
 
         private VersionStamp GetNewerVersion()
         {
-            TextAndVersion textAndVersion;
-            if (this.textAndVersionSource.TryGetValue(out textAndVersion))
+            if (this.textAndVersionSource.TryGetValue(out var textAndVersion))
             {
                 return textAndVersion.Version.GetNewerVersion();
             }
 
-            TreeAndVersion treeAndVersion;
-            if (_treeSource.TryGetValue(out treeAndVersion) && treeAndVersion != null)
+            if (_treeSource.TryGetValue(out var treeAndVersion) && treeAndVersion != null)
             {
                 return treeAndVersion.Version.GetNewerVersion();
             }
@@ -602,9 +599,7 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetSyntaxTree(out SyntaxTree syntaxTree)
         {
             syntaxTree = default(SyntaxTree);
-
-            TreeAndVersion treeAndVersion;
-            if (_treeSource.TryGetValue(out treeAndVersion) && treeAndVersion != null)
+            if (_treeSource.TryGetValue(out var treeAndVersion) && treeAndVersion != null)
             {
                 syntaxTree = treeAndVersion.Tree;
                 BindSyntaxTreeToId(syntaxTree, this.Id);
@@ -634,8 +629,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool TryGetTopLevelChangeTextVersion(out VersionStamp version)
         {
-            TreeAndVersion treeAndVersion;
-            if (_treeSource.TryGetValue(out treeAndVersion) && treeAndVersion != null)
+            if (_treeSource.TryGetValue(out var treeAndVersion) && treeAndVersion != null)
             {
                 version = treeAndVersion.Version;
                 return true;
@@ -654,8 +648,7 @@ namespace Microsoft.CodeAnalysis
                 return await this.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            TreeAndVersion treeAndVersion;
-            if (_treeSource.TryGetValue(out treeAndVersion) && treeAndVersion != null)
+            if (_treeSource.TryGetValue(out var treeAndVersion) && treeAndVersion != null)
             {
                 return treeAndVersion.Version;
             }
@@ -672,8 +665,7 @@ namespace Microsoft.CodeAnalysis
         {
             using (s_syntaxTreeToIdMapLock.DisposableWrite())
             {
-                DocumentId existingId;
-                if (s_syntaxTreeToIdMap.TryGetValue(tree, out existingId))
+                if (s_syntaxTreeToIdMap.TryGetValue(tree, out var existingId))
                 {
                     Contract.ThrowIfFalse(existingId == id);
                 }
@@ -688,8 +680,7 @@ namespace Microsoft.CodeAnalysis
         {
             using (s_syntaxTreeToIdMapLock.DisposableRead())
             {
-                DocumentId id;
-                s_syntaxTreeToIdMap.TryGetValue(tree, out id);
+                s_syntaxTreeToIdMap.TryGetValue(tree, out var id);
                 return id;
             }
         }

@@ -2,12 +2,11 @@
 
 using System.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, 
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.MoveTypeToFile), Shared]
     internal class MoveTypeCodeRefactoringProvider : CodeRefactoringProvider
     {
@@ -23,18 +22,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return;
             }
 
-            var generatedCodeRecognitionService = workspace.Services.GetService<IGeneratedCodeRecognitionService>();
-            if (generatedCodeRecognitionService.IsGeneratedCode(document))
+            if (document.IsGeneratedCode(cancellationToken))
             {
                 return;
             }
 
             var service = document.GetLanguageService<IMoveTypeService>();
             var actions = await service.GetRefactoringAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            if (!actions.IsDefault)
-            {
-                context.RegisterRefactorings(actions);
-            }
+            context.RegisterRefactorings(actions);
         }
     }
 }

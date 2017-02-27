@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor
@@ -10,8 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
     Public Class GenerateConstructorTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New GenerateConstructorCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New GenerateConstructorCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
@@ -618,12 +617,14 @@ End Module
 Class C
     Public v1 As Integer
     Private i As Char
-    Public Sub New(i As Char)
-        Me.i = i
-    End Sub Public Sub New(v1 As Integer) 
- Me.v1 = v1
+
+    Public Sub New(v1 As Integer) 
+        Me.v1 = v1
     End Sub
 
+    Public Sub New(i As Char)
+        Me.i = i
+    End Sub
 End Class")
         End Function
 
@@ -921,11 +922,11 @@ End Class")
 End Class",
 "Class C
     Private v As Integer
-    Public Sub New(v As Integer)
-        Me.v = v
-    End Sub
     Sub New
         Me.New(1)
+    End Sub
+    Public Sub New(v As Integer)
+        Me.v = v
     End Sub
 End Class")
         End Function
@@ -956,11 +957,11 @@ End Class")
 End Class",
 "Class C
     Private v As Integer
-    Public Sub New(v As Integer)
-        Me.v = v
-    End Sub
     Sub New
         MyClass.New(1)
+    End Sub
+    Public Sub New(v As Integer)
+        Me.v = v
     End Sub
 End Class")
         End Function
@@ -1045,8 +1046,9 @@ End Class",
 End Class
 Class C
     Inherits B
-    Private u1 As Integer
     Private x As String
+    Private u1 As Integer
+
     Public Sub New(u As Integer)
         u1 = u
     End Sub
@@ -1258,9 +1260,11 @@ End Class",
 "<AttributeUsage(AttributeTargets.Class)>
 Public Class MyAttribute
     Inherits System.Attribute
-    Private Topic As String
+
     Private v1 As Boolean
     Private v2 As Integer
+    Private Topic As String
+
     Public Sub New(v1 As Boolean, v2 As Integer, Topic As String)
         Me.v1 = v1
         Me.v2 = v2
@@ -1324,9 +1328,8 @@ End Enum
 <AttributeUsage(AttributeTargets.Class)>
 Public Class MyAttribute
     Inherits System.Attribute
-    Private a1 As A
     Private v1 As Short()
-    Private v10 As String
+    Private a1 As A
     Private v2 As Boolean
     Private v3 As Integer
     Private v4 As Char
@@ -1335,6 +1338,7 @@ Public Class MyAttribute
     Private v7 As Long
     Private v8 As Double
     Private v9 As Single
+    Private v10 As String
     Public Sub New(v1() As Short, a1 As A, v2 As Boolean, v3 As Integer, v4 As Char, v5 As Short, v6 As Integer, v7 As Long, v8 As Double, v9 As Single, v10 As String)
         Me.v1 = v1
         Me.a1 = a1
@@ -1427,11 +1431,11 @@ Module Module1
     Class Classic
         Private int As Integer
         Private obj As Object
-        Public Sub New(obj As Object)
-            Me.obj = obj
-        End Sub
         Public Sub New(int As Integer)
             Me.int = int
+        End Sub
+        Public Sub New(obj As Object)
+            Me.obj = obj
         End Sub
     End Class
 End Module")
@@ -1468,8 +1472,9 @@ End Class")
         Public Class GenerateConstructorTestsWithFindMissingIdentifiersAnalyzer
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-                Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(), New GenerateConstructorCodeFixProvider())
+            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+                Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
+                        New GenerateConstructorCodeFixProvider())
             End Function
 
             <WorkItem(1241, "https://github.com/dotnet/roslyn/issues/1241")>

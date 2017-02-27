@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : base(container, WellKnownMemberNames.ObjectEquals)
             {
                 _parameters = ImmutableArray.Create<ParameterSymbol>(
-                                      new SynthesizedParameterSymbol(this, this.Manager.System_Object, 0, RefKind.None, "value")
+                                      SynthesizedParameterSymbol.Create(this, this.Manager.System_Object, 0, RefKind.None, "value")
                                   );
             }
 

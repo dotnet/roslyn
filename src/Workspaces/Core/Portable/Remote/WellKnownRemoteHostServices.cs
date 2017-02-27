@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public const string RemoteHostService = "remoteHostService";
         public const string RemoteHostService_Connect = "Connect";
-        public const string RemoteHostService_SynchronizeAsync = "SynchronizeAsync";
+        public const string RemoteHostService_SynchronizePrimaryWorkspaceAsync = "SynchronizePrimaryWorkspaceAsync";
 
         public const string RemoteHostService_PersistentStorageService_RegisterPrimarySolutionId = "PersistentStorageService_RegisterPrimarySolutionId";
         public const string RemoteHostService_PersistentStorageService_UnregisterPrimarySolutionId = "PersistentStorageService_UnregisterPrimarySolutionId";

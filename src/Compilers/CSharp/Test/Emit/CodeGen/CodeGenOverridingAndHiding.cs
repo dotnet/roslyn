@@ -1641,7 +1641,7 @@ Derived2.Field3");
                 // (74,22): warning CS0108: 'Base2.Derived2.Type2<T>' hides inherited member 'Base2.Type2<T>'. Use the new keyword if hiding was intended.
                 //         public class Type2<T>
                 Diagnostic(ErrorCode.WRN_NewRequired, "Type2").WithArguments("Base2.Derived2.Type2<T>", "Base2.Type2<T>").WithLocation(74, 22),
-                // (99,13): warning CS0109: The member 'Derived3.Field' does not hide an inherited member. The new keyword is not required.
+                // (99,13): warning CS0109: The member 'Derived3.Field' does not hide an accessible member. The new keyword is not required.
                 //     new int Field = 2;
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Field").WithArguments("Derived3.Field").WithLocation(99, 13),
                 // (101,26): warning CS0108: 'Derived3.Field2' hides inherited member 'Base3.Field2'. Use the new keyword if hiding was intended.
@@ -1810,13 +1810,13 @@ Derived2.Property1
 Base<T>.Method3()");
 
             comp.VerifyDiagnostics(
-                // (43,21): warning CS0109: The member 'Derived<U>.Method(U, U)' does not hide an inherited member. The new keyword is not required.
+                // (43,21): warning CS0109: The member 'Derived<U>.Method(U, U)' does not hide an accessible member. The new keyword is not required.
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Method").WithArguments("Derived<U>.Method(U, U)"),
                 // (47,17): warning CS0114: 'Derived<U>.Method(U, U, System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<U, U>)' hides inherited member 'Base<U>.Method(U, U, System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<U, U>)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Method").WithArguments("Derived<U>.Method(U, U, System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<U, U>)", "Base<U>.Method(U, U, System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<U, U>)"),
                 // (51,17): warning CS0114: 'Derived<U>.Method<V>(V, U, System.Collections.Generic.List<V>, System.Collections.Generic.Dictionary<U, V>)' hides inherited member 'Base<U>.Method<U>(U, U, System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<U, U>)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Method").WithArguments("Derived<U>.Method<V>(V, U, System.Collections.Generic.List<V>, System.Collections.Generic.Dictionary<U, V>)", "Base<U>.Method<U>(U, U, System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<U, U>)"),
-                // (55,21): warning CS0109: The member 'Derived<U>.Method<V>(V, U, System.Collections.Generic.List<V>, System.Collections.Generic.Dictionary<V, U>)' does not hide an inherited member. The new keyword is not required.
+                // (55,21): warning CS0109: The member 'Derived<U>.Method<V>(V, U, System.Collections.Generic.List<V>, System.Collections.Generic.Dictionary<V, U>)' does not hide an accessible member. The new keyword is not required.
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Method").WithArguments("Derived<U>.Method<V>(V, U, System.Collections.Generic.List<V>, System.Collections.Generic.Dictionary<V, U>)"),
                 // (64,24): warning CS0114: 'Derived<U>.Method(U)' hides inherited member 'Base<U>.Method(U)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Method").WithArguments("Derived<U>.Method(U)", "Base<U>.Method(U)"),

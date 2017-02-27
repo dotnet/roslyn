@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -15,12 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess
 {
     public partial class QualifyMemberAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpQualifyMemberAccessDiagnosticAnalyzer(),
-                new CSharpQualifyMemberAccessCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpQualifyMemberAccessDiagnosticAnalyzer(), new CSharpQualifyMemberAccessCodeFixProvider());
 
         private Task TestAsyncWithOption(string code, string expected, PerLanguageOption<CodeStyleOption<bool>> option)
         {
@@ -982,6 +977,58 @@ CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Warning);
     }
 }",
 CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Error);
+        }
+
+        [WorkItem(15325, "https://github.com/dotnet/roslyn/issues/15325")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyInstanceMethodInDelegateCreation()
+        {
+            await TestAsyncWithOption(
+@"using System;
+
+class A
+{
+    int Function(int x) => x + x;
+
+    void Error()
+    { 
+        var func = new Func<int, int>([|Function|]);
+        func(1);
+    }
+}",
+@"using System;
+
+class A
+{
+    int Function(int x) => x + x;
+
+    void Error()
+    { 
+        var func = new Func<int, int>(this.Function);
+        func(1);
+    }
+}",
+CodeStyleOptions.QualifyMethodAccess);
+        }
+
+        [WorkItem(15325, "https://github.com/dotnet/roslyn/issues/15325")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotQualifyStaticMethodInDelegateCreation()
+        {
+            await TestMissingAsyncWithOption(
+@"using System;
+
+class A
+{
+    static int Function(int x) => x + x;
+
+    void Error()
+    { 
+        var func = new Func<int, int>([|Function|]);
+        func(1);
+    }
+}",
+CodeStyleOptions.QualifyMethodAccess);
         }
     }
 }

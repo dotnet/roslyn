@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
@@ -48,14 +46,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 _containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
                 _containingTypeOrAssembly = _containingType ?? (ISymbol)semanticModel.Compilation.Assembly;
-                _syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                _syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
                 _namespacesInScope = GetNamespacesInScope(cancellationToken);
             }
 
             private ISet<INamespaceSymbol> GetNamespacesInScope(CancellationToken cancellationToken)
             {
-                // Add all hte namespaces brought in by imports/usings.
+                // Add all the namespaces brought in by imports/usings.
                 var set = _owner.GetImportNamespacesInScope(_semanticModel, _node, cancellationToken);
 
                 // Also add all the namespaces we're containing in.  We don't want
@@ -107,11 +105,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // Spin off tasks to do all our searching.
                 var tasks = new List<Task<IList<SymbolReference>>>
                 {
-                    this.GetNamespacesForMatchingTypesAsync(searchScope),
+                    this.GetReferencesForMatchingTypesAsync(searchScope),
                     this.GetMatchingTypesAsync(searchScope),
-                    this.GetNamespacesForMatchingNamespacesAsync(searchScope),
-                    this.GetNamespacesForMatchingFieldsAndPropertiesAsync(searchScope),
-                    this.GetNamespacesForMatchingExtensionMethodsAsync(searchScope),
+                    this.GetReferencesForMatchingNamespacesAsync(searchScope),
+                    this.GetReferencesForMatchingFieldsAndPropertiesAsync(searchScope),
+                    this.GetReferencesForMatchingExtensionMethodsAsync(searchScope),
                 };
 
                 // Searching for things like "Add" (for collection initializers) and "Select"
@@ -122,9 +120,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // query expression valid.
                 if (searchScope.Exact)
                 {
-                    tasks.Add(this.GetNamespacesForCollectionInitializerMethodsAsync(searchScope));
-                    tasks.Add(this.GetNamespacesForQueryPatternsAsync(searchScope));
-                    tasks.Add(this.GetNamespacesForDesconstructAsync(searchScope));
+                    tasks.Add(this.GetReferencesForCollectionInitializerMethodsAsync(searchScope));
+                    tasks.Add(this.GetReferencesForQueryPatternsAsync(searchScope));
+                    tasks.Add(this.GetReferencesForDesconstructAsync(searchScope));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -159,20 +157,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     .ToList();
             }
 
-            private async Task<IList<SymbolReference>> GetNamespacesForMatchingTypesAsync(SearchScope searchScope)
+            private async Task<IList<SymbolReference>> GetReferencesForMatchingTypesAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-
-                TSimpleNameSyntax nameNode;
-                if (!_owner.CanAddImportForType(_diagnostic, _node, out nameNode))
+                if (!_owner.CanAddImportForType(_diagnostic, _node, out var nameNode))
                 {
                     return null;
                 }
 
-                string name;
-                int arity;
-                bool inAttributeContext, hasIncompleteParentMember;
-                CalculateContext(nameNode, _syntaxFacts, out name, out arity, out inAttributeContext, out hasIncompleteParentMember);
+                CalculateContext(nameNode, _syntaxFacts, out var name, out var arity, out var inAttributeContext, out var hasIncompleteParentMember);
 
                 var symbols = await GetTypeSymbols(searchScope, name, nameNode, inAttributeContext).ConfigureAwait(false);
                 if (symbols == null)
@@ -186,17 +179,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private async Task<IList<SymbolReference>> GetMatchingTypesAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-
-                TSimpleNameSyntax nameNode;
-                if (!_owner.CanAddImportForType(_diagnostic, _node, out nameNode))
+                if (!_owner.CanAddImportForType(_diagnostic, _node, out var nameNode))
                 {
                     return null;
                 }
 
-                string name;
-                int arity;
-                bool inAttributeContext, hasIncompleteParentMember;
-                CalculateContext(nameNode, _syntaxFacts, out name, out arity, out inAttributeContext, out hasIncompleteParentMember);
+                CalculateContext(nameNode, _syntaxFacts, out var name, out var arity, out var inAttributeContext, out var hasIncompleteParentMember);
 
                 var symbols = await GetTypeSymbols(searchScope, name, nameNode, inAttributeContext).ConfigureAwait(false);
                 if (symbols == null)
@@ -214,20 +202,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     // Only do this if none of the project or metadata searches produced 
                     // any results. We always consider source and local metadata to be 
-                    // better than any nuget/assembly-reference results.
+                    // better than any NuGet/assembly-reference results.
                     return;
                 }
 
-                TSimpleNameSyntax nameNode;
-                if (!_owner.CanAddImportForType(_diagnostic, _node, out nameNode))
+                if (!_owner.CanAddImportForType(_diagnostic, _node, out var nameNode))
                 {
                     return;
                 }
 
-                string name;
-                int arity;
-                bool inAttributeContext, hasIncompleteParentMember;
-                CalculateContext(nameNode, _syntaxFacts, out name, out arity, out inAttributeContext, out hasIncompleteParentMember);
+                CalculateContext(nameNode, _syntaxFacts, out var name, out var arity, out var inAttributeContext, out var hasIncompleteParentMember);
 
                 if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: cancellationToken))
                 {
@@ -379,8 +363,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
 
                 var desiredName = GetDesiredName(isAttributeSearch, result.TypeName);
-                allReferences.Add(new AssemblyReference(_owner,
-                    new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight), result));
+                allReferences.Add(new AssemblyReference(
+                    _owner, new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight), result));
             }
 
             private Task HandleNugetReferenceAsync(
@@ -460,20 +444,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return symbolInfo.Symbol != null;
             }
 
-            private async Task<IList<SymbolReference>> GetNamespacesForMatchingNamespacesAsync(
+            private async Task<IList<SymbolReference>> GetReferencesForMatchingNamespacesAsync(
                 SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-
-                TSimpleNameSyntax nameNode;
-                if (!_owner.CanAddImportForNamespace(_diagnostic, _node, out nameNode))
+                if (!_owner.CanAddImportForNamespace(_diagnostic, _node, out var nameNode))
                 {
                     return null;
                 }
 
-                string name;
-                int arity;
-                _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out name, out arity);
+                _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
 
                 if (arity > 0)
                 {
@@ -487,16 +467,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Namespace).ConfigureAwait(false);
 
-                return GetProposedNamespaces(
+                return GetSymbolReferences(
                     searchScope, OfType<INamespaceSymbol>(symbols).Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)));
             }
 
-            private async Task<IList<SymbolReference>> GetNamespacesForMatchingExtensionMethodsAsync(SearchScope searchScope)
+            private async Task<IList<SymbolReference>> GetReferencesForMatchingExtensionMethodsAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-
-                TSimpleNameSyntax nameNode;
-                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out nameNode))
+                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode))
                 {
                     return null;
                 }
@@ -512,27 +490,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return extensionMethods.ToList();
             }
 
-            private async Task<IList<SymbolReference>> GetNamespacesForCollectionInitializerMethodsAsync(SearchScope searchScope)
+            private async Task<IList<SymbolReference>> GetReferencesForCollectionInitializerMethodsAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-
-                TSimpleNameSyntax nameNode;
-                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out nameNode))
+                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode))
                 {
                     return null;
                 }
 
                 var methodSymbols = await GetAddMethodsAsync(searchScope, _node.Parent).ConfigureAwait(false);
-                return GetProposedNamespaces(searchScope, methodSymbols.Select(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
+                return GetSymbolReferences(searchScope, methodSymbols.Select(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
             }
 
-            private async Task<IList<SymbolReference>> GetNamespacesForMatchingFieldsAndPropertiesAsync(
+            private async Task<IList<SymbolReference>> GetReferencesForMatchingFieldsAndPropertiesAsync(
                 SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-
-                TSimpleNameSyntax nameNode;
-                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out nameNode))
+                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode))
                 {
                     return null;
                 }
@@ -577,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return null;
                 }
 
-                // Check if we have teh 'Color Color' case.
+                // Check if we have the 'Color Color' case.
                 var propertyType = (INamedTypeSymbol)propertyOrFieldType;
                 if (!Equals(propertyType.Name, symbol.Name))
                 {
@@ -588,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var symbolResults = await searchScope.FindDeclarationsAsync(
                     symbol.Name, (TSimpleNameSyntax)expression, SymbolFilter.Type).ConfigureAwait(false);
 
-                // Return results that have accesible members.
+                // Return results that have accessible members.
                 var name = nameNode.GetFirstToken().ValueText;
                 return symbolResults.Where(sr => HasAccessibleStaticFieldOrProperty(sr.Symbol, name))
                                     .Select(sr => sr.WithSymbol(sr.Symbol.ContainingNamespace))
@@ -613,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return false;
             }
 
-            private async Task<IList<SymbolReference>> GetNamespacesForDesconstructAsync(SearchScope searchScope)
+            private async Task<IList<SymbolReference>> GetReferencesForDesconstructAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
 
@@ -636,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     searchScope, type, "Deconstruct").ConfigureAwait(false);
             }
 
-            private async Task<IList<SymbolReference>> GetNamespacesForQueryPatternsAsync(SearchScope searchScope)
+            private async Task<IList<SymbolReference>> GetReferencesForQueryPatternsAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
 
@@ -672,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     .Select(s => s.WithDesiredName(null))
                     .ToList();
 
-                return GetProposedNamespaces(
+                return GetSymbolReferences(
                     searchScope, extensionMethodSymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)));
             }
 
@@ -699,18 +673,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                                     inAttributeContext, hasIncompleteParentMember))
                     .ToList();
 
-                return GetProposedNamespaces(searchScope, accessibleTypeSymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)));
+                return GetSymbolReferences(searchScope, accessibleTypeSymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)));
             }
 
-            private ImmutableArray<SymbolReference> GetProposedNamespaces(SearchScope scope, IEnumerable<SymbolResult<INamespaceSymbol>> namespaces)
+            private ImmutableArray<SymbolReference> GetSymbolReferences(
+                SearchScope scope, IEnumerable<SymbolResult<INamespaceSymbol>> namespaces)
             {
-                // We only want to offer to add a using if we don't already have one.
-                return
-                    namespaces.Where(n => !n.Symbol.IsGlobalNamespace)
-                              .Select(n => n.WithSymbol(MapToCompilationNamespaceIfPossible(n.Symbol)))
-                              .Where(n => n.Symbol != null && !_namespacesInScope.Contains(n.Symbol))
-                              .Select(n => scope.CreateReference(n))
-                              .ToImmutableArray();
+                var references = ArrayBuilder<SymbolReference>.GetInstance();
+
+                foreach (var namespaceResult in namespaces)
+                {
+                    var symbol = namespaceResult.Symbol;
+                    var mappedResult = namespaceResult.WithSymbol(MapToCompilationNamespaceIfPossible(namespaceResult.Symbol));
+                    var namespaceIsInScope = _namespacesInScope.Contains(mappedResult.Symbol);
+                    if (!symbol.IsGlobalNamespace && !namespaceIsInScope)
+                    {
+                        references.Add(scope.CreateReference(mappedResult));
+                    }
+                }
+
+                return references.ToImmutableAndFree();
             }
 
             private List<SymbolReference> GetProposedTypes(SearchScope searchScope, string name, List<SymbolResult<ITypeSymbol>> accessibleTypeSymbols)
@@ -723,7 +705,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         if (typeSymbol.Symbol?.ContainingType != null)
                         {
                             result = result ?? new List<SymbolReference>();
-                            result.Add(searchScope.CreateReference(typeSymbol.WithSymbol(typeSymbol.Symbol.ContainingType)));
+                            result.Add(searchScope.CreateReference(
+                                typeSymbol.WithSymbol(typeSymbol.Symbol.ContainingType)));
                         }
                     }
                 }
@@ -741,9 +724,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return SpecializedTasks.EmptyImmutableArray<SymbolResult<ISymbol>>();
                 }
 
-                string name;
-                int arity;
-                _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out name, out arity);
+                _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
                 if (name == null)
                 {
                     return SpecializedTasks.EmptyImmutableArray<SymbolResult<ISymbol>>();
@@ -761,16 +742,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                                 _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, searchScope.CancellationToken))
                     .ToList();
 
-                return GetProposedNamespaces(
+                return GetSymbolReferences(
                     searchScope, extensionMethodSymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)));
             }
 
             private async Task<ImmutableArray<SymbolResult<IMethodSymbol>>> GetAddMethodsAsync(
                 SearchScope searchScope, SyntaxNode expression)
             {
-                string name;
-                int arity;
-                _syntaxFacts.GetNameAndArityOfSimpleName(_node, out name, out arity);
+                _syntaxFacts.GetNameAndArityOfSimpleName(_node, out var name, out var arity);
                 if (name != null || !_owner.IsAddMethodContext(_node, _semanticModel))
                 {
                     return ImmutableArray<SymbolResult<IMethodSymbol>>.Empty;

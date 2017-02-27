@@ -115,7 +115,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             assemblyIdentityComparer:=IdentityComparer).
             WithMetadataImportOptions(MetadataImportOptions.All).
             WithReferencesSupersedeLowerVersions(True).
-            WithSuppressEmbeddedDeclarations(True)
+            WithSuppressEmbeddedDeclarations(True).
+            WithIgnoreCorLibraryDuplicatedTypes(True)
 
     End Module
 

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
@@ -17,16 +18,19 @@ namespace Microsoft.CodeAnalysis.FindUsages
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
         DefinitionsAndReferences CreateDefinitionsAndReferences(
-            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols);
+            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols,
+            bool includeHiddenLocations, CancellationToken cancellationToken);
 
-        DefinitionItem GetThirdPartyDefinitionItem(Solution solution, ISymbol definition);
+        DefinitionItem GetThirdPartyDefinitionItem(
+            Solution solution, ISymbol definition, CancellationToken cancellationToken);
     }
 
     [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory)), Shared]
     internal class DefaultDefinitionsAndReferencesFactory : IDefinitionsAndReferencesFactory
     {
         public DefinitionsAndReferences CreateDefinitionsAndReferences(
-            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
+            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols,
+            bool includeHiddenLocations, CancellationToken cancellationToken)
         {
             var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
             var references = ArrayBuilder<SourceReferenceItem>.GetInstance();
@@ -39,7 +43,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             foreach (var referencedSymbol in referencedSymbols.OrderBy(GetPrecedence))
             {
                 ProcessReferencedSymbol(
-                    solution, referencedSymbol, definitions, references, uniqueLocations);
+                    solution, referencedSymbol, definitions, references,
+                    includeHiddenLocations, uniqueLocations,cancellationToken);
             }
 
             return new DefinitionsAndReferences(
@@ -86,7 +91,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ReferencedSymbol referencedSymbol,
             ArrayBuilder<DefinitionItem> definitions,
             ArrayBuilder<SourceReferenceItem> references,
-            HashSet<DocumentSpan> uniqueSpans)
+            bool includeHiddenLocations,
+            HashSet<DocumentSpan> uniqueSpans,
+            CancellationToken cancellationToken)
         {
             // See if this is a symbol we even want to present to the user.  If not,
             // ignore it entirely (including all its reference locations).
@@ -95,16 +102,20 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return;
             }
 
-            var definitionItem = referencedSymbol.Definition.ToDefinitionItem(solution, uniqueSpans);
+            var definitionItem = referencedSymbol.Definition.ToDefinitionItem(
+                solution, includeHiddenLocations, uniqueSpans);
             definitions.Add(definitionItem);
 
             // Now, create the SourceReferenceItems for all the reference locations
             // for this definition.
-            CreateReferences(referencedSymbol, references, definitionItem, uniqueSpans);
+            CreateReferences(
+                referencedSymbol, references, definitionItem,
+                includeHiddenLocations, uniqueSpans);
 
             // Finally, see if there are any third parties that want to add their
             // own result to our collection.
-            var thirdPartyItem = GetThirdPartyDefinitionItem(solution, referencedSymbol.Definition);
+            var thirdPartyItem = GetThirdPartyDefinitionItem(
+                solution, referencedSymbol.Definition, cancellationToken);
             if (thirdPartyItem != null)
             {
                 definitions.Add(thirdPartyItem);
@@ -116,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// results to the results found by the FindReferences engine.
         /// </summary>
         public virtual DefinitionItem GetThirdPartyDefinitionItem(
-            Solution solution, ISymbol definition)
+            Solution solution, ISymbol definition, CancellationToken cancellationToken)
         {
             return null;
         }
@@ -125,11 +136,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ReferencedSymbol referencedSymbol,
             ArrayBuilder<SourceReferenceItem> references,
             DefinitionItem definitionItem,
+            bool includeHiddenLocations,
             HashSet<DocumentSpan> uniqueSpans)
         {
             foreach (var referenceLocation in referencedSymbol.Locations)
             {
-                var sourceReferenceItem = referenceLocation.TryCreateSourceReferenceItem(definitionItem);
+                var sourceReferenceItem = referenceLocation.TryCreateSourceReferenceItem(
+                    definitionItem, includeHiddenLocations);
                 if (sourceReferenceItem == null)
                 {
                     continue;
@@ -148,9 +161,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public static DefinitionItem ToDefinitionItem(
             this ISymbol definition,
             Solution solution,
+            bool includeHiddenLocations,
             HashSet<DocumentSpan> uniqueSpans = null)
         {
             var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
+            var nameDisplayParts = definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();
 
             var tags = GlyphTags.GetTags(definition.GetGlyph());
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
@@ -168,10 +183,17 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     if (location.IsInMetadata)
                     {
                         return DefinitionItem.CreateMetadataDefinition(
-                            tags, displayParts, solution, definition, displayIfNoReferences);
+                            tags, displayParts, nameDisplayParts, solution, 
+                            definition, displayIfNoReferences);
                     }
-                    else if (location.IsVisibleSourceLocation())
+                    else if (location.IsInSource)
                     {
+                        if (!location.IsVisibleSourceLocation() &&
+                            !includeHiddenLocations)
+                        {
+                            continue;
+                        }
+
                         var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
@@ -204,17 +226,20 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
 
             return DefinitionItem.Create(
-                tags, displayParts, sourceLocations.ToImmutableAndFree(), displayIfNoReferences);
+                tags, displayParts, sourceLocations.ToImmutableAndFree(),
+                nameDisplayParts, displayIfNoReferences);
         }
 
         public static SourceReferenceItem TryCreateSourceReferenceItem(
             this ReferenceLocation referenceLocation,
-            DefinitionItem definitionItem)
+            DefinitionItem definitionItem,
+            bool includeHiddenLocations)
         {
             var location = referenceLocation.Location;
 
             Debug.Assert(location.IsInSource);
-            if (!location.IsVisibleSourceLocation())
+            if (!location.IsVisibleSourceLocation() &&
+                !includeHiddenLocations)
             {
                 return null;
             }
@@ -229,6 +254,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 ? s_parameterDefinitionFormat
                 : s_definitionFormat;
         }
+
+        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
+            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
         private static readonly SymbolDisplayFormat s_definitionFormat =
             new SymbolDisplayFormat(

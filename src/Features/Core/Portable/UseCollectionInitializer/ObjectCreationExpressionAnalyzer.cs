@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
-            _syntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out instance, out var memberName);
+            _syntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
             _syntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
 
             if (arity != 0 || !name.Equals(nameof(IList.Add)))
@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
+            instance = localInstance;
             return true;
         }
 
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
-            var containingDeclarator = _objectCreationExpression.FirstAncestorOrSelf<TVariableDeclaratorSyntax>();
+            var containingDeclarator = _objectCreationExpression.Parent.Parent as TVariableDeclaratorSyntax;
             if (containingDeclarator == null)
             {
                 return false;

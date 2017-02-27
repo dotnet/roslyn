@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 {
                     // If there is a banner comment that precedes the nodes,
                     // then remove it and store it for later.
-                    IEnumerable<SyntaxTrivia> leadingTrivia;
-                    initialList[0] = initialList[0].GetNodeWithoutLeadingBannerAndPreprocessorDirectives(out leadingTrivia);
+                    initialList[0] = initialList[0].GetNodeWithoutLeadingBannerAndPreprocessorDirectives(out var leadingTrivia);
 
                     var comparer = placeSystemNamespaceFirst
                         ? UsingsAndExternAliasesDirectiveComparer.SystemFirstInstance

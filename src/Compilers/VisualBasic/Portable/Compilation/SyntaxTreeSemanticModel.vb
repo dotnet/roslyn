@@ -1318,7 +1318,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim aliasName As String = declarationSyntax.Alias.Identifier.ValueText
 
             If Not String.IsNullOrEmpty(aliasName) Then
-                Dim sourceFile = Me._sourceModule.GetSourceFile(Me.SyntaxTree)
+                Dim sourceFile = Me._sourceModule.TryGetSourceFile(Me.SyntaxTree)
+                Debug.Assert(sourceFile IsNot Nothing)
 
                 Dim aliasImports As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition) = sourceFile.AliasImportsOpt
                 Dim symbol As AliasAndImportsClausePosition = Nothing

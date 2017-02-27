@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
-        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
+        private CustomModifiersTuple _lazyCustomModifiers;
 
         /// <summary>
         /// Retargeted custom attributes
@@ -147,17 +147,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return RetargetingTranslator.RetargetModifiers(
-                    _underlyingMethod.ReturnTypeCustomModifiers,
-                    ref _lazyCustomModifiers);
+                return CustomModifiersTuple.TypeCustomModifiers;
             }
         }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
-                return _underlyingMethod.CountOfCustomModifiersPrecedingByRef;
+                return CustomModifiersTuple.RefCustomModifiers;
+            }
+        }
+
+        private CustomModifiersTuple CustomModifiersTuple
+        {
+            get
+            {
+                return RetargetingTranslator.RetargetModifiers(
+                    _underlyingMethod.ReturnTypeCustomModifiers, _underlyingMethod.RefCustomModifiers,
+                    ref _lazyCustomModifiers);
             }
         }
 

@@ -316,9 +316,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return 0
+                Return ImmutableArray(Of CustomModifier).Empty
             End Get
         End Property
 
@@ -576,6 +576,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
                     arguments.GetOrCreateData(Of CommonPropertyWellKnownAttributeData).HasSpecialNameAttribute = True
                     Return
+                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
+                    arguments.GetOrCreateData(Of CommonPropertyWellKnownAttributeData).HasExcludeFromCodeCoverageAttribute = True
+                    Return
                 ElseIf Not IsWithEvents AndAlso attrData.IsTargetAttribute(Me, AttributeDescription.DebuggerHiddenAttribute) Then
                     ' if neither getter or setter is marked by DebuggerHidden Dev11 reports a warning
                     If Not (_getMethod IsNot Nothing AndAlso DirectCast(_getMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute OrElse
@@ -588,6 +591,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             MyBase.DecodeWellKnownAttribute(arguments)
         End Sub
+
+        Friend Overrides ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
+            Get
+                Dim data = GetDecodedWellKnownAttributeData()
+                Return data IsNot Nothing AndAlso data.HasExcludeFromCodeCoverageAttribute
+            End Get
+        End Property
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
@@ -735,6 +745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         fakeParamsBuilder.Add(New SignatureOnlyParameterSymbol(
                                                 param.Type,
                                                 ImmutableArray(Of CustomModifier).Empty,
+                                                ImmutableArray(Of CustomModifier).Empty,
                                                 defaultConstantValue:=Nothing,
                                                 isParamArray:=False,
                                                 isByRef:=param.IsByRef,
@@ -749,7 +760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                             returnsByRef:=False,
                                                                             [type]:=retType,
                                                                             typeCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
-                                                                            countOfCustomModifiersPrecedingByRef:=0,
+                                                                            refCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
                                                                             isOverrides:=True, isWithEvents:=Me.IsWithEvents))
                 End If
 

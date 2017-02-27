@@ -69,6 +69,42 @@ $$
             await VerifyAsync(code, expected);
         }
 
+        [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task EofCase0()
+        {
+            var code = @"
+/* */$$";
+            var expected = @"
+/* */
+$$";
+            await VerifyAsync(code, expected);
+        }
+
+        [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task EofCase1()
+        {
+            var code = @"
+    /*$$";
+            var expected = @"
+    /*
+     * $$";
+            await VerifyAsync(code, expected);
+        }
+
+        [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task EofCase2()
+        {
+            var code = @"
+    /***$$";
+            var expected = @"
+    /***
+     * $$";
+            await VerifyAsync(code, expected);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
         public async Task InsertOnStartLine0()
         {
@@ -103,7 +139,7 @@ $$
 ";
             var expected = @"
     /*
-     *$$ */
+     *$$*/
 ";
             await VerifyAsync(code, expected);
         }
@@ -117,7 +153,7 @@ $$
 ";
             var expected = @"
     /* 
-     * $$ 1.
+     * $$1.
      */
 ";
             await VerifyAsync(code, expected);
@@ -232,7 +268,7 @@ $$*
             var expected = @"
     /*
      *
-     *$$ */
+     *$$*/
 ";
             await VerifyAsync(code, expected);
         }
@@ -248,7 +284,7 @@ $$*
             var expected = @"
     /*
      * 
-     * $$ 1.
+     * $$1.
      */
 ";
             await VerifyAsync(code, expected);
@@ -301,7 +337,7 @@ $$*
             var expected = @"
     /*
   
-     * $$   *
+     * $$*
      */
 ";
             await VerifyAsync(code, expected);
@@ -413,7 +449,7 @@ $$*
             var expected = @"
     /*
   
-     * $$   */
+     * $$*/
 ";
             await VerifyAsync(code, expected);
         }
@@ -487,7 +523,7 @@ $$*";
     /*$$ ";
             var expected = @"
     /*
-     *$$ ";
+     *$$";
             await VerifyAsync(code, expected);
         }
 
@@ -500,7 +536,7 @@ $$*";
             var expected = @"
     /*
      *
-     *$$ ";
+     *$$";
             await VerifyAsync(code, expected);
         }
 
@@ -525,7 +561,7 @@ $$*";
 ";
             var expected = @"
     /*
-     *$$<tab>*/
+     *$$*/
 ";
             await VerifyTabsAsync(code, expected);
         }
@@ -539,7 +575,7 @@ $$*";
 ";
             var expected = @"
     /*<tab>
-     *<tab>$$<tab>1.
+     *<tab>$$1.
      */
 ";
             await VerifyTabsAsync(code, expected);
@@ -583,7 +619,7 @@ $$*";
             var expected = @"
     /*
      *
-     *$$<tab>*/
+     *$$*/
 ";
             await VerifyTabsAsync(code, expected);
         }
@@ -599,7 +635,7 @@ $$*";
             var expected = @"
     /*
      * 
-     * $$<tab>1.
+     * $$1.
      */
 ";
             await VerifyTabsAsync(code, expected);

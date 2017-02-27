@@ -122,9 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         private static string GetNodeName(Document document, SyntaxNode node)
         {
             var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            string name;
-            int arity;
-            syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
+            syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
             return name;
         }
 
@@ -139,10 +137,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         {
             // Can't be on the right hand side of binary expression (like 'dot').
             cancellationToken.ThrowIfCancellationRequested();
-            string name;
-            int arity;
             var syntaxFacts = project.LanguageServices.GetService<ISyntaxFactsService>();
-            syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
+            syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
 
             var symbols = await SymbolFinder.FindDeclarationsAsync(project, name, this.IgnoreCase, SymbolFilter.Type, cancellationToken).ConfigureAwait(false);
 
@@ -184,9 +180,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 return ImmutableArray<SymbolResult>.Empty;
             }
 
-            string name;
-            int arityUnused;
-            syntaxFacts.GetNameAndArityOfSimpleName(simpleName, out name, out arityUnused);
+            syntaxFacts.GetNameAndArityOfSimpleName(simpleName, out var name, out var arityUnused);
             if (cancellationToken.IsCancellationRequested)
             {
                 return ImmutableArray<SymbolResult>.Empty;

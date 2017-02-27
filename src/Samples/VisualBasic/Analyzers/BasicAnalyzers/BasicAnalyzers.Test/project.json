@@ -1,10 +1,8 @@
 {
-    "dependencies": {
-    },
-    "frameworks": {
-        "net46": {}
-    },
-    "runtimes": {
-      "win7": { }
-    }
+  "dependencies": {
+      "Microsoft.VisualStudio.QualityTools.UnitTestFramework": "10.0.0.0-alpha"
+  },
+  "frameworks": {
+    "net46": {}
+  }
 }

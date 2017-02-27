@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 {
                     case MethodGenerationKind.Member:
                         var text = generateProperty ?
-                            isAbstract ? FeaturesResources.Generate_abstract_property_0_in_1 : FeaturesResources.Generate_property_1_0 :
-                            isAbstract ? FeaturesResources.Generate_abstract_method_0_in_1 : FeaturesResources.Generate_method_1_0;
+                            isAbstract ? FeaturesResources.Generate_abstract_property_1_0 : FeaturesResources.Generate_property_1_0 :
+                            isAbstract ? FeaturesResources.Generate_abstract_method_1_0 : FeaturesResources.Generate_method_1_0;
 
                         var name = state.IdentifierToken.ValueText;
                         var destination = state.TypeToGenerateIn.Name;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     case MethodGenerationKind.ExplicitConversion:
                         return _service.GetExplicitConversionDisplayText(_state);
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(state.MethodGenerationKind);
                 }
             }
 
@@ -102,13 +102,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 }
             }
 
-            public override string EquivalenceKey
-            {
-                get
-                {
-                    return _equivalenceKey;
-                }
-            }
+            public override string EquivalenceKey => _equivalenceKey;
         }
     }
 }

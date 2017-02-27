@@ -12,10 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 {
     public class InlineTemporaryTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new InlineTemporaryCodeRefactoringProvider();
-        }
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+            => new InlineTemporaryCodeRefactoringProvider();
 
         private async Task TestFixOneAsync(string initial, string expected, bool compareTokens = true)
         {
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12838"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task WithRefInitializer1()
         {
             await TestMissingAsync(
@@ -3851,6 +3849,34 @@ class C
 }");
         }
 
+        [WorkItem(15530, "https://github.com/dotnet/roslyn/issues/15530")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task PArenthesizeAwaitInlinedIntoReducedExtensionMethod()
+        {
+            await TestAsync(
+@"using System.Linq;
+using System.Threading.Tasks;
+
+internal class C
+{
+    async Task M()
+    {
+        var [|t|] = await Task.FromResult("""");
+        t.Any();
+    }
+}",
+@"using System.Linq;
+using System.Threading.Tasks;
+
+internal class C
+{
+    async Task M()
+    {
+        (await Task.FromResult("""")).Any();
+    }
+}");
+        }
+
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineFormattableStringIntoCallSiteRequiringFormattableString()
@@ -4130,6 +4156,32 @@ public class KVP<T1, T2>
 }";
 
             await TestAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(11958, "https://github.com/dotnet/roslyn/issues/11958")]
+        public async Task EnsureParenthesesInStringConcatenation()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        string s = ""a"" + i;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        string s = ""a"" + (1 + 2);
+    }
+}";
+
+            await TestAsync(code, expected, index: 0, compareTokens: false);
         }
     }
 }

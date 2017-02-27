@@ -4884,8 +4884,6 @@ class UsePia5
                 // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1),
                 // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1),
-                // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1));
         }
 

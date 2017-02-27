@@ -237,7 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // Native compiler encodes bools for each type argument, starting from type arguments for the outermost containing type to those for the given namedType.
             ImmutableArray<TypeSymbol> typeArguments = namedType.TypeArgumentsNoUseSiteDiagnostics;
-            var customModifiers = namedType.HasTypeArgumentsCustomModifiers ? namedType.TypeArgumentsCustomModifiers : default(ImmutableArray<ImmutableArray<CustomModifier>>);
 
             ImmutableArray<TypeSymbol> transformedTypeArguments = TransformTypeArguments(typeArguments); // Note, modifiers are not involved, this is behavior of the native compiler.
 
@@ -251,9 +250,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (containerIsChanged || transformedTypeArguments != typeArguments)
             {
-                var newTypeArguments = customModifiers.IsDefault ?
-                                       transformedTypeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers) :
-                                       transformedTypeArguments.ZipAsArray(customModifiers, (t, m) => new TypeWithModifiers(t, m));
+                var newTypeArguments = namedType.HasTypeArgumentsCustomModifiers ?
+                                           transformedTypeArguments.SelectAsArray((t, i, nt) => new TypeWithModifiers(t, nt.GetTypeArgumentCustomModifiers(i)), namedType) :
+                                           transformedTypeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers);
 
                 if (containerIsChanged)
                 {

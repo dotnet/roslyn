@@ -5,12 +5,14 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -72,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
 
         private bool TryExecuteCommand(int caretPosition, Document document)
         {
-            var streamingService = document.Project.LanguageServices.GetService<IStreamingFindReferencesService>();
-            var synchronousService = document.Project.LanguageServices.GetService<IFindReferencesService>();
+            var streamingService = document.GetLanguageService<IFindUsagesService>();
+            var synchronousService = document.GetLanguageService<IFindReferencesService>();
 
             var streamingPresenter = GetStreamingPresenter();
 
@@ -83,12 +85,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             var streamingEnabled = document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.StreamingFindReferences, document.Project.Language);
             if (streamingEnabled && streamingService != null && streamingPresenter != null)
             {
-                StreamingFindReferences(document, streamingService, streamingPresenter, caretPosition);
+                StreamingFindReferences(document, caretPosition, streamingService, streamingPresenter);
                 return true;
             }
 
             // Otherwise, either the language doesn't support streaming results,
-            // or the host has no way to present results in a sreaming manner.
+            // or the host has no way to present results in a streaming manner.
             // Fall back to the old non-streaming approach to finding and presenting 
             // results.
             if (synchronousService != null)
@@ -113,23 +115,25 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         }
 
         private async void StreamingFindReferences(
-            Document document, IStreamingFindReferencesService service,
-            IStreamingFindUsagesPresenter presenter, int caretPosition)
+            Document document, int caretPosition,
+            IFindUsagesService findUsagesService,
+            IStreamingFindUsagesPresenter presenter)
         {
             try
             {
                 using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferences)))
                 {
-                    // Let the presented know we're starging a search.  It will give us back
+                    // Let the presented know we're starting a search.  It will give us back
                     // the context object that the FAR service will push results into.
-                    var context = presenter.StartSearch(EditorFeaturesResources.Find_References);
-                    await service.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
+                    var context = presenter.StartSearch(
+                        EditorFeaturesResources.Find_References, supportsReferences: true);
+                    await findUsagesService.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
 
                     // Note: we don't need to put this in a finally.  The only time we might not hit
                     // this is if cancellation or another error gets thrown.  In the former case,
                     // that means that a new search has started.  We don't care about telling the
-                    // context it has completed.  In the latter case somethign wrong has happened
-                    // and we don't want to run any more code code in this particular context.
+                    // context it has completed.  In the latter case something wrong has happened
+                    // and we don't want to run any more code in this particular context.
                     await context.OnCompletedAsync().ConfigureAwait(false);
                 }
             }

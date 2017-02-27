@@ -54,60 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
         }
-        /// <summary>
-        /// Is a user-defined `operator is` applicable? At the use site, we ignore those that are not.
-        /// </summary>
-        private bool ApplicableOperatorIs(MethodSymbol candidate, CSharpSyntaxNode node, DiagnosticBag diagnostics)
-        {
-            // must be a user-defined operator, and requires at least one parameter
-            if (candidate.MethodKind != MethodKind.UserDefinedOperator || candidate.ParameterCount == 0)
-            {
-                return false;
-            }
-
-            // must be static.
-            if (!candidate.IsStatic)
-            {
-                return false;
-            }
-
-            // the first parameter must be a value. The remaining parameters must be out.
-            foreach (var parameter in candidate.Parameters)
-            {
-                if (parameter.RefKind != ((parameter.Ordinal == 0) ? RefKind.None : RefKind.Out))
-                {
-                    return false;
-                }
-            }
-
-            // must return void or bool
-            switch (candidate.ReturnType.SpecialType)
-            {
-                case SpecialType.System_Void:
-                case SpecialType.System_Boolean:
-                    break;
-                default:
-                    return false;
-            }
-
-            // must not be generic
-            if (candidate.Arity != 0)
-            {
-                return false;
-            }
-
-            // it should be accessible
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            bool isAccessible = this.IsAccessible(candidate, ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
-            if (!isAccessible)
-            {
-                return false;
-            }
-
-            // all requirements are satisfied
-            return true;
-        }
 
         private BoundConstantPattern BindConstantPattern(
             ConstantPatternSyntax node,
@@ -250,7 +196,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(operand != null && operandType != (object)null);
 
             var typeSyntax = node.Type;
-            var identifier = node.Identifier;
 
             bool isVar;
             AliasSymbol aliasOpt;
@@ -277,11 +222,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                    isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             }
 
+            switch (node.Designation.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    break;
+                case SyntaxKind.DiscardDesignation:
+                    return new BoundDeclarationPattern(node, null, boundDeclType, isVar, hasErrors);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Designation.Kind());
+            }
+
+            var designation = (SingleVariableDesignationSyntax)node.Designation;
+            var identifier = designation.Identifier;
             SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
 
             if (localSymbol != (object)null)
             {
-                if (InConstructorInitializer || InFieldInitializer)
+                if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                 {
                     Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, node);
                 }
@@ -302,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We should have the right binder in the chain for a script or interactive, so we use the field for the pattern.
                 Debug.Assert(node.SyntaxTree.Options.Kind != SourceCodeKind.Regular);
-                GlobalExpressionVariable expressionVariableField = LookupDeclaredField(node);
+                GlobalExpressionVariable expressionVariableField = LookupDeclaredField(designation);
                 DiagnosticBag tempDiagnostics = DiagnosticBag.GetInstance();
                 expressionVariableField.SetType(declType, tempDiagnostics);
                 tempDiagnostics.Free();

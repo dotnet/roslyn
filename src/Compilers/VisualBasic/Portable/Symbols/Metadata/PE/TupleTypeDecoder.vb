@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim typeArgsChanged = typeArgs <> decodedArgs
             If typeArgsChanged OrElse containerChanged Then
                 Dim newTypeArgs = If(type.HasTypeArgumentsCustomModifiers,
-                                     decodedArgs.ZipAsArray(type.TypeArgumentsCustomModifiers, Function(t, m) New TypeWithModifiers(t, m)),
+                                     decodedArgs.SelectAsArray(Function(t, i, m) New TypeWithModifiers(t, m.GetTypeArgumentCustomModifiers(i)), type),
                                      decodedArgs.SelectAsArray(Function(t) New TypeWithModifiers(t, Nothing)))
 
                 If containerChanged Then

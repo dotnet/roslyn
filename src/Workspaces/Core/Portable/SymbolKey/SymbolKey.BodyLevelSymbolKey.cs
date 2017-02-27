@@ -21,13 +21,11 @@ namespace Microsoft.CodeAnalysis
                     containingSymbol = containingSymbol.ContainingSymbol;
                 }
 
+                var compilation = ((ISourceAssemblySymbol)symbol.ContainingAssembly).Compilation;
                 var kind = symbol.Kind;
                 var localName = symbol.Name;
-                Contract.ThrowIfNull(
-                    visitor.Compilation,
-                    message: $"visitor cannot be created with a null compilation and visit a {nameof(BodyLevelSymbolKey)}.");
                 var ordinal = 0;
-                foreach (var possibleSymbol in EnumerateSymbols(visitor.Compilation, containingSymbol, kind, localName, visitor.CancellationToken))
+                foreach (var possibleSymbol in EnumerateSymbols(compilation, containingSymbol, kind, localName, visitor.CancellationToken))
                 {
                     if (possibleSymbol.symbol.Equals(symbol))
                     {

@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(pathKind);
             }
 
             return result.ToImmutableAndFree();

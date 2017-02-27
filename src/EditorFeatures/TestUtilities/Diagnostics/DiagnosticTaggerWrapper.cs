@@ -3,29 +3,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Common;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-    internal class DiagnosticTaggerWrapper : IDisposable
+    internal class DiagnosticTaggerWrapper<TTag> : IDisposable
+        where TTag : ITag
     {
         private readonly TestWorkspace _workspace;
         public readonly DiagnosticAnalyzerService AnalyzerService;
@@ -36,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public readonly DiagnosticService DiagnosticService;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _listeners;
 
-        private DiagnosticsSquiggleTaggerProvider _taggerProvider;
+        private ITaggerProvider _taggerProvider;
 
         public DiagnosticTaggerWrapper(
             TestWorkspace workspace,
@@ -103,23 +94,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        public DiagnosticsSquiggleTaggerProvider TaggerProvider
+        public ITaggerProvider TaggerProvider
         {
             get
             {
                 if (_taggerProvider == null)
                 {
-                    WpfTestCase.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper)}.{nameof(TaggerProvider)} creates asynchronous taggers");
+                    WpfTestCase.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<ITag>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
 
-                    _taggerProvider = new DiagnosticsSquiggleTaggerProvider(
-                        DiagnosticService, _workspace.GetService<IForegroundNotificationService>(), _listeners);
+                    if (typeof(TTag) == typeof(IErrorTag))
+                    {
+                        _taggerProvider = new DiagnosticsSquiggleTaggerProvider(
+                            DiagnosticService, _workspace.GetService<IForegroundNotificationService>(), _listeners);
+                    }
+                    else if (typeof(TTag) == typeof(SuggestionTag))
+                    {
+                        _taggerProvider = new DiagnosticsSuggestionTaggerProvider(
+                            _workspace.ExportProvider.GetExportedValue<IEditorFormatMapService>(), DiagnosticService, 
+                            _workspace.GetService<IForegroundNotificationService>(), _listeners);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
                 }
 
                 return _taggerProvider;
             }
         }
-
-
 
         public void Dispose()
         {

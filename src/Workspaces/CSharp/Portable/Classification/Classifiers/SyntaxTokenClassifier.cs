@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
-
-            SyntaxToken identifier;
-            if (syntaxTree.IsInPartiallyWrittenGeneric(lessThanToken.Span.End, cancellationToken, out identifier))
+            if (syntaxTree.IsInPartiallyWrittenGeneric(lessThanToken.Span.End, cancellationToken, out var identifier))
             {
                 // IsInPartiallyWrittenGeneric will return true for things that could be 
                 // partially generic method calls (as opposed to partially written types).

@@ -568,8 +568,7 @@ namespace Roslyn.Utilities
 
         private static int GetValue(Dictionary<char, int> da, char c)
         {
-            int value;
-            return da.TryGetValue(c, out value) ? value : 0;
+            return da.TryGetValue(c, out var value) ? value : 0;
         }
 
         private static int Min(int v1, int v2, int v3, int v4)

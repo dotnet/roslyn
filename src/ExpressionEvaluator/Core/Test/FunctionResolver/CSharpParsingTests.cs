@@ -1,15 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Roslyn.Test.Utilities;
-using System.Collections.Immutable;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
-    public class CSharpParsingTests : CSharpTestBase
+    public class CSharpParsingTests : ParsingTestBase
     {
         [Fact]
         public void Parsing()
@@ -140,6 +136,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             Assert.Null(MemberSignatureParser.Parse("()"));
             Assert.Null(MemberSignatureParser.Parse("<T>"));
             Assert.Null(MemberSignatureParser.Parse("1"));
+            Assert.Null(MemberSignatureParser.Parse("F(C c)"));
+            Assert.Null(MemberSignatureParser.Parse("F(C c = null)"));
+            Assert.Null(MemberSignatureParser.Parse("F(C = null)"));
+            Assert.Null(MemberSignatureParser.Parse("F(params C[])"));
+        }
+
+        // global:: not supported.
+        [Fact]
+        public void Global()
+        {
+            Assert.Null(MemberSignatureParser.Parse("global:C.F"));
+            Assert.Null(MemberSignatureParser.Parse("global:"));
+            Assert.Null(MemberSignatureParser.Parse(":C.F"));
+            Assert.Null(MemberSignatureParser.Parse("global::C.F"));
+            Assert.Null(MemberSignatureParser.Parse("global::"));
+            Assert.Null(MemberSignatureParser.Parse("::C.F"));
         }
 
         [Fact]
@@ -317,102 +329,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             Assert.Null(MemberSignatureParser.Parse("F<T, @>"));
         }
 
-        private static RequestSignature SignatureNameOnly(Name name)
-        {
-            return new RequestSignature(name, default(ImmutableArray<ParameterSignature>));
-        }
-
-        private static RequestSignature Signature(Name name)
-        {
-            return new RequestSignature(name, ImmutableArray<ParameterSignature>.Empty);
-        }
-
-        private static RequestSignature Signature(Name name, params TypeSignature[] parameterTypes)
-        {
-            return Signature(name, parameterTypes.Select(t => new ParameterSignature(t, isByRef: false)).ToArray());
-        }
-
-        private static RequestSignature Signature(Name name, params ParameterSignature[] parameters)
-        {
-            return new RequestSignature(name, ImmutableArray.CreateRange(parameters));
-        }
-
-        private static QualifiedName Name(string name)
-        {
-            return new QualifiedName(null, name);
-        }
-
-        private static GenericName Generic(QualifiedName name, params string[] typeArguments)
-        {
-            Assert.True(typeArguments.Length > 0);
-            return new GenericName(name, ImmutableArray.CreateRange(typeArguments));
-        }
-
-        private static QualifiedName Qualified(Name left, string right)
-        {
-            return new QualifiedName(left, right);
-        }
-
-        private static QualifiedTypeSignature Identifier(string name)
-        {
-            return new QualifiedTypeSignature(null, name);
-        }
-
-        private static GenericTypeSignature Generic(QualifiedTypeSignature name, params TypeSignature[] typeArguments)
-        {
-            Assert.True(typeArguments.Length > 0);
-            return new GenericTypeSignature(name, ImmutableArray.CreateRange(typeArguments));
-        }
-
-        private static QualifiedTypeSignature Qualified(TypeSignature left, string right)
-        {
-            return new QualifiedTypeSignature(left, right);
-        }
-
-        private static QualifiedTypeSignature Qualified(params string[] names)
-        {
-            QualifiedTypeSignature signature = null;
-            foreach (var name in names)
-            {
-                signature = new QualifiedTypeSignature(signature, name);
-            }
-            return signature;
-        }
-
-        private static ArrayTypeSignature Array(TypeSignature elementType, int rank)
-        {
-            return new ArrayTypeSignature(elementType, rank);
-        }
-
-        private static PointerTypeSignature Pointer(TypeSignature pointedAtType)
-        {
-            return new PointerTypeSignature(pointedAtType);
-        }
-
         private static void VerifySignature(string str, RequestSignature expectedSignature)
         {
             var actualSignature = MemberSignatureParser.Parse(str);
-            if (expectedSignature == null)
-            {
-                Assert.Null(actualSignature);
-            }
-            else
-            {
-                Assert.NotNull(actualSignature);
-                Assert.Equal(expectedSignature.MemberName, actualSignature.MemberName, NameComparer.Instance);
-                if (expectedSignature.Parameters.IsDefault)
-                {
-                    Assert.True(actualSignature.Parameters.IsDefault);
-                }
-                else
-                {
-                    AssertEx.Equal(
-                        expectedSignature.Parameters,
-                        actualSignature.Parameters,
-                        comparer: ParameterComparer.Instance,
-                        itemInspector: p => p.Type.GetDebuggerDisplay());
-                }
-            }
+            VerifySignature(actualSignature, expectedSignature);
         }
     }
 }

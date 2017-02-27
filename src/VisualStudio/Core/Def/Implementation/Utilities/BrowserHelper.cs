@@ -38,10 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         {
             var errorCode = diagnostic.Id;
             var title = diagnostic.ENUMessageForBingSearch;
-
-            string language;
-            string projectType;
-            diagnostic.Workspace.GetLanguageAndProjectType(diagnostic.ProjectId, out language, out projectType);
+            diagnostic.Workspace.GetLanguageAndProjectType(diagnostic.ProjectId, out var language, out var projectType);
 
             return CreateBingQueryUri(errorCode, title, language, projectType);
         }

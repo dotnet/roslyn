@@ -234,11 +234,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var filePath = _languageService.Workspace.GetFilePath(document.Id);
                 var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
                 var span = text.GetVsTextSpanForSpan(breakpoint.TextSpan);
-
                 // If we're inside an Venus code nugget, we need to map the span to the surface buffer.
                 // Otherwise, we'll just use the original span.
-                VsTextSpan mappedSpan;
-                if (!span.TryMapSpanFromSecondaryBufferToPrimaryBuffer(solution.Workspace, document.Id, out mappedSpan))
+                if (!span.TryMapSpanFromSecondaryBufferToPrimaryBuffer(solution.Workspace, document.Id, out var mappedSpan))
                 {
                     mappedSpan = span;
                 }

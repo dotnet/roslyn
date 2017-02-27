@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public ImmutableArray<IFieldSymbol> TupleElements { get; protected set; }
 
-        internal readonly IList<CodeGenerationAbstractNamedTypeSymbol> TypeMembers;
+        internal readonly ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> TypeMembers;
 
         protected CodeGenerationAbstractNamedTypeSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name,
             SpecialType specialType,
-            IList<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
+            ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
             : base(containingType, attributes, declaredAccessibility, modifiers, name, specialType)
         {
             this.TypeMembers = typeMembers;
@@ -32,13 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.NamedType;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.NamedType;
 
         public override void Accept(SymbolVisitor visitor)
         {
@@ -57,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return this;
             }
 
-            return new CodeGenerationConstructedNamedTypeSymbol(this, typeArguments, this.TypeMembers);
+            return new CodeGenerationConstructedNamedTypeSymbol(
+                this, typeArguments.ToImmutableArray(), this.TypeMembers);
         }
 
         public abstract int Arity { get; }
@@ -74,6 +69,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IMethodSymbol> StaticConstructors { get; }
         public abstract ImmutableArray<IMethodSymbol> Constructors { get; }
         public abstract ImmutableArray<ITypeSymbol> TypeArguments { get; }
+
+        public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
+        {
+            if (ordinal < 0 || ordinal >= Arity)
+            {
+                throw new System.IndexOutOfRangeException();
+            }
+
+            return ImmutableArray.Create<CustomModifier>();
+        }
+
         public abstract ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
 
         public override string MetadataName
@@ -88,9 +94,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public ISymbol AssociatedSymbol { get; internal set; }
 
-        public bool MightContainExtensionMethods
-        {
-            get { return false; }
-        }
+        public bool MightContainExtensionMethods => false;
+
+        public bool IsComImport => false;
     }
 }

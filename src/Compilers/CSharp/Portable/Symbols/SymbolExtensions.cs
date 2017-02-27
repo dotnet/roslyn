@@ -336,15 +336,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             RefKind refKind;
             TypeSymbol returnType;
-            ImmutableArray<CustomModifier> returnTypeCustomModifiers;
-            ushort countOfCustomModifiersPrecedingByRef;
-            GetTypeOrReturnType(symbol, out refKind, out returnType, out returnTypeCustomModifiers, out countOfCustomModifiersPrecedingByRef);
+            ImmutableArray<CustomModifier> customModifiers_Ignored;
+            GetTypeOrReturnType(symbol, out refKind, out returnType, out customModifiers_Ignored, out customModifiers_Ignored);
             return returnType;
         }
 
         internal static void GetTypeOrReturnType(this Symbol symbol, out RefKind refKind, out TypeSymbol returnType, 
                                                  out ImmutableArray<CustomModifier> returnTypeCustomModifiers,
-                                                 out ushort countOfCustomModifiersPrecedingByRef)
+                                                 out ImmutableArray<CustomModifier> refCustomModifiers)
         {
             switch (symbol.Kind)
             {
@@ -353,35 +352,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     refKind = RefKind.None;
                     returnType = field.Type;
                     returnTypeCustomModifiers = field.CustomModifiers;
-                    countOfCustomModifiersPrecedingByRef = 0;
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     break;
                 case SymbolKind.Method:
                     MethodSymbol method = (MethodSymbol)symbol;
                     refKind = method.RefKind;
                     returnType = method.ReturnType;
                     returnTypeCustomModifiers = method.ReturnTypeCustomModifiers;
-                    countOfCustomModifiersPrecedingByRef = method.CountOfCustomModifiersPrecedingByRef;
+                    refCustomModifiers = method.RefCustomModifiers;
                     break;
                 case SymbolKind.Property:
                     PropertySymbol property = (PropertySymbol)symbol;
                     refKind = property.RefKind;
                     returnType = property.Type;
                     returnTypeCustomModifiers = property.TypeCustomModifiers;
-                    countOfCustomModifiersPrecedingByRef = property.CountOfCustomModifiersPrecedingByRef;
+                    refCustomModifiers = property.RefCustomModifiers;
                     break;
                 case SymbolKind.Event:
                     EventSymbol @event = (EventSymbol)symbol;
                     refKind = RefKind.None;
                     returnType = @event.Type;
                     returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
-                    countOfCustomModifiersPrecedingByRef = 0;
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     break;
                 case SymbolKind.Local:
                     LocalSymbol local = (LocalSymbol)symbol;
                     refKind = local.RefKind;
                     returnType = local.Type;
                     returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
-                    countOfCustomModifiersPrecedingByRef = 0;
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);

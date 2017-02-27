@@ -124,8 +124,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var shouldPutAsyncModifier = this.SelectionResult.ShouldPutAsyncModifier();
                 if (shouldPutAsyncModifier)
                 {
-                    bool awaitTaskReturn;
-                    WrapReturnTypeInTask(model, ref returnType, out awaitTaskReturn);
+                    WrapReturnTypeInTask(model, ref returnType, out var awaitTaskReturn);
 
                     return Tuple.Create(returnType, returnTypeHasAnonymousType, awaitTaskReturn);
                 }
@@ -496,8 +495,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private bool IsWrittenInsideForFrameworkValueType(
                 Dictionary<ISymbol, List<SyntaxToken>> symbolMap, SemanticModel model, ISymbol symbol, bool writtenInside)
             {
-                List<SyntaxToken> tokens;
-                if (!symbolMap.TryGetValue(symbol, out tokens))
+                if (!symbolMap.TryGetValue(symbol, out var tokens))
                 {
                     return writtenInside;
                 }

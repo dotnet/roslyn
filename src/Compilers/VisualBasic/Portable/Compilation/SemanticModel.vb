@@ -2399,6 +2399,24 @@ _Default:
         End Function
 
         ''' <summary>
+        ''' Gets the corresponding symbol for a specified tuple element.
+        ''' </summary>
+        ''' <param name="elementSyntax">A TupleElementSyntax object.</param>
+        ''' <param name="cancellationToken">A cancellation token.</param>
+        ''' <returns>A symbol, for the specified element; otherwise Nothing. </returns>
+        Public Overloads Function GetDeclaredSymbol(elementSyntax As TupleElementSyntax, Optional cancellationToken As CancellationToken = Nothing) As ISymbol
+            CheckSyntaxNode(elementSyntax)
+
+            Dim tupleTypeSyntax = TryCast(elementSyntax.Parent, TupleTypeSyntax)
+
+            If tupleTypeSyntax IsNot Nothing Then
+                Return TryCast(GetSymbolInfo(tupleTypeSyntax).Symbol, TupleTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(elementSyntax))
+            End If
+
+            Return Nothing
+        End Function
+
+        ''' <summary>
         ''' Given an FieldInitializerSyntax, get the corresponding symbol of anonymous type property.
         ''' </summary>
         ''' <param name="fieldInitializerSyntax">The anonymous object creation field initializer syntax.</param>
@@ -3213,6 +3231,10 @@ _Default:
             Select Case node.Kind
                 Case SyntaxKind.SimpleImportsClause
                     Return Me.GetDeclaredSymbol(DirectCast(node, SimpleImportsClauseSyntax), cancellationToken)
+
+                Case SyntaxKind.TypedTupleElement,
+                     SyntaxKind.NamedTupleElement
+                    Return Me.GetDeclaredSymbol(DirectCast(node, TupleElementSyntax), cancellationToken)
 
                 Case SyntaxKind.ModifiedIdentifier
                     Return Me.GetDeclaredSymbol(DirectCast(node, ModifiedIdentifierSyntax), cancellationToken)

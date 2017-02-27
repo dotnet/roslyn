@@ -41,9 +41,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return Me._underlyingProperty.CountOfCustomModifiersPrecedingByRef
+                Return Me._underlyingProperty.RefCustomModifiers
             End Get
         End Property
 

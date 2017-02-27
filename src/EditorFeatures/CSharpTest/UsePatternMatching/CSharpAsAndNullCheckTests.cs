@@ -14,12 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
     public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpAsAndNullCheckDiagnosticAnalyzer(),
-                new CSharpAsAndNullCheckCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpAsAndNullCheckDiagnosticAnalyzer(), new CSharpAsAndNullCheckCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task InlineTypeCheck1()
@@ -358,6 +354,174 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if (o is string x && x.Length > 0)
         {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestDefiniteAssignment1()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        [|var|] x = o as string;
+        if (x != null && x.Length > 0)
+        {
+        }
+        else if (x != null)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestDefiniteAssignment2()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        [|var|] x = o as string;
+        if (x != null && x.Length > 0)
+        {
+        }
+
+        Console.WriteLine(x);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestDefiniteAssignment3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|var|] x = o as string;
+        if (x != null && x.Length > 0)
+        {
+        }
+
+        x = null;
+        Console.WriteLine(x);
+    }
+}",
+
+@"class C
+{
+    void M()
+    {
+        if (o is string x && x.Length > 0)
+        {
+        }
+
+        x = null;
+        Console.WriteLine(x);
+    }
+}");
+        }
+
+        [WorkItem(15957, "https://github.com/dotnet/roslyn/issues/15957")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestTrivia1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(object y)
+    {
+        if (y != null)
+        {
+        }
+
+        [|var|] x = o as string;
+        if (x != null)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(object y)
+    {
+        if (y != null)
+        {
+        }
+
+        if (o is string x)
+        {
+        }
+    }
+}", compareTokens: false);
+        }
+
+        [WorkItem(17129, "https://github.com/dotnet/roslyn/issues/17129")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestTrivia2()
+        {
+            await TestAsync(
+@"using System;
+namespace N
+{
+    class Program
+    {
+        public static void Main()
+        {
+            object o = null;
+            int i = 0;
+            [|var|] s = o as string;
+            if (s != null && i == 0 && i == 1 &&
+                i == 2 && i == 3 &&
+                i == 4 && i == 5)
+            {
+                Console.WriteLine();
+            }
+        }
+    }
+}",
+@"using System;
+namespace N
+{
+    class Program
+    {
+        public static void Main()
+        {
+            object o = null;
+            int i = 0;
+            if (o is string s && i == 0 && i == 1 &&
+                i == 2 && i == 3 &&
+                i == 4 && i == 5)
+            {
+                Console.WriteLine();
+            }
+        }
+    }
+}", compareTokens: false);
+        }
+
+        [WorkItem(17122, "https://github.com/dotnet/roslyn/issues/17122")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingOnNullableType()
+        {
+            await TestMissingAsync(
+@"using System;
+namespace N
+{
+    class Program
+    {
+        public static void Main()
+        {
+            object o = null;
+            [|var|] i = o as int?;
+            if (i != null)
+                Console.WriteLine(i);
         }
     }
 }");

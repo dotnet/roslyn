@@ -284,11 +284,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return StaticCast<Cci.IParameterTypeInformation>.From(_parameters);
             }
 
+            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers =>
+                UnderlyingMethodSignature.RefCustomModifiers;
+
             ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers =>
                 UnderlyingMethodSignature.ReturnValueCustomModifiers;
-
-            ushort Cci.ISignature.CountOfCustomModifiersPrecedingByRef =>
-                UnderlyingMethodSignature.CountOfCustomModifiersPrecedingByRef;
 
             bool Cci.ISignature.ReturnValueIsByRef => UnderlyingMethodSignature.ReturnValueIsByRef;
 

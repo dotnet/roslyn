@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static CodeGenerationEventInfo GetInfo(IEventSymbol @event)
         {
-            CodeGenerationEventInfo info;
-            s_eventToInfoMap.TryGetValue(@event, out info);
+            s_eventToInfoMap.TryGetValue(@event, out var info);
             return info;
         }
 

@@ -8,10 +8,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseCol
     Public Class UseCollectionInitializerTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                New VisualBasicUseCollectionInitializerDiagnosticAnalyzer(),
-                New VisualBasicUseCollectionInitializerCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New VisualBasicUseCollectionInitializerDiagnosticAnalyzer(),
+                    New VisualBasicUseCollectionInitializerCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -285,6 +284,36 @@ Class C
             1, ' Foo
             2 ' Bar
             }
+    End Sub
+End Class",
+compareTokens:=False)
+        End Function
+
+        <WorkItem(15528, "https://github.com/dotnet/roslyn/pull/15528")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        Public Async Function TestTrivia2() As Task
+            Await TestAsync(
+"
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim c = [||]New List(Of Integer)()
+        ' Foo
+        c.Add(1)
+        ' Bar
+        c.Add(2)
+    End Sub
+End Class",
+"
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        ' Foo
+        ' Bar
+        Dim c = New List(Of Integer) From {
+            1,
+            2
+        }
     End Sub
 End Class",
 compareTokens:=False)

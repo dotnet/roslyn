@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return ExactMatchDist;
             }
 
-            double weightedDistance;
-            if (TryComputeWeightedDistance(oldNode, newNode, out weightedDistance))
+            if (TryComputeWeightedDistance(oldNode, newNode, out var weightedDistance))
             {
                 if (weightedDistance == ExactMatchDist && !SyntaxFactory.AreEquivalent(oldNode, newNode))
                 {

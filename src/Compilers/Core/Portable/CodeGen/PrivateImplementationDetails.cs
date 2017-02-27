@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override string ToString() => $"{_type} {_containingType}.{this.Name}";
 
-        public Cci.IMetadataConstant GetCompileTimeValue(EmitContext context) => null;
+        public MetadataConstant GetCompileTimeValue(EmitContext context) => null;
 
         public abstract ImmutableArray<byte> MappedData { get; }
 
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.ISpecializedFieldReference AsSpecializedFieldReference => null;
 
-        public Cci.IMetadataConstant Constant
+        public MetadataConstant Constant
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.ITypeDefinition GetResolvedType(EmitContext context) => this;
 
-        public Cci.PrimitiveTypeCode TypeCode(EmitContext context) => Cci.PrimitiveTypeCode.NotPrimitive;
+        public Cci.PrimitiveTypeCode TypeCode => Cci.PrimitiveTypeCode.NotPrimitive;
 
         public TypeDefinitionHandle TypeDef
         {

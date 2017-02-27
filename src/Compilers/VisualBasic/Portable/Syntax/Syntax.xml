@@ -5112,7 +5112,7 @@ Unify Enum declarations with other block type declarations.
 
       <node-kind name="NamedTupleElement"></node-kind>
 
-      <child name="Identifier" kind="IdentifierName">
+      <child name="Identifier" kind="IdentifierToken">
         <description>The name of the element.</description>
       </child>
 

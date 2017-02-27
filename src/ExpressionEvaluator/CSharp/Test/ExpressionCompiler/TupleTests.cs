@@ -1,18 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
-using System;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
@@ -59,6 +61,83 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0007:  ret
 }");
             });
+        }
+
+        [Fact]
+        public void DuplicateValueTupleBetweenMscorlibAndLibrary()
+        {
+            var versionTemplate = @"[assembly: System.Reflection.AssemblyVersion(""{0}.0.0.0"")]";
+
+            var corlib_cs = @"
+namespace System
+{
+    public class Object { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class ValueType { }
+    public struct Void { }
+    public class Attribute { }
+}
+
+namespace System.Reflection
+{
+    public class AssemblyVersionAttribute : Attribute
+    {
+        public AssemblyVersionAttribute(String version) { }
+    }
+}";
+            string valuetuple_cs = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) => (Item1, Item2) = (item1, item2);
+    }
+}";
+            var corlibWithoutVT = CreateCompilation(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs) }, assemblyName: "corlib");
+            corlibWithoutVT.VerifyDiagnostics();
+            var corlibWithoutVTRef = corlibWithoutVT.EmitToImageReference();
+
+            var corlibWithVT = CreateCompilation(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs) }, assemblyName: "corlib");
+            corlibWithVT.VerifyDiagnostics();
+
+            var source =
+@"class C
+{
+    static (int, int) M()
+    {
+        (int, int) t = (1, 2);
+        return t;
+    }
+}
+";
+            var app = CreateCompilation(source + valuetuple_cs, references: new[] { corlibWithoutVTRef }, options: TestOptions.DebugDll);
+            app.VerifyDiagnostics();
+
+            // Create EE context with app assembly (including ValueTuple) and a more recent corlib (also including ValueTuple)
+            var runtime = CreateRuntimeInstance(new[] { app.ToModuleInstance(), corlibWithVT.ToModuleInstance() });
+            var evalContext = CreateMethodContext(runtime, "C.M");
+            string error;
+            var testData = new CompilationTestData();
+            var compileResult = evalContext.CompileExpression("(1, 2)", out error, testData);
+            Assert.Null(error);
+
+            using (ModuleMetadata block = ModuleMetadata.CreateFromStream(new MemoryStream(compileResult.Assembly)))
+            {
+                var reader = block.MetadataReader;
+
+                var appRef = app.Assembly.Identity.Name;
+                AssertEx.SetEqual(new[] { "corlib 2.0", appRef + " 0.0" }, reader.DumpAssemblyReferences());
+
+                AssertEx.SetEqual(new[] {
+                        "Object, System, AssemblyRef:corlib",
+                        "ValueTuple`2, System, AssemblyRef:" + appRef, // ValueTuple comes from app, not corlib
+                        ", System, AssemblyRef:" + appRef },
+                    reader.DumpTypeReferences());
+            }
         }
 
         [Fact]

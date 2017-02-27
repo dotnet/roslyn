@@ -6,11 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ParserErrorMessageTests : ParsingTests
     {
+        public ParserErrorMessageTests(ITestOutputHelper output) : base(output) { }
+
         #region "Targeted Error Tests - please arrange tests in the order of error code"
 
         [WorkItem(536666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536666")]
@@ -254,12 +257,13 @@ class MyClass
 }
 ";
             ParseAndValidate(test,
-    // (7,22): error CS1001: Identifier expected
-    //         foreach (int in myarray)   // CS0230
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "in"),
-    // (7,22): error CS0230: Type and identifier are both required in a foreach statement
-    //         foreach (int in myarray)   // CS0230
-    Diagnostic(ErrorCode.ERR_BadForeachDecl, "in"));
+                // (7,18): error CS1525: Invalid expression term 'int'
+                //         foreach (int in myarray)   // CS0230
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 18),
+                // (7,22): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (int in myarray)   // CS0230
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(7, 22)
+                );
         }
 
         [Fact]
@@ -277,12 +281,10 @@ public class Test
 }
 ";
             ParseAndValidate(test,
-    // (7,20): error CS1001: Identifier expected
-    //         foreach (x in myarray) { }// Invalid
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "in"),
-    // (7,20): error CS0230: Type and identifier are both required in a foreach statement
-    //         foreach (x in myarray) { }// Invalid
-    Diagnostic(ErrorCode.ERR_BadForeachDecl, "in"));
+                // (7,20): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (x in myarray) { }// Invalid
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in")
+                );
         }
 
         [Fact]
@@ -302,12 +304,13 @@ public struct st { }
 ";
 
             ParseAndValidate(test,
-    // (7,23): error CS1001: Identifier expected
-    //         foreach (st[] in myarray) { }
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "in"),
-    // (7,23): error CS0230: Type and identifier are both required in a foreach statement
-    //         foreach (st[] in myarray) { }
-    Diagnostic(ErrorCode.ERR_BadForeachDecl, "in"));
+                // (7,21): error CS0443: Syntax error; value expected
+                //         foreach (st[] in myarray) { }
+                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(7, 21),
+                // (7,23): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (st[] in myarray) { }
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(7, 23)
+                );
         }
 
         [Fact]
@@ -491,6 +494,7 @@ public class Test
 ";
             CreateCompilationWithMscorlib(test).VerifyDiagnostics(
                 // (5,22): error CS0401: The new() constraint must be the last constraint specified
+                // class C<T> where T : new(), IA // CS0401 - should be T : IA, new()
                 Diagnostic(ErrorCode.ERR_NewBoundMustBeLast, "new").WithLocation(5, 22));
         }
 
@@ -667,7 +671,13 @@ namespace x
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "base").WithArguments("cly"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (12,24): error CS0514: 'cly': static constructor cannot have an explicit 'this' or 'base' constructor call
+                //         static cly() : base(0){} // sc0514
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "base").WithArguments("cly").WithLocation(12, 24),
+                // (8,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'clx.clx(int)'
+                //     public class cly : clx
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "cly").WithArguments("i", "x.clx.clx(int)").WithLocation(8, 18));
         }
 
         [Fact]
@@ -681,7 +691,10 @@ class C
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("C"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (5,18): error CS0514: 'C': static constructor cannot have an explicit 'this' or 'base' constructor call
+                //     static C() : this() { } //CS0514
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("C").WithLocation(5, 18));
         }
 
         [Fact]
@@ -700,7 +713,10 @@ namespace x
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (6,10): error CS0574: Name of destructor must match name of class
+                //         ~iiii(){}
+                Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(6, 10));
         }
 
         // Extra same errors
@@ -1314,15 +1330,10 @@ namespace x
 ";
 
             ParseAndValidate(test,
-    // (8,15): error CS1003: Syntax error, ']' expected
-    //             a[);
-    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")"),
-    // (8,15): error CS1002: ; expected
-    //             a[);
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-    // (8,15): error CS1513: } expected
-    //             a[);
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
+                // (8,15): error CS1003: Syntax error, ']' expected
+                //             a[);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(8, 15)
+                );
         }
 
         [Fact]
@@ -1372,25 +1383,44 @@ namespace x {
 
 public class Container
 {
-    public int Prop1{ protected get{return 1;} set {} protected get { return 1;}  }
-    public static int Prop2{ get{return 1;} internal set {} internal set{} }
-    public int this[int i]{ protected get{return 1;} internal set {} protected get { return 1;} internal set {}  }
+    public int Prop1 {
+        protected get { return 1; }
+        set {}
+        protected get { return 1; }
+    }
+    public static int Prop2 {
+        get { return 1; }
+        internal set {}
+        internal set {}
+    }
+    public int this[int i] {
+        protected get { return 1; }
+        internal set {}
+        protected get { return 1; }
+        internal set {} 
+    }
 }
 ";
 
-            ParseAndValidate(test,
-    // (5,65): error CS1007: Property accessor already defined
-    //     public int Prop1{ protected get{return 1;} set {} protected get { return 1;}  }
-    Diagnostic(ErrorCode.ERR_DuplicateAccessor, "get"),
-    // (6,70): error CS1007: Property accessor already defined
-    //     public static int Prop2{ get{return 1;} internal set {} internal set{} }
-    Diagnostic(ErrorCode.ERR_DuplicateAccessor, "set"),
-    // (7,80): error CS1007: Property accessor already defined
-    //     public int this[int i]{ protected get{return 1;} internal set {} protected get { return 1;} internal set {}  }
-    Diagnostic(ErrorCode.ERR_DuplicateAccessor, "get"),
-    // (7,106): error CS1007: Property accessor already defined
-    //     public int this[int i]{ protected get{return 1;} internal set {} protected get { return 1;} internal set {}  }
-    Diagnostic(ErrorCode.ERR_DuplicateAccessor, "set"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (8,19): error CS1007: Property accessor already defined
+                //         protected get { return 1; }
+                Diagnostic(ErrorCode.ERR_DuplicateAccessor, "get").WithLocation(8, 19),
+                // (13,18): error CS1007: Property accessor already defined
+                //         internal set {}
+                Diagnostic(ErrorCode.ERR_DuplicateAccessor, "set").WithLocation(13, 18),
+                // (18,19): error CS1007: Property accessor already defined
+                //         protected get { return 1; }
+                Diagnostic(ErrorCode.ERR_DuplicateAccessor, "get").WithLocation(18, 19),
+                // (19,18): error CS1007: Property accessor already defined
+                //         internal set {} 
+                Diagnostic(ErrorCode.ERR_DuplicateAccessor, "set").WithLocation(19, 18),
+                // (15,16): error CS0274: Cannot specify accessibility modifiers for both accessors of the property or indexer 'Container.this[int]'
+                //     public int this[int i] {
+                Diagnostic(ErrorCode.ERR_DuplicatePropertyAccessMods, "this").WithArguments("Container.this[int]").WithLocation(15, 16),
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1));
         }
 
         [Fact]
@@ -1640,9 +1670,16 @@ public class Test
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_ClassTypeExpected, "int"),
-Diagnostic(ErrorCode.ERR_ClassTypeExpected, "byte"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (10,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         catch(int)
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "int").WithLocation(10, 15),
+                // (13,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         catch(byte)
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "byte").WithLocation(13, 15),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1));
         }
 
         [WorkItem(863382, "DevDiv/Personal")]
@@ -1652,21 +1689,33 @@ Diagnostic(ErrorCode.ERR_ClassTypeExpected, "byte"));
             var test = @"
 namespace x
 {
-[foo(a=5, b)]
-class foo
+    class FooAttribute : System.Attribute
+    {
+        public int a;
+    }
+
+    [Foo(a=5, b)]
+    class Bar
     {
     }
-public class a
+    public class a
     {
-    public static int Main()
+        public static int Main()
         {
-        return 1;
+            return 1;
         }
     }
-}
-";
-
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "b"));
+}";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (9,15): error CS1016: Named attribute argument expected
+                //     [Foo(a=5, b)]
+                Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "b").WithLocation(9, 15),
+                // (9,15): error CS0103: The name 'b' does not exist in the current context
+                //     [Foo(a=5, b)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(9, 15),
+                //(9,6): error CS1729: 'FooAttribute' does not contain a constructor that takes 1 arguments
+                //     [Foo(a=5, b)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Foo(a=5, b)").WithArguments("x.FooAttribute", "1").WithLocation(9, 6));
         }
 
         [Fact]
@@ -1698,10 +1747,19 @@ public class mine {
 }
 ";
 
-            ParseAndValidate(test,
-                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch"),
-                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch"),
-                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (16,9): error CS1017: Catch clauses cannot follow the general catch clause of a try statement
+                //         catch (S1) {}
+                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch").WithLocation(16, 9),
+                // (17,9): error CS1017: Catch clauses cannot follow the general catch clause of a try statement
+                //         catch (S) {}
+                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch").WithLocation(17, 9),
+                // (18,9): error CS1017: Catch clauses cannot follow the general catch clause of a try statement
+                //         catch when (false) {}
+                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch").WithLocation(18, 9),
+                // (18,21): warning CS7095: Filter expression is a constant, consider removing the filter
+                //         catch when (false) {}
+                Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(18, 21));
         }
 
         [Fact]
@@ -1789,6 +1847,22 @@ namespace x
 ";
 
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "ii"));
+        }
+
+        [Fact]
+        public void CS1019ERR_OvlUnaryOperatorExpected2()
+        {
+            var test = @"
+class C
+{
+    public static implicit operator int(C c1, C c2) => 0;
+}
+";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,40): error CS1019: Overloadable unary operator expected
+                //     public static implicit operator int(C c1, C c2) => 0;
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "(C c1, C c2)").WithLocation(4, 40));
         }
 
         [WorkItem(906502, "DevDiv/Personal")]
@@ -2069,9 +2143,9 @@ namespace x
                 // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //             e = new ();     // CS1031, too few tuple elements
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
-                // (9,21): error CS8124: Tuple must contain at least two elements.
+                // (9,22): error CS8124: Tuple must contain at least two elements.
                 //             e = new ();     // CS1031, too few tuple elements
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 22),
                 // (9,23): error CS1526: A new expression requires (), [], or {} after type
                 //             e = new ();     // CS1031, too few tuple elements
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
@@ -2117,12 +2191,12 @@ namespace x
                 // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
-                // (9,21): error CS8124: Tuple must contain at least two elements.
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
                 // (9,21): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(9, 21),
+                // (9,22): error CS8124: Tuple must contain at least two elements.
+                //             e = new ();     // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 22),
                 // (9,23): error CS1526: A new expression requires (), [], or {} after type
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
@@ -2142,8 +2216,13 @@ public class Extensions
    public static void Main(){} 
 } 
 ";
-
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (6,22): error CS0027: Keyword 'this' is not available in the current context
+                //    public Extensions(this int i) {} 
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 22),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1));
         }
 
         [Fact]
@@ -2181,46 +2260,46 @@ class A
     }
 }";
             ParseAndValidate(test, TestOptions.Regular,
-    // (4,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(4, 19),
-    // (4,23): error CS1003: Syntax error, 'operator' expected
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(4, 23),
-    // (4,23): error CS1019: Overloadable unary operator expected
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(4, 23),
-    // (4,32): error CS1003: Syntax error, '(' expected
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(4, 32),
-    // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-    // (4,41): error CS8096: Tuple must contain at least two elements.
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(4, 41),
-    // (4,43): error CS1001: Identifier expected
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 43),
-    // (4,43): error CS1003: Syntax error, ',' expected
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "{").WithLocation(4, 43),
-    // (6,18): error CS1026: ) expected
-    //         return 0;
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 18),
-    // (6,18): error CS1002: ; expected
-    //         return 0;
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 18),
-    // (8,30): error CS1037: Overloadable operator expected
-    //     public static A operator ()
-    Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
-    // (8,31): error CS1003: Syntax error, '(' expected
-    //     public static A operator ()
-    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(8, 31),
-    // (12,1): error CS1022: Type or namespace definition, or end-of-file expected
-    // }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1)
-);
+                // (4,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(4, 19),
+                // (4,23): error CS1003: Syntax error, 'operator' expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(4, 23),
+                // (4,23): error CS1019: Overloadable unary operator expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(4, 23),
+                // (4,32): error CS1003: Syntax error, '(' expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(4, 32),
+                // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
+                // (4,42): error CS8124: Tuple must contain at least two elements.
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
+                // (4,43): error CS1001: Identifier expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 43),
+                // (4,43): error CS1003: Syntax error, ',' expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "{").WithLocation(4, 43),
+                // (6,18): error CS1026: ) expected
+                //         return 0;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 18),
+                // (6,18): error CS1002: ; expected
+                //         return 0;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 18),
+                // (8,30): error CS1037: Overloadable operator expected
+                //     public static A operator ()
+                Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
+                // (8,31): error CS1003: Syntax error, '(' expected
+                //     public static A operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(8, 31),
+                // (12,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1)
+                );
         }
 
         [Fact]
@@ -2254,12 +2333,12 @@ class A
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-                // (4,41): error CS8124: Tuple must contain at least two elements.
-                //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(4, 41),
                 // (4,41): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(4, 41),
+                // (4,42): error CS8124: Tuple must contain at least two elements.
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
                 // (4,43): error CS1001: Identifier expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 43),
@@ -2349,7 +2428,10 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
     C(this object o) { }
 }";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (3,7): error CS0027: Keyword 'this' is not available in the current context
+                //     C(this object o) { }
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(3, 7));
         }
 
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2363,7 +2445,10 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
         get { return null; }
     }
 }";
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (3,17): error CS0027: Keyword 'this' is not available in the current context
+                //     object this[this object o]
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(3, 17));
         }
 
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2371,7 +2456,10 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
         {
             var test = @"delegate void D(this object o);";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (1,17): error CS0027: Keyword 'this' is not available in the current context
+                // delegate void D(this object o);
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(1, 17));
         }
 
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2386,19 +2474,28 @@ class C
         D d = delegate (this object o) { };
     }
 }";
-            ParseAndValidate(test,
-                // (6,25): error CS1026: ) expected
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "this").WithLocation(6, 25),
-                // (6,25): error CS1514: { expected
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "this").WithLocation(6, 25),
-                // (6,25): error CS1002: ; expected
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(6, 25),
-                // (6,30): error CS1002: ; expected
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "object").WithLocation(6, 30),
-                // (6,38): error CS1002: ; expected
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 38),
-                // (6,38): error CS1513: } expected
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 38));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (6,25): error CS0027: Keyword 'this' is not available in the current context
+                //         D d = delegate (this object o) { };
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 25));
+        }
+
+        [Fact]
+        public void ERR_ThisInBadContext01()
+        {
+            var test =
+@"class C
+{
+    public static implicit operator int(this C c) { return 0; }
+    public static C operator +(this C c1, C c2) { return null; }
+}";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,32): error CS0027: Keyword 'this' is not available in the current context
+                //     public static C operator +(this C c1, C c2) { return null; }
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(4, 32),
+                // (3,41): error CS0027: Keyword 'this' is not available in the current context
+                //     public static implicit operator int(this C c) { return 0; }
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(3, 41));
         }
 
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2531,15 +2628,12 @@ return 1;
 ";
 
             ParseAndValidate(test,
-    // (7,9): error CS1055: An add or remove accessor expected
-    //         return value; 
-    Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "return"),
-    // (7,16): error CS1055: An add or remove accessor expected
-    //         return value; 
-    Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "value"),
-    // (7,21): error CS0073: An add or remove accessor must have a body
-    //         return value; 
-    Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"));
+                // (7,9): error CS1055: An add or remove accessor expected
+                //         return value; 
+                Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "return"),
+                // (7,16): error CS1055: An add or remove accessor expected
+                //         return value; 
+                Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "value"));
         }
 
         [WorkItem(536956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536956")]
@@ -2554,7 +2648,10 @@ class A
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (5,27): error CS1065: Default values are not valid in this context.
+                //     D d1 = delegate(int x = 42) { };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 27));
         }
 
         [Fact]
@@ -2568,11 +2665,13 @@ class A
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (5,34): error CS1065: Default values are not valid in this context.
+                //     D d1 = delegate(int x, int y = 42) { };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
         }
 
-        [WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
-        [Fact]
+        [Fact, WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
         public void CS7014ERR_AttributesNotAllowed()
         {
             var test = @"
@@ -2583,7 +2682,7 @@ class Program
     static void Main()
     {
         const string message = ""the parameter is obsolete"";
-        Action<int> a = delegate (
+        Action<int, int> a = delegate (
             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
             [ObsoleteAttribute(message)] int y
         ) { };
@@ -2591,16 +2690,19 @@ class Program
 }
 ";
 
-            ParseAndValidate(test,
-    // (10,13): error CS7014: Attributes are not valid in this context.
-    //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
-    Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]"),
-    // (10,42): error CS7014: Attributes are not valid in this context.
-    //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
-    Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]"),
-    // (11,13): error CS7014: Attributes are not valid in this context.
-    //             [ObsoleteAttribute(message)] int y
-    Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (10,13): error CS7014: Attributes are not valid in this context.
+                //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(10, 13),
+                // (10,42): error CS7014: Attributes are not valid in this context.
+                //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(10, 42),
+                // (11,13): error CS7014: Attributes are not valid in this context.
+                //             [ObsoleteAttribute(message)] int y
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(11, 13),
+                // (8,22): warning CS0219: The variable 'message' is assigned but its value is never used
+                //         const string message = "the parameter is obsolete";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22));
         }
 
         [WorkItem(863401, "DevDiv/Personal")]
@@ -2633,16 +2735,52 @@ public static class GenExtensions<X>
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"));
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (10,39): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(ref this U u) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(10, 39),
+                // (22,39): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(ref this X x) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(22, 39),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (8,35): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T>(ref this T t) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(8, 35),
+                // (16,32): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo(ref this X x) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(16, 32),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (6,32): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo(ref this int i) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(6, 32),
+                // (18,35): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T>(ref this T t) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(18, 35),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (19,35): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T>(ref this X x) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(19, 35),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (21,39): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(ref this U u) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(21, 39),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (15,32): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo(ref this int i) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(15, 32),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21));
         }
 
         [WorkItem(906072, "DevDiv/Personal")]
@@ -2675,16 +2813,52 @@ public static class GenExtensions<X>
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"));
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (10,40): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out U u) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(10, 40),
+                // (8,36): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out T t) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(8, 36),
+                // (6,33): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out int i) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(6, 33),
+                // (22,40): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(22, 40),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (16,33): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(16, 33),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (18,36): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out T t) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(18, 36),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (19,36): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(19, 36),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (21,40): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out U u) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(21, 40),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (15,33): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out int i) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(15, 33),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21));
         }
 
         [WorkItem(863402, "DevDiv/Personal")]
@@ -2717,16 +2891,52 @@ public static class GenExtensions<X>
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"));
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (22,40): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T,U,V>(this params X[] xArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(22, 40),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (16,33): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo(this params X[] xArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(16, 33),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (18,36): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T>(this params T[] tArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(18, 36),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (19,36): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T>(this params X[] xArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(19, 36),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (21,40): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T,U,V>(this params U[] uArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(21, 40),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (15,33): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo(this params int[] iArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(15, 33),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (10,40): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T,U,V>(this params U[] uArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(10, 40),
+                // (8,36): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T>(this params T[] tArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(8, 36),
+                // (6,33): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo(this params int[] iArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(6, 33));
         }
 
         [Fact, WorkItem(535930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535930")]
@@ -2746,40 +2956,28 @@ public static class Extensions
 }
 ";
             // Extra errors
-            ParseAndValidate(test,
-    // (6,33): error CS1107: A parameter can only have one 'this' modifier
-    //     public static void Foo(this this t) {}
-    Diagnostic(ErrorCode.ERR_DupParamMod, "this").WithArguments("this"),
-    // (6,39): error CS1001: Identifier expected
-    //     public static void Foo(this this t) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-    // (7,37): error CS1001: Identifier expected
-    //     public static void Foo(this int this) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "this"),
-    // (7,37): error CS1003: Syntax error, ',' expected
-    //     public static void Foo(this int this) {}
-    Diagnostic(ErrorCode.ERR_SyntaxError, "this").WithArguments(",", "this"),
-    // (7,41): error CS1031: Type expected
-    //     public static void Foo(this int this) {}
-    Diagnostic(ErrorCode.ERR_TypeExpected, ")"),
-    // (7,41): error CS1001: Identifier expected
-    //     public static void Foo(this int this) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-    // (9,34): error CS1001: Identifier expected
-    //     public static void Foo(this t) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-    // (10,32): error CS1001: Identifier expected
-    //     public static void Foo(int this) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "this"),
-    // (10,32): error CS1003: Syntax error, ',' expected
-    //     public static void Foo(int this) {}
-    Diagnostic(ErrorCode.ERR_SyntaxError, "this").WithArguments(",", "this"),
-    // (10,36): error CS1031: Type expected
-    //     public static void Foo(int this) {}
-    Diagnostic(ErrorCode.ERR_TypeExpected, ")"),
-    // (10,36): error CS1001: Identifier expected
-    //     public static void Foo(int this) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (10,32): error CS1100: Method 'Foo' has a parameter modifier 'this' which is not on the first parameter
+                //     public static void Foo(int this) {}
+                Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("Foo").WithLocation(10, 32),
+                // (7,37): error CS1100: Method 'Foo' has a parameter modifier 'this' which is not on the first parameter
+                //     public static void Foo(this int this) {}
+                Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("Foo").WithLocation(7, 37),
+                // (9,33): error CS0246: The type or namespace name 't' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static void Foo(this t) {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "t").WithArguments("t").WithLocation(9, 33),
+                // (6,33): error CS1107: A parameter can only have one 'this' modifier
+                //     public static void Foo(this this t) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "this").WithArguments("this").WithLocation(6, 33),
+                // (6,38): error CS0246: The type or namespace name 't' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static void Foo(this this t) {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "t").WithArguments("t").WithLocation(6, 38),
+                // (9,24): error CS0111: Type 'Extensions' already defines a member called 'Foo' with the same parameter types
+                //     public static void Foo(this t) {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo").WithArguments("Foo", "Extensions").WithLocation(9, 24),
+                // (10,24): error CS0111: Type 'Extensions' already defines a member called 'Foo' with the same parameter types
+                //     public static void Foo(int this) {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo").WithArguments("Foo", "Extensions").WithLocation(10, 24));
         }
 
         [WorkItem(863405, "DevDiv/Personal")]
@@ -2812,16 +3010,34 @@ public static class GenExtensions<X>
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"));
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (10,39): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T,U,V>(ref out U u) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(10, 39),
+                // (8,35): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T>(ref out T t) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(8, 35),
+                // (6,32): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo(ref out int i) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(6, 32),
+                // (22,39): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T,U,V>(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(22, 39),
+                // (16,32): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(16, 32),
+                // (18,35): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T>(ref out T t) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(18, 35),
+                // (19,35): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T>(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(19, 35),
+                // (21,39): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T,U,V>(ref out U u) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(21, 39),
+                // (15,32): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo(ref out int i) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(15, 32));
         }
 
         [Fact]
@@ -2919,15 +3135,16 @@ class C
 ";
 
             ParseAndValidate(test,
-    // (6,18): error CS1031: Type expected
-    //         foreach (1)
-    Diagnostic(ErrorCode.ERR_TypeExpected, "1"),
-    // (6,18): error CS1001: Identifier expected
-    //         foreach (1)
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "1"),
-    // (6,18): error CS1515: 'in' expected
-    //         foreach (1)
-    Diagnostic(ErrorCode.ERR_InExpected, "1"));
+                // (6,19): error CS1515: 'in' expected
+                //         foreach (1)
+                Diagnostic(ErrorCode.ERR_InExpected, ")").WithLocation(6, 19),
+                // (6,19): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (1)
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, ")").WithLocation(6, 19),
+                // (6,19): error CS1525: Invalid expression term ')'
+                //         foreach (1)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 19)
+                );
         }
 
         [WorkItem(906503, "DevDiv/Personal")]
@@ -3387,18 +3604,16 @@ class C
 ";
             // Extra errors
             ParseAndValidate(test,
-    // (4,26): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-    //     event System.Action E();
-    Diagnostic(ErrorCode.ERR_BadVarDecl, "()"),
-    // (4,26): error CS1003: Syntax error, '[' expected
-    //     event System.Action E();
-    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "("),
-    // (4,27): error CS1525: Invalid expression term ')'
-    //     event System.Action E();
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
-    // (4,28): error CS1003: Syntax error, ']' expected
-    //     event System.Action E();
-    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";"));
+                // (4,26): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                //     event System.Action E();
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(").WithLocation(4, 26),
+                // (4,26): error CS1003: Syntax error, '[' expected
+                //     event System.Action E();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(4, 26),
+                // (4,27): error CS1003: Syntax error, ']' expected
+                //     event System.Action E();
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(4, 27)
+                );
         }
 
         [Fact]
@@ -3586,40 +3801,40 @@ public class MainClass
 ";
 
             ParseAndValidate(test, TestOptions.Regular,
-    // (3,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(3, 19),
-    // (3,23): error CS1003: Syntax error, 'operator' expected
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(3, 23),
-    // (3,23): error CS1019: Overloadable unary operator expected
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(3, 23),
-    // (3,32): error CS1003: Syntax error, '(' expected
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(3, 32),
-    // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-    // (3,41): error CS8096: Tuple must contain at least two elements.
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(foo f)").WithLocation(3, 41),
-    // (3,49): error CS1001: Identifier expected
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),
-    // (3,49): error CS1003: Syntax error, ',' expected
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(3, 49),
-    // (3,61): error CS1026: ) expected
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(3, 61),
-    // (3,61): error CS1002: ; expected
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(3, 61),
-    // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-    // }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
-);
+                // (3,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(3, 19),
+                // (3,23): error CS1003: Syntax error, 'operator' expected
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(3, 23),
+                // (3,23): error CS1019: Overloadable unary operator expected
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(3, 23),
+                // (3,32): error CS1003: Syntax error, '(' expected
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(3, 32),
+                // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
+                // (3,47): error CS8124: Tuple must contain at least two elements.
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
+                // (3,49): error CS1001: Identifier expected
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),
+                // (3,49): error CS1003: Syntax error, ',' expected
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(3, 49),
+                // (3,61): error CS1026: ) expected
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(3, 61),
+                // (3,61): error CS1002: ; expected
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(3, 61),
+                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
+                );
         }
 
         [Fact, WorkItem(535933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535933")] // ?
@@ -3655,12 +3870,12 @@ public class MainClass
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-                // (3,41): error CS8124: Tuple must contain at least two elements.
-                //     public static int implicit operator (foo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(foo f)").WithLocation(3, 41),
                 // (3,41): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7").WithLocation(3, 41),
+                // (3,47): error CS8124: Tuple must contain at least two elements.
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
                 // (3,49): error CS1001: Identifier expected
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),
@@ -3676,7 +3891,7 @@ public class MainClass
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
-    );
+                );
         }
 
         [Fact(), WorkItem(526995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526995")]
@@ -3715,19 +3930,28 @@ public class Test
 }
 ";
             // Extra errors
-            ParseAndValidate(test,
-                // (6,29): error CS1575: A stackalloc expression requires [] after type
-                //         int *p = stackalloc int (30); 
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int"),
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
                 // (6,33): error CS1002: ; expected
                 //         int *p = stackalloc int (30); 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "("),
-                // (7,30): error CS1575: A stackalloc expression requires [] after type
-                //         int *pp = stackalloc int 30; 
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int"),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(6, 33),
                 // (7,34): error CS1002: ; expected
                 //         int *pp = stackalloc int 30; 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "30"));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "30").WithLocation(7, 34),
+                // (4,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     unsafe public static int Main()
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Main").WithLocation(4, 30),
+                // (6,29): error CS1575: A stackalloc expression requires [] after type
+                //         int *p = stackalloc int (30); 
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(6, 29),
+                // (6,33): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         int *p = stackalloc int (30); 
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(30)").WithLocation(6, 33),
+                // (7,30): error CS1575: A stackalloc expression requires [] after type
+                //         int *pp = stackalloc int 30; 
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(7, 30),
+                // (7,34): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         int *pp = stackalloc int 30; 
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "30").WithLocation(7, 34));
         }
 
         [WorkItem(906993, "DevDiv/Personal")]
@@ -3884,8 +4108,13 @@ public class Test
     }
 }
 ";
-
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private"), Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public"));
+            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+                // (17,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         private add{}
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private").WithLocation(17, 9),
+                // (18,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         public remove{}
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public").WithLocation(18, 9));
         }
 
         [Fact]
@@ -3903,7 +4132,13 @@ public class Test
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public"), Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private"));
+            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+                // (7,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         public add { }
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public").WithLocation(7, 9),
+                // (8,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         private remove { }
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private").WithLocation(8, 9));
         }
 
         [WorkItem(863423, "DevDiv/Personal")]
@@ -3930,7 +4165,16 @@ public class Test
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "ref"), Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "out"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (7,35): error CS1611: The params parameter cannot be declared as ref or out
+                //     public static void boo(params out int[] a) 
+                Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "out").WithLocation(7, 35),
+                // (4,35): error CS1611: The params parameter cannot be declared as ref or out
+                //     public static void foo(params ref int[] a) 
+                Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "ref").WithLocation(4, 35),
+                // (7,24): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                //     public static void boo(params out int[] a) 
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "boo").WithArguments("a").WithLocation(7, 24));
         }
 
         [Fact]
@@ -4144,26 +4388,57 @@ class A<out T>
     delegate void D<in U>();
     class B<out U> { }
 }";
-
-            ParseAndValidate(test,
-                // (3,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(3, 12),
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
                 // (4,12): error CS7002: Unexpected use of a generic name
+                //     object this<out U>[int i] { get; set; }
                 Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "this").WithLocation(4, 12),
-                // (4,17): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(4, 17),
                 // (6,10): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                // struct S<out T>
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(6, 10),
-                // (8,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(8, 12),
                 // (11,9): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                // class A<out T>
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(11, 9),
-                // (13, 12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                // (3,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //     void M<in U>();
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(3, 12),
+                // (13,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //     void M<out U>();
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(13, 12),
-                // (15, 14): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(15, 14),
+                // (8,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //     void M<out U>();
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(8, 12),
+                // (8,10): error CS0501: 'S<T>.M<U>()' must declare a body because it is not marked abstract, extern, or partial
+                //     void M<out U>();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("S<T>.M<U>()").WithLocation(8, 10),
+                // (13,10): error CS0501: 'A<T>.M<U>()' must declare a body because it is not marked abstract, extern, or partial
+                //     void M<out U>();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("A<T>.M<U>()").WithLocation(13, 10),
                 // (17,13): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(17, 13));
+                //     class B<out U> { }
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(17, 13),
+                // (15,14): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //     struct S<out U> { }
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(15, 14));
+        }
+
+        [Fact]
+        public void CS1960ERR_IllegalVarianceSyntax_LocalFunction()
+        {
+            var test =
+@"class C
+{
+    void M()
+    {
+        void Local<in T>() { }
+    }
+}";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (5,20): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //         void Local<in T>() { }
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(5, 20),
+                // (5,14): warning CS0168: The variable 'Local' is declared but never used
+                //         void Local<in T>() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(5, 14));
         }
 
         [Fact]
@@ -4549,7 +4824,13 @@ class MyClass
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.WRN_GlobalAliasDefn, "global"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (2,7): warning CS0440: Defining an alias named 'global' is ill-advised since 'global::' always references the global namespace and not an alias
+                // using global = MyClass;   // CS0440
+                Diagnostic(ErrorCode.WRN_GlobalAliasDefn, "global").WithLocation(2, 7),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using global = MyClass;   // CS0440
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using global = MyClass;").WithLocation(2, 1));
         }
 
         [Fact]
@@ -5195,31 +5476,6 @@ class Program
                 // (9,2): error CS1513: } expected
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 2));
-        }
-
-        #endregion
-
-        #region "Helpers"
-
-        public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
-        {
-            var parsedTree = ParseWithRoundTripCheck(text);
-            var actualErrors = parsedTree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-        }
-
-        public static void ParseAndValidate(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
-        {
-            var parsedTree = ParseWithRoundTripCheck(text, options: options);
-            var actualErrors = parsedTree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-        }
-
-        public static void ParseAndValidateFirst(string text, DiagnosticDescription expectedFirstError)
-        {
-            var parsedTree = ParseWithRoundTripCheck(text);
-            var actualErrors = parsedTree.GetDiagnostics();
-            actualErrors.Take(1).Verify(expectedFirstError);
         }
 
         #endregion

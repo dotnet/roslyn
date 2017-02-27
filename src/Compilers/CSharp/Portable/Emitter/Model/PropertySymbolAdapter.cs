@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IMetadataConstant Cci.IPropertyDefinition.DefaultValue
+        MetadataConstant Cci.IPropertyDefinition.DefaultValue
         {
             get
             {
@@ -174,12 +175,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ushort Cci.ISignature.CountOfCustomModifiersPrecedingByRef
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
         {
             get
             {
                 CheckDefinitionInvariantAllowEmbedded();
-                return this.CountOfCustomModifiersPrecedingByRef;
+                return this.RefCustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -24,15 +25,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         protected BatchSimplificationFixAllProvider() { }
 
-        public override async Task AddDocumentFixesAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, 
+        protected override async Task AddDocumentFixesAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
+            // quick bail out
+            if (diagnostics.IsEmpty)
+            {
+                return;
+            }
+
             var changedDocument = await AddSimplifierAnnotationsAsync(
                 document, diagnostics, fixAllState, cancellationToken).ConfigureAwait(false);
             var title = GetFixAllTitle(fixAllState);
-            var codeAction = new MyCodeAction(title, (c) => Task.FromResult(changedDocument));
-            addFix(codeAction);
+            var codeAction = new MyCodeAction(title, c => Task.FromResult(changedDocument));
+            fixes.Add((diagnostics.First(), codeAction));
         }
 
         /// <summary>
@@ -64,10 +72,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <see cref="AddSimplifierAnnotationsAsync(Document, ImmutableArray{Diagnostic}, FixAllState, CancellationToken)"/> will end up invoking <see cref="AddSimplifyAnnotationsAsync(Document, SyntaxNode, CancellationToken)"/> for each node to simplify.
         /// Ensure that you override <see cref="AddSimplifyAnnotationsAsync(Document, SyntaxNode, CancellationToken)"/> method when this property returns true.
         /// </summary>
-        protected virtual bool NeedsParentFixup { get { return false; } }
+        protected virtual bool NeedsParentFixup => false;
 
         private async Task<Document> AddSimplifierAnnotationsAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -78,8 +86,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var nodesToSimplify = new List<SyntaxNode>();
             foreach (var diagnostic in diagnostics)
             {
-                string codeActionEquivalenceKey;
-                var node = GetNodeToSimplify(root, model, diagnostic, options, out codeActionEquivalenceKey, cancellationToken);
+                var node = GetNodeToSimplify(root, model, diagnostic, options,
+                    out var codeActionEquivalenceKey, cancellationToken);
+
                 if (node != null && fixAllState.CodeActionEquivalenceKey == codeActionEquivalenceKey)
                 {
                     nodesToSimplify.Add(node);

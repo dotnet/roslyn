@@ -258,9 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string fixAllActionEquivalenceId = null,
             object fixProviderData = null)
         {
-            IList<TextSpan> spansList;
-            string unused;
-            MarkupTestFile.GetSpans(expectedMarkup, out unused, out spansList);
+            MarkupTestFile.GetSpans(expectedMarkup, out var unused, out IList<TextSpan> spansList);
 
             var expectedTextSpans = spansList.ToSet();
             using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
