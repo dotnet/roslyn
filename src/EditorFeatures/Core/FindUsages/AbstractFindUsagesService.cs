@@ -117,6 +117,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            // Currently we only support FAR for numbers, strings and characters.  We don't
+            // bother with true/false/null as those are likely to have way too many results
+            // to be useful.
             var token = await syntaxTree.GetTouchingTokenAsync(
                 position,
                 t => syntaxFacts.IsNumericLiteral(t) ||
@@ -129,7 +133,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 return false;
             }
 
-            // Searching for decimals not supported currently.
+            // Searching for decimals not supported currently.  Our index can only store 64bits
+            // for numeric values, and a decimal won't fit within that.
             var tokenValue = token.Value;
             if (tokenValue == null || tokenValue is decimal)
             {
@@ -138,6 +143,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetSymbolInfo(token.Parent).Symbol ?? semanticModel.GetDeclaredSymbol(token.Parent);
+
+            // Numeric labels are available in VB.  In that case we want the normal FAR engine to
+            // do the searching.  For these literals we want to find symbolic results and not 
+            // numeric matches.
             if (symbol is ILabelSymbol)
             {
                 return false;
