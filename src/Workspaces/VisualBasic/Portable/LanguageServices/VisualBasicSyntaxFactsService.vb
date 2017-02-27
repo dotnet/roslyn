@@ -1672,7 +1672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim start = If(statement.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart,
                            statement.SpanStart)
             Dim _end = If(statement.TypeParameterList?.GetLastToken().FullSpan.End,
-                         statement.Identifier.FullSpan.End)
+                          statement.Identifier.FullSpan.End)
 
             Return position >= start AndAlso position <= _end
         End Function

@@ -1912,7 +1912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 token = token.GetPreviousToken();
             }
 
-            var typeDecl = token.GetAncestor<TypeDeclarationSyntax>();
+            var typeDecl = token.GetAncestor<BaseTypeDeclarationSyntax>();
             if (typeDecl == null)
             {
                 return false;
@@ -1920,8 +1920,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var start = typeDecl.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
                         typeDecl.SpanStart;
-            var end = typeDecl.TypeParameterList?.GetLastToken().FullSpan.End ??
-                      typeDecl.Identifier.FullSpan.End;
+            var end = typeDecl.GetTypeParameterList()?.GetLastToken().FullSpan.End ??
+                        typeDecl.Identifier.FullSpan.End;
 
             return position >= start && position <= end;
         }

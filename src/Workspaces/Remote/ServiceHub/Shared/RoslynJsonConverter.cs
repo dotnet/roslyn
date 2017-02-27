@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
             builder.Add(typeof(ProjectId), new ProjectIdJsonConverter());
             builder.Add(typeof(DocumentId), new DocumentIdJsonConverter());
             builder.Add(typeof(TextSpan), new TextSpanJsonConverter());
+            builder.Add(typeof(SymbolKey), new SymbolKeyJsonConverter());
 
             return builder.ToImmutable();
         }
@@ -102,6 +103,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WriteEndObject();
             }
+        }
+
+        private class SymbolKeyJsonConverter : BaseJsonConverter
+        {
+            public override bool CanConvert(Type objectType) => typeof(SymbolKey) == objectType;
+
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+                => new SymbolKey((string)reader.Value);
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) =>
+                writer.WriteValue(value.ToString());
         }
 
         private class ChecksumJsonConverter : JsonConverter

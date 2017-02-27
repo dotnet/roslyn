@@ -775,5 +775,24 @@ class Z
     public void N() { }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMissingOnMember3()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+    public void M()
+    {
+ [||] 
+    }
+
+    public void N() { }
+}");
+        }
     }
 }

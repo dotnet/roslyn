@@ -76,6 +76,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             VerifyJsonSerialization(new TextSpan(10, 5));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestSymbolKey()
+        {
+            VerifyJsonSerialization(new SymbolKey("TEST"));
+        }
+
         private static void VerifyJsonSerialization<T>(T value, Comparison<T> equality = null)
         {
             var serializer = new JsonSerializer();

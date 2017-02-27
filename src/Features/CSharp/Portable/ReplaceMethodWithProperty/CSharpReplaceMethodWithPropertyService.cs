@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProperty
@@ -18,9 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
     internal class CSharpReplaceMethodWithPropertyService : IReplaceMethodWithPropertyService
     {
         public string GetMethodName(SyntaxNode methodNode)
-        {
-            return ((MethodDeclarationSyntax)methodNode).Identifier.ValueText;
-        }
+            => ((MethodDeclarationSyntax)methodNode).Identifier.ValueText;
 
         public SyntaxNode GetMethodDeclaration(SyntaxToken token)
         {
@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         }
 
         public void ReplaceGetMethodWithProperty(
+            DocumentOptionSet documentOptions,
+            ParseOptions parseOptions,
             SyntaxEditor editor,
             SemanticModel semanticModel,
             GetAndSetMethods getAndSetMethods,
@@ -62,17 +64,71 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             }
 
             editor.ReplaceNode(getMethodDeclaration,
-                ConvertMethodsToProperty(semanticModel, editor.Generator, getAndSetMethods, propertyName, nameChanged));
+                ConvertMethodsToProperty(
+                    documentOptions, parseOptions,
+                    semanticModel, editor.Generator,
+                    getAndSetMethods, propertyName, nameChanged));
         }
 
         public SyntaxNode ConvertMethodsToProperty(
-            SemanticModel semanticModel,
-            SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
+            DocumentOptionSet documentOptions, ParseOptions parseOptions,
+            SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
+            string propertyName, bool nameChanged)
+        {
+            var propertyDeclaration = ConvertMethodsToPropertyWorker(
+                documentOptions, parseOptions, semanticModel,
+                generator, getAndSetMethods, propertyName, nameChanged);
+
+            var preferExpressionBody = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
+            if (preferExpressionBody)
+            {
+                if (propertyDeclaration.AccessorList?.Accessors.Count == 1 &&
+                    propertyDeclaration.AccessorList?.Accessors[0].Kind() == SyntaxKind.GetAccessorDeclaration)
+                {
+                    var getAccessor = propertyDeclaration.AccessorList.Accessors[0];
+                    if (getAccessor.ExpressionBody != null)
+                    {
+                        return propertyDeclaration.WithExpressionBody(getAccessor.ExpressionBody)
+                                                  .WithSemicolonToken(getAccessor.SemicolonToken)
+                                                  .WithAccessorList(null);
+                    }
+                    else if (getAccessor.Body != null &&
+                             getAccessor.Body.TryConvertToExpressionBody(parseOptions, out var arrowExpression, out var semicolonToken))
+                    {
+                        return propertyDeclaration.WithExpressionBody(arrowExpression)
+                                                  .WithSemicolonToken(semicolonToken)
+                                                  .WithAccessorList(null);
+                    }
+                }
+            }
+            else
+            {
+                if (propertyDeclaration.ExpressionBody != null)
+                {
+                    var block = propertyDeclaration.ExpressionBody.ConvertToBlock(
+                        propertyDeclaration.SemicolonToken, createReturnStatementForExpression: true);
+                    var accessor =
+                        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                                     .WithBody(block);
+
+                    var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(accessor));
+                    return propertyDeclaration.WithAccessorList(accessorList)
+                                              .WithExpressionBody(null)
+                                              .WithSemicolonToken(default(SyntaxToken));
+                }
+            }
+
+            return propertyDeclaration;
+        }
+
+        public PropertyDeclarationSyntax ConvertMethodsToPropertyWorker(
+            DocumentOptionSet documentOptions, ParseOptions parseOptions,
+            SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
             string propertyName, bool nameChanged)
         {
             var getMethodDeclaration = getAndSetMethods.GetMethodDeclaration as MethodDeclarationSyntax;
-            var getAccessor = CreateGetAccessor(getAndSetMethods);
-            var setAccessor = CreateSetAccessor(semanticModel, generator, getAndSetMethods);
+            var getAccessor = CreateGetAccessor(getAndSetMethods, documentOptions, parseOptions);
+            var setAccessor = CreateSetAccessor(semanticModel, generator, getAndSetMethods, documentOptions, parseOptions);
 
             var property = SyntaxFactory.PropertyDeclaration(
                 getMethodDeclaration.AttributeLists, getMethodDeclaration.Modifiers,
@@ -87,21 +143,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             }
             property = property.WithLeadingTrivia(trivia.Where(t => !t.IsDirective));
 
-            if (getMethodDeclaration.ExpressionBody != null && setMethodDeclaration == null)
+            var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(getAccessor));
+            if (setAccessor != null)
             {
-                property = property.WithExpressionBody(getMethodDeclaration.ExpressionBody);
-                property = property.WithSemicolonToken(getMethodDeclaration.SemicolonToken);
+                accessorList = accessorList.AddAccessors(setAccessor);
             }
-            else
-            {
-                var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(getAccessor));
-                if (setAccessor != null)
-                {
-                    accessorList = accessorList.AddAccessors(new[] { setAccessor });
-                }
 
-                property = property.WithAccessorList(accessorList);
-            }
+            property = property.WithAccessorList(accessorList);
 
             return property.WithAdditionalAnnotations(Formatter.Annotation);
         }
@@ -113,16 +161,55 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 : identifier;
         }
 
-        private static AccessorDeclarationSyntax CreateGetAccessor(GetAndSetMethods getAndSetMethods)
+        private static AccessorDeclarationSyntax CreateGetAccessor(
+            GetAndSetMethods getAndSetMethods, DocumentOptionSet documentOptions, ParseOptions parseOptions)
+        {
+            var accessorDeclaration = CreateGetAccessorWorker(getAndSetMethods);
+
+            return UseExpressionOrBlockBodyIfDesired(
+                documentOptions, parseOptions, accessorDeclaration);
+        }
+
+        private static AccessorDeclarationSyntax UseExpressionOrBlockBodyIfDesired(
+            DocumentOptionSet documentOptions, ParseOptions parseOptions,
+            AccessorDeclarationSyntax accessorDeclaration)
+        {
+            var preferExpressionBody = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
+            if (accessorDeclaration?.Body != null && preferExpressionBody)
+            {
+                if (accessorDeclaration.Body.TryConvertToExpressionBody(
+                        parseOptions, out var arrowExpression, out var semicolonToken))
+                {
+                    return accessorDeclaration.WithBody(null)
+                                              .WithExpressionBody(arrowExpression)
+                                              .WithSemicolonToken(semicolonToken)
+                                              .WithAdditionalAnnotations(Formatter.Annotation);
+                }
+            }
+            else if (accessorDeclaration?.ExpressionBody != null && !preferExpressionBody)
+            {
+                var block = accessorDeclaration.ExpressionBody.ConvertToBlock(
+                    accessorDeclaration.SemicolonToken,
+                    createReturnStatementForExpression: accessorDeclaration.Kind() == SyntaxKind.GetAccessorDeclaration);
+                return accessorDeclaration.WithExpressionBody(null)
+                                          .WithSemicolonToken(default(SyntaxToken))
+                                          .WithBody(block)
+                                          .WithAdditionalAnnotations(Formatter.Annotation);
+            }
+
+            return accessorDeclaration;
+        }
+
+        private static AccessorDeclarationSyntax CreateGetAccessorWorker(GetAndSetMethods getAndSetMethods)
         {
             var getMethodDeclaration = getAndSetMethods.GetMethodDeclaration as MethodDeclarationSyntax;
 
             var accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration);
-            if (getMethodDeclaration.ExpressionBody != null && getAndSetMethods.SetMethodDeclaration != null)
+
+            if (getMethodDeclaration.ExpressionBody != null)
             {
-                var statement = SyntaxFactory.ReturnStatement(getMethodDeclaration.ExpressionBody.Expression)
-                                             .WithSemicolonToken(getMethodDeclaration.SemicolonToken);
-                return accessor.WithBody(SyntaxFactory.Block(statement));
+                return accessor.WithExpressionBody(getMethodDeclaration.ExpressionBody)
+                               .WithSemicolonToken(getMethodDeclaration.SemicolonToken);
             }
 
             if (getMethodDeclaration.SemicolonToken.Kind() != SyntaxKind.None)
@@ -139,6 +226,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         }
 
         private static AccessorDeclarationSyntax CreateSetAccessor(
+            SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
+            DocumentOptionSet documentOptions, ParseOptions parseOptions)
+        {
+            var accessorDeclaration = CreateSetAccessorWorker(semanticModel, generator, getAndSetMethods);
+            return UseExpressionOrBlockBodyIfDesired(documentOptions, parseOptions, accessorDeclaration);
+        }
+
+        private static AccessorDeclarationSyntax CreateSetAccessorWorker(
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods)
         {
             var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration as MethodDeclarationSyntax;
@@ -158,10 +253,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
 
             if (setMethodDeclaration.ExpressionBody != null)
             {
-                var expression = ReplaceReferencesToParameterWithValue(semanticModel, setMethod.Parameters[0], setMethodDeclaration.ExpressionBody.Expression);
-                var statement = SyntaxFactory.ExpressionStatement(expression)
-                                             .WithSemicolonToken(setMethodDeclaration.SemicolonToken);
-                return accessor.WithBody(SyntaxFactory.Block(statement));
+                var oldExpressionBody = setMethodDeclaration.ExpressionBody;
+                var expression = ReplaceReferencesToParameterWithValue(
+                    semanticModel, setMethod.Parameters[0], oldExpressionBody.Expression);
+
+                return accessor.WithExpressionBody(oldExpressionBody.WithExpression(expression))
+                               .WithSemicolonToken(setMethodDeclaration.SemicolonToken);
             }
 
             if (setMethodDeclaration.SemicolonToken.Kind() != SyntaxKind.None)
@@ -251,16 +348,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 });
             };
 
-
         public void ReplaceGetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged)
-        {
-            ReplaceInvocation(editor, nameToken, propertyName, nameChanged, s_replaceGetReferenceInvocation);
-        }
+            => ReplaceInvocation(editor, nameToken, propertyName, nameChanged, s_replaceGetReferenceInvocation);
 
         public void ReplaceSetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged)
-        {
-            ReplaceInvocation(editor, nameToken, propertyName, nameChanged, s_replaceSetReferenceInvocation);
-        }
+            => ReplaceInvocation(editor, nameToken, propertyName, nameChanged, s_replaceSetReferenceInvocation);
 
         public void ReplaceInvocation(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged,
             Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> replace)

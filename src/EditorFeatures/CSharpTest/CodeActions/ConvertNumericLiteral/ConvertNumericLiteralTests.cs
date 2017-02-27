@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
 {
     public class ConvertNumericLiteralTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
             => new CSharpConvertNumericLiteralCodeRefactoringProvider();
 
         private enum Refactoring { ChangeBase1, ChangeBase2, AddOrRemoveDigitSeparators }

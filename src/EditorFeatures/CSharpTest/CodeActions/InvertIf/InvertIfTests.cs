@@ -17,10 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
             await TestAsync(CreateTreeText(initial), CreateTreeText(expected), index: 0);
         }
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new InvertIfCodeRefactoringProvider();
-        }
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+            => new InvertIfCodeRefactoringProvider();
 
         private string CreateTreeText(string initial)
         {
