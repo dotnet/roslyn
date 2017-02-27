@@ -5,11 +5,32 @@ using System.Threading;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using System;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class VisualStudioProjectTracker : IVsSolutionEvents
+    internal partial class VisualStudioWorkspaceImpl : IVsSolutionEvents
     {
+        private IVsSolution _vsSolution;
+        private uint? _solutionEventsCookie;
+
+        public void AdviseSolutionEvents(IVsSolution solution)
+        {
+            _vsSolution = solution;
+            _vsSolution.AdviseSolutionEvents(this, out var solutionEventsCookie);
+            _solutionEventsCookie = solutionEventsCookie;
+        }
+
+        public void UnadviseSolutionEvents()
+        {
+            if (_solutionEventsCookie.HasValue)
+            {
+                _vsSolution.UnadviseSolutionEvents(_solutionEventsCookie.Value);
+                _solutionEventsCookie = null;
+            }
+        }
+
         int IVsSolutionEvents.OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
         {
             return VSConstants.S_OK;
@@ -22,11 +43,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
         {
-            AssertIsForeground();
+            _foregroundObject.Value.AssertIsForeground();
 
-            if (IsDeferredSolutionLoadEnabled())
+            if (IsDeferredSolutionLoadEnabled(Shell.ServiceProvider.GlobalProvider))
             {
-                LoadSolutionFromMSBuildAsync(_solutionParsingCancellationTokenSource.Token).FireAndForget();
+                GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider).LoadSolutionFromMSBuildAsync().FireAndForget();
             }
 
             return VSConstants.S_OK;
@@ -59,60 +80,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
         {
-            AssertIsForeground();
-
-            _solutionIsClosing = true;
-
-            foreach (var p in this.ImmutableProjects)
-            {
-                p.StopPushingToWorkspaceHosts();
-            }
-
-            _solutionLoadComplete = false;
-
-            // Cancel any background solution parsing. NOTE: This means that that work needs to
-            // check the token periodically, and whenever resuming from an "await"
-            _solutionParsingCancellationTokenSource.Cancel();
-            _solutionParsingCancellationTokenSource = new CancellationTokenSource();
-
+            DeferredState?.ProjectTracker.OnBeforeCloseSolution();
             return VSConstants.S_OK;
         }
 
         int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
         {
-            AssertIsForeground();
-
-            if (IsDeferredSolutionLoadEnabled())
-            {
-                // Copy to avoid modifying the collection while enumerating
-                var loadedProjects = ImmutableProjects.ToList();
-                foreach (var p in loadedProjects)
-                {
-                    p.Disconnect();
-                }
-            }
-
-            lock (_gate)
-            {
-                Contract.ThrowIfFalse(_projectMap.Count == 0);
-            }
-
-            NotifyWorkspaceHosts(host => host.OnSolutionRemoved());
-            NotifyWorkspaceHosts(host => host.ClearSolution());
-
-            lock (_gate)
-            {
-                _projectPathToIdMap.Clear();
-            }
-
-            foreach (var workspaceHost in _workspaceHosts)
-            {
-                workspaceHost.SolutionClosed();
-            }
-
-            _solutionIsClosing = false;
-
+            DeferredState?.ProjectTracker.OnAfterCloseSolution();
             return VSConstants.S_OK;
         }
+
+        internal static bool IsDeferredSolutionLoadEnabled(IServiceProvider serviceProvider)
+        {
+            // NOTE: It is expected that the "as" will fail on Dev14, as IVsSolution7 was
+            // introduced in Dev15.  Be sure to handle the null result here.
+            var solution7 = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution7;
+            return solution7?.IsSolutionLoadDeferred() == true;
+        }
+
     }
 }
