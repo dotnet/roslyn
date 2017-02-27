@@ -6629,7 +6629,7 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Dim output = outWriter.ToString()
 
             Dim expectedExitCode = If(expectedErrorCount > 0, 1, 0)
-            Assert.True(expectedExitCode = exitCode, $"Expected exit code to be '{expectedExitCode}' was '{exitCode}'.{Environment.NewLine}Output:{Environment.NewLine}{output}"))
+            Assert.True(expectedExitCode = exitCode, $"Expected exit code to be '{expectedExitCode}' was '{exitCode}'.{Environment.NewLine}Output:{Environment.NewLine}{output}")
 
             Assert.DoesNotContain(" : hidden", output, StringComparison.Ordinal)
 
