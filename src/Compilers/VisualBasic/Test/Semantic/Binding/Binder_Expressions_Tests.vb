@@ -30,11 +30,9 @@ End Module
 "))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30157: Leading '.' or '!' can only appear inside a 'With' statement.
+"BC30157: Leading '.' or '!' can only appear inside a 'With' statement.
         x = .foo
-            ~~~~
-</expected>)
+            ~~~~")
             End Sub
 
             ' Test field access off a local variable of structure type.
@@ -120,8 +118,7 @@ End Class
 "))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC32045: 'x' has no type parameters and so cannot have type arguments.
+"BC32045: 'x' has no type parameters and so cannot have type arguments.
         y = x(Of Integer)
              ~~~~~~~~~~~~
 BC32045: 'System.Collections' has no type parameters and so cannot have type arguments.
@@ -132,8 +129,7 @@ BC32045: 'y As String' has no type parameters and so cannot have type arguments.
              ~~~~~~~~~~~~
 BC32045: 'U' has no type parameters and so cannot have type arguments.
         dim x as integer = U(Of T)
-                            ~~~~~~
-</expected>)
+                            ~~~~~~")
             End Sub
 
             ' Test access to a local variable and assignment of them..
@@ -173,14 +169,12 @@ End Module
 "))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30106: Number of indices exceeds the number of dimensions of the indexed array.
-        z(1,1) = "world"
+"BC30106: Number of indices exceeds the number of dimensions of the indexed array.
+        z(1,1) = ""world""
          ~~~~~
 BC30105: Number of indices is less than the number of dimensions of the indexed array.
-        z() = "world"
-         ~~  
-</expected>)
+        z() = ""world""
+         ~~")
             End Sub
 
             ' Test array upper bound is correct
@@ -223,11 +217,9 @@ End Module
 "))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30512: Option Strict On disallows implicit conversions from 'UInteger' to 'Integer'.
-        z(i) = "world"
-          ~
-</expected>)
+"BC30512: Option Strict On disallows implicit conversions from 'UInteger' to 'Integer'.
+        z(i) = ""world""
+          ~")
             End Sub
 
             ' Test access to a parameter (both simple and byref)
@@ -339,11 +331,9 @@ End Module
 "))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30451: 'foo' is not declared. It may be inaccessible due to its protection level.
+"BC30451: 'foo' is not declared. It may be inaccessible due to its protection level.
         x = foo
-            ~~~
-</expected>)
+            ~~~")
             End Sub
 
             <WorkItem(538871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538871")>
@@ -365,14 +355,12 @@ End Module
 "))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30451: 'Rdim123' is not declared. It may be inaccessible due to its protection level.
+"BC30451: 'Rdim123' is not declared. It may be inaccessible due to its protection level.
         Rdim123.Rdim456()
         ~~~~~~~
 BC30456: 'B' is not a member of 'MainModule.A'.
         A.B.Rdim456()
-        ~~~
-</expected>)
+        ~~~")
             End Sub
 
             ' Test access to qualified identifier not found, in various scopes
@@ -402,8 +390,7 @@ Module M1
 End Module"))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30456: 'foo' is not a member of 'N'.
+"BC30456: 'foo' is not a member of 'N'.
         x = N.foo
             ~~~~~
 BC30456: 'foo' is not a member of 'C'.
@@ -414,8 +401,7 @@ BC30456: 'foo' is not a member of 'C'.
             ~~~~~~~~~~~~~
 BC30456: 'foo' is not a member of 'M1'.
         x = M1.foo
-            ~~~~~~
-</expected>)
+            ~~~~~~")
             End Sub
 
             ' Test access qualified identifier off of type parameter
@@ -433,11 +419,9 @@ End Class
 "))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC32098: Type parameters cannot be used as qualifiers.
+"BC32098: Type parameters cannot be used as qualifiers.
         x = T.foo
-            ~~~~~
-</expected>)
+            ~~~~~")
             End Sub
 
             ' Test access to simple identifier that can be found, but has an error.
@@ -460,11 +444,9 @@ End Module
 "))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC32042: Too few type arguments to 'Foo(Of T)'.
+"BC32042: Too few type arguments to 'Foo(Of T)'.
         y = Foo.x
-            ~~~
-</expected>)
+            ~~~")
             End Sub
 
             ' Test access to qualified identifier that can be found, but has an error.
@@ -500,8 +482,7 @@ End Module
 
                 ' Note that we produce different (but I think better) error messages than Dev10.
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC32042: Too few type arguments to 'Foo(Of T)'.
+"BC32042: Too few type arguments to 'Foo(Of T)'.
         y = N.Foo.x
             ~~~~~
 BC32042: Too few type arguments to 'C.Foo(Of T)'.
@@ -512,8 +493,7 @@ BC32042: Too few type arguments to 'C.Foo(Of T)'.
             ~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         y = cInstance.Foo(Of Integer).x
-            ~~~~~~~~~~~~~~~~~~~~~~~~~
-</expected>)
+            ~~~~~~~~~~~~~~~~~~~~~~~~~")
             End Sub
 
             ' Test access to instance member in various ways to get various errors.
@@ -552,8 +532,7 @@ Class K
 End Class"))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30469: Reference to a non-shared member requires an object reference.
+"BC30469: Reference to a non-shared member requires an object reference.
             y()
             ~
 BC30469: Reference to a non-shared member requires an object reference.
@@ -570,8 +549,7 @@ BC30469: Reference to a non-shared member requires an object reference.
             ~~~~
 BC30469: Reference to a non-shared member requires an object reference.
             v = Z.xx
-                ~~~~
-</expected>)
+                ~~~~")
             End Sub
 
             ' Test access to static member in various ways to get various errors.
@@ -611,14 +589,12 @@ End Class
 "))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+"BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
             zInstance.yy()
             ~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
             v = zInstance.xx
-                ~~~~~~~~~~~~
-</expected>)
+                ~~~~~~~~~~~~")
             End Sub
 
             <Fact(), WorkItem(531587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531587")>
@@ -742,14 +718,12 @@ End Module
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30068: Expression is a value and therefore cannot be the target of an assignment.
+"BC30068: Expression is a value and therefore cannot be the target of an assignment.
     Foo(1) = Nothing
     ~~~~~~
 BC42105: Function 'Foo' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
   End Function
-  ~~~~~~~~~~~~
-</expected>)
+  ~~~~~~~~~~~~")
 
                 compilationDef = Unit.Make("Bug4272").With_a_vb(
 "Module Module1
@@ -877,11 +851,9 @@ End Module
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30491: Expression does not produce a value.
+"BC30491: Expression does not produce a value.
     Main().ToString
-    ~~~~~~
-</expected>)
+    ~~~~~~")
             End Sub
 
             <Fact>
@@ -926,11 +898,9 @@ End Module
                 compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30455: Argument not specified for parameter 'x' of 'Public Function Foo(x As Integer) As Integer'.
+"BC30455: Argument not specified for parameter 'x' of 'Public Function Foo(x As Integer) As Integer'.
     System.Console.WriteLine(Foo.ToString)
-                             ~~~
-</expected>)
+                             ~~~")
 
             End Sub
 
@@ -975,11 +945,9 @@ End Class
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30108: 'S' is a type and cannot be used as an expression.
+"BC30108: 'S' is a type and cannot be used as an expression.
             S()
-            ~
-</expected>)
+            ~")
             End Sub
 
             <WorkItem(538438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538438")>
@@ -1022,8 +990,7 @@ BC30108: 'S' is a type and cannot be used as an expression.
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
                 AssertTheseDiagnostics(compilation,
-                                               <errors>
- BC32059: Array lower bounds can be only '0'.
+"BC32059: Array lower bounds can be only '0'.
     	    Dim x1(0! To 5) as Single
                 ~~
 BC32059: Array lower bounds can be only '0'.
@@ -1031,8 +998,7 @@ BC32059: Array lower bounds can be only '0'.
                    ~~~
 BC32059: Array lower bounds can be only '0'.
             Dim x3(0d to 5) as Single
-                   ~~
-                                               </errors>)
+                   ~~")
 
             End Sub
 
@@ -1055,14 +1021,12 @@ End Class
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
                 AssertTheseDiagnostics(compilation,
-                                               <errors>
-BC42024: Unused local variable: 'foo'.
+"BC42024: Unused local variable: 'foo'.
         Dim foo As Integer
             ~~~
 BC32045: 'foo' has no type parameters and so cannot have type arguments.
         foo(Of Integer)()
-           ~~~~~~~~~~~~
-                                               </errors>)
+           ~~~~~~~~~~~~")
 
 
             End Sub
@@ -1239,14 +1203,13 @@ End Class
 
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
-                AssertTheseDiagnostics(compilation, <expected>
-BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property color(x As Integer) As Color'.
+                AssertTheseDiagnostics(compilation,
+"BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property color(x As Integer) As Color'.
         dim a = color.G(1)          ' error, missing parameter to color property
                 ~~~~~
 BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property color(x As Integer) As Color'.
         Return color.G(of Long)(1)          ' error, missing parameter to color property
-               ~~~~~
-                                                            </expected>)
+               ~~~~~")
 
             End Sub
 
@@ -1480,14 +1443,12 @@ End Module
 
 
                 AssertTheseDiagnostics(compilation,
-                                               <errors>
-BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property Color(x As Integer) As Module1.Color'.
+"BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property Color(x As Integer) As Module1.Color'.
             c1 = Color.G(1)          ' missing parameter x
                  ~~~~~
 BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property Color(x As Integer) As Module1.Color'.
             c1 = Color.G()          ' missing parameter x
-                 ~~~~~
-                                               </errors>)
+                 ~~~~~")
             End Sub
 
             <Fact>
@@ -1874,11 +1835,10 @@ End Class
 
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
-                AssertTheseDiagnostics(compilation, <expected>
-BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.
+                AssertTheseDiagnostics(compilation,
+"BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.
         Return Bar2.c
-               ~~~~
-                                                            </expected>)
+               ~~~~")
             End Sub
 
             <Fact>
@@ -1900,8 +1860,7 @@ End Module
 
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(text)
                 AssertTheseDiagnostics(compilation,
-                                               <errors>
-BC42024: Unused local variable: 'y'.
+"BC42024: Unused local variable: 'y'.
         Dim y As System.Collections.Generic.List(Of M)
             ~
 BC30371: Module 'M' cannot be used as a type.
@@ -1918,8 +1877,7 @@ BC42024: Unused local variable: 'r'.
             ~
 BC30371: Module 'M' cannot be used as a type.
         Dim r As M()
-                 ~
-</errors>)
+                 ~")
 
             End Sub
 
@@ -1937,11 +1895,9 @@ End Module
 
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(text)
                 AssertTheseDiagnostics(compilation,
-<errors>
-BC30182: Type expected.
+"BC30182: Type expected.
     Dim x = GetType(NS)
-                    ~~
-</errors>)
+                    ~~")
             End Sub
 
             <WorkItem(542383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542383")>
@@ -2023,11 +1979,10 @@ Namespace System.Runtime.CompilerServices
 End Namespace
 "))
 
-                Dim expectedErrors1 = <errors>
-BC30251: Type 'Object()' has no constructors.
+                Dim expectedErrors1 =
+"BC30251: Type 'Object()' has no constructors.
         Foo(Sub(x) x.New())
-                   ~~~~~
-                 </errors>
+                   ~~~~~"
                 AssertTheseDiagnostics(compilation1, expectedErrors1)
             End Sub
 
@@ -2066,11 +2021,11 @@ Namespace System.Runtime.CompilerServices
 End Namespace
 "))
 
-                Dim expectedErrors1 = <errors>
-BC30282: Constructor call is valid only as the first statement in an instance constructor.
+                Dim expectedErrors1 = 
+"BC30282: Constructor call is valid only as the first statement in an instance constructor.
         Foo(Sub(x) x.New())
                    ~~~~~
-                 </errors>
+"
                 AssertTheseDiagnostics(compilation1, expectedErrors1)
             End Sub
 
@@ -2136,8 +2091,8 @@ Class Outer(Of T)
 End Class
 "))
 
-                AssertTheseDiagnostics(compilation1, <expected>
-BC32099: Comma or ')' expected.
+                AssertTheseDiagnostics(compilation1,
+"BC32099: Comma or ')' expected.
         System.Console.WriteLine(GetType(Outer(Of ).Inner(Of T))) ' BC32099: Comma or ')' expected.
                                                              ~
 BC32099: Comma or ')' expected.
@@ -2148,8 +2103,7 @@ BC30182: Type expected.
                                                               ~
 BC30182: Type expected.
         System.Console.WriteLine(GetType(Outer(Of Integer).Inner(Of ))) ' BC30182: Type expected.
-                                                                    ~
-</expected>)
+                                                                    ~")
             End Sub
 
             <Fact()>
@@ -2212,11 +2166,10 @@ End Class
 
                 Dim c3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source3, {MetadataReference.CreateFromImage(derivedBuffer), MetadataReference.CreateFromImage(image)})
 
-                AssertTheseDiagnostics(c3, <expected>
-BC30545: Property access must assign to the property or use its value.
+                AssertTheseDiagnostics(c3,
+"BC30545: Property access must assign to the property or use its value.
         x.AProperty()
-        ~~~~~~~~~~~~~
-                     </expected>)
+        ~~~~~~~~~~~~~")
             End Sub
 
             <Fact>
@@ -2273,11 +2226,10 @@ Class Frame
 End Class
 "))
 
-                AssertTheseDiagnostics(compilation, <expected>
-BC30455: Argument not specified for parameter 'a' of 'Public Overridable ReadOnly Property TypeSubstitution(a As Integer) As TypeSubstitution'.
+                AssertTheseDiagnostics(compilation,
+"BC30455: Argument not specified for parameter 'a' of 'Public Overridable ReadOnly Property TypeSubstitution(a As Integer) As TypeSubstitution'.
          Return TypeSubstitution.Create()
-                ~~~~~~~~~~~~~~~~
-                                                            </expected>)
+                ~~~~~~~~~~~~~~~~")
             End Sub
 
             <Fact>
@@ -2341,14 +2293,13 @@ Class C
     End Sub
 End Class
 "))
-                compilation.AssertTheseDiagnostics(<expected>
-BC30064: 'ReadOnly' variable cannot be the target of an assignment.
+                compilation.AssertTheseDiagnostics(
+"BC30064: 'ReadOnly' variable cannot be the target of an assignment.
         F2.F = Nothing ' IsLValue = False
         ~~~~
 BC30068: Expression is a value and therefore cannot be the target of an assignment.
         F2.P = Nothing ' IsLValue = False
-        ~~~~
-                                          </expected>)
+        ~~~~")
             End Sub
 
             <Fact>
@@ -2364,14 +2315,12 @@ End Module
 "))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30438: Constants must have a value.
+"BC30438: Constants must have a value.
         Const local _? As Integer
               ~~~~~
 BC30203: Identifier expected.
         Const local _? As Integer
-                    ~
-</expected>)
+                    ~")
             End Sub
 
             <Fact>
@@ -2387,14 +2336,13 @@ End Module
 "))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30203: Identifier expected.
+"BC30203: Identifier expected.
         Const '
               ~
 BC30438: Constants must have a value.
         Const '
-              ~    
-</expected>)
+              ~
+")
             End Sub
 
             <WorkItem(546469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546469")>
@@ -2434,8 +2382,8 @@ Namespace Bar
 End Namespace
 "))
 
-                AssertTheseDiagnostics(compilation, <expected>
-BC31428: Arrays of type 'System.Void' are not allowed in this expression.
+                AssertTheseDiagnostics(compilation,
+"BC31428: Arrays of type 'System.Void' are not allowed in this expression.
             x = GetType(Void()) ' error
                         ~~~~~~
 BC30371: Module 'Test' cannot be used as a type.
@@ -2452,8 +2400,7 @@ BC30371: Module 'Test' cannot be used as a type.
                                 ~~~~
 BC31422: 'System.Void' can only be used in a GetType expression.
             x = GetType(List(Of Void)) ' error
-                                ~~~~
-                                           </expected>)
+                                ~~~~")
             End Sub
 
             <WorkItem(530438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530438")>
@@ -2542,13 +2489,11 @@ End Class
 "))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30521: Overload resolution failed because no accessible 'Color' is most specific for these arguments:
+"BC30521: Overload resolution failed because no accessible 'Color' is most specific for these arguments:
     'Public ReadOnly Property Color([x As Integer = 0]) As Color': Not most specific.
-    'Public ReadOnly Property Color([x As String = ""]) As Integer': Not most specific.
+    'Public ReadOnly Property Color([x As String = """"]) As Integer': Not most specific.
         Color.Cat()
-        ~~~~~
-</expected>)
+        ~~~~~")
             End Sub
 
             <WorkItem(1108036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108036")>
@@ -2579,13 +2524,11 @@ Class Program
 End Class"))
 
                 AssertTheseDiagnostics(compilation,
-<expected>
-BC30521: Overload resolution failed because no accessible 'Color' is most specific for these arguments:
+"BC30521: Overload resolution failed because no accessible 'Color' is most specific for these arguments:
     'Public ReadOnly Property Color([x As Integer = 0]) As Integer': Not most specific.
-    'Public ReadOnly Property Color([x As String = ""]) As Color': Not most specific.
+    'Public ReadOnly Property Color([x As String = """"]) As Color': Not most specific.
         Color.Cat()
-        ~~~~~
-</expected>)
+        ~~~~~")
             End Sub
 
             <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
