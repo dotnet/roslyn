@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 if (Exact)
                 {
                     // We did an exact, case insensitive, search.  Case sensitive matches should
-                    // be preffered though over insensitive ones.
+                    // be preferred though over insensitive ones.
                     return symbols.SelectAsArray(s =>
                         SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1));
                 }
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public ProjectSearchScope(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 Project project,
-                bool ignoreCase,
+                bool exact,
                 CancellationToken cancellationToken)
-                : base(provider, ignoreCase, cancellationToken)
+                : base(provider, exact, cancellationToken)
             {
                 _project = project;
             }
@@ -102,9 +102,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public AllSymbolsProjectSearchScope(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 Project project,
-                bool ignoreCase,
+                bool exact,
                 CancellationToken cancellationToken)
-                : base(provider, project, ignoreCase, cancellationToken)
+                : base(provider, project, exact, cancellationToken)
             {
             }
 

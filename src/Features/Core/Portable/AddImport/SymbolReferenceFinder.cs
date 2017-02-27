@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     tasks.Add(this.GetReferencesForCollectionInitializerMethodsAsync(searchScope));
                     tasks.Add(this.GetReferencesForQueryPatternsAsync(searchScope));
+                    tasks.Add(this.GetReferencesForDeconstructAsync(searchScope));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -407,22 +408,62 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     if (type != null)
                     {
                         // find extension methods named "Select"
-                        var symbols = await searchScope.FindDeclarationsAsync(
-                            nameof(Enumerable.Select), nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
-
-                        // Note: there is no "desiredName" when doing this.  We're not going to do any
-                        // renames of the user code.  We're just looking for an extension method called 
-                        // "Select", but that name has no bearing on the code in question that we're
-                        // trying to fix up.
-                        var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
-                        var viableExtensionMethods = GetViableExtensionMethods(methodSymbols, type, searchScope.CancellationToken);
-                        var namespaceSymbols = viableExtensionMethods.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
-
-                        return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
+                        return await GetReferencesForExtensionMethodAsync(
+                            searchScope, nameof(Enumerable.Select), type).ConfigureAwait(false);
                     }
                 }
 
                 return ImmutableArray<SymbolReference>.Empty;
+            }
+
+            /// <summary>
+            /// Searches for extension methods exactly called 'Deconstruct'.  Returns
+            /// <see cref="SymbolReference"/>s to the <see cref="INamespaceSymbol"/>s that contain
+            /// the static classes that those extension methods are contained in.
+            /// </summary>
+            private async Task<ImmutableArray<SymbolReference>> GetReferencesForDeconstructAsync(SearchScope searchScope)
+            {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+
+                if (_owner.CanAddImportForDeconstruct(_diagnostic, _node))
+                {
+                    var type = _owner.GetDeconstructInfo(_semanticModel, _node, searchScope.CancellationToken);
+                    if (type != null)
+                    {
+                        // Note: we could check that the extension methods have the right number of out-params.  
+                        // But that would involve figuring out what we're trying to deconstruct into.  For now
+                        // we'll just be permissive, with the assumption that there won't be that many matching
+                        // 'Deconstruct' extension methods for the type of node that we're on.
+                        return await GetReferencesForExtensionMethodAsync(
+                            searchScope, "Deconstruct", type,
+                            m => m.ReturnsVoid).ConfigureAwait(false);
+                    }
+                }
+
+                return ImmutableArray<SymbolReference>.Empty;
+            }
+
+            private async Task<ImmutableArray<SymbolReference>> GetReferencesForExtensionMethodAsync(
+                SearchScope searchScope, string name, ITypeSymbol type, Func<IMethodSymbol, bool> predicate = null)
+            {
+                var symbols = await searchScope.FindDeclarationsAsync(
+                    name, nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
+
+                // Note: there is no "desiredName" when doing this.  We're not going to do any
+                // renames of the user code.  We're just looking for an extension method called 
+                // "Select", but that name has no bearing on the code in question that we're
+                // trying to fix up.
+                var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
+                var viableExtensionMethods = GetViableExtensionMethods(methodSymbols, type, searchScope.CancellationToken);
+
+                if (predicate != null)
+                {
+                    viableExtensionMethods = viableExtensionMethods.WhereAsArray(s => predicate(s.Symbol));
+                }
+
+                var namespaceSymbols = viableExtensionMethods.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
+
+                return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
             }
 
             protected bool ExpressionBinds(

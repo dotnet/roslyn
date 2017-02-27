@@ -1067,5 +1067,47 @@ public class C
 }";
             await TestAsync(initialText, expectedText);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestDeconstructExtension()
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void M(Program p)
+    {
+        var (x, y) = [|p|];
+    }
+}
+
+namespace N
+{
+    static class E
+    {
+        public static void Deconstruct(this Program p, out int x, out int y) { }
+    }
+}",
+@"
+using N;
+
+class Program
+{
+    void M(Program p)
+    {
+        var (x, y) = [|p|];
+    }
+}
+
+namespace N
+{
+    static class E
+    {
+        public static void Deconstruct(this Program p, out int x, out int y) { }
+    }
+}",
+parseOptions: null,
+withScriptOption: false);
+        }
     }
 }
