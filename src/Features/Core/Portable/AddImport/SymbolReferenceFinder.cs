@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingExtensionMethodsAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode) &&
+                if (_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode) &&
                     nameNode != null)
                 {
                     searchScope.CancellationToken.ThrowIfCancellationRequested();
