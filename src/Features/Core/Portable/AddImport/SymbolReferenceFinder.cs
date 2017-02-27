@@ -258,10 +258,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                                         symbol.Name, (TSimpleNameSyntax)expression, SymbolFilter.Type).ConfigureAwait(false);
 
                                     // Return results that have accessible members.
+                                    var namedTypeSymbols = OfType<INamedTypeSymbol>(symbolResults);
                                     var name = nameNode.GetFirstToken().ValueText;
                                     var namespaceResults =
-                                        symbolResults.WhereAsArray(sr => HasAccessibleStaticFieldOrProperty(sr.Symbol, name))
-                                                     .SelectAsArray(sr => sr.WithSymbol(sr.Symbol.ContainingNamespace));
+                                        namedTypeSymbols.WhereAsArray(sr => HasAccessibleStaticFieldOrProperty(sr.Symbol, name))
+                                                        .SelectAsArray(sr => sr.WithSymbol(sr.Symbol.ContainingNamespace));
 
                                     return this.GetNamespaceSymbolReferences(searchScope, namespaceResults);
                                 }
@@ -271,6 +272,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
 
                 return ImmutableArray<SymbolReference>.Empty;
+            }
+
+            private bool HasAccessibleStaticFieldOrProperty(INamedTypeSymbol namedType, string fieldOrPropertyName)
+            {
+                return namedType.GetMembers(fieldOrPropertyName)
+                                .Any(m => (m is IFieldSymbol || m is IPropertySymbol) &&
+                                          m.IsStatic &&
+                                          m.IsAccessibleWithin(_semanticModel.Compilation.Assembly));
             }
 
             /// <summary>
@@ -560,23 +569,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 var methodSymbols = await GetAddMethodsAsync(searchScope, _node.Parent).ConfigureAwait(false);
                 return GetNamespaceSymbolReferences(searchScope, methodSymbols.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
-            }
-
-            private bool HasAccessibleStaticFieldOrProperty(ISymbol symbol, string fieldOrPropertyName)
-            {
-                var namedType = (INamedTypeSymbol)symbol;
-                if (namedType != null)
-                {
-                    var members = namedType.GetMembers(fieldOrPropertyName);
-                    var query = from m in members
-                                where m is IFieldSymbol || m is IPropertySymbol
-                                where m.IsAccessibleWithin(_semanticModel.Compilation.Assembly)
-                                where m.IsStatic
-                                select m;
-                    return query.Any();
-                }
-
-                return false;
             }
 
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForQueryPatternsAsync(SearchScope searchScope)
