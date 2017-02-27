@@ -130,7 +130,7 @@ class Program
 
             SendKeys(Shift(VirtualKey.F12));
 
-            const string findReferencesCaption = "Find References";
+            const string findReferencesCaption = "'\"1\"' references";
             var results = VisualStudio.Instance.FindReferencesWindow.GetContents(findReferencesCaption);
 
             var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
@@ -140,7 +140,12 @@ class Program
                 results,
                 new Action<Reference>[]
                 {
-                    reference => Assert.Equal(expected: "Search found no results", actual: reference.Code)
+                    reference =>
+                    {
+                        Assert.Equal(expected: "string local = \"1\";", actual: reference.Code);
+                        Assert.Equal(expected: 5, actual: reference.Line);
+                        Assert.Equal(expected: 24, actual: reference.Column);
+                    }
                 });
         }
     }
