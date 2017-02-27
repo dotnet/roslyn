@@ -75,14 +75,11 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <summary>
         /// If someone need to create a private pool
         /// </summary>
-        /// <param name="size">Initial size of the pool. Bounded to 32 &lt;= Size &lt;= 256)</param>
+        /// <param name="size">Initial size of the pool.</param>
         /// <returns></returns>
         public static ObjectPool<PooledStringBuilder> CreatePool(int size = 32)
         {
-            const int LowerBound = 32;
-            const int UpperBound = 256;
             ObjectPool<PooledStringBuilder> pool = null;
-            size = (size < LowerBound ? LowerBound: (size > UpperBound ? UpperBound : size));
             pool = new ObjectPool<PooledStringBuilder>(() => new PooledStringBuilder(pool), size);
             return pool;
         }
