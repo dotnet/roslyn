@@ -196,7 +196,17 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return newDocument;
         }
 
-        private static SyntaxNode GetNewMethodDeclaration(IMethodSymbol method, TArgumentSyntax argument, SeparatedSyntaxList<TArgumentSyntax> argumentList, SyntaxGenerator generator, SyntaxNode declaration, ISemanticFactsService semanticFacts, string argumentName, SyntaxNode expression, SemanticModel semanticModel, ITypeSymbol parameterType)
+        private static SyntaxNode GetNewMethodDeclaration(
+            IMethodSymbol method,
+            TArgumentSyntax argument,
+            SeparatedSyntaxList<TArgumentSyntax> argumentList,
+            SyntaxGenerator generator,
+            SyntaxNode declaration,
+            ISemanticFactsService semanticFacts,
+            string argumentName,
+            SyntaxNode expression,
+            SemanticModel semanticModel,
+            ITypeSymbol parameterType)
         {
             if (!string.IsNullOrWhiteSpace(argumentName))
             {
