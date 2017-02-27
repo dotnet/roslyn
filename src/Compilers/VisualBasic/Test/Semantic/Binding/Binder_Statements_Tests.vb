@@ -23,33 +23,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub HelloWorld1()
             CompileAndVerify(
-<compilation name="HelloWorld1">
-    <file name="a.vb">
-Module M        
+                Unit.Make("HelloWorld1").With_a_vb(
+"Module M        
     Sub Main()
-        System.Console.WriteLine("Hello, world!")
+        System.Console.WriteLine(""Hello, world!"")
     End Sub
 End Module
-    </file>
-</compilation>,
+"),
     expectedOutput:="Hello, world!")
         End Sub
 
         <Fact>
         Public Sub HelloWorld2()
             CompileAndVerify(
-<compilation name="HelloWorld2">
-    <file name="a.vb">
-Imports System        
+Unit.Make("HelloWorld2").With_a_vb(
+"Imports System        
 Module M1
     Sub Main()
         dim x as object
         x = 42
-        Console.WriteLine("Hello, world {0} {1}", 135.2.ToString(System.Globalization.CultureInfo.InvariantCulture), x)
+        Console.WriteLine(""Hello, world {0} {1}"", 135.2.ToString(System.Globalization.CultureInfo.InvariantCulture), x)
     End Sub
-End Module
-    </file>
-</compilation>,
+End Module"),
     expectedOutput:="Hello, world 135.2 42")
         End Sub
 
@@ -57,13 +52,12 @@ End Module
         <Fact>
         Public Sub LocalWithSimpleInitialization()
             CompileAndVerify(
-<compilation name="LocalWithSimpleInitialization">
-    <file name="a.vb">
-Imports System        
+Unit.Make("LocalWithSimpleInitialization").With_a_vb(
+"Imports System        
 Module M1
     Sub Main()
 
-        Dim s As String = "Hello world"
+        Dim s As String = ""Hello world""
         Console.WriteLine(s)
 
         s = nothing
@@ -77,22 +71,20 @@ Module M1
 
     End Sub
 End Module
-    </file>
-</compilation>,
-    expectedOutput:=<![CDATA[
+"),
+    expectedOutput:="
 Hello world
 
 1
 1.5
-]]>)
+")
         End Sub
 
         <Fact>
         Public Sub LocalAsNew()
             CompileAndVerify(
-<compilation name="LocalAsNew">
-    <file name="a.vb">
-Imports System 
+Unit.Make("LocalAsNew").With_a_vb(
+"Imports System 
 Class C
   Sub New (msg as string)
     Me.msg = msg
@@ -107,12 +99,11 @@ End Class
 
 Module M1
     Sub Main()
-        dim myC as New C("hello")
+        dim myC as New C(""hello"")
         myC.Report()
     End Sub
 End Module
-    </file>
-</compilation>,
+"),
     expectedOutput:="hello")
         End Sub
 
@@ -120,9 +111,8 @@ End Module
         <Fact>
         Public Sub LocalAsNewArrayError()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="LocalAsNewArrayError">
-    <file name="a.vb">
-Imports System   
+Unit.Make("LocalAsNewArrayError").With_a_vb(
+"Imports System   
 Class C
    Sub New()
    End Sub
@@ -134,15 +124,12 @@ Module M1
        dim c1() as new C()
     End Sub
 End Module
-    </file>
-</compilation>)
+"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
-<expected>
-BC30053: Arrays cannot be declared with 'New'.
+"BC30053: Arrays cannot be declared with 'New'.
        dim c1() as new C()
-                   ~~~    
-</expected>)
+                   ~~~")
         End Sub
 
 
@@ -198,7 +185,7 @@ BC30205: End of statement expected.
         End Sub
 
 
-        <WorkItem(545766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545766")>
+        <WorkItem(545766, "http:     //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545766")>
         <Fact>
         Public Sub LocalSameNameAsOperatorAllowed()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
