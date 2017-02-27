@@ -221,6 +221,62 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return ImmutableArray<SymbolReference>.Empty;
             }
 
+            /// <summary>
+            /// Specialized finder for the "Color Color" case.  Used when we have "Color.Black" and "Color"
+            /// bound to a Field/Property, but not a type.  In this case, we want to look for namespaces
+            /// containing 'Color' as if we import them it can resolve this issue.
+            /// </summary>
+            private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingFieldsAndPropertiesAsync(
+                SearchScope searchScope)
+            {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+                if (_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode))
+                {
+                    if (nameNode != null)
+                    {
+                        // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
+                        // 'Black' did not bind.  We want to find a type called 'Color' that will actually
+                        // allow 'Black' to bind.
+                        var syntaxFacts = this._document.GetLanguageService<ISyntaxFactsService>();
+                        if (syntaxFacts.IsNameOfMemberAccessExpression(nameNode))
+                        {
+                            var expression =
+                                syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.Parent, allowImplicitTarget: true) ??
+                                syntaxFacts.GetTargetOfMemberBinding(nameNode.Parent);
+                            if (expression is TSimpleNameSyntax)
+                            {
+                                // Check if the expression before the dot binds to a property or field.
+                                var symbol = this._semanticModel.GetSymbolInfo(expression, searchScope.CancellationToken).GetAnySymbol();
+                                if (symbol?.Kind == SymbolKind.Property || symbol?.Kind == SymbolKind.Field)
+                                {
+                                    var propertyOrFieldType = symbol.GetSymbolType();
+                                    if (propertyOrFieldType is INamedTypeSymbol propertyType)
+                                    {
+                                        // Check if we have the 'Color Color' case.
+                                        if (Equals(propertyType.Name, symbol.Name))
+                                        {
+                                            // Try to look up 'Color' as a type.
+                                            var symbolResults = await searchScope.FindDeclarationsAsync(
+                                                symbol.Name, (TSimpleNameSyntax)expression, SymbolFilter.Type).ConfigureAwait(false);
+
+                                            // Return results that have accessible members.
+                                            var name = nameNode.GetFirstToken().ValueText;
+                                            var namespaceResults =
+                                                symbolResults.WhereAsArray(sr => HasAccessibleStaticFieldOrProperty(sr.Symbol, name))
+                                                             .SelectAsArray(sr => sr.WithSymbol(sr.Symbol.ContainingNamespace));
+
+                                            return this.GetNamespaceSymbolReferences(searchScope, namespaceResults);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return ImmutableArray<SymbolReference>.Empty;
+            }
+
             internal async Task FindNugetOrReferenceAssemblyReferencesAsync(
                 ImmutableArray<Reference> allReferences, CancellationToken cancellationToken)
             {
@@ -501,74 +557,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 var methodSymbols = await GetAddMethodsAsync(searchScope, _node.Parent).ConfigureAwait(false);
                 return GetNamespaceSymbolReferences(searchScope, methodSymbols.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
-            }
-
-            private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingFieldsAndPropertiesAsync(
-                SearchScope searchScope)
-            {
-                searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode))
-                {
-                    return ImmutableArray<SymbolReference>.Empty;
-                }
-
-                if (nameNode == null)
-                {
-                    return ImmutableArray<SymbolReference>.Empty;
-                }
-
-                // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
-                // 'Black' did not bind.  We want to find a type called 'Color' that will actually
-                // allow 'Black' to bind.
-                var syntaxFacts = this._document.GetLanguageService<ISyntaxFactsService>();
-                if (!syntaxFacts.IsNameOfMemberAccessExpression(nameNode))
-                {
-                    return ImmutableArray<SymbolReference>.Empty;
-                }
-
-                var expression =
-                    syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.Parent, allowImplicitTarget: true) ??
-                    syntaxFacts.GetTargetOfMemberBinding(nameNode.Parent);    
-                if (expression == null)
-                {
-                    return ImmutableArray<SymbolReference>.Empty;
-                }
-
-                if (!(expression is TSimpleNameSyntax))
-                {
-                    return ImmutableArray<SymbolReference>.Empty;
-                }
-
-                // Check if the expression before the dot binds to a property or field.
-                var symbol = this._semanticModel.GetSymbolInfo(expression, searchScope.CancellationToken).GetAnySymbol();
-                if (symbol?.Kind != SymbolKind.Property && symbol?.Kind != SymbolKind.Field)
-                {
-                    return ImmutableArray<SymbolReference>.Empty;
-                }
-
-                var propertyOrFieldType = symbol.GetSymbolType();
-                if (!(propertyOrFieldType is INamedTypeSymbol))
-                {
-                    return ImmutableArray<SymbolReference>.Empty;
-                }
-
-                // Check if we have the 'Color Color' case.
-                var propertyType = (INamedTypeSymbol)propertyOrFieldType;
-                if (!Equals(propertyType.Name, symbol.Name))
-                {
-                    return ImmutableArray<SymbolReference>.Empty;
-                }
-
-                // Try to look up 'Color' as a type.
-                var symbolResults = await searchScope.FindDeclarationsAsync(
-                    symbol.Name, (TSimpleNameSyntax)expression, SymbolFilter.Type).ConfigureAwait(false);
-
-                // Return results that have accessible members.
-                var name = nameNode.GetFirstToken().ValueText;
-                return symbolResults.Where(sr => HasAccessibleStaticFieldOrProperty(sr.Symbol, name))
-                                    .Select(sr => sr.WithSymbol(sr.Symbol.ContainingNamespace))
-                                    .Select(searchScope.CreateReference)
-                                    .ToImmutableArray();
             }
 
             private bool HasAccessibleStaticFieldOrProperty(ISymbol symbol, string fieldOrPropertyName)
