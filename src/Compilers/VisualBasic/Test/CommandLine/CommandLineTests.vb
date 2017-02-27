@@ -443,7 +443,7 @@ a.vb
     /imports:System.Collections.Generic
     /imports:System.Linq
     /imports:System.Text").Path
-            Dim cmd = New MockVbi(rsp, _baseDirectory, {"b.vbx"})
+            Dim cmd As New MockVbi(rsp, _baseDirectory, {"b.vbx"})
 
             ' TODO (tomat): mscorlib, vbruntime order
             'AssertEx.Equal({GetType(Object).Assembly.Location,
@@ -512,8 +512,6 @@ a.vb
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_ErrorCreatingWin32ResourceFile, Integer), errors.First().Code)
             Assert.Equal(1, errors.First().Arguments.Count())
-
-
             CleanupAllGeneratedFiles(tmpFileName)
         End Sub
 
@@ -526,11 +524,9 @@ Module Test
     End Sub 
 End Module").Path
             Dim badres = Temp.CreateFile().WriteAllBytes(New Byte() {0, 0}).Path
-
             Dim baseDir = Path.GetDirectoryName(source)
             Dim fileName = Path.GetFileName(source)
-
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = New MockVisualBasicCompiler(Nothing, baseDir,
             {
                 "/nologo",
@@ -549,42 +545,28 @@ End Module").Path
         <Fact>
         Public Sub Win32ResourceOptions_Valid()
             CheckWin32ResourceOptions({"/win32resource:a"}, "a", Nothing, Nothing, False)
-
             CheckWin32ResourceOptions({"/win32icon:b"}, Nothing, "b", Nothing, False)
-
             CheckWin32ResourceOptions({"/win32manifest:c"}, Nothing, Nothing, "c", False)
-
             CheckWin32ResourceOptions({"/nowin32manifest"}, Nothing, Nothing, Nothing, True)
         End Sub
 
         <Fact>
         Public Sub Win32ResourceOptions_Empty()
-            CheckWin32ResourceOptions({"/win32resource"}, Nothing, Nothing, Nothing, False,
-                                      Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32resource", ":<file>"))
-            CheckWin32ResourceOptions({"/win32resource:"}, Nothing, Nothing, Nothing, False,
-                                      Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32resource", ":<file>"))
-            CheckWin32ResourceOptions({"/win32resource: "}, Nothing, Nothing, Nothing, False,
-                                      Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32resource", ":<file>"))
+            CheckWin32ResourceOptions({"/win32resource"}, Nothing, Nothing, Nothing, False, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32resource", ":<file>"))
+            CheckWin32ResourceOptions({"/win32resource:"}, Nothing, Nothing, Nothing, False, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32resource", ":<file>"))
+            CheckWin32ResourceOptions({"/win32resource: "}, Nothing, Nothing, Nothing, False, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32resource", ":<file>"))
 
-            CheckWin32ResourceOptions({"/win32icon"}, Nothing, Nothing, Nothing, False,
-                                      Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32icon", ":<file>"))
-            CheckWin32ResourceOptions({"/win32icon:"}, Nothing, Nothing, Nothing, False,
-                                      Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32icon", ":<file>"))
-            CheckWin32ResourceOptions({"/win32icon: "}, Nothing, Nothing, Nothing, False,
-                                      Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32icon", ":<file>"))
+            CheckWin32ResourceOptions({"/win32icon"}, Nothing, Nothing, Nothing, False, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32icon", ":<file>"))
+            CheckWin32ResourceOptions({"/win32icon:"}, Nothing, Nothing, Nothing, False, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32icon", ":<file>"))
+            CheckWin32ResourceOptions({"/win32icon: "}, Nothing, Nothing, Nothing, False, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32icon", ":<file>"))
 
-            CheckWin32ResourceOptions({"/win32manifest"}, Nothing, Nothing, Nothing, False,
-                                      Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32manifest", ":<file>"))
-            CheckWin32ResourceOptions({"/win32manifest:"}, Nothing, Nothing, Nothing, False,
-                                      Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32manifest", ":<file>"))
-            CheckWin32ResourceOptions({"/win32manifest: "}, Nothing, Nothing, Nothing, False,
-                                      Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32manifest", ":<file>"))
+            CheckWin32ResourceOptions({"/win32manifest"}, Nothing, Nothing, Nothing, False, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32manifest", ":<file>"))
+            CheckWin32ResourceOptions({"/win32manifest:"}, Nothing, Nothing, Nothing, False, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32manifest", ":<file>"))
+            CheckWin32ResourceOptions({"/win32manifest: "}, Nothing, Nothing, Nothing, False, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32manifest", ":<file>"))
 
             CheckWin32ResourceOptions({"/nowin32manifest"}, Nothing, Nothing, Nothing, True)
-            CheckWin32ResourceOptions({"/nowin32manifest:"}, Nothing, Nothing, Nothing, False,
-                                      Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/nowin32manifest:"))
-            CheckWin32ResourceOptions({"/nowin32manifest: "}, Nothing, Nothing, Nothing, False,
-                                      Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/nowin32manifest:"))
+            CheckWin32ResourceOptions({"/nowin32manifest:"}, Nothing, Nothing, Nothing, False, Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/nowin32manifest:"))
+            CheckWin32ResourceOptions({"/nowin32manifest: "}, Nothing, Nothing, Nothing, False, Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/nowin32manifest:"))
         End Sub
 
         <Fact>
@@ -1575,9 +1557,8 @@ End Module").Path
             Dim parsedArgs = DefaultParse(args, _baseDirectory)
             Assert.False(parsedArgs.Errors.Any)
             Assert.Equal(symbols.Length, parsedArgs.ParseOptions.PreprocessorSymbols.Length)
-            Dim sortedDefines = parsedArgs.ParseOptions.
-                                PreprocessorSymbols.Select(
-                                    Function(d) New With {d.Key, d.Value}).OrderBy(Function(o) o.Key)
+            Dim sortedDefines = parsedArgs.ParseOptions.PreprocessorSymbols.
+                                           Select(Function(d) New With {d.Key, d.Value}).OrderBy(Function(o) o.Key)
 
             For i = 0 To symbols.Length - 1
                 Assert.Equal(symbols(i)(0), sortedDefines(i).Key)
@@ -1619,9 +1600,9 @@ End Module").Path
         End Sub
 
         <WorkItem(546319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546319")>
-                                                                                                                                                                                                                                                                                                                                                                <WorkItem(546318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546318")>
-                                                                                                                                                                                                                                                                                                                                                                    <WorkItem(685392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685392")>
-                                                                                                                                                                                                                                                                                                                                                                        <Fact>
+        <WorkItem(546318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546318")>
+        <WorkItem(685392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685392")>
+        <Fact>
         Public Sub RootNamespace()
             Dim parsedArgs = DefaultParse({"/rootnamespace:One.Two.Three", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
@@ -1778,8 +1759,8 @@ End Module").Path
         End Sub
 
         <WorkItem(545991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545991")>
-                                                                                                                                                                                                                                                                                                                                                                                                                        <WorkItem(546009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546009")>
-                                                                                                                                                                                                                                                                                                                                                                                                                            <Fact>
+        <WorkItem(546009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546009")>
+        <Fact>
         Public Sub Recurse_SimpleTests2()
             Dim folder = Temp.CreateDirectory()
             Dim file1 = folder.CreateFile("a.cs")
@@ -1843,7 +1824,7 @@ End Module").Path
         End Sub
 
         <WorkItem(948285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948285")>
-                                                                                                                                                                                                                                                                                                                                                                                                                                    <Fact>
+        <Fact>
         Public Sub Recurse_SimpleTests3()
             Dim folder = Temp.CreateDirectory()
             Dim outWriter = New StringWriter()
@@ -1919,8 +1900,8 @@ End Module").Path
             Dim file = dir.CreateFile("a.vb")
             file.WriteAllText(source)
 
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/preferreduilang:en", "/t:library", "/a:missing.dll", "a.vb"})
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/preferreduilang:en", "/t:library", "/a:missing.dll", "a.vb"})
             Dim exitCode = vbc.Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
             Assert.Equal("vbc : error BC2017: could not find library 'missing.dll'", outWriter.ToString().Trim())
@@ -1932,16 +1913,13 @@ End Module").Path
         Public Sub Analyzers_Empty()
             Dim source = "Imports System"
             Dim dir = Temp.CreateDirectory()
-
             Dim file = dir.CreateFile("a.vb")
             file.WriteAllText(source)
-
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/preferreduilang:en", "/t:library", "/a:" + GetType(Object).Assembly.Location, "a.vb"})
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/preferreduilang:en", "/t:library", "/a:" + GetType(Object).Assembly.Location, "a.vb"})
             Dim exitCode = vbc.Run(outWriter, Nothing)
             Assert.Equal(0, exitCode)
             Assert.DoesNotContain("warning", outWriter.ToString())
-
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
@@ -1983,18 +1961,18 @@ End Class"
             file.WriteAllText(source)
 
             Dim rulesetSource = <?xml version="1.0" encoding="utf-8"?>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Rule Id="Warning01" Action="Error"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Rule Id="Test02" Action="Warning"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Rule Id="Warning03" Action="None"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </Rules>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </RuleSet>
+                                <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
+                                    <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
+                                        <Rule Id="Warning01" Action="Error"/>
+                                        <Rule Id="Test02" Action="Warning"/>
+                                        <Rule Id="Warning03" Action="None"/>
+                                    </Rules>
+                                </RuleSet>
 
             Dim ruleSetFile = CreateRuleSetFile(rulesetSource)
 
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, "a.vb", "/ruleset:" + ruleSetFile.Path})
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, "a.vb", "/ruleset:" + ruleSetFile.Path})
             Dim exitCode = vbc.Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
             ' Diagnostic cannot instantiate
@@ -2020,14 +1998,14 @@ End Class"
             file.WriteAllText(source)
 
             Dim rulesetSource = <?xml version="1.0" encoding="utf-8"?>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <IncludeAll Action="Warning"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </RuleSet>
+                                <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
+                                    <IncludeAll Action="Warning"/>
+                                </RuleSet>
 
             Dim ruleSetFile = CreateRuleSetFile(rulesetSource)
 
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path,
                                                   {
                                                         "/nologo", "/preferreduilang:en", "/preferreduilang:en", "/t:library",
                                                         "/a:" + Assembly.GetExecutingAssembly().Location, "a.vb",
@@ -2070,17 +2048,17 @@ End Class"
             file.WriteAllText(source)
 
             Dim rulesetSource = <?xml version="1.0" encoding="utf-8"?>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <Rule Id="Warning01" Action="Error"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <Rule Id="Warning03" Action="Warning"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </Rules>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </RuleSet>
+                                <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
+                                    <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
+                                        <Rule Id="Warning01" Action="Error"/>
+                                        <Rule Id="Warning03" Action="Warning"/>
+                                    </Rules>
+                                </RuleSet>
 
             Dim ruleSetFile = CreateRuleSetFile(rulesetSource)
 
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path,
                                                   {
                                                         "/nologo", "/t:library",
                                                         "/a:" + Assembly.GetExecutingAssembly().Location, "a.vb",
@@ -2122,14 +2100,14 @@ End Class"
             file.WriteAllText(source)
 
             Dim rulesetSource = <?xml version="1.0" encoding="utf-8"?>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <IncludeAll Action="Error"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <Rule Id="Warning01" Action="Error"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <Rule Id="Test02" Action="Warning"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <Rule Id="Warning03" Action="None"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </Rules>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </RuleSet>
+                                <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
+                                    <IncludeAll Action="Error"/>
+                                    <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
+                                        <Rule Id="Warning01" Action="Error"/>
+                                        <Rule Id="Test02" Action="Warning"/>
+                                        <Rule Id="Warning03" Action="None"/>
+                                    </Rules>
+                                </RuleSet>
 
             Dim ruleSetFile = CreateRuleSetFile(rulesetSource)
 
@@ -2157,14 +2135,14 @@ End Class"
         Public Sub RulesetSwitchPositive()
 
             Dim source = <?xml version="1.0" encoding="utf-8"?>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <IncludeAll Action="Warning"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Rule Id="CA1012" Action="Error"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Rule Id="CA1013" Action="Warning"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Rule Id="CA1014" Action="None"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </Rules>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </RuleSet>
+                         <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
+                             <IncludeAll Action="Warning"/>
+                             <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
+                                 <Rule Id="CA1012" Action="Error"/>
+                                 <Rule Id="CA1013" Action="Warning"/>
+                                 <Rule Id="CA1014" Action="None"/>
+                             </Rules>
+                         </RuleSet>
 
             Dim file = CreateRuleSetFile(source)
             Dim parsedArgs = DefaultParse(New String() {"/ruleset:" + file.Path, "a.cs"}, _baseDirectory)
@@ -2181,14 +2159,14 @@ End Class"
         <Fact>
         Public Sub RuleSetSwitchQuoted()
             Dim source = <?xml version="1.0" encoding="utf-8"?>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <IncludeAll Action="Warning"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <Rule Id="CA1012" Action="Error"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <Rule Id="CA1013" Action="Warning"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <Rule Id="CA1014" Action="None"/>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </Rules>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </RuleSet>
+                         <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
+                             <IncludeAll Action="Warning"/>
+                             <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
+                                 <Rule Id="CA1012" Action="Error"/>
+                                 <Rule Id="CA1013" Action="Warning"/>
+                                 <Rule Id="CA1014" Action="None"/>
+                             </Rules>
+                         </RuleSet>
 
             Dim file = CreateRuleSetFile(source)
             Dim parsedArgs = DefaultParse(New String() {"/ruleset:" + """" + file.Path + """", "a.cs"}, _baseDirectory)
@@ -2513,8 +2491,8 @@ End Class")
             Dim sl = dir.CreateFile("sl.json")
             sl.WriteAllText("{ ""documents"" : {} }")
 
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/debug:embedded", "/sourcelink:sl.json", "a.vb"})
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/debug:embedded", "/sourcelink:sl.json", "a.vb"})
             Dim exitCode As Integer = vbc.Run(outWriter)
             Assert.Equal(0, exitCode)
 
@@ -2546,8 +2524,8 @@ End Class")
             Dim sl = dir.CreateFile("sl.json")
             sl.WriteAllText("{ ""documents"" : {} }")
 
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/debug:portable", "/sourcelink:sl.json", "a.vb"})
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/debug:portable", "/sourcelink:sl.json", "a.vb"})
             Dim exitCode As Integer = vbc.Run(outWriter)
             Assert.Equal(0, exitCode)
 
@@ -2618,14 +2596,14 @@ End Class")
         End Sub
 
         <Theory>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <InlineData("/debug:portable", "/embed", {"embed.vb", "embed2.vb", "embed.xyz"})>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <InlineData("/debug:portable", "/embed:embed.vb", {"embed.vb", "embed.xyz"})>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <InlineData("/debug:portable", "/embed:embed2.vb", {"embed2.vb"})>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <InlineData("/debug:portable", "/embed:embed.xyz", {"embed.xyz"})>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <InlineData("/debug:embedded", "/embed", {"embed.vb", "embed2.vb", "embed.xyz"})>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <InlineData("/debug:embedded", "/embed:embed.vb", {"embed.vb", "embed.xyz"})>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <InlineData("/debug:embedded", "/embed:embed2.vb", {"embed2.vb"})>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <InlineData("/debug:embedded", "/embed:embed.xyz", {"embed.xyz"})>
+        <InlineData("/debug:portable", "/embed", {"embed.vb", "embed2.vb", "embed.xyz"})>
+        <InlineData("/debug:portable", "/embed:embed.vb", {"embed.vb", "embed.xyz"})>
+        <InlineData("/debug:portable", "/embed:embed2.vb", {"embed2.vb"})>
+        <InlineData("/debug:portable", "/embed:embed.xyz", {"embed.xyz"})>
+        <InlineData("/debug:embedded", "/embed", {"embed.vb", "embed2.vb", "embed.xyz"})>
+        <InlineData("/debug:embedded", "/embed:embed.vb", {"embed.vb", "embed.xyz"})>
+        <InlineData("/debug:embedded", "/embed:embed2.vb", {"embed2.vb"})>
+        <InlineData("/debug:embedded", "/embed:embed.xyz", {"embed.xyz"})>
         Public Sub Embed_EndToEnd(debugSwitch As String, embedSwitch As String, expectedEmbedded As String())
             ' embed.vb: large enough To compress, has #line directives
             Const embed_vb =
@@ -3039,10 +3017,8 @@ End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
             Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable,
-                                         String.Format("/nologo /doc:{1}\src.xml /t:library {0}",
-                                                       src.ToString(),
-                                                       dir.ToString()),
-                                         startFolder:=dir.ToString())
+                                                           $"/nologo /doc:{dir.ToString()}\src.xml /t:library {src.ToString()}",
+                                                           startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Dim fileContents = File.ReadAllBytes(dir.ToString() & "\src.xml")
@@ -3156,7 +3132,11 @@ a
 Class C: End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc+ {0}", src.ToString()), startFolder:=dir.ToString(), expectedRetCode:=0)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable,
+                                                       $"/nologo /t:library /doc+ {src.ToString()}",
+                                                       startFolder:=dir.ToString(),
+                                                       expectedRetCode:=0
+                                                       )
             AssertOutput(<text></text>, output)
 
             Using reader As New StreamReader(xml.ToString())
@@ -3197,7 +3177,9 @@ Class C
 End Class
 ")
 
-            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:abcdfg.xyz /doc+ {0}", src.ToString()), startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable,
+                                                           $"/nologo /t:library /doc:abcdfg.xyz /doc+ {src.ToString()}",
+                                                           startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "a.xml")))
@@ -3214,7 +3196,9 @@ End Class
 Class C
 End Class")
 
-            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format(" /nologo /t:library /doc /out:MyXml.dll {0}", src.ToString()), startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable,
+                                                           $"/nologo /t:library /doc /out:MyXml.dll {src.ToString()}",
+                                                           startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "MyXml.xml")))
@@ -3233,7 +3217,9 @@ Class C
 End Class
 ")
 
-            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /doc+ {0}", src.ToString()), startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable,
+                                                           $"/nologo /t:library /doc:doc.xml /doc+ {src.ToString()}",
+                                                           startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "a.xml")))
@@ -3252,7 +3238,9 @@ Class C
 End Class
 ")
 
-            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /out:out.dll {0}", src.ToString()), startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable,
+                                                           $"/nologo /t:library /doc:doc.xml /out:out.dll {src.ToString()}",
+                                                           startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "doc.xml")))
@@ -3271,7 +3259,9 @@ Class C
 End Class
 ")
 
-            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /doc /out:out.dll {0}", src.ToString()), startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable,
+                                                           $"/nologo /t:library /doc:doc.xml /doc /out:out.dll {src.ToString()}",
+                                                           startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "out.xml")))
@@ -3290,7 +3280,9 @@ Class C
 End Class
 ")
 
-            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /out:out.dll /doc+ {0}", src.ToString()), startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable,
+                                                          $"/nologo /t:library /doc:doc.xml /out:out.dll /doc+ {src.ToString()}",
+                                                          startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "out.xml")))
@@ -6619,31 +6611,25 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Return n
         End Function
 
-        Private Shared Function VerifyOutput(sourceDir As TempDirectory, sourceFile As TempFile,
-                                             Optional includeCurrentAssemblyAsAnalyzerReference As Boolean = True,
-                                             Optional additionalFlags As String() = Nothing,
-                                             Optional expectedInfoCount As Integer = 0,
-                                             Optional expectedWarningCount As Integer = 0,
-                                             Optional expectedErrorCount As Integer = 0) As String
-            Dim args = {
-                            "/nologo", "/preferreduilang:en", "/t:library",
-                            sourceFile.Path
-                       }
-            If includeCurrentAssemblyAsAnalyzerReference Then
-                args = args.Append("/a:" + Assembly.GetExecutingAssembly().Location)
-            End If
-            If additionalFlags IsNot Nothing Then
-                args = args.Append(additionalFlags)
-            End If
+        Private Shared Function VerifyOutput(
+                                              sourceDir As TempDirectory,
+                                              sourceFile As TempFile,
+                                     Optional includeCurrentAssemblyAsAnalyzerReference As Boolean = True,
+                                     Optional additionalFlags As String() = Nothing,
+                                     Optional expectedInfoCount As Integer = 0,
+                                     Optional expectedWarningCount As Integer = 0,
+                                     Optional expectedErrorCount As Integer = 0) As String
+            Dim args = {"/nologo", "/preferreduilang:en", "/t:library", sourceFile.Path}
 
-            Dim vbc = New MockVisualBasicCompiler(Nothing, sourceDir.Path, args)
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            If includeCurrentAssemblyAsAnalyzerReference Then args = args.Append("/a:" + Assembly.GetExecutingAssembly().Location)
+            If additionalFlags IsNot Nothing Then args = args.Append(additionalFlags)
+            Dim vbc As New MockVisualBasicCompiler(Nothing, sourceDir.Path, args)
+            Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = vbc.Run(outWriter, Nothing)
             Dim output = outWriter.ToString()
 
             Dim expectedExitCode = If(expectedErrorCount > 0, 1, 0)
-            Assert.True(expectedExitCode = exitCode,
-                        String.Format("Expected exit code to be '{0}' was '{1}'.{2}Output:{3}{4}", expectedExitCode, exitCode, Environment.NewLine, Environment.NewLine, output))
+            Assert.True(expectedExitCode = exitCode, $"Expected exit code to be '{expectedExitCode}' was '{exitCode}'.{Environment.NewLine}Output:{Environment.NewLine}{output}"))
 
             Assert.DoesNotContain(" : hidden", output, StringComparison.Ordinal)
 
