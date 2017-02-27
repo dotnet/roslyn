@@ -300,9 +300,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             internal async Task FindNugetOrReferenceAssemblyReferencesAsync(
-                ImmutableArray<Reference> allReferences, CancellationToken cancellationToken)
+                ArrayBuilder<Reference> allReferences, CancellationToken cancellationToken)
             {
-                if (allReferences.Length > 0)
+                if (allReferences.Count > 0)
                 {
                     // Only do this if none of the project or metadata searches produced 
                     // any results. We always consider source and local metadata to be 
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             private async Task FindNugetOrReferenceAssemblyTypeReferencesAsync(
-                ImmutableArray<Reference> allReferences, TSimpleNameSyntax nameNode,
+                ArrayBuilder<Reference> allReferences, TSimpleNameSyntax nameNode,
                 string name, int arity, bool inAttributeContext,
                 CancellationToken cancellationToken)
             {
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             private async Task FindNugetOrReferenceAssemblyTypeReferencesWorkerAsync(
-                ImmutableArray<Reference> allReferences, TSimpleNameSyntax nameNode,
+                ArrayBuilder<Reference> allReferences, TSimpleNameSyntax nameNode,
                 string name, int arity, bool isAttributeSearch, CancellationToken cancellationToken)
             {
                 var workspaceServices = _document.Project.Solution.Workspace.Services;
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private async Task FindReferenceAssemblyTypeReferencesAsync(
                 ISymbolSearchService searchService,
-                ImmutableArray<Reference> allReferences,
+                ArrayBuilder<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 string name,
                 int arity,
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     cancellationToken.ThrowIfCancellationRequested();
                     await HandleReferenceAssemblyReferenceAsync(
                         allReferences, nameNode, project,
-                        isAttributeSearch, result, weight: allReferences.Length,
+                        isAttributeSearch, result, weight: allReferences.Count,
                         cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 PackageSource source,
                 ISymbolSearchService searchService,
                 IPackageInstallerService installerService,
-                ImmutableArray<Reference> allReferences,
+                ArrayBuilder<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 string name,
                 int arity,
@@ -443,12 +443,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     await HandleNugetReferenceAsync(
                         source.Source, installerService, allReferences, nameNode,
                         project, isAttributeSearch, result, 
-                        weight: allReferences.Length).ConfigureAwait(false);
+                        weight: allReferences.Count).ConfigureAwait(false);
                 }
             }
 
             private async Task HandleReferenceAssemblyReferenceAsync(
-                ImmutableArray<Reference> allReferences,
+                ArrayBuilder<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 Project project,
                 bool isAttributeSearch,
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private Task HandleNugetReferenceAsync(
                 string source,
                 IPackageInstallerService installerService,
-                ImmutableArray<Reference> allReferences,
+                ArrayBuilder<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 Project project,
                 bool isAttributeSearch,

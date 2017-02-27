@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         var allSymbolReferences = await FindResultsAsync(document, semanticModel, diagnostic, node, cancellationToken).ConfigureAwait(false);
 
                         // Nothing found at all. No need to proceed.
-                        if (allSymbolReferences == null || allSymbolReferences.Count == 0)
+                        if (allSymbolReferences.Length == 0)
                         {
                             return;
                         }
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private async Task<IReadOnlyList<Reference>> FindResultsAsync(
+        private async Task<ImmutableArray<Reference>> FindResultsAsync(
             Document document, SemanticModel semanticModel, Diagnostic diagnostic, SyntaxNode node, CancellationToken cancellationToken)
         {
             // Caches so we don't produce the same data multiple times while searching 
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             // Look for exact matches first:
             var exactReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (exactReferences?.Count > 0)
+            if (exactReferences.Length > 0)
             {
                 return exactReferences;
             }
@@ -135,16 +136,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             // future use.
             if (!IsHostOrTestWorkspace(project))
             {
-                return SpecializedCollections.EmptyReadOnlyList<Reference>();
+                return ImmutableArray<Reference>.Empty;
             }
 
             var fuzzyReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (fuzzyReferences?.Count > 0)
-            {
-                return fuzzyReferences;
-            }
-
-            return null;
+            return fuzzyReferences;
         }
 
         private static bool IsHostOrTestWorkspace(Project project)
@@ -153,12 +149,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                    project.Solution.Workspace.Kind == "Test";
         }
 
-        private async Task<List<Reference>> FindResultsAsync(
+        private async Task<ImmutableArray<Reference>> FindResultsAsync(
             ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
             ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
             Project project, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
-            var allReferences = new List<Reference>();
+            var allReferences = ArrayBuilder<Reference>.GetInstance();
 
             // First search the current project to see if any symbols (source or metadata) match the 
             // search string.
@@ -185,11 +181,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
             }
 
-            return allReferences;
+            return allReferences.ToImmutableAndFree();
         }
 
         private async Task FindResultsInAllSymbolsInStartingProjectAsync(
-            List<Reference> allSymbolReferences, SymbolReferenceFinder finder, 
+            ArrayBuilder<Reference> allSymbolReferences, SymbolReferenceFinder finder, 
             bool exact, CancellationToken cancellationToken)
         {
             var references = await finder.FindInAllSymbolsInStartingProjectAsync(exact, cancellationToken).ConfigureAwait(false);
@@ -198,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
             ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
-            Project project, List<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
+            Project project, ArrayBuilder<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
             // If we didn't find enough hits searching just in the project, then check 
             // in any unreferenced projects.
@@ -210,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             var viableUnreferencedProjects = GetViableUnreferencedProjects(project);
 
             // Search all unreferenced projects in parallel.
-            var findTasks = new HashSet<Task<List<SymbolReference>>>();
+            var findTasks = new HashSet<Task<ImmutableArray<SymbolReference>>>();
 
             // Create another cancellation token so we can both search all projects in parallel,
             // but also stop any searches once we get enough results.
@@ -233,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private async Task FindResultsInUnreferencedMetadataSymbolsAsync(
             ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
-            Project project, List<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact,
+            Project project, ArrayBuilder<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact,
             CancellationToken cancellationToken)
         {
             if (allSymbolReferences.Count > 0)
@@ -257,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                                          .Where(r => !IsInPackagesDirectory(r));
 
             // Search all metadata references in parallel.
-            var findTasks = new HashSet<Task<List<SymbolReference>>>();
+            var findTasks = new HashSet<Task<ImmutableArray<SymbolReference>>>();
 
             // Create another cancellation token so we can both search all projects in parallel,
             // but also stop any searches once we get enough results.
@@ -283,8 +279,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         }
 
         private async Task WaitForTasksAsync(
-            List<Reference> allSymbolReferences,
-            HashSet<Task<List<SymbolReference>>> findTasks,
+            ArrayBuilder<Reference> allSymbolReferences,
+            HashSet<Task<ImmutableArray<SymbolReference>>> findTasks,
             CancellationTokenSource nestedTokenSource,
             CancellationToken cancellationToken)
         {
@@ -394,12 +390,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return viableProjects;
         }
 
-        private void AddRange(List<Reference> allSymbolReferences, IReadOnlyList<Reference> proposedReferences)
+        private void AddRange<TReference>(ArrayBuilder<Reference> allSymbolReferences, ImmutableArray<TReference> proposedReferences)
+            where TReference : Reference
         {
-            if (proposedReferences != null)
-            {
-                allSymbolReferences.AddRange(proposedReferences.Take(MaxResults - allSymbolReferences.Count));
-            }
+            allSymbolReferences.AddRange(proposedReferences.Take(MaxResults - allSymbolReferences.Count));
         }
 
         protected bool IsViableExtensionMethod(IMethodSymbol method, ITypeSymbol receiver)
