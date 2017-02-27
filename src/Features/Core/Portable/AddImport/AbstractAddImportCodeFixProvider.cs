@@ -427,18 +427,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return method.ReduceExtensionMethod(receiver) != null;
         }
 
-        private static bool ArityAccessibilityAndAttributeContextAreCorrect(
-            SemanticModel semanticModel,
-            ITypeSymbol symbol,
-            int arity,
-            bool inAttributeContext,
-            bool hasIncompleteParentMember)
-        {
-            return (arity == 0 || symbol.GetArity() == arity || hasIncompleteParentMember)
-                   && symbol.IsAccessibleWithin(semanticModel.Compilation.Assembly)
-                   && (!inAttributeContext || symbol.IsAttribute());
-        }
-
         private static void CalculateContext(
             TSimpleNameSyntax nameNode, ISyntaxFactsService syntaxFacts, out string name, out int arity,
             out bool inAttributeContext, out bool hasIncompleteParentMember)
