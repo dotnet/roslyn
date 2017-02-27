@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -296,16 +298,58 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     var symbols = await GetSymbolsAsync(searchScope, nameNode).ConfigureAwait(false);
                     var methodSymbols = OfType<IMethodSymbol>(symbols);
 
-                    var extensionMethodSymbols = methodSymbols.WhereAsArray(
-                        s => s.Symbol.IsExtensionMethod &&
-                            s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) &&
-                            _owner.IsViableExtensionMethod(s.Symbol, nameNode.Parent, _semanticModel, _syntaxFacts, searchScope.CancellationToken));
+                    var extensionMethodSymbols = GetViableExtensionMethods(
+                        methodSymbols, nameNode.Parent, searchScope.CancellationToken);
 
                     var namespaceSymbols = extensionMethodSymbols.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
                     return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
                 }
 
                 return ImmutableArray<SymbolReference>.Empty;
+            }
+
+            private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethods(
+                ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols,
+                SyntaxNode expression, CancellationToken cancellationToken)
+            {
+                return methodSymbols.WhereAsArray(
+                    s => s.Symbol.IsExtensionMethod &&
+                         s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) &&
+                         _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, cancellationToken));
+            }
+
+            /// <summary>
+            /// Searches for extension methods exactly called 'Add'.  Returns
+            /// <see cref="SymbolReference"/>s to the <see cref="INamespaceSymbol"/>s that contain
+            /// the static classes that those extension methods are contained in.
+            /// </summary>
+            private async Task<ImmutableArray<SymbolReference>> GetReferencesForCollectionInitializerMethodsAsync(SearchScope searchScope)
+            {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode))
+                {
+                    return ImmutableArray<SymbolReference>.Empty;
+                }
+
+                _syntaxFacts.GetNameAndArityOfSimpleName(_node, out var name, out var arity);
+                if (name != null || !_owner.IsAddMethodContext(_node, _semanticModel))
+                {
+                    return ImmutableArray<SymbolReference>.Empty;
+                }
+
+                var symbols = await searchScope.FindDeclarationsAsync(
+                    nameof(IList.Add), nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
+
+                // Note: there is no desiredName for these search results.  We're searching for
+                // extension methods called "Add", but we have no intention of renaming any 
+                // of the existing user code to that name.
+                var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
+
+                var viableMethods = GetViableExtensionMethods(
+                    methodSymbols, _node.Parent, searchScope.CancellationToken);
+
+                return GetNamespaceSymbolReferences(searchScope,
+                    viableMethods.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
             }
 
             internal async Task FindNugetOrReferenceAssemblyReferencesAsync(
@@ -559,18 +603,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return symbolInfo.Symbol != null;
             }
 
-            private async Task<ImmutableArray<SymbolReference>> GetReferencesForCollectionInitializerMethodsAsync(SearchScope searchScope)
-            {
-                searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode))
-                {
-                    return ImmutableArray<SymbolReference>.Empty;
-                }
-
-                var methodSymbols = await GetAddMethodsAsync(searchScope, _node.Parent).ConfigureAwait(false);
-                return GetNamespaceSymbolReferences(searchScope, methodSymbols.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
-            }
-
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForQueryPatternsAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
@@ -637,26 +669,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
 
                 return searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Member);
-            }
-
-            private async Task<ImmutableArray<SymbolResult<IMethodSymbol>>> GetAddMethodsAsync(
-                SearchScope searchScope, SyntaxNode expression)
-            {
-                _syntaxFacts.GetNameAndArityOfSimpleName(_node, out var name, out var arity);
-                if (name != null || !_owner.IsAddMethodContext(_node, _semanticModel))
-                {
-                    return ImmutableArray<SymbolResult<IMethodSymbol>>.Empty;
-                }
-
-                // Note: there is no desiredName for these search results.  We're searching for
-                // extension methods called "Add", but we have no intention of renaming any 
-                // of the existing user code to that name.
-                var symbols = await searchScope.FindDeclarationsAsync("Add", nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
-                return OfType<IMethodSymbol>(symbols)
-                    .WhereAsArray(s => s.Symbol.IsExtensionMethod &&
-                                s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
-                                     _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, searchScope.CancellationToken))
-                    .SelectAsArray(s => s.WithDesiredName(null));
             }
 
             private ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol
