@@ -151,6 +151,11 @@ This data should always be correct as we're never persisting the data between se
 
         private void ReportAnalyzerExceptions(Project project, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> exceptions)
         {
+            if (exceptions == null)
+            {
+                return;
+            }
+
             foreach (var kv in exceptions)
             {
                 var analyzer = kv.Key;
