@@ -160,13 +160,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return ImmutableArray<SymbolReference>.Empty;
                 }
 
-                CalculateContext(nameNode, _syntaxFacts, out var name, out var arity, out var inAttributeContext, out var hasIncompleteParentMember);
+                CalculateContext(nameNode, _syntaxFacts, 
+                    out var name, out var arity,
+                    out var inAttributeContext, out var hasIncompleteParentMember);
 
-                // Find types in the search scope with the same name as what the user wrote.
-                var symbols = await GetTypeSymbols(searchScope, name, nameNode, inAttributeContext).ConfigureAwait(false);
+                if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: searchScope.CancellationToken))
+                {
+                    // If the expression bound, there's nothing to do.
+                    return ImmutableArray<SymbolReference>.Empty;
+                }
+
+                var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Type).ConfigureAwait(false);
+
+                // also lookup type symbols with the "Attribute" suffix if necessary.
+                if (inAttributeContext)
+                {
+                    var attributeSymbols = await searchScope.FindDeclarationsAsync(name + AttributeSuffix, nameNode, SymbolFilter.Type).ConfigureAwait(false);
+
+                    symbols = symbols.AddRange(
+                        attributeSymbols.Select(r => r.WithDesiredName(r.DesiredName.GetWithoutAttributeSuffix(isCaseSensitive: false))));
+                }
+
+                var typeSymbols = OfType<ITypeSymbol>(symbols);
 
                 // Only keep symbols which are accessible from the current location.
-                var accessibleSymbols = symbols.WhereAsArray(
+                var accessibleTypeSymbols = typeSymbols.WhereAsArray(
                     s => ArityAccessibilityAndAttributeContextAreCorrect(
                         s.Symbol, arity, inAttributeContext, hasIncompleteParentMember));
 
@@ -174,8 +192,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // inside generic types.  Record these namespaces/types if it would be 
                 // legal to add imports for them.
 
-                var typesContainedDirectlyInNamespaces = accessibleSymbols.WhereAsArray(s => s.Symbol.ContainingSymbol is INamespaceSymbol);
-                var typesContainedDirectlyInTypes = accessibleSymbols.WhereAsArray(s => s.Symbol.ContainingType != null);
+                var typesContainedDirectlyInNamespaces = accessibleTypeSymbols.WhereAsArray(s => s.Symbol.ContainingSymbol is INamespaceSymbol);
+                var typesContainedDirectlyInTypes = accessibleTypeSymbols.WhereAsArray(s => s.Symbol.ContainingType != null);
 
                 var namespaceReferences = GetNamespaceSymbolReferences(searchScope,
                     typesContainedDirectlyInNamespaces.SelectAsArray(r => r.WithSymbol(r.Symbol.ContainingNamespace)));
@@ -601,36 +619,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
 
                 return desiredName;
-            }
-
-            private async Task<ImmutableArray<SymbolResult<ITypeSymbol>>> GetTypeSymbols(
-                SearchScope searchScope,
-                string name,
-                TSimpleNameSyntax nameNode,
-                bool inAttributeContext)
-            {
-                if (searchScope.CancellationToken.IsCancellationRequested)
-                {
-                    return ImmutableArray<SymbolResult<ITypeSymbol>>.Empty;
-                }
-
-                if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: searchScope.CancellationToken))
-                {
-                    return ImmutableArray<SymbolResult<ITypeSymbol>>.Empty;
-                }
-
-                var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Type).ConfigureAwait(false);
-
-                // also lookup type symbols with the "Attribute" suffix.
-                if (inAttributeContext)
-                {
-                    var attributeSymbols = await searchScope.FindDeclarationsAsync(name + AttributeSuffix, nameNode, SymbolFilter.Type).ConfigureAwait(false);
-
-                    symbols = symbols.AddRange(
-                        attributeSymbols.Select(r => r.WithDesiredName(r.DesiredName.GetWithoutAttributeSuffix(isCaseSensitive: false))));
-                }
-
-                return OfType<ITypeSymbol>(symbols);
             }
 
             protected bool ExpressionBinds(
