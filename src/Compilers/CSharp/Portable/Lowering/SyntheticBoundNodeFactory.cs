@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type)
         {
-            return new BoundConditionalOperator(Syntax, condition, consequence, alternative, default(ConstantValue), type) { WasCompilerGenerated = true };
+            return new BoundConditionalOperator(Syntax, false, condition, consequence, alternative, default(ConstantValue), type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ComplexConditionalReceiver(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver)

@@ -2329,8 +2329,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
+        public sealed override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
+            if (node.IsByref)
+            {
+                return VisitRefConditionalOperator(node);
+            }
+
             VisitCondition(node.Condition);
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
@@ -2358,6 +2363,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                 consequenceState = this.State;
                 SetState(alternativeState);
                 Visit(node.Alternative);
+                Unsplit();
+                IntersectWith(ref this.State, ref consequenceState);
+                // it may not be a boolean state at this point (5.3.3.28)
+            }
+
+            return null;
+        }
+
+        private BoundNode VisitRefConditionalOperator(BoundConditionalOperator node)
+        {
+            VisitCondition(node.Condition);
+            var consequenceState = this.StateWhenTrue;
+            var alternativeState = this.StateWhenFalse;
+            if (IsConstantTrue(node.Condition))
+            {
+                SetState(alternativeState);
+                VisitLvalue(node.Alternative);
+                // exposing ref is a potential write
+                WriteArgument(node.Alternative, RefKind.Ref, method: null);
+                SetState(consequenceState);
+                VisitLvalue(node.Consequence);
+                // exposing ref is a potential write
+                WriteArgument(node.Consequence, RefKind.Ref, method: null);
+                // it may be a boolean state at this point.
+            }
+            else if (IsConstantFalse(node.Condition))
+            {
+                SetState(consequenceState);
+                VisitLvalue(node.Consequence);
+                // exposing ref is a potential write
+                WriteArgument(node.Consequence, RefKind.Ref, method: null);
+                SetState(alternativeState);
+                VisitLvalue(node.Alternative);
+                // exposing ref is a potential write
+                WriteArgument(node.Alternative, RefKind.Ref, method: null);
+                // it may be a boolean state at this point.
+            }
+            else
+            {
+                SetState(consequenceState);
+                VisitLvalue(node.Consequence);
+                // exposing ref is a potential write
+                WriteArgument(node.Consequence, RefKind.Ref, method: null);
+                Unsplit();
+                consequenceState = this.State;
+                SetState(alternativeState);
+                VisitLvalue(node.Alternative);
+                // exposing ref is a potential write
+                WriteArgument(node.Alternative, RefKind.Ref, method: null);
                 Unsplit();
                 IntersectWith(ref this.State, ref consequenceState);
                 // it may not be a boolean state at this point (5.3.3.28)

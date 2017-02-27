@@ -74,6 +74,7 @@
     <Compile Include="CodeGen\CodeGenInParametersTests.cs" />
     <Compile Include="CodeGen\CodeGenCapturing.cs" />
     <Compile Include="CodeGen\CodeGenRefReadonlyReturnTests.cs" />
+    <Compile Include="CodeGen\CodeGenRefConditionalOperatorTests.cs" />
     <Compile Include="Emit\BinaryCompatibility.cs" />
     <Compile Include="Emit\DesktopStrongNameProviderTests.cs" />
     <Compile Include="Attributes\InternalsVisibleToAndStrongNameTests.cs" />

@@ -1521,6 +1521,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            var conditional = expr as BoundConditionalOperator;
+            if (conditional != null)
+            {
+                if (kind == BindValueKind.RefReturn)
+                {
+                    var returnable = CheckIsVariable(conditional.Consequence.Syntax, conditional.Consequence, kind, checkingReceiver:false, diagnostics: diagnostics) &
+                        CheckIsVariable(conditional.Alternative.Syntax, conditional.Alternative, kind, checkingReceiver:false, diagnostics: diagnostics);
+
+                    return returnable;
+                }
+                else if (conditional.IsByref)
+                {
+                    return true;
+                }
+                else
+                {
+                    Error(diagnostics, GetStandardLvalueError(kind), node);
+                }
+
+                return false;
+            }
+
             // Local constants are never variables. Local variables are sometimes
             // not to be treated as variables, if they are fixed, declared in a using, 
             // or declared in a foreach.

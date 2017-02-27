@@ -2258,6 +2258,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;await&apos; cannot be used in an expression containing a ref conditional operator.
+        /// </summary>
+        internal static string ERR_ByRefConditionalAndAwait {
+            get {
+                return ResourceManager.GetString("ERR_ByRefConditionalAndAwait", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A declaration of a by-reference variable must have an initializer.
         /// </summary>
         internal static string ERR_ByReferenceVariableMustBeInitialized {
@@ -7906,6 +7915,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RefAssignmentMustHaveIdentityConversion {
             get {
                 return ResourceManager.GetString("ERR_RefAssignmentMustHaveIdentityConversion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The expression must be of type &apos;{0}&apos; to match the alternative ref value.
+        /// </summary>
+        internal static string ERR_RefConditionalDifferentTypes {
+            get {
+                return ResourceManager.GetString("ERR_RefConditionalDifferentTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Both or none of conditional operator expressions can be ref values.
+        /// </summary>
+        internal static string ERR_RefConditionalNeedsTwoRefs {
+            get {
+                return ResourceManager.GetString("ERR_RefConditionalNeedsTwoRefs", resourceCulture);
             }
         }
         

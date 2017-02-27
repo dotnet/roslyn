@@ -103,6 +103,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitCallExpression(call, UseKind.UsedAsAddress);
                     break;
 
+                case BoundKind.ConditionalOperator:
+                    var conditional = (BoundConditionalOperator)expression;
+                    if (!conditional.IsByref)
+                    {
+                        goto default;
+                    }
+
+                    EmitConditionalOperatorAddress(conditional);
+                    break;
+
                 case BoundKind.AssignmentOperator:
                     var assignment = (BoundAssignmentOperator)expression;
                     if (assignment.RefKind == RefKind.None)
@@ -119,6 +129,42 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             return null;
         }
+
+        /// <summary>
+        /// Emit code for a conditional (aka ternary) operator.
+        /// </summary>
+        /// <remarks>
+        /// (b ? x : y) becomes
+        ///     push b
+        ///     if pop then goto CONSEQUENCE
+        ///     push y
+        ///     goto DONE
+        ///   CONSEQUENCE:
+        ///     push x
+        ///   DONE:
+        /// </remarks>
+        private void EmitConditionalOperatorAddress(BoundConditionalOperator expr)
+        {
+            Debug.Assert(expr.ConstantValue == null, "Constant value should have been emitted directly");
+
+            object consequenceLabel = new object();
+            object doneLabel = new object();
+
+            EmitCondBranch(expr.Condition, ref consequenceLabel, sense: true);
+            var temp = EmitAddress(expr.Alternative, AddressKind.Writeable);
+            Debug.Assert(temp == null);
+
+            _builder.EmitBranch(ILOpCode.Br, doneLabel);
+
+            // If we get to consequenceLabel, we should not have Alternative on stack, adjust for that.
+            _builder.AdjustStack(-1);
+
+            _builder.MarkLabel(consequenceLabel);
+            EmitAddress(expr.Consequence, AddressKind.Writeable);
+
+            _builder.MarkLabel(doneLabel);
+        }
+
 
         private void EmitComplexConditionalReceiverAddress(BoundComplexConditionalReceiver expression)
         {

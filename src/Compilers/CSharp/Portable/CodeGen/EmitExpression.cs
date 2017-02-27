@@ -2162,6 +2162,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     break;
 
+                case BoundKind.ConditionalOperator:
+                    {
+                        var left = (BoundConditionalOperator)assignmentTarget;
+                        Debug.Assert(left.IsByref);
+
+                        var temp = EmitAddress(left, AddressKind.Writeable);
+                        Debug.Assert(temp == null, "taking ref of this should not create a temp");
+
+                        lhsUsesStack = true;
+                    }
+                    break;
+
                 case BoundKind.PointerIndirectionOperator:
                     {
                         var left = (BoundPointerIndirectionOperator)assignmentTarget;
@@ -2334,6 +2346,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Dup:
                     Debug.Assert(((BoundDup)expression).RefKind != RefKind.None);
+                    EmitIndirectStore(expression.Type, expression.Syntax);
+                    break;
+
+                case BoundKind.ConditionalOperator:
+                    Debug.Assert(((BoundConditionalOperator)expression).IsByref);
                     EmitIndirectStore(expression.Type, expression.Syntax);
                     break;
 

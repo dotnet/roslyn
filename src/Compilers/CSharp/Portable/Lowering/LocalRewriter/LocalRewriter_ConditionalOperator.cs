@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rewrittenCondition.ConstantValue == null)
             {
-                return node.Update(rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
+                return node.Update(node.IsByref, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
             }
 
             return RewriteConditionalOperator(
@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence,
                 rewrittenAlternative,
                 node.ConstantValueOpt,
-                node.Type);
+                node.Type,
+                node.IsByref);
         }
 
         private static BoundExpression RewriteConditionalOperator(
@@ -42,7 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenConsequence,
             BoundExpression rewrittenAlternative,
             ConstantValue constantValueOpt,
-            TypeSymbol rewrittenType)
+            TypeSymbol rewrittenType,
+            bool isRef)
         {
             // NOTE: This optimization assumes that a constant has no side effects. In the future we 
             // might wish to represent nodes that are known to the optimizer as having constant
@@ -62,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundConditionalOperator(
                     syntax,
+                    isRef,
                     rewrittenCondition,
                     rewrittenConsequence,
                     rewrittenAlternative,

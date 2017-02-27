@@ -4834,6 +4834,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturningCallAndAwait" xml:space="preserve">
     <value>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</value>
   </data>
+  <data name="ERR_ByRefConditionalAndAwait" xml:space="preserve">
+    <value>'await' cannot be used in an expression containing a ref conditional operator</value>
+  </data>
+  <data name="ERR_RefConditionalNeedsTwoRefs" xml:space="preserve">
+    <value>Both or none of conditional operator expressions can be ref values</value>
+  </data>
+  <data name="ERR_RefConditionalDifferentTypes" xml:space="preserve">
+    <value>The expression must be of type '{0}' to match the alternative ref value</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsLocalFunction" xml:space="preserve">
     <value>An expression tree may not contain a reference to a local function</value>
   </data>

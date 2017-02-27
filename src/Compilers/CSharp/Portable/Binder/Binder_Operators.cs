@@ -3419,9 +3419,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private BoundExpression BindConditionalOperator(ConditionalExpressionSyntax node, DiagnosticBag diagnostics)
         {
+            var whenTrue = node.WhenTrue.SkipRef(out var whenTrueRefKind);
+            var whenFalse = node.WhenFalse.SkipRef(out var whenFalseRefKind);
+
+            var isRef = whenTrueRefKind == RefKind.Ref  && whenFalseRefKind == RefKind.Ref;
+
+            if (!isRef)
+            {
+                if (whenFalseRefKind == RefKind.Ref)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RefConditionalNeedsTwoRefs, whenFalse.GetFirstToken().GetLocation());
+                }
+
+                if (whenTrueRefKind == RefKind.Ref)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RefConditionalNeedsTwoRefs, whenTrue.GetFirstToken().GetLocation());
+                }
+           }
+
             BoundExpression condition = BindBooleanExpression(node.Condition, diagnostics);
-            BoundExpression trueExpr = BindValue(node.WhenTrue, diagnostics, BindValueKind.RValue);
-            BoundExpression falseExpr = BindValue(node.WhenFalse, diagnostics, BindValueKind.RValue);
+
+            var valKind = isRef ? BindValueKind.RefOrOut : BindValueKind.RValue;
+
+            BoundExpression trueExpr = BindValue(whenTrue, diagnostics, valKind);
+            BoundExpression falseExpr = BindValue(whenFalse, diagnostics, valKind);
 
             TypeSymbol trueType = trueExpr.Type;
             TypeSymbol falseType = falseExpr.Type;
@@ -3490,19 +3511,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
-                    falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
-
-                    if (trueExpr.HasAnyErrors || falseExpr.HasAnyErrors)
+                    if (isRef)
                     {
-                        // If one of the conversions went wrong (e.g. return type of method group being converted
-                        // didn't match), then we don't want to use bestType because it's not accurate.
-                        type = CreateErrorType();
-                        hasErrors = true;
+                        if (!Conversions.HasIdentityConversion(trueType, falseType))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_RefConditionalDifferentTypes, falseExpr.Syntax.Location, trueType);
+                            type = CreateErrorType();
+                            hasErrors = true;
+                        }
+                        else
+                        {
+                            Debug.Assert(Conversions.HasIdentityConversion(trueType, bestType));
+                            Debug.Assert(Conversions.HasIdentityConversion(falseType, bestType));
+                            type = bestType;
+                        }
                     }
                     else
                     {
-                        type = bestType;
+                        trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
+                        falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
+
+                        if (trueExpr.HasAnyErrors || falseExpr.HasAnyErrors)
+                        {
+                            // If one of the conversions went wrong (e.g. return type of method group being converted
+                            // didn't match), then we don't want to use bestType because it's not accurate.
+                            type = CreateErrorType();
+                            hasErrors = true;
+                        }
+                        else
+                        {
+                            type = bestType;
+                        }
                     }
                 }
             }
@@ -3515,7 +3554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = constantValue != null && constantValue.IsBad;
             }
 
-            return new BoundConditionalOperator(node, condition, trueExpr, falseExpr, constantValue, type, hasErrors);
+            return new BoundConditionalOperator(node, isRef, condition, trueExpr, falseExpr, constantValue, type, hasErrors);
         }
 
         /// <summary>

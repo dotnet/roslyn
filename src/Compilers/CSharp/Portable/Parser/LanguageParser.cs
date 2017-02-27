@@ -9507,9 +9507,9 @@ tryAgain:
             if (tk == SyntaxKind.QuestionToken && precedence <= Precedence.Ternary)
             {
                 var questionToken = this.EatToken();
-                var colonLeft = this.ParseExpressionCore();
+                var colonLeft = this.ParsePossibleRefExpression();
                 var colon = this.EatToken(SyntaxKind.ColonToken);
-                var colonRight = this.ParseExpressionCore();
+                var colonRight = this.ParsePossibleRefExpression();
                 leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
             }
 

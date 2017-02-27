@@ -1457,5 +1457,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion more stragglers for C# 7
 
         ERR_BadParameterModifiers = 8205,
+
+        ERR_ByRefConditionalAndAwait = 8301,
+        ERR_RefConditionalNeedsTwoRefs = 8302,
+        ERR_RefConditionalDifferentTypes = 8332,
+
     }
 }
