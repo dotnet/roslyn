@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MoveTo
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestTestImportsMissing() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -165,14 +165,14 @@ Imports Sys = System
 Option Infer Off
 [|Imports System.IO|]</File>
 
-            Await TestMissingAsync(text.ConvertTestSourceTag())
+            Await TestMissingInRegularAndScriptAsync(text.ConvertTestSourceTag())
         End Function
 #End Region
 
 #Region "Option Tests"
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestTestOptionsMissing() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "[|Option Explicit Off|]
 Module Program
     Sub Main(args As String())
@@ -441,7 +441,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestMissingAsync(text.ConvertTestSourceTag())
+            Await TestMissingInRegularAndScriptAsync(text.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -455,7 +455,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestMissingAsync(text.ConvertTestSourceTag())
+            Await TestMissingInRegularAndScriptAsync(text.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>

@@ -303,7 +303,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestNoLoop() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Module M1
     Sub Main()
         Next [|y|]
@@ -313,7 +313,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestMissingNesting() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Module M1
     Sub Main()
         For Each x In {1, 2, 3}

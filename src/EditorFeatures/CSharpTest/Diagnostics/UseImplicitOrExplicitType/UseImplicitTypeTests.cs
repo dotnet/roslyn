@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnFieldDeclaration()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -78,7 +78,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnFieldLikeEvents()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -90,7 +90,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnConstants()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -105,7 +105,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnNullLiteral()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -120,7 +120,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnDynamic()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -135,7 +135,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnAnonymousMethodExpression()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -152,7 +152,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnLambdaExpression()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -167,7 +167,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnMethodGroup()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -182,7 +182,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnDeclarationWithMultipleDeclarators()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -197,7 +197,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnDeclarationWithoutInitializer()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -212,7 +212,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnIFormattable()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -227,7 +227,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnFormattableString()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -242,7 +242,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotInCatchDeclaration()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -263,7 +263,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotDuringConflicts()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -282,7 +282,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotIfAlreadyImplicitlyTyped()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -297,7 +297,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnImplicitConversion()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -313,7 +313,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnBoxingImplicitConversion()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -329,7 +329,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnRHS()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -344,7 +344,7 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnVariablesUsedInInitalizerExpression()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -359,7 +359,7 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnAssignmentToInterfaceType()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -382,7 +382,7 @@ interface IInterface
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnArrayInitializerWithoutNewKeyword()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -1050,7 +1050,7 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task DoNotSuggestVarOnBuiltInType_Literal_WithOption()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -1065,7 +1065,7 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task DoNotSuggestVarOnBuiltInType_WithOption()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -1158,7 +1158,7 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task DoNotSuggestVarWhereTypeIsEvident_Literals()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -1230,7 +1230,7 @@ class C
             // they have short names and using var doesn't gain anything.
             // Accordingly, the `built-in type` rule precedes over the `where apparent` rule
             // and we do not suggest `use var` here.
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -1471,7 +1471,7 @@ class C
         [|C|] n1 = new C();
     }
 }";
-            await TestMissingAsync(source, ImplicitTypeNoneEnforcement());
+            await TestMissingInRegularAndScriptAsync(source, options: ImplicitTypeNoneEnforcement());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1558,7 +1558,7 @@ namespace System
             await TestAsync(before, after, options: ImplicitTypeEverywhere(), parseOptions: TestOptions.Regular, withScriptOption: true);
 
             // We would rather this refactoring also worked. See https://github.com/dotnet/roslyn/issues/11094
-            await TestMissingAsync(before, options: ImplicitTypeWhereApparent());
+            await TestMissingInRegularAndScriptAsync(before, options: ImplicitTypeWhereApparent());
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/11154"), Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1591,7 +1591,7 @@ withScriptOption: true);
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task TupleWithDifferentNames()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     static void M()
@@ -1606,7 +1606,7 @@ options: ImplicitTypeEverywhere());
         [WorkItem(14052, "https://github.com/dotnet/roslyn/issues/14052")]
         public async Task DoNotOfferOnForEachConversionIfItChangesSemantics()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 

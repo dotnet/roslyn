@@ -308,7 +308,7 @@ End Namespace")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddImportsNotSuggestedForImportsStatement() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports [|InnerNamespace|]
 Namespace SomeNamespace
     Namespace InnerNamespace
@@ -320,7 +320,7 @@ End Namespace")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddImportsNotSuggestedForGenericTypeParametersOfClause() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
     Sub Foo(Of [|SomeClass|])(x As SomeClass)
     End Sub
@@ -333,7 +333,7 @@ End Namespace")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddImportsNotSuggestedForGenericTypeParametersAsClause() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
     Sub Foo(Of SomeClass)(x As [|SomeClass|])
     End Sub
@@ -424,7 +424,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestGenericWithWrongArgs1() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Foo
     Function F() As [|List(Of Integer, String, Boolean)|]
     End Function
@@ -433,7 +433,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestGenericWithWrongArgs2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Foo
     Function F() As [|List(Of Integer, String)|]
     End Function
@@ -783,7 +783,7 @@ End Class")
         <WorkItem(543107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543107")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestNoCrashOnMissingLeftSide() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System
 Class C1
     Sub foo()
@@ -837,7 +837,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestDoNotAddIntoHiddenRegion() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System
 #ExternalSource (""Default.aspx"", 2) 
 Class C
@@ -1812,7 +1812,7 @@ End Module
                                       </Document>
                               </Project>
                           </Workspace>.ToString
-            Await TestMissingAsync(initial)
+            Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
         <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
@@ -2402,7 +2402,7 @@ End Module")
             <WorkItem(938296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938296")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
             Public Async Function TestNullParentInNode() As Task
-                Await TestMissingAsync(
+                Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections.Generic
 
 Class MultiDictionary(Of K, V)

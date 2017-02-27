@@ -153,7 +153,7 @@ class Program
             // NOTE: Intentionally not running this test with Script options, because in Script,
             // NOTE: class "Foo" is placed inside the script class, and can't be seen by the extension
             // NOTE: method Select, which is not inside the script class.
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections;
 using SomeNS;
@@ -369,7 +369,7 @@ class F
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAttribute()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using SomeNamespace;
 
 [SomeAttr]
@@ -388,7 +388,7 @@ namespace SomeNamespace
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAttributeArgument()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using foo;
 
 [SomeAttribute(typeof(SomeClass))]
@@ -732,7 +732,7 @@ namespace SomeNS
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUsingStaticClassAccessField2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using static SomeNS.Foo;
 
 class Program
@@ -800,7 +800,7 @@ namespace SomeNS
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUsingStaticClassAccessMethod2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using static SomeNS.Foo;
 
 class Program
@@ -903,7 +903,7 @@ public static class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAliasInUse()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using GIBBERISH = Foo.Bar;
 
 class Program
@@ -999,7 +999,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestImportedTypeUsedAsGenericTypeArgument()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using GenericThingie;
 
 public class GenericType<T>
@@ -1078,7 +1078,7 @@ parseOptions: null);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMissingWhenErrorsWouldBeGenerated()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using System;
 using X;
 using Y;
@@ -1128,7 +1128,7 @@ namespace Y
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMissingWhenMeaningWouldChangeInLambda()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using System;
 using X;
 using Y;
@@ -1184,7 +1184,7 @@ namespace Y
             // used even though it isn't in the final bind, and could be removed.  However, as we do
             // not know if it was necessary to eliminate a speculative lambda bind, we must leave
             // it.
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using System;
 using X;
 using Y;
@@ -1226,7 +1226,7 @@ namespace Y
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestCasesWithLambdas2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using System;
 using N; // Falsely claimed as unnecessary
 
@@ -1279,7 +1279,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMissingOnAliasedVar()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using var = var;
 
 class var
@@ -1299,7 +1299,7 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestBrokenCode()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using System.Linq;
 
 public class QueryExpressionTest

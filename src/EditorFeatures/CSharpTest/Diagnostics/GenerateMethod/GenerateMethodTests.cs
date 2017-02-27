@@ -1500,7 +1500,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestNegativeWithNamedOptionalArg1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"namespace SyntaxError
 {
     class C1
@@ -1598,7 +1598,7 @@ class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestForMissingOptionalArg()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Foo
 {
     static void Test()
@@ -1755,7 +1755,7 @@ class C1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestForMultipleSmartTagsInvokingWithinCtor()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C1
@@ -2719,7 +2719,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface6()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"interface I
 {
     void Foo();
@@ -2737,7 +2737,7 @@ class A : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface7()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"interface I
 {
 }
@@ -3474,7 +3474,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestClashesWithMethod1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -3492,7 +3492,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestClashesWithMethod2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program : IFoo
 {
     [|bool IFoo.Foo()
@@ -3538,7 +3538,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestShadows1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -3555,7 +3555,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestShadows2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -3693,7 +3693,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDelegateScenario()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C<T>
 {
     public delegate void Foo<R>(R r);
@@ -3841,7 +3841,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOnInvalidInvocation()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     public delegate int Func(ref int i);
@@ -3859,7 +3859,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMissingOnMultipleLambdaInferences()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -3995,7 +3995,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestNotOnLeftOfAssign()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -4020,7 +4020,7 @@ public static class MyExtension
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMissingOnImplementedInterfaceMethod()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program<T> : ITest
 {
     [|void ITest.Method(T t)
@@ -4626,7 +4626,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenericArgWithMissingTypeParameter()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     public static int foo(ref int i)
@@ -4645,7 +4645,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDuplicateWithErrorType()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class class1
@@ -4665,7 +4665,7 @@ class class1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestNoGenerationIntoEntirelyHiddenType()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void Foo()
@@ -4870,7 +4870,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateInVenus1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
 #line 1 ""foo""
@@ -5424,7 +5424,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDoNotOfferMethodWithoutParenthesis()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -5565,7 +5565,7 @@ namespace Z
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf5()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5579,7 +5579,7 @@ namespace Z
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf6()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5740,7 +5740,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf12()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -5977,7 +5977,7 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccessMissing()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void Main(C a)

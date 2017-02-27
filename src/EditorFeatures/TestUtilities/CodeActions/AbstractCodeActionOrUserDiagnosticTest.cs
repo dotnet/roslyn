@@ -59,29 +59,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected async Task TestMissingAsync(
+        protected async Task TestMissingInRegularAndScriptAsync(
             string initialMarkup,
+            CompilationOptions compilationOptions = null,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null)
         {
-            await TestMissingAsync(initialMarkup, parseOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
-            await TestMissingAsync(initialMarkup, parseOptions: GetScriptOptions(), options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
+            await TestMissingAsync(
+                initialMarkup, parseOptions: null,
+                compilationOptions: compilationOptions,
+                options: options,
+                fixAllActionEquivalenceKey: fixAllActionEquivalenceKey,
+                fixProviderData: fixProviderData);
+            await TestMissingAsync(
+                initialMarkup, parseOptions: GetScriptOptions(),
+                options: options,
+                fixAllActionEquivalenceKey: fixAllActionEquivalenceKey,
+                fixProviderData: fixProviderData);
         }
 
         protected async Task TestMissingAsync(
             string initialMarkup,
-            ParseOptions parseOptions,
-            IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null)
-        {
-            await TestMissingAsync(initialMarkup, parseOptions, compilationOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
-        }
-
-        protected async Task TestMissingAsync(
-            string initialMarkup,
-            ParseOptions parseOptions, CompilationOptions compilationOptions,
+            ParseOptions parseOptions = null,
+            CompilationOptions compilationOptions = null,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null)

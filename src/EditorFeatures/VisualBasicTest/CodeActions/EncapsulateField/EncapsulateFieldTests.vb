@@ -590,7 +590,7 @@ End Class</File>.ConvertTestSourceTag()
             Dim globalField = <File>
 Dim [|x|] = 1
 </File>.ConvertTestSourceTag()
-            Await TestMissingAsync(globalField)
+            Await TestMissingInRegularAndScriptAsync(globalField)
 
 
             Dim namespaceField = <File>
@@ -598,14 +598,14 @@ Namespace N
     Dim [|x|] = 1
 End Namespace            
 </File>.ConvertTestSourceTag()
-            Await TestMissingAsync(namespaceField)
+            Await TestMissingInRegularAndScriptAsync(namespaceField)
 
             Dim enumField = <File>
 Enum E
      [|x|] = 1
 End Enum
 </File>.ConvertTestSourceTag()
-            Await TestMissingAsync(enumField)
+            Await TestMissingInRegularAndScriptAsync(enumField)
 
         End Function
 

@@ -191,7 +191,7 @@ End Module"
         Dim r = [|x.ToString()|]
     End Sub
 End Module"
-            Await TestMissingAsync(source)
+            Await TestMissingInRegularAndScriptAsync(source)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -961,7 +961,7 @@ index:=0)
         <WorkItem(542092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542092")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestRangeArgumentLowerBound1() As Task
-            Await TestMissingAsync("Module M
+            Await TestMissingInRegularAndScriptAsync("Module M
     Sub Main()
         Dim x() As Integer
         ReDim x([|0|] To 5)
@@ -1083,7 +1083,7 @@ parseOptions:=Nothing)
         <WorkItem(542783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542783")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestMissingOnAttributeName() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "<[|Obsolete|]>
 Class C
 End Class")
@@ -1092,7 +1092,7 @@ End Class")
         <WorkItem(542811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542811")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestMissingOnFilterClause() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         Try
@@ -1126,7 +1126,7 @@ index:=0)
         <WorkItem(542947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542947")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNotOnMyBase() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class c1
     Public res As String
     Sub Foo()
@@ -1373,7 +1373,7 @@ index:=0)
         <WorkItem(542762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542762")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNotInIntoClause() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System.Linq
 Module 
  Sub Main()
@@ -1386,7 +1386,7 @@ End Module")
         <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNotOnAttribute1() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Option Explicit Off
 Module Program
     <Runtime.CompilerServices.[|Extension|]()> _
@@ -1399,7 +1399,7 @@ End Module")
         <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNotOnAttribute2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Option Explicit Off
 Module Program
     <Runtime.CompilerServices.[|Extension()|]> _
@@ -1412,7 +1412,7 @@ End Module")
         <WorkItem(543461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543461")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestCollectionInitializer() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         Dim i1 = New Integer() [|{4, 5}|]
@@ -1575,7 +1575,7 @@ index:=1)
         <WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestInStatementlessConstructorParameter() As Task
-            Await TestMissingAsync("Class C1
+            Await TestMissingInRegularAndScriptAsync("Class C1
     Sub New(Optional ByRef x As String = [|Nothing|])
     End Sub
 End Class")
@@ -1584,7 +1584,7 @@ End Class")
         <WorkItem(543650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543650")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestReferenceToAnonymousTypeProperty() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class AM
     Sub M(args As String())
         Dim var1 As New AM
@@ -1613,7 +1613,7 @@ End Module")
         <WorkItem(544273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544273")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestAttributeNamedParameter() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class TestAttribute
     Inherits Attribute
     Public Sub New(Optional a As Integer = 42)
@@ -1627,7 +1627,7 @@ End Class")
         <WorkItem(544265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544265")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestMissingOnWrittenToExpression() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         Dim x = New Integer() {1, 2}
@@ -1639,7 +1639,7 @@ End Module")
         <WorkItem(543824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543824")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestImplicitMemberAccess1() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System
 Public Class C1
     Public FieldInt As Long
@@ -1656,7 +1656,7 @@ End Class")
         <WorkItem(543824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543824")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestImplicitMemberAccess2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System
 Public Class C1
     Public FieldInt As Long
@@ -1673,7 +1673,7 @@ End Class")
         <WorkItem(543824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543824")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestImplicitMemberAccess3() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System
 Public Class C1
     Public FieldInt As Long
@@ -1737,13 +1737,13 @@ Module Module1
         Foo(New Action(Of Exception)([|AddressOf Foo|]))
     End Sub
 End Module"
-            Await TestMissingAsync(source)
+            Await TestMissingInRegularAndScriptAsync(source)
         End Function
 
         <WorkItem(529510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529510")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestMissingOnAddressOfInDelegate() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Module Module1
     Public Sub Foo(ByVal a1 As Exception)
     End Sub
@@ -1758,7 +1758,7 @@ End Module")
         <WorkItem(545168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545168")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestMissingOnXmlName() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Module M
     Sub Main()
         Dim x = <[|x|]/>
@@ -1770,7 +1770,7 @@ End Module")
         <WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestInTernaryConditional() As Task
-            Await TestMissingAsync("Module Program
+            Await TestMissingInRegularAndScriptAsync("Module Program
     Sub Main(args As String())
         Dim p As Object = Nothing
         Dim Obj1 = If(New With {.a = True}.a, p, [|Nothing|])
@@ -1987,7 +1987,7 @@ Module A
 End Module
 "
 
-            Await TestMissingAsync(markup)
+            Await TestMissingInRegularAndScriptAsync(markup)
         End Function
 
         <WorkItem(546139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546139")>
@@ -2368,7 +2368,7 @@ End Module
         <WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestMissingOnNothingLiteral() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System
 Module Program
@@ -2414,7 +2414,7 @@ End Class
         <WorkItem(3110, "https://github.com/dotnet/roslyn/issues/3110")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestMissingAcrossMultipleParentConditionalAccessExpressions() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System
 Class C
@@ -2429,7 +2429,7 @@ End Class
         <WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestMissingOnInvocationExpressionInParentConditionalAccessExpressions() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System
 Class C
@@ -2444,7 +2444,7 @@ End Class
         <WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestMissingOnMemberBindingExpressionInParentConditionalAccessExpressions() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System
 Class C

@@ -812,7 +812,7 @@ End Class")
         <WorkItem(539537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539537")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestArrayAccess1() As Task
-            Await TestMissingAsync("Class C
+            Await TestMissingInRegularAndScriptAsync("Class C
     Sub M(x As Integer())
         Foo([|x|](4))
     End Sub
@@ -1104,7 +1104,7 @@ End Namespace")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestClashesWithMethod1() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Program
     Implements IFoo
     Public Function Blah() As String Implements [|IFoo.Blah|]
@@ -1117,7 +1117,7 @@ End Interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestClashesWithMethod2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Program
     Implements IFoo
     Public Function Blah() As String Implements [|IFoo.Blah|]
@@ -1219,7 +1219,7 @@ End Interface")
         <WorkItem(539708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539708")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestNoStaticGenerationIntoInterface() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Interface IFoo
 End Interface
 Class Program
@@ -1369,7 +1369,7 @@ End Class")
         <WorkItem(527986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527986")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestNotOfferedForInferredGenericMethodArgs() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Foo(Of T)
     Sub Main(Of T, X)(k As Foo(Of T))
         [|Bar|](k)
@@ -1404,7 +1404,7 @@ End Class")
         <WorkItem(541405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541405")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestMissingOnImplementedInterfaceMethod() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C(Of U)
     Implements ITest
     Public Sub Method(x As U) Implements [|ITest.Method|]
@@ -1418,7 +1418,7 @@ End Interface")
         <WorkItem(542098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542098")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestNotOnConstructorInitializer() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub New
         Me.[|New|](1)
@@ -1571,7 +1571,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestMissingOnHiddenType() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 <text>
 #externalsource("file", num)
 class C
@@ -1897,7 +1897,7 @@ End Module")
         <WorkItem(546683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546683")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestNotOnMissingMethodName() As Task
-            Await TestMissingAsync("Class C
+            Await TestMissingInRegularAndScriptAsync("Class C
     Sub M()
         Me.[||] 
  End Sub

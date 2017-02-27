@@ -526,7 +526,7 @@ End Class
         <WorkItem(540355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540355")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMissingOnImplementationWithDifferentName() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Interface I1(Of T)
     Function Foo() As Double
 End Interface
@@ -670,7 +670,7 @@ End Class")
         <WorkItem(540403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540403")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMissingOnInterfaceWithJustADelegate() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Interface I1
     Delegate Sub Del()
 End Interface
@@ -853,7 +853,7 @@ End Class")
         <WorkItem(541092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541092")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDoNotShowForImplementedPrivateInterfaceMethod() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Interface I1
     Private Sub Foo()
 End Interface
@@ -1562,7 +1562,7 @@ End Class")
         <WorkItem(543425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543425")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMissingIfEventAlreadyImplemented() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System.ComponentModel
 Class C
     Implements [|INotifyPropertyChanged|]
@@ -1696,7 +1696,7 @@ End Class")
         <WorkItem(544208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544208")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMissingOnWrongArity() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Interface I1(Of T)
     ReadOnly Property Bar As Integer
 End Interface

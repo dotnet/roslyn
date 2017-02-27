@@ -95,7 +95,7 @@ index:=0)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMissingWithExistingConstructor() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Program
     [|Private i As Integer
     Private b As String|]
@@ -206,7 +206,7 @@ index:=0)
         <WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestAbstract_Getter_Only_Auto_Props() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Contribution
   [|MustOverride ReadOnly Property Title As String
     ReadOnly Property Number As Integer|]
@@ -276,7 +276,7 @@ End Class", chosenSymbols:={"i"})
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMissingOnMember1() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Program
     Private i As Integer
     [||]Sub M()
@@ -286,7 +286,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMissingOnMember2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Program
     Private i As Integer
     Sub M()
@@ -296,7 +296,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMissingOnAttributes() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "<X>[||]
 Class Program
     Private i As Integer

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
         End Enum
 
         Private Async Function TestMissingOneAsync(initial As String) As Task
-            Await TestMissingAsync(CreateTreeText("[||]" + initial))
+            Await TestMissingInRegularAndScriptAsync(CreateTreeText("[||]" + initial))
         End Function
 
         Private Async Function TestFixOneAsync(initial As String, expected As String, refactoring As Refactoring) As Task

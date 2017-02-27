@@ -239,7 +239,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestMissingWithExistingConstructor()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -509,7 +509,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestGenerateConstructorNotOfferedForDuplicate()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class X
@@ -621,7 +621,7 @@ options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSu
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestAbstract_Getter_Only_Auto_Props()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"abstract class Contribution
 {
   [|public abstract string Title { get; }
@@ -682,7 +682,7 @@ chosenSymbols: new[] { "a" });
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestMissingOnClassAttributes()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 [X][||]
@@ -747,7 +747,7 @@ chosenSymbols: new string[] { "b", "a" });
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestMissingOnMember1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -761,7 +761,7 @@ class Z
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestMissingOnMember2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -779,7 +779,7 @@ class Z
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestMissingOnMember3()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Z

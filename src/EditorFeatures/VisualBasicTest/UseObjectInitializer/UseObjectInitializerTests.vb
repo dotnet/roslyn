@@ -169,7 +169,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestMissingWithExistingInitializer() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -186,7 +186,7 @@ End Class")
         <WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestMissingIfImplicitMemberAccessWouldChange() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Class C
     Sub M()

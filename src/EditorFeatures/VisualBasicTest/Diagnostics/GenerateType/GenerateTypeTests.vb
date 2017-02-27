@@ -82,7 +82,7 @@ index:=1)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestMissingOnLowercaseName() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     dim f as [|foo|]
 End Class")
@@ -672,7 +672,7 @@ parseOptions:=TestOptions.Regular)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestMissingOnImportsDirective() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports [|System|]")
         End Function
 
@@ -694,7 +694,7 @@ expectedDocumentName:="Derived.vb")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNotOfferedInsideBinaryExpressions() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Base
     Sub Main
         Dim a = 1 + [|Foo|]
@@ -704,7 +704,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNotOfferedIfLeftSideOfDotIsNotAName() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         Call 1.[|T|]
@@ -714,7 +714,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNotOfferedIfLeftFromDotIsNotAName() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C1
     Sub Foo
         Me.[|Foo|] = 3
@@ -725,7 +725,7 @@ End Class")
         <WorkItem(539786, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539786")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestMissingOnAssignedVariable() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -920,7 +920,7 @@ index:=1)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNotOnConstructorToActualType() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub Test()
         Dim x As Integer = 1
@@ -967,7 +967,7 @@ index:=1)
         <WorkItem(541607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541607")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNotOnDictionaryAccess() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections
 Imports System.Collections.Generic
@@ -1056,7 +1056,7 @@ End Module")
         <WorkItem(543397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543397")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNewModule() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Module Program
     Sub Main
         Dim f As New [|Program|]

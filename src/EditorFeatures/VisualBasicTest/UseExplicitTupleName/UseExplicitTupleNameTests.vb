@@ -79,7 +79,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestMissingOnMatchingName1() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -91,7 +91,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestMissingOnMatchingName2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -103,7 +103,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestWrongCasing() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 class C
     Sub M()

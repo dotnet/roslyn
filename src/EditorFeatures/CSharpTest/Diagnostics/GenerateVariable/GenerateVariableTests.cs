@@ -852,7 +852,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateStaticIntoInterfaceMissing()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method(I i)
@@ -1167,7 +1167,7 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMissingInInvocation()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1180,7 +1180,7 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMissingInObjectCreation()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1193,7 +1193,7 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMissingInTypeDeclaration()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1202,7 +1202,7 @@ interface I
     }
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1211,7 +1211,7 @@ interface I
     }
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1220,7 +1220,7 @@ interface I
     }
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1229,7 +1229,7 @@ interface I
     }
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1238,7 +1238,7 @@ interface I
     }
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1247,7 +1247,7 @@ interface I
     }
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1256,7 +1256,7 @@ interface I
     }
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1265,7 +1265,7 @@ interface I
     }
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1279,55 +1279,55 @@ interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMissingInAttribute()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[[|A|]]
 class Class
 {
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[[|A.B|]]
 class Class
 {
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[[|A|].B]
 class Class
 {
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[A.[|B|]]
 class Class
 {
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[[|A.B.C|]]
 class Class
 {
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[[|A.B|].C]
 class Class
 {
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[A.B.[|C|]]
 class Class
 {
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[[|A|].B.C]
 class Class
 {
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[A.B.[|C|]]
 class Class
 {
@@ -1581,7 +1581,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestExplicitProperty4()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     bool ITest.[|SomeProp|] { }
@@ -1596,7 +1596,7 @@ interface ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestExplicitProperty5()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class : ITest
 {
     bool ITest.[|SomeProp|] { }
@@ -1681,7 +1681,7 @@ interface ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnError()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void F<U, V>(U u1, V v1)
@@ -1925,7 +1925,7 @@ new[] { string.Format(FeaturesResources.Generate_field_1_0, "p", "Program"), str
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestNotInGoto()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     static void Main()
@@ -1962,7 +1962,7 @@ new[] { string.Format(FeaturesResources.Generate_field_1_0, "p", "Program"), str
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotBeforeAlias()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1980,7 +1980,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMissingOnGenericName()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C<T>
 {
     public delegate void Foo<R>(R r);
@@ -2084,14 +2084,14 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestEmptyIdentifierName()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     static void M()
     {
         int i = [|@|] }
 }");
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     static void M()
@@ -3236,7 +3236,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNoGenerationIntoAnonymousType()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -3251,7 +3251,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOfferedForBoundParametersOfOperators()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     public Program(string s)
@@ -3274,7 +3274,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnNamedParameterName1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class class1
@@ -3294,7 +3294,7 @@ class class1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnNamedParameterName2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Foo
 {
     public Foo(int a = 42)
@@ -3570,7 +3570,7 @@ index: 3);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnIncompleteMember1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Class1
@@ -3582,7 +3582,7 @@ class Class1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnIncompleteMember2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Class1
@@ -3594,7 +3594,7 @@ class Class1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnIncompleteMember3()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Class1
@@ -3655,7 +3655,7 @@ class Class1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnUsingAlias()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using [|S|] = System ; S . Console . WriteLine ( ""hello world"" ) ; ");
         }
 
@@ -3691,7 +3691,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNoGenerationIntoEntirelyHiddenType()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void Foo()
@@ -3762,7 +3762,7 @@ index: 3);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestLocalMissingForVar()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -3898,7 +3898,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMissingWhenNoAvailableRegionToGenerateInto()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 #line hidden
@@ -4228,7 +4228,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMissingOnNamespace()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4241,7 +4241,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMissingOnType()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4254,7 +4254,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMissingOnBase()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -4355,7 +4355,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInVenus1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
 #line 1 ""foo""
@@ -5292,7 +5292,7 @@ index: 3);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfMissing()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5306,7 +5306,7 @@ index: 3);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfMissing2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -5321,7 +5321,7 @@ index: 3);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfMissing3()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -6998,7 +6998,7 @@ index: 3);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnStaticWithExistingInstance1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     int _field;
@@ -7014,7 +7014,7 @@ index: 3);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnStaticWithExistingInstance2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     int _field;

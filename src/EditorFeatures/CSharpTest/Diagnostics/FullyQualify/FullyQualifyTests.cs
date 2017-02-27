@@ -118,7 +118,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericWithWrongArgs()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     [|List<int, string>|] Method()
@@ -285,7 +285,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingIfUniquelyBound()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Class
@@ -300,7 +300,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingIfUniquelyBoundGeneric()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Class
@@ -512,7 +512,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestExtensionMethods()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Foo
@@ -772,7 +772,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyTypeName_NotForGenericType()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program<T>
 {
     public class Inner
@@ -890,7 +890,7 @@ parseOptions: GetScriptOptions());
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAfterAlias()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -908,7 +908,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingOnIncompleteStatement()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.IO;
 
@@ -933,7 +933,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingOnAliasName()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using [|GIBBERISH|] = Foo.GIBBERISH;
 
 class Program
@@ -955,7 +955,7 @@ namespace Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingOnAttributeOverloadResolutionError()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Runtime.InteropServices;
 
 class M
@@ -969,7 +969,7 @@ class M
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestNotOnAbstractConstructor()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.IO;
 
 class Program
@@ -997,7 +997,7 @@ input,
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGeneratePropertyFromAttribute()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 [AttributeUsage(AttributeTargets.Class)]

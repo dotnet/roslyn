@@ -132,7 +132,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                     Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
-                Await TestMissingAsync(
+                Await TestMissingInRegularAndScriptAsync(
 "
 Class C
     Dim n As [|NuGetType|]

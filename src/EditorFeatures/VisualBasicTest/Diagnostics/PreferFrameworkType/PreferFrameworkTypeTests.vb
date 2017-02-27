@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotWhenOptionsAreNotSet() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Protected i As [|Integer|]
 End Class
@@ -64,7 +64,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotOnUserdefinedType() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Protected i As [|C|]
 End Class
@@ -73,7 +73,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotOnFrameworkType() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Imports System
 Class C
     Protected i As [|Int32|]
@@ -83,7 +83,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotOnQualifiedTypeSyntax() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Protected i As [|System.Int32|]
 End Class
@@ -92,7 +92,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotOnFrameworkTypeWithNoPredefinedKeywordEquivalent() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Protected i As [|List|](Of Integer)
 End Class
@@ -101,7 +101,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotOnIdentifierThatIsNotTypeSyntax() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Protected [|i|] As Integer
 End Class
@@ -110,7 +110,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotOnBoolean_KeywordMatchesTypeName() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Protected x As [|Boolean|]
 End Class
@@ -119,7 +119,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotOnByte_KeywordMatchesTypeName() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Protected x As [|Byte|]
 End Class
@@ -128,7 +128,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotOnChar_KeywordMatchesTypeName() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Protected x As [|Char|]
 End Class
@@ -137,7 +137,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotOnObject_KeywordMatchesTypeName() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Protected x As [|Object|]
 End Class
@@ -146,7 +146,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotOnSByte_KeywordMatchesTypeName() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Protected x As [|SByte|]
 End Class
@@ -155,7 +155,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotOnString_KeywordMatchesTypeName() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Protected x As [|String|]
 End Class
@@ -164,7 +164,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotOnSingle_KeywordMatchesTypeName() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Protected x As [|Single|]
 End Class
@@ -173,7 +173,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotOnDecimal_KeywordMatchesTypeName() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Protected x As [|Decimal|]
 End Class
@@ -182,7 +182,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotOnDouble_KeywordMatchesTypeName() As Task
-            Await TestMissingAsync("
+            Await TestMissingInRegularAndScriptAsync("
 Class C
     Protected x As [|Double|]
 End Class

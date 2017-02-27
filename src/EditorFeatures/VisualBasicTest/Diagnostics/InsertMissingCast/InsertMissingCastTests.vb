@@ -225,7 +225,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestWidening() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Option Strict On
 Module Program
     Sub Main(args As String())
@@ -236,7 +236,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestInvalidCast() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Option Strict On
 Class A
 End Class

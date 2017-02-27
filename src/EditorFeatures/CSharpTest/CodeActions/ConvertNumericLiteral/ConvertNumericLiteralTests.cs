@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
 
         private async Task TestMissingOneAsync(string initial)
         {
-            await TestMissingAsync(CreateTreeText("[||]" + initial));
+            await TestMissingInRegularAndScriptAsync(CreateTreeText("[||]" + initial));
         }
 
         private async Task TestFixOneAsync(string initial, string expected, Refactoring refactoring)

@@ -111,7 +111,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task RegressionFor8455()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()

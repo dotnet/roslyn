@@ -155,7 +155,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGenericWithWrongArgs1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     [|List<int, string, bool>|] Method()
@@ -168,7 +168,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGenericWithWrongArgs2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     [|List<int, string>|] Method()
@@ -1721,7 +1721,7 @@ systemSpecialCase: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingForNamespace()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"namespace A
 {
     class Class
@@ -2019,7 +2019,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestDoNotAddIntoHiddenRegion()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"#line hidden
 using System.Collections.Generic;
 #line default
@@ -2073,7 +2073,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestVenusGeneration1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void Foo()
@@ -2105,7 +2105,7 @@ input,
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestNotOnOverloadResolutionError()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"namespace ConsoleApplication1
 {
     class Program
@@ -2314,7 +2314,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestNullParentInNode()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class MultiDictionary<K, V> : Dictionary<K, HashSet<V>>
@@ -2330,7 +2330,7 @@ class MultiDictionary<K, V> : Dictionary<K, HashSet<V>>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestMalformedUsingSection()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[ class Class
 {
     [|List<|] }");
@@ -2977,7 +2977,7 @@ namespace ns2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddInsideUsingDirective6()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using B = [|Byte|];");
         }
 
@@ -3274,7 +3274,7 @@ namespace N2
         }
     }
 }";
-            await TestMissingAsync(initial);
+            await TestMissingInRegularAndScriptAsync(initial);
         }
 
         [WorkItem(1116011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116011")]
@@ -4271,7 +4271,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGenericAmbiguityInSameNamespace()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"namespace NS
 {
     class C<T> where T : [|C|].N

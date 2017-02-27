@@ -134,7 +134,7 @@ class Program : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestNotAvailableForStruct()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"abstract class Foo
 {
     public abstract void Bar();
@@ -682,7 +682,7 @@ class D : C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestMissingInHiddenType()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 abstract class Foo

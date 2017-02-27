@@ -63,7 +63,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestMissingGenerateDefaultConstructor() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Test
     Sub Main()
         Dim a = New [|A|]()
@@ -75,7 +75,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestMissingGenerateDefaultConstructorInStructure() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Test
     Sub Main()
         Dim a = New [|A|]()
@@ -288,7 +288,7 @@ End Class")
         <WorkItem(528257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528257")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateIntoInaccessibleType() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Foo
     Private Class Bar
     End Class
@@ -575,7 +575,7 @@ End Class")
         <WorkItem(540586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540586")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestMissingOnNoCloseParen() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -934,7 +934,7 @@ End Class")
         <WorkItem(542098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542098")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestExistingMeConstructorInitializer() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Private v As Integer
     Sub New
@@ -969,7 +969,7 @@ End Class")
         <WorkItem(542098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542098")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestExistingMyBaseConstructorInitializer() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Private v As Integer
     Sub New
@@ -1010,7 +1010,7 @@ End Class")
         <WorkItem(542098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542098")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestExistingMyClassConstructorInitializer() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Inherits B
     Sub New
@@ -1061,7 +1061,7 @@ End Class")
         <WorkItem(542442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542442")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestNothingArgument() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C1
     Public Sub New(ByVal accountKey As Integer)
         Me.new()
@@ -1078,7 +1078,7 @@ End Class")
         <WorkItem(540641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540641")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestMissingOnExistingConstructor() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Module Program
     Sub M()
         Dim x As C = New [|C|](P)
@@ -1121,7 +1121,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestNoGenerationIntoEntirelyHiddenType() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 <Text>#ExternalSource (""Default.aspx"", 1)
 Class C
     Sub Foo()
@@ -1361,7 +1361,7 @@ End Class")
         <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestAttributesWithLambda() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "<AttributeUsage(AttributeTargets.Class)>
 Public Class MyAttribute
     Inherits System.Attribute End Class 
@@ -1622,7 +1622,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateConstructorNotOfferedForDuplicate() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System
 
 Class X
@@ -1641,7 +1641,7 @@ End Class")
         <WorkItem(9575, "https://github.com/dotnet/roslyn/issues/9575")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestMissingOnMethodCall() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     public sub new(int arg)
     end sub

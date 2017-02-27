@@ -202,7 +202,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestMissingOnSimpleMatch()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -292,7 +292,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestOtherValueIsNotNull1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -308,7 +308,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestOtherValueIsNotNull2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -324,7 +324,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestMethodGroup()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"
 using System;
 

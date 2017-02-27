@@ -1565,7 +1565,7 @@ enum Color
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestNotAfterPointer()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"struct MyStruct
 {
     public int MyField;
@@ -1585,7 +1585,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestMissingOnHiddenEnum()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 enum E
@@ -1606,7 +1606,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestMissingOnPartiallyHiddenEnum()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 enum E

@@ -903,7 +903,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnExpressionStatement()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1259,7 +1259,7 @@ index: 1);
         [WorkItem(10742, "DevDiv_Projects/Roslyn")]
         public async Task TestAnonymousTypeMemberAssignment()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -1273,7 +1273,7 @@ index: 1);
         [WorkItem(10743, "DevDiv_Projects/Roslyn")]
         public async Task TestAnonymousTypeBody()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -1312,7 +1312,7 @@ options: ImplicitTypingEverywhere());
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnGenericTypeParameter()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -1353,7 +1353,7 @@ options: ImplicitTypingEverywhere());
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnAttributeNameEquals()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Runtime.InteropServices;
 
@@ -1368,7 +1368,7 @@ class M
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnRightOfDot()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Runtime.InteropServices;
 
@@ -1383,7 +1383,7 @@ class M
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnAttributeNamedParameter()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class TestAttribute : Attribute
@@ -1403,7 +1403,7 @@ class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnVariableWrite()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1419,7 +1419,7 @@ class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestExpressionTLambda()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Linq.Expressions;
 
@@ -1433,7 +1433,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnTypeSyntax()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -1636,7 +1636,7 @@ parseOptions: Options.Regular);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnNamespace()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1649,7 +1649,7 @@ parseOptions: Options.Regular);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnType()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1662,7 +1662,7 @@ parseOptions: Options.Regular);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnBase()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1675,7 +1675,7 @@ parseOptions: Options.Regular);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestVenusGeneration1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1754,7 +1754,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnNegatedLiteral()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class A
 {
     void Main()
@@ -1768,7 +1768,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNotOnInterfaceAttribute()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[GuidAttribute([|""1A585C4D-3371-48dc-AF8A-AFFECC1B0967""|])]
 public interface I
 {
@@ -1779,7 +1779,7 @@ public interface I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNotOnTypeOfInAttribute()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Runtime.InteropServices;
 
 [ComSourceInterfaces([|typeof(GuidAttribute)|])]
@@ -3627,7 +3627,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnNullLiteral()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C1
 {
 }
@@ -3711,7 +3711,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task MissingAcrossMultipleParentConditionalAccessExpressions()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -3728,7 +3728,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task MissingOnInvocationExpressionInParentConditionalAccessExpressions()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -3745,7 +3745,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task MissingOnMemberBindingExpressionInParentConditionalAccessExpressions()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C

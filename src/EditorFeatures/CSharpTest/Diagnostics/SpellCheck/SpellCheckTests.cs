@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
         var a = new [|Fo|]
     }
 }";
-            await TestMissingAsync(text);
+            await TestMissingInRegularAndScriptAsync(text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -178,7 +178,7 @@ class c
     protected int member { get; }
 }";
 
-            await TestMissingAsync(text);
+            await TestMissingInRegularAndScriptAsync(text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -324,7 +324,7 @@ class c
     }
 }";
 
-            await TestMissingAsync(text);
+            await TestMissingInRegularAndScriptAsync(text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -446,7 +446,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         public async Task TestTestMissingName()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[assembly: Microsoft.CodeAnalysis.[||]]");
         }
 
@@ -504,7 +504,7 @@ class C
         [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
         public async Task TestMissingOnKeywordWhichIsOnlyASnippet()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -519,7 +519,7 @@ class C
         [WorkItem(15733, "https://github.com/dotnet/roslyn/issues/15733")]
         public async Task TestMissingOnVar()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"
 namespace bar { }
 

@@ -33,7 +33,7 @@ compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestProjectLevelMemberImport2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "[|Imports System
 Module Program
     Sub Main(args As DateTime())
@@ -254,7 +254,7 @@ compareTokens:=False)
         <WorkItem(541747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541747")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestAttribute() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "[|Imports SomeNamespace
 <SomeAttr>
 Class Foo
@@ -268,7 +268,7 @@ End Namespace|]")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestAttributeArgument() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "[|Imports System
 Imports SomeNamespace
 <SomeAttribute(Foo.C)>
@@ -695,7 +695,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestAlias_DoesNotRemove() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 <Text>[|Imports F = SomeNS
 
 Module Program
@@ -899,7 +899,7 @@ End Namespace|]</Text>.NormalizedValue, parseOptions:=TestOptions.Regular)
         <WorkItem(543217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543217")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestExtensionMethodLinq2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 <Text>[|Imports System.Collections.Generic
 Imports System.Linq
  
@@ -921,7 +921,7 @@ End Module
         <WorkItem(542135, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542135")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestImportedTypeUsedAsGenericTypeArgument() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 <Text>[|Imports GenericThingie
 
 Public Class GenericType(Of T)
@@ -1125,7 +1125,7 @@ End Namespace]]></Text>.NormalizedValue)
         <WorkItem(545964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545964")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestMissingOnSynthesizedEventType() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "[|Class C
     Event E()
 End Class|]")

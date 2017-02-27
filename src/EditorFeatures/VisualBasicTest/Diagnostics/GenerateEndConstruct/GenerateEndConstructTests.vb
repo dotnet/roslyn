@@ -426,7 +426,7 @@ End Module</File>
         <WorkItem(578260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578260")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestNotOnLambda() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq

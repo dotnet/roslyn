@@ -142,7 +142,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestMissingOnArrayIndexer() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Function M(arg1 as Integer() As Integer
         Return arg1([||]0)
@@ -152,7 +152,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestMissingOnConditionalArrayIndexer() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Function M(arg1 as Integer() As Integer
         Return arg1?([||]0)
@@ -162,7 +162,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestMissingOnEmptyArgumentList() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M()
         M([||])
@@ -172,7 +172,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestMissingOnNamedArgument() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M(arg as Integer)
         M([||]arg:=1)
@@ -182,7 +182,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestMissingOnParamArray() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M(ParamArray arg1 As Integer())
         M([||]1)
@@ -207,7 +207,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestOmittedArguments1() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
         M([||]1,,3)
@@ -232,7 +232,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestMissingOnOmittedArgument() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M(optional arg1 As Integer=1, optional arg2 As Integer=1)
         M([||], arg2:=2)
@@ -242,7 +242,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestMissingOnNameOf() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Function M() As String
         Return NameOf([||]M)
@@ -252,7 +252,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestMissingOnAttribute() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "<C([||]1)>
 Class C
     Inherits System.Attribute

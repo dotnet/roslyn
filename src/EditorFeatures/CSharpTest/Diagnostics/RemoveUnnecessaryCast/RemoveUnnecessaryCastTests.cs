@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastToErrorType()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     static void Main()
@@ -136,7 +136,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveTypeParameterCastToObject()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Ð¡
 {
     void Foo<T>(T obj)
@@ -150,7 +150,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastInIsTest()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Ð¡
@@ -168,7 +168,7 @@ class Ð¡
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastNeedForUserDefinedOperator()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class A
 {
     public static implicit operator A(string x)
@@ -190,7 +190,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemovePointerCast1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"unsafe class C
 {
     static unsafe void Main()
@@ -207,7 +207,7 @@ class Program
             // The cast below can't be removed because it would result in the Delegate
             // op_Equality operator overload being used over reference equality.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -225,7 +225,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastToAnonymousMethodWhenOnLeftOfAsCast()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -244,7 +244,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastInFloatingPointOperation()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     static void Main()
@@ -259,7 +259,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveIdentityCastWhichAffectsOverloadResolution1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -283,7 +283,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveIdentityCastWhichAffectsOverloadResolution2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -308,7 +308,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveIdentityCastWhichAffectsOverloadResolution3()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -334,7 +334,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastWhichChangesTypeOfInferredLocal()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     static void Main()
@@ -349,7 +349,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNeededCastToIListOfObject()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -626,7 +626,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNeededCastInConditionalExpression()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Test
 {
     public static void Main()
@@ -841,7 +841,7 @@ class Program
         [WpfFact(Skip = "529787"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastWhichInCollectionInitializer1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -868,7 +868,7 @@ class X : List<int>
         [WpfFact(Skip = "529787"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastWhichInCollectionInitializer2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -995,7 +995,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastWithExplicitUserDefinedConversion()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class A
@@ -1025,7 +1025,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastWithImplicitUserDefinedConversion()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class X
 {
     static void Foo()
@@ -1049,7 +1049,7 @@ class A
             // an expression of type Exception -- not an expression convertible to
             // Exception.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class E
@@ -1074,7 +1074,7 @@ class E
             // an expression of type Exception -- not an expression convertible to
             // Exception.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -1123,7 +1123,7 @@ class E
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryDowncast()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void Foo(object y)
@@ -1137,7 +1137,7 @@ class E
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastWithinLambda()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -1175,7 +1175,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastFromNullToTypeParameter()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class X
 {
     static void Foo<T, S>() where T : class, S
@@ -1189,7 +1189,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastInImplicitlyTypedArray()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class X
 {
     static void Foo()
@@ -1334,7 +1334,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastInQueryExpression()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class A
@@ -1361,7 +1361,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastInConstructorInitializer()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -1399,7 +1399,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastFromTypeParameterToInterface()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 interface IIncrementable
@@ -1542,7 +1542,7 @@ static class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontCrashOnIncompleteMethodDeclaration()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class A
@@ -1691,7 +1691,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastFromTypeParameterToObject()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     static void Foo<T>(T x, object y)
@@ -1707,7 +1707,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastFromDelegateTypeToMulticastDelegate()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -1728,7 +1728,7 @@ class C
             // The cast below can't be removed because it would result in the implicit
             // conversion to int being called instead.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -1756,7 +1756,7 @@ class C
         {
             // Array bounds must be an int, so the cast below can't be removed.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     static void Main()
@@ -1770,7 +1770,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastInTernaryExpression()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class X
@@ -1847,7 +1847,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastInConstructorInitializer3()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     C(int x)
@@ -1899,7 +1899,7 @@ static class C
             // Note: The cast below can't be removed because it would result in an
             // illegal reference equality test between object and a value type.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -1918,7 +1918,7 @@ class Program
         {
             // Note: The cast below can't be removed because its expression doesn't bind.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -1937,7 +1937,7 @@ class Program
             // Note: The cast below can't be removed because it would result in *null,
             // which is illegal.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"unsafe class C
 {
     int x = *[|(int*)null|];
@@ -1951,7 +1951,7 @@ class Program
             // Note: The cast below can't be removed because it would result in dereferencing
             // void*, which is illegal.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"unsafe class C
 {
     static void Main()
@@ -1970,7 +1970,7 @@ class Program
             // Conservatively disable cast simplifications for casts involving pointer conversions.
             // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     public unsafe float ReadSingle(byte* ptr)
@@ -1988,7 +1988,7 @@ class Program
             // Conservatively disable cast simplifications within explicit checked/unchecked expressions.
             // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     private unsafe readonly byte* _endPointer;
@@ -2011,7 +2011,7 @@ class Program
             // Conservatively disable cast simplifications within explicit checked/unchecked statements.
             // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     private unsafe readonly byte* _endPointer;
@@ -2037,7 +2037,7 @@ class Program
             // Conservatively disable cast simplifications within explicit checked/unchecked expressions.
             // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     private unsafe readonly byte* _endPointer;
@@ -2060,7 +2060,7 @@ class Program
             // Conservatively disable cast simplifications within explicit checked/unchecked statements.
             // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     private unsafe readonly byte* _endPointer;
@@ -2082,7 +2082,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastInAttribute()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 [A([|(byte)0)|]]
@@ -2102,7 +2102,7 @@ class A : Attribute
         {
             // Note: The cast below can't be removed because X is not sealed.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class X : IDisposable
@@ -2317,7 +2317,7 @@ sealed class C : I
             // Note: The cast below can't be removed (even though C is sealed)
             // because the unspecified optional parameter default values differ.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 interface I
@@ -2403,7 +2403,7 @@ sealed class C : I
             // because the specified named arguments refer to parameters that
             // appear at different positions in the member signatures.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 interface I
@@ -2491,7 +2491,7 @@ sealed class C : I
             // because the specified named arguments refer to parameters that
             // appear at different positions in the member signatures.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 interface I
@@ -2524,7 +2524,7 @@ sealed class C : I
             // because it would result in binding to a Dispose method that doesn't
             // implement IDisposable.Dispose().
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.IO;
 
@@ -2550,7 +2550,7 @@ sealed class C : MemoryStream
             // Note: The cast below can't be removed because the cast boxes 's' and
             // unboxing would change program behavior.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 interface IIncrementable
@@ -2746,7 +2746,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastToObjectInParamArrayArg1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -2767,7 +2767,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastToIntArrayInParamArrayArg2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -2788,7 +2788,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastToObjectArrayInParamArrayArg3()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -3006,7 +3006,7 @@ class C
             // The cast below can't be removed because it would result an error
             // in the foreach statement.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Collections;
 
 class Program
@@ -3028,7 +3028,7 @@ class Program
             // The cast below can't be removed because it would result an error
             // in the foreach statement.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -3051,7 +3051,7 @@ class Program
             // in the foreach statement since C doesn't contain a GetEnumerator()
             // method.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Collections;
 
 class D
@@ -3086,7 +3086,7 @@ class C
             // The cast below can't be removed because it would result in
             // C.GetEnumerator() being called rather than D.GetEnumerator().
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Collections;
 
@@ -3128,7 +3128,7 @@ class C
             // The cast below can't be removed because it would change the
             // type of 'x'.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -3156,7 +3156,7 @@ class Program
             // Note: The cast below can't be removed because the parameter list
             // of Foo and its override have different default values.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 abstract class Y
@@ -3276,7 +3276,7 @@ static class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task Bugfix_609497()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -3302,7 +3302,7 @@ class Program
             // Note: The cast below cannot be removed because the it results in
             // a different overload being picked.
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using MyInt = System.Int32;
 
@@ -3343,7 +3343,7 @@ class A
             // Note: The cast below cannot be removed because it would result in
             // a different attribute constructor being picked
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 [Flags]
@@ -3384,7 +3384,7 @@ class MyAttributeAttribute : Attribute
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastIfArgumentIsRestricted_TypedReference()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -3409,7 +3409,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastOnArgumentsWithOtherDynamicArguments()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -3442,7 +3442,7 @@ class C<T>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastOnArgumentsWithOtherDynamicArguments_Bracketed()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C<T>
 {
     int this[int x, T s, string d = ""abc""]
@@ -3480,7 +3480,7 @@ class C<T>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastOnArgumentsWithDynamicReceiverOpt()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     static bool Foo(dynamic d)
@@ -3495,7 +3495,7 @@ class C<T>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastOnArgumentsWithDynamicReceiverOpt_1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     static bool Foo(dynamic d)
@@ -3510,7 +3510,7 @@ class C<T>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastOnArgumentsWithDynamicReceiverOpt_2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     static bool Foo(dynamic d)
@@ -3525,7 +3525,7 @@ class C<T>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastOnArgumentsWithDynamicReceiverOpt_3()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     static bool Foo(dynamic d)
@@ -3540,7 +3540,7 @@ class C<T>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastOnArgumentsWithOtherDynamicArguments_1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -3576,7 +3576,7 @@ class C<T>
             // Note: The cast below cannot be removed because it would result in
             // a different attribute constructor being picked
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 [A(new[] { [|(long)0|] })]
@@ -3592,7 +3592,7 @@ class A : Attribute
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontUnnecessaryCastFromEnumToUint()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 enum E
@@ -3614,7 +3614,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontUnnecessaryCastFromTypeParameterToObject()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     static void Foo<T>(T x, object y)
@@ -3664,7 +3664,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastIfUserDefinedExplicitCast()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -3691,7 +3691,7 @@ public struct B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastInTernary()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -3706,7 +3706,7 @@ public struct B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastInSwitchExpression()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"namespace ConsoleApplication23
 {
     class Program
@@ -3737,7 +3737,7 @@ public struct B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastFromBaseToDerivedWithExplicitReference()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -3761,7 +3761,7 @@ class D : C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastToTypeParameterWithExceptionConstraint()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -3780,7 +3780,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastToTypeParameterWithExceptionSubTypeConstraint()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -3799,7 +3799,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastThatChangesShapeOfAnonymousTypeObject()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -3904,7 +3904,7 @@ class Program
         public async Task DontRemoveCastThatUnboxes()
         {
             // The cast below can't be removed because it could throw a null ref exception.
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -3932,7 +3932,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastOnEnumComparison1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"
 enum TransferTypeKey
 {
@@ -3954,7 +3954,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastOnEnumComparison2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"
 enum TransferTypeKey
 {

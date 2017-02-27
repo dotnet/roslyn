@@ -746,7 +746,7 @@ End Class
         <WorkItem(547100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547100")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Async Function TestNotInValidCaseElse() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
