@@ -22,11 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
     public abstract class AbstractCodeActionTest : AbstractCodeActionOrUserDiagnosticTest
     {
-        protected virtual CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-            => throw new NotImplementedException();
-
-        protected virtual CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
-            => CreateCodeRefactoringProvider(workspace);
+        protected abstract CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData);
 
         protected override async Task<IList<CodeAction>> GetCodeActionsWorkerAsync(
             TestWorkspace workspace, string fixAllActionEquivalenceKey, object fixProviderData)

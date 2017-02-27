@@ -26,10 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         private static readonly ProjectId s_addedProjectId = ProjectId.CreateNewId();
         private const string ChangedDocumentText = "class C {}";
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new MyCodeRefactoringProvider();
-        }
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+            => new MyCodeRefactoringProvider();
 
         private class MyCodeRefactoringProvider : CodeRefactoringProvider
         {
@@ -83,10 +81,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         private void GetMainDocumentAndPreviews(TestWorkspace workspace, out Document document, out SolutionPreviewResult previews)
         {
             document = GetDocument(workspace);
-            var provider = CreateCodeRefactoringProvider(workspace);
+            var provider = CreateCodeRefactoringProvider(workspace, fixProviderData: null);
             var span = document.GetSyntaxRootAsync().Result.Span;
             var refactorings = new List<CodeAction>();
-            var context = new CodeRefactoringContext(document, span, (a) => refactorings.Add(a), CancellationToken.None);
+            var context = new CodeRefactoringContext(document, span, refactorings.Add, CancellationToken.None);
             provider.ComputeRefactoringsAsync(context).Wait();
             var action = refactorings.Single();
             var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
