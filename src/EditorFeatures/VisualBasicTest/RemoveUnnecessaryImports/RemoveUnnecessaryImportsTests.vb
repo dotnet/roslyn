@@ -1020,13 +1020,26 @@ End Namespace</text>.NormalizedValue)
 #Const A = 1
 [|Imports System|]
 #Const B = 1
+Imports System.Runtime.InteropServices</text>.NormalizedValue,
+diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId)
+        End Function
+
+        <WorkItem(545434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545434")>
+        <WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        Public Async Function TestRemovalSpan3() As Task
+            Await TestSpansAsync(
+<text>
+#Const A = 1
+Imports System
+#Const B = 1
 [|Imports System.Runtime.InteropServices|]</text>.NormalizedValue,
 diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId)
         End Function
 
         <WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
-        Public Async Function TestRemovalSpan3() As Task
+        Public Async Function TestRemovalSpan4() As Task
             Await TestInRegularAndScriptAsync(
 <text>
 #Const A = 1
