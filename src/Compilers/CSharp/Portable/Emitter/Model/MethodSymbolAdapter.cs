@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.RefKind == RefKind.Ref;
+                return this.RefKind.IsManagedReference();
             }
         }
 

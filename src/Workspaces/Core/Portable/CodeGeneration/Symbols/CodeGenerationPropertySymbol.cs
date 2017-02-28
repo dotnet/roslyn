@@ -99,6 +99,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
+        public bool ReturnsByRefReadonly
+        {
+            get
+            {
+                return this.GetMethod != null && this.GetMethod.ReturnsByRefReadonly;
+            }
+        }
+
         public new IPropertySymbol OriginalDefinition
         {
             get

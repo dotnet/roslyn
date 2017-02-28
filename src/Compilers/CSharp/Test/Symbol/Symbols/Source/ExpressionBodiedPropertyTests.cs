@@ -526,8 +526,38 @@ class C
             Assert.NotNull(p.GetMethod);
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
             Assert.True(p.IsExpressionBodied);
-            //PROTOTYPE(readonlyRefs): binding is currently NYI so it is "Ref" for now.
-            Assert.Equal(RefKind.Ref, p.GetMethod.RefKind);
+            Assert.Equal(RefKind.RefReadOnly, p.GetMethod.RefKind);
+            Assert.False(p.ReturnsByRef);
+            Assert.False(p.GetMethod.ReturnsByRef);
+            Assert.True(p.ReturnsByRefReadonly);
+            Assert.True(p.GetMethod.ReturnsByRefReadonly);
+        }
+
+        [Fact]
+        public void ReadonlyRefReturningExpressionBodiedIndexer()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    int field = 0;
+    public ref readonly int this[in int arg] => ref field;
+}");
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var c = global.GetTypeMember("C");
+
+            var p = c.GetMember<SourcePropertySymbol>("this[]");
+            Assert.Null(p.SetMethod);
+            Assert.NotNull(p.GetMethod);
+            Assert.False(p.GetMethod.IsImplicitlyDeclared);
+            Assert.True(p.IsExpressionBodied);
+            Assert.Equal(RefKind.RefReadOnly, p.GetMethod.RefKind);
+            Assert.Equal(RefKind.RefReadOnly, p.GetMethod.Parameters[0].RefKind);
+            Assert.False(p.ReturnsByRef);
+            Assert.False(p.GetMethod.ReturnsByRef);
+            Assert.True(p.ReturnsByRefReadonly);
+            Assert.True(p.GetMethod.ReturnsByRefReadonly);
         }
     }
 }

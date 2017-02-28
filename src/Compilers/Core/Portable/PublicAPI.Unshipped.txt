@@ -93,8 +93,8 @@ Microsoft.CodeAnalysis.IDiscardSymbol.Type.get -> Microsoft.CodeAnalysis.ITypeSy
 Microsoft.CodeAnalysis.IFieldSymbol.CorrespondingTupleField.get -> Microsoft.CodeAnalysis.IFieldSymbol
 Microsoft.CodeAnalysis.ILocalSymbol.IsRef.get -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.RefCustomModifiers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier>
-Microsoft.CodeAnalysis.IMethodSymbol.ReturnsByRefReadonly.get -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnsByRef.get -> bool
+Microsoft.CodeAnalysis.IMethodSymbol.ReturnsByRefReadonly.get -> bool
 Microsoft.CodeAnalysis.INamedTypeSymbol.GetTypeArgumentCustomModifiers(int ordinal) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier>
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsComImport.get -> bool
 Microsoft.CodeAnalysis.INamedTypeSymbol.TupleElements.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IFieldSymbol>
@@ -110,6 +110,7 @@ Microsoft.CodeAnalysis.IOperation.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.IParameterSymbol.RefCustomModifiers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier>
 Microsoft.CodeAnalysis.IPropertySymbol.RefCustomModifiers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier>
 Microsoft.CodeAnalysis.IPropertySymbol.ReturnsByRef.get -> bool
+Microsoft.CodeAnalysis.IPropertySymbol.ReturnsByRefReadonly.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsTupleType.get -> bool
 Microsoft.CodeAnalysis.MethodKind.LocalFunction = 17 -> Microsoft.CodeAnalysis.MethodKind
 Microsoft.CodeAnalysis.OperationKind

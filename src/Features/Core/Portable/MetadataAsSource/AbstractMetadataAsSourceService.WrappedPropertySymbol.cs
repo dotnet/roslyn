@@ -75,6 +75,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
+            public bool ReturnsByRefReadonly
+            {
+                get
+                {
+                    return _symbol.ReturnsByRefReadonly;
+                }
+            }
+
             public IPropertySymbol OverriddenProperty
             {
                 get
