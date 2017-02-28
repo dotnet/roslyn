@@ -44,25 +44,25 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             => GetIntervalsThatContain(start, length, _introspector);
 
         public void FillWithIntervalsThatOverlapWith(int start, int length, ArrayBuilder<T> builder)
-            => FillWithIntervalsThatOverlapWith(start, length, _introspector, builder);
+            => FillWithIntervalsThatOverlapWith(start, length, builder, _introspector);
 
         public void FillWithIntervalsThatIntersectWith(int start, int length, ArrayBuilder<T> builder)
-            => FillWithIntervalsThatIntersectWith(start, length, _introspector, builder);
+            => FillWithIntervalsThatIntersectWith(start, length, builder, _introspector);
 
         public void FillWithIntervalsThatContain(int start, int length, ArrayBuilder<T> builder)
-            => FillWithIntervalsThatContain(start, length, _introspector, builder);
+            => FillWithIntervalsThatContain(start, length, builder, _introspector);
 
         public bool HasIntervalThatIntersectsWith(int position)
-            => HasIntervalThatIntersectsWith(position, 0);
+            => HasIntervalThatIntersectsWith(position, _introspector);
 
         public bool HasIntervalThatOverlapsWith(int start, int length)
-            => Any(start, length, s_overlapsWithTest, _introspector);
+            => HasIntervalThatOverlapsWith(start, length, _introspector);
 
         public bool HasIntervalThatIntersectsWith(int start, int length)
-            => Any(start, length, s_intersectsWithTest, _introspector);
+            => HasIntervalThatIntersectsWith(start, length, _introspector);
 
         public bool HasIntervalThatContains(int start, int length)
-            => Any(start, length, s_containsTest, _introspector);
+            => HasIntervalThatContains(start, length, _introspector);
 
         protected int MaxEndValue(Node node)
             => GetEnd(node.MaxEndNode.Value, _introspector);

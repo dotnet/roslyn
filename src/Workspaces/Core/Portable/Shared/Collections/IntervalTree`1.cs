@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         protected Node root;
 
-        protected delegate bool TestInterval(T value, int start, int length, IIntervalIntrospector<T> introspector);
-        protected static readonly TestInterval s_intersectsWithTest = IntersectsWith;
-        protected static readonly TestInterval s_containsTest = Contains;
-        protected static readonly TestInterval s_overlapsWithTest = OverlapsWith;
+        private delegate bool TestInterval(T value, int start, int length, IIntervalIntrospector<T> introspector);
+        private static readonly TestInterval s_intersectsWithTest = IntersectsWith;
+        private static readonly TestInterval s_containsTest = Contains;
+        private static readonly TestInterval s_overlapsWithTest = OverlapsWith;
 
         private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool =
             new ObjectPool<Stack<(Node node, bool firstTime)>>(() => new Stack<(Node node, bool firstTime)>());
@@ -96,38 +96,48 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         public ImmutableArray<T> GetIntervalsThatContain(int start, int length, IIntervalIntrospector<T> introspector)
             => this.GetIntervalsThatMatch(start, length, s_containsTest, introspector);
 
-        public void FillWithIntervalsThatOverlapWith(int start, int length, IIntervalIntrospector<T> introspector, ArrayBuilder<T> builder)
-            => this.FillWithIntervalsThatMatch(start, length, s_overlapsWithTest, introspector, builder, stopAfterFirst: false);
+        public void FillWithIntervalsThatOverlapWith(int start, int length, ArrayBuilder<T> builder, IIntervalIntrospector<T> introspector)
+            => this.FillWithIntervalsThatMatch(start, length, s_overlapsWithTest, builder, introspector, stopAfterFirst: false);
 
-        public void FillWithIntervalsThatIntersectWith(int start, int length, IIntervalIntrospector<T> introspector, ArrayBuilder<T> builder)
-            => this.FillWithIntervalsThatMatch(start, length, s_intersectsWithTest, introspector, builder, stopAfterFirst: false);
+        public void FillWithIntervalsThatIntersectWith(int start, int length, ArrayBuilder<T> builder, IIntervalIntrospector<T> introspector)
+            => this.FillWithIntervalsThatMatch(start, length, s_intersectsWithTest, builder, introspector, stopAfterFirst: false);
 
-        public void FillWithIntervalsThatContain(int start, int length, IIntervalIntrospector<T> introspector, ArrayBuilder<T> builder)
-            => this.FillWithIntervalsThatMatch(start, length, s_containsTest, introspector, builder, stopAfterFirst: false);
+        public void FillWithIntervalsThatContain(int start, int length, ArrayBuilder<T> builder, IIntervalIntrospector<T> introspector)
+            => this.FillWithIntervalsThatMatch(start, length, s_containsTest, builder, introspector, stopAfterFirst: false);
 
         public bool HasIntervalThatIntersectsWith(int position, IIntervalIntrospector<T> introspector)
-            => Any(position, 0, s_intersectsWithTest, introspector);
+            => HasIntervalThatIntersectsWith(position, 0, introspector);
 
-        protected bool Any(int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector)
+        public bool HasIntervalThatIntersectsWith(int start, int length, IIntervalIntrospector<T> introspector)
+            => Any(start, length, s_intersectsWithTest, introspector);
+
+        public bool HasIntervalThatOverlapsWith(int start, int length, IIntervalIntrospector<T> introspector)
+            => Any(start, length, s_overlapsWithTest, introspector);
+
+        public bool HasIntervalThatContains(int start, int length, IIntervalIntrospector<T> introspector)
+            => Any(start, length, s_containsTest, introspector);
+
+        private bool Any(int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector)
         {
             var builder = ArrayBuilder<T>.GetInstance();
-            FillWithIntervalsThatMatch(start, length, s_intersectsWithTest, introspector, builder, stopAfterFirst: true);
+            FillWithIntervalsThatMatch(start, length, s_intersectsWithTest, builder, introspector, stopAfterFirst: true);
 
             var result = builder.Count > 0;
             builder.Free();
             return result;
         }
 
-        private ImmutableArray<T> GetIntervalsThatMatch(int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector)
+        private ImmutableArray<T> GetIntervalsThatMatch(
+            int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector)
         {
             var result = ArrayBuilder<T>.GetInstance();
-            FillWithIntervalsThatMatch(start, length, testInterval, introspector, result, stopAfterFirst: false);
+            FillWithIntervalsThatMatch(start, length, testInterval, result, introspector, stopAfterFirst: false);
             return result.ToImmutableAndFree();
         }
 
         private void FillWithIntervalsThatMatch(
             int start, int length, TestInterval testInterval,
-            IIntervalIntrospector<T> introspector, ArrayBuilder<T> builder,
+            ArrayBuilder<T> builder, IIntervalIntrospector<T> introspector,
             bool stopAfterFirst)
         {
             if (root == null)
@@ -139,14 +149,15 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             FillWithIntervalsThatMatch(
                 start, length, testInterval,
-                introspector, builder, stopAfterFirst, candidates);
+                builder, introspector, 
+                stopAfterFirst, candidates);
 
             s_stackPool.ClearAndFree(candidates);
         }
 
         private void FillWithIntervalsThatMatch(
             int start, int length, TestInterval testInterval,
-            IIntervalIntrospector<T> introspector, ArrayBuilder<T> builder,
+            ArrayBuilder<T> builder, IIntervalIntrospector<T> introspector,
             bool stopAfterFirst, Stack<(Node node, bool firstTime)> candidates)
         {
             var end = start + length;
