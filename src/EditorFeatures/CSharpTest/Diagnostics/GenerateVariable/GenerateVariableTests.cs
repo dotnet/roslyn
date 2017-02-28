@@ -1824,7 +1824,7 @@ class Program
         Foo#();
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(539536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539536")]
@@ -1885,7 +1885,7 @@ class D
     }
 }
 ",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(539793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539793")]
@@ -2351,7 +2351,7 @@ static class MyExtension
         P = 10;
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(539675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539675")]
@@ -2378,7 +2378,7 @@ compareTokens: false);
     }
 }",
 index: 1,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
@@ -2403,7 +2403,7 @@ compareTokens: false);
     }
 }",
 index: 1,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
@@ -2428,7 +2428,7 @@ compareTokens: false);
     }
 }",
 index: 0,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
@@ -2458,7 +2458,7 @@ compareTokens: false);
     }
 }",
 index: 1,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
@@ -2488,7 +2488,7 @@ compareTokens: false);
     }
 }",
 index: 0,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(539665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539665")]
@@ -2515,7 +2515,7 @@ class D
         C.P = 10;
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(540595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540595")]
@@ -2528,7 +2528,7 @@ compareTokens: false);
 
 Foo",
 parseOptions: Options.Script,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(542535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542535")]
@@ -3892,7 +3892,7 @@ class Program
 
     public static object X { get; private set; }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -3947,7 +3947,7 @@ class Program
 #line hidden
 }
 #line default",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(545217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545217")]
@@ -4472,7 +4472,7 @@ namespace CSharpDemoApp
 }
 ",
 index: 3,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(863346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863346")]
@@ -4514,7 +4514,7 @@ class TestClass<T1>
 }
 ",
 index: 3,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(863346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863346")]
@@ -4556,7 +4556,7 @@ class TestClass<T1>
     }
 }
 ",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(865067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865067")]

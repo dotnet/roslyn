@@ -297,8 +297,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var expectedTextSpans = spansList.ToSet();
             using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
-                workspace.ApplyOptions(parameters.options);
-
                 ISet<TextSpan> actualTextSpans;
                 if (diagnosticId == null)
                 {
@@ -389,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     oldSolutionAndNewSolution = await TestOperationsAsync(
                         testState.Workspace, expected, operations,
                         conflictSpans: null, renameSpans: null, warningSpans: null,
-                        compareTokens: false, expectedChangedDocumentId: testState.ExistingDocument.Id);
+                        ignoreTrivia: false, expectedChangedDocumentId: testState.ExistingDocument.Id);
                 }
                 else
                 {
@@ -401,14 +399,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         testState.ProjectToBeModified.Id,
                         newFileFolderContainers,
                         newFileName,
-                        compareTokens: false);
+                        ignoreTrivia: false);
                 }
 
                 if (checkIfUsingsIncluded)
                 {
                     Assert.NotNull(expectedTextWithUsings);
                     await TestOperationsAsync(testState.Workspace, expectedTextWithUsings, operations,
-                        conflictSpans: null, renameSpans: null, warningSpans: null, compareTokens: false,
+                        conflictSpans: null, renameSpans: null, warningSpans: null, ignoreTrivia: false,
                         expectedChangedDocumentId: testState.InvocationDocument.Id);
                 }
 

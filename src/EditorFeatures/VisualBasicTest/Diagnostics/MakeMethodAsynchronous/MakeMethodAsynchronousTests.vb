@@ -387,7 +387,7 @@ Module Module1
     End Function
 End Module
 </File>
-            Await TestAsync(initial, expected, compareTokens:=False)
+            Await TestAsync(initial, expected, ignoreTrivia:=False)
         End Function
     End Class
 End Namespace

@@ -154,8 +154,7 @@ class C
     [|NuGetType|] n;
 }",
 "Use local version '1.0'",
-index: 0,
-fixProviderData: data);
+parameters: new TestParameters(fixProviderData: data));
 
                 await TestSmartTagTextAsync(
 @"class C
@@ -164,7 +163,7 @@ fixProviderData: data);
 }",
 "Use local version '2.0'",
 index: 1,
-fixProviderData: data);
+parameters: new TestParameters(fixProviderData: data));
 
                 await TestSmartTagTextAsync(
 @"class C
@@ -173,7 +172,7 @@ fixProviderData: data);
 }",
 "Find and install latest version",
 index: 2,
-fixProviderData: data);
+parameters: new TestParameters(fixProviderData: data));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]

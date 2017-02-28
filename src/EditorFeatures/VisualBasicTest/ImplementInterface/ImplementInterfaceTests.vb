@@ -1504,7 +1504,7 @@ Class M
         Throw New System.NotImplementedException()
     End Function
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(542290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542290")>
@@ -2074,7 +2074,7 @@ Class C
         Throw New System.NotImplementedException()
     End Sub
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -2164,7 +2164,7 @@ Class C
         Throw New System.NotImplementedException()
     End Sub
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
@@ -2221,7 +2221,7 @@ Class C
         Throw New NotImplementedException()
     End Sub
 End Class]]></Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
@@ -2282,7 +2282,7 @@ Class C
         Throw New NotImplementedException()
     End Sub
 End Class]]></Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(545691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545691")>
@@ -3620,7 +3620,7 @@ Class C
     End Function
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(546779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546779")>
@@ -3714,7 +3714,7 @@ End Interface
     End Interface
 End Interface
 </Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -3734,7 +3734,7 @@ Class Program
 End Class
 ",
 index:=1,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -3759,7 +3759,7 @@ Class Program
     End Sub
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -3802,7 +3802,7 @@ Public NotInheritable Class Program
 End Class
 ",
 index:=1,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")>
@@ -3913,7 +3913,7 @@ Class C
         Throw New NotImplementedException()
     End Function
 End Class
-#Disable Warning", compareTokens:=False)
+#Disable Warning", ignoreTrivia:=False)
         End Function
 
         <WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")>
@@ -3931,7 +3931,7 @@ Class C
         Throw New NotImplementedException()
     End Function
 End Class
-", compareTokens:=False)
+", ignoreTrivia:=False)
         End Function
 
         <WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")>
@@ -3950,7 +3950,7 @@ Class C
         Throw New NotImplementedException()
     End Function
 End Class
-REM Comment", compareTokens:=False)
+REM Comment", ignoreTrivia:=False)
         End Function
 
         <WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
@@ -3967,7 +3967,7 @@ Class C : Implements IDisposable
         Throw New NotImplementedException()
     End Sub
 End Class
-", index:=0, compareTokens:=False)
+", index:=0, ignoreTrivia:=False)
         End Function
 
         <WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
@@ -3981,7 +3981,7 @@ $"Imports System
 Class C : Implements IDisposable
 {DisposePattern("Overridable ")}
 End Class
-", index:=1, compareTokens:=False)
+", index:=1, ignoreTrivia:=False)
         End Function
 
         <WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
@@ -3996,7 +3996,7 @@ MustInherit Class C : Implements IDisposable
 
     Public MustOverride Sub Dispose() Implements IDisposable.Dispose
 End Class
-", index:=2, compareTokens:=False)
+", index:=2, ignoreTrivia:=False)
         End Function
 
         <WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
@@ -4015,7 +4015,7 @@ Class C : Implements IDisposable
     Public Sub Dispose() Implements IDisposable.Dispose
         foo.Dispose()
     End Sub
-End Class", index:=2, compareTokens:=False)
+End Class", index:=2, ignoreTrivia:=False)
         End Function
 
         <WorkItem(941469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")>
@@ -4032,7 +4032,7 @@ Class C : Implements System.IDisposable
     Class IDisposable
     End Class
 {DisposePattern("Overridable ", simplifySystem:=False)}
-End Class", index:=1, compareTokens:=False)
+End Class", index:=1, ignoreTrivia:=False)
         End Function
 
         <WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
@@ -4044,7 +4044,7 @@ End Class", index:=1, compareTokens:=False)
 $"Class C : Implements System.IDisposable
 {DisposePattern("Overridable ", simplifySystem:=False)}
 End Class
-", index:=1, compareTokens:=False)
+", index:=1, ignoreTrivia:=False)
         End Function
 
         <WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
@@ -4093,7 +4093,7 @@ Class C : Implements I
         Throw New NotImplementedException()
     End Sub
 {DisposePattern("Overridable ")}
-End Class", index:=1, compareTokens:=False)
+End Class", index:=1, ignoreTrivia:=False)
         End Function
 
         <WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
@@ -4118,7 +4118,7 @@ End Namespace",
             Throw New NotImplementedException()
         End Sub
     End Class
-End Namespace", compareTokens:=False)
+End Namespace", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -4133,7 +4133,7 @@ Structure S : Implements IDisposable
         Throw New NotImplementedException()
     End Sub
 End Structure
-", compareTokens:=False)
+", ignoreTrivia:=False)
         End Function
 
         <WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")>
@@ -4213,7 +4213,7 @@ End Class
 Partial Class C
     Implements IDisposable
 End Class",
- index:=1, compareTokens:=False)
+ index:=1, ignoreTrivia:=False)
         End Function
 
         <WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")>
@@ -4373,7 +4373,7 @@ Public Class Holder
 	Private Class SomeAttribute
 		Inherits Attribute
 	End Class
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
 
 

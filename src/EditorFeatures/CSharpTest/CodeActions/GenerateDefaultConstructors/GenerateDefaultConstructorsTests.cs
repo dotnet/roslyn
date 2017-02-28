@@ -596,7 +596,7 @@ class Program : Exception
     }
 }",
 index: 3,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]

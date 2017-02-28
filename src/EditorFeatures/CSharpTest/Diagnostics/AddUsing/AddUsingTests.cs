@@ -1750,7 +1750,7 @@ namespace B
 @"using System;
 
 class C { DateTime t; }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(539657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539657")]
@@ -1803,7 +1803,7 @@ class Program
         Console.WriteLine();
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(540339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
@@ -1831,7 +1831,7 @@ class Program
         Console.WriteLine();
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -1859,7 +1859,7 @@ class Program
         Console.WriteLine();
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -1888,7 +1888,7 @@ class Program
         Console.WriteLine();
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -1917,7 +1917,7 @@ class Program
         Console.WriteLine();
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -1948,7 +1948,7 @@ class Program
         Console.WriteLine();
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -1982,7 +1982,7 @@ class Program
         Console.WriteLine();
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -2002,7 +2002,7 @@ using System.Linq.Expressions;
 Expression",
 GetScriptOptions(),
 TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver),
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
@@ -2066,7 +2066,7 @@ class Program
     }
 }
 #line default",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(545248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545248")]
@@ -3194,7 +3194,7 @@ using System.IO;
 #if DEBUG
 using System.Text;
 #endif
-class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", compareTokens: false);
+class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -3220,7 +3220,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 
-class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", compareTokens: false);
+class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -3246,7 +3246,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 
-class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", compareTokens: false);
+class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -4265,7 +4265,7 @@ namespace Namespace2
         }
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -4309,7 +4309,7 @@ class C : IEnumerable<int>
 {
 }
 ",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
@@ -4340,7 +4340,7 @@ class C
     DateTime d;
 }
 ",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
@@ -4365,7 +4365,7 @@ class C
     DateTime d;
 }
 ",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]

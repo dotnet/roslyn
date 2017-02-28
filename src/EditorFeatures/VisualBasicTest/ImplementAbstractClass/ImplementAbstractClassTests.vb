@@ -504,7 +504,7 @@ Class c
     End Sub
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")>

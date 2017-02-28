@@ -553,7 +553,7 @@ Class C
         ' This is a comment
         Dim x As Int32
     End Sub
-End Class", options:=FrameworkTypeInDeclaration, compareTokens:=False)
+End Class", options:=FrameworkTypeInDeclaration, ignoreTrivia:=False)
         End Function
     End Class
 End Namespace

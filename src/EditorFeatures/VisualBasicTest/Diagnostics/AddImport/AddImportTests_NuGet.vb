@@ -161,8 +161,7 @@ Class C
     Dim n As [|NuGetType|]
 End Class",
 "Use local version '1.0'",
-index:=0,
-fixProviderData:=data)
+parameters:=New TestParameters(fixProviderData:=data))
 
                 Await TestSmartTagTextAsync(
 "
@@ -171,7 +170,7 @@ Class C
 End Class",
 "Use local version '2.0'",
 index:=1,
-fixProviderData:=data)
+parameters:=New TestParameters(fixProviderData:=data))
 
                 Await TestSmartTagTextAsync(
 "
@@ -180,7 +179,7 @@ Class C
 End Class",
 "Find and install latest version",
 index:=2,
-fixProviderData:=data)
+parameters:=New TestParameters(fixProviderData:=data))
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>

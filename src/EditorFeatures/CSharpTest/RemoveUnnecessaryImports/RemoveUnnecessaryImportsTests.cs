@@ -442,7 +442,7 @@ class Program
     {
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -476,7 +476,7 @@ class Program
         List<int> list;
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -513,7 +513,7 @@ compareTokens: false);
         }
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -553,7 +553,7 @@ compareTokens: false);
         }
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
@@ -610,7 +610,7 @@ namespace Foo2
     {
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(528609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528609")]
@@ -635,7 +635,7 @@ class Program
 {
 }
 ",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -656,7 +656,7 @@ class Program
     {
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
@@ -881,7 +881,7 @@ class Program
 }
 
 ",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
@@ -960,7 +960,7 @@ class Program
 
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
@@ -992,7 +992,7 @@ compareTokens: false);
         }
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(542134, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542134")]

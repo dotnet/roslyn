@@ -33,7 +33,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -56,7 +56,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -79,7 +79,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -104,7 +104,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -185,7 +185,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -208,7 +208,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -261,7 +261,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -286,7 +286,7 @@ Class C
             }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(15528, "https://github.com/dotnet/roslyn/pull/15528")>
@@ -316,7 +316,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
     End Class
 End Namespace

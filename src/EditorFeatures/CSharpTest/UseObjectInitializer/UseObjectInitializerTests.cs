@@ -447,7 +447,7 @@ class C
         };
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(15459, "https://github.com/dotnet/roslyn/issues/15459")]

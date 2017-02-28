@@ -1287,7 +1287,7 @@ End Module</Text>.Value.Replace(vbLf, vbCrLf),
     End Sub
 End Module</Text>.Value.Replace(vbLf, vbCrLf),
 index:=2,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(666189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
@@ -1300,7 +1300,7 @@ x = [|Foo|]</Text>.Value.Replace(vbLf, vbCrLf),
 Public Property Foo As Integer
 x = Foo</Text>.Value.Replace(vbLf, vbCrLf),
 parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
         <WorkItem(666189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
@@ -1312,7 +1312,7 @@ x = [|Foo|]</Text>.Value.Replace(vbLf, vbCrLf),
 Private Foo As Integer
 x = Foo</Text>.Value.Replace(vbLf, vbCrLf),
 parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script),
-compareTokens:=False,
+ignoreTrivia:=False,
 index:=1)
         End Function
 

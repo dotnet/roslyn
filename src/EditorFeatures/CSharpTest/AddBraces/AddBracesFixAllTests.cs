@@ -145,7 +145,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: null);
         }
 
         [Fact]
@@ -229,7 +229,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: null);
         }
 
         [Fact]
@@ -316,7 +316,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: null);
         }
     }
 }

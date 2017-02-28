@@ -999,7 +999,7 @@ enum Color
     Blue
     //Blue
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
@@ -1033,7 +1033,7 @@ enum Color
     Blue
     /*Blue*/
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
@@ -1526,7 +1526,7 @@ enum Weekday
     Monday,
     Tuesday
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(540919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540919")]

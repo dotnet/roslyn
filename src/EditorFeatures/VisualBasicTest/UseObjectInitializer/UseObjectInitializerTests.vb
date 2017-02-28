@@ -33,7 +33,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -56,7 +56,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -81,7 +81,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -106,7 +106,7 @@ Class C
         c.i = 2
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -137,7 +137,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -164,7 +164,7 @@ Class C
         c.j += 1
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -224,7 +224,7 @@ Class C
                          End Sub()
         }
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -264,7 +264,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -291,7 +291,7 @@ Class C
             }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
@@ -318,7 +318,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
@@ -348,7 +348,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
     End Class
 End Namespace

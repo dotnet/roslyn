@@ -328,7 +328,7 @@ Class Program
     End Sub
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
 index:=0,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")>
@@ -360,7 +360,7 @@ Class B
     End Sub
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
 index:=0,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/15005"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
@@ -423,7 +423,7 @@ Class B
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
 index:=2,
-compareTokens:=False)
+ignoreTrivia:=False)
             Throw New Exception() ' (Skip:="https://github.com/dotnet/roslyn/issues/15005")
         End Function
 
@@ -487,7 +487,7 @@ Class B
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
 index:=2,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
     End Class
 End Namespace

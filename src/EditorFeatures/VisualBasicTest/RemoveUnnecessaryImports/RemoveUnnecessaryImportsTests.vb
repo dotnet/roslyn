@@ -248,7 +248,7 @@ Module Module1
         Dim x As List(Of Integer)
     End Sub
 End Module</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(541747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541747")>
@@ -331,7 +331,7 @@ End Module|]</Text>.NormalizedValue,
 
 Module Module1
 End Module</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(541757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
@@ -349,7 +349,7 @@ End Module|]</Text>.NormalizedValue,
 
 Module Program
 End Module</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(541757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
@@ -371,7 +371,7 @@ Imports System.Collections.Generic
 Module Program
     Dim a As List(Of Integer)
 End Module</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(541932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
@@ -618,7 +618,7 @@ Namespace C
     Public Class CC
     End Class
 End Namespace</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
@@ -644,7 +644,7 @@ Public Class Foo
     Shared Sub Bar()
     End Sub
 End Class</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(528603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528603")>
@@ -690,7 +690,7 @@ Namespace SomeNS
     Public Class Foo
     End Class
 End Namespace</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
@@ -749,7 +749,7 @@ Namespace B
     Public Class ClassB
     End Class
 End Namespace</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
@@ -803,7 +803,7 @@ Namespace C
     Public Class ClassC
     End Class
 End Namespace</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(541808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541808")>
@@ -860,7 +860,7 @@ Namespace SomeNS
     Module Foo
     End Module
 End Namespace</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(528643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528643")>
@@ -957,7 +957,7 @@ End Module|]</Text>.NormalizedValue,
 
     End Sub
 End Module</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(542132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542132")>
@@ -985,7 +985,7 @@ Module Program
 
     End Sub
 End Module]]></Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(542895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542895")>

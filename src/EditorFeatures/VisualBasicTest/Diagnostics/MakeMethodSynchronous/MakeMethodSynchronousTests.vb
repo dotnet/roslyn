@@ -27,7 +27,7 @@ Class C
     Sub Foo()
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -45,7 +45,7 @@ Class C
     Function Foo() As String
     End Function
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -63,7 +63,7 @@ Class C
     Public Sub Foo()
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -81,7 +81,7 @@ Class C
     Public Sub Foo()
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
 
@@ -101,7 +101,7 @@ Class C
     Sub Foo()
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -127,7 +127,7 @@ Class C
         Foo()
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -151,7 +151,7 @@ Class C
             Sub() Return
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -175,7 +175,7 @@ Class C
             Function() 1
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -203,7 +203,7 @@ Class C
             End Sub
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -231,7 +231,7 @@ Class C
             End Function
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -257,7 +257,7 @@ Public Class Class1
     Async Sub BarAsync()
         Foo()
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -283,7 +283,7 @@ Public Class Class1
     Async Sub BarAsync()
         Foo()
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -309,7 +309,7 @@ Public Class Class1
     Async Sub BarAsync()
         Me.Foo()
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -335,7 +335,7 @@ Public Class Class1
     Async Sub BarAsync()
         Me.Foo()
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -361,7 +361,7 @@ Public Class Class1
     Async Sub BarAsync()
         Foo(Foo(0))
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
@@ -387,7 +387,7 @@ Public Class Class1
     Async Sub BarAsync()
         Me.Foo(Me.Foo(0))
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
     End Class
 End Namespace

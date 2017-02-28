@@ -622,7 +622,7 @@ public class EventClass
 
 public delegate void XEventHandler(string argument);
 </Text>.NormalizedValue
-            Await TestInRegularAndScriptAsync(initialMarkup, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -660,7 +660,7 @@ public class EventClass
 
 public delegate void XEventHandler(string argument);
 </Text>.NormalizedValue
-            Await TestInRegularAndScriptAsync(initialMarkup, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -702,7 +702,7 @@ public class EventClass
 
 public delegate void XEventHandler(object sender, EventArgs e);
 </Text>.NormalizedValue
-            Await TestInRegularAndScriptAsync(initialMarkup, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -744,7 +744,7 @@ public class EventClass
 
 public delegate void XEventHandler(object sender, EventArgs e);
 </Text>.NormalizedValue
-            Await TestInRegularAndScriptAsync(initialMarkup, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -785,7 +785,7 @@ public class EventClass
 
 public delegate void XEventHandler(object a, EventArgs b);
 </Text>.NormalizedValue
-            Await TestInRegularAndScriptAsync(initialMarkup, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -826,7 +826,7 @@ public class EventClass
 
 public delegate void XEventHandler(object a, EventArgs b);
 </Text>.NormalizedValue
-            Await TestInRegularAndScriptAsync(initialMarkup, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>

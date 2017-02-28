@@ -774,7 +774,7 @@ partial class Class
 @"class Class
 {
     int P { get; }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
@@ -792,7 +792,7 @@ partial class Class
 @"class Class
 {
     int P { get; }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
@@ -811,7 +811,7 @@ partial class Class
 @"class Class
 {
     int P { get; set; }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]

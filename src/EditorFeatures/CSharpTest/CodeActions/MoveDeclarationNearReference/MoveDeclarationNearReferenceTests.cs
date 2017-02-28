@@ -296,7 +296,7 @@ index: 0);
     }
 }",
 index: 0,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -362,7 +362,7 @@ class Program
     }
 #line default
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -395,7 +395,7 @@ compareTokens: false);
         Bar(x);
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
@@ -514,7 +514,7 @@ static class C
         }
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(545835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545835")]
@@ -557,7 +557,7 @@ class X
         }
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(546267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546267")]
