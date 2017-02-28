@@ -25,14 +25,6 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs">
@@ -414,6 +406,7 @@
     <Compile Include="Shared\Utilities\TextReaderWithLength.cs" />
     <Compile Include="Simplification\DoNotAddImportsAnnotation.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
+    <Compile Include="Workspace\Host\ParseOptions\IParseOptionsService.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactory.WorkspaceTaskScheduler.cs" />
     <Compile Include="Tags\WellKnownTags.cs" />
     <Compile Include="Workspace\Solution\Checksum.cs" />
@@ -1130,6 +1123,11 @@
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyReader.cs" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="VSLangProj2">
+      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\VSLangProj2.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />

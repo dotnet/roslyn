@@ -33,7 +33,6 @@ using VSLangProj;
 using VSLangProj140;
 using OLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -285,24 +284,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
-            var configurationManager = project.ConfigurationManager;
-            foreach (string configurationName in (object[])configurationManager.ConfigurationRowNames)
+            var parseOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetService<IParseOptionsService>();
+            if (parseOptionsService == null)
             {
-                var properties = configurationManager.ConfigurationRow(configurationName).Item(1).Object;
+                return;
+            }
+
+            string newVersion = parseOptionsService.GetLanguageVersion(options);
+
+            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
+            foreach (string configurationName in (object[])project.ConfigurationManager.ConfigurationRowNames)
+            {
                 switch (hostProject.Language)
                 {
                     case LanguageNames.CSharp:
-                        var newCSharpOptions = (CSharpParseOptions)options;
-                        string newCSharpVersion = newCSharpOptions.LanguageVersion.Display();
+                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)project.ConfigurationManager
+                            .ConfigurationRow(configurationName).Item(1).Object;
 
-                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)properties;
-                        if (csharpProperties.LanguageVersion.CompareTo(newCSharpVersion) != 0)
+                        if (csharpProperties.LanguageVersion.CompareTo(newVersion) != 0)
                         {
-                            csharpProperties.LanguageVersion = newCSharpVersion;
+                            csharpProperties.LanguageVersion = newVersion;
                         }
-
                         break;
+
                     case LanguageNames.VisualBasic:
                         throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_VisualBasic_parse_options);
                 }

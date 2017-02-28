@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Latest = int.MaxValue,
     }
 
-    internal static partial class LanguageVersionExtensions
+    internal static partial class LanguageVersionExtensionsInternal
     {
         internal static LanguageVersion MapSpecifiedToEffectiveVersion(this LanguageVersion version)
         {
@@ -116,6 +116,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_FeatureNotAvailableInVersion6;
                 case LanguageVersion.CSharp7:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion7;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(version);
+            }
+        }
+    }
+
+    public static class LanguageVersionExtensions
+    {
+        /// <summary>
+        /// Displays the version number in the format expected on the command-line (/langver flag).
+        /// For instance, "6", "7", "7.1", "latest".
+        /// </summary>
+        public static string Display(this LanguageVersion version)
+        {
+            switch (version)
+            {
+                case LanguageVersion.CSharp1:
+                    return "1";
+                case LanguageVersion.CSharp2:
+                    return "2";
+                case LanguageVersion.CSharp3:
+                    return "3";
+                case LanguageVersion.CSharp4:
+                    return "4";
+                case LanguageVersion.CSharp5:
+                    return "5";
+                case LanguageVersion.CSharp6:
+                    return "6";
+                case LanguageVersion.CSharp7:
+                    return "7";
+                case LanguageVersion.Default:
+                    return "default";
+                case LanguageVersion.Latest:
+                    return "latest";
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
