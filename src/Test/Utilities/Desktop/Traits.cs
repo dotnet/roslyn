@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static class Features
         {
             public const string AddMissingTokens = nameof(AddMissingTokens);
+            public const string AddMissingReference = nameof(AddMissingReference);
             public const string AsyncLazy = nameof(AsyncLazy);
             public const string FindReferences = nameof(FindReferences);
             public const string FixIncorrectTokens = nameof(FixIncorrectTokens);

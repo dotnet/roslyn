@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Xml.Linq;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -22,6 +24,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// </summary>
         public void CreateSolution(string solutionName, bool saveExistingSolutionIfExists = false)
             => _inProc.CreateSolution(solutionName, saveExistingSolutionIfExists);
+
+        public void CreateSolution(string solutionName, XElement solutionElement)
+            => _inProc.CreateSolution(solutionName, solutionElement.ToString());
 
         public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
             => _inProc.OpenSolution(path, saveExistingSolutionIfExists);
@@ -79,5 +84,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void WaitForNoErrorsInErrorList()
             => _inProc.WaitForNoErrorsInErrorList();
+
+        public string[] GetProjectReferences(string projectName)
+            => _inProc.GetProjectReferences(projectName);
+
+        public string[] GetAssemblyReferences(string projectName)
+            => _inProc.GetAssemblyReferences(projectName);
     }
 }

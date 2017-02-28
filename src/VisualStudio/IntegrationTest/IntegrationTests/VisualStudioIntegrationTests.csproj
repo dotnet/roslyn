@@ -32,7 +32,9 @@
     <Compile Include="AbstractEditorTest.cs" />
     <Compile Include="CSharp\CSharpSignatureHelp.cs" />
     <Compile Include="CSharp\CSharpWinForms.cs" />
+    <Compile Include="CSharp\CSharpAddMissingReference.cs" />
     <Compile Include="SharedIntegrationHostFixture.cs" />
+    <Compile Include="VisualBasic\BasicAddMissingReference.cs" />
     <Compile Include="VisualBasic\BasicAutomaticBraceCompletion.cs" />
     <Compile Include="VisualBasic\BasicBuild.cs" />
     <Compile Include="VisualBasic\BasicGenerateEqualsAndGetHashCodeDialog.cs" />
