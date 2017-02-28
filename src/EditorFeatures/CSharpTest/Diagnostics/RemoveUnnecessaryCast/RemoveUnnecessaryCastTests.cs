@@ -63,8 +63,6 @@ class Program
  
     static void Foo(bool a, bool b) { }
 }",
-
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -96,8 +94,6 @@ class C
         a();
     }
 }",
-
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -127,8 +123,6 @@ class Program
         var x = (Decimal)(-1);
     }
 }",
-
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -390,7 +384,6 @@ class Program
     {
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -416,7 +409,6 @@ class Program
         return 5;
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -444,7 +436,6 @@ class Program
         Func<long> f1 = () => 5;
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -472,7 +463,6 @@ class Program
         Func<long> f1 = () => { return 5; };
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -500,7 +490,6 @@ class Program
         Func<long> f1 = _ => { return 5; };
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -528,7 +517,6 @@ class Program
         Func<long> f1 = _ => 5;
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -558,7 +546,6 @@ class Test
         long f1 = (b == 5) ? 4 : (long)5;
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -588,7 +575,6 @@ class Test
         long f1 = (b == 5) ? (long)4 : 5;
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -618,7 +604,6 @@ class Test
         long f1 = (b == 5) ? 4 : 5;
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -663,7 +648,6 @@ class Test
         var f1 = (b == 5) ? (long)4 : 5;
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -699,7 +683,6 @@ class Test
 
     public static void M1(int i) { }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -733,7 +716,6 @@ class Test
         };
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -767,7 +749,6 @@ class Test
         }
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -803,7 +784,6 @@ class Test
         }
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -833,7 +813,6 @@ class Program
         var z = new List<long> { 0 };
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -915,7 +894,6 @@ class X
         var s = new object[] { x };
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -955,7 +933,6 @@ class MyAction
         throw new NotImplementedException();
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -987,7 +964,6 @@ class Program
         var x = (Foo<Guid>) == a;
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -1115,7 +1091,6 @@ class E
     }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -1233,7 +1208,6 @@ class X
         return "";
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -1292,7 +1266,6 @@ static class Program
 }
 ",
     parseOptions: null,
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -1326,7 +1299,6 @@ class A
         Console.WriteLine(from y in new A() select 0);
     }
 }",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -1534,7 +1506,6 @@ static class Program
     }
 }
 ",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -1591,7 +1562,6 @@ class Program
     }
 }
 ",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -1621,7 +1591,6 @@ class X
     }
 }
 ",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -1653,7 +1622,6 @@ static class C
     }
 }
 ",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -1683,7 +1651,6 @@ class Program
     }
 }
 ",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -1809,7 +1776,6 @@ class C
     C() : this(1) { }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -1839,7 +1805,6 @@ class C
     C() : this("""") { }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -1888,7 +1853,6 @@ static class C
     }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -2180,7 +2144,6 @@ sealed class C : I
     }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -2241,7 +2204,6 @@ sealed class C : I
     }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -2306,7 +2268,6 @@ sealed class C : I
     }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -2391,7 +2352,6 @@ sealed class C : I
     }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -2479,7 +2439,6 @@ sealed class C : I
     }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -2623,7 +2582,6 @@ class Program
     }
 }
 ",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -2660,7 +2618,6 @@ class C
     }
 }
 ",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -2697,7 +2654,6 @@ class C
     }
 }
 ",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -2734,7 +2690,6 @@ class Program
     }
 }
 ",
-    index: 0,
     ignoreTrivia: false);
         }
 
@@ -2833,7 +2788,6 @@ class C
     }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -2865,7 +2819,6 @@ class C
     }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -2897,7 +2850,6 @@ class C
     }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -2929,7 +2881,6 @@ class C
     }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -2961,7 +2912,6 @@ class C
     }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -2991,7 +2941,6 @@ class C
     static void Foo(params object[] x) { }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -3229,7 +3178,6 @@ class X : Y
     }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -3268,7 +3216,6 @@ static class Program
     static void Foo(this string x) { }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -3656,7 +3603,6 @@ class C
     }
 }
 ",
-            index: 0,
             ignoreTrivia: false);
         }
 

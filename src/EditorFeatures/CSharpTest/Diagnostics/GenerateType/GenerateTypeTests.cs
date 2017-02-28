@@ -3994,8 +3994,7 @@ class Program
     private struct S
     {
     }
-}",
-index: 0);
+}");
         }
 
         [WorkItem(542528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542528")]
@@ -4032,8 +4031,7 @@ class Program
     private struct S
     {
     }
-}",
-index: 0);
+}");
         }
 
         [WorkItem(542761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542761")]
@@ -4635,7 +4633,7 @@ internal class Z
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -4672,8 +4670,7 @@ index: 1);
     public B()
     {
     }
-}",
-index: 0);
+}");
         }
 
         [WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
@@ -4736,8 +4733,7 @@ index: 2);
     public B()
     {
     }
-}",
-index: 0);
+}");
         }
 
         [WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]

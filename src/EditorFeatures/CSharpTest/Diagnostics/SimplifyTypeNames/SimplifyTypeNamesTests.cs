@@ -85,7 +85,7 @@ namespace Root
     {
         public int a;
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -109,7 +109,7 @@ namespace Root
     {
         MyType c;
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -129,7 +129,7 @@ class A
 class A
 {
     MyType c;
-}", index: 0);
+}");
 
             await TestActionCountAsync(source, 1);
             await TestSpansAsync(
@@ -162,7 +162,7 @@ class A
     {
         MyType c;
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -186,7 +186,7 @@ namespace Root
     {
         MyType c;
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -216,7 +216,7 @@ namespace Root
             MyType c;
         }
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -234,7 +234,7 @@ class A
 class A
 {
     MyType c;
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -258,7 +258,7 @@ class A
     {
         MyType c;
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -282,7 +282,7 @@ namespace Root
     {
         MyType c;
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -312,7 +312,7 @@ namespace Root
             MyType c;
         }
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -342,7 +342,7 @@ namespace Root
             var c = Foo.MaxValue;
         }
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -370,7 +370,7 @@ namespace Root
     {
         MyType1 c;
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -398,7 +398,7 @@ namespace Root
     {
         System.Exception c;
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -443,7 +443,7 @@ namespace Root
     {
         System.Exception c;
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -478,7 +478,7 @@ namespace Root
 @"class A
 {
     int i;
-}", index: 0, options: featureOptions);
+}", options: featureOptions);
             await TestActionCountAsync(
                 source, count: 1, parameters: new TestParameters(options: featureOptions));
             await TestSpansAsync(
@@ -521,7 +521,7 @@ namespace Root
                 int position = content.IndexOf(@"[||]", StringComparison.Ordinal);
                 var newContent = content.Replace(@"[||]", pair.Key);
                 var expected = content.Replace(@"[||]", pair.Value);
-                await TestWithPredefinedTypeOptionsAsync(newContent, expected, index: 0);
+                await TestWithPredefinedTypeOptionsAsync(newContent, expected);
             }
         }
 
@@ -562,7 +562,7 @@ namespace Root
     {
         Exception c;
     }
-}", index: 0);
+}");
             await TestActionCountAsync(source, 1);
             await TestSpansAsync(
 @"using System;
@@ -593,7 +593,7 @@ namespace Root
     {
         Exception c;
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -627,7 +627,7 @@ namespace Root
             A1 a;
         }
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -662,7 +662,7 @@ namespace Root
     {
         N2.A1 a;
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -696,7 +696,7 @@ namespace Root
     {
         NC1.A1 a;
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -752,7 +752,7 @@ namespace Root
             A1 a;
         }
     }
-}", index: 0);
+}");
 
             await TestActionCountAsync(source, 1);
         }
@@ -795,7 +795,7 @@ namespace N1
     {
         EventHandler<EventArgs> a;
     }
-}", index: 0);
+}");
 
             await TestActionCountAsync(source, 1);
         }
@@ -866,7 +866,7 @@ namespace N1
     {
         System.EventHandler<MyHandler> a;
     }
-}", index: 0);
+}");
             await TestActionCountAsync(source, 1);
             await TestSpansAsync(
 @"using MyHandler = System.EventHandler<System.EventArgs>;
@@ -919,7 +919,7 @@ namespace N1
     {
         MyType a;
     }
-}", index: 0);
+}");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -962,7 +962,7 @@ namespace N1
     {
         N2.A1<MyType> a;
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -986,7 +986,7 @@ namespace N1
     {
         List<string[]> a;
     }
-}", index: 0);
+}");
 
             // TODO: The below test is currently disabled due to restrictions of the test framework, this needs to be fixed.
 
@@ -1008,7 +1008,7 @@ namespace N1
             ////    {
             ////        System.Collections.Generic.List<string[]> a;
             ////    }
-            ////}", index: 0);
+            ////}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -1032,7 +1032,7 @@ namespace N1
     {
         List<string[][,][,,,]> a;
     }
-}", index: 0);
+}");
         }
 
         [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
@@ -1150,7 +1150,7 @@ class Program
         {
         }
     }
-}", index: 0, options: PreferIntrinsicTypeEverywhere);
+}", options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
@@ -1192,7 +1192,7 @@ namespace N1
     class Test
     {
     }
-}", index: 0);
+}");
         }
 
         [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
@@ -1223,7 +1223,7 @@ namespace N1
         {
         }
     }
-}", index: 0);
+}");
         }
 
         [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
@@ -1256,7 +1256,7 @@ namespace Outer
         {
         }
     }
-}", index: 0);
+}");
         }
 
         [WorkItem(544631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544631")]
@@ -1303,7 +1303,7 @@ class A
     {
         return null;
     }
-}", index: 0);
+}");
         }
 
         [WorkItem(538949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538949")]
@@ -1462,8 +1462,7 @@ class Program
     {
         string s;
     }
-}",
-index: 0);
+}");
         }
 
         [WorkItem(541748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541748")]
@@ -1839,8 +1838,7 @@ ignoreTrivia: false);
         {
         }
     }
-}",
-index: 0);
+}");
         }
 
         [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
@@ -1867,8 +1865,7 @@ index: 0);
         {
         }
     }
-}",
-index: 0);
+}");
         }
 
         [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
@@ -1895,8 +1892,7 @@ index: 0);
         {
         }
     }
-}",
-index: 0);
+}");
         }
 
         [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
@@ -1923,8 +1919,7 @@ index: 0);
         {
         }
     }
-}",
-index: 0);
+}");
         }
 
         [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
@@ -1951,8 +1946,7 @@ index: 0);
         {
         }
     }
-}",
-index: 0);
+}");
         }
 
         [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
@@ -2060,7 +2054,7 @@ class C
         object x = 1;
         var y = (x as int?) + 1;
     }
-}", index: 0, ignoreTrivia: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
@@ -2081,8 +2075,7 @@ class C
     {
         Equals(1, 1);
     }
-}",
-index: 0);
+}");
         }
 
         [WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
@@ -2146,7 +2139,7 @@ class Program
         var x = 1 is int? ? 2 : 3;
     }
 }",
-  ignoreTrivia: false, index: 0);
+  ignoreTrivia: false);
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
@@ -2449,7 +2442,7 @@ class Program
     {
         Color.Foo();
     }
-}", index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -2501,7 +2494,7 @@ class Program
     {
         Program a = null;
     }
-}", parseOptions: null, index: 0);
+}", parseOptions: null);
 
             await TestMissingAsync(source, new TestParameters(GetScriptOptions()));
         }
@@ -2527,7 +2520,7 @@ class Program
     {
         int x = Console.Read() + System.Console.Read();
     }
-}", index: 0);
+}");
         }
 
         [WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
@@ -2567,7 +2560,7 @@ static class M
     {
         int k = Preserve.Y;
     }
-}", index: 0);
+}");
         }
 
         [WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
@@ -2613,7 +2606,7 @@ class M
     {
         int k = Preserve.X.Y;
     }
-}", index: 0);
+}");
         }
 
         [WorkItem(568043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")]

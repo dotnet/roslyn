@@ -24,8 +24,7 @@ End Class",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
@@ -42,8 +41,7 @@ End Class",
         Me.i = i
         Me.b = b
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
@@ -65,8 +63,7 @@ End Class",
     Public Sub New(b As String)
         Me.b = b
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
@@ -89,8 +86,7 @@ End Class",
         Me.i = i
         Me.b = b
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
@@ -120,8 +116,7 @@ End Structure",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
-End Structure",
-index:=0)
+End Structure")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
@@ -135,8 +130,7 @@ End Class",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(541995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541995")>
@@ -179,8 +173,7 @@ End Class",
     End Sub
     Public Property A As Integer
     Public Property B As String
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")>
@@ -199,8 +192,7 @@ End Class",
 
     ReadOnly Property Title As String
     ReadOnly Property Number As Integer
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")>

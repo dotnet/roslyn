@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.MoveDe
             Console.WriteLine(x);
         }
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -62,8 +61,7 @@ index: 0);
         int x;
         Console.WriteLine(x);
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -97,8 +95,7 @@ index: 0);
         {
             Console.WriteLine(x);
         }
-    }",
-index: 0);
+    }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -124,8 +121,7 @@ index: 0);
             int x;
             Console.WriteLine(x);
         }
-    }",
-index: 0);
+    }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -152,8 +148,7 @@ index: 0);
             Console.WriteLine(x);
         }
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -180,8 +175,7 @@ index: 0);
             Console.WriteLine(x);
         }
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -209,8 +203,7 @@ index: 0);
             Console.WriteLine(x);
         }
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -295,7 +288,6 @@ index: 0);
         int i = 5; Console.Write(i);
     }
 }",
-index: 0,
 ignoreTrivia: false);
         }
 

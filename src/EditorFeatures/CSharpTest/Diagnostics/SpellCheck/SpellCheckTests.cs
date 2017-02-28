@@ -356,7 +356,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(text, expected, index: 0);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]

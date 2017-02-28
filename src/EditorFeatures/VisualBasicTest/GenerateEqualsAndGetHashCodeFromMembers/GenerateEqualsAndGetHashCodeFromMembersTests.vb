@@ -28,7 +28,7 @@ End Class",
                a = z.a
     End Function
 End Class",
-index:=0, ignoreTrivia:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>

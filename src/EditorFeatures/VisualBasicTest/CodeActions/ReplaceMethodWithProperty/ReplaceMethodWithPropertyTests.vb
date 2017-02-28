@@ -524,8 +524,7 @@ class D
         Get
         End Get
     End Property
-End class",
-index:=0)
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
@@ -554,8 +553,7 @@ class D
             return mybase.Foo
         End Get
     End Property
-End class",
-index:=0)
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>

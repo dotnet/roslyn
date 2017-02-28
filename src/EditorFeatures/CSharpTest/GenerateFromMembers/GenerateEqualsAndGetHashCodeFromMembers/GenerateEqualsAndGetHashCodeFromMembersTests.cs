@@ -39,8 +39,7 @@ class Program
         var program = obj as Program;
         return program != null && a == program.a;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -128,8 +127,7 @@ class ReallyLongName
         var name = obj as ReallyLongName;
         return name != null && a == name.a;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -153,8 +151,7 @@ class ReallyLongLong
         var @long = obj as ReallyLongLong;
         return @long != null && a == @long.a;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -182,8 +179,7 @@ class ReallyLongName
         var name = obj as ReallyLongName;
         return name != null && a == name.a && B == name.B;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -211,8 +207,7 @@ class Program : Base
         var program = obj as Program;
         return program != null && i == program.i;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -309,8 +304,7 @@ class Program : Middle
         return program != null && base.Equals(obj) &&
                i == program.i && S == program.S;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -343,8 +337,7 @@ struct ReallyLongName
         var name = (ReallyLongName)obj;
         return i == name.i && S == name.S;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]

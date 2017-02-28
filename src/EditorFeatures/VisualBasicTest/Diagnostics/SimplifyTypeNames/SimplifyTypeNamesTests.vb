@@ -100,7 +100,7 @@ Module Program
     Sub Main(args As String())
     End Sub
 End Module",
-index:=0, options:=PreferIntrinsicPredefinedTypeEverywhere())
+options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -117,8 +117,7 @@ Module Program
     Sub Main(args As String())
         Dim x = Foo.MaxValue
     End Sub
-End Module",
-index:=0)
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -135,8 +134,7 @@ Module Program
     Sub Main(args As String())
         Dim x As File
     End Sub
-End Module",
-index:=0)
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -167,8 +165,7 @@ Module Program
     Sub Main(args As String())
         Dim x As Inner.Foo
     End Sub
-End Module",
-index:=0)
+End Module")
             Await TestActionCountAsync(source, 1)
         End Function
 
@@ -183,8 +180,7 @@ End Class",
 "Imports A1 = System.IO.File
 Class Foo
     Dim x As A1
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(540567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540567")>
@@ -198,8 +194,7 @@ End Class",
 "Imports System
 Class Foo
     Dim x As IO.File
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(540569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540569")>
@@ -278,8 +273,7 @@ End Class",
 "Imports System.Threading
 Class Class1
     Dim v As Thread
-End Class",
-        index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -298,8 +292,7 @@ Namespace SomeNamespace
     End Class
 End Namespace
 Class SomeClass(Of x As Base)
-End Class",
-        index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -328,8 +321,7 @@ Class Foo
     Sub Method1()
         Dim q As GenericClass(Of SomeClass)
     End Sub
-End Class",
-        index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -352,8 +344,7 @@ End Namespace
 Class Foo
     Sub Method1(Of T As SomeClass)
     End Sub
-End Class",
-        index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -382,8 +373,7 @@ Class Foo
     Sub Method2()
         Method1(Of SomeClass)
     End Sub
-End Class",
-        index:=0)
+End Class")
         End Function
 
         <WorkItem(6872, "DevDiv_Projects/Roslyn")>
@@ -407,8 +397,7 @@ Namespace SomeNamespace
     Class SomethingAttribute
         Inherits System.Attribute
     End Class
-End Namespace",
-        index:=0)
+End Namespace")
         End Function
 
         <WorkItem(6872, "DevDiv_Projects/Roslyn")>
@@ -445,8 +434,7 @@ Namespace SomeNamespace
     Class SomethingAttribute
         Inherits System.Attribute
     End Class
-End Namespace",
-        index:=0)
+End Namespace")
         End Function
 
         <WorkItem(6872, "DevDiv_Projects/Roslyn")>
@@ -480,8 +468,7 @@ Namespace SomeNamespace
     Class SomethingAttribute
         Inherits System.Attribute
     End Class
-End Namespace",
-        index:=0)
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -506,8 +493,7 @@ Namespace Outer
         Class Something
         End Class
     End Namespace
-End Namespace",
-        index:=0)
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -528,8 +514,7 @@ End Class
 Namespace Outer
     Class [Class]
     End Class
-End Namespace",
-        index:=0)
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -594,8 +579,7 @@ End Class
 Namespace SomeNamespace
     Class SomeClass
     End Class
-End Namespace",
-        index:=0)
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -616,8 +600,7 @@ End Class
 Namespace SomeNamespace
     Class SomeClass
     End Class
-End Namespace",
-        index:=0)
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -634,8 +617,7 @@ End Class"
 Class Foo
     Function F() As List(Of Integer)
     End Function
-End Class",
-        index:=0)
+End Class")
             Await TestActionCountAsync(source, 1)
         End Function
 
@@ -651,8 +633,7 @@ End Module",
 Module Program
     Sub Main(args As String(), f As FileMode)
     End Sub
-End Module",
-        index:=0)
+End Module")
         End Function
 
         <WorkItem(540565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540565")>
@@ -678,8 +659,7 @@ Module Program
     Sub Main(args As String())
         Dim x As FooClass
     End Sub
-End Module",
-        index:=0)
+End Module")
         End Function
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -811,8 +791,7 @@ Class M
     Public Shared Sub Main()
         Redim [Preserve].X.Y(1)
         End Function
- End Class",
-        index:=0)
+ End Class")
             Await TestActionCountAsync(source, 1)
         End Function
 
@@ -843,8 +822,7 @@ Class M
     Public Shared Sub Main()
         Redim [Preserve].Y(1)
         End Function
- End Class",
-        index:=0)
+ End Class")
             Await TestActionCountAsync(source, 1)
         End Function
 
@@ -865,8 +843,7 @@ Class Foo
     Public Function CompareTo(other As String) As Integer Implements IComparable(Of String).CompareTo
         Return Nothing
     End Function
-End Class",
-        index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -883,8 +860,7 @@ Namespace N1
     Class Test
         Private a As List(Of String())
     End Class
-End Namespace",
-        index:=0)
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -902,8 +878,7 @@ Namespace N1
     Class Test
         Private a As List(Of String()(,)(,,,))
     End Class
-End Namespace",
-        index:=0)
+End Namespace")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -913,8 +888,7 @@ End Namespace",
 [|System.Console.WriteLine(0)|]",
 "Imports System
 Console.WriteLine(0)",
-        parseOptions:=TestOptions.Script,
-        index:=0)
+        parseOptions:=TestOptions.Script)
         End Function
 
         <WorkItem(542093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542093")>
@@ -1085,8 +1059,7 @@ End Namespace",
             Main
         End Sub
     End Module
-End Namespace",
-        index:=0)
+End Namespace")
         End Function
 
         <WorkItem(542348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542348")>
@@ -1104,8 +1077,7 @@ End Module",
     Sub Main()
         ReDim [preserve](1)
     End Sub
-End Module",
-        index:=0)
+End Module")
         End Function
 
         <WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")>

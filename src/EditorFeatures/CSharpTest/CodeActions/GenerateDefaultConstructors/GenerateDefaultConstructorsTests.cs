@@ -39,8 +39,7 @@ class B
     protected B(int x)
     {
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
@@ -69,8 +68,7 @@ class B
     public B(int x)
     {
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
@@ -99,8 +97,7 @@ class B
     internal B(int x)
     {
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
@@ -145,8 +142,7 @@ class B
     internal B(ref int x, out string s, params bool[] b)
     {
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
@@ -191,8 +187,7 @@ class B
     public B(bool x)
     {
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
@@ -698,8 +693,7 @@ class Program : Exception
     static void Main(string[] args)
     {
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]

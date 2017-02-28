@@ -32,8 +32,7 @@ Class Program
     End Sub
     Sub Main(args As String())
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
@@ -228,8 +227,7 @@ Class Program
     End Sub
     Sub Main(args As String())
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
@@ -295,8 +293,7 @@ Class Program
     End Sub
     Sub Main(args As String())
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
@@ -327,7 +324,6 @@ Class Program
     Sub Main(args As String())
     End Sub
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
-index:=0,
 ignoreTrivia:=False)
         End Function
 
@@ -359,7 +355,6 @@ Class B
     Friend Sub New(x As Integer)
     End Sub
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
-index:=0,
 ignoreTrivia:=False)
         End Function
 
