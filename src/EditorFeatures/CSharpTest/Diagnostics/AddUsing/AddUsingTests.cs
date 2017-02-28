@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
              int index = 0,
              object fixProviderData = null)
         {
-            await TestInRegularAndScriptAsync(initialMarkup, expected, index, fixProviderData: fixProviderData, options: new Dictionary<OptionKey, object>
+            await TestInRegularAndScriptAsync(initialMarkup, expected, index: index, fixProviderData: fixProviderData, options: new Dictionary<OptionKey, object>
             {
                 { new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
             });

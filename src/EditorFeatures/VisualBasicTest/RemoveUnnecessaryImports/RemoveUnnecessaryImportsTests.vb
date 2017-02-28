@@ -663,7 +663,7 @@ Public Class Foo
     Shared Sub Bar()
 
     End Sub
-End Class|]</Text>.NormalizedValue, parseOptions:=Nothing)
+End Class|]</Text>.NormalizedValue)
             ' TODO: Enable testing in script when it comes online
         End Function
 
@@ -819,8 +819,7 @@ End Module
 Public Class Foo
     Shared Sub Bar()
     End Sub
-End Class|]",
-parseOptions:=Nothing) 'TODO (tomat): modules not yet supported in script
+End Class|]") 'TODO (tomat): modules not yet supported in script
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
@@ -835,8 +834,7 @@ End Module
 Public Class Foo
     Public Shared Bar As Integer
     End Sub
-End Class|]",
-parseOptions:=Nothing) 'TODO (tomat): modules not yet supported in script
+End Class|]") 'TODO (tomat): modules not yet supported in script
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
@@ -893,7 +891,7 @@ Namespace SomeNS
             Return Nothing
         End Function
     End Module
-End Namespace|]</Text>.NormalizedValue, parseOptions:=TestOptions.Regular)
+End Namespace|]</Text>.NormalizedValue, New TestParameters(parseOptions:=TestOptions.Regular))
         End Function
 
         <WorkItem(543217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543217")>

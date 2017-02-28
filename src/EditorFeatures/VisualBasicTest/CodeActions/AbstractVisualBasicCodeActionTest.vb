@@ -16,16 +16,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             Return TestOptions.Script
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFileAsync(
-            definition As String,
-            parseOptions As ParseOptions,
-            compilationOptions As CompilationOptions
-        ) As Task(Of TestWorkspace)
-
+        Protected Overrides Function CreateWorkspaceFromFileAsync(initialMarkup As String, parameters As TestParameters) As Task(Of TestWorkspace)
             Return TestWorkspace.CreateVisualBasicAsync(
-                definition,
-                parseOptions,
-                If(compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+                initialMarkup,
+                parameters.parseOptions,
+                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Protected Shared Function NewLines(input As String) As String
@@ -42,7 +37,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         Protected Overloads Async Function TestMissingAsync(initialMarkup As XElement) As Threading.Tasks.Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
 
-            Await MyBase.TestMissingAsync(initialMarkupStr, parseOptions:=Nothing, compilationOptions:=_compilationOptions)
+            Await MyBase.TestMissingAsync(initialMarkupStr,
+                New TestParameters(parseOptions:=Nothing, compilationOptions:=_compilationOptions))
         End Function
 
         Protected Overrides Function GetLanguage() As String

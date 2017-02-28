@@ -3066,7 +3066,7 @@ index: 1);
         {
             await TestMissingAsync(
 @"[|this|] . f = f ; ",
-GetScriptOptions());
+new TestParameters(GetScriptOptions()));
         }
 
         [WorkItem(539799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539799")]
@@ -3561,8 +3561,7 @@ class A
         public async Task TestMissingOnInvalidGlobalCode()
         {
             await TestMissingAsync(
-@"[|a|] test ",
-parseOptions: null);
+@"[|a|] test ");
         }
 
         [WorkItem(539985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539985")]
@@ -4384,8 +4383,7 @@ namespace Namespace1.Namespace2
                 expected,
                 expectedContainers: Array.Empty<string>(),
                 expectedDocumentName: "ClassB.cs",
-                compareTokens: false,
-                isLine: false);
+                compareTokens: false);
         }
 
         [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
@@ -4416,8 +4414,7 @@ namespace Namespace1.Namespace2.Namespace3
                 expected,
                 expectedContainers: new List<string> { "Namespace1", "Namespace2" },
                 expectedDocumentName: "ClassB.cs",
-                compareTokens: false,
-                isLine: false);
+                compareTokens: false);
         }
 
         [WorkItem(612700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612700")]

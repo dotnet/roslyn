@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         private static readonly ProjectId s_addedProjectId = ProjectId.CreateNewId();
         private const string ChangedDocumentText = "class C {}";
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new MyCodeRefactoringProvider();
 
         private class MyCodeRefactoringProvider : CodeRefactoringProvider
@@ -78,10 +78,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             }
         }
 
-        private void GetMainDocumentAndPreviews(TestWorkspace workspace, out Document document, out SolutionPreviewResult previews)
+        private void GetMainDocumentAndPreviews(TestParameters parameters, TestWorkspace workspace, out Document document, out SolutionPreviewResult previews)
         {
             document = GetDocument(workspace);
-            var provider = CreateCodeRefactoringProvider(workspace, fixProviderData: null);
+            var provider = CreateCodeRefactoringProvider(workspace, parameters);
             var span = document.GetSyntaxRootAsync().Result.Span;
             var refactorings = new List<CodeAction>();
             var context = new CodeRefactoringContext(document, span, refactorings.Add, CancellationToken.None);
@@ -94,9 +94,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/14421")]
         public async Task TestPickTheRightPreview_NoPreference()
         {
-            using (var workspace = await CreateWorkspaceFromFileAsync("class D {}", null, null))
+            var parameters = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync("class D {}", parameters))
             {
-                GetMainDocumentAndPreviews(workspace, out var document, out var previews);
+                GetMainDocumentAndPreviews(parameters, workspace, out var document, out var previews);
 
                 // The changed document comes first.
                 var previewObjects = await previews.GetPreviewsAsync();

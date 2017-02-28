@@ -10,16 +10,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
     Public Class BasicMoveTypeTestsBase
         Inherits AbstractMoveTypeTest
 
-        Protected Overrides Function CreateWorkspaceFromFileAsync(
-            definition As String,
-            ParseOptions As ParseOptions,
-            CompilationOptions As CompilationOptions
-        ) As Task(Of TestWorkspace)
-
+        Protected Overrides Function CreateWorkspaceFromFileAsync(initialMarkup As String, parameters As TestParameters) As Task(Of TestWorkspace)
             Return TestWorkspace.CreateVisualBasicAsync(
-                definition,
-                ParseOptions,
-                If(CompilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+                initialMarkup,
+                parameters.parseOptions,
+                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Protected Overrides Function GetLanguage() As String
