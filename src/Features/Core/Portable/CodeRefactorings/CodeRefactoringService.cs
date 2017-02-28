@@ -43,13 +43,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 foreach (var language in provider.Metadata.Languages)
                 {
-                    var orderable = new OrderableLanguageMetadata(provider.Metadata.Name, language, provider.Metadata.AfterTyped, provider.Metadata.BeforeTyped);
+                    var orderable = new OrderableLanguageMetadata(
+                        provider.Metadata.Name, language, provider.Metadata.AfterTyped, provider.Metadata.BeforeTyped);
                     yield return new Lazy<CodeRefactoringProvider, OrderableLanguageMetadata>(() => provider.Value, orderable);
                 }
             }
         }
 
-        private ImmutableDictionary<string, Lazy<IEnumerable<CodeRefactoringProvider>>> LanguageToProvidersMap => _lazyLanguageToProvidersMap.Value;
+        private ImmutableDictionary<string, Lazy<IEnumerable<CodeRefactoringProvider>>> LanguageToProvidersMap
+            => _lazyLanguageToProvidersMap.Value;
 
         private IEnumerable<CodeRefactoringProvider> GetProviders(Document document)
         {

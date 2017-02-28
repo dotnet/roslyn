@@ -1,4 +1,5 @@
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.ApplyChangesKind.ChangeDocumentInfo = 16 -> Microsoft.CodeAnalysis.ApplyChangesKind
 Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
 Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.CodeStyleOption(T value, Microsoft.CodeAnalysis.CodeStyle.NotificationOption notification) -> void
 Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Equals(Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T> other) -> bool
@@ -15,6 +16,9 @@ Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Name.set -> void
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Value.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Value.set -> void
 Microsoft.CodeAnalysis.Document.GetOptionsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Options.DocumentOptionSet>
+Microsoft.CodeAnalysis.Document.WithFilePath(string filePath) -> Microsoft.CodeAnalysis.Document
+Microsoft.CodeAnalysis.Document.WithFolders(System.Collections.Generic.IEnumerable<string> folders) -> Microsoft.CodeAnalysis.Document
+Microsoft.CodeAnalysis.Document.WithName(string name) -> Microsoft.CodeAnalysis.Document
 Microsoft.CodeAnalysis.DocumentActiveContextChangedEventArgs
 Microsoft.CodeAnalysis.DocumentActiveContextChangedEventArgs.DocumentActiveContextChangedEventArgs(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.Text.SourceTextContainer sourceTextContainer, Microsoft.CodeAnalysis.DocumentId oldActiveContextDocumentId, Microsoft.CodeAnalysis.DocumentId newActiveContextDocumentId) -> void
 Microsoft.CodeAnalysis.DocumentActiveContextChangedEventArgs.NewActiveContextDocumentId.get -> Microsoft.CodeAnalysis.DocumentId
@@ -34,9 +38,13 @@ Microsoft.CodeAnalysis.Options.OptionStorageLocation.OptionStorageLocation() -> 
 Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.PerLanguageOption(string feature, string name, T defaultValue, params Microsoft.CodeAnalysis.Options.OptionStorageLocation[] storageLocations) -> void
 Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.StorageLocations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Options.OptionStorageLocation>
 Microsoft.CodeAnalysis.Solution.Options.get -> Microsoft.CodeAnalysis.Options.OptionSet
+Microsoft.CodeAnalysis.Solution.WithDocumentFilePath(Microsoft.CodeAnalysis.DocumentId documentId, string filePath) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Solution.WithDocumentName(Microsoft.CodeAnalysis.DocumentId documentId, string name) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Tags.WellKnownTags
 Microsoft.CodeAnalysis.Workspace.DocumentActiveContextChanged -> System.EventHandler<Microsoft.CodeAnalysis.DocumentActiveContextChangedEventArgs>
+Microsoft.CodeAnalysis.Workspace.OnDocumentInfoChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.DocumentInfo newInfo) -> void
 Microsoft.CodeAnalysis.Workspace.RaiseDocumentActiveContextChangedEventAsync(Microsoft.CodeAnalysis.Text.SourceTextContainer sourceTextContainer, Microsoft.CodeAnalysis.DocumentId oldActiveContextDocumentId, Microsoft.CodeAnalysis.DocumentId newActiveContextDocumentId) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.WorkspaceChangeKind.DocumentInfoChanged = 17 -> Microsoft.CodeAnalysis.WorkspaceChangeKind
 Microsoft.CodeAnalysis.XmlDocumentationProvider
 Microsoft.CodeAnalysis.XmlDocumentationProvider.XmlDocumentationProvider() -> void
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddEventHandler(Microsoft.CodeAnalysis.SyntaxNode event, Microsoft.CodeAnalysis.SyntaxNode handler) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -107,3 +115,4 @@ static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Suggestion -
 static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Warning -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.Tags.get -> System.Collections.Immutable.ImmutableArray<string>
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
+virtual Microsoft.CodeAnalysis.Workspace.ApplyDocumentInfoChanged(Microsoft.CodeAnalysis.DocumentId id, Microsoft.CodeAnalysis.DocumentInfo info) -> void

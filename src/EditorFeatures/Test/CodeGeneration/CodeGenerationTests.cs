@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             IList<ISymbol> imports = null,
             IList<INamespaceOrTypeSymbol> members = null,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true)
+            bool ignoreTrivia = true)
         {
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 var @namespace = CodeGenerationSymbolFactory.CreateNamespaceSymbol(name, imports, members);
                 context.Result = await context.Service.AddNamespaceAsync(context.Solution, (INamespaceSymbol)context.GetDestination(), @namespace, codeGenerationOptions);
@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Accessibility accessibility = Accessibility.Public,
             DeclarationModifiers modifiers = default(DeclarationModifiers),
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true,
+            bool ignoreTrivia = true,
             bool hasConstantValue = false,
             object constantValue = null,
             bool addToCompilationUnit = false)
         {
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 var typeSymbol = type != null ? type(context.SemanticModel) : null;
                 var field = CodeGenerationSymbolFactory.CreateFieldSymbol(
@@ -90,9 +90,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<SyntaxNode> baseArguments = default(ImmutableArray<SyntaxNode>),
             ImmutableArray<SyntaxNode> thisArguments = default(ImmutableArray<SyntaxNode>),
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true)
+            bool ignoreTrivia = true)
         {
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var ctor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
@@ -121,14 +121,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string statements = null,
             ImmutableArray<SyntaxNode> handlesExpressions = default(ImmutableArray<SyntaxNode>),
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true)
+            bool ignoreTrivia = true)
         {
             if (statements != null)
             {
                 expected = expected.Replace("$$", statements);
             }
 
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var parsedStatements = context.ParseStatements(statements);
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             string statements = null,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true)
+            bool ignoreTrivia = true)
         {
             if (statements != null)
             {
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 }
             }
 
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var parsedStatements = context.ParseStatements(statements);
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             string statements = null,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true)
+            bool ignoreTrivia = true)
         {
             using (var context = await TestContext.CreateAsync(initial, initial, ignoreResult: true))
             {
@@ -238,14 +238,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             DeclarationModifiers modifiers = default(DeclarationModifiers),
             string statements = null,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true)
+            bool ignoreTrivia = true)
         {
             if (statements != null)
             {
                 expected = expected.Replace("$$", statements);
             }
 
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 var parsedStatements = context.ParseStatements(statements);
                 var method = CodeGenerationSymbolFactory.CreateConversionSymbol(
@@ -266,14 +266,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string expected,
             string statements,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true)
+            bool ignoreTrivia = true)
         {
             if (statements != null)
             {
                 expected = expected.Replace("$$", statements);
             }
 
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 var parsedStatements = context.ParseStatements(statements);
                 var oldSyntax = context.GetSelectedSyntax<SyntaxNode>(true);
@@ -287,9 +287,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string expected,
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true)
+            bool ignoreTrivia = true)
         {
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var oldMemberSyntax = context.GetSelectedSyntax<SyntaxNode>(true);
@@ -308,9 +308,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<ITypeParameterSymbol> typeParameters = default(ImmutableArray<ITypeParameterSymbol>),
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true)
+            bool ignoreTrivia = true)
         {
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var type = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
@@ -340,9 +340,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             IMethodSymbol removeMethod = null,
             IMethodSymbol raiseMethod = null,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true)
+            bool ignoreTrivia = true)
         {
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 type = type ?? typeof(Action);
 
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             bool isIndexer = false,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true,
+            bool ignoreTrivia = true,
             IDictionary<OptionKey, object> options = null)
         {
             // This assumes that tests will not use place holders for get/set statements at the same time
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 expected = expected.Replace("$$", setStatements);
             }
 
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 if (options != null)
                 {
@@ -469,9 +469,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             SpecialType specialType = SpecialType.None,
             ImmutableArray<Func<SemanticModel, ISymbol>> members = default(ImmutableArray<Func<SemanticModel, ISymbol>>),
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true)
+            bool ignoreTrivia = true)
         {
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 var memberSymbols = GetSymbols(members, context);
                 var type = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
@@ -486,9 +486,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string expected,
             Type attributeClass,
             SyntaxToken? target = null,
-            bool compareTokens = true)
+            bool ignoreTrivia = true)
         {
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 var attr = CodeGenerationSymbolFactory.CreateAttributeData((INamedTypeSymbol)GetTypeSymbol(attributeClass)(context.SemanticModel));
                 var oldNode = context.GetDestinationNode();
@@ -503,9 +503,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string expected,
             Type attributeClass,
             SyntaxToken? target = null,
-            bool compareTokens = false) where T : SyntaxNode
+            bool ignoreTrivia = false) where T : SyntaxNode
         {
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 var attributeType = (INamedTypeSymbol)GetTypeSymbol(attributeClass)(context.SemanticModel);
                 var taggedNode = context.GetDestinationNode();
@@ -527,9 +527,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<Func<SemanticModel, ISymbol>> getNewMembers = default(ImmutableArray<Func<SemanticModel, ISymbol>>),
             bool? declareNewMembersAtTop = null,
             string retainedMembersKey = "RetainedMember",
-            bool compareTokens = false) where T : SyntaxNode
+            bool ignoreTrivia = false) where T : SyntaxNode
         {
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
                 var declarationNode = context.GetDestinationNode().FirstAncestorOrSelf<T>();
                 var updatedDeclarationNode = declarationNode;
@@ -577,10 +577,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string expected,
             bool onlyGenerateMembers = false,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool compareTokens = true,
+            bool ignoreTrivia = true,
             string forceLanguage = null)
         {
-            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens, forceLanguage))
+            using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia, forceLanguage))
             {
                 TextSpan destSpan = new TextSpan();
                 MarkupTestFile.GetSpan(symbolSource.NormalizeLineEndings(), out symbolSource, out destSpan);
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             public TestContext(
                 string initial,
                 string expected,
-                bool compareTokens,
+                bool ignoreTrivia,
                 bool ignoreResult,
                 string language,
                 TestWorkspace workspace,
@@ -826,7 +826,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 _expected = expected.NormalizeLineEndings();
                 _language = language;
                 this.IsVisualBasic = _language == LanguageNames.VisualBasic;
-                _compareTokens = compareTokens;
+                _compareTokens = ignoreTrivia;
                 _ignoreResult = ignoreResult;
                 Workspace = workspace;
                 this.Document = Workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -835,14 +835,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 this.Service = Document.Project.LanguageServices.GetService<ICodeGenerationService>();
             }
 
-            public static async Task<TestContext> CreateAsync(string initial, string expected, bool compareTokens = true, string forceLanguage = null, bool ignoreResult = false)
+            public static async Task<TestContext> CreateAsync(string initial, string expected, bool ignoreTrivia = true, string forceLanguage = null, bool ignoreResult = false)
             {
                 var language = forceLanguage != null ? forceLanguage : GetLanguage(initial);
                 var isVisualBasic = language == LanguageNames.VisualBasic;
                 var workspace = await CreateWorkspaceFromFileAsync(initial.NormalizeLineEndings(), isVisualBasic, null, null);
                 var semanticModel = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetSemanticModelAsync();
 
-                return new TestContext(initial, expected, compareTokens, ignoreResult, language, workspace, semanticModel);
+                return new TestContext(initial, expected, ignoreTrivia, ignoreResult, language, workspace, semanticModel);
             }
 
             public Solution Solution { get { return Workspace.CurrentSolution; } }

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             var code =
 @"[||]class test1 { }";
 
-            await TestMissingAsync(code);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
     [||]class test1 { }
 }";
 
-            await TestMissingAsync(code);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -44,6 +44,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         {
             var code =
 @"[|clas|]s Class1 { }
+ class Class2 { }";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestForSpans2()
+        {
+            var code =
+@"[||]class Class1 { }
  class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
@@ -62,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document Folders=""A\B""> 
-[|class|] Class1 { }
+[||]class Class1 { }
 class Class2 { }
         </Document>
     </Project>
@@ -78,21 +88,17 @@ class Class2 { }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task TestForSpans2()
+        public async Task TestForSpans3()
         {
             var code =
 @"[|class Class1|] { }
 class Class2 { }";
-            var codeAfterMove = @"class Class2 { }";
 
-            var expectedDocumentName = "Class1.cs";
-            var destinationDocumentText = @"class Class1 { }";
-
-            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task TestForSpans3()
+        public async Task TestForSpans4()
         {
             var code =
 @"class Class1[||] { }
@@ -453,7 +459,7 @@ class Class2 { }";
 }";
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                compareTokens: false);
+                ignoreTrivia: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -798,7 +804,7 @@ class Outer
     {
     }
 
-    [|class|] Inner2
+    [||]class Inner2
     {
     }
 }";
@@ -821,7 +827,7 @@ partial class Outer
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                compareTokens: false);
+                ignoreTrivia: false);
         }
 
         [WorkItem(17171, "https://github.com/dotnet/roslyn/issues/17171")]
@@ -836,7 +842,7 @@ class Outer
     {
     }
 
-    [|class|] Inner2
+    [||]class Inner2
     {
     }
 }";
@@ -860,7 +866,7 @@ partial class Outer
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                compareTokens: false,
+                ignoreTrivia: false,
                 onAfterWorkspaceCreated: w =>
                 {
                     w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, true);
@@ -879,7 +885,7 @@ class Outer
     {
     }
 
-    [|class|] Inner2
+    [||]class Inner2
     {
     }
 }";
@@ -902,7 +908,7 @@ partial class Outer
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                compareTokens: false,
+                ignoreTrivia: false,
                 onAfterWorkspaceCreated: w =>
                 {
                     w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, false);
