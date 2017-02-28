@@ -587,10 +587,14 @@ namespace Roslyn.Utilities
 
         private static bool PathCharEqual(char x, char y)
         {
-            return x == y
-                || (IsDirectorySeparator(x) && IsDirectorySeparator(y))
-                || IsUnixLikePlatform 
-                || char.ToUpperInvariant(x) == char.ToUpperInvariant(y);
+            if (IsDirectorySeparator(x) && IsDirectorySeparator(y))
+            {
+                return true;
+            }
+
+            return IsUnixLikePlatform 
+                ? x == y 
+                : char.ToUpperInvariant(x) == char.ToUpperInvariant(y);
         }
 
         private static int PathHashCode(string path)
