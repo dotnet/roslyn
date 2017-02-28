@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Private Function GetSemanticModelWithIgnoreAccessibility() As SemanticModel
 
 
-            Dim compilationA = CreateVisualBasicCompilation(<![CDATA[
-Class A
+            Dim compilationA = CreateVisualBasicCompilation(
+"Class A
 
     Private _num As Integer
 
@@ -25,13 +25,12 @@ Class A
         Return New A()
     
     End Function
-End Class
-]]>.Value)
+End Class")
 
             Dim referenceA = MetadataReference.CreateFromStream(compilationA.EmitToStream())
 
-            Dim compilationB = CreateVisualBasicCompilation(<![CDATA[
-Class B
+            Dim compilationB = CreateVisualBasicCompilation(
+"Class B
 
     Sub Main()
 
@@ -41,8 +40,8 @@ Class B
 
 End Class
 
-]]>.Value, referencedAssemblies:=New MetadataReference() {referenceA},
-                                                            compilationOptions:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+", referencedAssemblies:=New MetadataReference() {referenceA},
+     compilationOptions:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             Dim syntaxTree2 = compilationB.SyntaxTrees(0)
             Return compilationB.GetSemanticModel(syntaxTree2, ignoreAccessibility:=True)
@@ -92,24 +91,22 @@ End Class
         <Fact>
         Public Sub AccessChecksInsideLambdaExpression()
 
-            Dim source = <![CDATA[
-        Imports System.Collections.Generic
+            Dim source =
+"Imports System.Collections.Generic
 
-        Class P
-            Private _p As Boolean
-        End Class
+Class P
+    Private _p As Boolean
+End Class
 
-        Class C
+Class C
 
-            Shared Sub M()
+    Shared Sub M()
 
-                Dim tmp = New List(Of P)()
-                Dim answer = tmp.Find(Function(a) a._p)
+        Dim tmp = New List(Of P)()
+        Dim answer = tmp.Find(Function(a) a._p)
 
-            End Sub
-        End Class
-        ]]>.Value
-
+    End Sub
+End Class"
             Dim tree = SyntaxFactory.ParseSyntaxTree(source)
             Dim comp = CreateCompilationWithMscorlib(tree)
             Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=True)
@@ -125,10 +122,8 @@ End Class
         <Fact>
         Public Sub AccessCheckCrossAssemblyPrivateExtensions()
 
-            Dim source =
-                <compilation name="ext">
-                    <file name="a.vb">
-Imports System.Runtime.CompilerServices
+            Dim source = Unit.Make("ext").With_a_vb(
+"Imports System.Runtime.CompilerServices
 
 Public Class A
 
@@ -144,7 +139,7 @@ End Class
 
 Friend Module E
 
-    &lt;Extension&gt;
+    <Extension>
     Friend Function InternalExtension(theClass As A, newNum As Integer) As Integer
     
         theClass._num = newNum
@@ -156,30 +151,27 @@ End Module
 
 Namespace System.Runtime.CompilerServices
 
-    &lt;AttributeUsage(AttributeTargets.Assembly Or AttributeTargets.Class Or AttributeTargets.Method)&gt;
+    <AttributeUsage(AttributeTargets.Assembly Or AttributeTargets.Class Or AttributeTargets.Method)>
     Class ExtensionAttribute
         Inherits Attribute
     End Class
 
 End Namespace
-
-                    </file>
-                </compilation>
+")
 
             Dim compilationA = CreateCompilationWithMscorlibAndVBRuntime(source)
 
             Dim referenceA = MetadataReference.CreateFromStream(compilationA.EmitToStream())
 
-            Dim compilationB = CreateCompilationWithMscorlib(New String() {<![CDATA[
-Class B 
+            Dim compilationB = CreateCompilationWithMscorlib({
+"Class B 
 
     Sub Main() 
     
         Dim t = New A().M()
 
     End Sub
-End Class
-]]>.Value}, New MetadataReference() {referenceA}, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+End Class"}, New MetadataReference() {referenceA}, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             Dim syntaxTree = compilationB.SyntaxTrees(0)
             Dim semanticModel = compilationB.GetSemanticModel(syntaxTree, ignoreAccessibility:=True)
@@ -201,8 +193,8 @@ End Class
         <Fact>
         Public Sub TestGetSpeculativeSemanticModelForPropertyAccessorBody()
 
-            Dim source = <![CDATA[
-Class R
+            Dim source =
+"Class R
 
     Private _p As Integer
 
@@ -216,21 +208,19 @@ Class C
             Dim y As Integer = 1000
         End Set
     End Property
-End Class
-]]>.Value
+End Class"
 
             Dim compilationA = CreateCompilationWithMscorlib(SyntaxFactory.ParseSyntaxTree(source))
 
-            Dim blockStatement = SyntaxFactory.ParseSyntaxTree(<![CDATA[
-                                                               
-    Private Property M As Integer
+            Dim blockStatement = SyntaxFactory.ParseSyntaxTree(
+"    Private Property M As Integer
         Set
            Dim z As Integer = 0
 
            _p = 123
         End Set
     End Property
-]]>.Value).GetRoot()
+").GetRoot()
 
             Dim tree = compilationA.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -251,19 +241,18 @@ End Class
             Assert.True(success)
             Assert.NotNull(speculativeModel)
 
-            Dim privateCandidate =
-                speculativeModel.SyntaxTree.GetRoot() _
-                .DescendantNodes() _
-                .OfType(Of IdentifierNameSyntax)() _
-                .Single(Function(s) s.Identifier.ValueText = "_p")
+            Dim privateCandidate = speculativeModel.SyntaxTree.GetRoot().
+                                                               DescendantNodes().
+                                                               OfType(Of IdentifierNameSyntax)().
+                                                               Single(Function(s) s.Identifier.ValueText = "_p")
 
-            Dim symbolSpeculation =
-                speculativeModel.GetSpeculativeSymbolInfo(privateCandidate.FullSpan.Start, privateCandidate,
-                    SpeculativeBindingOption.BindAsExpression)
+            Dim symbolSpeculation = speculativeModel.GetSpeculativeSymbolInfo(privateCandidate.FullSpan.Start,
+                                                                              privateCandidate,
+                                                                              SpeculativeBindingOption.BindAsExpression)
 
-            Dim typeSpeculation =
-                speculativeModel.GetSpeculativeTypeInfo(privateCandidate.FullSpan.Start, privateCandidate,
-                                SpeculativeBindingOption.BindAsExpression)
+            Dim typeSpeculation = speculativeModel.GetSpeculativeTypeInfo(privateCandidate.FullSpan.Start,
+                                                                          privateCandidate,
+                                                                          SpeculativeBindingOption.BindAsExpression)
 
             Assert.Equal("_p", symbolSpeculation.Symbol.Name)
             Assert.Equal("Int32", typeSpeculation.Type.Name)

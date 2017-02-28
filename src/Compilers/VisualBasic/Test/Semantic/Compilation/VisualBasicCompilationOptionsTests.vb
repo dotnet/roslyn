@@ -329,7 +329,7 @@ BC2014: the value '<%= rootNs %>' is invalid for option 'RootNamespace'
 
             CheckImportsAreBad({"A.B.435",
                                "Global.Foo"},
-                                {"Error In project-level import 'A.B.435' at '.435' : End of statement expected.",
+                                {"Error in project-level import 'A.B.435' at '.435' : End of statement expected.",
                                 "Error in project-level import 'Global.Foo' at 'Global' : 'Global' not allowed in this context; identifier expected."})
         End Sub
 

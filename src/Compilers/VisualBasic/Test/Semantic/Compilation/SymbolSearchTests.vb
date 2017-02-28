@@ -110,8 +110,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         Private Shared Function GetTestCompilation() As VisualBasicCompilation
-            Dim source As String = <text>
-Namespace System
+            Dim source As String =
+"Namespace System
 
     Public Class Test
     End Class
@@ -145,8 +145,7 @@ End Interface
 
 Enum [Enum]
     EnumValue
-End Enum
-</text>.Value
+End Enum"
             Return CreateCompilationWithMscorlib({source})
         End Function
 
