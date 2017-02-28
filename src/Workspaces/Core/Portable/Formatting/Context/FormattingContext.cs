@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         [Conditional("DEBUG")]
         private void DebugCheckEmpty<T>(ContextIntervalTree<T> tree, TextSpan textSpan)
         {
-            var intervals = tree.GetContainingIntervals(textSpan.Start, textSpan.Length);
+            var intervals = tree.GetIntervalsThatContain(textSpan.Start, textSpan.Length);
             Contract.ThrowIfFalse(intervals.Length == 0);
         }
 
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public IEnumerable<IndentBlockOperation> GetAllRelativeIndentBlockOperations()
         {
-            return _relativeIndentationTree.GetIntersectingIntervals(this.TreeData.StartPosition, this.TreeData.EndPosition, this).Select(i => i.Operation);
+            return _relativeIndentationTree.GetIntervalsThatIntersectWith(this.TreeData.StartPosition, this.TreeData.EndPosition, this).Select(i => i.Operation);
         }
 
         public bool TryGetEndTokenForRelativeIndentationSpan(SyntaxToken token, int maxChainDepth, out SyntaxToken endToken, CancellationToken cancellationToken)
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // below, we will try to flat the overlapped anchor span, and find the last position (token) of that span
 
             // find other anchors overlapping with current anchor span
-            var anchorData = _anchorTree.GetOverlappingIntervals(baseAnchorData.TextSpan.Start, baseAnchorData.TextSpan.Length);
+            var anchorData = _anchorTree.GetIntervalsThatOverlapWith(baseAnchorData.TextSpan.Start, baseAnchorData.TextSpan.Length);
 
             // among those anchors find the biggest end token
             var lastEndToken = baseAnchorData.EndToken;

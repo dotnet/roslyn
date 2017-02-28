@@ -24,23 +24,23 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         protected IIntervalIntrospector<T> Introspector => _introspector;
 
-        public ImmutableArray<T> GetOverlappingIntervals(int start, int length)
-            => GetOverlappingIntervals(start, length, _introspector);
+        public ImmutableArray<T> GetIntervalsThatOverlapWith(int start, int length)
+            => GetIntervalsThatOverlapWith(start, length, _introspector);
 
-        public ImmutableArray<T> GetIntersectingIntervals(int start, int length)
-            => GetIntersectingIntervals(start, length, _introspector);
+        public ImmutableArray<T> GetIntervalsThatIntersectWith(int start, int length)
+            => GetIntervalsThatIntersectWith(start, length, _introspector);
 
-        public ImmutableArray<T> GetContainingIntervals(int start, int length)
-            => GetContainingIntervals(start, length, _introspector);
+        public ImmutableArray<T> GetIntervalsThatContain(int start, int length)
+            => GetIntervalsThatContain(start, length, _introspector);
 
-        public void FillOverlappingIntervals(int start, int length, ArrayBuilder<T> builder)
-            => FillOverlappingIntervals(start, length, _introspector, builder);
+        public void FillWithIntervalsThatOverlapWith(int start, int length, ArrayBuilder<T> builder)
+            => FillWithIntervalsThatOverlapWith(start, length, _introspector, builder);
 
-        public void FillIntersectingIntervals(int start, int length, ArrayBuilder<T> builder)
-            => FillIntersectingIntervals(start, length, _introspector, builder);
+        public void FillWithIntervalsThatIntersectWith(int start, int length, ArrayBuilder<T> builder)
+            => FillWithIntervalsThatIntersectWith(start, length, _introspector, builder);
 
-        public void FillContainingIntervals(int start, int length, ArrayBuilder<T> builder)
-            => FillContainingIntervals(start, length, _introspector, builder);
+        public void FillWithIntervalsThatContain(int start, int length, ArrayBuilder<T> builder)
+            => FillWithIntervalsThatContain(start, length, _introspector, builder);
 
         public bool HasIntervalThatIntersectsWith(int position)
             => HasIntervalThatIntersectsWith(position, 0);

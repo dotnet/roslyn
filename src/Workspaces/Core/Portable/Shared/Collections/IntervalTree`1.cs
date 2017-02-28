@@ -5,7 +5,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
@@ -88,45 +87,45 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return overlapStart < overlapEnd;
         }
 
-        public ImmutableArray<T> GetOverlappingIntervals(int start, int length, IIntervalIntrospector<T> introspector)
-            => this.GetInOrderIntervals(start, length, s_overlapsWithTest, introspector);
+        public ImmutableArray<T> GetIntervalsThatOverlapWith(int start, int length, IIntervalIntrospector<T> introspector)
+            => this.GetIntervalsThatMatch(start, length, s_overlapsWithTest, introspector);
 
-        public ImmutableArray<T> GetIntersectingIntervals(int start, int length, IIntervalIntrospector<T> introspector)
-            => this.GetInOrderIntervals(start, length, s_intersectsWithTest, introspector);
+        public ImmutableArray<T> GetIntervalsThatIntersectWith(int start, int length, IIntervalIntrospector<T> introspector)
+            => this.GetIntervalsThatMatch(start, length, s_intersectsWithTest, introspector);
 
-        public ImmutableArray<T> GetContainingIntervals(int start, int length, IIntervalIntrospector<T> introspector)
-            => this.GetInOrderIntervals(start, length, s_containsTest, introspector);
+        public ImmutableArray<T> GetIntervalsThatContain(int start, int length, IIntervalIntrospector<T> introspector)
+            => this.GetIntervalsThatMatch(start, length, s_containsTest, introspector);
 
-        public void FillOverlappingIntervals(int start, int length, IIntervalIntrospector<T> introspector, ArrayBuilder<T> builder)
-            => this.FillInOrderIntervals(start, length, s_overlapsWithTest, introspector, builder, stopAfterFirst: false);
+        public void FillWithIntervalsThatOverlapWith(int start, int length, IIntervalIntrospector<T> introspector, ArrayBuilder<T> builder)
+            => this.FillWithIntervalsThatMatch(start, length, s_overlapsWithTest, introspector, builder, stopAfterFirst: false);
 
-        public void FillIntersectingIntervals(int start, int length, IIntervalIntrospector<T> introspector, ArrayBuilder<T> builder)
-            => this.FillInOrderIntervals(start, length, s_intersectsWithTest, introspector, builder, stopAfterFirst: false);
+        public void FillWithIntervalsThatIntersectWith(int start, int length, IIntervalIntrospector<T> introspector, ArrayBuilder<T> builder)
+            => this.FillWithIntervalsThatMatch(start, length, s_intersectsWithTest, introspector, builder, stopAfterFirst: false);
 
-        public void FillContainingIntervals(int start, int length, IIntervalIntrospector<T> introspector, ArrayBuilder<T> builder)
-            => this.FillInOrderIntervals(start, length, s_containsTest, introspector, builder, stopAfterFirst: false);
+        public void FillWithIntervalsThatContain(int start, int length, IIntervalIntrospector<T> introspector, ArrayBuilder<T> builder)
+            => this.FillWithIntervalsThatMatch(start, length, s_containsTest, introspector, builder, stopAfterFirst: false);
 
-        public bool IntersectsWith(int position, IIntervalIntrospector<T> introspector)
+        public bool HasIntervalThatIntersectsWith(int position, IIntervalIntrospector<T> introspector)
             => Any(position, 0, s_intersectsWithTest, introspector);
 
         protected bool Any(int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector)
         {
             var builder = ArrayBuilder<T>.GetInstance();
-            FillInOrderIntervals(start, 0, s_intersectsWithTest, introspector, builder, stopAfterFirst: true);
+            FillWithIntervalsThatMatch(start, 0, s_intersectsWithTest, introspector, builder, stopAfterFirst: true);
 
             var result = builder.Count > 0;
             builder.Free();
             return result;
         }
 
-        private ImmutableArray<T> GetInOrderIntervals(int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector)
+        private ImmutableArray<T> GetIntervalsThatMatch(int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector)
         {
             var result = ArrayBuilder<T>.GetInstance();
-            FillInOrderIntervals(start, length, testInterval, introspector, result, stopAfterFirst: false);
+            FillWithIntervalsThatMatch(start, length, testInterval, introspector, result, stopAfterFirst: false);
             return result.ToImmutableAndFree();
         }
 
-        private void FillInOrderIntervals(
+        private void FillWithIntervalsThatMatch(
             int start, int length, TestInterval testInterval,
             IIntervalIntrospector<T> introspector, ArrayBuilder<T> builder,
             bool stopAfterFirst)
@@ -138,15 +137,14 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             var candidates = s_stackPool.Allocate();
 
-            FillInOrderIntervals(
+            FillWithIntervalsThatMatch(
                 start, length, testInterval,
                 introspector, builder, stopAfterFirst, candidates);
 
             s_stackPool.ClearAndFree(candidates);
         }
 
-
-        private void FillInOrderIntervals(
+        private void FillWithIntervalsThatMatch(
             int start, int length, TestInterval testInterval,
             IIntervalIntrospector<T> introspector, ArrayBuilder<T> builder,
             bool stopAfterFirst, Stack<(Node node, bool firstTime)> candidates)
