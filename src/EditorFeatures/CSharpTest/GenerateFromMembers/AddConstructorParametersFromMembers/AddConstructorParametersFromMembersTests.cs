@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
         [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAdd1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -50,7 +50,7 @@ index: 0);
         [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddOptional1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -82,7 +82,7 @@ index: 1);
         [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddToConstructorWithMostMatchingParameters1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -126,7 +126,7 @@ index: 0);
         [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddOptionalToConstructorWithMostMatchingParameters1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program

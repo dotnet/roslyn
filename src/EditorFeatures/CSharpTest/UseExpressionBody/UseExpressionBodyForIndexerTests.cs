@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int this[int i]
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int this[int i]
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int this[int i]
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int this[int i] [|=>|] Bar();
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBodyIfAccessorWantExpression1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int this[int i] [|=>|] Bar();
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int this[int i] [|=>|] throw new NotImplementedException();
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int this[int i] [|=>|] throw new NotImplementedException(); // comment

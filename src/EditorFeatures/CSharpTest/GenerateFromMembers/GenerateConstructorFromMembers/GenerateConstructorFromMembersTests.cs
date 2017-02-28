@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructorFrom
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSingleField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -46,7 +46,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSingleFieldWithCodeStyle()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -66,7 +66,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeS
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestMultipleFields()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -93,7 +93,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSecondField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -129,7 +129,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestFieldAssigningConstructor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -166,7 +166,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestFieldAssigningConstructor2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -203,7 +203,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestDelegatingConstructor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -263,7 +263,7 @@ class Z
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestMultipleProperties()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Z
 {
     [|public int A { get; private set; }
@@ -286,7 +286,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestMultiplePropertiesWithQualification()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Z
 {
     [|public int A { get; private set; }
@@ -309,7 +309,7 @@ index: 0, options: Option(CodeStyleOptions.QualifyPropertyAccess, true, Notifica
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestStruct()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 struct S
@@ -333,7 +333,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestStruct1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 struct S
@@ -357,7 +357,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestStruct2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 struct S
@@ -385,7 +385,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestStruct3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 struct S
@@ -413,7 +413,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestGenericType()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program<T>
@@ -490,7 +490,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestContextualKeywordName()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|int yield;|]
@@ -556,7 +556,7 @@ withScriptOption: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestUnderscoreInName1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|int _field;|]
@@ -576,7 +576,7 @@ withScriptOption: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestUnderscoreInName_PreferThis()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|int _field;|]
@@ -597,7 +597,7 @@ options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSu
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestGetter_Only_Auto_Props()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class Contribution
 {
   [|public string Title { get; }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestFirstArgument()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { void M(int arg1, int arg2) => M([||]1, 2); }",
 @"class C { void M(int arg1, int arg2) => M(arg1: 1, arg2: 2); }");
         }
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestNonFirstArgument()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { void M(int arg1, int arg2) => M(1, [||]2); }",
 @"class C { void M(int arg1, int arg2) => M(1, arg2: 2); }");
         }
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestDelegate()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { void M(System.Action<int> f) => f([||]1); }",
 @"class C { void M(System.Action<int> f) => f(obj: 1); }");
         }
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestConditionalMethod()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { void M(int arg1, int arg2) => this?.M([||]1, 2); }",
 @"class C { void M(int arg1, int arg2) => this?.M(arg1: 1, arg2: 2); }");
         }
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestConditionalIndexer()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { int? this[int arg1, int arg2] => this?[[||]1, 2]; }",
 @"class C { int? this[int arg1, int arg2] => this?[arg1: 1, arg2: 2]; }");
         }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestThisConstructorInitializer()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { C(int arg1, int arg2) {} C() : this([||]1, 2) {} }",
 @"class C { C(int arg1, int arg2) {} C() : this(arg1: 1, arg2: 2) {} }");
         }
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestBaseConstructorInitializer()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { public C(int arg1, int arg2) {} } class D : C { D() : base([||]1, 2) {} }",
 @"class C { public C(int arg1, int arg2) {} } class D : C { D() : base(arg1: 1, arg2: 2) {} }");
         }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestConstructor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { C(int arg1, int arg2) { new C([||]1, 2); } }",
 @"class C { C(int arg1, int arg2) { new C(arg1: 1, arg2: 2); } }");
         }
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestIndexer()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { char M(string arg1) => arg1[[||]0]; }",
 @"class C { char M(string arg1) => arg1[index: 0]; }");
         }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestEmptyParams()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { void M(int arg1, params int[] arg2) => M([||]1); }",
 @"class C { void M(int arg1, params int[] arg2) => M(arg1: 1); }");
         }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestSingleParams()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { void M(int arg1, params int[] arg2) => M([||]1, 2); }",
 @"class C { void M(int arg1, params int[] arg2) => M(arg1: 1, arg2: 2); }");
         }
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestNamedParams()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { void M(int arg1, params int[] arg2) => M([||]1, arg2: new int[0]); }",
 @"class C { void M(int arg1, params int[] arg2) => M(arg1: 1, arg2: new int[0]); }");
         }
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestExistingArgumentNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { void M(int arg1, int arg2) => M([||]1, arg2: 2); }",
 @"class C { void M(int arg1, int arg2) => M(arg1: 1, arg2: 2); }");
         }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestExistingUnorderedArgumentNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { void M(int arg1, int arg2, int arg3) => M([||]1, arg3: 3, arg2: 2); }",
 @"class C { void M(int arg1, int arg2, int arg3) => M(arg1: 1, arg3: 3, arg2: 2); }");
         }
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestPreserveTrivia()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C { void M(int arg1, ref int arg2) => M(
 
     [||]1,
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestAttribute()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[C([||]1, 2)]
 class C : System.Attribute { public C(int arg1, int arg2) {} }",
 @"[C(arg1: 1, arg2: 2)]
@@ -193,7 +193,7 @@ class C : System.Attribute { public C(int arg1, int arg2) {} }");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestAttributeWithNamedProperties()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[C([||]1, P = 2)]
 class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }",
 @"[C(arg1: 1, P = 2)]

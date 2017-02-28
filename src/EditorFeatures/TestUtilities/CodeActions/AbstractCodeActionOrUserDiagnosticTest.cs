@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected async Task TestAddDocument(
+        protected async Task TestAddDocumentInRegularAndScriptAsync(
             string initialMarkup, string expectedMarkup,
             IList<string> expectedContainers,
             string expectedDocumentName,
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return Tuple.Create(oldSolution, newSolution);
         }
 
-        internal async Task TestAsync(
+        internal async Task TestInRegularAndScriptAsync(
             string initialMarkup, string expectedMarkup,
             int index = 0, bool compareTokens = true,
             IDictionary<OptionKey, object> options = null,

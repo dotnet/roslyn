@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseExplicitTupleNa
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestNamedTuple1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -35,7 +35,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestInArgument() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -60,7 +60,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestNamedTuple2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -115,7 +115,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestFixAll1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -136,7 +136,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestFixAll2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()

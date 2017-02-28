@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestSingleLineIdentifier() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a Then a() Else b()
@@ -29,7 +29,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMultiLineIdentifier() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a Then
@@ -52,7 +52,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestCall() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a.Foo() Then a() Else b()
@@ -67,7 +67,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestNotIdentifier() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If Not a Then a() Else b()
@@ -82,7 +82,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestTrueLiteral() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If True Then a() Else b()
@@ -97,7 +97,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestFalseLiteral() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If False Then a() Else b()
@@ -112,7 +112,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestEquals() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a = b Then a() Else b()
@@ -127,7 +127,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestNotEquals() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a <> b Then a() Else b()
@@ -142,7 +142,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestLessThan() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a < b Then a() Else b()
@@ -157,7 +157,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestLessThanOrEqual() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a <= b Then a() Else b()
@@ -172,7 +172,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestGreaterThan() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a > b Then a() Else b()
@@ -187,7 +187,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestGreaterThanOrEqual() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a >= b Then a() Else b()
@@ -202,7 +202,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestIs() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a Is b Then a() Else b()
@@ -217,7 +217,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestIsNot() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a IsNot b Then a() Else b()
@@ -232,7 +232,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestOr() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a Or b Then a() Else b()
@@ -247,7 +247,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestAnd() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a And b Then a() Else b()
@@ -262,7 +262,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestOrElse() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a OrElse b Then a() Else b()
@@ -277,7 +277,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestAndAlso() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a AndAlso b Then a() Else b()
@@ -292,7 +292,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestOr2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         I[||]f Not a Or Not b Then a() Else b()
@@ -307,7 +307,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestOrElse2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         I[||]f Not a OrElse Not b Then a() Else b()
@@ -322,7 +322,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestAnd2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If Not a And Not b Then a() Else b()
@@ -337,7 +337,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestAndAlso2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If Not a AndAlso Not b Then a() Else b()
@@ -352,7 +352,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestXor() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         I[||]f a Xor b Then a() Else b()
@@ -368,7 +368,7 @@ End Module")
         <WorkItem(545411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545411")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestXor2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         I[||]f Not (a Xor b) Then a() Else b()
@@ -383,7 +383,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestNested() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If (((a = b) AndAlso (c <> d)) OrElse ((e < f) AndAlso (Not g))) Then a() Else b()
@@ -398,7 +398,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestElseIf() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         If a Then
@@ -425,7 +425,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestKeepElseIfKeyword() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         If a Then
@@ -482,7 +482,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestDoesNotOverlapHiddenPosition1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
 #End ExternalSource
@@ -511,7 +511,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestDoesNotOverlapHiddenPosition2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
 #ExternalSource File.vb 1 
@@ -653,7 +653,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMultipleStatementsSingleLineIfStatement() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         If[||] a Then a() : b() Else c() : d()
@@ -668,7 +668,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMultipleStatementsMultiLineIfBlock() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a Then
@@ -695,7 +695,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestTriviaAfterSingleLineIfStatement() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a Then a() Else b() ' I will stay put 
@@ -710,7 +710,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestTriviaAfterMultiLineIfBlock() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a Then
@@ -733,7 +733,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestParenthesizeForLogicalExpressionPrecedence() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Sub Main()
     I[||]f a AndAlso b Or c Then a() Else b()
 End Sub
@@ -746,7 +746,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestKeepExplicitLineContinuationTrivia() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         I[||]f a And b _
@@ -771,7 +771,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestKeepTriviaInStatementsInMultiLineIfBlock() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If a Then
@@ -800,7 +800,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestParenthesizeComparisonOperands() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         [||]If 0 <= <x/>.GetHashCode Then a() Else b()
@@ -815,7 +815,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestSimplifyToLengthEqualsZero() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         Dim x As String
@@ -840,7 +840,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestSimplifyToLengthEqualsZero2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         Dim x() As String
@@ -865,7 +865,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestSimplifyToLengthEqualsZero4() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         Dim x() As String
@@ -890,7 +890,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestSimplifyToLengthEqualsZero5() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         Dim x As String
@@ -915,7 +915,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestDoesNotSimplifyToLengthEqualsZero() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         Dim x As String
@@ -940,7 +940,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestDoesNotSimplifyToLengthEqualsZero2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         Dim x As String
@@ -967,7 +967,7 @@ End Module")
         <WorkItem(530593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530593")>
         <WpfFact(Skip:="Bug 530593"), Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestColonAfterSingleLineIfWithEmptyElse() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         ' Invert If 
@@ -987,7 +987,7 @@ End Module")
         <WorkItem(530593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530593")>
         <WpfFact(Skip:="Bug 530593"), Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestNestedSingleLineIfs() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         ' Invert the 1st If 
@@ -1005,7 +1005,7 @@ End Module")
         <WorkItem(529747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529747")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestTryToParenthesizeAwkwardSyntaxInsideSingleLineLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         ' Invert If 

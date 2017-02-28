@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
             string initial,
             string expected)
         {
-            await TestAsync(CreateTreeText(initial), CreateTreeText(expected), index: 0);
+            await TestInRegularAndScriptAsync(CreateTreeText(initial), CreateTreeText(expected), index: 0);
         }
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
@@ -401,7 +401,7 @@ else
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestOverlapsHiddenPosition6()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 #line hidden
 class C 
@@ -442,7 +442,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestOverlapsHiddenPosition7()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 #line hidden
 class C 

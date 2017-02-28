@@ -4138,7 +4138,7 @@ Class C
 End Class
 "
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(code, expected, compareTokens:=False)
         End Function
 
         <WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")>
@@ -4177,7 +4177,7 @@ Class C
 End Class
 "
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(code, expected, compareTokens:=False)
         End Function
 
         <WorkItem(8119, "https://github.com/dotnet/roslyn/issues/8119")>
@@ -4204,7 +4204,7 @@ Class C
 End Class
 "
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(code, expected, compareTokens:=False)
         End Function
 
     End Class

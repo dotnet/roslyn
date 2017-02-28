@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsSingleField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -45,7 +45,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsLongName()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class ReallyLongName
@@ -70,7 +70,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsKeywordName()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class ReallyLongLong
@@ -95,7 +95,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsProperty()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class ReallyLongName
@@ -124,7 +124,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsBaseTypeWithNoEquals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Base
 {
 }
@@ -155,7 +155,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsBaseWithOverriddenEquals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Base
@@ -198,7 +198,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsOverriddenDeepBase()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Base
@@ -249,7 +249,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsStruct()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 struct ReallyLongName
@@ -305,13 +305,13 @@ class Program<T>
 }
 ";
 
-            await TestAsync(code, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeSingleField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -335,7 +335,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeSingleField_CodeStyle1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -357,7 +357,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleO
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeTypeParameter()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program<T>
@@ -381,7 +381,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeGenericType()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program<T>
@@ -405,7 +405,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeMultipleMembers()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program

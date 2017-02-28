@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.G
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestException0() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -38,7 +38,7 @@ index:=0)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestException1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -63,7 +63,7 @@ index:=1)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestException2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -89,7 +89,7 @@ index:=2)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestException3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -156,7 +156,7 @@ End Structure")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestWithDefaultConstructor() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -192,7 +192,7 @@ index:=3)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestWithDefaultConstructorMissing1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -234,7 +234,7 @@ index:=0)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestWithDefaultConstructorMissing2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -276,7 +276,7 @@ index:=2)
         <WorkItem(540712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540712")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestEndOfToken() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -301,7 +301,7 @@ index:=0)
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestFormattingInGenerateDefaultConstructor() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -334,7 +334,7 @@ compareTokens:=False)
         <WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestDefaultConstructorGeneration() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Class C
     Inherits B[||]
     Public Sub New(y As Integer)
@@ -365,7 +365,7 @@ compareTokens:=False)
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/15005"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestFixAll() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>
 Class C
     Inherits [||]B
@@ -429,7 +429,7 @@ compareTokens:=False)
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/15005"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestFixAll_WithTuples() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>
 Class C
     Inherits [||]B

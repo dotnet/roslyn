@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleGetterFromField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestInitializer()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i = 1|];
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleGetterFromProperty()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     int i;
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestGetterAndSetter()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleGetterWithThis()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestGetterAndSetterWithThis()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFieldWithMultipleDeclarators1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     int [|i|], j, k;
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFieldWithMultipleDeclarators2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     int i, [|j|], k;
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFieldWithMultipleDeclarators3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     int i, j, [|k|];
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFieldAndPropertyInDifferentParts()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"partial class Class
 {
     [|int i|];
@@ -587,7 +587,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestUpdateReferences()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -619,7 +619,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestUpdateReferencesConflictResolution()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -651,7 +651,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInConstructor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -683,7 +683,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInNotInConstructor1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -715,7 +715,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInNotInConstructor2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -767,7 +767,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleLine1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -782,7 +782,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleLine2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -800,7 +800,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleLine3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];

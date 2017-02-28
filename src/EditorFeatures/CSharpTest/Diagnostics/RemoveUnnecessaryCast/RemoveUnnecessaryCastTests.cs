@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task ParenthesizeToKeepParseTheSame1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -72,7 +72,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task ParenthesizeToKeepParseTheSame2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
  
@@ -105,7 +105,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task ParenthesizeToKeepParseTheSame3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
  
@@ -374,7 +374,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInParameterDefaultValue()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -398,7 +398,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInReturnStatement()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -424,7 +424,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInLambda1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 class Program
@@ -452,7 +452,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInLambda2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 class Program
@@ -480,7 +480,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInLambda3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 class Program
@@ -508,7 +508,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInLambda4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 class Program
@@ -536,7 +536,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInConditionalExpression1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Test
 {
@@ -566,7 +566,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInConditionalExpression2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Test
 {
@@ -596,7 +596,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInConditionalExpression3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Test
 {
@@ -641,7 +641,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInConditionalExpression4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Test
 {
@@ -671,7 +671,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInsideADelegateConstructor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 class Test
@@ -707,7 +707,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveTriviaWhenRemovingCast()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 class Test
@@ -741,7 +741,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInsideCaseLabel()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Test
 {
@@ -775,7 +775,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInsideGotoCaseStatement()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Test
 {
@@ -811,7 +811,7 @@ class Test
         [WpfFact(Skip = "529787"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInCollectionInitializer()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System.Collections.Generic;
 
@@ -895,7 +895,7 @@ class X : List<int>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInArrayInitializer()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class X
 {
@@ -923,7 +923,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastWithOverloadedBinaryOperator()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 class MyAction
@@ -963,7 +963,7 @@ class MyAction
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnnecessaryCastShouldInsertWhitespaceWhereNeededToKeepCorrectParsing()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
  
@@ -1091,7 +1091,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnnecessaryCastInThrow()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 
@@ -1205,7 +1205,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnnecessaryCastToBaseType()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class X
 {
@@ -1300,7 +1300,7 @@ static class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnnecessaryCastInQueryExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 
@@ -1453,7 +1453,7 @@ static class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnnecessaryCastFromTypeParameterToInterface()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 
@@ -1563,7 +1563,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveImportantTrailingTrivia()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -1599,7 +1599,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnnecessaryCastToNullable1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class X
 {
@@ -1629,7 +1629,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnnecessaryCastToNullable2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 static class C
 {
@@ -1661,7 +1661,7 @@ static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveSurroundingParentheses()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -1793,7 +1793,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastInConstructorInitializer1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -1817,7 +1817,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastInConstructorInitializer2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Collections;
 
@@ -1864,7 +1864,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastToNullableInArithmeticExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 static class C
 {
@@ -2136,7 +2136,7 @@ class Y : X, IDisposable
             // unspecified optional parameters of I.Foo() and C.Foo() have the
             // same default values.
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -2191,7 +2191,7 @@ sealed class C : I
             // Note: The cast below can be removed because C is sealed and the
             // interface member has no parameters.
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -2252,7 +2252,7 @@ sealed class C : I
             // Note: The cast below can be removed because C is sealed and the
             // interface member has no parameters.
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -2347,7 +2347,7 @@ sealed class C : I
             // because the optional parameters whose default values differ are
             // specified.
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -2429,7 +2429,7 @@ sealed class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastToInterfaceForSealedType7()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -2585,7 +2585,7 @@ struct S : IIncrementable
             // Note: The cast below can be removed because we are sure to have
             // a fresh copy of the struct from the GetEnumerator() method.
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 using System.Collections.Generic;
@@ -2634,7 +2634,7 @@ class Program
             // Note: The cast below can be removed because delegates are implicitly
             // sealed.
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 
@@ -2671,7 +2671,7 @@ class C
             // Note: The cast below can be removed because arrays are implicitly
             // sealed.
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 
@@ -2708,7 +2708,7 @@ class C
             // Note: The cast below can be removed because enums are implicitly
             // sealed.
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 
@@ -2809,7 +2809,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastToObjectArrayInParamArrayArg1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class C
 {
@@ -2841,7 +2841,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastToStringArrayInParamArrayArg2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class C
 {
@@ -2873,7 +2873,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastToIntArrayInParamArrayArg3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class C
 {
@@ -2905,7 +2905,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastToObjectArrayInParamArrayArg4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class C
 {
@@ -2937,7 +2937,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastToObjectInParamArrayArg5()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class C
 {
@@ -2968,7 +2968,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastToObjectArrayInParamArrayWithNamedArgument()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
                 @"
 class C
 {
@@ -3185,7 +3185,7 @@ class X : Y
             // Note: The cast below can be removed because the parameter list
             // of Foo and its override have the same default values.
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -3240,7 +3240,7 @@ class X : Y
             // Note: The cast below can be removed because the it results in
             // the same method group.
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -3630,7 +3630,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnnecessaryCastAndParseCorrect()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 using System.Threading.Tasks;
@@ -3821,7 +3821,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastThatDoesntChangeShapeOfAnonymousTypeObject()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)

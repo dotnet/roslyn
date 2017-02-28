@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNoReferences()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +42,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestIdentifierReferenceInTypeContext()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,7 +68,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestGenericReferenceInTypeContext()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,7 +94,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMultipleReferences()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -123,7 +123,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestExtensionMethodReference()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -190,7 +190,7 @@ namespace SomeNS
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAliasQualifiedAliasReference()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using G = System.Collections.Generic;
 using System.Linq;
@@ -216,7 +216,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestQualifiedAliasReference()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using G = System.Collections.Generic;
 
@@ -241,7 +241,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNestedUnusedUsings()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -275,7 +275,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNestedUsedUsings()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -322,7 +322,7 @@ class F
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNestedUsedUsings2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -417,7 +417,7 @@ namespace foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveAllWithSurroundingPreprocessor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"#if true
 
 [|using System;
@@ -448,7 +448,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveFirstWithSurroundingPreprocessor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"#if true
 
 [|using System;
@@ -482,7 +482,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveAllWithSurroundingPreprocessor2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|namespace N
 {
 #if true
@@ -519,7 +519,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveOneWithSurroundingPreprocessor2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|namespace N
 {
 #if true
@@ -560,7 +560,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestComments8718()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using Foo; using System.Collections.Generic; /*comment*/ using Foo2;
 
 class Program
@@ -617,7 +617,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestComments()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"//c1
 /*c2*/
 [|using/*c3*/ System/*c4*/; //c5
@@ -641,7 +641,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUnusedUsing()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System.Collections.Generic;
 
 class Program
@@ -663,7 +663,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestSimpleQuery()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -827,7 +827,7 @@ namespace SomeNS
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUnusedTypeImportIsRemoved()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using SomeNS.Foo;
 
 class Program
@@ -862,7 +862,7 @@ namespace SomeNS
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveTrailingComment()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System.Collections.Generic; // comment
 
 class Program
@@ -888,7 +888,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemovingUnbindableUsing()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using gibberish;
 
 public static class Program
@@ -926,7 +926,7 @@ namespace Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveUnboundUsing()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using gibberish;
 
 public static class Program
@@ -941,7 +941,7 @@ public static class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestLeadingNewlines1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -967,7 +967,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveLeadingNewLines2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|namespace N
 {
     using System;
@@ -1322,7 +1322,7 @@ public class QueryExpressionTest
         public async Task TestReferenceInCref()
         {
             // parsing doc comments as simple trivia; System is unnecessary
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 /// <summary><see cref=""String"" /></summary>
 class C
@@ -1346,7 +1346,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUnusedUsingOverLinq()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 [|using System.Linq;
 using System.Threading.Tasks;|]

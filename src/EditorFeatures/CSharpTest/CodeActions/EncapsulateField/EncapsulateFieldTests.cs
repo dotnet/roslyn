@@ -168,7 +168,7 @@ class foo
     }
 }
 ";
-            await TestAsync(text, expected, 
+            await TestInRegularAndScriptAsync(text, expected, 
                 options: OptionsSet(
                     SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
                     SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
@@ -207,7 +207,7 @@ class foo
     }
 }
 ";
-            await TestAsync(text, expected,
+            await TestInRegularAndScriptAsync(text, expected,
                 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 

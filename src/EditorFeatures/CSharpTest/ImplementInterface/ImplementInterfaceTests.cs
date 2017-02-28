@@ -2424,7 +2424,7 @@ count: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementEventThroughMember()
         {
-            await TestAsync(@"
+            await TestInRegularAndScriptAsync(@"
 interface IFoo
 {
     event System.EventHandler E;
@@ -2472,7 +2472,7 @@ class HasCanFoo : IFoo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementEventThroughExplicitMember()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"interface IFoo { event System . EventHandler E ; } class CanFoo : IFoo { event IFoo.EventHandler E; } class HasCanFoo : [|IFoo|] { CanFoo canFoo; } ",
 @"using System ; interface IFoo { event System . EventHandler E ; } class CanFoo : IFoo { event IFoo.EventHandler E; } class HasCanFoo : IFoo { CanFoo canFoo; public event EventHandler E { add { ((IFoo)canFoo).E += value; } remove { ((IFoo)canFoo).E -= value; } } } ",
 index: 1);
@@ -6618,7 +6618,7 @@ parseOptions: TestOptions.Regular, withScriptOption: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestWithGroupingOff1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"interface IInterface
 {
     int Prop { get; }
@@ -6646,7 +6646,7 @@ class Class : IInterface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDoNotReorderComImportMembers()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Runtime.InteropServices;
 
@@ -6685,7 +6685,7 @@ class Class : IComInterface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRefReturns()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 

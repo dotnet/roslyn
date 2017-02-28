@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Insert
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestPredefinedAssignment() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Module M1
     Sub Main()
@@ -35,7 +35,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestAssignment() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Class Base
 End Class
@@ -66,7 +66,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestMethodCall() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Class Base
 End Class
@@ -99,7 +99,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestMethodCallPredefined() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Module M1
     Sub foo(d As Integer)
@@ -120,7 +120,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestConditional() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Module M1
     Sub Main()
@@ -139,7 +139,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestReturn() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Module M1
     Function foo() As Integer
@@ -156,7 +156,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Class Base
 End Class
@@ -187,7 +187,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestAttribute() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Module Program
     <System.Obsolete(""as"", [|10|])>
@@ -204,7 +204,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestMultiline() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Module Program
     Sub Main(args As String())
@@ -251,7 +251,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestOptionStrictOn() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Module Module1
     Sub Main()

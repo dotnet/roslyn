@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
         <WorkItem(540085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540085")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestSimpleMethod() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -36,7 +36,7 @@ End Class")
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestInterfaceWithTuple() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class Foo
     Implements [|IFoo|]
@@ -58,7 +58,7 @@ End Interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMethodConflict1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -82,7 +82,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMethodConflict2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface IFoo
     Sub Bar()
 End Interface
@@ -107,7 +107,7 @@ End Class")
         <WorkItem(542012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542012")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMethodConflictWithField() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -130,7 +130,7 @@ End Class")
         <WorkItem(542015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542015")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestAutoPropertyConflict() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Property M As Integer
 End Interface
@@ -158,7 +158,7 @@ End Class")
         <WorkItem(542015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542015")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestFullPropertyConflict() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Property M As Integer
 End Interface
@@ -200,7 +200,7 @@ End Class")
         <WorkItem(542019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542019")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestConflictFromBaseClass1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -231,7 +231,7 @@ End Class")
         <WorkItem(542019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542019")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestConflictFromBaseClass2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -260,7 +260,7 @@ End Class")
         <WorkItem(542019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542019")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestConflictFromBaseClass3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -288,7 +288,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementAbstractly1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -307,7 +307,7 @@ index:=1)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementGenericType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface IInterface1(Of T)
     Sub Method1(t As T)
 End Interface
@@ -327,7 +327,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementGenericTypeWithGenericMethod() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface IInterface1(Of T)
     Sub Method1(Of U)(arg As T, arg1 As U)
 End Interface
@@ -347,7 +347,7 @@ End Class")
 
         <Fact, WorkItem(6623, "DevDiv_Projects/Roslyn"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementGenericTypeWithGenericMethodWithNaturalConstraint() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Collections.Generic
 Interface IInterface1(Of T)
     Sub Method1(Of U As IList(Of T))(arg As T, arg1 As U)
@@ -369,7 +369,7 @@ End Class")
 
         <Fact, WorkItem(6623, "DevDiv_Projects/Roslyn"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementGenericTypeWithGenericMethodWithUnexpressibleConstraint() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface IInterface1(Of T)
     Sub Method1(Of U As T)(arg As T, arg1 As U)
 End Interface
@@ -389,7 +389,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementThroughFieldMember() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -411,7 +411,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementThroughFieldMember1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -435,7 +435,7 @@ index:=1)
         <WorkItem(472, "https://github.com/dotnet/roslyn/issues/472")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementThroughFieldMemberRemoveUnnecessaryCast() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Collections
 
 NotInheritable Class X : Implements [|IComparer|]
@@ -456,7 +456,7 @@ index:=1)
         <WorkItem(472, "https://github.com/dotnet/roslyn/issues/472")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementThroughFieldMemberRemoveUnnecessaryCastAndMe() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Collections
 
 NotInheritable Class X : Implements [|IComparer|]
@@ -541,7 +541,7 @@ End Class")
         <WorkItem(540366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540366")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestWithMissingEndBlock() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class M
     Implements [|IServiceProvider|]",
@@ -557,7 +557,7 @@ End Class")
         <WorkItem(540367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540367")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestSimpleProperty() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I1
     Property Foo() As Integer
 End Interface
@@ -582,7 +582,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestArrayType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Function M() As String()
 End Interface
@@ -602,7 +602,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementInterfaceWithByRefParameters() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Implements [|I|]
     Private foo As I
@@ -629,7 +629,7 @@ End Interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementInterfaceWithTypeCharacter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I1
     Function Method1$()
 End Interface
@@ -649,7 +649,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementInterfaceWithParametersTypeSpecifiedAsTypeCharacter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I1
     Sub Method1(ByRef arg#)
 End Interface
@@ -682,7 +682,7 @@ End Class")
         <WorkItem(540381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540381")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestOrdering1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Implements [|I|]
     Private foo As I
@@ -710,7 +710,7 @@ End Interface")
         <WorkItem(540415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540415")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDefaultProperty1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I1
     Default Property Foo(ByVal arg As Integer)
 End Interface
@@ -735,7 +735,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementNestedInterface() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I1
     Sub Foo()
     Delegate Sub Del(ByVal arg As Integer)
@@ -764,7 +764,7 @@ End Class")
         <WorkItem(540402, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540402")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestArrayRankSpecifiers() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I1
     Sub Method1(ByVal arg() As Integer)
 End Interface
@@ -811,7 +811,7 @@ parseOptions:=Nothing) ' Namespaces not supported in script
         <WorkItem(541078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541078")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestParamArray() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I2
     Function G(ParamArray args As Double()) As Integer
 End Interface
@@ -832,7 +832,7 @@ End Class")
         <WorkItem(541092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541092")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestShowForNonImplementedPrivateInterfaceMethod() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I1
     Private Sub Foo()
 End Interface
@@ -878,7 +878,7 @@ Class C
 End Class",
 count:=2)
 
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -897,7 +897,7 @@ Class C
     End Sub
 End Class")
 
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -921,7 +921,7 @@ index:=1)
         <WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementIReadOnlyListThroughField() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Collections.Generic
 Class A
     Implements [|IReadOnlyList(Of Integer)|]
@@ -959,7 +959,7 @@ index:=1)
         <WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementIReadOnlyListThroughProperty() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Collections.Generic
 Class A
     Implements [|IReadOnlyList(Of Integer)|]
@@ -998,7 +998,7 @@ index:=1)
         <WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementInterfaceThroughField() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -1074,7 +1074,7 @@ Class B
 End Class",
 count:=2)
 
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -1114,7 +1114,7 @@ Class B
 End Class",
 index:=1)
 
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -1176,7 +1176,7 @@ Class B
 End Class",
 count:=3)
 
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -1210,7 +1210,7 @@ Class B
 End Class",
 index:=1)
 
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -1302,7 +1302,7 @@ Class C
 End Class",
 count:=2)
 
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -1356,7 +1356,7 @@ Class C
 End Class",
 index:=1)
 
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -1485,7 +1485,7 @@ count:=1)
         <WorkItem(540469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540469")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestInsertBlankLineAfterImplementsAndInherits() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Interface I1
     Function Foo()
 End Interface
@@ -1510,7 +1510,7 @@ compareTokens:=False)
         <WorkItem(542290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542290")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMethodShadowsProperty() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub M()
 End Interface
@@ -1541,7 +1541,7 @@ End Class")
         <WorkItem(542606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542606")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestRemMethod() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub [Rem]
 End Interface
@@ -1573,7 +1573,7 @@ End Class")
         <WorkItem(543506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543506")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestAddEvent1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.ComponentModel
 Class C
     Implements [|INotifyPropertyChanged|]
@@ -1587,7 +1587,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementThroughMemberEvent() As Task
-            Await TestAsync("
+            Await TestInRegularAndScriptAsync("
 Imports System.ComponentModel
 
 Class Worker
@@ -1633,7 +1633,7 @@ End Class", index:=1)
         <WorkItem(543588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543588")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestNameSimplifyGenericType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I(Of In T, Out R)
     Sub Foo()
 End Interface
@@ -1654,7 +1654,7 @@ End Class")
         <WorkItem(544156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544156")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestInterfacePropertyRedefinition() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I1
     Property Bar As Integer
 End Interface
@@ -1708,7 +1708,7 @@ End Class")
         <WorkItem(529328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529328")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestPropertyShadowing() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I1
     Property Bar As Integer
     Sub Foo()
@@ -1747,7 +1747,7 @@ End Class")
         <WorkItem(544206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544206")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestEventWithImplicitDelegateCreation() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I1
     Event E(x As String)
 End Interface
@@ -1765,7 +1765,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestStringLiteral() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface IFoo
     Sub Foo(Optional s As String = """""""")
 End Interface
@@ -1786,7 +1786,7 @@ End Class")
         <WorkItem(545643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545643"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestVBConstantValue1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports Microsoft.VisualBasic
 Interface I
     Sub VBNullChar(Optional x As String = Constants.vbNullChar)
@@ -1842,7 +1842,7 @@ parseOptions:=Nothing)
         <WorkItem(545679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545679"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestVBConstantValue3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
@@ -1869,7 +1869,7 @@ End Class")
         <WorkItem(545674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545674")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDateTimeLiteral1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub Foo(Optional x As Date = #6/29/2012#)
 End Interface
@@ -1890,7 +1890,7 @@ End Class")
         <WorkItem(545675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545675"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestEnumConstant1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Imports System
 Interface I
@@ -1917,7 +1917,7 @@ End Class")
         <WorkItem(545644, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545644")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMultiDimensionalArray1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub Foo(x As Integer()())
 End Interface
@@ -1940,7 +1940,7 @@ End Class")
         <WorkItem(545640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545640"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestUnicodeQuote() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
@@ -1967,7 +1967,7 @@ End Class")
         <WorkItem(545563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545563")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestLongMinValue() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub Foo(Optional x As Long = Long.MinValue)
 End Interface
@@ -1989,7 +1989,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMinMaxValues() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Interface I
     Sub M01(Optional x As Short = Short.MinValue)
     Sub M02(Optional x As Short = Short.MaxValue)
@@ -2079,7 +2079,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestFloatConstants() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Interface I
     Sub D1(Optional x As Double = Double.Epsilon)
     Sub D2(Optional x As Double = Double.MaxValue)
@@ -2170,7 +2170,7 @@ compareTokens:=False)
         <WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestEnumParameters() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text><![CDATA[Imports System
 
 Enum E
@@ -2227,7 +2227,7 @@ compareTokens:=False)
         <WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestEnumParameters2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text><![CDATA[
 Option Strict On
 Imports System
@@ -2288,7 +2288,7 @@ compareTokens:=False)
         <WorkItem(545691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545691")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMultiDimArray1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub Foo(x As Integer(,))
 End Interface
@@ -2311,7 +2311,7 @@ End Class")
         <WorkItem(545640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545640"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestQuoteEscaping1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
@@ -2336,7 +2336,7 @@ End Class")
         <WorkItem(545866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545866")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestQuoteEscaping2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub Foo(Optional x As Object = ""‟"")
 End Interface
@@ -2359,7 +2359,7 @@ End Class")
         <WorkItem(545689, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545689")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDecimalLiteral1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Imports System
 Interface I
@@ -2386,7 +2386,7 @@ End Class")
         <WorkItem(545687, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545687"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestRemoveParenthesesAroundTypeReference1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Imports System
 Interface I
@@ -2417,7 +2417,7 @@ End Class")
         <WorkItem(545694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545694"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestNullableDefaultValue1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Imports System
 Interface I
@@ -2444,7 +2444,7 @@ End Class")
         <WorkItem(545688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545688")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestHighPrecisionDouble() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Interface I
     Sub Foo(Optional x As Double = 2.8025969286496341E-45)
@@ -2469,7 +2469,7 @@ End Class")
         <WorkItem(545729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545729"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestCharSurrogates() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
@@ -2496,7 +2496,7 @@ End Class")
         <WorkItem(545733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545733"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestReservedChar() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Imports System
 Imports Microsoft.VisualBasic
@@ -2525,7 +2525,7 @@ End Class")
         <WorkItem(545685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545685")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestCastEnumValue() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Imports System
 Interface I
@@ -2552,7 +2552,7 @@ End Class")
         <WorkItem(545756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545756")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestArrayOfNullables() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub Foo(x As Integer?())
 End Interface
@@ -2575,7 +2575,7 @@ End Class")
         <WorkItem(545753, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545753")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestOptionalArrayParameterWithDefault() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub Foo(Optional x As Integer() = Nothing)
 End Interface
@@ -2598,7 +2598,7 @@ End Class")
         <WorkItem(545742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545742"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestRemFieldEnum() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Imports System
 Enum E
@@ -2633,7 +2633,7 @@ End Class")
         <WorkItem(545790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545790")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestByteParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub Foo(Optional x As Byte = 1)
 End Interface
@@ -2656,7 +2656,7 @@ End Class")
         <WorkItem(545789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545789")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDefaultParameterSuffix1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub Foo(Optional x As Object = 1L)
 End Interface
@@ -2679,7 +2679,7 @@ End Class")
         <WorkItem(545809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545809")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestZeroValuedEnum() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Enum E
     A = 1
 End Enum
@@ -2710,7 +2710,7 @@ End Class")
         <WorkItem(545824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545824")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestByteCast() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub Foo(Optional x As Object = CByte(1))
 End Interface
@@ -2733,7 +2733,7 @@ End Class")
         <WorkItem(545825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545825")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDecimalValues() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Option Strict On
 
 Interface I
@@ -2792,7 +2792,7 @@ End Class
         <WorkItem(545693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545693")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestSmallDecimal() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 
 Interface I
@@ -2818,7 +2818,7 @@ End Class")
         <WorkItem(545771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545771")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestEventConflict() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface IA
     Event E As EventHandler
 End Interface
@@ -2846,7 +2846,7 @@ End Class")
         <WorkItem(545826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545826")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDecimalField() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Imports System
 Interface I
@@ -2873,7 +2873,7 @@ End Class")
         <WorkItem(545827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545827")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDoubleInObjectContext() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Imports System
 Interface I
@@ -2900,7 +2900,7 @@ End Class")
         <WorkItem(545860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545860")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestLargeDecimal() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Imports System
 Interface I
@@ -2927,7 +2927,7 @@ End Class")
         <WorkItem(545870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545870")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestSurrogatePair1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub Foo(Optional x As String = ""𪛖"")
 End Interface
@@ -2948,7 +2948,7 @@ End Class")
         <WorkItem(545893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545893"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestVBTab() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
@@ -2975,7 +2975,7 @@ End Class")
         <WorkItem(545912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545912")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestEscapeTypeParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub Foo(Of [TO], TP, TQ)()
 End Interface
@@ -2998,7 +2998,7 @@ End Class")
         <WorkItem(545892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545892")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestLargeUnsignedLong() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Imports System
 Interface I
@@ -3175,7 +3175,7 @@ End Class
         <WorkItem(544641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestClassStatementTerminators1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C : Implements [|IServiceProvider|] : End Class",
 "Imports System
@@ -3189,7 +3189,7 @@ End Class")
         <WorkItem(544641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestClassStatementTerminators2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 MustInherit Class D
     MustOverride Sub Foo()
@@ -3209,7 +3209,7 @@ End Class")
         <WorkItem(544652, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544652"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestConvertNonprintableCharToString() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
@@ -3236,7 +3236,7 @@ End Class")
         <WorkItem(545684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545684"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestSimplifyModuleNameWhenPossible1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
@@ -3263,7 +3263,7 @@ End Class")
         <WorkItem(545684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545684"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestSimplifyModuleNameWhenPossible2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
@@ -3294,7 +3294,7 @@ End Class")
         <WorkItem(544676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544676")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDoubleWideREM() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub ［ＲＥＭ］()
 End Interface
@@ -3317,7 +3317,7 @@ End Class")
         <WorkItem(545917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545917")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDoubleWideREM2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Sub Foo(Of ［ＲＥＭ］)()
 End Interface
@@ -3339,7 +3339,7 @@ End Class")
         <WorkItem(545953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545953")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestGenericEnumWithRenamedTypeParameters1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Class C(Of T)
     Enum E
@@ -3372,7 +3372,7 @@ End Class")
         <WorkItem(545953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545953")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestGenericEnumWithRenamedTypeParameters2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Class C(Of T)
     Enum E
@@ -3405,7 +3405,7 @@ End Class")
         <WorkItem(546197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546197")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDoubleQuoteChar() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Interface I
     Sub Foo(Optional x As Object = """"""""c)
@@ -3430,7 +3430,7 @@ End Class")
         <WorkItem(530165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530165")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestGenerateIntoAppropriatePartial() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
 
     Sub M()
@@ -3465,7 +3465,7 @@ End Class")
         <WorkItem(546325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546325")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestAttributes() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Runtime.InteropServices
 
 Interface I
@@ -3494,7 +3494,7 @@ End Class")
         <WorkItem(530564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530564")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestShortenedDecimal() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Interface I
     Sub Foo(Optional x As Decimal = 1000000000000000000D)
@@ -3517,7 +3517,7 @@ End Class")
         <WorkItem(530713, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530713")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementAbstractly2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     Property Foo() As Integer
 End Interface
@@ -3545,7 +3545,7 @@ End Class")
         <WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestOptionalNullableStructParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     ReadOnly Property g(Optional x As S? = Nothing)
 End Interface
@@ -3572,7 +3572,7 @@ End Structure")
         <WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestOptionalNullableLongParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I
     ReadOnly Property g(Optional x As Long? = Nothing, Optional y As Long? = 5)
 End Interface
@@ -3595,7 +3595,7 @@ End Class")
         <WorkItem(530345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530345")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestAttributeFormattingInNonStatementContext() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Imports System.Runtime.InteropServices
 
 Interface I
@@ -3626,7 +3626,7 @@ compareTokens:=False)
         <WorkItem(546779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546779")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestPropertyReturnTypeAttributes() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Runtime.InteropServices
 
 Interface I
@@ -3658,7 +3658,7 @@ End Class")
         <WorkItem(847464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847464")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementInterfaceForPartialType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Interface I
     Sub Foo()
 End Interface
@@ -3683,7 +3683,7 @@ End Class")
         <WorkItem(617698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617698")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestBugfix_617698_RecursiveSimplificationOfQualifiedName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Interface A(Of B)
     Sub M()
     Interface C(Of D)
@@ -3719,7 +3719,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementInterfaceForIDisposable() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Imports System
 Class Program
     Implements [|IDisposable|]
@@ -3739,7 +3739,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementInterfaceForIDisposableNonApplicable1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Imports System
 Class Program
     Implements [|IDisposable|]
@@ -3764,7 +3764,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementInterfaceForIDisposableNonApplicable2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class Program
     Implements [|IDisposable|]
@@ -3787,7 +3787,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementInterfaceForIDisposableWithSealedClass() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Imports System
 Public NotInheritable Class Program
     Implements [|IDisposable|]
@@ -3808,7 +3808,7 @@ compareTokens:=False)
         <WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestNoComAliasNameAttributeOnMethodParameters() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Runtime.InteropServices
 
 Interface I
@@ -3836,7 +3836,7 @@ End Class")
         <WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestNoComAliasNameAttributeOnMethodReturnType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Runtime.InteropServices
 
 Interface I
@@ -3864,7 +3864,7 @@ End Class")
         <WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestNoComAliasNameAttributeOnPropertyParameters() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Runtime.InteropServices
 
 Interface I
@@ -3900,7 +3900,7 @@ End Class")
         <WorkItem(529920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529920")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestNewLineBeforeDirective() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C 
     Implements [|IServiceProvider|]
@@ -3919,7 +3919,7 @@ End Class
         <WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestCommentAfterInterfaceList1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C 
     Implements [|IServiceProvider|] REM Comment",
@@ -3937,7 +3937,7 @@ End Class
         <WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestCommentAfterInterfaceList2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Implements [|IServiceProvider|]
@@ -3957,7 +3957,7 @@ REM Comment", compareTokens:=False)
         <WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementIDisposable_NoDisposePattern() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C : Implements [|IDisposable|]",
 "Imports System
@@ -3974,7 +3974,7 @@ End Class
         <WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementIDisposable1_DisposePattern() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C : Implements [|IDisposable|]",
 $"Imports System
@@ -3988,7 +3988,7 @@ End Class
         <WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementIDisposableAbstractly_NoDisposePattern() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 MustInherit Class C : Implements [|IDisposable|]",
 "Imports System
@@ -4003,7 +4003,7 @@ End Class
         <WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementIDisposableThroughMember_NoDisposePattern() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C : Implements [|IDisposable|]
     Dim foo As IDisposable
@@ -4021,7 +4021,7 @@ End Class", index:=2, compareTokens:=False)
         <WorkItem(941469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementIDisposable2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C : Implements [|System.IDisposable|]
     Class IDisposable
@@ -4038,7 +4038,7 @@ End Class", index:=1, compareTokens:=False)
         <WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementIDisposable_NoNamespaceImportForSystem() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C : Implements [|System.IDisposable|]
 ",
 $"Class C : Implements System.IDisposable
@@ -4050,7 +4050,7 @@ End Class
         <WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementIDisposableViaBaseInterface_NoDisposePattern() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Interface I : Inherits IDisposable
     Sub F()
@@ -4076,7 +4076,7 @@ End Class", index:=0)
         <WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementIDisposableViaBaseInterface() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Interface I : Inherits IDisposable
     Sub F()
@@ -4099,7 +4099,7 @@ End Class", index:=1, compareTokens:=False)
         <WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDontImplementDisposePatternForLocallyDefinedIDisposable() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Namespace System
     Interface IDisposable
         Sub Dispose
@@ -4123,7 +4123,7 @@ End Namespace", compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDontImplementDisposePatternForStructures() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Structure S : Implements [|IDisposable|]",
 "Imports System
@@ -4139,7 +4139,7 @@ End Structure
         <WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDisposePatternWhenAdditionalImportsAreIntroduced1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of Integer)
     Function M(a As System.Collections.Generic.Dictionary(Of T, System.Collections.Generic.List(Of U)), b As T, c As U) As System.Collections.Generic.List(Of U)
     Function M(Of TT, UU As TT)(a As System.Collections.Generic.Dictionary(Of TT, System.Collections.Generic.List(Of UU)), b As TT, c As UU) As System.Collections.Generic.List(Of UU)
@@ -4219,7 +4219,7 @@ End Class",
         <WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestDisposePatternWhenAdditionalImportsAreIntroduced2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
 End Class
 
@@ -4339,7 +4339,7 @@ End Interface",
         <WorkItem(1132014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1132014")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestInaccessibleAttributes() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 
 Public Class Foo
@@ -4380,7 +4380,7 @@ End Class", compareTokens:=False)
         <WorkItem(2785, "https://github.com/dotnet/roslyn/issues/2785")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementInterfaceThroughStaticMemberInGenericClass() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Class Program(Of T)
@@ -4461,7 +4461,7 @@ index:=1)
         <WorkItem(11444, "https://github.com/dotnet/roslyn/issues/11444")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestAbstractConflictingMethod() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Friend Interface IFace
     Sub M()
 End Interface
@@ -4487,7 +4487,7 @@ index:=1)
         <WorkItem(16793, "https://github.com/dotnet/roslyn/issues/16793")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMethodWithValueTupleArity1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 interface I

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestWhereExtension()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -36,7 +36,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestSelectExtension()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -61,7 +61,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGroupByExtension()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -86,7 +86,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestJoinExtension()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -125,7 +125,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestExtensionWithThePresenceOfTheSameNameNonExtensionMethod()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace NS1
 {
     class Program
@@ -189,7 +189,7 @@ namespace NS2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestExtensionWithThePresenceOfTheSameNameNonExtensionPrivateMethod()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace NS1
 {
     class Program
@@ -253,7 +253,7 @@ namespace NS2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestExtensionWithThePresenceOfTheSameNameExtensionPrivateMethod()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using NS2;
 
 namespace NS1
@@ -979,7 +979,7 @@ namespace Sample
         }
     }
 }";
-            await TestAsync(initialText, expectedText);
+            await TestInRegularAndScriptAsync(initialText, expectedText);
         }
 
         [WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
@@ -1022,7 +1022,7 @@ public class C
         return F(new C())?.F(new C())?.Extn();
     }
 }";
-            await TestAsync(initialText, expectedText);
+            await TestInRegularAndScriptAsync(initialText, expectedText);
         }
 
         [WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
@@ -1065,7 +1065,7 @@ public class C
         return F(new C())?.F(new C()).Extn()?.F(newC());
     }
 }";
-            await TestAsync(initialText, expectedText);
+            await TestInRegularAndScriptAsync(initialText, expectedText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]

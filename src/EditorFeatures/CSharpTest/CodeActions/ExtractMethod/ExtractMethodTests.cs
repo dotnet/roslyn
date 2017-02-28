@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestPartialSelection()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -51,7 +51,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestCodeStyle1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -77,7 +77,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleO
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestReadOfDataThatDoesNotFlowIn()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -139,7 +139,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestOnStatementAfterUnconditionalGoto()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"delegate int del(int i);
 
 class C
@@ -179,7 +179,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnNamespace()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -204,7 +204,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnType()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -229,7 +229,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnBase()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -255,7 +255,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestOnActionInvocation()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -295,7 +295,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task DisambiguateCallSiteIfNecessary1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -336,7 +336,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task DisambiguateCallSiteIfNecessary2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -576,7 +576,7 @@ parseOptions: Options.Regular);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task PreserveCommentsBeforeDeclaration_1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Construct
 {
     public void Do() { }
@@ -620,7 +620,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task PreserveCommentsBeforeDeclaration_2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Construct
 {
     public void Do() { }
@@ -672,7 +672,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task PreserveCommentsBeforeDeclaration_3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Construct
 {
     public void Do() { }
@@ -721,7 +721,7 @@ compareTokens: false);
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTuple()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -749,7 +749,7 @@ compareTokens: false);
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleDeclarationWithNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -777,7 +777,7 @@ compareTokens: false);
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleDeclarationWithSomeNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -805,7 +805,7 @@ compareTokens: false);
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleLiteralWithNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -833,7 +833,7 @@ compareTokens: false);
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleDeclarationAndLiteralWithNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -861,7 +861,7 @@ compareTokens: false);
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleIntoVar()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -889,7 +889,7 @@ compareTokens: false);
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task RefactorWithoutSystemValueTuple()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -918,7 +918,7 @@ compareTokens: false);
         public async Task TestTupleWithNestedNamedTuple()
         {
             // This is not the best refactoring, but this is an edge case
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -945,7 +945,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestDeconstruction()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -972,7 +972,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestDeconstruction2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1002,7 +1002,7 @@ compareTokens: false);
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.OutVar)]
         public async Task TestOutVar()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     static void M(int i)
@@ -1033,7 +1033,7 @@ compareTokens: false);
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
         public async Task TestIsPattern()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     static void M(int i)
@@ -1064,7 +1064,7 @@ compareTokens: false);
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
         public async Task TestOutVarAndIsPattern()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     static void M()
@@ -1096,7 +1096,7 @@ compareTokens: false);
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
         public async Task ConflictingOutVarLocals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     static void M()
@@ -1136,7 +1136,7 @@ compareTokens: false);
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
         public async Task ConflictingPatternLocals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     static void M()
@@ -1176,7 +1176,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestCancellationTokenGoesLast()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading;
 
@@ -1219,7 +1219,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestUseVar1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -1267,7 +1267,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestUseVar2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -1315,7 +1315,7 @@ class C
         [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionCall()
         {
-            await TestAsync(@"
+            await TestInRegularAndScriptAsync(@"
 class C
 {
     public static void Main()
@@ -1343,7 +1343,7 @@ class C
         [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionCallWithCapture()
         {
-            await TestAsync(@"
+            await TestInRegularAndScriptAsync(@"
 class C
 {
     public static void Main(string[] args)
@@ -1386,7 +1386,7 @@ class C
         [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionInterior()
         {
-            await TestAsync(@"
+            await TestInRegularAndScriptAsync(@"
 class C
 {
     public static void Main()
@@ -1422,7 +1422,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug3790()
         {
-            await TestAsync(@"
+            await TestInRegularAndScriptAsync(@"
 class Test
 {
     void method()
@@ -1462,7 +1462,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug3790_1()
         {
-            await TestAsync(@"
+            await TestInRegularAndScriptAsync(@"
 class Test
 {
     void method()
@@ -1502,7 +1502,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug3790_2()
         {
-            await TestAsync(@"
+            await TestInRegularAndScriptAsync(@"
 class Test
 {
     void method()

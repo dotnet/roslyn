@@ -1488,7 +1488,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo()
@@ -1509,7 +1509,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo()
@@ -1527,7 +1527,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo()
@@ -1545,7 +1545,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo()
@@ -1574,7 +1574,7 @@ options: PreferExpressionBodiedAccessors);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle5()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo()
@@ -1603,7 +1603,7 @@ options: PreferExpressionBodiedProperties);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle6()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo()
@@ -1632,7 +1632,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle7()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo() => 0;
@@ -1647,7 +1647,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle8()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo() => 0;
@@ -1662,7 +1662,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle9()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo() => throw e;
@@ -1677,7 +1677,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle10()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo() { throw e; }

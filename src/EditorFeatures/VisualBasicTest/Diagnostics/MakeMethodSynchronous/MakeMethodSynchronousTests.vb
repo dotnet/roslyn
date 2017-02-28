@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMe
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestTaskReturnType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 
 Class C
@@ -32,7 +32,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestTaskOfTReturnType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 
 Class C
@@ -50,7 +50,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestSecondModifier() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 
 Class C
@@ -68,7 +68,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestFirstModifier() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 
 Class C
@@ -88,7 +88,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestRenameMethod() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 
 Class C
@@ -106,7 +106,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestRenameMethod1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 
 Class C
@@ -132,7 +132,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestSingleLineSubLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 
@@ -156,7 +156,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestSingleLineFunctionLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 
@@ -180,7 +180,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestMultiLineSubLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 
@@ -208,7 +208,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestMultiLineFunctionLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 
@@ -237,7 +237,7 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks;
 
 Public Class Class1
@@ -263,7 +263,7 @@ End Class", compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks;
 
 Public Class Class1
@@ -289,7 +289,7 @@ End Class", compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks;
 
 Public Class Class1
@@ -315,7 +315,7 @@ End Class", compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller4() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks;
 
 Public Class Class1
@@ -341,7 +341,7 @@ End Class", compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCallerNested1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks;
 
 Public Class Class1
@@ -367,7 +367,7 @@ End Class", compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCallerNested2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks;
 
 Public Class Class1

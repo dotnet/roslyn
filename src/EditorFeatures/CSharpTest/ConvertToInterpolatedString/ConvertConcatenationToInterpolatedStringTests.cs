@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithStringOnLeft()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"public class C
 {
     void M()
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestRightSideOfString()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"public class C
 {
     void M()
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithStringOnRight()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"public class C
 {
     void M()
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithComplexExpressionOnLeft()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"public class C
 {
     void M()
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithTrivia1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 public class C
 {
@@ -162,7 +162,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithComplexExpressions()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"public class C
 {
     void M()
@@ -182,7 +182,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithEscapes1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 public class C
 {
@@ -204,7 +204,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithEscapes2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 public class C
 {
@@ -226,7 +226,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithVerbatimString1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"public class C
 {
     void M()
@@ -272,7 +272,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithOverloadedOperator()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"public class D
 {
     public static bool operator +(D d, string s) => false;
@@ -327,7 +327,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithMultipleStringConcatinations()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"public class C
 {
     void M()
@@ -348,7 +348,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithMultipleStringConcatinations2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"public class C
 {
     void M()
@@ -369,7 +369,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithMultipleStringConcatinations3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"public class C
 {
     void M()

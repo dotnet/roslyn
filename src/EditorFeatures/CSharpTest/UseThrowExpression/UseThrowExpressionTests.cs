@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
         public async Task WithoutBraces()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -46,7 +46,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
         public async Task TestOnIf()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -72,7 +72,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
         public async Task WithBraces()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -136,7 +136,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
         public async Task WithIntermediaryStatements()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -215,7 +215,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
         public async Task TestNullCheckOnLeft()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -241,7 +241,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
         public async Task TestWithLocal()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess
 
         private Task TestAsyncWithOptionAndNotificationOption(string code, string expected, PerLanguageOption<CodeStyleOption<bool>> option, NotificationOption notification)
         {
-            return TestAsync(code, expected, options: Option(option, true, notification));
+            return TestInRegularAndScriptAsync(code, expected, options: Option(option, true, notification));
         }
 
         private Task TestMissingAsyncWithOption(string code, PerLanguageOption<CodeStyleOption<bool>> option)

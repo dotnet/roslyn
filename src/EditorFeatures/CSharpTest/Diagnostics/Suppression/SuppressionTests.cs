@@ -825,7 +825,7 @@ using System;
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionOnNamespace()
                 {
-                    await TestAsync(
+                    await TestInRegularAndScriptAsync(
             @"
 using System;
 

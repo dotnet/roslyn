@@ -80,12 +80,12 @@ Class C
     End Sub
 End Class
 </Code>
-            Await TestAsync(source.Value, expected.Value)
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestArgument() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -105,7 +105,7 @@ index:=0, options:=PreferIntrinsicPredefinedTypeEverywhere())
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestAliasWithMemberAccess() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports Foo = System.Int32
 Module Program
     Sub Main(args As String())
@@ -123,7 +123,7 @@ index:=0)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestWithCursorAtBeginning() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.IO
 Module Program
     Sub Main(args As String())
@@ -155,7 +155,7 @@ Module Program
     End Sub
 End Module"
 
-            Await TestAsync(source,
+            Await TestInRegularAndScriptAsync(source,
 "Imports Outer
 Namespace Outer
     Namespace Inner
@@ -175,7 +175,7 @@ index:=0)
         <WorkItem(540567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540567")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestMinimalSimplifyOnNestedNamespacesFromMetadataAlias() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports A1 = System.IO.File
 Class Foo
     Dim x As [|System.IO.File|]
@@ -190,7 +190,7 @@ index:=0)
         <WorkItem(540567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540567")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestMinimalSimplifyOnNestedNamespacesFromMetadata() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class Foo
     Dim x As [|System.IO.File|]
@@ -206,7 +206,7 @@ index:=0)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestFixAllOccurrences() As Task
             Dim actionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "NS1.SomeClass")
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports NS1
 Namespace NS1
     Class SomeClass
@@ -232,7 +232,7 @@ fixAllActionEquivalenceKey:=actionId)
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllOccurrencesForAliases() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports foo = C.D
 Imports bar = A.B
@@ -270,7 +270,7 @@ index:=1)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestSimplifyFromReference() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading
 Class Class1
     Dim v As [|System.Threading.Thread|]
@@ -284,7 +284,7 @@ End Class",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestGenericClassDefinitionAsClause() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports SomeNamespace
 Namespace SomeNamespace
     Class Base
@@ -304,7 +304,7 @@ End Class",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestGenericClassInstantiationOfClause() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports SomeNamespace
 Namespace SomeNamespace
     Class SomeClass
@@ -334,7 +334,7 @@ End Class",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestGenericMethodDefinitionAsClause() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports SomeNamespace
 Namespace SomeNamespace
     Class SomeClass
@@ -358,7 +358,7 @@ End Class",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestGenericMethodInvocationOfClause() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports SomeNamespace
 Namespace SomeNamespace
     Class SomeClass
@@ -389,7 +389,7 @@ End Class",
         <WorkItem(6872, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestAttributeApplication() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports SomeNamespace
 <[|SomeNamespace.Something|]()>
 Class Foo
@@ -417,7 +417,7 @@ End Namespace",
 
             'IMPLEMENT NOT ESCAPE ATTRIBUTE DEPENDENT ON CONTEXT
 
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports SomeNamespace
 <Existing()>
@@ -452,7 +452,7 @@ End Namespace",
         <WorkItem(6872, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestMultipleAttributeApplicationAbove() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports SomeNamespace
 <[|SomeNamespace.Something|]()>
@@ -486,7 +486,7 @@ End Namespace",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestSimplifiedLeftmostQualifierIsEscapedWhenMatchesKeyword() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports Outer
 Class SomeClass
     Dim x As [|Outer.Namespace.Something|]
@@ -512,7 +512,7 @@ End Namespace",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestTypeNameIsEscapedWhenMatchingKeyword() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports Outer
 Class SomeClass
     Dim x As [|Outer.Class|]
@@ -576,7 +576,7 @@ End Namespace|]")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestSimplifyInGenericAsClauseIfNoConflictWithTypeParameterName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports SomeNamespace
 Class Class1
     Sub Foo(Of T)(x As [|SomeNamespace.SomeClass|])
@@ -600,7 +600,7 @@ End Namespace",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestCaseInsensitivity() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports SomeNamespace
 Class Foo
     Dim x As [|SomeNamespace.someclass|]
@@ -629,7 +629,7 @@ Class Foo
     End Function
 End Class"
 
-            Await TestAsync(source,
+            Await TestInRegularAndScriptAsync(source,
 "Imports System.Collections.Generic
 Class Foo
     Function F() As List(Of Integer)
@@ -641,7 +641,7 @@ End Class",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestParameterType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.IO
 Module Program
     Sub Main(args As String(), f As [|System.IO.FileMode|])
@@ -658,7 +658,7 @@ End Module",
         <WorkItem(540565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540565")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestLocation1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports Foo
 Namespace Foo
     Class FooClass
@@ -685,7 +685,7 @@ End Module",
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllFixesUnrelatedTypes() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports A
 Imports B
 Imports C
@@ -756,7 +756,7 @@ Namespace C
     End Class
 End Namespace"
 
-            Await TestAsync(source,
+            Await TestInRegularAndScriptAsync(source,
 "Imports A
 Imports B
 Imports C
@@ -798,7 +798,7 @@ Class M
         End Function
  End Class"
 
-            Await TestAsync(source,
+            Await TestInRegularAndScriptAsync(source,
 "Class Preserve
     Public Class X
         Public Shared Y
@@ -832,7 +832,7 @@ Class M
         End Function
  End Class"
 
-            Await TestAsync(source,
+            Await TestInRegularAndScriptAsync(source,
 "Class Preserve
     Public Shared Y
 End Class
@@ -851,7 +851,7 @@ Class M
         <WorkItem(540398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540398")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestImplementsClause() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class Foo
     Implements IComparable(Of String)
@@ -871,7 +871,7 @@ End Class",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestSimpleArray() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Collections.Generic
 Namespace N1
     Class Test
@@ -889,7 +889,7 @@ End Namespace",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestSimpleMultiDimArray() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Collections.Generic
 Namespace N1
     Class Test
@@ -931,7 +931,7 @@ End Module|]")
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestConflicts() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
         <Text>
 Namespace OuterNamespace
     Namespace InnerNamespace
@@ -1071,7 +1071,7 @@ End Namespace
         <WorkItem(542138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542138")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestSimplifyModuleWithReservedName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Namespace X
     Module [String]
         Sub Main()
@@ -1092,7 +1092,7 @@ End Namespace",
         <WorkItem(542348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542348")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestPreserve1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module M
     Dim preserve()
     Sub Main()
@@ -1112,7 +1112,7 @@ End Module",
         <WorkItem(542348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542348")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestPreserve3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Preserve
     Class X
         Public Shared Dim Y
@@ -1158,7 +1158,7 @@ End Module")
         <WorkItem(545795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545795")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestColorColor1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Namespace N
     Class Color
         Shared Sub Foo()
@@ -1190,7 +1190,7 @@ End Namespace")
         <WorkItem(545795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545795")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestColorColor2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Namespace N
     Class Color
         Shared Sub Foo()
@@ -1222,7 +1222,7 @@ End Namespace")
         <WorkItem(545795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545795")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestColorColor3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Namespace N
     Class Color
         Shared Sub Foo()
@@ -1254,7 +1254,7 @@ End Namespace")
         <WorkItem(546829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546829")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestKeyword1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module m
     Sub main()
         Dim x = [|m.Equals|](1, 1)
@@ -1270,7 +1270,7 @@ End Module")
         <WorkItem(546844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546844")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestKeyword2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module M
     Sub main()
         Dim x = [|M.Class|]
@@ -1350,7 +1350,7 @@ End Class")
             ' It is unclear whether Nullable(Of Integer) is legal in the below case. Currently the VB compiler allows this while
             ' C# doesn't allow similar case. If this Nullable(Of Integer) becomes illegal in VB in the below case then the simplification
             ' from Nullable(Of Integer) -> Integer will also stop working and the baseline for this test will have to be updated.
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 ''' <summary>
         ''' <see cref=""C(Of [|Nullable(Of Integer)|])""/>
@@ -1375,7 +1375,7 @@ End Class")
             ' It is unclear whether Nullable(Of Integer) is legal in the below case. Currently the VB compiler allows this while
             ' C# doesn't allow similar case. If this Nullable(Of Integer) becomes illegal in VB in the below case then the simplification
             ' from Nullable(Of Integer) -> Integer will also stop working and the baseline for this test will have to be updated.
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 ''' <summary>
 ''' <see cref=""C.M(Of [|Nullable(Of Integer)|])""/>
@@ -1397,7 +1397,7 @@ End Class")
         <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestNullableSimplificationInsideCref3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 ''' <summary>
 ''' <see cref=""A.M([|Nullable(Of A)|])""/>
@@ -1419,7 +1419,7 @@ End Structure")
         <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestNullableSimplificationInsideCref4() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 ''' <summary>
@@ -1443,7 +1443,7 @@ End Structure")
         <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestNullableSimplificationInsideCref5() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 ''' <summary>
@@ -1467,7 +1467,7 @@ End Structure")
         <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestNullableSimplificationInsideCref6() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 ''' <summary>
@@ -1573,7 +1573,7 @@ Namespace N
     End Class
 End Namespace
 </Code>
-            Await TestAsync(source.Value, expected.Value)
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value)
         End Function
 
         <WorkItem(568043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")>
@@ -1637,7 +1637,7 @@ Namespace bar
     End Module
 End Namespace
 </Code>
-            Await TestAsync(source.Value, expected.Value)
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -1686,7 +1686,7 @@ Namespace bar
 End Namespace
 </Code>
 
-            Await TestAsync(source.Value, expected.Value)
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value)
         End Function
 
         <WorkItem(608200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608200")>
@@ -1726,7 +1726,7 @@ Module M
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value)
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value)
         End Function
 
         <WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")>
@@ -1800,7 +1800,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value)
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value)
             Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value, Nothing, Nothing)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
@@ -1848,7 +1848,7 @@ Namespace A
 End Namespace
 </Code>
 
-            Await TestAsync(source.Value, expected.Value)
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value)
             Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value, Nothing, Nothing)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
@@ -1882,7 +1882,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value)
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value)
             Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value, Nothing, Nothing)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
@@ -1950,7 +1950,7 @@ Public Class Test_Dev11
         End Sub
     End Class
 </Code>
-            Await TestAsync(source.Value, expected.Value)
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value)
         End Function
 
         <WorkItem(736377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")>
@@ -2031,7 +2031,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicPredefinedTypeInDeclaration())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2055,7 +2055,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicPredefinedTypeInDeclaration())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2077,7 +2077,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2097,7 +2097,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(1012713, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012713")>
@@ -2182,7 +2182,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2204,7 +2204,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(956667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")>
@@ -2287,7 +2287,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
@@ -2320,7 +2320,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")>
@@ -2410,7 +2410,7 @@ End Module")
         <WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestSimplifyTypeNameInsideNameOf() As Task
-            Await TestAsync("Imports System
+            Await TestInRegularAndScriptAsync("Imports System
 Module Program
     Sub Main()
         Dim x = NameOf([|System.Int32|])
@@ -2427,7 +2427,7 @@ End Module")
         <WorkItem(6682, "https://github.com/dotnet/roslyn/issues/6682")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestMeWithNoType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Dim x = 7
     Sub M()

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -47,7 +47,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -78,7 +78,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -163,7 +163,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -194,7 +194,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -227,7 +227,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -260,7 +260,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixOneOrAll()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -289,7 +289,7 @@ class C
 }",
                 index: 0);
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -458,14 +458,14 @@ class C
     public static bool operator >(Func<string> y, C x) { return true; }
 }";
 
-            await TestAsync(code, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, compareTokens: false);
         }
 
         [WorkItem(545856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestWarningOnSideEffects()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -490,7 +490,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestNonReturnBlockSyntax()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
