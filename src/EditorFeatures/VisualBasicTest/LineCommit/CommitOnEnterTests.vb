@@ -59,7 +59,7 @@ End Class
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
-        Public Async Function TestCommitAfterBlankLineFollowingExplicitLineContinuation() As Task
+        Public Sub TestCommitAfterBlankLineFollowingExplicitLineContinuation()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -74,11 +74,11 @@ End Class
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterDeclaration() As Task
+        Public Sub TestCommitAfterDeclaration()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>[|
@@ -93,7 +93,7 @@ End Class|]
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>

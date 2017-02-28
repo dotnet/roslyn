@@ -105,7 +105,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539457")>
-        Public Async Function TestCommitAfterTypingAndUpArrowIntoBlankLine() As Task
+        Public Sub TestCommitAfterTypingAndUpArrowIntoBlankLine()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -125,12 +125,12 @@ End Module
 
                 Assert.Equal("Dim x = 42", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(4).GetText().Trim())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539411")>
-        Public Async Function TestCommitAfterTypingInTrivia() As Task
+        Public Sub TestCommitAfterTypingInTrivia()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -148,13 +148,13 @@ $$</Document>
 
                 Assert.Equal("#Const foo = 2D", testData.Buffer.CurrentSnapshot.Lines.Last().GetText().Trim())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539599")>
         <WorkItem(631913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631913")>
-        Public Async Function TestCommitAfterTypingInTrivia2() As Task
+        Public Sub TestCommitAfterTypingInTrivia2()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -175,7 +175,7 @@ End Module
                 Assert.Equal("    Dim foo = 1 + _", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(2).GetText())
                 testData.AssertHadCommit(True)
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
@@ -1087,7 +1087,7 @@ End Class
 
         <WorkItem(3119, "https://github.com/dotnet/roslyn/issues/3119")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestMissingThenInElseIf() As Task
+        Public Sub TestMissingThenInElseIf()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -1122,6 +1122,6 @@ End Class
 </Code>
                 Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace
