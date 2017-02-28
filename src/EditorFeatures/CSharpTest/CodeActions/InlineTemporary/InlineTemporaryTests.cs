@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 
         private async Task TestFixOneAsync(string initial, string expected, bool compareTokens = true)
         {
-            await TestAsync(GetTreeText(initial), GetTreeText(expected), index: 0);
+            await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected), index: 0);
         }
 
         private string GetTreeText(string initial)
@@ -41,25 +41,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotWithNoInitializer1()
         {
-            await TestMissingAsync(GetTreeText(@"{ int [||]x; System.Console.WriteLine(x); }"));
+            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x; System.Console.WriteLine(x); }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotWithNoInitializer2()
         {
-            await TestMissingAsync(GetTreeText(@"{ int [||]x = ; System.Console.WriteLine(x); }"));
+            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = ; System.Console.WriteLine(x); }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotOnSecondWithNoInitializer()
         {
-            await TestMissingAsync(GetTreeText(@"{ int x = 42, [||]y; System.Console.WriteLine(y); }"));
+            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 42, [||]y; System.Console.WriteLine(y); }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotOnField()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     int [||]x = 42;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task WithRefInitializer1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     ref int M()
@@ -89,25 +89,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task SingleStatement()
         {
-            await TestMissingAsync(GetTreeText(@"{ int [||]x = 27; }"));
+            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 27; }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_First()
         {
-            await TestMissingAsync(GetTreeText(@"{ int [||]x = 0, y = 1, z = 2; }"));
+            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 0, y = 1, z = 2; }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_Second()
         {
-            await TestMissingAsync(GetTreeText(@"{ int x = 0, [||]y = 1, z = 2; }"));
+            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, [||]y = 1, z = 2; }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_Last()
         {
-            await TestMissingAsync(GetTreeText(@"{ int x = 0, y = 1, [||]z = 2; }"));
+            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, y = 1, [||]z = 2; }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -174,7 +174,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -201,7 +201,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -228,7 +228,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -244,7 +244,7 @@ x.ToString(); }",
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Conversion_DifferentOverload()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 class C
@@ -272,7 +272,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Conversion_DifferentMethod()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class Base 
 {
@@ -316,7 +316,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Conversion_SameMethod()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class Base 
 {
@@ -389,7 +389,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -438,7 +438,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -465,7 +465,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0);
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -490,14 +490,14 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, compareTokens: false);
         }
 
         [WorkItem(538094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538094")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParseAmbiguity1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -525,7 +525,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParseAmbiguity2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -553,7 +553,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParseAmbiguity3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -582,7 +582,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParseAmbiguity4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class Program
 {
@@ -616,7 +616,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParseAmbiguity5()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class Program
 {
@@ -675,7 +675,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(545657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545657")]
@@ -709,7 +709,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -755,7 +755,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -791,7 +791,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -821,7 +821,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -851,7 +851,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -883,7 +883,7 @@ class C
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -913,7 +913,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -943,7 +943,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -973,7 +973,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1003,7 +1003,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1033,7 +1033,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1063,7 +1063,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1093,7 +1093,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1123,7 +1123,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1153,7 +1153,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1183,7 +1183,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1213,7 +1213,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1243,7 +1243,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1273,7 +1273,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1301,7 +1301,7 @@ class C
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(545342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545342")]
@@ -1328,7 +1328,7 @@ class C
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1429,7 +1429,7 @@ compareTokens: false);
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(540156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540156")]
@@ -1456,7 +1456,7 @@ compareTokens: false);
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(540156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540156")]
@@ -1483,7 +1483,7 @@ compareTokens: false);
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(540156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540156")]
@@ -1510,7 +1510,7 @@ compareTokens: false);
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(540186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540186")]
@@ -1536,7 +1536,7 @@ compareTokens: false);
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(6356, "DevDiv_Projects/Roslyn")]
@@ -1562,7 +1562,7 @@ compareTokens: false);
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(528075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528075")]
@@ -1590,7 +1590,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(541341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541341")]
@@ -1620,7 +1620,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(541341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541341")]
@@ -1650,7 +1650,7 @@ class Program
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
@@ -1680,7 +1680,7 @@ class A
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
@@ -1712,7 +1712,7 @@ class A
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
@@ -1742,7 +1742,7 @@ class A
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
@@ -1772,7 +1772,7 @@ class A
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
@@ -1802,14 +1802,14 @@ class A
     }
 }";
 
-            await TestAsync(initial, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(540278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540278")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestLeadingTrivia()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1837,7 +1837,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestLeadingAndTrailingTrivia()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1866,7 +1866,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestTrailingTrivia()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1893,7 +1893,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestPreprocessor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1923,7 +1923,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestFormatting()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1948,7 +1948,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestSwitchSection()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 class C
 {
@@ -1984,7 +1984,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task UnparenthesizeExpressionIfNeeded1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 class C
@@ -2017,7 +2017,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task UnparenthesizeExpressionIfNeeded2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 class Program
@@ -2050,7 +2050,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParenthesizeIfNecessary1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"using System;
 using System.Collections;
 using System.Linq;
@@ -2086,7 +2086,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParenthesizeIfNecessary2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 class C
@@ -2120,7 +2120,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParenthesizeAddressOf1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 unsafe class C
@@ -2150,7 +2150,7 @@ unsafe class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParenthesizeAddressOf2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 unsafe class C
@@ -2180,7 +2180,7 @@ unsafe class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParenthesizePointerIndirection1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 unsafe class C
@@ -2210,7 +2210,7 @@ unsafe class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParenthesizePointerIndirection2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 unsafe class C
@@ -2240,7 +2240,7 @@ unsafe class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontInlineStackAlloc()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 unsafe class C
@@ -2259,7 +2259,7 @@ unsafe class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineTempLambdaExpressionCastingError()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"using System;
 class Program
 {
@@ -2285,7 +2285,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastForNull()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 class C
@@ -2313,7 +2313,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastIfNeeded1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class C
 {
@@ -2339,7 +2339,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastIfNeeded2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
  
@@ -2374,7 +2374,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineIntoBracketedList()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class C
 {
@@ -2573,7 +2573,7 @@ class A<T>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCorrectCastForDelegateCreationExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
  
@@ -2606,7 +2606,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontInsertCastForObjectCreationIfUnneeded()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 class Program
@@ -2636,7 +2636,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontInsertCastInForeachIfUnneeded01()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 using System.Collections.Generic;
@@ -2672,7 +2672,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastInForeachIfNeeded01()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 using System.Collections;
@@ -2708,7 +2708,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastInForeachIfNeeded02()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 using System.Collections;
@@ -2745,7 +2745,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastToKeepGenericMethodInference()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 class C
@@ -2780,7 +2780,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastForKeepImplicitArrayInference()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class C
 {
@@ -2815,7 +2815,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertASingleCastToNotBreakOverloadResolution()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class C
 {
@@ -2848,7 +2848,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertASingleCastToNotBreakOverloadResolutionInLambdas()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 class C
@@ -2883,7 +2883,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertASingleCastToNotBreakResolutionOfOperatorOverloads()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 class C
@@ -2950,7 +2950,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastToNotBreakOverloadResolutionInUncheckedContext()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 
@@ -2995,7 +2995,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastToNotBreakOverloadResolutionInUnsafeContext()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 
@@ -3044,7 +3044,7 @@ static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastToNotBreakOverloadResolutionInNestedLambdas()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 
@@ -3087,7 +3087,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestBrokenVariableDeclarator()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     static void M()
@@ -3104,7 +3104,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestHiddenRegion1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -3121,7 +3121,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestHiddenRegion2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -3138,7 +3138,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestHiddenRegion3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"#line default
 class Program
 {
@@ -3170,7 +3170,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestHiddenRegion4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"#line default
 class Program
 {
@@ -3204,7 +3204,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestHiddenRegion5()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -3223,7 +3223,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineFromLabeledStatement()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
  
@@ -3258,7 +3258,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineCompoundAssignmentIntoInitializer()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System.Collections.Generic;
 
@@ -3291,7 +3291,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Bugfix_609497()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System.Collections.Generic;
  
@@ -3322,7 +3322,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Bugfix_636319()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System.Collections.Generic;
  
@@ -3355,7 +3355,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Bugfix_609492()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
  
@@ -3388,7 +3388,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineTempDoesNotInsertUnnecessaryExplicitTypeInLambdaParameter()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
 
@@ -3434,7 +3434,7 @@ static class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Bugfix_619425_RestrictedSimpleNameExpansion()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class A<B>
 {
@@ -3475,7 +3475,7 @@ class A<B>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Bugfix_529840_DetectSemanticChangesAtInlineSite()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 using System;
  
@@ -3539,7 +3539,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestConditionalAccessWithConversion()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class A
 {
     bool M(string[] args)
@@ -3560,7 +3560,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestSimpleConditionalAccess()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class A
 {
     void M(string[] args)
@@ -3581,7 +3581,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestConditionalAccessWithConditionalExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class A
 {
     void M(string[] args)
@@ -3603,7 +3603,7 @@ class A
         [WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
         public async Task TestConditionalAccessWithExtensionMethodInvocation()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3659,7 +3659,7 @@ class C
         [WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
         public async Task TestConditionalAccessWithExtensionMethodInvocation_2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3724,7 +3724,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestAliasQualifiedNameIntoInterpolation()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class A
 {
     void M()
@@ -3745,7 +3745,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestConditionalExpressionIntoInterpolation()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class A
 {
     bool M(bool b)
@@ -3766,7 +3766,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestConditionalExpressionIntoInterpolationWithFormatClause()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class A
 {
     bool M(bool b)
@@ -3787,7 +3787,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestInvocationExpressionIntoInterpolation()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class A
 {
     public static void M(string s)
@@ -3809,7 +3809,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public void M()
@@ -3831,7 +3831,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontParenthesizeInterpolatedStringWithInterpolation()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public void M(int x)
@@ -3853,7 +3853,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task PArenthesizeAwaitInlinedIntoReducedExtensionMethod()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Linq;
 using System.Threading.Tasks;
 
@@ -3912,7 +3912,7 @@ class C
     }
 }";
 
-            await TestAsync(initial, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, compareTokens: false);
         }
 
         [WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")]
@@ -3947,7 +3947,7 @@ class C
         M((FormattableString)$""{x}, {y}"");
     }
 }";
-            await TestAsync(initial, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, compareTokens: false);
         }
 
         [WorkItem(9576, "https://github.com/dotnet/roslyn/issues/9576")]
@@ -3987,7 +3987,7 @@ class C
     }
 }";
 
-            await TestAsync(initial, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4031,7 +4031,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4058,7 +4058,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4084,7 +4084,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4113,7 +4113,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0);
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4155,7 +4155,7 @@ public class KVP<T1, T2>
     public void Deconstruct(out T1 item1, out T2 item2) { item1 = default(T1); item2 = default(T2); }
 }";
 
-            await TestAsync(code, expected, index: 0);
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4181,7 +4181,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
         }
     }
 }

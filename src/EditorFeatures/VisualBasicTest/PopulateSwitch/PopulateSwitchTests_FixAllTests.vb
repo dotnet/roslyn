@@ -164,7 +164,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Await TestInRegularAndScriptAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
         End Function
 
         <Fact>
@@ -311,7 +311,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Await TestInRegularAndScriptAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
         End Function
 
         <Fact>
@@ -454,7 +454,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(input, expected, compareTokens:=False)
         End Function
     End Class
 End Namespace

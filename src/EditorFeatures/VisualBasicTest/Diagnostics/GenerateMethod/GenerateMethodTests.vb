@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestSimpleInvocationIntoSameType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|Foo|]()
@@ -34,7 +34,7 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         <WorkItem(11518, "https://github.com/dotnet/roslyn/issues/11518")>
         Public Async Function TestNameMatchesNamespaceName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Namespace N
     Module Module1
         Sub Main()
@@ -60,7 +60,7 @@ End Namespace")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestSimpleInvocationOffOfMe() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         Me.[|Foo|]()
@@ -79,7 +79,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestSimpleInvocationOffOfType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         C.[|Foo|]()
@@ -98,7 +98,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestSimpleInvocationValueExpressionArg() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|Foo|](0)
@@ -117,7 +117,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestSimpleInvocationMultipleValueExpressionArg() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|Foo|](0, 0)
@@ -136,7 +136,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestSimpleInvocationValueArg() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         [|Foo|](i)
@@ -155,7 +155,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestSimpleInvocationNamedValueArg() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         [|Foo|](bar:=i)
@@ -174,7 +174,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateAfterMethod() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|Foo|]()
@@ -197,7 +197,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestInterfaceNaming() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         [|Foo|](NextMethod())
@@ -220,7 +220,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestFuncArg0() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         [|Foo|](NextMethod)
@@ -243,7 +243,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestFuncArg1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         [|Foo|](NextMethod)
@@ -266,7 +266,7 @@ End Class")
 
         <WpfFact(Skip:="528229"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestAddressOf1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         [|Foo|](AddressOf NextMethod)
@@ -289,7 +289,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestActionArg() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         [|Foo|](NextMethod) End Sub 
@@ -311,7 +311,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestActionArg1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         [|Foo|](NextMethod)
@@ -334,7 +334,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestTypeInference() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         If [|Foo|]()
@@ -355,7 +355,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestMemberAccessArgumentName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|Foo|](Me.Bar)
@@ -376,7 +376,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestParenthesizedArgumentName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|Foo|]((Bar))
@@ -397,7 +397,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestCastedArgumentName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|Foo|](DirectCast(Me.Baz, Bar))
@@ -420,7 +420,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestDuplicateNames() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|Foo|](DirectCast(Me.Baz, Bar), Me.Baz)
@@ -445,7 +445,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenericArgs1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|Foo(Of Integer)|]()
@@ -464,7 +464,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenericArgs2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|Foo(Of Integer, String)|]()
@@ -484,7 +484,7 @@ End Class")
         <WorkItem(539984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539984")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenericArgsFromMethod() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(Of X, Y)(x As X, y As Y)
         [|Foo|](x)
@@ -503,7 +503,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenericArgThatIsTypeParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(Of X)(y1 As X(), x1 As System.Func(Of X))
         [|Foo(Of X)|](y1, x1)
@@ -522,7 +522,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestMultipleGenericArgsThatAreTypeParameters() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(Of X, Y)(y1 As Y(), x1 As System.Func(Of X))
         [|Foo(Of X, Y)|](y1, x1)
@@ -542,7 +542,7 @@ End Class")
         <WorkItem(539984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539984")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestMultipleGenericArgsFromMethod() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(Of X, Y)(x As X, y As Y)
         [|Foo|](x, y)
@@ -562,7 +562,7 @@ End Class")
         <WorkItem(539984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539984")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestMultipleGenericArgsFromMethod2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(Of X, Y)(y As Y(), x As System.Func(Of X))
         [|Foo|](y, x)
@@ -581,7 +581,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateIntoOuterThroughInstance() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Outer
     Class C
         Sub M(o As Outer)
@@ -604,7 +604,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateIntoOuterThroughClass() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Outer
     Class C
         Sub M(o As Outer)
@@ -627,7 +627,7 @@ index:=0)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateIntoSiblingThroughInstance() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(s As Sibling)
         s.[|Foo|]()
@@ -650,7 +650,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateIntoSiblingThroughClass() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(s As Sibling)
         [|Sibling.Foo|]()
@@ -673,7 +673,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateIntoInterfaceThroughInstance() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(s As ISibling)
         s.[|Foo|]()
@@ -693,7 +693,7 @@ End Interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateAbstractIntoSameType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class C
     Sub M()
         [|Foo|]()
@@ -711,7 +711,7 @@ index:=1)
         <WorkItem(539297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539297")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateIntoModule() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Class C 
  Sub M()
         [|Foo|]()
@@ -730,7 +730,7 @@ Module Class C
         <WorkItem(539506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539506")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestInference1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         Do While [|Foo|]()
@@ -752,7 +752,7 @@ End Class")
         <WorkItem(539505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539505")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestEscaping1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|[Sub]|]()
@@ -772,7 +772,7 @@ End Class")
         <WorkItem(539504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539504")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestExplicitCall() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         Call [|S|]
@@ -792,7 +792,7 @@ End Class")
         <WorkItem(539504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539504")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestImplicitCall() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|S|]
@@ -812,7 +812,7 @@ End Class")
         <WorkItem(539537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539537")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestArrayAccess1() As Task
-            Await TestMissingAsync("Class C
+            Await TestMissingInRegularAndScriptAsync("Class C
     Sub M(x As Integer())
         Foo([|x|](4))
     End Sub
@@ -822,7 +822,7 @@ End Class")
         <WorkItem(539560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539560")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestTypeCharacterInteger() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|S%|]()
@@ -842,7 +842,7 @@ End Class")
         <WorkItem(539560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539560")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestTypeCharacterLong() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|S&|]()
@@ -862,7 +862,7 @@ End Class")
         <WorkItem(539560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539560")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestTypeCharacterDecimal() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|S@|]()
@@ -882,7 +882,7 @@ End Class")
         <WorkItem(539560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539560")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestTypeCharacterSingle() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|S!|]()
@@ -902,7 +902,7 @@ End Class")
         <WorkItem(539560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539560")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestTypeCharacterDouble() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|S#|]()
@@ -922,7 +922,7 @@ End Class")
         <WorkItem(539560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539560")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestTypeCharacterString() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M()
         [|S$|]()
@@ -942,7 +942,7 @@ End Class")
         <WorkItem(539283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539283")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestNewLines() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
                 <text>Public Class C
     Sub M()
         [|Foo|]()
@@ -965,7 +965,7 @@ compareTokens:=False)
         <WorkItem(539283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539283")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestNewLines2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
                 <text>Public Class C
     Sub M()
         D.[|Foo|]()
@@ -992,7 +992,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestArgumentTypeVoid() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Module Program
     Sub Main()
@@ -1014,7 +1014,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateFromImplementsClause() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     Implements IFoo
     Public Function Bip(i As Integer) As String Implements [|IFoo.Snarf|]
@@ -1052,7 +1052,7 @@ End Sub",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestInTopLevelImplicitClass1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Shared Sub Main(args As String())
     [|Foo|]()
@@ -1068,7 +1068,7 @@ End Sub")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestInNamespaceImplicitClass1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Namespace N
     Shared Sub Main(args As String())
@@ -1088,7 +1088,7 @@ End Namespace")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestInNamespaceImplicitClass_FieldInitializer() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Namespace N
     Dim a As Integer = [|Foo|]()
@@ -1104,7 +1104,7 @@ End Namespace")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestClashesWithMethod1() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Program
     Implements IFoo
     Public Function Blah() As String Implements [|IFoo.Blah|]
@@ -1117,7 +1117,7 @@ End Interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestClashesWithMethod2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Program
     Implements IFoo
     Public Function Blah() As String Implements [|IFoo.Blah|]
@@ -1130,7 +1130,7 @@ End Interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestClashesWithMethod3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Implements IFoo
     Sub Snarf() Implements [|IFoo.Blah|]
@@ -1152,7 +1152,7 @@ End Interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestClashesWithMethod4() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Implements IFoo
     Sub Snarf(i As String) Implements [|IFoo.Blah|]
@@ -1174,7 +1174,7 @@ End Interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestClashesWithMethod5() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Implements IFoo
     Sub Blah(i As Integer) Implements [|IFoo.Snarf|]
@@ -1196,7 +1196,7 @@ End Interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestClashesWithMethod6() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Implements IFoo
     Sub Blah(i As Integer, s As String) Implements [|IFoo.Snarf|]
@@ -1219,7 +1219,7 @@ End Interface")
         <WorkItem(539708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539708")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestNoStaticGenerationIntoInterface() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Interface IFoo
 End Interface
 Class Program
@@ -1232,7 +1232,7 @@ End Class")
         <WorkItem(539821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539821")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestEscapeParametername() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         Dim [string] As String = ""hello"" 
@@ -1254,7 +1254,7 @@ End Module")
         <WorkItem(539810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539810")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestDoNotUseUnavailableTypeParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Test
     Sub M(Of T)(x As T)
         [|Foo(Of Integer)|](x)
@@ -1274,7 +1274,7 @@ End Class")
         <WorkItem(539808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539808")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestDoNotUseTypeParametersFromContainingType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Test(Of T)
     Sub M()
         [|Method(Of T)|]()
@@ -1293,7 +1293,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestNameSimplification1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Sub M()
@@ -1314,7 +1314,7 @@ End Class")
         <WorkItem(539809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539809")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestFormattingOfMembers() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Class Test
     Private id As Integer
 
@@ -1347,7 +1347,7 @@ compareTokens:=False)
         <WorkItem(540013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540013")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestInAddressOfExpression1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Delegate Sub D(x As Integer)
 Class C
     Public Sub Foo()
@@ -1369,7 +1369,7 @@ End Class")
         <WorkItem(527986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527986")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestNotOfferedForInferredGenericMethodArgs() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Foo(Of T)
     Sub Main(Of T, X)(k As Foo(Of T))
         [|Bar|](k)
@@ -1382,7 +1382,7 @@ End Class")
         <WorkItem(540740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540740")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestDelegateInAsClause() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Delegate Sub D(x As Integer)
 Class C
     Private Sub M()
@@ -1404,7 +1404,7 @@ End Class")
         <WorkItem(541405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541405")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestMissingOnImplementedInterfaceMethod() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C(Of U)
     Implements ITest
     Public Sub Method(x As U) Implements [|ITest.Method|]
@@ -1418,7 +1418,7 @@ End Interface")
         <WorkItem(542098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542098")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestNotOnConstructorInitializer() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub New
         Me.[|New|](1)
@@ -1429,7 +1429,7 @@ End Class")
         <WorkItem(542838, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542838")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestMultipleImportsAdded() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         For Each v As Integer In [|HERE|]() : Next
@@ -1538,7 +1538,7 @@ compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplicat
         <WorkItem(543216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543216")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestArrayOfAnonymousTypes() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Collections.Generic
 Imports System.Linq
 Module Program
@@ -1571,7 +1571,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestMissingOnHiddenType() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 <text>
 #externalsource("file", num)
 class C
@@ -1588,7 +1588,7 @@ EndClass
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestDoNotGenerateIntoHiddenRegion1_NoImports() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 #ExternalSource ("file", num)
 Class C
@@ -1615,7 +1615,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestDoNotGenerateIntoHiddenRegion1_WithImports() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 #ExternalSource ("file", num)
 Imports System.Threading
@@ -1651,7 +1651,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestDoNotGenerateIntoHiddenRegion2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 #ExternalSource ("file", num)
 Class C
@@ -1688,7 +1688,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestDoNotGenerateIntoHiddenRegion3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 #ExternalSource ("file", num)
 Class C
@@ -1731,7 +1731,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestAddressOfInference1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Module Program
     Sub Main(ByVal args As String())
@@ -1754,7 +1754,7 @@ End Module")
         <WorkItem(544641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestClassStatementTerminators1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C : End Class
 Class B
     Sub Foo()
@@ -1777,7 +1777,7 @@ End Class")
         <WorkItem(546037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546037")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestOmittedArguments1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         [|foo|](,,)
@@ -1797,7 +1797,7 @@ End Module")
         <WorkItem(546037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546037")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestOmittedArguments2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         [|foo|](1,,)
@@ -1817,7 +1817,7 @@ End Module")
         <WorkItem(546037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546037")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestOmittedArguments3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         [|foo|](, 1,)
@@ -1837,7 +1837,7 @@ End Module")
         <WorkItem(546037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546037")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestOmittedArguments4() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         [|foo|](,, 1)
@@ -1857,7 +1857,7 @@ End Module")
         <WorkItem(546037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546037")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestOmittedArguments5() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         [|foo|](1,, 1)
@@ -1877,7 +1877,7 @@ End Module")
         <WorkItem(546037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546037")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestOmittedArguments6() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         [|foo|](1, 1, )
@@ -1897,7 +1897,7 @@ End Module")
         <WorkItem(546683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546683")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestNotOnMissingMethodName() As Task
-            Await TestMissingAsync("Class C
+            Await TestMissingInRegularAndScriptAsync("Class C
     Sub M()
         Me.[||] 
  End Sub
@@ -1907,7 +1907,7 @@ End Class")
         <WorkItem(546684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546684")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateFromEventHandler() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Module1
     Sub Main()
         Dim c1 As New Class1
@@ -1935,7 +1935,7 @@ End Module")
         <WorkItem(530814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530814")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestCapturedMethodTypeParameterThroughLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Module M
@@ -1957,7 +1957,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestTypeParameterAndParameterConflict1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C(Of T)
     Sub Foo(x As T)
@@ -1983,7 +1983,7 @@ End Module")
         <WorkItem(530968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530968")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestTypeParameterAndParameterConflict2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C(Of T)
     Sub Foo(x As T)
@@ -2009,7 +2009,7 @@ End Module")
         <WorkItem(546850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546850")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestCollectionInitializer1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Module Program
     Sub Main(args As String())
@@ -2030,7 +2030,7 @@ End Module")
         <WorkItem(546925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546925")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestCollectionInitializer2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Module M
     Sub Main()
@@ -2051,7 +2051,7 @@ End Module")
         <WorkItem(530818, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530818")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestParameterizedProperty1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Module Program
     Sub Main()
@@ -2072,7 +2072,7 @@ End Module")
         <WorkItem(530818, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530818")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestParameterizedProperty2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Module Program
     Sub Main()
@@ -2099,7 +2099,7 @@ index:=1)
         <WorkItem(907612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907612")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodWithLambda_1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 Imports System
 
@@ -2137,7 +2137,7 @@ End Module
         <WorkItem(907612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907612")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodWithLambda_2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 Imports System
 
@@ -2175,7 +2175,7 @@ End Module
         <WorkItem(907612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907612")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodWithLambda_3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 Imports System
 
@@ -2213,7 +2213,7 @@ End Module
         <WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodForDifferentParameterName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 Class Program
     Sub M()
@@ -2247,7 +2247,7 @@ End Class
         <WorkItem(769760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769760")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodForSameNamedButGenericUsage_1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 Class Program
     Sub Main(args As String())
@@ -2283,7 +2283,7 @@ End Class
         <WorkItem(769760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769760")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodForSameNamedButGenericUsage_2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>Imports System
 Class Program
     Sub Main(args As String())
@@ -2325,7 +2325,7 @@ End Class
         <WorkItem(935731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/935731")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodForAwaitWithoutParenthesis() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>Module Module1
     Async Sub Method_ASub()
         Dim x = [|Await Foo|]
@@ -2350,7 +2350,7 @@ End Module
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodTooManyArgs1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>Module M1
     Sub Main()
         [|test("CC", 15, 45)|]
@@ -2379,7 +2379,7 @@ End Module
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodNamespaceNotExpression1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>Imports System
 Module M1
     Sub Foo()
@@ -2403,7 +2403,7 @@ End Module
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodNoArgumentCountOverloadCandidates1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>Module Module1
     Class C0
         Public whichOne As String
@@ -2455,7 +2455,7 @@ End Module
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodFunctionResultCannotBeIndexed1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>Imports Microsoft.VisualBasic.FileSystem
 Module M1
     Sub foo()
@@ -2482,7 +2482,7 @@ End Module
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodNoCallableOverloadCandidates2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>Class M1
     Sub sub1(Of U, V)(ByVal p1 As U, ByVal p2 As V)
     End Sub
@@ -2514,7 +2514,7 @@ End Class
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodNoNonNarrowingOverloadCandidates2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>Module Module1
     Class C0(Of T)
         Public whichOne As String
@@ -2606,7 +2606,7 @@ End Module
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodNoNonNarrowingOverloadCandidates3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>Module Module1
     Class C0(Of T)
         Sub Foo(ByVal t1 As T)
@@ -2676,7 +2676,7 @@ End Module
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodNoNonNarrowingOverloadCandidates4() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>Module Module1
     Class C0(Of T)
         Public whichOne As String
@@ -2748,7 +2748,7 @@ End Module
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodArgumentNarrowing() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>Option Strict Off
 Module Module1
     Class sample7C1(Of X)
@@ -2816,7 +2816,7 @@ End Module
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodArgumentNarrowing2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>Option Strict Off
 Module Module1
     Class sample7C1(Of X)
@@ -2884,7 +2884,7 @@ End Module
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodArgumentNarrowing3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>Option Strict Off
 Module Module1
     Class sample7C1(Of X)
@@ -2952,7 +2952,7 @@ End Module
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodNoMostSpecificOverload2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>Module Module1
     Class C0(Of T)
         Sub Foo(ByVal t1 As T)
@@ -3012,7 +3012,7 @@ End Module
         <WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodInsideNameOf() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 Imports System
 
@@ -3040,7 +3040,7 @@ End Class
         <WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodInsideNameOf2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 Imports System
 
@@ -3077,7 +3077,7 @@ End Namespace
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodWithNameOfArgument() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 Class C
     Sub M()
@@ -3102,7 +3102,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodWithLambdaAndNameOfArgument() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 Class C
     Sub M()
@@ -3128,7 +3128,7 @@ End Class
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class C
     Sub Main(a As C)
         Dim x As C = a?[|.B|]
@@ -3148,7 +3148,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class C
     Sub Main(a As C)
         Dim x = a?[|.B|]
@@ -3168,7 +3168,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class C
     Sub Main(a As C)
         Dim x As Integer? = a?[|.B|]
@@ -3188,7 +3188,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis4() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class C
     Sub Main(a As C)
         Dim x As C? = a?[|.B|]
@@ -3208,7 +3208,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis5() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Option Strict On
 Imports System
 Public Class C
@@ -3241,7 +3241,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis6() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Public Class C
     Sub Main(a As C)
@@ -3272,7 +3272,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis7() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Public Class C
     Sub Main(a As C)
@@ -3303,7 +3303,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis8() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Public Class C
     Sub Main(a As C)
@@ -3334,7 +3334,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis9() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Public Class C
     Sub Main(a As C)
@@ -3365,7 +3365,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis10() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Public Class C
     Sub Main(a As C)
@@ -3396,7 +3396,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccessNoParenthesis11() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Public Class C
     Sub Main(a As C)
@@ -3427,7 +3427,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccess() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class C
     Sub Main(a As C)
         Dim x As C = a?[|.B|]()
@@ -3447,7 +3447,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccess2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class C
     Sub Main(a As C)
         Dim x = a?[|.B|]()
@@ -3467,7 +3467,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccess3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class C
     Sub Main(a As C)
         Dim x As Integer? = a?[|.B|]()
@@ -3487,7 +3487,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalAccess4() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class C
     Sub Main(a As C)
         Dim x As C? = a?[|.B|]()
@@ -3507,7 +3507,7 @@ End Class")
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Async Function TestGeneratePropertyConditionalAccess() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class C
     Sub Main(a As C)
         Dim x As C = a?[|.B|]()
@@ -3530,7 +3530,7 @@ index:=1)
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Async Function TestGeneratePropertyConditionalAccess2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class C
     Sub Main(a As C)
         Dim x = a?[|.B|]()
@@ -3553,7 +3553,7 @@ index:=1)
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Async Function TestGeneratePropertyConditionalAccess3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class C
     Sub Main(a As C)
         Dim x As Integer? = a?[|.B|]()
@@ -3576,7 +3576,7 @@ index:=1)
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Async Function TestGeneratePropertyConditionalAccess4() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class C
     Sub Main(a As C)
         Dim x As C? = a?[|.B|]()
@@ -3598,7 +3598,7 @@ index:=1)
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalInPropertyInitializer() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Property a As Integer = [|y|]
 End Module",
@@ -3615,7 +3615,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalInPropertyInitializer2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Property a As Integer = [|y|]()
 End Module",
@@ -3632,7 +3632,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodTypeOf() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module C
     Sub Test()
         If TypeOf [|B|] Is String Then
@@ -3653,7 +3653,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodTypeOf2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module C
     Sub Test()
         If TypeOf [|B|]() Is String Then
@@ -3675,7 +3675,7 @@ End Module")
         <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConfigureAwaitFalse() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -3703,7 +3703,7 @@ End Module")
         <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Async Function TestGeneratePropertyConfigureAwaitFalse() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -3734,7 +3734,7 @@ index:=1)
         <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodWithMethodChaining() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System 
 Imports System.Linq 
 Module M 
@@ -3758,7 +3758,7 @@ End Module")
         <WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodInTypeOfIsNot() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -3785,7 +3785,7 @@ End Module")
         <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestInCollectionInitializers1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Module Program
@@ -3808,7 +3808,7 @@ End Module")
         <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestInCollectionInitializers2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Module Program
@@ -3831,7 +3831,7 @@ End Module")
         <WorkItem(10004, "https://github.com/dotnet/roslyn/issues/10004")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodWithMultipleOfSameGenericType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 Namespace TestClasses
     Public Class C
@@ -3863,7 +3863,7 @@ End Namespace
         <WorkItem(11461, "https://github.com/dotnet/roslyn/issues/11461")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodOffOfExistingProperty() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <text>
 Imports System
 
@@ -3908,7 +3908,7 @@ End Class</text>.Value.Replace(vbLf, vbCrLf))
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function MethodWithTuple() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     Private Shared Async Sub Main(args As String())
         Dim d As (Integer, String) = [|NewMethod|]((1, ""hello""))
@@ -3929,7 +3929,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function MethodWithTupleWithNames() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     Private Shared Async Sub Main(args As String())
         Dim d As (a As Integer, b As String) = [|NewMethod|]((c:=1, d:=""hello""))
@@ -3950,7 +3950,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function MethodWithTupleWithOneName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     Private Shared Async Sub Main(args As String())
         Dim d As (a As Integer, String) = [|NewMethod|]((c:=1, ""hello""))
@@ -3979,7 +3979,7 @@ End Class")
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
             Public Async Function TestGenerateExplicitConversionGenericClass() As Task
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
     <text>Class Program
     Private Shared Sub Main(args As String())
         Dim a As C(Of Integer) = CType([|1|], C(Of Integer))
@@ -4008,7 +4008,7 @@ End Class
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
             Public Async Function TestGenerateExplicitConversionClass() As Task
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
     <text>Class Program
     Private Shared Sub Main(args As String())
         Dim a As C = CType([|1|], C)
@@ -4037,7 +4037,7 @@ End Class
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
             Public Async Function TestGenerateExplicitConversionAwaitExpression() As Task
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
     <text>Imports System
 Imports System.Threading.Tasks
 
@@ -4072,7 +4072,7 @@ End Class
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
             Public Async Function TestGenerateImplicitConversionTargetTypeNotInSource() As Task
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
     <text>Imports System
 Imports System.Threading.Tasks
 
@@ -4118,7 +4118,7 @@ End Class
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
             Public Async Function TestGenerateImplicitConversionGenericClass() As Task
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
     <text>Class Program
     Private Shared Sub Main(args As String())
         Dim a As C(Of Integer) = [|1|]
@@ -4147,7 +4147,7 @@ End Class
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
             Public Async Function TestGenerateImplicitConversionClass() As Task
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
     <text>Class Program
     Private Shared Sub Main(args As String())
         Dim a As C = [|1|]
@@ -4176,7 +4176,7 @@ End Class
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
             Public Async Function TestGenerateImplicitConversionAwaitExpression() As Task
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
     <text>Imports System
 Imports System.Threading.Tasks
 
@@ -4211,7 +4211,7 @@ End Class
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
             Public Async Function TestGenerateExplicitConversionTargetTypeNotInSource() As Task
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
     <text>Imports System
 Imports System.Threading.Tasks
 

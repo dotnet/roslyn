@@ -31,7 +31,7 @@ class Program1
 }
 ";
 
-            await TestAsync(input, expected);
+            await TestInRegularAndScriptAsync(input, expected);
         }
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -58,7 +58,7 @@ class Program1
 }
 ";
 
-            await TestAsync(input, expected);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -145,7 +145,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
         }
 
         [Fact]
@@ -229,7 +229,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
         }
 
         [Fact]
@@ -316,7 +316,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
         }
     }
 }

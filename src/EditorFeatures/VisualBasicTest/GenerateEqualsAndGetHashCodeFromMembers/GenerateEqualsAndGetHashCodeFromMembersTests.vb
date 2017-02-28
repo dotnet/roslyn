@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructo
         <WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestEqualsOnSingleField() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Z
     [|Private a As Integer|]
 End Class",
@@ -34,7 +34,7 @@ index:=0, compareTokens:=False)
         <WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestGetHashCodeOnSingleField() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Z
     [|Private a As Integer|]
 End Class",
@@ -51,7 +51,7 @@ index:=1)
         <WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestBothOnSingleField() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Z
     [|Private a As Integer|]
 End Class",
@@ -74,7 +74,7 @@ index:=2, compareTokens:=False)
         <WorkItem(545205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545205")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestTypeWithNumberInName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Partial Class c1(Of V As {New}, U)
     [|Dim x As New V|]
 End Class",

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQ
         <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Async Function TestAsyncFunction1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 Module Program
     [|Async Function F()|]
@@ -33,7 +33,7 @@ End Module")
         <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Async Function TestAsyncFunction2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 Module Program
     [|Async Function F() As Integer|]
@@ -51,7 +51,7 @@ End Module")
         <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Async Function TestAsyncFunction3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 Module Program
     Async Function F() As Task
@@ -75,7 +75,7 @@ End Module")
         <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Async Function TestIteratorFunction1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Collections
 Imports System.Collections.Generic
 Module Program
@@ -95,7 +95,7 @@ End Module")
         <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Async Function TestIteratorFunction2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Collections
 Imports System.Collections.Generic
 Module Program
@@ -115,7 +115,7 @@ End Module")
         <WorkItem(718494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718494")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Async Function TestIteratorFunction3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Collections
 Imports System.Collections.Generic
 Module Program

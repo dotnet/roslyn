@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
 
         private async Task TestMissingOneAsync(string initial)
         {
-            await TestMissingAsync(CreateTreeText("[||]" + initial));
+            await TestMissingInRegularAndScriptAsync(CreateTreeText("[||]" + initial));
         }
 
         private async Task TestFixOneAsync(string initial, string expected, Refactoring refactoring)
         {
-            await TestAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), index: (int)refactoring);
+            await TestInRegularAndScriptAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), index: (int)refactoring);
         }
 
         private string CreateTreeText(string initial)

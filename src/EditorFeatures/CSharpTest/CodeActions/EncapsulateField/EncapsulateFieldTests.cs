@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             int index = 0, bool compareTokens = true,
-            IDictionary<OptionKey, object> options = null,
-            bool withScriptOption = false)
+            IDictionary<OptionKey, object> options = null)
         {
             options = options ?? new Dictionary<OptionKey, object>();
             foreach (var kvp in AllOptionsOff)
@@ -41,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             }
 
             return TestAsync(initialMarkup, expectedMarkup,
-                parseOptions, compilationOptions, index, compareTokens, options, 
-                withScriptOption: withScriptOption);
+                parseOptions, compilationOptions, index, compareTokens, options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -168,7 +166,7 @@ class foo
     }
 }
 ";
-            await TestAsync(text, expected, 
+            await TestInRegularAndScriptAsync(text, expected, 
                 options: OptionsSet(
                     SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
                     SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
@@ -207,7 +205,7 @@ class foo
     }
 }
 ";
-            await TestAsync(text, expected,
+            await TestInRegularAndScriptAsync(text, expected,
                 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
@@ -1101,16 +1099,16 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task DoNotEncapsulateOutsideTypeDeclaration()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"var [|x|] = 1;");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"namespace N
 {
     var [|x|] = 1;
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"enum E
 {
     [|x|] = 1;
@@ -1397,7 +1395,8 @@ class C
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestAllOptionsOffAsync(
+                text, expected, compareTokens: false, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1439,7 +1438,8 @@ class C
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestAllOptionsOffAsync(
+                text, expected, compareTokens: false, index: 1);
         }
     }
 }

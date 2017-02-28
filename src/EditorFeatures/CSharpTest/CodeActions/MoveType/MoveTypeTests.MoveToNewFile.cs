@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             var code =
 @"[||]class test1 { }";
 
-            await TestMissingAsync(code);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
     [||]class test1 { }
 }";
 
-            await TestMissingAsync(code);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 @"[|clas|]s Class1 { }
  class Class2 { }";
 
-            await TestMissingAsync(code);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -94,7 +94,7 @@ class Class2 { }
 @"[|class Class1|] { }
 class Class2 { }";
 
-            await TestMissingAsync(code);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]

@@ -466,7 +466,7 @@ End Class</File>
         <WorkItem(908322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908322")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestObjectConstruction() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class AwesomeClass
     Sub M()
         Dim foo = New [|AwesomeClas()|]
@@ -483,13 +483,13 @@ index:=0)
         <WorkItem(6338, "https://github.com/dotnet/roslyn/issues/6338")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestTestMissingName() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "<Assembly: Microsoft.CodeAnalysis.[||]>")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestTrivia1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class AwesomeClass
     Sub M()
         Dim foo = New [|AwesomeClas|] ' trailing trivia
@@ -514,7 +514,7 @@ compareTokens:=False)
             <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
             Public Async Function TestIncompleteStatement() As Task
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
 "Class AwesomeClass
     Inherits System.Attribute
 End Class

@@ -59,35 +59,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected async Task TestMissingAsync(
+        protected async Task TestMissingInRegularAndScriptAsync(
             string initialMarkup,
+            CompilationOptions compilationOptions = null,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null)
         {
-            await TestMissingAsync(initialMarkup, parseOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
-            await TestMissingAsync(initialMarkup, parseOptions: GetScriptOptions(), options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
+            await TestMissingAsync(
+                initialMarkup, parseOptions: null,
+                compilationOptions: compilationOptions,
+                options: options,
+                fixAllActionEquivalenceKey: fixAllActionEquivalenceKey,
+                fixProviderData: fixProviderData);
+            await TestMissingAsync(
+                initialMarkup, parseOptions: GetScriptOptions(),
+                options: options,
+                fixAllActionEquivalenceKey: fixAllActionEquivalenceKey,
+                fixProviderData: fixProviderData);
         }
 
         protected async Task TestMissingAsync(
             string initialMarkup,
-            ParseOptions parseOptions,
-            IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null,
-            bool withScriptOption = false)
-        {
-            await TestMissingAsync(initialMarkup, parseOptions, compilationOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
-
-            if (withScriptOption)
-            {
-                await TestMissingAsync(initialMarkup, parseOptions.WithKind(SourceCodeKind.Script), compilationOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
-            }
-        }
-
-        protected async Task TestMissingAsync(
-            string initialMarkup,
-            ParseOptions parseOptions, CompilationOptions compilationOptions,
+            ParseOptions parseOptions = null,
+            CompilationOptions compilationOptions = null,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null)
@@ -102,13 +97,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected async Task<IList<CodeAction>> GetCodeActionsAsync(
-            TestWorkspace workspace, string fixAllActionEquivalenceKey, object fixProviderData = null)
+            TestWorkspace workspace, string fixAllActionEquivalenceKey, object fixProviderData)
         {
             return MassageActions(await GetCodeActionsWorkerAsync(workspace, fixAllActionEquivalenceKey, fixProviderData));
         }
 
         protected abstract Task<IList<CodeAction>> GetCodeActionsWorkerAsync(
-            TestWorkspace workspace, string fixAllActionEquivalenceKey, object fixProviderData = null);
+            TestWorkspace workspace, string fixAllActionEquivalenceKey, object fixProviderData);
 
         protected async Task TestSmartTagTextAsync(
             string initialMarkup,
@@ -129,11 +124,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup,
             IEnumerable<string> expectedActionSet,
             ParseOptions parseOptions = null,
-            CompilationOptions compilationOptions = null)
+            CompilationOptions compilationOptions = null,
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
             using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
-                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
+                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey, fixProviderData);
 
                 var actualActionSet = actions.Select(a => a.Title);
                 Assert.True(actualActionSet.SequenceEqual(expectedActionSet),
@@ -147,7 +144,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             int count,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
-            IDictionary<OptionKey, object> featureOptions = null)
+            IDictionary<OptionKey, object> featureOptions = null,
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
             using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
@@ -156,13 +155,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     workspace.ApplyOptions(featureOptions);
                 }
 
-                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
+                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey, fixProviderData);
 
                 Assert.Equal(count, actions.Count());
             }
         }
 
-        protected async Task TestAddDocument(
+        protected async Task TestAddDocumentInRegularAndScriptAsync(
             string initialMarkup, string expectedMarkup,
             IList<string> expectedContainers,
             string expectedDocumentName,
@@ -179,11 +178,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             int index,
             string expectedDocumentName,
             IList<string> expectedContainers,
-            bool compareTokens = true)
+            bool compareTokens = true,
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
-            var codeActions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
-            return await TestAddDocument(workspace, expectedMarkup, index, expectedContainers, expectedDocumentName,
-                codeActions, compareTokens);
+            var codeActions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey, fixProviderData);
+            return await TestAddDocument(
+                workspace, expectedMarkup, index, expectedContainers, 
+                expectedDocumentName, codeActions, compareTokens);
         }
 
         private async Task TestAddDocument(
@@ -192,13 +194,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IList<string> expectedContainers,
             string expectedDocumentName,
             ParseOptions parseOptions, CompilationOptions compilationOptions,
-            bool compareTokens, bool isLine)
+            bool compareTokens, bool isLine,
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
             using (var workspace = isLine
                 ? await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions)
                 : await TestWorkspace.CreateAsync(initialMarkup))
             {
-                var codeActions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
+                var codeActions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey, fixProviderData);
                 await TestAddDocument(workspace, expectedMarkup, index, expectedContainers, expectedDocumentName,
                     codeActions, compareTokens);
             }
@@ -303,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return Tuple.Create(oldSolution, newSolution);
         }
 
-        internal async Task TestAsync(
+        internal async Task TestInRegularAndScriptAsync(
             string initialMarkup, string expectedMarkup,
             int index = 0, bool compareTokens = true,
             IDictionary<OptionKey, object> options = null,
@@ -323,25 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null,
-            CodeActionPriority? priority = null,
-            bool withScriptOption = false)
-        {
-            await TestAsync(initialMarkup, expectedMarkup, parseOptions, compilationOptions, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority);
-
-            if (withScriptOption)
-            {
-                await TestAsync(initialMarkup, expectedMarkup, parseOptions.WithKind(SourceCodeKind.Script), compilationOptions, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority);
-            }
-        }
-
-        private async Task TestAsync(
-            string initialMarkup, string expectedMarkup,
-            ParseOptions parseOptions, CompilationOptions compilationOptions,
-            int index, bool compareTokens,
-            IDictionary<OptionKey, object> options,
-            string fixAllActionEquivalenceKey,
-            object fixProviderData,
-            CodeActionPriority? priority)
+            CodeActionPriority? priority = null)
         {
             MarkupTestFile.GetSpans(expectedMarkup.NormalizeLineEndings(), out var expected, out IDictionary<string, IList<TextSpan>> spanMap);
 

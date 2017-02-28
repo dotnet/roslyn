@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructo
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSingleField() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     [|Private i As Integer|]
 End Class",
@@ -30,7 +30,7 @@ index:=0)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMultipleFields() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     [|Private i As Integer
     Private b As String|]
@@ -48,7 +48,7 @@ index:=0)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSecondField() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     Private i As Integer
     [|Private b As String|]
@@ -71,7 +71,7 @@ index:=0)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestFieldAssigningConstructor() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     [|Private i As Integer
     Private b As String|]
@@ -95,7 +95,7 @@ index:=0)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMissingWithExistingConstructor() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Program
     [|Private i As Integer
     Private b As String|]
@@ -111,7 +111,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestStruct() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Structure S
     [|Private i As Integer|]
 End Structure",
@@ -126,7 +126,7 @@ index:=0)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestGenericType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program(Of T)
     [|Private i As Integer|]
 End Class",
@@ -142,7 +142,7 @@ index:=0)
         <WorkItem(541995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541995")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSimpleDelegatingConstructor() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     [|Private i As Integer
     Private b As String|]
@@ -167,7 +167,7 @@ index:=1)
         <WorkItem(542008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542008")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestGenerateFromNormalProperties() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Z
     [|Public Property A As Integer
     Public Property B As String|]
@@ -186,7 +186,7 @@ index:=0)
         <WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestGetter_Only_Auto_Props() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Contribution
   [|ReadOnly Property Title As String
     ReadOnly Property Number As Integer|]
@@ -206,7 +206,7 @@ index:=0)
         <WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestAbstract_Getter_Only_Auto_Props() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Contribution
   [|MustOverride ReadOnly Property Title As String
     ReadOnly Property Number As Integer|]
@@ -276,7 +276,7 @@ End Class", chosenSymbols:={"i"})
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMissingOnMember1() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Program
     Private i As Integer
     [||]Sub M()
@@ -286,7 +286,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMissingOnMember2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Program
     Private i As Integer
     Sub M()
@@ -296,7 +296,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMissingOnAttributes() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "<X>[||]
 Class Program
     Private i As Integer

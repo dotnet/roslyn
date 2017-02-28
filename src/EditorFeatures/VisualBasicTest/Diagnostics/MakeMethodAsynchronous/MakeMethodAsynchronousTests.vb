@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMe
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInSubNoModifiers() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 Module Program
@@ -34,7 +34,7 @@ End Module",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInSubWithModifiers() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 Module Program
@@ -54,7 +54,7 @@ End Module",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInFunctionNoModifiers() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 Module Program
@@ -74,7 +74,7 @@ Module Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInFunctionWithModifiers() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 Module Program
@@ -130,7 +130,7 @@ Module Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInMember() As Task
-            Await TestMissingAsync("Imports System
+            Await TestMissingInRegularAndScriptAsync("Imports System
 Imports System.Threading.Tasks
 Module Program
     Dim x =[| Await Task.Delay(3)|] 

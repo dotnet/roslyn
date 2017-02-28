@@ -98,7 +98,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
@@ -189,7 +189,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
@@ -280,7 +280,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
@@ -487,7 +487,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestInRegularAndScriptAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
         End Function
 
         <Fact>
@@ -718,7 +718,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestInRegularAndScriptAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
         End Function
 
         <Fact>
@@ -792,7 +792,7 @@ End Class]]>
             Dim options = OptionsSet(
                 SingleOption(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Suggestion),
                 SingleOption(CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Suggestion))
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
                 initialMarkup:=input,
                 expectedMarkup:=expected,
                 options:=options,
