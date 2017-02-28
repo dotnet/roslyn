@@ -155,9 +155,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 dte.Find.Action = EnvDTE.vsFindAction.vsFindActionFind;
 
                 var originalPosition = GetCaretPosition();
+                view.Caret.MoveTo(new Microsoft.VisualStudio.Text.SnapshotPoint(view.GetBufferContainingCaret().CurrentSnapshot, 0));
+
                 if (occurrence > 0)
                 {
-                    view.Caret.MoveTo(new Microsoft.VisualStudio.Text.SnapshotPoint(view.GetBufferContainingCaret().CurrentSnapshot, 0));
 
                     var result = EnvDTE.vsFindResult.vsFindResultNotFound;
                     for (var i = 0; i < occurrence; i++)

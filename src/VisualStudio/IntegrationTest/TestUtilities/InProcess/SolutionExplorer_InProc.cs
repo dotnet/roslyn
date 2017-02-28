@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 var directoriesToDelete = new List<string>();
 
-                // Save the full path to each project in the solution. This is so we can 
+                // Save the full path to each project in the solution. This is so we can
                 // cleanup any folders after the solution is closed.
                 foreach (EnvDTE.Project project in dte.Solution.Projects)
                 {
@@ -359,7 +359,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             if (fileToSave == null)
             {
                 var fileNames = dte.Documents.Cast<EnvDTE.Document>().Select(d => d.Name);
-                throw new Exception($"File '{fileName}' not saved because it couldn't be found.  Available files: {string.Join(", ", fileNames)}.");
+                throw new InvalidOperationException($"File '{fileName}' not saved because it couldn't be found.  Available files: {string.Join(", ", fileNames)}.");
             }
             var textDocument = (EnvDTE.TextDocument)fileToSave.Object(nameof(EnvDTE.TextDocument));
             var currentTextInDocument = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
@@ -367,7 +367,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             fileToSave.Save();
             if (File.ReadAllText(fullPath) != currentTextInDocument)
             {
-                throw new Exception("The text that we thought we were saving isn't what we saved!");
+                throw new InvalidOperationException("The text that we thought we were saving isn't what we saved!");
             }
         }
 

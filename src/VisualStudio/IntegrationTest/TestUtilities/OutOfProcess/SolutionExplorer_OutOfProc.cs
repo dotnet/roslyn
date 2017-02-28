@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetFileContents(string projectName, string fileName)
             => _inProc.GetFileContents(projectName, fileName);
 
-        public void BuildSolution(bool waitForBuildToFinish = false)
+        public void BuildSolution(bool waitForBuildToFinish)
             => _inProc.BuildSolution(waitForBuildToFinish);
 
         public void OpenFileWithDesigner(string projectName, string fileName)
