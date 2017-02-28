@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
     Public Class CommitWithViewTests
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterTypingAndDownArrow() As Task
+        Public Sub TestCommitAfterTypingAndDownArrow()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -23,11 +23,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
 
                 Assert.Equal("Imports System" + vbCrLf, testData.Buffer.CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestDontCrashOnPastingCarriageReturnContainingString() As Task
+        Public Sub TestDontCrashOnPastingCarriageReturnContainingString()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -46,12 +46,12 @@ End Module
                 testData.EditorOperations.InsertText("f'x" + vbCr + """")
                 testData.EditorOperations.MoveLineDown(extendSelection:=False)
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539305")>
-        Public Async Function TestCommitAfterTypingAndUpArrowInLambdaFooter() As Task
+        Public Sub TestCommitAfterTypingAndUpArrowInLambdaFooter()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -72,7 +72,7 @@ End Module
 
                 Assert.Equal("End Sub", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(5).GetText().Trim())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>

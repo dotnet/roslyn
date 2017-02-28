@@ -35,7 +35,7 @@ End Class</text>
         Throw New NotImplementedException()
     End Function</text>
 
-            Await TestAsync(code,
+            Test(code,
              expectedText,
              Sub() Throw New Exception("The operation should have been handled."),
              Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
@@ -60,7 +60,7 @@ End Class
         Throw New NotImplementedException()
     End Sub</text>
 
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub() Throw New Exception("The operation should have been handled."),
                  Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
@@ -84,14 +84,14 @@ End Class
         Throw New NotImplementedException()
     End Sub</text>
 
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub() Throw New Exception("The operation should have been handled."),
                  Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
-        Public Async Function TestNoMembersToImplement() As Task
+        Public Sub TestNoMembersToImplement()
             Dim code = <text>
 Imports System
 
@@ -118,11 +118,11 @@ End Class</text>
                  Sub() editorOperations.InsertNewLine(),
                  Sub(x, y) Assert.Equal(x.Trim(), y.Trim()))
             End Using
-        End Function
+        End Sub
 
         <WorkItem(544412, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544412")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
-        Public Async Function TestEnterNotOnSameLine() As Task
+        Public Sub TestEnterNotOnSameLine()
             Dim code = <text>
 MustInherit Class Base
     MustOverride Sub foo()
@@ -152,7 +152,7 @@ End Class</text>
                  Sub() editorOperations.InsertNewLine(),
                  Sub(x, y) Assert.Equal(x.Trim(), y.Trim()))
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestWithEndBlockMissing() As Task
@@ -180,17 +180,17 @@ Public Class Bar
     End Sub
 End Class</text>
 
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub() Throw New Exception("The operation should have been handled."),
                  Sub(x, y) AssertEx.AssertEqualToleratingWhitespaceDifferences(x, y))
         End Function
 
-        Private Async Function TestAsync(code As XElement, expectedText As XElement, nextHandler As Action, assertion As Action(Of String, String)) As Task
+        Private Sub Test(code As XElement, expectedText As XElement, nextHandler As Action, assertion As Action(Of String, String))
             Using workspace = GetWorkspace(code)
                 Test(workspace, expectedText, nextHandler, assertion)
             End Using
-        End Function
+        End Sub
 
         Private Sub Test(workspace As TestWorkspace, expectedText As XElement, nextHandler As Action, assertion As Action(Of String, String))
             Dim document = workspace.Documents.Single()

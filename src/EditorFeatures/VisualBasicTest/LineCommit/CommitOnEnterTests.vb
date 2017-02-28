@@ -16,7 +16,7 @@ imports System$$|]
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
+            AssertCommitsStatement(test, expectCommit:=True)
         End Function
 
         <WpfFact>
@@ -34,7 +34,7 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=False)
+            AssertCommitsStatement(test, expectCommit:=False)
         End Function
 
         <WpfFact>
@@ -53,7 +53,7 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=False)
+            AssertCommitsStatement(test, expectCommit:=False)
         End Function
 
         <WpfFact>
@@ -73,7 +73,7 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
+            AssertCommitsStatement(test, expectCommit:=True)
         End Function
 
         <WpfFact>
@@ -92,7 +92,7 @@ End Class|]
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
+            AssertCommitsStatement(test, expectCommit:=True)
         End Function
 
         <WpfFact>
@@ -111,7 +111,7 @@ End Class$$|]
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True, usedSemantics:=False)
+            AssertCommitsStatement(test, expectCommit:=True, usedSemantics:=False)
         End Function
 
         <WpfFact>
@@ -130,7 +130,7 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
+            AssertCommitsStatement(test, expectCommit:=True)
         End Function
 
         <WpfFact>
@@ -148,7 +148,7 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=False)
+            AssertCommitsStatement(test, expectCommit:=False)
         End Function
 
         <WpfFact>
@@ -167,7 +167,7 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
+            AssertCommitsStatement(test, expectCommit:=True)
         End Function
 
         <WpfFact>
@@ -185,7 +185,7 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
+            AssertCommitsStatement(test, expectCommit:=True)
         End Function
 
         <WpfFact>
@@ -204,7 +204,7 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
+            AssertCommitsStatement(test, expectCommit:=True)
         End Function
 
         <WpfFact>
@@ -219,7 +219,7 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
+            AssertCommitsStatement(test, expectCommit:=True)
         End Function
 
         <WpfFact>
@@ -234,26 +234,26 @@ rem Hello World$$|]
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
+            AssertCommitsStatement(test, expectCommit:=True)
         End Function
 
         <WpfFact>
         <WorkItem(544372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544372")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function UndoAfterCommitOnBlankLine() As Threading.Tasks.Task
+        Public Sub UndoAfterCommitOnBlankLine()
             Using testData = CommitTestData.Create(<Workspace>
-                                                                  <Project Language="Visual Basic" CommonReferences="true">
-                                                                      <Document>$$
+                                                       <Project Language="Visual Basic" CommonReferences="true">
+                                                           <Document>$$
                                                         </Document>
-                                                                  </Project>
-                                                              </Workspace>)
+                                                       </Project>
+                                                   </Workspace>)
 
                 testData.CommandHandler.ExecuteCommand(New ReturnKeyCommandArgs(testData.View, testData.Buffer), Sub() testData.EditorOperations.InsertNewLine())
                 testData.UndoHistory.Undo(count:=1)
 
                 Assert.Equal(0, testData.View.Caret.Position.BufferPosition.GetContainingLine().LineNumber)
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
@@ -276,7 +276,7 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
+            AssertCommitsStatement(test, expectCommit:=True)
         End Function
 
         <WpfFact>
@@ -300,7 +300,7 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
+            AssertCommitsStatement(test, expectCommit:=True)
         End Function
 
         <WpfFact>
@@ -323,7 +323,7 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
+            AssertCommitsStatement(test, expectCommit:=True)
         End Function
 
         <WpfFact>
@@ -343,10 +343,10 @@ End Module
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=False)
+            AssertCommitsStatement(test, expectCommit:=False)
         End Function
 
-        Private Async Function AssertCommitsStatementAsync(test As XElement, expectCommit As Boolean, Optional usedSemantics As Boolean = True) As Threading.Tasks.Task
+        Private Sub AssertCommitsStatement(test As XElement, expectCommit As Boolean, Optional usedSemantics As Boolean = True)
             Using testData = CommitTestData.Create(test)
                 Dim lineNumber = testData.View.Caret.Position.BufferPosition.GetContainingLine().LineNumber
                 testData.CommandHandler.ExecuteCommand(New ReturnKeyCommandArgs(testData.View, testData.Buffer), Sub() testData.EditorOperations.InsertNewLine())
@@ -357,6 +357,6 @@ End Module
 
                 Assert.Equal(lineNumber + 1, testData.View.Caret.Position.BufferPosition.GetContainingLine().LineNumber)
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace

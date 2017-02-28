@@ -14,7 +14,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
     Public Class ImplementInterfaceCommandHandlerTests
 
-        Private Async Function TestAsync(code As XElement, expectedText As XElement, nextHandler As Action(Of IWpfTextView, TestWorkspace), assertion As Action(Of String, String, IWpfTextView)) As Threading.Tasks.Task
+        Private Sub Test(code As XElement, expectedText As XElement, nextHandler As Action(Of IWpfTextView, TestWorkspace), assertion As Action(Of String, String, IWpfTextView))
             Using workspace = GetWorkspace(code.NormalizedValue)
                 Dim commandHandler = MoveCaretAndCreateCommandHandler(workspace)
                 Dim view = workspace.Documents.Single().GetTextView()
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
 
                 assertion(expectedText.NormalizedValue, text, view)
             End Using
-        End Function
+        End Sub
 
         Private Shared Function MoveCaretAndCreateCommandHandler(workspace As TestWorkspace) As ICommandHandler(Of ReturnKeyCommandArgs)
             Dim document = workspace.Documents.Single()
@@ -86,7 +86,7 @@ End Interface</text>
         Throw New NotImplementedException()
     End Sub</text>
 
-            Await TestAsync(code,
+            Test(code,
              expectedText,
              Sub() Throw New Exception("The operation should have been handled."),
              Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
@@ -115,7 +115,7 @@ End Class</text>
         Throw New NotImplementedException()
     End Sub</text>
 
-            Await TestAsync(code,
+            Test(code,
              expectedText,
              Sub() Throw New Exception("The operation should have been handled."),
              Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
@@ -154,7 +154,7 @@ End Interface</text>
         Throw New NotImplementedException()
     End Function</text>
 
-            Await TestAsync(code,
+            Test(code,
              expectedText,
              Sub() Throw New Exception("The operation should have been handled."),
              Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
@@ -184,7 +184,7 @@ End Interface</text>
         Throw New NotImplementedException()
     End Function</text>
 
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub() Throw New Exception("The operation should have been handled."),
                  Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
@@ -211,7 +211,7 @@ Class Foo
     , IBar
 End Class</text>
 
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub(view, workspace)
                      Dim operations = workspace.GetService(Of IEditorOperationsFactoryService)() _
@@ -240,7 +240,7 @@ End Interface</text>
         Throw New NotImplementedException()
     End Sub</text>
 
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub() Throw New Exception("The operation should have been handled."),
                  Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
@@ -266,7 +266,7 @@ End Interface</text>
         Throw New NotImplementedException()
     End Sub</text>
 
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub() Throw New Exception("The operation should have been handled."),
                  Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
@@ -290,7 +290,7 @@ End Class
 Interface IFoo
 End Interface</text>
 
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub(view, workspace)
                      Dim operations = workspace.GetService(Of IEditorOperationsFactoryService)() _
@@ -320,7 +320,7 @@ Class Foo
     End Function
 End Class</text>
 
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub() Throw New Exception("The operation should have been handled."),
                  Sub(expected, actual, view) AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual))
@@ -350,7 +350,7 @@ Class Foo
     End Interface
 End Class</text>
 
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub() Throw New Exception("The operation should have been handled."),
                  Sub(expected, actual, view) AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual))
@@ -382,7 +382,7 @@ Class CFoo : Implements IFoo
     End Sub
 End Class
 </text>
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub(view, workspace)
                      Dim operations = workspace.GetService(Of IEditorOperationsFactoryService)() _
@@ -417,7 +417,7 @@ Public Class Bar
 
 End Class
 </text>
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub(view, workspace)
                      Dim operations = workspace.GetService(Of IEditorOperationsFactoryService)() _
@@ -448,7 +448,7 @@ Public Class Bar
       End Function
 End Class
 </text>
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub(view, workspace)
                      Dim operations = workspace.GetService(Of IEditorOperationsFactoryService)() _
@@ -492,7 +492,7 @@ Class C
     End Sub
 End Class</text>
 
-            Await TestAsync(code,
+            Test(code,
              expectedText,
              Sub() Throw New Exception("The operation should have been handled."),
              Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
@@ -522,7 +522,7 @@ Class C
     End Sub
 End Class</text>
 
-            Await TestAsync(code,
+            Test(code,
              expectedText,
              Sub() Throw New Exception("The operation should have been handled."),
              Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
