@@ -29,12 +29,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
                 If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
-        'Friend Overloads Async Function TestAsync(initial As XElement, expected As XCData) As Task
-        '    Dim initialMarkup = initial.ToString()
-        '    Dim expectedMarkup = expected.Value
-        '    Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup)
-        'End Function
-
         Protected Overrides Function GetLanguage() As String
             Return LanguageNames.VisualBasic
         End Function
