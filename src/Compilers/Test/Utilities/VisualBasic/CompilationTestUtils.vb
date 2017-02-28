@@ -1050,7 +1050,7 @@ Friend Module CompilationUtils
         AssertTheseDiagnostics(errors, expectedText, suppressInfos)
     End Sub
 
-    Private Sub AssertTheseDiagnostics(errors As ImmutableArray(Of Diagnostic), expectedText As String, suppressInfos As Boolean)
+    Friend Sub AssertTheseDiagnostics(errors As ImmutableArray(Of Diagnostic), expectedText As String, Optional suppressInfos As Boolean = True)
         Dim actualText = DumpAllDiagnostics(errors.ToArray(), suppressInfos)
         If expectedText <> actualText Then
 

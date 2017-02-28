@@ -14,11 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' Using an instance of <see cref="VisualBasicCompilationOptions"/>, tests a property in <see cref="CompilationOptions"/> , even it is hidden by <see cref="VisualBasicCompilationOptions"/>.
         ''' </summary>
         Private Sub TestHiddenProperty(Of T)(factory As Func(Of CompilationOptions, T, CompilationOptions),
-                                       getter As Func(Of CompilationOptions, T),
-                                       validNonDefaultValue As T)
+                                             getter As Func(Of CompilationOptions, T),
+                                             validNonDefaultValue As T)
             TestPropertyGeneric(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), factory, getter, validNonDefaultValue)
         End Sub
-        
+
         <Fact>
         Public Sub ShadowInvariants()
             TestHiddenProperty(Function(old, value) old.WithOutputKind(value), Function(opt) opt.OutputKind, OutputKind.DynamicallyLinkedLibrary)
@@ -54,8 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         Private Shared Sub TestPropertyGeneric(Of TOptions As CompilationOptions, T)(oldOptions As TOptions,
-                                                     factory As Func(Of TOptions, T, TOptions), 
-                                                     getter As Func(Of TOptions, T), validNonDefaultValue As T)
+                                                                                     factory As Func(Of TOptions, T, TOptions),
+                                                                                     getter As Func(Of TOptions, T), validNonDefaultValue As T)
             Dim validDefaultValue = getter(oldOptions)
 
             '  we need non-default value to test Equals And GetHashCode
@@ -128,9 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub WithXxx()
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName(Nothing).Errors,
-<expected>
-BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
-</expected>)
+"BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'")
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("blah" & ChrW(0) & "foo").Errors,
 <expected>
@@ -138,9 +136,7 @@ BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'Scrip
 </expected>)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("").Errors,
-<expected>
-BC2014: the value '' is invalid for option 'ScriptClassName'
-</expected>)
+"BC2014: the value '' is invalid for option 'ScriptClassName'")
 
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName(Nothing).Errors.IsEmpty)
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("blah" & ChrW(0) & "foo").Errors,
@@ -149,9 +145,7 @@ BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'MainT
 </expected>)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("").Errors,
-<expected>
-BC2014: the value '' is invalid for option 'MainTypeName'
-</expected>)
+"BC2014: the value '' is invalid for option 'MainTypeName'")
 
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace(Nothing).Errors.IsEmpty)
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("blah" & ChrW(0) & "foo").Errors,
@@ -165,70 +159,44 @@ BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'RootN
             Assert.Equal(0, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("Foo.Bar")).WithGlobalImports(DirectCast(Nothing, GlobalImport())).GlobalImports.Count)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOutputKind(CType(Int32.MaxValue, OutputKind)).Errors,
-<expected>
-BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'OutputKind'
-</expected>)
+"BC2014: the value '2147483647' is invalid for option 'OutputKind'")
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOutputKind(CType(Int32.MinValue, OutputKind)).Errors,
-<expected>
-BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'OutputKind'
-</expected>)
+"BC2014: the value '-2147483648' is invalid for option 'OutputKind'")
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel(CType(Int32.MaxValue, OptimizationLevel)).Errors,
-<expected>
-BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'OptimizationLevel'
-</expected>)
+"BC2014: the value '2147483647' is invalid for option 'OptimizationLevel'")
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel(CType(Int32.MinValue, OptimizationLevel)).Errors,
-<expected>
-BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'OptimizationLevel'
-</expected>)
+"BC2014: the value '-2147483648' is invalid for option 'OptimizationLevel'")
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(CType(3, OptionStrict)).Errors,
-<expected>
-BC2014: the value '3' is invalid for option 'OptionStrict'
-</expected>)
+"BC2014: the value '3' is invalid for option 'OptionStrict'")
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(CType(Int32.MaxValue, Platform)).Errors,
-<expected>
-BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'Platform'
-</expected>)
+"BC2014: the value '2147483647' is invalid for option 'Platform'")
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(CType(Int32.MinValue, Platform)).Errors,
-<expected>
-BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'Platform'
-</expected>)
+"BC2014: the value '-2147483648' is invalid for option 'Platform'")
 
             Assert.Equal(Nothing, TestOptions.ReleaseDll.WithModuleName("foo").WithModuleName(Nothing).ModuleName)
             AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("").Errors,
-<expected>
-BC37206: Invalid module name: Name cannot be empty.
-</expected>)
+"BC37206: Invalid module name: Name cannot be empty.")
 
             AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a\0a").Errors,
-<expected>
-BC37206: Invalid module name: Name contains invalid characters.
-</expected>)
+"BC37206: Invalid module name: Name contains invalid characters.")
 
             AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a\uD800b").Errors,
-<expected>
-BC37206: Invalid module name: Name contains invalid characters.
-</expected>)
+"BC37206: Invalid module name: Name contains invalid characters.")
 
             AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a\\b").Errors,
-<expected>
-BC37206: Invalid module name: Name contains invalid characters.
-</expected>)
+"BC37206: Invalid module name: Name contains invalid characters.")
 
             AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a/b").Errors,
-<expected>
-BC37206: Invalid module name: Name contains invalid characters.
-</expected>)
+"BC37206: Invalid module name: Name contains invalid characters.")
 
-            AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a:b").Errors,
-<expected>
-BC37206: Invalid module name: Name contains invalid characters.
-</expected>)
+            AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a: b").Errors,
+"BC37206: Invalid module name: Name contains invalid characters.")
         End Sub
 
         <Fact>
@@ -242,9 +210,7 @@ BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'Scrip
 </expected>)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, scriptClassName:="").Errors,
-<expected>
-BC2014: the value '' is invalid for option 'ScriptClassName'
-</expected>)
+"BC2014: the value '' is invalid for option 'ScriptClassName'")
 
 
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:=Nothing).Errors.IsEmpty)
@@ -255,9 +221,7 @@ BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'MainT
 </expected>)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:="").Errors,
-<expected>
-BC2014: the value '' is invalid for option 'MainTypeName'
-</expected>)
+"BC2014: the value '' is invalid for option 'MainTypeName'")
 
 
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:=Nothing).Errors.IsEmpty)
@@ -270,40 +234,25 @@ BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'RootN
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:="").Errors.IsEmpty)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(outputKind:=CType(Int32.MaxValue, OutputKind)).Errors,
-<expected>
-BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'OutputKind'
-</expected>)
+"BC2014: the value '2147483647' is invalid for option 'OutputKind'")
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(outputKind:=CType(Int32.MinValue, OutputKind)).Errors,
-<expected>
-BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'OutputKind'
-</expected>)
-
+"BC2014: the value '-2147483648' is invalid for option 'OutputKind'")
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=CType(Int32.MaxValue, OptimizationLevel)).Errors,
-<expected>
-BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'OptimizationLevel'
-</expected>)
+"BC2014: the value '2147483647' is invalid for option 'OptimizationLevel'")
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=CType(Int32.MinValue, OptimizationLevel)).Errors,
-<expected>
-BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'OptimizationLevel'
-</expected>)
+"BC2014: the value '-2147483648' is invalid for option 'OptimizationLevel'")
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optionStrict:=CType(3, OptionStrict)).Errors,
-<expected>
-BC2014: the value '3' is invalid for option 'OptionStrict'
-</expected>)
+"BC2014: the value '3' is invalid for option 'OptionStrict'")
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, platform:=CType(Int32.MaxValue, Platform)).Errors,
-<expected>
-BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'Platform'
-</expected>)
+"BC2014: the value '2147483647' is invalid for option 'Platform'")
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, platform:=CType(Int32.MinValue, Platform)).Errors,
-<expected>
-BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'Platform'
-</expected>)
+"BC2014: the value '-2147483648' is invalid for option 'Platform'")
         End Sub
 
         ' Make sure the given root namespace is good and parses as expected
@@ -380,7 +329,7 @@ BC2014: the value '<%= rootNs %>' is invalid for option 'RootNamespace'
 
             CheckImportsAreBad({"A.B.435",
                                "Global.Foo"},
-                                {"Error in project-level import 'A.B.435' at '.435' : End of statement expected.",
+                                {"Error In project-level import 'A.B.435' at '.435' : End of statement expected.",
                                 "Error in project-level import 'Global.Foo' at 'Global' : 'Global' not allowed in this context; identifier expected."})
         End Sub
 
@@ -398,10 +347,8 @@ BC2014: the value '<%= rootNs %>' is invalid for option 'RootNamespace'
         Public Sub WarningTest()
             Assert.Equal(0, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithSpecificDiagnosticOptions(Nothing).SpecificDiagnosticOptions.Count)
 
-            Dim source =
-                <compilation name="WarningTest">
-                    <file name="a.vb">
-Module Program
+            Dim source = Unit.Make("WarningTest").With_a_vb(
+"Module Program
     Sub Main(args As String())
         Dim x As Integer
         Dim y As Integer
@@ -410,13 +357,11 @@ Module Program
 
     Function foo()
     End Function
-End Module
-                    </file>
-                </compilation>
+End Module")
 
             ' Baseline
             Dim commonoption = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, commonoption)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, options:=commonoption)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y"),
@@ -426,7 +371,7 @@ End Module
             ' Suppress All
             ' vbc a.vb /nowarn
             Dim options = commonoption.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options:=options)
             comp.VerifyDiagnostics()
 
             ' Suppress 42024
@@ -434,7 +379,7 @@ End Module
             Dim warnings As IDictionary(Of String, ReportDiagnostic) = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options:=options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z"),
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo"))
@@ -445,13 +390,13 @@ End Module
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42099), ReportDiagnostic.Suppress)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options:=options)
             comp.VerifyDiagnostics(Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo"))
 
             ' Treat All as Errors
             ' vbc a.vb /warnaserror
             options = commonoption.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options:=options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x").WithWarningAsError(True),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y").WithWarningAsError(True),
@@ -463,7 +408,7 @@ End Module
             warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42105), ReportDiagnostic.Error)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options:=options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y"),
@@ -476,7 +421,7 @@ End Module
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42105), ReportDiagnostic.Error)
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42099), ReportDiagnostic.Error)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options:=options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y"),
@@ -488,7 +433,7 @@ End Module
             warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings)).WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options:=options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z").WithWarningAsError(True),
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True))
@@ -499,7 +444,7 @@ End Module
             warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings)).WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options:=options)
             comp.VerifyDiagnostics()
 
         End Sub
@@ -510,10 +455,7 @@ End Module
 
             Assert.Equal(2042, options.Errors.Single().Code)
 
-            AssertTheseDiagnostics(CreateCompilationWithMscorlibAndVBRuntime(<compilation><file/></compilation>, options),
-                                   <expected>
-BC2042: The options /vbruntime* and /target:module cannot be combined.
-                                   </expected>)
+            AssertTheseDiagnostics(CreateCompilationWithMscorlibAndVBRuntime(<compilation><file/></compilation>, options), "BC2042: The options /vbruntime* and /target:module cannot be combined.")
         End Sub
 
         ''' <summary>
