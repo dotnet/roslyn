@@ -1188,17 +1188,18 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private bool CanApplyParseOptionChange(ParseOptions old, ParseOptions @new, Project project)
+        private bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
         {
             var parseOptionsService = project.LanguageServices.GetService<IParseOptionsService>();
             if (parseOptionsService == null)
             {
                 return false;
             }
-            var newLanguageVersion = parseOptionsService.GetLanguageVersion(@new);
-            var updated = parseOptionsService.WithLanguageVersion(old, newLanguageVersion);
 
-            return @new == updated; // is LanguageVersion the only difference between old and @new?
+            var newLanguageVersion = parseOptionsService.GetLanguageVersion(newOptions);
+            var updated = parseOptionsService.WithLanguageVersion(oldOptions, newLanguageVersion);
+
+            return newOptions == updated; // is LanguageVersion the only difference between old and @new?
         }
 
         /// <summary>

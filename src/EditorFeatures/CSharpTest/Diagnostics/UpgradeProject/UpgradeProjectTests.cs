@@ -14,8 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
 {
     public partial class UpgradeProjectTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public async Task Test()
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new CSharpUpgradeProjectCodeFixProvider());
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public async Task UpgradeProjectTriggeredByTuple()
         {
             await TestAsync(
 @"
@@ -36,8 +39,5 @@ class Program
 }",
 new CSharpParseOptions(LanguageVersion.CSharp6));
         }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpUpgradeProjectCodeFixProvider());
     }
 }

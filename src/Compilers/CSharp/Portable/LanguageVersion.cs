@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Displays the version number in the format expected on the command-line (/langver flag).
         /// For instance, "6", "7", "7.1", "latest".
         /// </summary>
-        public static string Display(this LanguageVersion version)
+        public static string ToDisplayString(this LanguageVersion version)
         {
             switch (version)
             {
@@ -155,9 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static LanguageVersion WithLanguageVersion(this LanguageVersion @default, string @new)
+        public static LanguageVersion WithLanguageVersion(this LanguageVersion defaultVersion, string newVersion)
         {
-            switch (@new)
+            switch (newVersion)
             {
                 case "1":
                     return LanguageVersion.CSharp1;
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case "latest":
                     return LanguageVersion.Latest;
                 default:
-                    return @default;
+                    return defaultVersion;
             }
         }
     }

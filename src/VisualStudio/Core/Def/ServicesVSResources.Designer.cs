@@ -2069,11 +2069,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This workspace does not support updating VisualBasic parse options..
+        ///   Looks up a localized string similar to This workspace does not support updating Visual Basic parse options..
         /// </summary>
-        internal static string This_workspace_does_not_support_updating_VisualBasic_parse_options {
+        internal static string This_workspace_does_not_support_updating_Visual_Basic_parse_options {
             get {
-                return ResourceManager.GetString("This_workspace_does_not_support_updating_VisualBasic_parse_options", resourceCulture);
+                return ResourceManager.GetString("This_workspace_does_not_support_updating_Visual_Basic_parse_options", resourceCulture);
             }
         }
         

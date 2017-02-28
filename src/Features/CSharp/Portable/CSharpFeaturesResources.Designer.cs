@@ -1055,7 +1055,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Upgrade all projects to C# language version &apos;{0}.
+        ///   Looks up a localized string similar to Upgrade all projects to C# language version &apos;{0}&apos;.
         /// </summary>
         internal static string Upgrade_all_projects_to_csharp_language_version_0 {
             get {
@@ -1064,11 +1064,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Upgrade project to C# language version &apos;{0}.
+        ///   Looks up a localized string similar to Upgrade this project to C# language version &apos;{0}&apos;.
         /// </summary>
-        internal static string Upgrade_project_to_csharp_language_version_0 {
+        internal static string Upgrade_this_project_to_csharp_language_version_0 {
             get {
-                return ResourceManager.GetString("Upgrade_project_to_csharp_language_version_0", resourceCulture);
+                return ResourceManager.GetString("Upgrade_this_project_to_csharp_language_version_0", resourceCulture);
             }
         }
         

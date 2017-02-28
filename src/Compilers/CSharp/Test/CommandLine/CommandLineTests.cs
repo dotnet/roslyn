@@ -1334,16 +1334,8 @@ d.cs
         public void LangVersionDisplay()
         {
             AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7", "latest" },
-                Versions().Select(v => v.Display()));
+                Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions, the format should be "x.y", such as "7.1"
-
-            IEnumerable<LanguageVersion> Versions()
-            {
-                foreach (LanguageVersion version in Enum.GetValues(typeof(LanguageVersion)))
-                {
-                    yield return version;
-                }
-            }
         }
 
         [Fact]

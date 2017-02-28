@@ -3,12 +3,9 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.UpgradeProject;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
 {
@@ -22,33 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         private const string CS8026 = nameof(CS8026); // error CS8026: Feature is not available in C# 5.  Please use language version X or greater.
         private const string CS8059 = nameof(CS8059); // error CS8059: Feature is not available in C# 6.  Please use language version X or greater.
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(CS8022, CS8023, CS8024, CS8025, CS8026, CS8059);
+        private static readonly ImmutableArray<string> s_diagnostics = 
+            ImmutableArray.Create(CS8022, CS8023, CS8024, CS8025, CS8026, CS8059);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = s_diagnostics;
 
-        protected override ImmutableArray<CodeAction> GetUpgradeProjectCodeActionsAsync(CodeFixContext context)
+        public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;
+        public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_projects_to_csharp_language_version_0;
+
+        public override string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics)
         {
-            var project = context.Document.Project;
-            var solution = project.Solution;
-            var newVersion = SuggestedVersion(context.Diagnostics);
-
-            var fixOneProjectTitle = string.Format(CSharpFeaturesResources.Upgrade_project_to_csharp_language_version_0,
-                newVersion.Display());
-
-            var fixOneProject = new SolutionChangeAction(fixOneProjectTitle,
-                ct => Task.FromResult(UpgradeProject(solution, project.Id, newVersion)));
-
-            var fixAllProjectsTitle = string.Format(CSharpFeaturesResources.Upgrade_all_projects_to_csharp_language_version_0,
-                newVersion.Display());
-
-            var fixAllProjects = new SolutionChangeAction(fixAllProjectsTitle,
-                ct => Task.FromResult(UpgradeProjects(solution, newVersion)));
-
-            return new CodeAction[] { fixOneProject, fixAllProjects }.AsImmutable();
-        }
-
-        private LanguageVersion SuggestedVersion(ImmutableArray<Diagnostic> diagnostics)
-        {
-            return diagnostics.Select(d => SuggestedVersion(d.Id)).First();
+            return diagnostics.Select(d => SuggestedVersion(d.Id)).First().ToDisplayString();
         }
 
         private LanguageVersion SuggestedVersion(string id)
@@ -67,14 +47,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             }
         }
 
-        private static Solution UpgradeProject(Solution solution, ProjectId projectId, LanguageVersion version)
+        public override Solution UpgradeProject(Solution solution, ProjectId projectId, string version)
         {
             var project = solution.GetProject(projectId);
-            return solution.WithProjectParseOptions(projectId, ((CSharpParseOptions)project.ParseOptions)
-                .WithLanguageVersion(version));
+            var parseOptions = (CSharpParseOptions)project.ParseOptions;
+
+            return solution.WithProjectParseOptions(projectId,
+                parseOptions.WithLanguageVersion(parseOptions.LanguageVersion.WithLanguageVersion(version)));
         }
 
-        private Solution UpgradeProjects(Solution solution, LanguageVersion version)
+        public override Solution UpgradeAllProjects(Solution solution, string version)
         {
             var currentSolution = solution;
             foreach (var project in solution.Projects)
@@ -86,6 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             }
 
             return currentSolution;
+        }
+
+        public override bool CouldBeUpgradedToo(Project project)
+        {
+            return project.Language == LanguageNames.CSharp;
         }
     }
 }
