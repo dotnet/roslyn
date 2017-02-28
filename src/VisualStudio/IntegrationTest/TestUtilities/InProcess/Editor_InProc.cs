@@ -8,8 +8,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Windows.Forms;
 using System.Windows.Automation;
+using System.Windows.Forms;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -159,7 +159,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 if (occurrence > 0)
                 {
-
                     var result = EnvDTE.vsFindResult.vsFindResultNotFound;
                     for (var i = 0; i < occurrence; i++)
                     {
@@ -770,16 +769,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void VerifyWinFormButtonPropertySet(string buttonName, string propertyName, string expectedPropertyValue)
+        public string GetWinFormButtonPropertyValue(string buttonName, string propertyName)
         {
             var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
             var button = designerHost.Container.Components[buttonName];
             var properties = TypeDescriptor.GetProperties(button);
-            var actualPropertyValue = (string)properties[propertyName].GetValue(button);
-            if (actualPropertyValue != expectedPropertyValue)
-            {
-                throw new Exception($"Property value mismatch for control:property: {buttonName}:{propertyName}, expected: {expectedPropertyValue}, actual: {actualPropertyValue}");
-            }
+            return properties[propertyName].GetValue(button) as string;
         }
     }
 }

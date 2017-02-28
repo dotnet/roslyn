@@ -115,8 +115,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void EditWinFormButtonEvent(string buttonName, string eventName, string eventHandlerName)
             => _inProc.EditWinFormButtonEvent(buttonName, eventName, eventHandlerName);
 
-        public void VerifyWinFormButtonPropertySet(string buttonName, string propertyName, string expectedPropertyValue)
-            => _inProc.VerifyWinFormButtonPropertySet(buttonName, propertyName, expectedPropertyValue);
+        public string GetWinFormButtonPropertyValue(string buttonName, string propertyName)
+            => _inProc.GetWinFormButtonPropertyValue(buttonName, propertyName);
 
         /// <summary>
         /// Sends key strokes to the active editor in Visual Studio. Various types are supported by this method:

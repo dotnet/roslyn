@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -49,7 +45,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             OpenFileWithDesigner(ProjectName, "Form1.cs");
             AddWinFormButton("SomeButton");
             EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Text", propertyValue: "ButtonTextGoesHere");
-            VerifyWinFormButtonPropertySet(buttonName: "SomeButton", propertyName: "Text", expectedPropertyValue: "ButtonTextGoesHere");
+            var expectedPropertyValue = "ButtonTextGoesHere";
+            var actualPropertyValue = GetWinFormButtonPropertyValue(buttonName: "SomeButton", propertyName: "Text");
+            Assert.Equal(expectedPropertyValue, actualPropertyValue);
             CloseFile(ProjectName, "Form1.cs", saveFile: true);
             //  Change the control's text in designer.cs code
             OpenFile(ProjectName, "Form1.Designer.cs");
@@ -61,7 +59,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             CloseFile(ProjectName, "Form1.Designer.cs", saveFile: true);
             //  Verify that the control text has changed in the designer
             OpenFileWithDesigner(ProjectName, "Form1.cs");
-            VerifyWinFormButtonPropertySet(buttonName: "SomeButton", propertyName: "Text", expectedPropertyValue: "GibberishText");
+            expectedPropertyValue = "GibberishText";
+            actualPropertyValue = GetWinFormButtonPropertyValue(buttonName: "SomeButton", propertyName: "Text");
+            Assert.Equal(expectedPropertyValue, actualPropertyValue);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]

@@ -333,7 +333,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var fileName = Path.GetFileName(filePath);
 
             var dte = GetDTE();
-            var fileToClose = dte.Documents.Cast<EnvDTE.Document>().FirstOrDefault(document => document.Name.Equals(fileName));
+            var documents = dte.Documents.Cast<EnvDTE.Document>();
+            var fileToClose = documents.FirstOrDefault(document => document.Name.Equals(fileName));
+            if (fileToClose == null)
+            {
+                throw new InvalidOperationException($"File '{fileName}' not closed because it couldn't be found.  Available files: {string.Join(", ", documents.Select(x => x.Name))}.");
+            }
             if (saveFile)
             {
                 SaveFile(fileName);

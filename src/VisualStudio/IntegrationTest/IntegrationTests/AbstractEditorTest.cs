@@ -98,8 +98,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void EditWinFormsButtonEvent(string buttonName, string eventName, string eventHandlerName)
             => VisualStudio.Instance.Editor.EditWinFormButtonEvent(buttonName, eventName, eventHandlerName);
 
-        protected void VerifyWinFormButtonPropertySet(string buttonName, string propertyName, string expectedPropertyValue)
-            => VisualStudio.Instance.Editor.VerifyWinFormButtonPropertySet(buttonName, propertyName, expectedPropertyValue);
+        protected string GetWinFormButtonPropertyValue(string buttonName, string propertyName)
+            => VisualStudio.Instance.Editor.GetWinFormButtonPropertyValue(buttonName, propertyName);
 
         protected void SelectTextInCurrentDocument(string text)
         {
