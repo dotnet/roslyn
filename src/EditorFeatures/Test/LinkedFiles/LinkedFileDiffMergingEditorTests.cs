@@ -27,15 +27,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         protected override string GetLanguage()
             => LanguageNames.CSharp;
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new TestCodeRefactoringProvider();
 
         [WpfFact]
         public async Task TestCodeActionPreviewAndApply()
         {
-            using (var workspace = await TestWorkspace.CreateAsync(WorkspaceXml))
+            var parameters = new TestParameters(WorkspaceXml);
+            using (var workspace = await TestWorkspace.CreateAsync(parameters.initialMarkup))
             {
-                var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, fixProviderData: null);
+                var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, parameters);
 
                 var expectedCode = "private class D { }";
 
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             }
         }
 
-        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
+        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(TestParameters parameters)
         {
             throw new NotSupportedException();
         }

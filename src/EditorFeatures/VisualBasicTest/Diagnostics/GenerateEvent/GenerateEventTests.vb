@@ -862,7 +862,7 @@ public delegate void XEventHandler(object sender, EventArgs e);
 </Document>
                     </Project>
                 </Workspace>
-            Await TestMissingWithWorkspaceXmlAsync(initialMarkup)
+            Await TestMissingInRegularAndScriptAsync(initialMarkup.Value)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -899,7 +899,7 @@ public delegate void XEventHandler(object sender, EventArgs e);
                     </Project>
                 </Workspace>
 
-            Await TestMissingWithWorkspaceXmlAsync(initialMarkup)
+            Await TestMissingInRegularAndScriptAsync(initialMarkup.Value)
         End Function
     End Class
 End Namespace

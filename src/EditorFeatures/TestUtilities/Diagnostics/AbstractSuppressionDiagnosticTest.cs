@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
-            TestWorkspace workspace, object fixProviderData)
+            TestWorkspace workspace, TestParameters parameters)
         {
             var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(
-            TestWorkspace workspace, string fixAllActionId, object fixProviderData)
+            TestWorkspace workspace, TestParameters parameters)
         {
             var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
 
@@ -85,7 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var filteredDiagnostics = FilterDiagnostics(diagnostics);
 
                 var wrapperCodeFixer = new WrapperCodeFixProvider(fixer, filteredDiagnostics.Select(d => d.Id));
-                return await GetDiagnosticAndFixesAsync(filteredDiagnostics, provider, wrapperCodeFixer, testDriver, document, span, annotation, fixAllActionId);
+                return await GetDiagnosticAndFixesAsync(
+                    filteredDiagnostics, provider, wrapperCodeFixer, testDriver, document, span, annotation, parameters.fixAllActionEquivalenceKey);
             }
         }
     }

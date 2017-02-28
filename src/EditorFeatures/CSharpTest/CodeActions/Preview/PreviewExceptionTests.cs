@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         [WpfFact]
         public async Task TestExceptionInComputePreview()
         {
-            using (var workspace = await CreateWorkspaceFromFileAsync("class D {}", null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync(new TestParameters("class D {}")))
             {
                 await GetPreview(workspace, new ErrorCases.ExceptionInCodeAction());
             }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         [Fact]
         public async Task TestExceptionInDisplayText()
         {
-            using (var workspace = await CreateWorkspaceFromFileAsync("class D {}", null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync(new TestParameters("class D {}")))
             {
                 DisplayText(workspace, new ErrorCases.ExceptionInCodeAction());
             }
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         [WpfFact]
         public async Task TestExceptionInActionSets()
         {
-            using (var workspace = await CreateWorkspaceFromFileAsync("class D {}", null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync(new TestParameters("class D {}")))
             {
                 await ActionSets(workspace, new ErrorCases.ExceptionInCodeAction());
             }

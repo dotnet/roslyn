@@ -316,7 +316,6 @@ expected:=<Text>Namespace A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=False,
@@ -348,7 +347,6 @@ expected:=<Text>Namespace outer.inner
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
 Imports outer.inner
@@ -392,7 +390,6 @@ expected:=<Text>Namespace A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
@@ -426,7 +423,6 @@ expected:=<Text>Namespace A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
@@ -460,7 +456,6 @@ expected:=<Text>Namespace outer.inner
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
@@ -493,7 +488,6 @@ typeName:="Foo",
 expected:=<Text>Public Interface Foo
 End Interface
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
@@ -527,7 +521,6 @@ expected:=<Text>Namespace outer.inner
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
 Imports BarBaz.outer.inner
@@ -569,7 +562,6 @@ expected:=<Text>Namespace outer
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
 Imports BarBaz.outer
@@ -611,7 +603,6 @@ expected:=<Text>Namespace A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
@@ -651,7 +642,6 @@ expected:=<Text>Namespace Global.A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=False,
@@ -693,7 +683,6 @@ expected:=<Text>Namespace Global.BarBaz.A
         End Interface
     End Namespace
 End Namespace</Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
@@ -740,7 +729,6 @@ Namespace outer.inner
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
 Imports Zoozoo.outer.inner
@@ -789,7 +777,6 @@ expected:=<Text>Namespace Global.A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
@@ -824,7 +811,6 @@ expected:=<Text>Namespace outer.inner
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
 Imports Zoozoo.outer.inner
@@ -871,7 +857,6 @@ expected:=<Text>Namespace Global.BarBaz.A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
@@ -914,7 +899,6 @@ expected:=<Text>Namespace A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=False,
 expectedTextWithUsings:=<Text></Text>.NormalizedValue,
 accessibility:=Accessibility.Public,
@@ -954,7 +938,6 @@ expected:=<Text>namespace A.B
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=True,
@@ -993,7 +976,6 @@ expected:=<Text>namespace outer.inner
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
 Imports outer.inner
@@ -1042,7 +1024,6 @@ expected:=<Text>namespace A.B
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
@@ -1081,7 +1062,6 @@ expected:=<Text>namespace ConsoleApplication.outer.inner
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 defaultNamespace:="ConsoleApplication",
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
@@ -1132,7 +1112,6 @@ expected:=<Text>namespace BarBaz.A.B
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 defaultNamespace:="ConsoleApplication",
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
@@ -1172,7 +1151,6 @@ expected:=<Text>namespace A.B
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
@@ -1208,7 +1186,6 @@ expected:=<Text>namespace outer.inner
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
 Imports outer.inner
@@ -1261,7 +1238,6 @@ namespace A.B
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=False,
@@ -1305,7 +1281,6 @@ expected:=<Text>namespace A
         }
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=False,
@@ -1341,7 +1316,6 @@ expected:=<Text>namespace A.B
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=True,
@@ -2135,7 +2109,6 @@ languageName:=LanguageNames.VisualBasic,
 typeName:="Bar",
 expected:=<Text>public delegate void Bar(string[] args);
 </Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
 isNewFile:=True,

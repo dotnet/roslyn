@@ -17,16 +17,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
             Return TestOptions.Script
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFileAsync(
-            definition As String,
-            parseOptions As ParseOptions,
-            compilationOptions As CompilationOptions
-        ) As Task(Of TestWorkspace)
-
+        Protected Overrides Function CreateWorkspaceFromFileAsync(parameters As TestParameters) As Task(Of TestWorkspace)
             Return TestWorkspace.CreateVisualBasicAsync(
-                definition,
-                parseOptions,
-                If(compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+                parameters.initialMarkup,
+                parameters.parseOptions,
+                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Friend Overloads Async Function TestAsync(
@@ -41,12 +36,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
                                    priority:=priority)
         End Function
 
-        Protected Overloads Async Function TestMissingWithWorkspaceXmlAsync(initialMarkup As XElement) As Threading.Tasks.Task
-            Using workspace = TestWorkspace.CreateWorkspace(initialMarkup)
-                Dim diagnostics = Await GetDiagnosticAndFixAsync(workspace)
-                Assert.Null(diagnostics)
-            End Using
-        End Function
+        'Protected Overloads Async Function TestMissingWithWorkspaceXmlAsync(initialMarkup As XElement) As Threading.Tasks.Task
+        '    Using workspace = TestWorkspace.CreateWorkspace(initialMarkup)
+        '        Dim diagnostics = Await GetDiagnosticAndFixAsync(workspace)
+        '        Assert.Null(diagnostics)
+        '    End Using
+        'End Function
 
         Protected Overloads Async Function TestMissingAsync(initialMarkup As XElement) As Threading.Tasks.Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()

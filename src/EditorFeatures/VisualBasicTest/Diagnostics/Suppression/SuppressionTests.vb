@@ -22,23 +22,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Return TestOptions.Script
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFileAsync(
-            definition As String,
-            parseOptions As ParseOptions,
-            compilationOptions As CompilationOptions
-        ) As Task(Of TestWorkspace)
-
+        Protected Overrides Function CreateWorkspaceFromFileAsync(parameters As TestParameters) As Task(Of TestWorkspace)
             Return TestWorkspace.CreateVisualBasicAsync(
-                definition,
-                DirectCast(parseOptions, ParseOptions),
-                If(DirectCast(compilationOptions, CompilationOptions), New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+                parameters.initialMarkup,
+                parameters.parseOptions,
+                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
-        Friend Overloads Async Function TestAsync(initial As XElement, expected As XCData, Optional isLine As Boolean = True, Optional isAddedDocument As Boolean = False) As Task
-            Dim initialMarkup = initial.ToString()
-            Dim expectedMarkup = expected.Value
-            Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, isLine, isAddedDocument)
-        End Function
+        'Friend Overloads Async Function TestAsync(initial As XElement, expected As XCData) As Task
+        '    Dim initialMarkup = initial.ToString()
+        '    Dim expectedMarkup = expected.Value
+        '    Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup)
+        'End Function
 
         Protected Overrides Function GetLanguage() As String
             Return LanguageNames.VisualBasic

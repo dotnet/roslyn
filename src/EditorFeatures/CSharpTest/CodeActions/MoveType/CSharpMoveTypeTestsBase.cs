@@ -8,21 +8,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 {
     public abstract class CSharpMoveTypeTestsBase : AbstractMoveTypeTest
     {
-        protected override ParseOptions GetScriptOptions()
-        {
-            return Options.Script;
-        }
+        protected override ParseOptions GetScriptOptions() => Options.Script;
 
-        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
-        {
-            return TestWorkspace.IsWorkspaceElement(definition)
-                ? TestWorkspace.CreateAsync(definition)
-                : TestWorkspace.CreateCSharpAsync(definition, parseOptions, compilationOptions);
-        }
+        protected override string GetLanguage() => LanguageNames.CSharp;
 
-        protected override string GetLanguage()
+        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(TestParameters parameters)
         {
-            return LanguageNames.CSharp;
+            return TestWorkspace.IsWorkspaceElement(parameters.initialMarkup)
+                ? TestWorkspace.CreateAsync(parameters.initialMarkup)
+                : TestWorkspace.CreateCSharpAsync(parameters.initialMarkup, parameters.parseOptions, parameters.compilationOptions);
         }
     }
 }
