@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Async Function PasteCommandWithInteractiveFormat() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Async Function PasteCommandWithOutInteractiveFormat() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Async Function PasteCommandWithInteractiveFormatAsLineCopy() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Async Function PasteCommandWithInteractiveFormatAsBoxCopy() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Async Function PasteCommandWithInteractiveFormatAsBoxCopyOnBlankLine() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>

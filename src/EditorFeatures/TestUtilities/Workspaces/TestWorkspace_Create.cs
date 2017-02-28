@@ -154,10 +154,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var workspaceElement = CreateWorkspaceElement(
                 CreateProjectElement(compilationOptions?.ModuleName ?? "Test", language, commonReferences, parseOptions, compilationOptions, documentElements));
 
-            return await CreateAsync(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
+            return Create(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
         }
 
-        internal static Task<TestWorkspace> CreateAsync(
+        internal static async Task<TestWorkspace> CreateAsync(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions[] parseOptions,
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var workspaceElement = CreateWorkspaceElement(
                 CreateProjectElement("Test", language, true, parseOptions.FirstOrDefault(), compilationOptions, documentElements));
 
-            return CreateAsync(workspaceElement, exportProvider: exportProvider);
+            return Create(workspaceElement, exportProvider: exportProvider);
         }
 
         #region C#

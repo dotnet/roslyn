@@ -305,7 +305,7 @@ using G=   H.I;
 	}
 }</Test>
 
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml)
                 Dim document = workspace.Documents.Single()
 
                 workspace.Options = workspace.Options _
@@ -324,7 +324,7 @@ using G=   H.I;
         End Function
 
         Public Async Function TestProjectionFormattingAsync(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceXmlWithSubjectBufferDocument)
+            Using workspace = TestWorkspace.Create(workspaceXmlWithSubjectBufferDocument)
                 Dim subjectBufferDocument = workspace.Documents.Single()
 
                 Dim surfaceBufferDocument = workspace.CreateProjectionBufferDocument(

@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">  
                         object $$foo;  

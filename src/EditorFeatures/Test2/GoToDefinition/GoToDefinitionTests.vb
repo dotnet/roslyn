@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
         Friend Async Function TestAsync(workspaceDefinition As XElement,
                                         expectedResult As Boolean,
                                         executeOnDocument As Func(Of Document, Integer, IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)), Boolean)) As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                     workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProvider)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)

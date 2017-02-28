@@ -209,8 +209,8 @@ End Class</text>
             assertion(expectedText.NormalizedValue, text)
         End Sub
 
-        Private Function GetWorkspaceAsync(code As XElement) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateAsync(
+        Private Async Function GetWorkspaceAsync(code As XElement) As Task(Of TestWorkspace)
+            Return TestWorkspace.Create(
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
                         <Document>

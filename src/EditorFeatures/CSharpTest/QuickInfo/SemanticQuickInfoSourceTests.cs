@@ -4805,7 +4805,7 @@ namespace MyNs
     </Submission>
 </Workspace>
 ";
-            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
+            using (var workspace = TestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
             {
                 await TestWithOptionsAsync(workspace, MainDescription("(parameter) int x = 1"));
             }

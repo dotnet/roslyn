@@ -36,8 +36,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
             Return New ImplementInterfaceCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService))
         End Function
 
-        Private Function GetWorkspaceAsync(code As String) As Threading.Tasks.Task(Of TestWorkspace)
-            Return TestWorkspace.CreateAsync(
+        Private Async Function GetWorkspaceAsync(code As String) As Threading.Tasks.Task(Of TestWorkspace)
+            Return TestWorkspace.Create(
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
                         <Document>

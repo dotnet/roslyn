@@ -10112,7 +10112,7 @@ namespace ClassLibrary9
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(@"
+            using (var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         typeof(string).$$Name

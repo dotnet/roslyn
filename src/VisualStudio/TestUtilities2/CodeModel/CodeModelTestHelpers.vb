@@ -36,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         <HandleProcessCorruptedStateExceptions()>
         Public Async Function CreateCodeModelTestStateAsync(definition As XElement) As Task(Of CodeModelTestState)
-            Dim workspace = Await TestWorkspace.CreateAsync(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+            Dim workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
 
             Dim result As CodeModelTestState = Nothing
             Try

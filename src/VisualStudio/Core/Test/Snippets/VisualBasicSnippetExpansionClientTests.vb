@@ -352,7 +352,7 @@ End Class</Document>
 	End Sub
 End Class</Test>
 
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml)
                 Dim document = workspace.Documents.Single()
 
                 workspace.Options = workspace.Options _
@@ -398,7 +398,7 @@ End Class</Test>
                                                    </Import>)
             Next
 
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml)
                 Dim expansionClient = New SnippetExpansionClient(
                     Guids.VisualBasicDebuggerLanguageId,
                     workspace.Documents.Single().GetTextView(),
@@ -417,7 +417,7 @@ End Class</Test>
         End Function
 
         Public Async Function TestFormattingAsync(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceXmlWithSubjectBufferDocument)
+            Using workspace = TestWorkspace.Create(workspaceXmlWithSubjectBufferDocument)
                 Dim subjectBufferDocument = workspace.Documents.Single()
 
                 Dim surfaceBufferDocument = workspace.CreateProjectionBufferDocument(

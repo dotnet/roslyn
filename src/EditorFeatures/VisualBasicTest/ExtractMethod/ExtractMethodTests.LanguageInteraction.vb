@@ -3367,7 +3367,7 @@ End Namespace"
                 Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
-                Using workspace = Await TestWorkspace.CreateAsync(
+                Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         GetType(String).$$Name
