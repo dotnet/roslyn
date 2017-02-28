@@ -140,27 +140,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected Task TestExactActionSetOfferedAsync(
+        protected async Task TestExactActionSetOfferedAsync(
             string initialMarkup,
             IEnumerable<string> expectedActionSet,
-            ParseOptions parseOptions = null,
-            CompilationOptions compilationOptions = null,
-            IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null)
-        {
-            return TestExactActionSetOfferedAsync(
-                initialMarkup,
-                new TestParameters(
-                    parseOptions, compilationOptions, options,
-                    fixAllActionEquivalenceKey, fixProviderData),
-                expectedActionSet);
-        }
-
-        private async Task TestExactActionSetOfferedAsync(
-            string initialMarkup,
-            TestParameters parameters,
-            IEnumerable<string> expectedActionSet)
+            TestParameters parameters = default(TestParameters))
         {
             using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
