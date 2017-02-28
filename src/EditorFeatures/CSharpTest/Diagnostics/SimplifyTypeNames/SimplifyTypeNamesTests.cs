@@ -3029,18 +3029,29 @@ class C<T> : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DoNotIncludeAliasNameIfLastTargetNameIsTheSame_1()
         {
-            var code = @"
+            await TestSpansAsync(@"
 using Generic = System.Collections.Generic;
 class Program
 {
     static void Main(string[] args)
     {
-        var x = new [|System.Collections.Generic|].List<int>();
+        var x = new [|System.Collections|].Generic.List<int>();
     }
 }
-";
+");
 
-            var expected = @"
+            await TestInRegularAndScriptAsync(
+@"
+using Generic = System.Collections.Generic;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = new [|System.Collections|].Generic.List<int>();
+    }
+}
+",
+@"
 using Generic = System.Collections.Generic;
 class Program
 {
@@ -3049,35 +3060,36 @@ class Program
         var x = new Generic.List<int>();
     }
 }
-";
-            await TestInRegularAndScriptAsync(code, expected);
-
-            var parameters = new TestParameters();
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(code, parameters))
-            {
-                var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, parameters);
-                var span = diagnosticAndFix.Item1.Location.SourceSpan;
-                Assert.Equal(span.Start, expected.IndexOf(@"Generic.List<int>()", StringComparison.Ordinal));
-                Assert.Equal(span.Length, "System.Collections".Length);
-            }
+");
         }
 
         [WorkItem(629572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DoNotIncludeAliasNameIfLastTargetNameIsTheSame_2()
         {
-            var code = @"
+            await TestSpansAsync(@"
 using Console = System.Console;
 class Program
 {
     static void Main(string[] args)
     {
-        [|System.Console|].WriteLine(""foo"");
+        [|System|].Console.WriteLine(""foo"");
     }
 }
-";
+");
 
-            var expected = @"
+            await TestInRegularAndScriptAsync(
+@"
+using Console = System.Console;
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|System|].Console.WriteLine(""foo"");
+    }
+}
+",
+@"
 using Console = System.Console;
 class Program
 {
@@ -3086,17 +3098,7 @@ class Program
         Console.WriteLine(""foo"");
     }
 }
-";
-            await TestInRegularAndScriptAsync(code, expected);
-
-            var parameters = new TestParameters();
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(code, parameters))
-            {
-                var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, parameters);
-                var span = diagnosticAndFix.Item1.Location.SourceSpan;
-                Assert.Equal(span.Start, expected.IndexOf(@"Console.WriteLine(""foo"")", StringComparison.Ordinal));
-                Assert.Equal(span.Length, "System".Length);
-            }
+");
         }
 
         [WorkItem(736377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")]
@@ -3136,14 +3138,14 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task ShowOnlyRelevantSpanForReductionOfGenericName()
         {
-            var code = @"
+            await TestSpansAsync(@"
 namespace A
 {
     class Program
     {
         static void Main(string[] args)
         {
-            var x = A.B.OtherClass.[|Test<int>|](5);
+            var x = A.B.OtherClass.Test[|<int>|](5);
         }
     }
  
@@ -3154,14 +3156,7 @@ namespace A
             public static int Test<T>(T t) { return 5; }
         }
     }
-}";
-            var parameters = new TestParameters();
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(code, parameters))
-            {
-                var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, parameters);
-                var span = diagnosticAndFix.Item1.Location.SourceSpan;
-                Assert.Equal(span, new TextSpan(135, 5));
-            }
+}");
         }
 
         [WorkItem(878773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/878773")]
