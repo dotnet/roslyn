@@ -4,8 +4,6 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UpgradeProject
 {

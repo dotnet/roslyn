@@ -34,12 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             var fixOneProjectTitle = string.Format(CSharpFeaturesResources.Upgrade_project_to_csharp_language_version_0,
                 newVersion.Display());
 
-            var fixOneProject = new SolutionChangeAction(fixOneProjectTitle, ct => UpgradeProject(project, solution, newVersion));
+            var fixOneProject = new SolutionChangeAction(fixOneProjectTitle,
+                ct => Task.FromResult(UpgradeProject(solution, project.Id, newVersion)));
 
             var fixAllProjectsTitle = string.Format(CSharpFeaturesResources.Upgrade_all_projects_to_csharp_language_version_0,
                 newVersion.Display());
 
-            var fixAllProjects = new SolutionChangeAction(fixAllProjectsTitle, ct => UpgradeProjects(solution, newVersion));
+            var fixAllProjects = new SolutionChangeAction(fixAllProjectsTitle,
+                ct => Task.FromResult(UpgradeProjects(solution, newVersion)));
 
             return new CodeAction[] { fixOneProject, fixAllProjects }.AsImmutable();
         }
@@ -65,20 +67,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             }
         }
 
-        private static Task<Solution> UpgradeProject(Project project, Solution solution, LanguageVersion version)
+        private static Solution UpgradeProject(Solution solution, ProjectId projectId, LanguageVersion version)
         {
-            return Task.FromResult(solution.WithProjectParseOptions(project.Id, ((CSharpParseOptions)project.ParseOptions)
-                .WithLanguageVersion(version)));
+            var project = solution.GetProject(projectId);
+            return solution.WithProjectParseOptions(projectId, ((CSharpParseOptions)project.ParseOptions)
+                .WithLanguageVersion(version));
         }
 
-        private async Task<Solution> UpgradeProjects(Solution solution, LanguageVersion version)
+        private Solution UpgradeProjects(Solution solution, LanguageVersion version)
         {
             var currentSolution = solution;
             foreach (var project in solution.Projects)
             {
                 if (project.Language == LanguageNames.CSharp)
                 {
-                    currentSolution = await UpgradeProject(project, currentSolution, version).ConfigureAwait(true);
+                    currentSolution = UpgradeProject(currentSolution, project.Id, version);
                 }
             }
 
