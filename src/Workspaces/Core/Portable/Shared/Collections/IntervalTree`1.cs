@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         private bool Any(int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector)
         {
             var builder = ArrayBuilder<T>.GetInstance();
-            FillWithIntervalsThatMatch(start, length, s_intersectsWithTest, builder, introspector, stopAfterFirst: true);
+            FillWithIntervalsThatMatch(start, length, testInterval, builder, introspector, stopAfterFirst: true);
 
             var result = builder.Count > 0;
             builder.Free();
