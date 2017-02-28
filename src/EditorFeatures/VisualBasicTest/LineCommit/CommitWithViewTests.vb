@@ -180,7 +180,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
-        Public Async Function TestCommitAfterTypingAttributeOfType() As Task
+        Public Sub TestCommitAfterTypingAttributeOfType()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -197,12 +197,12 @@ End Class
 
                 testData.AssertHadCommit(True)
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
-        Public Async Function TestCommitAfterTypingAttributeOfMethod() As Task
+        Public Sub TestCommitAfterTypingAttributeOfMethod()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -221,7 +221,7 @@ End Class
 
                 testData.AssertHadCommit(True)
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>

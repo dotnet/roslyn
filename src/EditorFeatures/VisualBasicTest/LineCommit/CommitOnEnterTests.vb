@@ -97,7 +97,7 @@ End Class|]
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterEndConstruct() As Task
+        Public Sub TestCommitAfterEndConstruct()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>[|
@@ -112,11 +112,11 @@ End Class$$|]
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=True, usedSemantics:=False)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterBlankLineAfterQuery() As Task
+        Public Sub TestCommitAfterBlankLineAfterQuery()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -131,11 +131,11 @@ End Class
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestNoCommitAfterEnterAfterPartialExpression() As Task
+        Public Sub TestNoCommitAfterEnterAfterPartialExpression()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -149,7 +149,7 @@ End Class
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=False)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
@@ -258,7 +258,7 @@ rem Hello World$$|]
         <WpfFact>
         <WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterThenTouchingThen() As Task
+        Public Sub TestCommitAfterThenTouchingThen()
             ' Note that the source we are starting this test with is *not* syntactically correct,
             ' but by having the extra "End If" we guarantee the ending code will be as if End
             ' Construct generation happened.
@@ -277,12 +277,12 @@ End Class
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterThenTouchingStatement() As Task
+        Public Sub TestCommitAfterThenTouchingStatement()
             ' Note that the source we are starting this test with is *not* syntactically correct,
             ' but by having the extra "End If" we guarantee the ending code will be as if End
             ' Construct generation happened.
@@ -301,12 +301,12 @@ End Class
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(530463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530463")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterPropertyStatement() As Task
+        Public Sub TestCommitAfterPropertyStatement()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -324,12 +324,12 @@ End Class
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(986168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986168")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestDontCommitInsideStringLiteral() As Task
+        Public Sub TestDontCommitInsideStringLiteral()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -344,7 +344,7 @@ End Module
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=False)
-        End Function
+        End Sub
 
         Private Sub AssertCommitsStatement(test As XElement, expectCommit As Boolean, Optional usedSemantics As Boolean = True)
             Using testData = CommitTestData.Create(test)
