@@ -18,7 +18,17 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<ProjectId, ISet<DocumentId>> _projectToOpenDocumentsMap = new Dictionary<ProjectId, ISet<DocumentId>>();
 
         // text buffer maps
-        private readonly Dictionary<SourceTextContainer, OneOrMany<DocumentId>> _bufferToDocumentInCurrentContextMap = new Dictionary<SourceTextContainer, OneOrMany<DocumentId>>();
+        /// <summary>
+        /// Tracks the document ID in the current context for a source text container for an opened text buffer.
+        /// </summary>
+        /// <remarks>For each entry in this map, there must be a corresponding entry in <see cref="_bufferToAssociatedDocumentsMap"/> where the document ID in current context is one of associated document IDs.</remarks>
+        private readonly Dictionary<SourceTextContainer, DocumentId> _bufferToDocumentInCurrentContextMap = new Dictionary<SourceTextContainer, DocumentId>();
+
+        /// <summary>
+        /// Tracks all the associated document IDs for a source text container for an opened text buffer.
+        /// </summary>
+        private readonly Dictionary<SourceTextContainer, OneOrMany<DocumentId>> _bufferToAssociatedDocumentsMap = new Dictionary<SourceTextContainer, OneOrMany<DocumentId>>();
+
         private readonly Dictionary<DocumentId, TextTracker> _textTrackers = new Dictionary<DocumentId, TextTracker>();
 
         /// <summary>
@@ -236,13 +246,13 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableArray<DocumentId> GetRelatedDocumentIds_NoLock(SourceTextContainer container)
         {
-            if (!_bufferToDocumentInCurrentContextMap.TryGetValue(container, out OneOrMany<DocumentId> documentIds))
+            if (!_bufferToDocumentInCurrentContextMap.TryGetValue(container, out var documentId))
             {
                 // it is not an opened file
                 return ImmutableArray<DocumentId>.Empty;
             }
 
-            return this.CurrentSolution.GetRelatedDocumentIds(documentIds[0]);
+            return this.CurrentSolution.GetRelatedDocumentIds(documentId);
         }
 
         /// <summary>
@@ -285,15 +295,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         private SourceTextContainer GetOpenDocumentSourceTextContainer_NoLock(DocumentId documentId) =>
-            _bufferToDocumentInCurrentContextMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
+            _bufferToAssociatedDocumentsMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
 
         private DocumentId GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
         {
-            bool foundValue = _bufferToDocumentInCurrentContextMap.TryGetValue(container, out OneOrMany<DocumentId> docIds);
+            bool foundValue = _bufferToDocumentInCurrentContextMap.TryGetValue(container, out var docId);
 
             if (foundValue)
             {
-                return docIds[0];
+                return docId;
             }
             else
             {
@@ -352,7 +362,7 @@ namespace Microsoft.CodeAnalysis
 
             using (_stateLock.DisposableWait())
             {
-                oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container][0];
+                oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
                 if (documentId == oldActiveContextDocumentId)
                 {
                     return;
@@ -617,27 +627,39 @@ namespace Microsoft.CodeAnalysis
 
         private void UpdateCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId id, bool isCurrentContext)
         {
-            if (_bufferToDocumentInCurrentContextMap.TryGetValue(textContainer, out OneOrMany<DocumentId> docIds))
+            if (_bufferToAssociatedDocumentsMap.TryGetValue(textContainer, out OneOrMany<DocumentId> docIds))
             {
-                var index = isCurrentContext ? 0 : docIds.Count;
-                docIds = docIds.InsertAt(id, index).RemoveDuplicates();
+                Contract.ThrowIfFalse(_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer));
+                if (!docIds.Contains(id))
+                {
+                    docIds = docIds.Add(id);
+                }
             }
             else
             {
+                Contract.ThrowIfFalse(!_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer));
                 docIds = new OneOrMany<DocumentId>(id);
             }
 
-            _bufferToDocumentInCurrentContextMap[textContainer] = docIds;
+            if (isCurrentContext || !_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer))
+            {
+                _bufferToDocumentInCurrentContextMap[textContainer] = id;
+            }
+
+            _bufferToAssociatedDocumentsMap[textContainer] = docIds;
         }
 
         /// <returns>The DocumentId of the current context document attached to the textContainer, if any.</returns>
         private DocumentId UpdateCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId closedDocumentId)
         {
             // Check if we are tracking this textContainer.
-            if (!_bufferToDocumentInCurrentContextMap.TryGetValue(textContainer, out OneOrMany<DocumentId> docIds))
+            if (!_bufferToAssociatedDocumentsMap.TryGetValue(textContainer, out OneOrMany<DocumentId> docIds))
             {
+                Contract.ThrowIfFalse(!_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer));
                 return null;
             }
+
+            Contract.ThrowIfFalse(_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer));
 
             // Remove closedDocumentId
             docIds = docIds.RemoveAll(closedDocumentId);
@@ -645,12 +667,14 @@ namespace Microsoft.CodeAnalysis
             // Remove the entry if there are no more documents attached to given textContainer.
             if (docIds.Equals(default(OneOrMany<DocumentId>)))
             {
+                _bufferToAssociatedDocumentsMap.Remove(textContainer);
                 _bufferToDocumentInCurrentContextMap.Remove(textContainer);
                 return null;
             }
 
-            // Update the new list of documents attached to the given textContainer, and return the first one.
-            _bufferToDocumentInCurrentContextMap[textContainer] = docIds;
+            // Update the new list of documents attached to the given textContainer and the current context document, and return the latter.
+            _bufferToAssociatedDocumentsMap[textContainer] = docIds;
+            _bufferToDocumentInCurrentContextMap[textContainer] = docIds[0];
             return docIds[0];
         }
 
