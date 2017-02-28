@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
-        Public Async Function FeatureDoesNothingIfDisabled() As Threading.Tasks.Task
+        Public Sub FeatureDoesNothingIfDisabled()
             Using workspace = GetWorkspace("
 Imports System
 
@@ -67,7 +67,7 @@ End Interface")
                 commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() nextHandlerCalled = True)
                 Assert.True(nextHandlerCalled, "Next handler wasn't called, which means the feature did run")
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestInterfaceWithSingleSub() As Task

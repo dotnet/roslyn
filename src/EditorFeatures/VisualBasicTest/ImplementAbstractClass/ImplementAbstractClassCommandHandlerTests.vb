@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractC
 
         <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
-        Public Async Function TestSimpleCases() As Task
+        Public Sub TestSimpleCases()
             Dim code = <text>
 Imports System
 
@@ -39,11 +39,11 @@ End Class</text>
              expectedText,
              Sub() Throw New Exception("The operation should have been handled."),
              Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
-        End Function
+        End Sub
 
         <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
-        Public Async Function TestInvocationAfterWhitespaceTrivia() As Task
+        Public Sub TestInvocationAfterWhitespaceTrivia()
             Dim code = <text>
 Imports System
 
@@ -64,10 +64,10 @@ End Class
                  expectedText,
                  Sub() Throw New Exception("The operation should have been handled."),
                  Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
-        Public Async Function TestInvocationAfterCommentTrivia() As Task
+        Public Sub TestInvocationAfterCommentTrivia()
             Dim code = <text>
 Imports System
 
@@ -88,7 +88,7 @@ End Class
                  expectedText,
                  Sub() Throw New Exception("The operation should have been handled."),
                  Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Sub TestNoMembersToImplement()
@@ -155,7 +155,7 @@ End Class</text>
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
-        Public Async Function TestWithEndBlockMissing() As Task
+        Public Sub TestWithEndBlockMissing()
             Dim code = <text>
 Imports System
 
@@ -184,7 +184,7 @@ End Class</text>
                  expectedText,
                  Sub() Throw New Exception("The operation should have been handled."),
                  Sub(x, y) AssertEx.AssertEqualToleratingWhitespaceDifferences(x, y))
-        End Function
+        End Sub
 
         Private Sub Test(code As XElement, expectedText As XElement, nextHandler As Action, assertion As Action(Of String, String))
             Using workspace = GetWorkspace(code)

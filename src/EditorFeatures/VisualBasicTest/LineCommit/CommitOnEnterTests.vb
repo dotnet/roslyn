@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
     Public Class CommitOnEnterTests
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterEnterOnSimpleStatement() As Task
+        Public Sub TestCommitAfterEnterOnSimpleStatement()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>[|
@@ -17,11 +17,11 @@ imports System$$|]
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestNoCommitAfterEnterAfterQuery() As Task
+        Public Sub TestNoCommitAfterEnterAfterQuery()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -35,12 +35,12 @@ End Class
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=False)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
-        Public Async Function TestNoCommitAfterExplicitLineContinuation() As Task
+        Public Sub TestNoCommitAfterExplicitLineContinuation()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -54,7 +54,7 @@ End Class
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=False)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>

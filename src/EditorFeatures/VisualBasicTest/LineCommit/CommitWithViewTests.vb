@@ -77,7 +77,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539469")>
-        Public Async Function TestCommitAfterTypingAndUpArrowInLambdaFooter2() As Task
+        Public Sub TestCommitAfterTypingAndUpArrowInLambdaFooter2()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -100,7 +100,7 @@ End Module
                 Dim originalText = testData.Workspace.Documents.Single().InitialTextSnapshot.GetLineFromLineNumber(5).GetText()
                 Assert.Equal(originalText, testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(5).GetText())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
