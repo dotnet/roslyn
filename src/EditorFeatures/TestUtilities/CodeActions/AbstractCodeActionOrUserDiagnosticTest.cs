@@ -71,36 +71,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected abstract Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters);
 
-        private void TestAnnotations(
-            string expectedText,
-            IList<TextSpan> expectedSpans,
-            SyntaxNode fixedRoot,
-            string annotationKind,
-            bool compareTokens,
-            ParseOptions parseOptions = null)
-        {
-            expectedSpans = expectedSpans ?? new List<TextSpan>();
-            var annotatedTokens = fixedRoot.GetAnnotatedNodesAndTokens(annotationKind).Select(n => (SyntaxToken)n).ToList();
-
-            Assert.Equal(expectedSpans.Count, annotatedTokens.Count);
-
-            if (expectedSpans.Count > 0)
-            {
-                var expectedTokens = TokenUtilities.GetTokens(TokenUtilities.GetSyntaxRoot(expectedText, GetLanguage(), parseOptions));
-                var actualTokens = TokenUtilities.GetTokens(fixedRoot);
-
-                for (var i = 0; i < Math.Min(expectedTokens.Count, actualTokens.Count); i++)
-                {
-                    var expectedToken = expectedTokens[i];
-                    var actualToken = actualTokens[i];
-
-                    var actualIsConflict = annotatedTokens.Contains(actualToken);
-                    var expectedIsConflict = expectedSpans.Contains(expectedToken.Span);
-                    Assert.Equal(expectedIsConflict, actualIsConflict);
-                }
-            }
-        }
-
         protected async Task TestMissingInRegularAndScriptAsync(
             string initialMarkup,
             TestParameters parameters = default(TestParameters))
@@ -448,11 +418,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 Assert.Equal(expectedText, actualText);
             }
 
-            TestAnnotations(expectedText, conflictSpans, fixedRoot, ConflictAnnotation.Kind, compareTokens, parseOptions);
-            TestAnnotations(expectedText, renameSpans, fixedRoot, RenameAnnotation.Kind, compareTokens, parseOptions);
-            TestAnnotations(expectedText, warningSpans, fixedRoot, WarningAnnotation.Kind, compareTokens, parseOptions);
+            TestAnnotations(conflictSpans, ConflictAnnotation.Kind);
+            TestAnnotations(renameSpans, RenameAnnotation.Kind);
+            TestAnnotations(warningSpans, WarningAnnotation.Kind);
 
             return Tuple.Create(oldSolution, newSolution);
+
+            void TestAnnotations(IList<TextSpan> expectedSpans, string annotationKind)
+            {
+                expectedSpans = expectedSpans ?? new List<TextSpan>();
+                var annotatedTokens = fixedRoot.GetAnnotatedNodesAndTokens(annotationKind).Select(n => (SyntaxToken)n).ToList();
+
+                Assert.Equal(expectedSpans.Count, annotatedTokens.Count);
+
+                if (expectedSpans.Count > 0)
+                {
+                    var expectedTokens = TokenUtilities.GetTokens(TokenUtilities.GetSyntaxRoot(expectedText, GetLanguage(), parseOptions));
+                    var actualTokens = TokenUtilities.GetTokens(fixedRoot);
+
+                    for (var i = 0; i < Math.Min(expectedTokens.Count, actualTokens.Count); i++)
+                    {
+                        var expectedToken = expectedTokens[i];
+                        var actualToken = actualTokens[i];
+
+                        var actualIsConflict = annotatedTokens.Contains(actualToken);
+                        var expectedIsConflict = expectedSpans.Contains(expectedToken.Span);
+                        Assert.Equal(expectedIsConflict, actualIsConflict);
+                    }
+                }
+            }
         }
 
         private static Document GetDocumentToVerify(DocumentId expectedChangedDocumentId, Solution oldSolution, Solution newSolution)
