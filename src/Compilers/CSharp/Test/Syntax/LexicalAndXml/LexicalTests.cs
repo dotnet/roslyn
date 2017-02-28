@@ -3169,6 +3169,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestGreaterThanConflictMarkerNotConsumedWhenLegalInGeneric()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var v = new List<List<List<List<List<List<List<int
+>>>>>>>
+();
+    }
+}";
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var diagnostics = tree.GetDiagnostics();
+            Assert.Empty(diagnostics);
+
+            Assert.False(tree.GetRoot().DescendantTokens().Any(
+                t => t.LeadingTrivia.Any(SyntaxKind.ConflictMarkerTrivia) ||
+                     t.TrailingTrivia.Any(SyntaxKind.ConflictMarkerTrivia)));
+        }
+
+        [Fact]
         public void TestLessThanConflictMarker1()
         {
             // Needs to be followed by a space.
@@ -3229,36 +3251,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGreaterThanConflictMarker1()
         {
-            // Needs to be followed by a space.
+            // Less-than's should never be merged as conflict markers, except if they follow
+            // an ======= region
+
             var token = Lex(">>>>>>>").First();
             Assert.Equal(SyntaxKind.GreaterThanToken, token.Kind());
 
-            // Has to be the start of a line.
             token = Lex(" >>>>>>>").First();
             Assert.Equal(SyntaxKind.GreaterThanToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
             Assert.True(token.LeadingTrivia.Single().Kind() == SyntaxKind.WhitespaceTrivia);
 
-            // Has to have at least seven characters.
             token = Lex(">>>>>> ").First();
             Assert.Equal(SyntaxKind.GreaterThanToken, token.Kind());
 
-            // Start of line, seven characters, ends with space.
             token = Lex(">>>>>>> ").First();
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
-            Assert.True(token.HasLeadingTrivia);
-            var trivia = token.LeadingTrivia.Single();
-            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
+            Assert.Equal(SyntaxKind.GreaterThanToken, token.Kind());
 
-            Assert.True(trivia.ContainsDiagnostics);
-            var errors = trivia.Errors();
-            Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
+            Assert.False(token.ContainsDiagnostics);
         }
 
         [Fact]
         public void TestGreaterThanConflictMarker2()
         {
+            // Less-than's should never be merged as conflict markers, except if they follow
+            // an ======= region
+
             var token = Lex("{\r\n>>>>>>>").Skip(1).First();
             Assert.Equal(SyntaxKind.GreaterThanToken, token.Kind());
 
@@ -3271,17 +3289,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.GreaterThanToken, token.Kind());
 
             token = Lex("{\r\n>>>>>>> ").Skip(1).First();
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
-            Assert.True(token.HasLeadingTrivia);
-            var trivia = token.LeadingTrivia.Single();
-            Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.True(trivia.SpanStart == 3);
-            Assert.True(trivia.Span.Length == 8);
+            Assert.Equal(SyntaxKind.GreaterThanToken, token.Kind());
 
-            Assert.True(trivia.ContainsDiagnostics);
-            var errors = trivia.Errors();
-            Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
+            Assert.False(token.ContainsDiagnostics);
         }
 
         [Fact]
@@ -3360,7 +3370,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             trivia = token.LeadingTrivia[2];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
             Assert.Equal(trivia.Span.Length, 34);
-
 
             token = Lex("======= Trailing\r\ndisabled text\r\n>>>>>>> Actually the end").First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
