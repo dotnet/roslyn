@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <summary>
         /// If someone need to create a private pool
         /// </summary>
-        /// <param name="size">Initial size of the pool.</param>
+        /// <param name="size">The size of the pool.</param>
         /// <returns></returns>
         public static ObjectPool<PooledStringBuilder> CreatePool(int size = 32)
         {
