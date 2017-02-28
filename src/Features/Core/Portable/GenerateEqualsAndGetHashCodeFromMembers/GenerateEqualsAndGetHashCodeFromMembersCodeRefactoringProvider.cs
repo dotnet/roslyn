@@ -84,15 +84,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 return;
             }
 
-            // No constructors for static classes.
+            // No overrides in static classes.
             if (containingType.IsStatic)
             {
                 return;
             }
 
-            // Find all the possible writable instance fields/properties.  If there are any, then
-            // show a dialog to the user to select the ones they want.  Otherwise, if there are none
-            // just offer to generate the no-param constructor if they don't already have one.
+            // Find all the possible instance fields/properties.  If there are any, then
+            // show a dialog to the user to select the ones they want.
             var viableMembers = containingType.GetMembers().WhereAsArray(IsInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
             {
