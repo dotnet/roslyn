@@ -153,7 +153,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterEnterAfterPartialExpression() As Task
+        Public Sub TestCommitAfterEnterAfterPartialExpression()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -168,7 +168,7 @@ End Class
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
