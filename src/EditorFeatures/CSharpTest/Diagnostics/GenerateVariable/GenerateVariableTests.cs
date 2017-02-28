@@ -1343,20 +1343,9 @@ class Class
 {
     void M()
     {
-        this.[|Foo|] }",
-@"class C
-{
-    void M()
-    {
         this.[|Foo|] }");
 
             await TestSpansAsync(
-@"class C
-{
-    void M()
-    {
-        this.[|Foo|];
-    }",
 @"class C
 {
     void M()
@@ -1369,19 +1358,9 @@ class Class
 {
     void M()
     {
-        this.[|Foo|] = 1 }",
-@"class C
-{
-    void M()
-    {
         this.[|Foo|] = 1 }");
 
             await TestSpansAsync(
-@"class C
-{
-    void M()
-    {
-        this.[|Foo|] = 1 + 2 }",
 @"class C
 {
     void M()
@@ -1394,12 +1373,6 @@ class Class
     void M()
     {
         this.[|Foo|] = 1 + 2;
-    }",
-@"class C
-{
-    void M()
-    {
-        this.[|Foo|] = 1 + 2;
     }");
 
             await TestSpansAsync(
@@ -1407,20 +1380,9 @@ class Class
 {
     void M()
     {
-        this.[|Foo|] += Bar() }",
-@"class C
-{
-    void M()
-    {
         this.[|Foo|] += Bar() }");
 
             await TestSpansAsync(
-@"class C
-{
-    void M()
-    {
-        this.[|Foo|] += Bar();
-    }",
 @"class C
 {
     void M()
