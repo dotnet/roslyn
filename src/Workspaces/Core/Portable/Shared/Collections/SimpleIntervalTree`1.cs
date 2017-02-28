@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             => FillWithIntervalsThatContain(start, length, builder, _introspector);
 
         public bool HasIntervalThatIntersectsWith(int position)
-            => HasIntervalThatIntersectsWith(position, 0);
+            => HasIntervalThatIntersectsWith(position, _introspector);
 
         public bool HasIntervalThatOverlapsWith(int start, int length)
             => HasIntervalThatOverlapsWith(start, length, _introspector);
