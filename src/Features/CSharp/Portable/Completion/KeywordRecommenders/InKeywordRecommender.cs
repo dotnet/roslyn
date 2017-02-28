@@ -21,7 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsValidContextInForEachClause(context) ||
                 IsValidContextInFromClause(context, cancellationToken) ||
                 IsValidContextInJoinClause(context, cancellationToken) ||
-                context.TargetToken.IsTypeParameterVarianceContext();
+                context.TargetToken.IsTypeParameterVarianceContext() ||
+                context.SyntaxTree.IsParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                context.SyntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                context.SyntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken);
         }
 
         private bool IsValidContextInForEachClause(CSharpSyntaxContext context)

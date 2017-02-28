@@ -317,5 +317,181 @@ $$
 }";
             await VerifyProviderCommitAsync(markupBeforeCommit, "return", expectedCodeAfterCommit, commitChar: ';', textTypedSoFar: "return");
         }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_Methods()
+        {
+            var code = @"
+class Program
+{
+    public static void Test(ref $$ p) { }
+}";
+
+            await VerifyItemExistsAsync(code, "readonly");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_SecondParameter()
+        {
+            var code = @"
+class Program
+{
+    public static void Test(int p1, ref $$ p2) { }
+}";
+
+            await VerifyItemExistsAsync(code, "readonly");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_Delegates()
+        {
+            var code = @"
+public delegate int Delegate(ref $$ int p);";
+
+            await VerifyItemExistsAsync(code, "readonly");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_LocalFunctions()
+        {
+            var code = @"
+class Program
+{
+    public static void Test()
+    {
+        void localFunc(ref $$ int p) { }
+    }
+}";
+
+            await VerifyItemExistsAsync(code, "readonly");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_LambdaExpressions()
+        {
+            var code = @"
+public delegate int Delegate(ref readonly int p);
+
+class Program
+{
+    public static void Test()
+    {
+        Delegate lambda = (ref $$ int p) => p;
+    }
+}";
+
+            await VerifyItemExistsAsync(code, "readonly");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_AnonymousMethods()
+        {
+            var code = @"
+public delegate int Delegate(ref readonly int p);
+
+class Program
+{
+    public static void Test()
+    {
+        Delegate anonymousDelegate = delegate (ref $$ int p) { return p; };
+    }
+}";
+
+            await VerifyItemExistsAsync(code, "readonly");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpAsParameterModifier_Methods()
+        {
+            var code = @"
+class Program
+{
+    public static void Test($$ p) { }
+}";
+
+            await VerifyItemExistsAsync(code, "in");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpAsParameterModifier_SecondParameter()
+        {
+            var code = @"
+class Program
+{
+    public static void Test(int p1, $$ p2) { }
+}";
+
+            await VerifyItemExistsAsync(code, "in");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpAsParameterModifier_Delegates()
+        {
+            var code = @"
+public delegate int Delegate($$ int p);";
+
+            await VerifyItemExistsAsync(code, "in");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpAsParameterModifier_LocalFunctions()
+        {
+            var code = @"
+class Program
+{
+    public static void Test()
+    {
+        void localFunc($$ int p) { }
+    }
+}";
+
+            await VerifyItemExistsAsync(code, "in");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpAsParameterModifier_LambdaExpressions()
+        {
+            var code = @"
+public delegate int Delegate(ref readonly int p);
+
+class Program
+{
+    public static void Test()
+    {
+        Delegate lambda = ($$ int p) => p;
+    }
+}";
+
+            await VerifyItemExistsAsync(code, "in");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpAsParameterModifier_AnonymousMethods()
+        {
+            var code = @"
+public delegate int Delegate(ref readonly int p);
+
+class Program
+{
+    public static void Test()
+    {
+        Delegate anonymousDelegate = delegate ($$ int p) { return p; };
+    }
+}";
+
+            await VerifyItemExistsAsync(code, "in");
+        }
     }
 }

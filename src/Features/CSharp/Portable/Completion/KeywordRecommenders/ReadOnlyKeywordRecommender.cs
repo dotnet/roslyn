@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
@@ -26,8 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
+            var previousToken = context.LeftToken.GetPreviousTokenIfTouchingWord(position);
+
             return
                 context.IsGlobalStatementContext ||
+                (previousToken.IsKind(SyntaxKind.RefKeyword) && previousToken.Parent.IsKind(SyntaxKind.Parameter, SyntaxKind.RefType)) ||
                 context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: s_validMemberModifiers,
