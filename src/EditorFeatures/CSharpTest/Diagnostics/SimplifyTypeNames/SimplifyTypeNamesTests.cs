@@ -3585,7 +3585,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyDiagnosticId()
         {
-            var source =
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -3595,16 +3595,19 @@ class C
     {
         [|System.Console.WriteLine|]("");
     }
-}";
+}",
+@"
+using System;
 
-            var parameters = new TestParameters();
-            using (var workspace = await CreateWorkspaceFromFileAsync(source, parameters))
-            {
-                var diagnostics = (await GetDiagnosticsAsync(workspace, parameters)).Where(d => d.Id == IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
-                Assert.Equal(1, diagnostics.Count());
-            }
+class C
+{
+    public void z()
+    {
+        Console.WriteLine("");
+    }
+}");
 
-            source =
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -3614,17 +3617,19 @@ class C
     {
         [|System.Int32|] a;
     }
-}";
+}",
+@"
+using System;
 
-            var parameters1 = new TestParameters();
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(source, parameters1))
-            {
-                workspace.ApplyOptions(PreferIntrinsicTypeEverywhere);
-                var diagnostics = (await GetDiagnosticsAsync(workspace, parameters1)).Where(d => d.Id == IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId);
-                Assert.Equal(1, diagnostics.Count());
-            }
+class C
+{
+    public void z()
+    {
+        int a;
+    }
+}", parameters: new TestParameters(options: PreferIntrinsicTypeEverywhere));
 
-            source =
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -3635,14 +3640,18 @@ class C
     {
         var a = [|this.x|];
     }
-}";
+}",
+@"
+using System;
 
-            var parameters2 = new TestParameters();
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(source, parameters2))
-            {
-                var diagnostics = (await GetDiagnosticsAsync(workspace, parameters2)).Where(d => d.Id == IDEDiagnosticIds.RemoveQualificationDiagnosticId);
-                Assert.Equal(1, diagnostics.Count());
-            }
+class C
+{
+    private int x = 0;
+    public void z()
+    {
+        var a = x;
+    }
+}");
         }
 
         [WorkItem(1019276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019276")]

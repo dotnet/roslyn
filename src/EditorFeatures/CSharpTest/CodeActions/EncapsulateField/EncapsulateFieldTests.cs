@@ -1028,12 +1028,7 @@ partial class Program {
     a b c [|b|]
 }";
 
-            var testParameters = new TestParameters();
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(text, testParameters))
-            {
-                var result = await GetCodeRefactoringAsync(workspace, testParameters);
-                Assert.NotNull(result);
-            }
+            await TestActionCountAsync(text, count: 2);
         }
 
         [WorkItem(834072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834072")]
@@ -1045,15 +1040,10 @@ class Program
 {
     public const string [|s|] = ""S"";
     public const string s = ""S"";
-    }
+}
 ";
 
-            var parameters = new TestParameters();
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(text, parameters))
-            {
-                var result = await GetCodeRefactoringAsync(workspace, parameters);
-                Assert.NotNull(result);
-            }
+            await TestActionCountAsync(text, count: 2);
         }
 
         [WorkItem(862517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862517")]
