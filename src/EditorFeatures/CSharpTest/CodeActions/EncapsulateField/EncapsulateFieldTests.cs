@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             int index = 0, bool compareTokens = true,
-            IDictionary<OptionKey, object> options = null,
-            bool withScriptOption = false)
+            IDictionary<OptionKey, object> options = null)
         {
             options = options ?? new Dictionary<OptionKey, object>();
             foreach (var kvp in AllOptionsOff)
@@ -41,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             }
 
             return TestAsync(initialMarkup, expectedMarkup,
-                parseOptions, compilationOptions, index, compareTokens, options, 
-                withScriptOption: withScriptOption);
+                parseOptions, compilationOptions, index, compareTokens, options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -1397,7 +1395,8 @@ class C
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestAllOptionsOffAsync(
+                text, expected, compareTokens: false, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1439,7 +1438,8 @@ class C
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestAllOptionsOffAsync(
+                text, expected, compareTokens: false, index: 1);
         }
     }
 }

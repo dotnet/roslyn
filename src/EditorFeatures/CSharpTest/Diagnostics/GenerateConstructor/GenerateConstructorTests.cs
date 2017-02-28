@@ -2439,7 +2439,7 @@ abstract class Y
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task Tuple()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2462,15 +2462,13 @@ abstract class Y
     {
         new C((1, ""hello""), true);
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleWithNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2491,15 +2489,13 @@ withScriptOption: true);
     {
         new C((a: 1, b: ""hello""));
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleWithOneName()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2520,15 +2516,13 @@ withScriptOption: true);
     {
         new C((a: 1, ""hello""));
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleAndExistingField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2557,15 +2551,13 @@ class D
     {
         this.existing = existing;
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleWithNamesAndExistingField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2594,15 +2586,13 @@ class D
     {
         this.existing = existing;
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleWithDifferentNamesAndExistingField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2631,15 +2621,13 @@ class D
     {
         this.existing = existing;
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleAndDelegatingConstructor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2678,15 +2666,13 @@ class D : B
     public D((int, string) x) : base(x)
     {
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleWithNamesAndDelegatingConstructor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2725,15 +2711,13 @@ class D : B
     public D((int a, string b) x) : base(x)
     {
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleWithDifferentNamesAndDelegatingConstructor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2772,9 +2756,7 @@ class D : B
     public D((int c, string d) x) : base(x)
     {
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -2863,7 +2845,7 @@ class D
         [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2882,16 +2864,14 @@ class D
     {
         new C(out var a);
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2910,16 +2890,14 @@ withScriptOption: true);
     {
         new C(b: out var a);
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2938,16 +2916,14 @@ withScriptOption: true);
     {
         new C(out int a);
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2966,9 +2942,7 @@ withScriptOption: true);
     {
         new C(b: out int a);
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -2995,8 +2969,7 @@ withScriptOption: true);
         new C(out var a);
     }
 }",
-parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
-withScriptOption: true);
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -3023,8 +2996,7 @@ withScriptOption: true);
         new C(b: out var a);
     }
 }",
-parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
-withScriptOption: true);
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -3051,8 +3023,7 @@ withScriptOption: true);
         new C(out int a);
     }
 }",
-parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
-withScriptOption: true);
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -3079,15 +3050,14 @@ withScriptOption: true);
         new C(b: out int a);
     }
 }",
-parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
-withScriptOption: true);
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(13749, "https://github.com/dotnet/roslyn/issues/13749")]
         public async Task Support_Readonly_Properties()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C {
     public int Prop { get ; }
 }
@@ -3110,9 +3080,7 @@ class P {
         var prop = 42 ;
         var c = new C ( prop ) ;
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
     }
 }

@@ -1215,9 +1215,7 @@ index: 1);
         {
         }
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1251,9 +1249,7 @@ class C
         }
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
-index: 1,
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1287,9 +1283,7 @@ class C
         }
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
-index: 1,
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1311,9 +1305,7 @@ class C
     }
 }",
 @"",
-index: 1,
-parseOptions: TestOptions.Regular,
-withScriptOption: true));
+index: 1));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1691,14 +1683,13 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup, 
             ParseOptions parseOptions = null, int index = 0, 
-            bool compareTokens = true, bool withScriptOption = false)
+            bool compareTokens = true)
         {
             await TestAsync(
                 initialMarkup, expectedMarkup, parseOptions,
                 index: index,
                 compareTokens: compareTokens,
-                options: AllCodeStyleOff,
-                withScriptOption: withScriptOption);
+                options: AllCodeStyleOff);
         }
 
         private IDictionary<OptionKey, object> AllCodeStyleOff =>

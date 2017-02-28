@@ -761,7 +761,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task Tuple()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
 }
@@ -784,16 +784,13 @@ class B
     public B((int, string) x)
     {
     }
-}",
-index: 0,
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TupleWithNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
 }
@@ -816,10 +813,7 @@ class B
     public B((int a, string b) x)
     {
     }
-}",
-index: 0,
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
     }
 }

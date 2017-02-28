@@ -3889,7 +3889,8 @@ class C
     var i = (1, V).ToString();
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestInRegularAndScriptAsync(
+                code, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3908,7 +3909,7 @@ class C
     var i = p.ToString();
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestInRegularAndScriptAsync(code, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3927,7 +3928,7 @@ class C
     var i = p.ToString();
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestInRegularAndScriptAsync(code, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3946,7 +3947,7 @@ class C
     var i = p.ToString() + p.ToString();
 }";
 
-            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3965,7 +3966,7 @@ class C
     var i = p.ToString() + p.ToString();
 }";
 
-            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3984,7 +3985,7 @@ class C
     var i = p.ToString() + (c: 1, d: ""hello"").ToString();
 }";
 
-            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -4003,7 +4004,7 @@ class C
     var i = p.ToString() + p.ToString();
 }";
 
-            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, compareTokens: false);
 
             // no third action available
             await TestActionCountAsync(code, 2, parseOptions: TestOptions.Regular);
@@ -4014,7 +4015,7 @@ class C
         {
             // Cannot refactor tuple as local constant
             await Assert.ThrowsAsync<Xunit.Sdk.InRangeException>(() =>
-             TestAsync(
+             TestInRegularAndScriptAsync(
 @"class C
 {
     void Foo()
@@ -4024,10 +4025,7 @@ class C
     }
 }",
                 @"",
-                index: 3,
-                parseOptions: TestOptions.Regular,
-                withScriptOption: true)
-            );
+                index: 3));
         }
 
         [WorkItem(11777, "https://github.com/dotnet/roslyn/issues/11777")]

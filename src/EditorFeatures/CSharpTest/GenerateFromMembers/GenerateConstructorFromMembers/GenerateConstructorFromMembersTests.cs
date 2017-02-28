@@ -529,7 +529,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task Tuple()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Z
@@ -546,10 +546,7 @@ class Z
     {
         this.a = a;
     }
-}",
-index: 0,
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [WorkItem(14219, "https://github.com/dotnet/roslyn/issues/14219")]

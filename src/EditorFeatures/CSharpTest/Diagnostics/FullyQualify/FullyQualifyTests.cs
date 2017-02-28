@@ -1239,7 +1239,7 @@ namespace n2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TupleTest()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     ([|IDictionary|], string) Method()
@@ -1253,15 +1253,13 @@ namespace n2
     {
         Foo();
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TupleWithOneName()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     ([|IDictionary|] a, string) Method()
@@ -1275,9 +1273,7 @@ withScriptOption: true);
     {
         Foo();
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
     }
 }

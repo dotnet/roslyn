@@ -819,7 +819,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task Tuple_SingleGetterFromField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|(int, string) i|];
@@ -835,15 +835,13 @@ partial class Class
 @"class Class
 {
     (int, string) P { get; }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TupleWithNames_SingleGetterFromField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|(int a, string b) i|];
@@ -859,9 +857,7 @@ withScriptOption: true);
 @"class Class
 {
     (int a, string b) P { get; }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
@@ -885,7 +881,7 @@ withScriptOption: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TupleWithOneName_SingleGetterFromField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|(int a, string) i|];
@@ -901,15 +897,13 @@ withScriptOption: true);
 @"class Class
 {
     (int a, string) P { get; }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task Tuple_Initializer()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|(int, string) i = (1, ""hello"")|];
@@ -925,15 +919,13 @@ withScriptOption: true);
 @"class Class
 {
     (int, string) P { get; } = (1, ""hello"");
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task Tuple_GetterAndSetter()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|(int, string) i|];
@@ -954,9 +946,7 @@ withScriptOption: true);
 @"class Class
 {
     (int, string) P { get; set; }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
     }
 }

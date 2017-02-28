@@ -590,7 +590,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task Tuple()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -610,16 +610,13 @@ class Program
             Console.WriteLine(x);
         }
     }
-}",
-index: 0,
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TupleWithNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -639,10 +636,7 @@ withScriptOption: true);
             Console.WriteLine(x);
         }
     }
-}",
-index: 0,
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
     }
 }

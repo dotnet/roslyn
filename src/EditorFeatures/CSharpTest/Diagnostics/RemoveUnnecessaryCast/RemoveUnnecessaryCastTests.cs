@@ -3858,7 +3858,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task Tuple()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Main()
@@ -3872,15 +3872,13 @@ class Program
     {
         (int, string) tuple = (1, ""hello"");
     }
-}",
-            parseOptions: TestOptions.Regular,
-            withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TupleWithDifferentNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Main()
@@ -3894,9 +3892,7 @@ class Program
     {
         (int a, string) tuple = (1, f: ""hello"");
     }
-}",
-            parseOptions: TestOptions.Regular,
-            withScriptOption: true);
+}");
         }
 
         [WorkItem(12572, "https://github.com/dotnet/roslyn/issues/12572")]

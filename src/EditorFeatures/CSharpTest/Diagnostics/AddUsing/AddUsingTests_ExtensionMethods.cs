@@ -1106,8 +1106,7 @@ namespace N
         public static void Deconstruct(this Program p, out int x, out int y) { }
     }
 }",
-parseOptions: null,
-withScriptOption: false);
+parseOptions: null);
         }
     }
 }

@@ -520,7 +520,7 @@ index: 0,
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task Tuples_Equals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -538,15 +538,13 @@ class C
         var c = obj as C;
         return c != null && EqualityComparer<(int, string)>.Default.Equals(a, c.a);
     }
-}",
-index: 0,
-parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TupleWithNames_Equals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -564,15 +562,13 @@ class C
         var c = obj as C;
         return c != null && EqualityComparer<(int x, string y)>.Default.Equals(a, c.a);
     }
-}",
-index: 0,
-parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task Tuple_HashCode()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -590,14 +586,13 @@ class Program
         return EqualityComparer<(int, string)>.Default.GetHashCode(i);
     }
 }",
-index: 1,
-parseOptions: TestOptions.Regular, withScriptOption: true);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TupleWithNames_HashCode()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -615,9 +610,7 @@ class Program
         return EqualityComparer<(int x, string y)>.Default.GetHashCode(i);
     }
 }",
-index: 1,
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+index: 1);
         }
     }
 }

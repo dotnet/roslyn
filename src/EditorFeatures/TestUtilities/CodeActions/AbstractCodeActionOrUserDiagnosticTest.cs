@@ -327,25 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null,
-            CodeActionPriority? priority = null,
-            bool withScriptOption = false)
-        {
-            await TestAsync(initialMarkup, expectedMarkup, parseOptions, compilationOptions, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority);
-
-            if (withScriptOption)
-            {
-                await TestAsync(initialMarkup, expectedMarkup, parseOptions.WithKind(SourceCodeKind.Script), compilationOptions, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority);
-            }
-        }
-
-        private async Task TestAsync(
-            string initialMarkup, string expectedMarkup,
-            ParseOptions parseOptions, CompilationOptions compilationOptions,
-            int index, bool compareTokens,
-            IDictionary<OptionKey, object> options,
-            string fixAllActionEquivalenceKey,
-            object fixProviderData,
-            CodeActionPriority? priority)
+            CodeActionPriority? priority = null)
         {
             MarkupTestFile.GetSpans(expectedMarkup.NormalizeLineEndings(), out var expected, out IDictionary<string, IList<TextSpan>> spanMap);
 

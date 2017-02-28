@@ -7029,7 +7029,7 @@ index: 3);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TupleRead()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method((int, string) i)
@@ -7045,15 +7045,13 @@ index: 3);
     {
         Method(tuple);
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TupleWithOneNameRead()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method((int a, string) i)
@@ -7069,15 +7067,13 @@ withScriptOption: true);
     {
         Method(tuple);
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TupleWrite()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -7093,15 +7089,13 @@ withScriptOption: true);
     {
         tuple = (1, ""hello"");
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TupleWithOneNameWrite()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -7117,9 +7111,7 @@ withScriptOption: true);
     {
         tuple = (a: 1, ""hello"");
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]

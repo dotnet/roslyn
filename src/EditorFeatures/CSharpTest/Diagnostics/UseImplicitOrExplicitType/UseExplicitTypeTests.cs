@@ -1126,7 +1126,7 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTuple()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     static void M()
@@ -1141,15 +1141,13 @@ class C
         (int, string) s = (1, ""hello"");
     }
 }",
-options: ExplicitTypeEverywhere(),
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+options: ExplicitTypeEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     static void M()
@@ -1164,15 +1162,13 @@ withScriptOption: true);
         (int a, string b) s = (a: 1, b: ""hello"");
     }
 }",
-options: ExplicitTypeEverywhere(),
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+options: ExplicitTypeEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithOneName()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     static void M()
@@ -1187,9 +1183,7 @@ withScriptOption: true);
         (int a, string) s = (a: 1, ""hello"");
     }
 }",
-options: ExplicitTypeEverywhere(),
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+options: ExplicitTypeEverywhere());
         }
     }
 }

@@ -1555,7 +1555,7 @@ namespace System
             var before = @"class C { static void M() { [|(int a, string)|] s = (a: 1, ""hello""); } }";
             var after = @"class C { static void M() { var s = (a: 1, ""hello""); } }";
 
-            await TestAsync(before, after, options: ImplicitTypeEverywhere(), parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
 
             // We would rather this refactoring also worked. See https://github.com/dotnet/roslyn/issues/11094
             await TestMissingInRegularAndScriptAsync(before, options: ImplicitTypeWhereApparent());
@@ -1564,7 +1564,7 @@ namespace System
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/11154"), Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task ValueTupleCreate()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -1583,9 +1583,7 @@ class C
         var s = ValueTuple.Create(1, 1);
     }
 }" + trivial2uple,
-options: ImplicitTypeWhereApparent(),
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+options: ImplicitTypeWhereApparent());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1642,7 +1640,7 @@ options: ImplicitTypeEverywhere());
         [WorkItem(14052, "https://github.com/dotnet/roslyn/issues/14052")]
         public async Task OfferOnForEachConversionIfItDoesNotChangesSemantics()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -1699,9 +1697,7 @@ class Program
         }
     }
 }",
-options: ImplicitTypeEverywhere(),
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+options: ImplicitTypeEverywhere());
         }
     }
 }
