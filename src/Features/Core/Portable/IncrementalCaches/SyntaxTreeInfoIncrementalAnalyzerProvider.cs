@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IncrementalCaches
 {
@@ -20,6 +21,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         {
             public override Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
+                if (document.Project.Solution.Workspace.Options.GetOption(SymbolFinderOptions.OutOfProcessAllowed))
+                {
+                    return SpecializedTasks.EmptyTask;
+                }
+
                 return SyntaxTreeIndex.PrecalculateAsync(document, cancellationToken);
             }
         }
