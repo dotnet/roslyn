@@ -46,7 +46,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestReferenceIEquatable()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 using System.Collections.Generic;
@@ -72,14 +72,13 @@ class Program
         var program = obj as Program;
         return program != null && EqualityComparer<S>.Default.Equals(a, program.a);
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestValueIEquatable()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 using System.Collections.Generic;
@@ -105,8 +104,7 @@ class Program
         var program = obj as Program;
         return program != null && a.Equals(program.a);
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -405,7 +403,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeSingleField2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -429,7 +427,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeWithBaseHashCode1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Base {
