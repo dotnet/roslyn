@@ -5462,6 +5462,7 @@ public class C
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         public void RefReadonlyReturn()
         {
             var sourceA =
@@ -5472,6 +5473,32 @@ public class C
     int _p;
     public ref readonly int P => ref _p;
     public ref readonly int this[in int i] => ref _p;
+}";
+            var compA = CreateCompilationWithMscorlib(sourceA);
+            compA.VerifyDiagnostics();
+            var refA = compA.EmitToImageReference();
+            // From C# symbols.
+            RefReadonlyReturnInternal(compA);
+
+            var compB = CreateVisualBasicCompilation(GetUniqueName(), "", referencedAssemblies: new[] { MscorlibRef, refA });
+            compB.VerifyDiagnostics();
+            // From VB symbols.
+            //PROTOTYPE(refReadonly): metadata emit and VB NYI
+            //RefReadonlyReturnInternal(compB);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void RefReadonlyReturn1()
+        {
+            var sourceA =
+@"public delegate ref readonly int D();
+public class C
+{
+    public ref readonly int F(ref readonly int i) => ref i;
+    int _p;
+    public ref readonly int P => ref _p;
+    public ref readonly int this[ref readonly int i] => ref _p;
 }";
             var compA = CreateCompilationWithMscorlib(sourceA);
             compA.VerifyDiagnostics();
