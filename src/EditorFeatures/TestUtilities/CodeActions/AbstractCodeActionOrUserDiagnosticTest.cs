@@ -175,23 +175,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup, string expectedMarkup,
             IList<string> expectedContainers,
             string expectedDocumentName,
-            CompilationOptions compilationOptions = null,
             int index = 0,
             bool compareTokens = true,
-            IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null)
+            TestParameters parameters = default(TestParameters))
         {
             await TestAddDocument(
-                initialMarkup, expectedMarkup, index, compareTokens,
+                initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
-                null, compilationOptions,
-                fixAllActionEquivalenceKey, options, fixProviderData);
+                index, compareTokens,
+                parameters.WithParseOptions(null));
             await TestAddDocument(
-                initialMarkup, expectedMarkup, index, compareTokens,
+                initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
-                GetScriptOptions(), compilationOptions,
-                fixAllActionEquivalenceKey, options, fixProviderData);
+                index, compareTokens,
+                parameters.WithParseOptions(GetScriptOptions()));
         }
 
         protected async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(
@@ -209,36 +206,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 expectedDocumentName, codeActions, compareTokens);
         }
 
-        private Task TestAddDocument(
+        protected async Task TestAddDocument(
             string initialMarkup,
             string expectedMarkup,
-            int index,
-            bool compareTokens,
             IList<string> expectedContainers,
             string expectedDocumentName,
-            ParseOptions parseOptions,
-            CompilationOptions compilationOptions,
-            string fixAllActionEquivalenceKey,
-            IDictionary<OptionKey, object> options,
-            object fixProviderData)
-        {
-            return TestAddDocument(
-                initialMarkup,
-                new TestParameters(
-                    parseOptions, compilationOptions, options,
-                    fixAllActionEquivalenceKey, fixProviderData),
-                expectedMarkup, index, compareTokens,
-                expectedContainers, expectedDocumentName);
-        }
-
-        private async Task TestAddDocument(
-            string initialMarkup,
-            TestParameters parameters,
-            string expectedMarkup,
-            int index,
-            bool compareTokens,
-            IList<string> expectedContainers,
-            string expectedDocumentName)
+            int index = 0,
+            bool compareTokens = true,
+            TestParameters parameters = default(TestParameters))
         {
             using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
