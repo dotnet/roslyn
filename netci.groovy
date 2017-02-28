@@ -162,7 +162,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "perf-correctness"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-rc')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
