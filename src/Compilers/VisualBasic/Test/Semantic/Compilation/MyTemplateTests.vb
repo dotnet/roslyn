@@ -33,15 +33,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub LoadMyTemplate()
 
 
-            Dim sources = <compilation>
-                              <file name="c.vb"><![CDATA[
-Module M1
+            Dim sources = Unit.Make.With_c_vb(
+"Module M1
     Sub Main
     End Sub
-End Class
-
-    ]]></file>
-                          </compilation>
+End Class")
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                 references:={MsvbRef},
@@ -59,16 +55,13 @@ End Class
         <Fact()>
         Public Sub LoadMyTemplateNoRuntime()
 
-
-            Dim sources = <compilation>
-                              <file name="c.vb"><![CDATA[
-Module M1
+            Dim sources = Unit.Make().With_c_vb(
+"Module M1
     Sub Main
     End Sub
 End Class
 
-    ]]></file>
-                          </compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                 references:={SystemCoreRef},
@@ -84,15 +77,13 @@ End Class
         Public Sub LoadMyTemplateRuntimeNotFile()
 
 
-            Dim sources = <compilation>
-                              <file name="c.vb"><![CDATA[
-Module M1
+            Dim sources = Unit.Make().With_c_vb(
+"Module M1
     Sub Main
     End Sub
 End Class
 
-    ]]></file>
-                          </compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                 references:={SystemCoreRef, MsvbRef},
@@ -108,8 +99,8 @@ End Class
         Public Sub MyConsoleApp()
 
 
-            Dim sources = <compilation>
-                              <file name="c.vb"><![CDATA[
+            Dim sources = Unit.Make().With_c_vb(
+"
 
 Imports System
 
@@ -121,16 +112,14 @@ Module Module1
 
 End Module
 
-
-    ]]></file>
-                          </compilation>
+")
 
 
 
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
             defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
 
-            Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
+            Dim parseOptions As New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources, options:=compilationOptions)
@@ -141,10 +130,8 @@ End Module
 
         <ConditionalFact(GetType(HasValidFonts))>
         Public Sub MyWinformApp()
-            Dim sources = <compilation>
-                              <file name="c.vb"><![CDATA[
-
-Imports System
+            Dim sources = Unit.Make().With_c_vb(
+"Imports System
 
 Module m1
     Function Test As String
@@ -190,8 +177,8 @@ Partial Class Form1
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6!, 13!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(292, 273)
-        Me.Name = "Form1"
-        Me.Text = "HelloWinform"
+        Me.Name = ""Form1""
+        Me.Text = ""HelloWinform""
         Me.WindowState = System.Windows.Forms.FormWindowState.Minimized
         Me.ResumeLayout(false)
 
@@ -199,16 +186,12 @@ End Sub
 
 End Class
 
-
-    ]]></file>
-                          </compilation>
-
-
+")
 
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication)
             defines = defines.Add(KeyValuePair.Create("_MyType", CObj("WindowsForms")))
 
-            Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
+            Dim parseOptions As New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithOutputKind(OutputKind.WindowsApplication).WithParseOptions(parseOptions).WithMainTypeName("Form1")
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, {SystemWindowsFormsRef, SystemDrawingRef}, compilationOptions)
@@ -220,26 +203,22 @@ End Class
         <Fact()>
         Public Sub MyApplicationSemanticInfo()
 
-            Dim sources = <compilation>
-                              <file name="a.vb"><![CDATA[
-Imports System
+            Dim sources = Unit.Make().With_a_vb(
+"Imports System
 
 Module Module1
 
     Sub Main()
-        Console.WriteLine(My.Application.IsNetworkDeployed)'BIND:"Application"
+        Console.WriteLine(My.Application.IsNetworkDeployed)'BIND:""Application""
     End Sub
 
 End Module
-    ]]></file>
-                          </compilation>
-
-
+")
 
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
             defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
 
-            Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
+            Dim parseOptions As New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources, options:=compilationOptions)
@@ -270,14 +249,13 @@ End Module
         <Fact()>
         Public Sub MySettingExtraMember()
 
-            Dim sources = <compilation>
-                              <file name="a.vb"><![CDATA[
-Imports System
+            Dim sources = Unit.Make().With_a_vb(
+"Imports System
 Imports System.Collections.Generic
 
 Module Module1
     Sub Main()
-        My.Application.Foo()'BIND:"Foo"
+        My.Application.Foo()'BIND:""Foo""
     End Sub
 End Module
 
@@ -288,16 +266,13 @@ Namespace My
         End Function
     End Class
 End Namespace
-
-    ]]></file>
-                          </compilation>
-
+")
 
 
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
             defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
 
-            Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
+            Dim parseOptions As New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources, options:=compilationOptions)
