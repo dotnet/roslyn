@@ -509,4 +509,10 @@
   <data name="Warning_Extracting_a_local_function_reference_may_produce_invalid_code" xml:space="preserve">
     <value>Warning: Extracting a local function reference may produce invalid code</value>
   </data>
+  <data name="Make_method_static" xml:space="preserve">
+    <value>Make method static</value>
+  </data>
+  <data name="Method_can_be_made_static" xml:space="preserve">
+    <value>Method can be made static</value>
+  </data>
 </root>

@@ -639,11 +639,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make method static.
+        /// </summary>
+        internal static string Make_method_static {
+            get {
+                return ResourceManager.GetString("Make_method_static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;member name&gt; = .
         /// </summary>
         internal static string member_name {
             get {
                 return ResourceManager.GetString("member_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Method can be made static.
+        /// </summary>
+        internal static string Method_can_be_made_static {
+            get {
+                return ResourceManager.GetString("Method_can_be_made_static", resourceCulture);
             }
         }
         
