@@ -493,5 +493,111 @@ class Program
 
             await VerifyItemExistsAsync(code, "in");
         }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RefReadOnlyWillPopUpInMethodReturnTypes()
+        {
+            var code = @"
+class Program
+{
+    public ref $$ int Test()
+    {
+        return ref x;
+    }
+}";
+
+            await VerifyItemExistsAsync(code, "readonly");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RefReadOnlyWillPopUpInGlobalMemberDeclaration()
+        {
+            var code = @"
+public ref $$ ";
+
+            await VerifyItemExistsAsync(code, "readonly", sourceCodeKind: SourceCodeKind.Script);
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RefReadOnlyWillPopUpInDelegateReturnType()
+        {
+            var code = @"
+public delegate ref $$ int Delegate();
+
+class Program
+{
+}";
+
+            await VerifyItemExistsAsync(code, "readonly");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RefReadOnlyWillPopUpInMemberDeclaration()
+        {
+            var code = @"
+class Program
+{
+    public ref $$ int Test { get; set; }
+}";
+
+            await VerifyItemExistsAsync(code, "readonly");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpInMethodReturnTypes()
+        {
+            var code = @"
+class Program
+{
+    public $$ int Test()
+    {
+        return ref x;
+    }
+}";
+
+            await VerifyItemExistsAsync(code, "in");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpInGlobalMemberDeclaration()
+        {
+            var code = @"
+public $$ ";
+
+            await VerifyItemExistsAsync(code, "in", sourceCodeKind: SourceCodeKind.Script);
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpInDelegateReturnType()
+        {
+            var code = @"
+public delegate $$ int Delegate();
+
+class Program
+{
+}";
+
+            await VerifyItemExistsAsync(code, "in");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpInMemberDeclaration()
+        {
+            var code = @"
+class Program
+{
+    public $$ int Test { get; set; }
+}";
+
+            await VerifyItemExistsAsync(code, "in");
+        }
     }
 }
