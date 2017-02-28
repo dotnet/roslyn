@@ -180,6 +180,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return broker.IsCompletionActive(view);
             });
 
+        public bool IsSignatureHelpActive()
+            => ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModelService<ISignatureHelpBroker>();
+                return broker.IsSignatureHelpActive(view);
+            });
+
         public Signature[] GetSignatures()
             => ExecuteOnActiveView(view =>
             {

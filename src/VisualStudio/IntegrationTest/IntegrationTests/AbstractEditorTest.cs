@@ -253,6 +253,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
+        protected void VerifySignatureHelpIsActive(bool expected) =>
+            Assert.Equal(expected, Editor.IsSignatureHelpActive());
+
         protected void VerifyCaretIsOnScreen()
             => Assert.True(Editor.IsCaretOnScreen());
 
