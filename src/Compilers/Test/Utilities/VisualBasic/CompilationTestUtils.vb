@@ -888,7 +888,7 @@ Friend Module CompilationUtils
                     .AppendLine("UNEXPECTED ERROR MESSAGES:")
                     .AppendLine(actualText.Substring(expectedText.Length))
 
-                    Assert.True(False, messages.ToStringAndFree())
+                    Assert.True(False, .ToString())
                 Else
                     Dim expectedLines = expectedText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
                     Dim actualLines = actualText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
@@ -912,7 +912,7 @@ Friend Module CompilationUtils
                     Next
 
                     If appendedLines > 0 Then
-                        Assert.True(False, messages.Builder.ToString())
+                        Assert.True(False, .ToString())
                     Else
                         CompareLineByLine(expectedText, actualText)
                     End If
