@@ -3,11 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Automation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
@@ -342,6 +344,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
             Editor.PressDialogButton(dialogAutomationName, buttonAutomationName);
+        }
+
+        public AutomationElement GetDialog(string dialogAutomationId)
+        {
+            var dialog = DialogHelpers.FindDialog(VisualStudio.Instance.Shell.GetHWnd(), dialogAutomationId, isOpen: true);
+            Assert.NotNull(dialog);
+            return dialog;
         }
     }
 }
