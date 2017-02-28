@@ -833,8 +833,8 @@ public delegate void XEventHandler(object a, EventArgs b);
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForAddEventMyBaseIntoCSharpGenericExistingDelegate() As Task
             Dim initialMarkup =
-                <Workspace>
-                    <Project Language="Visual Basic" CommonReferences="true">
+                "<Workspace>
+                    <Project Language=""Visual Basic"" CommonReferences=""true"">
                         <ProjectReference>CSAssembly1</ProjectReference>
                         <Document>
 Imports System
@@ -849,7 +849,7 @@ Public Class Test
 End Class
 </Document>
                     </Project>
-                    <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
                         <Document>
 using System;
 
@@ -861,16 +861,16 @@ public class EventClass
 public delegate void XEventHandler(object sender, EventArgs e);
 </Document>
                     </Project>
-                </Workspace>
-            Await TestMissingWithWorkspaceXmlAsync(initialMarkup)
+                </Workspace>"
+            Await TestMissingInRegularAndScriptAsync(initialMarkup)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForRemoveEventMyBaseIntoCSharpGenericExistingDelegate() As Task
             Dim initialMarkup =
-                <Workspace>
-                    <Project Language="Visual Basic" CommonReferences="true">
+                "<Workspace>
+                    <Project Language=""Visual Basic"" CommonReferences=""True"">
                         <ProjectReference>CSAssembly1</ProjectReference>
                         <Document>
 Imports System
@@ -885,7 +885,7 @@ Public Class Test
 End Class
 </Document>
                     </Project>
-                    <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""True"">
                         <Document>
 using System;
 
@@ -897,9 +897,9 @@ public class EventClass
 public delegate void XEventHandler(object sender, EventArgs e);
 </Document>
                     </Project>
-                </Workspace>
+                </Workspace>"
 
-            Await TestMissingWithWorkspaceXmlAsync(initialMarkup)
+            Await TestMissingInRegularAndScriptAsync(initialMarkup)
         End Function
     End Class
 End Namespace

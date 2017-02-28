@@ -959,7 +959,7 @@ Class C
     Public Function Foo()
         Log
     End Function
-End Class", 1)
+End Class", index:=1)
         End Function
 
         <WorkItem(858085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858085")>

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             [|return|] Bar();
         }
     }
-}", options: UseExpressionBodyIncludingPropertiesAndIndexers);
+}", new TestParameters(options: UseExpressionBodyIncludingPropertiesAndIndexers));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             [|return|] Bar();
         }
     }
-}", options: UseExpressionBodyIncludingPropertiesAndIndexers);
+}", new TestParameters(options: UseExpressionBodyIncludingPropertiesAndIndexers));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         set => [|Bar|]();
     }
-}", count: 1, featureOptions: UseExpressionBody);
+}", count: 1, options: UseExpressionBody);
 
             // There is a hidden diagnostic that still offers to convert expression-body to block-body.
             await TestInRegularAndScriptAsync(

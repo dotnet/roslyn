@@ -4094,7 +4094,7 @@ class A
         throw new NotImplementedException();
     }
 }",
-Options.Regular);
+new TestParameters(Options.Regular));
         }
 
         [WorkItem(542529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542529")]

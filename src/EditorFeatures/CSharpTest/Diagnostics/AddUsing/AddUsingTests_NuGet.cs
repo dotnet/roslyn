@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
             private static readonly ImmutableArray<PackageSource> NugetPackageSources =
                 ImmutableArray.Create(new PackageSource(NugetOrgSource, "http://nuget.org/"));
 
-            protected override async Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
+            protected override async Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters)
             {
-                var workspace = await base.CreateWorkspaceFromFileAsync(definition, parseOptions, compilationOptions);
+                var workspace = await base.CreateWorkspaceFromFileAsync(initialMarkup, parameters);
                 workspace.Options = workspace.Options
                     .WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp, true)
                     .WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true);
@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
             }
 
             internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(
-                Workspace workspace, object fixProviderData)
+                Workspace workspace, TestParameters parameters)
             {
-                var data = (FixProviderData)fixProviderData;
+                var data = (FixProviderData)parameters.fixProviderData;
                 return (null, new CSharpAddImportCodeFixProvider(data.Item1, data.Item2));
             }
 
@@ -128,7 +128,7 @@ class C
 @"class C
 {
     [|NuGetType|] n;
-}", fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
+}", new TestParameters(fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object)));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]

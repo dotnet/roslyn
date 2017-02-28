@@ -49,7 +49,7 @@ class Program
     {
         [|int|] x = 1;
     }
-}", options: NoFrameworkType);
+}", new TestParameters(options: NoFrameworkType));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -64,7 +64,7 @@ class Program
     {
         [|dynamic|] x = 1;
     }
-}", options: FrameworkTypeInDeclaration);
+}", new TestParameters(options: FrameworkTypeInDeclaration));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -78,7 +78,7 @@ class Program
     [|void|] Method()
     {
     }
-}", options: FrameworkTypeEverywhere);
+}", new TestParameters(options: FrameworkTypeEverywhere));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -93,7 +93,7 @@ class Program
     {
         [|Program|] p;
     }
-}", options: FrameworkTypeEverywhere);
+}", new TestParameters(options: FrameworkTypeEverywhere));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -108,7 +108,7 @@ class Program
     {
         [|Int32|] p;
     }
-}", options: FrameworkTypeInDeclaration);
+}", new TestParameters(options: FrameworkTypeInDeclaration));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -121,7 +121,7 @@ class Program
     {
         [|System.Int32|] p;
     }
-}", options: FrameworkTypeInDeclaration);
+}", new TestParameters(options: FrameworkTypeInDeclaration));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -136,7 +136,7 @@ class Program
     {
         [|List|]<int> p;
     }
-}", options: FrameworkTypeInDeclaration);
+}", new TestParameters(options: FrameworkTypeInDeclaration));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -151,7 +151,7 @@ class Program
     {
         int [|p|];
     }
-}", options: FrameworkTypeInDeclaration);
+}", new TestParameters(options: FrameworkTypeInDeclaration));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]

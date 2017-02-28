@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             await TestMissingInRegularAndScriptAsync(
 @"class [|C|]
 {
-}",
-                options: ClassNamesArePascalCase);
+}", new TestParameters(options: ClassNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
@@ -47,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
     void [|M|]()
     {
     }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
@@ -79,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
     public [|c|]()
     {
     }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
@@ -90,8 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
 @"class C
 {
     public int P { [|get|]; set; }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
@@ -107,8 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             return 1;
         }
     }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
@@ -192,8 +187,7 @@ class C : I
 class C : I
 {
     public void [|m|]() { }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
@@ -208,8 +202,7 @@ class C : I
 class C : I
 {
     void I.[|m|]() { }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
@@ -252,8 +245,7 @@ abstract class C
 class D : C
 {
     public override void [|m|]() { }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
@@ -296,8 +288,7 @@ interface I
 class C : I
 {
     public int [|p|] { get { return 1; } set { } }
-}",
-                options: PropertyNamesArePascalCase);
+}", new TestParameters(options: PropertyNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
@@ -313,8 +304,7 @@ abstract class C
 class D : C
 {
     internal override void [|m|]() { }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
     }
 }

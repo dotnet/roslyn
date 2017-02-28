@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
 class Program
 {
     [|int|] _myfield = 5;
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -84,7 +84,7 @@ class Program
 class Program
 {
     public event [|D|] _myevent;
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -99,7 +99,7 @@ class Program
     {
         const [|int|] x = 5;
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -114,7 +114,7 @@ class Program
     {
         [|Program|] x = null;
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -129,7 +129,7 @@ class Program
     {
         [|dynamic|] x = 1;
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -146,7 +146,7 @@ class Program
             return value != ""0"";
         };
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -161,7 +161,7 @@ class Program
     {
         [|Func<int, int>|] x = y => y * y;
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -176,7 +176,7 @@ class Program
     {
         [|Func<string, string>|] copyStr = string.Copy;
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -191,7 +191,7 @@ class Program
     {
         [|int|] x = 5, y = x;
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -206,7 +206,7 @@ class Program
     {
         [|Program|] x;
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -221,7 +221,7 @@ class Program
     {
         [|IFormattable|] s = $""Hello, {name}""
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -236,7 +236,7 @@ class Program
     {
         [|FormattableString|] s = $""Hello, {name}""
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -257,7 +257,7 @@ class Program
             throw;
         }
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -276,7 +276,7 @@ class Program
     class var
     {
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -291,7 +291,7 @@ class Program
     {
         [|var|] p = new Program();
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -307,7 +307,7 @@ class Program
         int i = int.MaxValue;
         [|long|] l = i;
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -323,7 +323,7 @@ class Program
         int i = int.MaxValue;
         [|object|] o = i;
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -338,7 +338,7 @@ class C
     {
         C c = new [|C|]();
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -353,7 +353,7 @@ class C
     {
         [|int|] i = (i = 20);
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -376,7 +376,7 @@ class A : IInterface
 
 interface IInterface
 {
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -396,7 +396,7 @@ class C
             8
         };
     }
-}", options: ImplicitTypeEverywhere());
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1059,7 +1059,7 @@ class C
     {
         [|int|] s = 5;
     }
-}", options: ImplicitTypeButKeepIntrinsics());
+}", new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1076,7 +1076,7 @@ class C
     {
         [|int|] s = (unchecked(maxValue + 10));
     }
-}", options: ImplicitTypeButKeepIntrinsics());
+}", new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1167,7 +1167,7 @@ class C
     {
         [|int|] text = 5;
     }
-}", options: ImplicitTypeWhereApparent());
+}", new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1240,7 +1240,7 @@ class C
         object o = int.MaxValue;
         [|int|] i = (Int32)o;
     }
-}", options: ImplicitTypeWhereApparent());
+}", new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1471,7 +1471,8 @@ class C
         [|C|] n1 = new C();
     }
 }";
-            await TestMissingInRegularAndScriptAsync(source, options: ImplicitTypeNoneEnforcement());
+            await TestMissingInRegularAndScriptAsync(source,
+                new TestParameters(options: ImplicitTypeNoneEnforcement()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1558,7 +1559,7 @@ namespace System
             await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
 
             // We would rather this refactoring also worked. See https://github.com/dotnet/roslyn/issues/11094
-            await TestMissingInRegularAndScriptAsync(before, options: ImplicitTypeWhereApparent());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/11154"), Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1597,7 +1598,7 @@ options: ImplicitTypeWhereApparent());
         [|(int, string)|] s = (c: 1, d: ""hello"");
     }
 }",
-options: ImplicitTypeEverywhere());
+new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1633,7 +1634,7 @@ class Program
         }
     }
 }",
-options: ImplicitTypeEverywhere());
+new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1696,8 +1697,7 @@ class Program
         {
         }
     }
-}",
-options: ImplicitTypeEverywhere());
+}", options: ImplicitTypeEverywhere());
         }
     }
 }

@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
 Class C
     Protected i As [|Integer|]
 End Class
-", options:=NoFrameworkType)
+", New TestParameters(options:=NoFrameworkType))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -68,7 +68,7 @@ End Class
 Class C
     Protected i As [|C|]
 End Class
-", options:=FrameworkTypeEverywhere)
+", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -78,7 +78,7 @@ Imports System
 Class C
     Protected i As [|Int32|]
 End Class
-", options:=FrameworkTypeEverywhere)
+", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -87,7 +87,7 @@ End Class
 Class C
     Protected i As [|System.Int32|]
 End Class
-", options:=FrameworkTypeEverywhere)
+", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -96,7 +96,7 @@ End Class
 Class C
     Protected i As [|List|](Of Integer)
 End Class
-", options:=FrameworkTypeEverywhere)
+", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -105,7 +105,7 @@ End Class
 Class C
     Protected [|i|] As Integer
 End Class
-", options:=FrameworkTypeEverywhere)
+", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -114,7 +114,7 @@ End Class
 Class C
     Protected x As [|Boolean|]
 End Class
-", options:=FrameworkTypeEverywhere)
+", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -123,7 +123,7 @@ End Class
 Class C
     Protected x As [|Byte|]
 End Class
-", options:=FrameworkTypeEverywhere)
+", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -132,7 +132,7 @@ End Class
 Class C
     Protected x As [|Char|]
 End Class
-", options:=FrameworkTypeEverywhere)
+", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -141,7 +141,7 @@ End Class
 Class C
     Protected x As [|Object|]
 End Class
-", options:=FrameworkTypeEverywhere)
+", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -150,7 +150,7 @@ End Class
 Class C
     Protected x As [|SByte|]
 End Class
-", options:=FrameworkTypeEverywhere)
+", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -159,7 +159,7 @@ End Class
 Class C
     Protected x As [|String|]
 End Class
-", options:=FrameworkTypeEverywhere)
+", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -168,7 +168,7 @@ End Class
 Class C
     Protected x As [|Single|]
 End Class
-", options:=FrameworkTypeEverywhere)
+", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -177,7 +177,7 @@ End Class
 Class C
     Protected x As [|Decimal|]
 End Class
-", options:=FrameworkTypeEverywhere)
+", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -186,7 +186,7 @@ End Class
 Class C
     Protected x As [|Double|]
 End Class
-", options:=FrameworkTypeEverywhere)
+", New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>

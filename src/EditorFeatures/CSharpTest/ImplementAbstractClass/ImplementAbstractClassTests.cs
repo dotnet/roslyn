@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 options.Add(kvp);
             }
 
-            return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, index, compareTokens, options);
+            return TestInRegularAndScriptAsync(
+                initialMarkup, expectedMarkup,
+                index: index, compareTokens: compareTokens, options: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]

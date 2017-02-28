@@ -479,12 +479,12 @@ namespace Root
 {
     int i;
 }", index: 0, options: featureOptions);
-            await TestActionCountAsync(source, 1, featureOptions: featureOptions);
+            await TestActionCountAsync(source, 1, options: featureOptions);
             await TestSpansAsync(source,
 @"class A
 {
     [|System.Int32|] i;
-}", featureOptions: featureOptions);
+}", options: featureOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -1471,7 +1471,7 @@ index: 0);
         {
             await TestMissingAsync(
 @"[|Console.WrieLine();|]",
-Options.Script);
+new TestParameters(Options.Script));
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -2502,7 +2502,7 @@ class Program
     }
 }", parseOptions: null, index: 0);
 
-            await TestMissingAsync(source, GetScriptOptions());
+            await TestMissingAsync(source, new TestParameters(GetScriptOptions()));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -2566,7 +2566,7 @@ static class M
     {
         int k = Preserve.Y;
     }
-}", 0);
+}", index: 0);
         }
 
         [WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
@@ -2963,9 +2963,10 @@ class Program
 }
 ";
 
-            using (var workspace = await CreateWorkspaceFromFileAsync(code, null, null))
+            var parameters = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(code, parameters))
             {
-                var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace);
+                var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, parameters);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
                 Assert.NotEqual(span.Start, 0);
                 Assert.NotEqual(span.End, 0);
@@ -3059,9 +3060,10 @@ class Program
 ";
             await TestInRegularAndScriptAsync(code, expected);
 
-            using (var workspace = await CreateWorkspaceFromFileAsync(code, null, null))
+            var parameters = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(code, parameters))
             {
-                var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace);
+                var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, parameters);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
                 Assert.Equal(span.Start, expected.IndexOf(@"Generic.List<int>()", StringComparison.Ordinal));
                 Assert.Equal(span.Length, "System.Collections".Length);
@@ -3095,9 +3097,10 @@ class Program
 ";
             await TestInRegularAndScriptAsync(code, expected);
 
-            using (var workspace = await CreateWorkspaceFromFileAsync(code, null, null))
+            var parameters = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(code, parameters))
             {
-                var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace);
+                var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, parameters);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
                 Assert.Equal(span.Start, expected.IndexOf(@"Console.WriteLine(""foo"")", StringComparison.Ordinal));
                 Assert.Equal(span.Length, "System".Length);
@@ -3160,9 +3163,10 @@ namespace A
         }
     }
 }";
-            using (var workspace = await CreateWorkspaceFromFileAsync(code, null, null))
+            var parameters = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(code, parameters))
             {
-                var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace);
+                var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, parameters);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
                 Assert.Equal(span, new TextSpan(135, 5));
             }
@@ -3191,7 +3195,7 @@ class Attribute : System.Attribute
     {
         [|this|].x = 4;
     }
-}", options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3323,7 +3327,7 @@ class C
     public void z()
     {
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3366,7 +3370,7 @@ class C
     public void z()
     {
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
         }
 
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
@@ -3406,7 +3410,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     public void z()
     {
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
         }
 
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
@@ -3444,7 +3448,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     {
         System.Int32 z = 9;
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3460,7 +3464,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     {
         System.Int32 z = 9;
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3476,7 +3480,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     {
         [|System.Int32|] z = 9;
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3559,7 +3563,7 @@ class C
     {
         var sss = [|Int32|].MaxValue;
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3573,7 +3577,7 @@ class C
     {
         var sss = [|System.Int32|].MaxValue;
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
         }
 
         [WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")]
@@ -3591,9 +3595,11 @@ class C
         [|System.Console.WriteLine|]("");
     }
 }";
-            using (var workspace = await CreateWorkspaceFromFileAsync(source, null, null))
+
+            var parameters = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromFileAsync(source, parameters))
             {
-                var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
+                var diagnostics = (await GetDiagnosticsAsync(workspace, parameters)).Where(d => d.Id == IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
                 Assert.Equal(1, diagnostics.Count());
             }
 
@@ -3608,10 +3614,12 @@ class C
         [|System.Int32|] a;
     }
 }";
-            using (var workspace = await CreateWorkspaceFromFileAsync(source, null, null))
+
+            var parameters1 = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(source, parameters1))
             {
                 workspace.ApplyOptions(PreferIntrinsicTypeEverywhere);
-                var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId);
+                var diagnostics = (await GetDiagnosticsAsync(workspace, parameters1)).Where(d => d.Id == IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId);
                 Assert.Equal(1, diagnostics.Count());
             }
 
@@ -3627,9 +3635,11 @@ class C
         var a = [|this.x|];
     }
 }";
-            using (var workspace = await CreateWorkspaceFromFileAsync(source, null, null))
+
+            var parameters2 = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(source, parameters2))
             {
-                var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == IDEDiagnosticIds.RemoveQualificationDiagnosticId);
+                var diagnostics = (await GetDiagnosticsAsync(workspace, parameters2)).Where(d => d.Id == IDEDiagnosticIds.RemoveQualificationDiagnosticId);
                 Assert.Equal(1, diagnostics.Count());
             }
         }
@@ -3762,7 +3772,7 @@ class Program
 
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
         {
-            await TestInRegularAndScriptAsync(code, expected, index, options: PreferIntrinsicTypeEverywhere);
+            await TestInRegularAndScriptAsync(code, expected, index: index, options: PreferIntrinsicTypeEverywhere);
         }
 
         private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhere => OptionsSet(

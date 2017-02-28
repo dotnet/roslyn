@@ -1544,7 +1544,7 @@ End Class"
     End Sub
 End Class", parseOptions:=Nothing, index:=0)
 
-            Await TestMissingAsync(source, GetScriptOptions())
+            Await TestMissingAsync(source, New TestParameters(GetScriptOptions()))
         End Function
 
         <WorkItem(674789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674789")>
@@ -1801,8 +1801,9 @@ End Module
 </Code>
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value, Nothing, Nothing)
-                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
+
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value)
+                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
                 Assert.NotEqual(span.Start, 0)
                 Assert.NotEqual(span.End, 0)
@@ -1849,8 +1850,9 @@ End Namespace
 </Code>
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value, Nothing, Nothing)
-                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
+
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value)
+                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("new C", StringComparison.Ordinal) + 4)
                 Assert.Equal(span.Length, "A.B".Length)
@@ -1883,8 +1885,9 @@ End Module
 </Code>
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value, Nothing, Nothing)
-                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
+
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value)
+                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("Console.WriteLine(""foo"")", StringComparison.Ordinal))
                 Assert.Equal(span.Length, "System".Length)
@@ -2111,7 +2114,8 @@ Module Program
 End Module
 </Code>
 
-            Await TestMissingInRegularAndScriptAsync(source.Value, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestMissingInRegularAndScriptAsync(source.Value,
+                                                     New TestParameters(options:=PreferIntrinsicPredefinedTypeEverywhere()))
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2126,7 +2130,7 @@ Class Program
     End Sub
 End Class
 </Code>
-            Await TestMissingInRegularAndScriptAsync(source.Value, options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error))
+            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error)))
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2141,7 +2145,7 @@ Class Program
     End Sub
 End Class
 </Code>
-            Await TestMissingInRegularAndScriptAsync(source.Value, options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error))
+            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error)))
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2156,7 +2160,7 @@ Class Program
     End Sub
 End Class
 </Code>
-            Await TestMissingInRegularAndScriptAsync(source.Value, options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error))
+            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error)))
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2239,7 +2243,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestMissingInRegularAndScriptAsync(source.Value, options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error))
+            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error)))
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2254,7 +2258,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestMissingInRegularAndScriptAsync(source.Value, options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error))
+            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error)))
         End Function
 
         <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
@@ -2267,7 +2271,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestMissingInRegularAndScriptAsync(source.Value, options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error))
+            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error)))
         End Function
 
         <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
@@ -2300,7 +2304,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestMissingInRegularAndScriptAsync(source.Value, options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error))
+            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error)))
         End Function
 
         <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
@@ -2336,8 +2340,9 @@ Module Program
 End Module
 </Code>
 
-            Using workspace = Await CreateWorkspaceFromFileAsync(source, Nothing, Nothing)
-                Dim diagnostics = (Await GetDiagnosticsAsync(workspace)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
+            Dim parameters As New TestParameters()
+            Using workspace = Await CreateWorkspaceFromFileAsync(source, parameters)
+                Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
 
@@ -2351,9 +2356,10 @@ Module Program
 End Module
 </Code>
 
-            Using workspace = Await CreateWorkspaceFromFileAsync(source, Nothing, Nothing)
+            Dim parameters2 As New TestParameters()
+            Using workspace = Await CreateWorkspaceFromFileAsync(source, parameters2)
                 workspace.ApplyOptions(PreferIntrinsicPredefinedTypeEverywhere())
-                Dim diagnostics = (Await GetDiagnosticsAsync(workspace)).Where(Function(d) d.Id = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId)
+                Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters2)).Where(Function(d) d.Id = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
 
@@ -2368,8 +2374,9 @@ Class C
 End Module
 </Code>
 
-            Using workspace = Await CreateWorkspaceFromFileAsync(source, Nothing, Nothing)
-                Dim diagnostics = (Await GetDiagnosticsAsync(workspace)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveQualificationDiagnosticId)
+            Dim parameters3 As New TestParameters()
+            Using workspace = Await CreateWorkspaceFromFileAsync(source, parameters3)
+                Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters3)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveQualificationDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
         End Function
