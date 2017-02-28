@@ -9,13 +9,14 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.PickMembers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHashCodeFromMembers
 {
-    public class GenerateEqualsAndGetHashCodeTests : AbstractCSharpCodeActionTest
+    public class GenerateEqualsAndGetHashCodeFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider();
+            => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsSingleField()
@@ -36,10 +37,74 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && EqualityComparer<int>.Default.Equals(a, program.a);
+        return program != null && a == program.a;
     }
 }",
 index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestReferenceIEquatable()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+class S : IEquatable<S> { }
+
+class Program
+{
+    [|S a;|]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class S : IEquatable<S> { }
+
+class Program
+{
+    S a;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null && EqualityComparer<S>.Default.Equals(a, program.a);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestValueIEquatable()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+struct S : IEquatable<S> { }
+
+class Program
+{
+    [|S a;|]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+struct S : IEquatable<S> { }
+
+class Program
+{
+    S a;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null && a.Equals(program.a);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -61,7 +126,7 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null && EqualityComparer<int>.Default.Equals(a, name.a);
+        return name != null && a == name.a;
     }
 }",
 index: 0);
@@ -86,7 +151,7 @@ class ReallyLongLong
     public override bool Equals(object obj)
     {
         var @long = obj as ReallyLongLong;
-        return @long != null && EqualityComparer<long>.Default.Equals(a, @long.a);
+        return @long != null && a == @long.a;
     }
 }",
 index: 0);
@@ -115,7 +180,7 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null && EqualityComparer<int>.Default.Equals(a, name.a) && EqualityComparer<string>.Default.Equals(B, name.B);
+        return name != null && a == name.a && B == name.B;
     }
 }",
 index: 0);
@@ -133,9 +198,7 @@ class Program : Base
 {
     [|int i;|]
 }",
-@"using System.Collections.Generic;
-
-class Base
+@"class Base
 {
 }
 
@@ -146,7 +209,7 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && EqualityComparer<int>.Default.Equals(i, program.i);
+        return program != null && i == program.i;
     }
 }",
 index: 0);
@@ -189,10 +252,13 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && base.Equals(obj) && EqualityComparer<int>.Default.Equals(i, program.i) && EqualityComparer<string>.Default.Equals(S, program.S);
+        return program != null &&
+               base.Equals(obj) &&
+               i == program.i &&
+               S == program.S;
     }
 }",
-index: 0);
+index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -240,7 +306,8 @@ class Program : Middle
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && base.Equals(obj) && EqualityComparer<int>.Default.Equals(i, program.i) && EqualityComparer<string>.Default.Equals(S, program.S);
+        return program != null && base.Equals(obj) &&
+               i == program.i && S == program.S;
     }
 }",
 index: 0);
@@ -274,7 +341,7 @@ struct ReallyLongName
         }
 
         var name = (ReallyLongName)obj;
-        return EqualityComparer<int>.Default.Equals(i, name.i) && EqualityComparer<string>.Default.Equals(S, name.S);
+        return i == name.i && S == name.S;
     }
 }",
 index: 0);
@@ -300,7 +367,8 @@ class Program<T>
     public override bool Equals(object obj)
     {
         var program = obj as Program<T>;
-        return program != null && EqualityComparer<int>.Default.Equals(i, program.i);
+        return program != null &&
+               i == program.i;
     }
 }
 ";
@@ -309,7 +377,7 @@ class Program<T>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestGetHashCodeSingleField()
+        public async Task TestGetHashCodeSingleField1()
         {
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -326,9 +394,102 @@ class Program
 
     public override int GetHashCode()
     {
-        return EqualityComparer<int>.Default.GetHashCode(i);
+        return 165851236 + i.GetHashCode();
     }
 }",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGetHashCodeSingleField2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|int j;|]
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int j;
+
+    public override int GetHashCode()
+    {
+        return 1424088837 + j.GetHashCode();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGetHashCodeWithBaseHashCode1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Base {
+    public override int GetHashCode() => 0;
+}
+
+class Program : Base
+{
+    [|int j;|]
+}",
+@"using System.Collections.Generic;
+
+class Base {
+    public override int GetHashCode() => 0;
+}
+
+class Program : Base
+{
+    int j;
+
+    public override int GetHashCode()
+    {
+        var hashCode = -284411267;
+        hashCode = hashCode * -1521134295 + base.GetHashCode();
+        hashCode = hashCode * -1521134295 + j.GetHashCode();
+        return hashCode;
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGetHashCodeWithBaseHashCode2()
+        {
+            await TestWithPickMembersDialogAsync(
+@"using System.Collections.Generic;
+
+class Base {
+    public override int GetHashCode() => 0;
+}
+
+class Program : Base
+{
+    int j;
+    [||]
+}",
+@"using System.Collections.Generic;
+
+class Base {
+    public override int GetHashCode() => 0;
+}
+
+class Program : Base
+{
+    int j;
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+}",
+chosenSymbols: new string[] { },
 index: 1);
         }
 
@@ -348,7 +509,7 @@ class Program
 {
     int i;
 
-    public override int GetHashCode() => EqualityComparer<int>.Default.GetHashCode(i);
+    public override int GetHashCode() => 165851236 + i.GetHashCode();
 }",
 index: 1,
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
@@ -372,7 +533,7 @@ class Program<T>
 
     public override int GetHashCode()
     {
-        return EqualityComparer<T>.Default.GetHashCode(i);
+        return 165851236 + EqualityComparer<T>.Default.GetHashCode(i);
     }
 }",
 index: 1);
@@ -396,7 +557,7 @@ class Program<T>
 
     public override int GetHashCode()
     {
-        return EqualityComparer<Program<T>>.Default.GetHashCode(i);
+        return 165851236 + EqualityComparer<Program<T>>.Default.GetHashCode(i);
     }
 }",
 index: 1);
@@ -424,7 +585,8 @@ class Program
 
     public override int GetHashCode()
     {
-        var hashCode = EqualityComparer<int>.Default.GetHashCode(i);
+        var hashCode = -538000506;
+        hashCode = hashCode * -1521134295 + i.GetHashCode();
         hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
         return hashCode;
     }
@@ -583,7 +745,7 @@ class Program
 
     public override int GetHashCode()
     {
-        return EqualityComparer<(int, string)>.Default.GetHashCode(i);
+        return 165851236 + i.GetHashCode();
     }
 }",
 index: 1);
@@ -607,10 +769,105 @@ class Program
 
     public override int GetHashCode()
     {
-        return EqualityComparer<(int x, string y)>.Default.GetHashCode(i);
+        return 165851236 + i.GetHashCode();
     }
 }",
 index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialog1()
+        {
+            await TestWithPickMembersDialogAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+    string b;
+    [||]
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+    string b;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               a == program.a &&
+               b == program.b;
+    }
+}",
+chosenSymbols: new[] { "a", "b" },
+compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialog2()
+        {
+            await TestWithPickMembersDialogAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+    string b;
+    bool c;
+    [||]
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+    string b;
+    bool c;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               c == program.c &&
+               b == program.b;
+    }
+}",
+chosenSymbols: new[] { "c", "b" },
+compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialog3()
+        {
+            await TestWithPickMembersDialogAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+    string b;
+    bool c;
+    [||]
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+    string b;
+    bool c;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null;
+    }
+}",
+chosenSymbols: new string[] { },
+compareTokens: false);
         }
     }
 }

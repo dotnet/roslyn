@@ -49,6 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
                 => new TestParameters(parseOptions, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData);
+
+            public TestParameters WithFixProviderData(object fixProviderData)
+                => new TestParameters(parseOptions, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData);
         }
 
         protected abstract string GetLanguage();
@@ -392,19 +395,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return Tuple.Create(oldSolution, newSolution);
         }
 
-        internal async Task TestInRegularAndScriptAsync(
+        internal Task TestInRegularAndScriptAsync(
             string initialMarkup,
             string expectedMarkup,
-            CompilationOptions compilationOptions = null,
             int index = 0,
             bool compareTokens = true,
+            CodeActionPriority? priority = null,
+            CompilationOptions compilationOptions = null,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null,
-            CodeActionPriority? priority = null)
+            object fixProviderData = null)
         {
-            await TestAsync(initialMarkup, expectedMarkup, null, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority: priority);
-            await TestAsync(initialMarkup, expectedMarkup, GetScriptOptions(), null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority: priority);
+            return TestInRegularAndScript1Async(
+                initialMarkup, expectedMarkup, index, compareTokens, priority,
+                new TestParameters(null, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData));
+        }
+
+        internal async Task TestInRegularAndScript1Async(
+            string initialMarkup,
+            string expectedMarkup,
+            int index = 0,
+            bool compareTokens = true,
+            CodeActionPriority? priority = null,
+            TestParameters parameters = default(TestParameters))
+        {
+            await TestAsync(initialMarkup, expectedMarkup, index, compareTokens, priority, parameters.WithParseOptions(null));
+            await TestAsync(initialMarkup, expectedMarkup, index, compareTokens, priority, parameters.WithParseOptions(GetScriptOptions()));
         }
 
         internal Task TestAsync(
@@ -419,19 +435,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             return TestAsync(
                 initialMarkup,
+                expectedMarkup, index, compareTokens, priority,
                 new TestParameters(
                     parseOptions, compilationOptions,
-                    options, fixAllActionEquivalenceKey, fixProviderData),
-                expectedMarkup, index, compareTokens, priority);
+                    options, fixAllActionEquivalenceKey, fixProviderData));
         }
 
         private async Task TestAsync(
             string initialMarkup,
-            TestParameters parameters,
             string expectedMarkup,
             int index,
             bool compareTokens, 
-            CodeActionPriority? priority)
+            CodeActionPriority? priority,
+            TestParameters parameters)
         {
             MarkupTestFile.GetSpans(expectedMarkup.NormalizeLineEndings(), out var expected, out IDictionary<string, IList<TextSpan>> spanMap);
 

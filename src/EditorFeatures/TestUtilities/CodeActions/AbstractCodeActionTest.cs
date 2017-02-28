@@ -122,23 +122,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 => new PickMembersResult(_memberNames.SelectAsArray(n => members.Single(m => m.Name == n)));
         }
 
-        protected Task TestWithGenerateConstructorDialogAsync(
+        internal Task TestWithPickMembersDialogAsync(
             string initialMarkup,
             string expectedMarkup,
             string[] chosenSymbols,
-            CompilationOptions compilationOptions = null,
             int index = 0,
             bool compareTokens = true,
-            IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null)
+            CodeActionPriority? priority = null,
+            TestParameters parameters = default(TestParameters))
         {
             var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrEmpty());
-            return TestInRegularAndScriptAsync(
-                initialMarkup, expectedMarkup, 
-                compilationOptions, index, compareTokens,
-                options,
-                fixAllActionEquivalenceKey,
-                fixProviderData: pickMembersService);
+            return TestInRegularAndScript1Async(
+                initialMarkup, expectedMarkup,
+                index, compareTokens, priority,
+                parameters.WithFixProviderData(pickMembersService));
         }
     }
 }
