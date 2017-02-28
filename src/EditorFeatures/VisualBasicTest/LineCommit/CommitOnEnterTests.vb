@@ -172,7 +172,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterEnterOnBlankLine() As Task
+        Public Sub TestCommitAfterEnterOnBlankLine()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -186,12 +186,12 @@ End Class
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(539451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539451")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterColon() As Task
+        Public Sub TestCommitAfterColon()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -205,12 +205,12 @@ End Class
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(539408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterConstDirective() As Task
+        Public Sub TestCommitAfterConstDirective()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>[|
@@ -220,12 +220,12 @@ End Class
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(539408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterComment() As Task
+        Public Sub TestCommitAfterComment()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>[|
@@ -235,7 +235,7 @@ rem Hello World$$|]
                        </Workspace>
 
             AssertCommitsStatement(test, expectCommit:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(544372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544372")>

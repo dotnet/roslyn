@@ -249,7 +249,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestNoCommitDuringInlineRename() As Task
+        Public Sub TestNoCommitDuringInlineRename()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -269,12 +269,12 @@ End Class
 
                 testData.AssertHadCommit(False)
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539599")>
-        Public Async Function TestCommitAfterLeavingStatementAfterLineContinuation() As Task
+        Public Sub TestCommitAfterLeavingStatementAfterLineContinuation()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -301,12 +301,12 @@ End Module
                 testData.EditorOperations.MoveLineDown(extendSelection:=False)
                 testData.AssertHadCommit(True)
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539318")>
-        Public Async Function TestCommitAfterDeletingIndentationFixesIndentation() As Task
+        Public Sub TestCommitAfterDeletingIndentationFixesIndentation()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -334,7 +334,7 @@ End Module
 
                 Assert.Equal(testData.Workspace.Documents.Single().InitialTextSnapshot.GetText(), testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
