@@ -36,13 +36,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
                                    priority:=priority)
         End Function
 
-        'Protected Overloads Async Function TestMissingWithWorkspaceXmlAsync(initialMarkup As XElement) As Threading.Tasks.Task
-        '    Using workspace = TestWorkspace.CreateWorkspace(initialMarkup)
-        '        Dim diagnostics = Await GetDiagnosticAndFixAsync(workspace)
-        '        Assert.Null(diagnostics)
-        '    End Using
-        'End Function
-
         Protected Overloads Async Function TestMissingAsync(initialMarkup As XElement) As Threading.Tasks.Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
 
