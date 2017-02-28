@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void DebugCheckEmpty<T>(ContextIntervalTree<T> tree, TextSpan textSpan)
         {
             var intervals = tree.GetContainingIntervals(textSpan.Start, textSpan.Length);
-            Contract.ThrowIfFalse(intervals.IsEmpty());
+            Contract.ThrowIfFalse(intervals.Length == 0);
         }
 
         public int GetBaseIndentation(SyntaxToken token)

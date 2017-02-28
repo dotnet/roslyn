@@ -220,11 +220,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
 
             foreach (var tree in CreateTrees(spans))
             {
-                Assert.False(tree.IntersectsWith(-1));
-                Assert.True(tree.IntersectsWith(0));
-                Assert.True(tree.IntersectsWith(1));
-                Assert.True(tree.IntersectsWith(2));
-                Assert.False(tree.IntersectsWith(3));
+                Assert.False(tree.HasIntervalThatIntersectsWith(-1));
+                Assert.True(tree.HasIntervalThatIntersectsWith(0));
+                Assert.True(tree.HasIntervalThatIntersectsWith(1));
+                Assert.True(tree.HasIntervalThatIntersectsWith(2));
+                Assert.False(tree.HasIntervalThatIntersectsWith(3));
             }
         }
 
