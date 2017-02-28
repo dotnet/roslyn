@@ -1028,7 +1028,7 @@ public class Cls
 
             var typeInfo = model.GetTypeInfo(decl);
             Assert.Equal(expectedType, typeInfo.Type);
-            if ((expectedSymbol as LocalSymbol)?.DeclarationKind == LocalDeclarationKind.OutVariable)
+            if (decl.IsOutDeclaration())
             {
                 Assert.Equal(expectedType, typeInfo.ConvertedType);
             }
@@ -30208,11 +30208,27 @@ H.M(x1);
 
 class H
 {
-    void M(object a) {}
+    public static void M(object a) {}
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
-
+            compilation.VerifyDiagnostics(
+                // (2,10): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // H.M((var x1, int x2));
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(2, 10),
+                // (2,6): error CS8185: A declaration is not allowed in this context.
+                // H.M((var x1, int x2));
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x1").WithLocation(2, 6),
+                // (2,14): error CS8185: A declaration is not allowed in this context.
+                // H.M((var x1, int x2));
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x2").WithLocation(2, 14),
+                // (2,5): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // H.M((var x1, int x2));
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(var x1, int x2)").WithArguments("System.ValueTuple`2").WithLocation(2, 5),
+                // (2,5): error CS1503: Argument 1: cannot convert from '(var, int)' to 'object'
+                // H.M((var x1, int x2));
+                Diagnostic(ErrorCode.ERR_BadArgType, "(var x1, int x2)").WithArguments("1", "(var, int)", "object").WithLocation(2, 5)
+                );
             compilation.GetDeclarationDiagnostics().Verify(
                 // (2,10): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // H.M((var x1, int x2));
