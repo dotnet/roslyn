@@ -4007,7 +4007,7 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 1, compareTokens: false);
 
             // no third action available
-            await TestActionCountAsync(code, 2, parseOptions: TestOptions.Regular);
+            await TestActionCountAsync(code, count: 2, parameters: new TestParameters(TestOptions.Regular));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]

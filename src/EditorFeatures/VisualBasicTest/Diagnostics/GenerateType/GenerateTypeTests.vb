@@ -667,7 +667,7 @@ index:=1)
 "Class EmployeeList(Of T As [|Employee|])
 End Class",
 count:=3,
-parseOptions:=TestOptions.Regular)
+parameters:=New TestParameters(parseOptions:=TestOptions.Regular))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>

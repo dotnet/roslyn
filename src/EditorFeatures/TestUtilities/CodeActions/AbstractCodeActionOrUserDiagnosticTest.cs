@@ -156,27 +156,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected Task TestActionCountAsync(
+        protected async Task TestActionCountAsync(
             string initialMarkup,
             int count,
-            ParseOptions parseOptions = null,
-            CompilationOptions compilationOptions = null,
-            IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null)
-        {
-            return TestActionCountAsync(
-                initialMarkup,
-                new TestParameters(
-                    parseOptions, compilationOptions, options,
-                    fixAllActionEquivalenceKey, fixProviderData),
-                count);
-        }
-
-        private async Task TestActionCountAsync(
-            string initialMarkup,
-            TestParameters parameters,
-            int count)
+            TestParameters parameters = default(TestParameters))
         {
             using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {

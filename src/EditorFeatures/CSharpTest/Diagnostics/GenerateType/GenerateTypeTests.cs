@@ -136,7 +136,7 @@ index: 1);
 {
 }",
 count: 3,
-parseOptions: Options.Regular);
+parameters: new TestParameters(Options.Regular));
         }
 
         #endregion
@@ -635,7 +635,7 @@ index: 2);
 {
 }",
 count: 3,
-parseOptions: Options.Regular);
+parameters: new TestParameters(Options.Regular));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]

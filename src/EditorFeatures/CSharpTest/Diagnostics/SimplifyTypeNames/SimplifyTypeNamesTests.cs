@@ -479,7 +479,8 @@ namespace Root
 {
     int i;
 }", index: 0, options: featureOptions);
-            await TestActionCountAsync(source, 1, options: featureOptions);
+            await TestActionCountAsync(
+                source, count: 1, parameters: new TestParameters(options: featureOptions));
             await TestSpansAsync(source,
 @"class A
 {

@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         set => [|Bar|]();
     }
-}", count: 1, options: UseExpressionBody);
+}", count: 1, parameters: new TestParameters(options: UseExpressionBody));
 
             // There is a hidden diagnostic that still offers to convert expression-body to block-body.
             await TestInRegularAndScriptAsync(
