@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 
             protected override async Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters)
             {
-                var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parameters);
+                var workspace = await base.CreateWorkspaceFromFileAsync(initialMarkup, parameters);
                 workspace.Options = workspace.Options
                     .WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp, true)
                     .WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true);
