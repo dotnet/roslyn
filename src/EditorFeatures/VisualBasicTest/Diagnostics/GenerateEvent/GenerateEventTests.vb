@@ -33,7 +33,7 @@ End Class")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestNotIfIdentifierMissing() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Interface MyInterface
 End Interface
 Class C
@@ -44,7 +44,7 @@ Class C
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestNotIfAlreadyPresent() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Interface MyInterface
     Event E()
 End Interface
@@ -94,7 +94,7 @@ End Class")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestHandlesClauseWithExistingEvent() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class D
     Public Event E(x As Integer, e As Object)
 End Class
@@ -169,7 +169,7 @@ End Class")
         <WorkItem(531251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531251")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestNotIfEventMemberMissing() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Public Class A
 End Class
 Public Class C

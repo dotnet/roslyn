@@ -420,7 +420,7 @@ Module T
         Dim s = [|String.Format("{0}", args)|]
     End Sub
 End Module</File>.ConvertTestSourceTag()
-            Await TestMissingAsync(text)
+            Await TestMissingInRegularAndScriptAsync(text)
         End Function
 
         <WorkItem(13605, "https://github.com/dotnet/roslyn/issues/13605")>
@@ -432,7 +432,7 @@ End Module</File>.ConvertTestSourceTag()
         [|TaskAwaiter|]
     End Sub
 End Module"
-            Await TestMissingAsync(text)
+            Await TestMissingInRegularAndScriptAsync(text)
         End Function
     End Class
 End Namespace

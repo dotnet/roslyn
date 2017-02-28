@@ -118,7 +118,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnGoto()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"delegate int del(int i);
 
 class C
@@ -1371,7 +1371,7 @@ class C
         [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionDeclaration()
         {
-            await TestMissingAsync(@"
+            await TestMissingInRegularAndScriptAsync(@"
 class C
 {
     public static void Main()

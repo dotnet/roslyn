@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertToInterpola
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestMissingOnSimpleString() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Public Class C
     Sub M()
@@ -194,7 +194,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithOverloadedOperator2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 public class D
     public shared operator&(D d, string s) as boolean

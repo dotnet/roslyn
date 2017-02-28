@@ -124,7 +124,7 @@ class C
                     NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
-                await TestMissingAsync(
+                await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     [|NuGetType|] n;

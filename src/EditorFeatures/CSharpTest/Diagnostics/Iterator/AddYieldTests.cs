@@ -28,7 +28,7 @@ class Program
         [|return null|];
     }
 }";
-            await TestMissingAsync(initial);
+            await TestMissingInRegularAndScriptAsync(initial);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -192,7 +192,7 @@ class Program
         [|return new List<T>()|];
     }
 }";
-            await TestMissingAsync(initial);
+            await TestMissingInRegularAndScriptAsync(initial);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -300,7 +300,7 @@ class Program
         [|return new List<int>()|];
     }
 }";
-            await TestMissingAsync(initial);
+            await TestMissingInRegularAndScriptAsync(initial);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -383,7 +383,7 @@ public class A<Z> where Z : new()
     }
 }
 ";
-            await TestMissingAsync(initial);
+            await TestMissingInRegularAndScriptAsync(initial);
         }
     }
 }

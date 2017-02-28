@@ -437,7 +437,7 @@ class Program
 {
     var x = [|await Task.Delay(3)|];
 }";
-            await TestMissingAsync(code);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -540,7 +540,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task NullNodeCrash()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Threading.Tasks;
 
 class C

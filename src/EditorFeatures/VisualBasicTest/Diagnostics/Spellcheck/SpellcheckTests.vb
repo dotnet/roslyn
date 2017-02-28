@@ -483,7 +483,7 @@ index:=0)
         <WorkItem(6338, "https://github.com/dotnet/roslyn/issues/6338")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestTestMissingName() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "<Assembly: Microsoft.CodeAnalysis.[||]>")
         End Function
 

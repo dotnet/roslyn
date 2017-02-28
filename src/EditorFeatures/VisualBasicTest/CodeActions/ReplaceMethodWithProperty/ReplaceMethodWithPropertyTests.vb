@@ -193,7 +193,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestInAttribute() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     <At[||]tr> function GetFoo() as integer
     End function
@@ -202,7 +202,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestInMethod() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     function GetFoo() as integer
 
@@ -212,7 +212,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestSubMethod() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     sub [||]GetFoo()
     End sub
@@ -221,7 +221,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestAsyncMethod() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     async function [||]GetFoo() as Task
     End function
@@ -230,7 +230,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestGenericMethod() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     function [||]GetFoo(of T)() as integer
     End function
@@ -239,7 +239,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestExtensionMethod() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "module C
     <System.Runtime.CompilerServices.Extension> function [||]GetFoo(i as integer) as integer
     End function
@@ -248,7 +248,7 @@ End module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithParameters_1() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     function [||]GetFoo(i as integer) as integer
     End function

@@ -24,10 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             => new MoveTypeCodeRefactoringProvider();
 
         protected async Task TestRenameTypeToMatchFileAsync(
-           string originalCode,
-           string expectedCode = null,
-           bool expectedCodeAction = true,
-           bool compareTokens = true)
+            string originalCode,
+            string expectedCode = null,
+            bool expectedCodeAction = true,
+            bool compareTokens = true,
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
             using (var workspace = await CreateWorkspaceFromFileAsync(originalCode, parseOptions: null, compilationOptions: null))
             {
@@ -42,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                     var codeActionTitle = string.Format(RenameTypeCodeActionTitle, expectedText.Substring(span.Start, span.Length));
 
                     var oldSolutionAndNewSolution = await TestOperationAsync(
-                        workspace, expectedText, codeActionTitle, compareTokens);
+                        workspace, expectedText, codeActionTitle, compareTokens,
+                        fixAllActionEquivalenceKey, fixProviderData);
 
                     // the original source document does not exist in the new solution.
                     var newSolution = oldSolutionAndNewSolution.Item2;
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 }
                 else
                 {
-                    var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
+                    var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey, fixProviderData);
 
                     if (actions != null)
                     {
@@ -69,7 +72,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             string expectedDocumentName = null,
             bool expectedCodeAction = true,
             bool compareTokens = true,
-            IList<string> destinationDocumentContainers = null)
+            IList<string> destinationDocumentContainers = null,
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
             using (var workspace = await CreateWorkspaceFromFileAsync(originalCode, parseOptions: null, compilationOptions: null))
             {
@@ -85,7 +90,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     // a new document with the same text as old document is added.
                     var oldSolutionAndNewSolution = await TestOperationAsync(
-                        workspace, expectedText, codeActionTitle, compareTokens);
+                        workspace, expectedText, codeActionTitle, compareTokens,
+                        fixAllActionEquivalenceKey, fixProviderData);
 
                     // the original source document does not exist in the new solution.
                     var newSolution = oldSolutionAndNewSolution.Item2;
@@ -99,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 }
                 else
                 {
-                    var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
+                    var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey, fixProviderData);
 
                     if (actions != null)
                     {
@@ -114,9 +120,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             Workspaces.TestWorkspace workspace,
             string expectedCode,
             string operation,
-            bool compareTokens)
+            bool compareTokens,
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
-            var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
+            var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey, fixProviderData);
             var action = actions.Single(a => a.Title.Equals(operation, StringComparison.CurrentCulture));
             var operations = await action.GetOperationsAsync(CancellationToken.None);
 

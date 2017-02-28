@@ -691,7 +691,7 @@ End Enum")
         <WorkItem(528207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528207")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestAbsenceOfFixWhenImportingEnums() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports Color
 Module Program
     Sub Main(args As String())
@@ -1136,7 +1136,7 @@ End Enum")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestMissingOnEnumsFromMetaData() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports Microsoft.VisualBasic
 Module Program
     Sub Main(args As String())
@@ -1264,7 +1264,7 @@ End Enum")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestMissingOnHiddenEnum() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "#ExternalSource (""Default.aspx"", 1) 
 Imports System
 Enum E
@@ -1281,7 +1281,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestMissingOnPartiallyHiddenEnum() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "#ExternalSource (""Default.aspx"", 1) 
 Imports System
 Enum E

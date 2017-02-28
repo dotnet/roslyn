@@ -176,7 +176,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestMissingOnSimpleMatch() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System
 

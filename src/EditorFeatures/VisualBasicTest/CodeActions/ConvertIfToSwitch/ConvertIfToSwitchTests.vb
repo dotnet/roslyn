@@ -64,7 +64,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestMissingOnNonConstantExpression() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         Dim A = 1, B = 2, C = 3
@@ -77,7 +77,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestMissingOnDifferentOperands() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer, j As Integer)
         [||]If i = 5 OrElse 6 = j Then

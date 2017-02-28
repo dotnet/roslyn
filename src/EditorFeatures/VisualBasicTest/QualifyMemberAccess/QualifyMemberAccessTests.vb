@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAcces
         End Function
 
         Private Function TestMissingAsyncWithOptionAndNotification(code As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean)), notification As NotificationOption) As Task
-            Return TestMissingAsync(code, options:=[Option](opt, True, notification))
+            Return TestMissingInRegularAndScriptAsync(code, options:=[Option](opt, True, notification))
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>

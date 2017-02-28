@@ -266,7 +266,7 @@ index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleWithDifferentNames()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     [|(int a, string b) i;
@@ -276,8 +276,7 @@ index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
     {
         this.i = i;
     }
-}",
-parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -339,7 +338,7 @@ index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleOptionalWithDifferentNames()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     [|(int a, string b) i;
@@ -349,8 +348,7 @@ index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
     {
         this.i = i;
     }
-}",
-parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]

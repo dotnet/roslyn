@@ -90,7 +90,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NegativeTestGenerateClassFromConstructorConstraint()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class EmployeeList<T> where T : Employee, [|new()|]
 {
 }");
@@ -120,7 +120,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NegativeTestGenerateClassFromClassOrStructConstraint()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Derived<T, U>
     where U : [|struct|]
     where T : Base, new()
@@ -738,7 +738,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NegativeTestGenerateClassOnFrameworkTypes()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -747,7 +747,7 @@ index: 2);
     }
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -756,7 +756,7 @@ index: 2);
     }
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -924,7 +924,7 @@ expectedDocumentName: "C.cs");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NegativeTestGlobalAlias()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -933,7 +933,7 @@ expectedDocumentName: "C.cs");
     }
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -1028,19 +1028,19 @@ parseOptions: null);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NegativeTestNotInUsingDirective()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using [|A|];");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using [|A.B|];");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using [|A|].B;");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using A.[|B|];");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using X = [|A|];");
         }
 
@@ -2697,7 +2697,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NegativeTestGenerateInterfaceFromTypeConstraint()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class EmployeeList<T> where T : Employee, IEmployee, [|IComparable<T>|], new()
@@ -2781,7 +2781,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NotInLeftSideOfAssignment()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2821,7 +2821,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NotInRightSideOfAssignment()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void M(int i)
@@ -2934,7 +2934,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestNotInEnumBaseList()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"enum E : [|A|]
 {
 }");
@@ -2944,7 +2944,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestNotInConditional()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -2996,7 +2996,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestNotInDelegateConstructor()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"delegate void D(int x);
 
 class C
@@ -3012,7 +3012,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestMissingOnVar()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3073,7 +3073,7 @@ GetScriptOptions());
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestOnInaccessibleType()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     private class D
@@ -3230,7 +3230,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestNotGenerateInDelegateConstructor()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 delegate void D(int x);
@@ -3495,7 +3495,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestNotPassingEmptyIssueListToCtor()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System.Linq;
 
 class Program
@@ -3542,7 +3542,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestMissingOnInaccessibleType()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Outer
 {
     class Inner
@@ -3597,7 +3597,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestMissingOnInvalidConstructorToExistingType()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Program
 {
     static void Main()
@@ -4119,21 +4119,21 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task MissingIfNotInTypeStatementOrExpressionContext()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
         a [|b|] c d }
 }");
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
         a b [|c|] d }
 }");
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -4247,7 +4247,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestNotOnAbstractClassCreation()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"abstract class Foo
 {
 }
@@ -4664,7 +4664,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestWithUsingStatic2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using [|Sample|];");
         }
 

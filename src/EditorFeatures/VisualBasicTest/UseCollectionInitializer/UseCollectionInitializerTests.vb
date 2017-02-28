@@ -109,7 +109,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestMissingOnNamedArg() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -122,7 +122,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestMissingOnZeroArgs() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -135,7 +135,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestMissingOnNoArgs() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -148,7 +148,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestMissingOnOmittedArg() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -213,7 +213,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestMissingWithExistingInitializer() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C

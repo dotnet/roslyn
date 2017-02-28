@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingOnSimpleString()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"public class C
 {
     void M()
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingOnConcatenatedStrings1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"public class C
 {
     void M()
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingOnConcatenatedStrings2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"public class C
 {
     void M()
@@ -246,7 +246,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingWithMixedStringTypes1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"public class C
 {
     void M()
@@ -259,7 +259,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingWithMixedStringTypes2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"public class C
 {
     void M()
@@ -306,7 +306,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithOverloadedOperator2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"public class D
 {
     public static bool operator +(D d, string s) => false;
@@ -390,7 +390,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithMultipleStringConcatinations4()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"public class C
 {
     void M()

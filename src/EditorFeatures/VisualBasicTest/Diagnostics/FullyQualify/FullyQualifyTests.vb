@@ -328,7 +328,7 @@ End Namespace")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestFullyQualifyNotSuggestedForGenericTypeParametersOfClause() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
     Sub Foo(Of [|SomeClass|])(x As SomeClass)
     End Sub
@@ -341,7 +341,7 @@ End Namespace")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestFullyQualifyNotSuggestedForGenericTypeParametersAsClause() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
     Sub Foo(Of SomeClass)(x As [|SomeClass|])
     End Sub
@@ -455,7 +455,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestGenericWithWrongArgs() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Class Foo
     Function F() As [|List(Of Integer, String)|]
     End Function
@@ -665,7 +665,7 @@ End Class")
         <WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestMissingOnBoundFieldType() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections.Generic
 Class A
     Private field As [|List(Of C)|]
@@ -678,7 +678,7 @@ End Class")
         <WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestMissingOnBoundLocalType() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections.Generic
 Class A
     Private field As [|List(Of C)|]
@@ -737,7 +737,7 @@ End Module")
         <WorkItem(545993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545993")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestNotOnNamedArgument() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Module Program
     <MethodImpl([|methodImplOptions|]:=MethodImplOptions.ForwardRef) 
  Sub Main(args As String())
@@ -748,7 +748,7 @@ End Module")
         <WorkItem(546107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546107")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestDoNotQualifyNestedTypeOfGenericType() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 

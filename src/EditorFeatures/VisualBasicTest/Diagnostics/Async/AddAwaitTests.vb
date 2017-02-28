@@ -302,7 +302,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestAddAwaitOnAssignment3() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 Module Program
     Sub MyTestMethod1Async()
