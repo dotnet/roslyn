@@ -3967,7 +3967,7 @@ Class C : Implements IDisposable
         Throw New NotImplementedException()
     End Sub
 End Class
-", index:=0, ignoreTrivia:=False)
+", ignoreTrivia:=False)
         End Function
 
         <WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
@@ -4070,7 +4070,7 @@ Class C : Implements I
     Public Sub Dispose() Implements IDisposable.Dispose
         Throw New NotImplementedException()
     End Sub
-End Class", index:=0)
+End Class")
         End Function
 
         <WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>

@@ -39,8 +39,7 @@ class Z
     {
         this.a = a;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -86,8 +85,7 @@ class Z
         this.a = a;
         this.b = b;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -122,8 +120,7 @@ class Z
     {
         this.b = b;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -159,8 +156,7 @@ class Z
         this.a = a;
         this.b = b;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -196,8 +192,7 @@ class Z
         this.a = a;
         this.b = b;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -279,8 +274,7 @@ class Z
 
     public int A { get; private set; }
     public string B { get; private set; }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -302,8 +296,7 @@ index: 0);
 
     public int A { get; private set; }
     public string B { get; private set; }
-}",
-index: 0, options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
+}", options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -326,8 +319,7 @@ struct S
     {
         this.i = i;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -350,8 +342,7 @@ struct S
     }
 
     int i { get; set; }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -378,8 +369,7 @@ struct S
     {
         this.y = y;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -406,8 +396,7 @@ struct S
     {
         this.i = i;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -430,8 +419,7 @@ class Program<T>
     {
         this.i = i;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]

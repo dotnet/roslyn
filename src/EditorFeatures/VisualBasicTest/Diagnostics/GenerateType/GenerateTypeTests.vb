@@ -1508,8 +1508,7 @@ Class Program
     End Sub
     Private Class Z
     End Class
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(1065647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065647")>
@@ -1527,8 +1526,7 @@ End Interface
 Public Class X
     Public Class Y
     End Class
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(1130905, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130905")>
@@ -1562,8 +1560,7 @@ End Class",
 "Public Class B
     Public Sub New()
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")>
@@ -1609,8 +1606,7 @@ index:=2)
     Public B As New [|B|]
 End Class",
 "Public Class B
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")>
@@ -1652,8 +1648,7 @@ index:=2)
     Public B As New [|B(Of Integer)|]
 End Class",
 "Public Class B(Of T)
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")>

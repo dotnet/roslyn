@@ -2303,8 +2303,7 @@ Module Program
         If TypeOf Prop IsNot TypeOfIsNotDerived Then
         End If
     End Sub
-End Module",
-index:=0)
+End Module")
         End Function
 
         <WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
@@ -2405,8 +2404,7 @@ Class [Class]
                   Return 2
               End Function
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>

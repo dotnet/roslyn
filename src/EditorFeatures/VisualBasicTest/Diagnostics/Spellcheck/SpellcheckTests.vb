@@ -476,8 +476,7 @@ End Class",
     Sub M()
         Dim foo = New AwesomeClass()
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(6338, "https://github.com/dotnet/roslyn/issues/6338")>
@@ -526,8 +525,7 @@ End Module",
 End Class
 Module Program
     <AwesomeClass>
-End Module",
-index:=0)
+End Module")
             End Function
         End Class
     End Class

@@ -579,7 +579,7 @@ End Class
             Dim expected = <File>
 [|Imports System|]
 &lt;Assembly:CLSCompliant(True)&gt;</File>
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(606877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606877")>
@@ -593,7 +593,7 @@ End Class
 Imports System
 &lt;Assembly:CLSCompliant(True)&gt;
 </File>
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(606851, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606851")>
@@ -608,7 +608,7 @@ Imports System
 Imports System
  
 </File>
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 #End Region
 

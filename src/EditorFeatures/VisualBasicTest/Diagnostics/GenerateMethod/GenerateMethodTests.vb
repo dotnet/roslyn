@@ -621,8 +621,7 @@ Class Outer
     End Class Private Shared Sub Foo() 
  Throw New NotImplementedException()
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>

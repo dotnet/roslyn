@@ -211,7 +211,7 @@ End Module"
         End If
     End Sub
 End Module"
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await TestInRegularAndScriptAsync(source, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -231,7 +231,7 @@ End Module"
         End If
     End Sub
 End Module"
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await TestInRegularAndScriptAsync(source, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -247,7 +247,7 @@ End Module"
         Dim f1 = New With {.SomeString = v}
     End Sub
 End Module"
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await TestInRegularAndScriptAsync(source, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -412,7 +412,7 @@ End Class"
     Private Const {|Rename:V|} As Integer = 2 + 2
     Dim x = Foo(V)
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await TestInRegularAndScriptAsync(source, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -432,7 +432,7 @@ End Module"
     Private ReadOnly {|Rename:p|} As Object = 2 + y
     Dim x = Foo(p)
 End Module"
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await TestInRegularAndScriptAsync(source, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -469,7 +469,7 @@ End Module"
     Sub Foo(Optional x As Integer = V)
     End Sub
 End Module"
-            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+            Await TestInRegularAndScriptAsync(source, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -697,8 +697,7 @@ End Class",
     End Sub
     Sub New(v As Integer)
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(540485, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540485")>
@@ -812,8 +811,7 @@ Class Foo
 End Class
 Friend Class AttrAttribute
     Inherits Attribute
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(540490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540490")>
@@ -834,8 +832,7 @@ End Class",
     End Sub
     Sub New(x As Integer)
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -954,8 +951,7 @@ Class Foo
 End Class
 Friend Class AttrAttribute
     Inherits System.Attribute
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(542092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542092")>
@@ -1049,8 +1045,7 @@ Friend Class FooAttribute
     Inherits Attribute
     Sub New(x As Integer)
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(542374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542374")>
@@ -1119,8 +1114,7 @@ NewLines(input),
     <Obsolete(V)>
     Sub Main(args As String())
     End Sub
-End Module",
-index:=0)
+End Module")
         End Function
 
         <WorkItem(542947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542947")>
@@ -1268,8 +1262,7 @@ Module Program
                     Console.WriteLine(v) ' Introduce local 
                 End Sub
     End Sub
-End Module",
-index:=0)
+End Module")
         End Function
 
         <WorkItem(543273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543273")>
@@ -1294,8 +1287,7 @@ Module Program
                     End If
                 End Sub
     End Sub
-End Module",
-index:=0)
+End Module")
         End Function
 
         <WorkItem(543273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543273")>
@@ -1320,8 +1312,7 @@ Module Program
                     End If
                 End Sub
     End Sub
-End Module",
-index:=0)
+End Module")
         End Function
 
         <WorkItem(543273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543273")>
@@ -1366,8 +1357,7 @@ End Module",
                                                  End Function}.Key.Invoke(v)
                     End Sub
     End Sub
-End Module",
-index:=0)
+End Module")
         End Function
 
         <WorkItem(542762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542762")>
@@ -2407,7 +2397,7 @@ Class C
     End Function
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, index:=0, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")>
@@ -2550,7 +2540,7 @@ b
 c""|]
     End Sub
 End Class"
-            Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_for_0, "$""a b c"""), index:=0)
+            Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_for_0, "$""a b c"""))
         End Function
 
         <WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
@@ -2637,7 +2627,7 @@ Namespace N
     End Class
 End Namespace"
 
-            Await TestInRegularAndScriptAsync(code, expected, index:=0, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
@@ -2658,7 +2648,7 @@ Class C
     Property Name As String = V
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, index:=0, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
@@ -2679,7 +2669,7 @@ Class C
     Property Grades As Integer() = p
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, index:=0, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
@@ -2700,7 +2690,7 @@ Class C
     Public Property Items As New List(Of String) From {V, ""T"", ""W""}
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, index:=0, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
@@ -2721,7 +2711,7 @@ Class C
     Property Orders As New List(Of Object)(V)
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, index:=0, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(11777, "https://github.com/dotnet/roslyn/issues/11777")>

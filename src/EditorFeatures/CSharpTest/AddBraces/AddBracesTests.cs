@@ -245,7 +245,6 @@ class Program
         }
     }
 }",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -275,7 +274,6 @@ class Program
         }
     }
 }",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -305,7 +303,6 @@ class Program
         }
     }
 }",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -333,7 +330,6 @@ class Program
         }
     }
 }",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -361,7 +357,6 @@ class Program
         }
     }
 }",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -389,7 +384,6 @@ class Program
         }
     }
 }",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -418,7 +412,6 @@ class Program
         while (true);
     }
 }",
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -463,8 +456,6 @@ class Fizz : IDisposable
         throw new NotImplementedException();
     }
 }",
-
-   index: 0,
    ignoreTrivia: false);
         }
 
@@ -527,8 +518,6 @@ class Buzz : IDisposable
         throw new NotImplementedException();
     }
 }",
-
-            index: 0,
             ignoreTrivia: false);
         }
 
@@ -559,8 +548,6 @@ class Program
         }
     }
 }",
-
-   index: 0,
    ignoreTrivia: false);
         }
 
@@ -597,8 +584,6 @@ class Program
             }
     }
 }",
-
-            index: 0,
             ignoreTrivia: false);
         }
     }

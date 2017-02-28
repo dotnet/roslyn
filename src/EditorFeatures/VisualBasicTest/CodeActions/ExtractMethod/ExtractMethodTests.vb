@@ -37,8 +37,7 @@ End Class",
     Private Shared Function GetArg(arg As Integer) As Integer
         Return arg
     End Function
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(540755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540755")>
@@ -65,8 +64,7 @@ Module Program
         Return Sub()
                End Sub
     End Function
-End Module",
-index:=0)
+End Module")
         End Function
 
         <WorkItem(541515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541515")>
@@ -87,8 +85,7 @@ End Class",
         Dim x As New List(Of Program) From {New Program}
     End Sub
     Public Property Name As String
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(542251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542251")>

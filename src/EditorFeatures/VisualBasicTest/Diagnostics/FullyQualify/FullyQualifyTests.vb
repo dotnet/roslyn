@@ -798,7 +798,6 @@ Module Program
         Dim x As Generic.IEnumerable(Of Integer)
     End Sub
 End Module</Text>.Value.Replace(vbLf, vbCrLf),
-index:=0,
 ignoreTrivia:=False)
         End Function
 
@@ -842,7 +841,6 @@ Namespace N2
     Class A
     End Class
 End Namespace</Text>.Value.Replace(vbLf, vbCrLf),
-index:=0,
 ignoreTrivia:=False)
         End Function
 

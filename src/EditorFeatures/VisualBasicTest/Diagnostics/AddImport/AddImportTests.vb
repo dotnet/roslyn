@@ -732,7 +732,6 @@ Namespace SomeNamespace
         Inherits Attribute
     End Class
 End Namespace</Text>.Value.Replace(vbLf, vbCrLf),
-index:=0,
 ignoreTrivia:=False)
         End Function
 
@@ -893,7 +892,6 @@ Module Program
         Dim x As IEnumerable(Of Integer)
     End Sub
 End Module</Text>.Value.Replace(vbLf, vbCrLf),
-index:=0,
 ignoreTrivia:=False)
         End Function
 

@@ -43,8 +43,7 @@ class Program
         this.i = i;
         this.s = s;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -119,8 +118,7 @@ class Program
         this.s = s;
         this.b = b;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -183,8 +181,7 @@ class Program
         this.b = b;
     }
 }",
-string.Format(FeaturesResources.Add_parameters_to_0_1, "Program", "bool"),
-index: 0);
+string.Format(FeaturesResources.Add_parameters_to_0_1, "Program", "bool"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]

@@ -2682,8 +2682,7 @@ class A : I
     void I.Foo<T>()
     {
     }
-}",
-index: 0);
+}");
         }
 
         [WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
@@ -2711,8 +2710,7 @@ class A : I
     void I.Foo<in T>()
     {
     }
-}",
-index: 0);
+}");
         }
 
         [WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]

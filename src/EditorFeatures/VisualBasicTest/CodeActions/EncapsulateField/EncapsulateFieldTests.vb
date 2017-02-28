@@ -46,7 +46,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False, index:=0)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
 
         End Function
 
@@ -177,7 +177,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False, index:=0)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
@@ -220,7 +220,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False, index:=0)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
@@ -286,7 +286,7 @@ Class Program
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False, index:=0)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
 
         End Function
 
@@ -311,7 +311,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False, index:=0)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
 
         End Function
 
@@ -336,7 +336,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False, index:=0, options:=[Option](CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Error))
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False, options:=[Option](CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Error))
 
         End Function
 
@@ -361,7 +361,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False, index:=0)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
 
         End Function
 
