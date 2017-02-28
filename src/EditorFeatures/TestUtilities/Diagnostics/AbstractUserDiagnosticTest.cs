@@ -297,8 +297,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var expectedTextSpans = spansList.ToSet();
             using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
-                workspace.ApplyOptions(parameters.options);
-
                 ISet<TextSpan> actualTextSpans;
                 if (diagnosticId == null)
                 {

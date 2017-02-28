@@ -57,12 +57,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected abstract string GetLanguage();
         protected abstract ParseOptions GetScriptOptions();
 
-        protected Task<TestWorkspace> CreateWorkspaceFromOptionsAsync(
+        protected async Task<TestWorkspace> CreateWorkspaceFromOptionsAsync(
             string initialMarkup, TestParameters parameters)
         {
-            return IsWorkspaceElement(initialMarkup)
-                 ? TestWorkspace.CreateAsync(initialMarkup)
-                 : CreateWorkspaceFromFileAsync(initialMarkup, parameters);
+            var workspace = IsWorkspaceElement(initialMarkup)
+                 ? await TestWorkspace.CreateAsync(initialMarkup)
+                 : await CreateWorkspaceFromFileAsync(initialMarkup, parameters);
+
+            workspace.ApplyOptions(parameters.options);
+
+            return workspace;
         }
 
         protected abstract Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters);
@@ -111,8 +115,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
-                workspace.ApplyOptions(parameters.options);
-
                 var actions = await GetCodeActionsAsync(workspace, parameters);
                 Assert.True(actions == null || actions.Count == 0);
             }
@@ -163,8 +165,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
-                workspace.ApplyOptions(parameters.options);
-
                 var actions = await GetCodeActionsAsync(workspace, parameters);
 
                 Assert.Equal(count, actions.Count());
@@ -410,8 +410,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
-                workspace.ApplyOptions(parameters.options);
-
                 var actions = await GetCodeActionsAsync(workspace, parameters);
                 await TestActionsAsync(
                     workspace, expected, index,

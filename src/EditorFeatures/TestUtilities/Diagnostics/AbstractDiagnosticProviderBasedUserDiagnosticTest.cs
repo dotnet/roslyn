@@ -96,8 +96,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var testOptions = new TestParameters(parseOptions, compilationOptions, options);
             using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, testOptions))
             {
-                workspace.ApplyOptions(options);
-
                 var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).Where(d => d.Id == diagnosticId);
                 Assert.Equal(diagnosticCount, diagnostics.Count());
                 Assert.Equal(diagnosticSeverity, diagnostics.Single().Severity);
