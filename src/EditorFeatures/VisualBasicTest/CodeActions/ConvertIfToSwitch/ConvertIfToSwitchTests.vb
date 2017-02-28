@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestMultipleCases() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         [||]If i = 1 OrElse 2 = i OrElse i = 3 Then
@@ -42,7 +42,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestConstantExpression() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         Const A = 1, B = 2, C = 3
@@ -89,7 +89,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestSingleCase() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         [||]If i = 5 Then
@@ -107,7 +107,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestRange() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         [||]If 5 >= i AndAlso 1 <= i Then
@@ -125,7 +125,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestComparison() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         [||]If i <= 5 OrElse i >= 1 Then
@@ -143,7 +143,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestComplexIf() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         [||]If i < 10 OrElse 20 < i OrElse (i >= 30 AndAlso 40 >= i) OrElse i = 50 Then
@@ -161,7 +161,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestSingleLineIf() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         [||]If i = 10 Then M(5) Else M(6)
@@ -181,7 +181,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestSubsequentIfStatements_01() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Function M(i As Integer) As Integer
         [||]If i = 10 Then Return 5
@@ -204,7 +204,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestSubsequentIfStatements_02() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Function M(i As Integer) As Integer
         [||]If i = 10 Then Return 5
@@ -227,7 +227,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestSubsequentIfStatements_03() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Function M(i As Integer) As Integer
         [||]If i = 10 Then Return 5
@@ -252,7 +252,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestSubsequentIfStatements_04() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Function M(i As Integer) As Integer
         [||]If i = 10 Then Return 5
@@ -277,7 +277,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestSubsequentIfStatements_05() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Function M(i As Integer) As Integer
         [||]If i = 10 Then Return 5
@@ -308,7 +308,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestSubsequentIfStatements_06() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Function M(i As Integer) As Integer
         [||]If i = 10 Then Return 5
@@ -340,7 +340,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestExitWhile() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
         While i = i

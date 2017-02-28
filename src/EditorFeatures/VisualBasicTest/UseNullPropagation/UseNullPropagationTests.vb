@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseNullPropagation
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestLeft_Equals() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -50,7 +50,7 @@ End Class", parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(La
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestRight_Equals() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -71,7 +71,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestLeft_NotEquals() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -92,7 +92,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestRight_NotEquals() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -113,7 +113,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestIndexer() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -134,7 +134,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestConditionalAccess() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -155,7 +155,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestMemberAccess() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -189,7 +189,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestParenthesizedCondition() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -210,7 +210,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestFixAll1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -233,7 +233,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestFixAll2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 

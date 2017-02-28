@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithSimpleArgument()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithSimpleArgument_UseExpressionBody1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -71,7 +71,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeS
         [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithNoArgs()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public C(int v)
@@ -103,7 +103,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeS
         [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithNamedArg()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -130,7 +130,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeS
         [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -165,7 +165,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -201,7 +201,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -243,7 +243,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -288,7 +288,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField5()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -324,7 +324,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField5WithQualification()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -361,7 +361,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField6()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -406,7 +406,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField7()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -449,7 +449,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField7WithQualification()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -493,7 +493,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField8()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -538,7 +538,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField9()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -584,7 +584,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -620,7 +620,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty1WithQualification()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -657,7 +657,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -702,7 +702,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -745,7 +745,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty3WithQualification()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -789,7 +789,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -832,7 +832,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty4WithQualification()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -876,7 +876,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty5()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int X)
@@ -920,7 +920,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithOutParam()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int i)
@@ -952,7 +952,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithBaseDelegatingConstructor1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -997,7 +997,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithBaseDelegatingConstructor2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -1045,7 +1045,7 @@ class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestStructInLocalInitializerWithSystemType()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"struct S
 {
     void M()
@@ -1075,7 +1075,7 @@ struct S
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestEscapedName()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -1103,7 +1103,7 @@ struct S
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestEscapedKeyword()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class @int
 {
     void M()
@@ -1130,7 +1130,7 @@ struct S
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestIsSymbolAccessibleWithInternalField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Base
 {
     internal long field;
@@ -1169,7 +1169,7 @@ class Derived : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestFormatting()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -1212,7 +1212,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateIntoCorrectPart()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"partial class C
 {
 }
@@ -1247,7 +1247,7 @@ partial class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestDelegateToSmallerConstructor1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class A
 {
     void M()
@@ -1299,7 +1299,7 @@ class Delta
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestDelegateToSmallerConstructor2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class A
 {
     void M()
@@ -1351,7 +1351,7 @@ class Delta
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestDelegateToSmallerConstructor3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class A
 {
     void M()
@@ -1411,7 +1411,7 @@ class Delta : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestDelegateToSmallerConstructor4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class A
 {
     void M()
@@ -1463,7 +1463,7 @@ class Delta
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromThisInitializer1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public C() [|: this(4)|]
@@ -1488,7 +1488,7 @@ class Delta
         [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromThisInitializer2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public C(int i) [|: this()|]
@@ -1510,7 +1510,7 @@ class Delta
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromBaseInitializer1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : B
 {
     public C(int i) [|: base(i)|]
@@ -1542,7 +1542,7 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromBaseInitializer2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : B
 {
     public C(int i) [|: base(i)|]
@@ -1597,7 +1597,7 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestUnavailableTypeParameters()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C<T1, T2>
 {
     public void Foo(T1 t1, T2 t2)
@@ -1634,7 +1634,7 @@ internal class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateCallToDefaultConstructorInStruct()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -1681,7 +1681,7 @@ struct Apartment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestReadonlyFieldDelegation()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     private readonly int x;
@@ -1731,7 +1731,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestNestedConstructorCall()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Foo()
@@ -1776,7 +1776,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithArgument()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 [AttributeUsage(AttributeTargets.Class)]
@@ -1811,7 +1811,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithMultipleArguments()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 [AttributeUsage(AttributeTargets.Class)]
@@ -1850,7 +1850,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithNamedArguments()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 [AttributeUsage(AttributeTargets.Class)]
@@ -1889,7 +1889,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithAdditionalConstructors()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 [AttributeUsage(AttributeTargets.Class)]
@@ -1938,7 +1938,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithOverloading()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 [AttributeUsage(AttributeTargets.Class)]
@@ -1985,7 +1985,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithOverloadingMultipleParameters()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 [AttributeUsage(AttributeTargets.Class)]
@@ -2038,7 +2038,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithAllValidParameters()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 enum A
@@ -2141,7 +2141,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestConstructorGenerationForDifferentNamedParameter()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class Program
 {
@@ -2183,7 +2183,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateInInaccessibleType()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Foo
 {
     class Bar
@@ -2229,7 +2229,7 @@ class A
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
             public async Task TestGenerateConstructorInIncompleteLambda()
             {
-                await TestAsync(
+                await TestInRegularAndScriptAsync(
 @"using System.Threading.Tasks;
 
 class C
@@ -2264,7 +2264,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateIntoDerivedClassWithAbstractBase()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class1
 {
     private void Foo(string value)
@@ -2319,7 +2319,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromDerivedClass()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Base
 {
     public Base(string value)
@@ -2349,7 +2349,7 @@ class Derived : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromDerivedClass2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Base
 {
     public Base(int a, string value = null)
@@ -2378,7 +2378,7 @@ class Derived : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateWithIncorrectConstructorArguments_Crash()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -2439,7 +2439,7 @@ abstract class Y
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task Tuple()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2462,15 +2462,13 @@ abstract class Y
     {
         new C((1, ""hello""), true);
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleWithNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2491,15 +2489,13 @@ withScriptOption: true);
     {
         new C((a: 1, b: ""hello""));
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleWithOneName()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2520,15 +2516,13 @@ withScriptOption: true);
     {
         new C((a: 1, ""hello""));
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleAndExistingField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2557,15 +2551,13 @@ class D
     {
         this.existing = existing;
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleWithNamesAndExistingField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2594,15 +2586,13 @@ class D
     {
         this.existing = existing;
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleWithDifferentNamesAndExistingField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2631,15 +2621,13 @@ class D
     {
         this.existing = existing;
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleAndDelegatingConstructor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2678,15 +2666,13 @@ class D : B
     public D((int, string) x) : base(x)
     {
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleWithNamesAndDelegatingConstructor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2725,15 +2711,13 @@ class D : B
     public D((int a, string b) x) : base(x)
     {
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TupleWithDifferentNamesAndDelegatingConstructor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2772,16 +2756,14 @@ class D : B
     public D((int c, string d) x) : base(x)
     {
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(11563, "https://github.com/dotnet/roslyn/issues/11563")]
         public async Task StripUnderscoresFromParameterNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int _i;
@@ -2824,7 +2806,7 @@ class D
         [WorkItem(11563, "https://github.com/dotnet/roslyn/issues/11563")]
         public async Task DoNotStripSingleUnderscore()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int _;
@@ -2863,7 +2845,7 @@ class D
         [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2882,16 +2864,14 @@ class D
     {
         new C(out var a);
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2910,16 +2890,14 @@ withScriptOption: true);
     {
         new C(b: out var a);
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2938,16 +2916,14 @@ withScriptOption: true);
     {
         new C(out int a);
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -2966,9 +2942,7 @@ withScriptOption: true);
     {
         new C(b: out int a);
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -2995,8 +2969,7 @@ withScriptOption: true);
         new C(out var a);
     }
 }",
-parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
-withScriptOption: true);
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -3023,8 +2996,7 @@ withScriptOption: true);
         new C(b: out var a);
     }
 }",
-parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
-withScriptOption: true);
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -3051,8 +3023,7 @@ withScriptOption: true);
         new C(out int a);
     }
 }",
-parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
-withScriptOption: true);
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -3079,15 +3050,14 @@ withScriptOption: true);
         new C(b: out int a);
     }
 }",
-parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
-withScriptOption: true);
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(13749, "https://github.com/dotnet/roslyn/issues/13749")]
         public async Task Support_Readonly_Properties()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C {
     public int Prop { get ; }
 }
@@ -3110,9 +3080,7 @@ class P {
         var prop = 42 ;
         var c = new C ( prop ) ;
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
     }
 }

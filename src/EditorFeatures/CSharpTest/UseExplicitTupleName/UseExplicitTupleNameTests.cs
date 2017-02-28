@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExplicitTupleName
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
         public async Task TestNamedTuple1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -42,7 +42,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
         public async Task TestInArgument()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -70,7 +70,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
         public async Task TestNamedTuple2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -124,7 +124,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
         public async Task TestWrongCasing()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -148,7 +148,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
         public async Task TestFixAll1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -174,7 +174,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
         public async Task TestFixAll2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {

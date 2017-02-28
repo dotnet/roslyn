@@ -191,7 +191,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function FieldDeclaration() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Protected i As [|Integer|]
@@ -205,7 +205,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function FieldDeclarationWithInitializer() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Protected i As [|Integer|] = 5
@@ -219,7 +219,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function DelegateDeclaration() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Delegate Function PerformCalculation(x As Integer, y As Integer) As [|Integer|]
@@ -233,7 +233,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function PropertyDeclaration() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Property X As [|Long|]
@@ -247,7 +247,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function GenericPropertyDeclaration() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Class C
@@ -263,7 +263,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function FunctionDeclarationReturnType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Function F() As [|Integer|]
@@ -279,7 +279,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function MethodDeclarationParameters() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Sub F(x As [|Integer|])
@@ -295,7 +295,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function GenericMethodInvocation() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Sub Method(Of T)()
@@ -317,7 +317,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function LocalDeclaration() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Sub Test()
@@ -335,7 +335,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function MemberAccess() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Sub Test()
@@ -353,7 +353,7 @@ End Class", options:=FrameworkTypeInMemberAccess)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function MemberAccess2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Sub Test()
@@ -371,7 +371,7 @@ End Class", options:=FrameworkTypeInMemberAccess)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function DocCommentTriviaCrefExpression() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     ''' <see cref=""[|Integer|].MaxValue""/>
@@ -389,7 +389,7 @@ End Class", options:=FrameworkTypeInMemberAccess)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function GetTypeExpression() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Sub Test()
@@ -407,7 +407,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function FormalParametersWithinLambdaExression() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Sub Test()
@@ -425,7 +425,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function ObjectCreationExpression() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Sub Test()
@@ -443,7 +443,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function ArrayDeclaration() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Sub Test()
@@ -461,7 +461,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function ArrayInitializer() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Sub Test()
@@ -479,7 +479,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function MultiDimentionalArrayAsGenericTypeParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Class C
@@ -499,7 +499,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function ForStatement() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Sub Test()
@@ -519,7 +519,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function ForeachStatement() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Sub Test()
@@ -539,7 +539,7 @@ End Class", options:=FrameworkTypeInDeclaration)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function LeadingTrivia() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Public Sub Test()

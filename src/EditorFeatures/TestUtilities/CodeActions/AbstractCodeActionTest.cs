@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup, string expectedMarkup, string[] chosenSymbols, int index = 0, bool compareTokens = true)
         {
             var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrEmpty());
-            return TestAsync(initialMarkup, expectedMarkup, index, compareTokens,
+            return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, index, compareTokens,
                 fixProviderData: pickMembersService);
         }
     }

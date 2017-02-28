@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
         End Function
 
         Private Async Function TestFixOneAsync(initial As String, expected As String, refactoring As Refactoring) As Task
-            Await TestAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), index:=DirectCast(refactoring, Integer))
+            Await TestInRegularAndScriptAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), index:=DirectCast(refactoring, Integer))
         End Function
 
         Private Function CreateTreeText(initial As String) As String

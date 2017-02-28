@@ -224,7 +224,7 @@ class Buzz : IDisposable
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForIfWithoutBraces()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
    @"
 class Program
 {
@@ -252,7 +252,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForElseWithoutBraces()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -282,7 +282,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForIfNestedInElseWithoutBraces()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -312,7 +312,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForForWithoutBraces()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -340,7 +340,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForForEachWithoutBraces()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -368,7 +368,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForWhileWithoutBraces()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -396,7 +396,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForDoWhileWithoutBraces()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -425,7 +425,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForUsingWithoutBraces()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -471,7 +471,7 @@ class Fizz : IDisposable
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForUsingWithoutBracesNestedInUsing()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -535,7 +535,7 @@ class Buzz : IDisposable
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForLockWithoutBraces()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {
@@ -567,7 +567,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForLockWithoutBracesNestedInLock()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
             @"
 class Program
 {

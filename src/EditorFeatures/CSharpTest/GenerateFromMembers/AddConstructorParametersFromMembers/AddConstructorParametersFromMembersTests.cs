@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
         [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAdd1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -50,7 +50,7 @@ index: 0);
         [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddOptional1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -82,7 +82,7 @@ index: 1);
         [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddToConstructorWithMostMatchingParameters1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -126,7 +126,7 @@ index: 0);
         [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddOptionalToConstructorWithMostMatchingParameters1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -210,7 +210,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTuple()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(int, string) i;
@@ -231,14 +231,13 @@ index: 1);
         this.i = i;
         this.s = s;
     }
-}",
-index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleWithNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(int a, string b) i;
@@ -259,8 +258,7 @@ index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         this.i = i;
         this.s = s;
     }
-}",
-index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -282,7 +280,7 @@ index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleOptional()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(int, string) i;
@@ -304,13 +302,13 @@ index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         this.s = s;
     }
 }",
-index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleOptionalWithNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(int a, string b) i;
@@ -332,7 +330,7 @@ index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         this.s = s;
     }
 }",
-index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -354,7 +352,7 @@ index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleWithNullable()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(int?, bool?) i;
@@ -375,14 +373,13 @@ index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         this.i = i;
         this.s = s;
     }
-}",
-index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleWithGenericss()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(List<int>, List<bool>) i;
@@ -403,8 +400,7 @@ index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         this.i = i;
         this.s = s;
     }
-}",
-index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
     }
 }

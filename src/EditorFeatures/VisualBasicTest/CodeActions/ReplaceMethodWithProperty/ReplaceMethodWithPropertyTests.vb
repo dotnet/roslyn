@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Replac
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithGetName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     function [||]GetFoo() as integer
     End function
@@ -29,7 +29,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithoutGetName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     function [||]Foo() as integer
     End function
@@ -44,7 +44,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithoutBody() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "mustinherit class C
     MustOverride function [||]GetFoo() as integer
 End class",
@@ -55,7 +55,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithModifiers() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     public shared function [||]GetFoo() as integer
     End function
@@ -70,7 +70,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithAttributes() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     <A> function [||]GetFoo() as integer
     End function
@@ -85,7 +85,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithTrivia_1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     ' Foo
     function [||]GetFoo() as integer
@@ -103,7 +103,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestIfDefMethod() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
 #if true
     function [||]GetFoo() as integer
@@ -122,7 +122,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithTrivia_2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     ' Foo
     function [||]GetFoo() as integer
@@ -147,7 +147,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestExplicitInterfaceMethod_2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "interface I
     function GetFoo() as integer
 End interface
@@ -170,7 +170,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestExplicitInterfaceMethod_3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "interface I
     function [||]GetFoo() as integer
 End interface
@@ -257,7 +257,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetReferenceNotInMethod() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     function [||]GetFoo() as integer
     End function
@@ -278,7 +278,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetReferenceMemberAccessInvocation() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     function [||]GetFoo() as integer
     End function
@@ -299,7 +299,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetReferenceBindingMemberInvocation() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     function [||]GetFoo() as integer
     End function
@@ -322,7 +322,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetReferenceInMethod() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     function [||]GetFoo() as integer
         return GetFoo()
@@ -339,7 +339,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestOverride() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     public overridable function [||]GetFoo() as integer
     End function
@@ -366,7 +366,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetReference_NonInvoked() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     function [||]GetFoo() as integer
     End function
@@ -387,7 +387,7 @@ End class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetSet() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     function [||]GetFoo() as integer
     End function
@@ -407,7 +407,7 @@ index:=1)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetSetReference_NonInvoked() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 class C
     function [||]GetFoo() as integer
@@ -435,7 +435,7 @@ index:=1)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetSet_SetterAccessibility() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     public function [||]GetFoo() as integer
     End function
@@ -454,7 +454,7 @@ index:=1)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetSet_GetInSetReference() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     function [||]GetFoo() as integer
     End function
@@ -480,7 +480,7 @@ index:=1)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateGetSet_SetReferenceInSetter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     function [||]GetFoo() as integer
     End function
@@ -502,7 +502,7 @@ index:=1)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestVirtualGetWithOverride_1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     protected overridable function [||]GetFoo() as integer
     End function
@@ -530,7 +530,7 @@ index:=0)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestVirtualGetWithOverride_2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     protected overridable function [||]GetFoo() as integer
     End function
@@ -560,7 +560,7 @@ index:=0)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestWithPartialClasses() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "partial class C
     function [||]GetFoo() as integer
     End function
@@ -585,7 +585,7 @@ index:=1)
         <WorkItem(14327, "https://github.com/dotnet/roslyn/issues/14327")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestUpdateChainedGet1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 public class Foo
     public sub Foo()
@@ -610,7 +610,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestIndentation() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     Public Function [||]GetProp() As Integer
         dim count = 0

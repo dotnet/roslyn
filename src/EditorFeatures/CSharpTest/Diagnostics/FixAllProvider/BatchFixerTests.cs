@@ -149,7 +149,7 @@ class C
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(input, expected, compareTokens: false);
         }
 
         #endregion

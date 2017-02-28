@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
         Friend Overloads Async Function TestAsync(initial As XElement, expected As XCData, Optional isLine As Boolean = True, Optional isAddedDocument As Boolean = False) As Task
             Dim initialMarkup = initial.ToString()
             Dim expectedMarkup = expected.Value
-            Await TestAsync(initialMarkup, expectedMarkup, isLine, isAddedDocument)
+            Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, isLine, isAddedDocument)
         End Function
 
         Protected Overrides Function GetLanguage() As String
@@ -1033,7 +1033,7 @@ End Namespace]]>
 <Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""namespace"", Target:=""~N:N"")>
 "
 
-                    Await TestAsync(source.Value, expected, index:=1)
+                    Await TestInRegularAndScriptAsync(source.Value, expected, index:=1)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = $"

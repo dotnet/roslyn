@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestOnVariableDeclarator()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -48,7 +48,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestIndexAccess1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Collections.Generic;
 class C
@@ -92,7 +92,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestComplexIndexAccess1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Collections.Generic;
 class C
@@ -120,7 +120,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestIndexAccess2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Collections.Generic;
 class C
@@ -150,7 +150,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestIndexAccess3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Collections.Generic;
 class C
@@ -182,7 +182,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestIndexFollowedByInvocation()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Collections.Generic;
 class C
@@ -212,7 +212,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestInvocationFollowedByIndex()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Collections.Generic;
 class C
@@ -242,7 +242,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestWithInterimStatement()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -331,7 +331,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestWithCreationArguments()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -359,7 +359,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestOnAssignmentExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -405,7 +405,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestComplexInitializer()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -469,7 +469,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestFixAllInDocument1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -509,7 +509,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestFixAllInDocument2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -545,7 +545,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestFixAllInDocument3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -581,7 +581,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestTrivia1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Collections.Generic;
 class C
@@ -612,7 +612,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestComplexInitializer2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -649,7 +649,7 @@ class C
         [WorkItem(16158, "https://github.com/dotnet/roslyn/issues/16158")]
         public async Task TestIncorrectAddName()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 public class Foo

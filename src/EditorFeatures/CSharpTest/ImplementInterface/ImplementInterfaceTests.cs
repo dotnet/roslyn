@@ -58,31 +58,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
         internal async Task TestWithAllCodeStyleOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
             int index = 0, bool compareTokens = true,
-            ParseOptions parseOptions = null,
-            bool withScriptOption = false)
+            ParseOptions parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, compareTokens, options: s_allOptionsOff, withScriptOption: withScriptOption);
+                index, compareTokens, options: s_allOptionsOff);
         }
 
         internal async Task TestWithAllCodeStyleOptionsOnAsync(
             string initialMarkup, string expectedMarkup,
             int index = 0, bool compareTokens = true,
-            ParseOptions parseOptions = null,
-            bool withScriptOption = false)
+            ParseOptions parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, compareTokens, options: s_allOptionsOn, withScriptOption: withScriptOption);
+                index, compareTokens, options: s_allOptionsOn);
         }
 
         internal async Task TestWithAccessorCodeStyleOptionsOnAsync(
             string initialMarkup, string expectedMarkup,
             int index = 0, bool compareTokens = true,
-            ParseOptions parseOptions = null,
-            bool withScriptOption = false)
+            ParseOptions parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, compareTokens, options: s_accessorOptionsOn, withScriptOption: withScriptOption);
+                index, compareTokens, options: s_accessorOptionsOn);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -2424,7 +2421,7 @@ count: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementEventThroughMember()
         {
-            await TestAsync(@"
+            await TestInRegularAndScriptAsync(@"
 interface IFoo
 {
     event System.EventHandler E;
@@ -2472,7 +2469,7 @@ class HasCanFoo : IFoo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementEventThroughExplicitMember()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"interface IFoo { event System . EventHandler E ; } class CanFoo : IFoo { event IFoo.EventHandler E; } class HasCanFoo : [|IFoo|] { CanFoo canFoo; } ",
 @"using System ; interface IFoo { event System . EventHandler E ; } class CanFoo : IFoo { event IFoo.EventHandler E; } class HasCanFoo : IFoo { CanFoo canFoo; public event EventHandler E { add { ((IFoo)canFoo).E += value; } remove { ((IFoo)canFoo).E -= value; } } } ",
 index: 1);
@@ -6520,8 +6517,7 @@ class Class : IInterface
     {
         throw new System.NotImplementedException();
     }
-}",
-parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -6550,8 +6546,7 @@ class Class : IInterface
     {
         throw new System.NotImplementedException();
     }
-}",
-parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -6580,8 +6575,7 @@ class Class : IInterface<(int, string), int>
     {
         throw new System.NotImplementedException();
     }
-}",
-parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -6610,15 +6604,14 @@ class Class : IInterface<(int, string), int>
     {
         throw new System.NotImplementedException();
     }
-}",
-parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestWithGroupingOff1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"interface IInterface
 {
     int Prop { get; }
@@ -6646,7 +6639,7 @@ class Class : IInterface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDoNotReorderComImportMembers()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Runtime.InteropServices;
 
@@ -6685,7 +6678,7 @@ class Class : IComInterface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRefReturns()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 

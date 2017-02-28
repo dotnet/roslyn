@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseCol
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestOnVariableDeclarator() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -38,7 +38,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestDoNotRemoveNonEmptyArgumentList() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -61,7 +61,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestOnVariableDeclarator2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -84,7 +84,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestOnAssignmentExpression() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -161,7 +161,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestComplexInitializer() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -190,7 +190,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestMultipleArgs() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -228,7 +228,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestFixAllInDocument() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -266,7 +266,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestTrivia1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -292,7 +292,7 @@ compareTokens:=False)
         <WorkItem(15528, "https://github.com/dotnet/roslyn/pull/15528")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestTrivia2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C

@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAcces
         End Function
 
         Private Function TestAsyncWithOptionAndNotification(code As String, expected As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean)), notification As NotificationOption) As Task
-            Return TestAsync(code, expected, options:=[Option](opt, True, notification))
+            Return TestInRegularAndScriptAsync(code, expected, options:=[Option](opt, True, notification))
         End Function
 
         Private Function TestMissingAsyncWithOption(code As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean))) As Task

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseObj
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestOnVariableDeclarator() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -38,7 +38,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestOnVariableDeclarator2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -61,7 +61,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestOnAssignmentExpression() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -86,7 +86,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestStopOnDuplicateMember() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -111,7 +111,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestComplexInitializer() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -142,7 +142,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestNotOnCompoundAssignment() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -201,7 +201,7 @@ End Class")
         <WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestIfImplicitMemberAccessWouldNotChange() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "                            
 Class C
     Sub M()
@@ -229,7 +229,7 @@ End Class", compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestFixAllInDocument() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -269,7 +269,7 @@ compareTokens:=False)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestTrivia1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -297,7 +297,7 @@ compareTokens:=False)
         <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestTrivia2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Sub M()
@@ -324,7 +324,7 @@ compareTokens:=False)
         <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestTrivia3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Sub M()

@@ -155,7 +155,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixMultipleActionEquivalenceKey);
+                    await TestInRegularAndScriptAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixMultipleActionEquivalenceKey);
                 }
             }
 
