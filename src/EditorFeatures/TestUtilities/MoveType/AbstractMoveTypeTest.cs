@@ -31,8 +31,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null)
         {
-            var testOptions = new TestParameters(originalCode, null, null, null, fixAllActionEquivalenceKey, fixProviderData);
-            using (var workspace = await CreateWorkspaceFromFileAsync(testOptions))
+            var testOptions = new TestParameters(
+                fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, 
+                fixProviderData: fixProviderData);
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(originalCode, testOptions))
             {
                 if (expectedCodeAction)
                 {
@@ -76,8 +78,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null)
         {
-            var testOptions = new TestParameters(originalCode, null, null, null, fixAllActionEquivalenceKey, fixProviderData);
-            using (var workspace = await CreateWorkspaceFromFileAsync(testOptions))
+            var testOptions = new TestParameters(
+                fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(originalCode, testOptions))
             {
                 if (expectedCodeAction)
                 {
@@ -148,10 +151,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             bool compareTokens = true,
             Action<Workspace> onAfterWorkspaceCreated = null)
         {
-            var testOptions = new TestParameters(originalCode);
+            var testOptions = new TestParameters();
             if (expectedCodeAction)
             {
-                using (var workspace = await CreateWorkspaceFromFileAsync(testOptions))
+                using (var workspace = await CreateWorkspaceFromFileAsync(originalCode, testOptions))
                 {
                     onAfterWorkspaceCreated?.Invoke(workspace);
 

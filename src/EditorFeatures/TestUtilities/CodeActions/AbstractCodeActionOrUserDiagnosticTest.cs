@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public struct TestParameters
         {
-            internal readonly string initialMarkup;
             internal readonly IDictionary<OptionKey, object> options;
             internal readonly string fixAllActionEquivalenceKey;
             internal readonly object fixProviderData;
@@ -35,14 +34,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal readonly CompilationOptions compilationOptions;
 
             public TestParameters(
-                string initialMarkup,
                 ParseOptions parseOptions = null,
                 CompilationOptions compilationOptions = null,
                 IDictionary<OptionKey, object> options = null,
                 string fixAllActionEquivalenceKey = null,
                 object fixProviderData = null)
             {
-                this.initialMarkup = initialMarkup;
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
                 this.options = options;
@@ -54,14 +51,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected abstract string GetLanguage();
         protected abstract ParseOptions GetScriptOptions();
 
-        protected Task<TestWorkspace> CreateWorkspaceFromOptionsAsync(TestParameters parameters)
+        protected Task<TestWorkspace> CreateWorkspaceFromOptionsAsync(
+            string initialMarkup, TestParameters parameters)
         {
-            return IsWorkspaceElement(parameters.initialMarkup)
-                 ? TestWorkspace.CreateAsync(parameters.initialMarkup)
-                 : CreateWorkspaceFromFileAsync(parameters);
+            return IsWorkspaceElement(initialMarkup)
+                 ? TestWorkspace.CreateAsync(initialMarkup)
+                 : CreateWorkspaceFromFileAsync(initialMarkup, parameters);
         }
 
-        protected abstract Task<TestWorkspace> CreateWorkspaceFromFileAsync(TestParameters parameters);
+        protected abstract Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters);
 
         private void TestAnnotations(
             string expectedText,
@@ -114,13 +112,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null)
         {
-            return TestMissingAsync(new TestParameters(
-                initialMarkup, parseOptions, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData));
+            return TestMissingAsync(initialMarkup,
+                new TestParameters(
+                    parseOptions, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData));
         }
 
-        private async Task TestMissingAsync(TestParameters parameters)
+        private async Task TestMissingAsync(string initialMarkup, TestParameters parameters)
         {
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(parameters))
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
                 workspace.ApplyOptions(parameters.options);
 
@@ -149,13 +148,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             object fixProviderData = null)
         {
             return TestSmartTagTextAsync(
-                new TestParameters(initialMarkup, parseOptions, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData),
+                initialMarkup,
+                new TestParameters(parseOptions, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData),
                 displayText, index);
         }
 
-        private async Task TestSmartTagTextAsync(TestParameters parameters, string displayText, int index)
+        private async Task TestSmartTagTextAsync(
+            string initialMarkup, TestParameters parameters, string displayText, int index)
         {
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(parameters))
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
                 var actions = await GetCodeActionsAsync(workspace, parameters);
                 Assert.Equal(displayText, actions.ElementAt(index).Title);
@@ -172,17 +173,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             object fixProviderData = null)
         {
             return TestExactActionSetOfferedAsync(
+                initialMarkup,
                 new TestParameters(
-                    initialMarkup, parseOptions, compilationOptions, options,
+                    parseOptions, compilationOptions, options,
                     fixAllActionEquivalenceKey, fixProviderData),
                 expectedActionSet);
         }
 
         private async Task TestExactActionSetOfferedAsync(
+            string initialMarkup,
             TestParameters parameters,
             IEnumerable<string> expectedActionSet)
         {
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(parameters))
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
                 var actions = await GetCodeActionsAsync(workspace, parameters);
 
@@ -203,17 +206,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             object fixProviderData = null)
         {
             return TestActionCountAsync(
+                initialMarkup,
                 new TestParameters(
-                    initialMarkup, parseOptions, compilationOptions, options,
+                    parseOptions, compilationOptions, options,
                     fixAllActionEquivalenceKey, fixProviderData),
                 count);
         }
 
         private async Task TestActionCountAsync(
+            string initialMarkup,
             TestParameters parameters,
             int count)
         {
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(parameters))
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
                 workspace.ApplyOptions(parameters.options);
 
@@ -275,14 +280,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             object fixProviderData)
         {
             return TestAddDocument(
+                initialMarkup,
                 new TestParameters(
-                    initialMarkup, parseOptions, compilationOptions, options,
+                    parseOptions, compilationOptions, options,
                     fixAllActionEquivalenceKey, fixProviderData),
                 expectedMarkup, index, compareTokens,
                 expectedContainers, expectedDocumentName);
         }
 
         private async Task TestAddDocument(
+            string initialMarkup,
             TestParameters parameters,
             string expectedMarkup,
             int index,
@@ -290,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IList<string> expectedContainers,
             string expectedDocumentName)
         {
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(parameters))
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
                 var codeActions = await GetCodeActionsAsync(workspace, parameters);
                 await TestAddDocument(
@@ -424,13 +431,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority = null)
         {
             return TestAsync(
+                initialMarkup,
                 new TestParameters(
-                    initialMarkup, parseOptions, compilationOptions,
+                    parseOptions, compilationOptions,
                     options, fixAllActionEquivalenceKey, fixProviderData),
                 expectedMarkup, index, compareTokens, priority);
         }
 
         private async Task TestAsync(
+            string initialMarkup,
             TestParameters parameters,
             string expectedMarkup,
             int index,
@@ -443,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var renameSpans = spanMap.GetOrAdd("Rename", _ => new List<TextSpan>());
             var warningSpans = spanMap.GetOrAdd("Warning", _ => new List<TextSpan>());
 
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(parameters))
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
                 workspace.ApplyOptions(parameters.options);
 

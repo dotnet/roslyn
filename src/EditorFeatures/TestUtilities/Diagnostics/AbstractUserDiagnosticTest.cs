@@ -228,8 +228,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         protected async Task TestEquivalenceKeyAsync(
             string initialMarkup, string equivalenceKey)
         {
-            var options = new TestParameters(initialMarkup);
-            using (var workspace = await CreateWorkspaceFromFileAsync(options))
+            var options = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, options))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, options);
                 Assert.Equal(equivalenceKey, diagnosticAndFix.Item2.Fixes.ElementAt(index: 0).Action.EquivalenceKey);
@@ -246,17 +246,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             object fixProviderData = null)
         {
             return TestActionCountInAllFixesAsync(
+                initialMarkup,
                 new TestParameters(
-                    initialMarkup, parseOptions, compilationOptions, options,
+                    parseOptions, compilationOptions, options,
                     fixAllActionEquivalenceKey, fixProviderData),
                 count);
         }
 
         private async Task TestActionCountInAllFixesAsync(
+            string initialMarkup,
             TestParameters parameters,
             int count)
         {
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(parameters))
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixesAsync(workspace, parameters);
                 var diagnosticCount = diagnosticAndFix.Select(x => x.Item2.Fixes.Count()).Sum();
@@ -276,14 +278,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             object fixProviderData = null)
         {
             return TestSpansAsync(
+                initialMarkup,
                 new TestParameters(
-                    initialMarkup,
                     parseOptions, compilationOptions, options,
                     fixAllActionEquivalenceId, fixProviderData),
                 expectedMarkup, index, diagnosticId);
         }
 
         private async Task TestSpansAsync(
+            string initialMarkup,
             TestParameters parameters,
             string expectedMarkup,
             int index ,
@@ -292,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             MarkupTestFile.GetSpans(expectedMarkup, out var unused, out IList<TextSpan> spansList);
 
             var expectedTextSpans = spansList.ToSet();
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(parameters))
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
                 workspace.ApplyOptions(parameters.options);
 
@@ -357,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 testState.TestProjectManagementService.SetDefaultNamespace(
                     defaultNamespace: defaultNamespace);
 
-                var testOptions = new TestParameters(initial);
+                var testOptions = new TestParameters();
                 var diagnosticsAndFixes = await GetDiagnosticAndFixesAsync(testState.Workspace, testOptions);
                 var generateTypeDiagFixes = diagnosticsAndFixes.SingleOrDefault(df => GenerateTypeTestState.FixIds.Contains(df.Item1.Id));
 

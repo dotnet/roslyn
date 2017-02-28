@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
 
         protected override string GetLanguage() => LanguageNames.CSharp;
 
-        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(TestParameters parameters)
-            => TestWorkspace.CreateCSharpAsync(parameters.initialMarkup, parameters.parseOptions, parameters.compilationOptions);
+        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters)
+            => TestWorkspace.CreateCSharpAsync(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
     }
 }

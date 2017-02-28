@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/14421")]
         public async Task TestPickTheRightPreview_NoPreference()
         {
-            var parameters = new TestParameters("class D {}");
-            using (var workspace = await CreateWorkspaceFromFileAsync(parameters))
+            var parameters = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync("class D {}", parameters))
             {
                 GetMainDocumentAndPreviews(parameters, workspace, out var document, out var previews);
 

@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 
         protected override string GetLanguage() => LanguageNames.CSharp;
 
-        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(TestParameters parameters)
-            => TestWorkspace.CreateCSharpAsync(parameters.initialMarkup, parameters.parseOptions, parameters.compilationOptions);
+        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters)
+            => TestWorkspace.CreateCSharpAsync(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
         #region "Pragma disable tests"
 
@@ -164,8 +164,8 @@ class Class
         [|int x = 0, y = 0; string s;|]
     }
 }";
-                    var parameters = new TestParameters(source);
-                    using (var workspace = await CreateWorkspaceFromFileAsync(parameters))
+                    var parameters = new TestParameters();
+                    using (var workspace = await CreateWorkspaceFromOptionsAsync(source, parameters))
                     {
                         var diagnosticService = new TestDiagnosticAnalyzerService(LanguageNames.CSharp, new CSharpCompilerDiagnosticAnalyzer());
                         var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);

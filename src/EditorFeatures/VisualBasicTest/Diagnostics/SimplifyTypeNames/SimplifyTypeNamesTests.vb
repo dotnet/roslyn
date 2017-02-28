@@ -1802,9 +1802,8 @@ End Module
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Dim parameters = New TestParameters(source.Value)
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(parameters.initialMarkup)
-                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace, parameters)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value)
+                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
                 Assert.NotEqual(span.Start, 0)
                 Assert.NotEqual(span.End, 0)
@@ -1852,9 +1851,8 @@ End Namespace
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Dim parameters = New TestParameters(source.Value)
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(parameters.initialMarkup)
-                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace, parameters)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value)
+                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("new C", StringComparison.Ordinal) + 4)
                 Assert.Equal(span.Length, "A.B".Length)
@@ -1888,9 +1886,8 @@ End Module
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Dim parameters = New TestParameters(source.Value)
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(parameters.initialMarkup)
-                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace, parameters)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value)
+                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("Console.WriteLine(""foo"")", StringComparison.Ordinal))
                 Assert.Equal(span.Length, "System".Length)
@@ -2342,8 +2339,8 @@ Module Program
 End Module
 </Code>
 
-            Dim parameters As New TestParameters(source)
-            Using workspace = Await CreateWorkspaceFromFileAsync(parameters)
+            Dim parameters As New TestParameters()
+            Using workspace = Await CreateWorkspaceFromFileAsync(source, parameters)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
@@ -2358,8 +2355,8 @@ Module Program
 End Module
 </Code>
 
-            Dim parameters2 As New TestParameters(source)
-            Using workspace = Await CreateWorkspaceFromFileAsync(parameters2)
+            Dim parameters2 As New TestParameters()
+            Using workspace = Await CreateWorkspaceFromFileAsync(source, parameters2)
                 workspace.ApplyOptions(PreferIntrinsicPredefinedTypeEverywhere())
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters2)).Where(Function(d) d.Id = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
@@ -2376,8 +2373,8 @@ Class C
 End Module
 </Code>
 
-            Dim parameters3 As New TestParameters(source)
-            Using workspace = Await CreateWorkspaceFromFileAsync(parameters3)
+            Dim parameters3 As New TestParameters()
+            Using workspace = Await CreateWorkspaceFromFileAsync(source, parameters3)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters3)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveQualificationDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using

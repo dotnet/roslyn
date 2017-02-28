@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
         protected override string GetLanguage()
             => LanguageNames.CSharp;
 
-        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(TestParameters parameters)
-            => TestWorkspace.CreateCSharpAsync(parameters.initialMarkup, parameters.parseOptions, parameters.compilationOptions);
+        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters)
+            => TestWorkspace.CreateCSharpAsync(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_ImplicitInvokeCalls()

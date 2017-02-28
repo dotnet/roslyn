@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity)
         {
-            var testOptions = new TestParameters(initialMarkup, parseOptions, compilationOptions, options);
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(testOptions))
+            var testOptions = new TestParameters(parseOptions, compilationOptions, options);
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, testOptions))
             {
                 workspace.ApplyOptions(options);
 

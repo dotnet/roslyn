@@ -1028,8 +1028,8 @@ partial class Program {
     a b c [|b|]
 }";
 
-            var testParameters = new TestParameters(text);
-            using (var workspace = await CreateWorkspaceFromFileAsync(testParameters))
+            var testParameters = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(text, testParameters))
             {
                 var result = await GetCodeRefactoringAsync(workspace, testParameters);
                 Assert.NotNull(result);
@@ -1048,8 +1048,8 @@ class Program
     }
 ";
 
-            var parameters = new TestParameters(text);
-            using (var workspace = await CreateWorkspaceFromFileAsync(parameters))
+            var parameters = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(text, parameters))
             {
                 var result = await GetCodeRefactoringAsync(workspace, parameters);
                 Assert.NotNull(result);

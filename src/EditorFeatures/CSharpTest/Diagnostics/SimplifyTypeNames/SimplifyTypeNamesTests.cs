@@ -2963,8 +2963,8 @@ class Program
 }
 ";
 
-            var parameters = new TestParameters(code);
-            using (var workspace = await CreateWorkspaceFromFileAsync(parameters))
+            var parameters = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(code, parameters))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, parameters);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
@@ -3060,8 +3060,8 @@ class Program
 ";
             await TestInRegularAndScriptAsync(code, expected);
 
-            var parameters = new TestParameters(code);
-            using (var workspace = await CreateWorkspaceFromFileAsync(parameters))
+            var parameters = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(code, parameters))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, parameters);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
@@ -3097,8 +3097,8 @@ class Program
 ";
             await TestInRegularAndScriptAsync(code, expected);
 
-            var parameters = new TestParameters(code);
-            using (var workspace = await CreateWorkspaceFromFileAsync(parameters))
+            var parameters = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(code, parameters))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, parameters);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
@@ -3163,8 +3163,8 @@ namespace A
         }
     }
 }";
-            var parameters = new TestParameters(code);
-            using (var workspace = await CreateWorkspaceFromFileAsync(parameters))
+            var parameters = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(code, parameters))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, parameters);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
@@ -3596,8 +3596,8 @@ class C
     }
 }";
 
-            var parameters = new TestParameters(source);
-            using (var workspace = await CreateWorkspaceFromFileAsync(parameters))
+            var parameters = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromFileAsync(source, parameters))
             {
                 var diagnostics = (await GetDiagnosticsAsync(workspace, parameters)).Where(d => d.Id == IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
                 Assert.Equal(1, diagnostics.Count());
@@ -3615,8 +3615,8 @@ class C
     }
 }";
 
-            var parameters1 = new TestParameters(source);
-            using (var workspace = await CreateWorkspaceFromFileAsync(parameters1))
+            var parameters1 = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(source, parameters1))
             {
                 workspace.ApplyOptions(PreferIntrinsicTypeEverywhere);
                 var diagnostics = (await GetDiagnosticsAsync(workspace, parameters1)).Where(d => d.Id == IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId);
@@ -3636,8 +3636,8 @@ class C
     }
 }";
 
-            var parameters2 = new TestParameters(source);
-            using (var workspace = await CreateWorkspaceFromFileAsync(parameters2))
+            var parameters2 = new TestParameters();
+            using (var workspace = await CreateWorkspaceFromOptionsAsync(source, parameters2))
             {
                 var diagnostics = (await GetDiagnosticsAsync(workspace, parameters2)).Where(d => d.Id == IDEDiagnosticIds.RemoveQualificationDiagnosticId);
                 Assert.Equal(1, diagnostics.Count());

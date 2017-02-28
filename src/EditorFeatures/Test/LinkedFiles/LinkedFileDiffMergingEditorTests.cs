@@ -33,10 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         [WpfFact]
         public async Task TestCodeActionPreviewAndApply()
         {
-            var parameters = new TestParameters(WorkspaceXml);
-            using (var workspace = await TestWorkspace.CreateAsync(parameters.initialMarkup))
+            using (var workspace = await TestWorkspace.CreateAsync(WorkspaceXml))
             {
-                var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, parameters);
+                var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, new TestParameters());
 
                 var expectedCode = "private class D { }";
 
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             }
         }
 
-        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(TestParameters parameters)
+        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters)
         {
             throw new NotSupportedException();
         }

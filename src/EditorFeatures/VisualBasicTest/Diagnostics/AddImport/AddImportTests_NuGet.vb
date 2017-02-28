@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
             Private Shared ReadOnly NugetPackageSources As ImmutableArray(Of PackageSource) =
                 ImmutableArray.Create(New PackageSource(NugetOrgSource, "http://nuget.org"))
 
-            Protected Overrides Async Function CreateWorkspaceFromFileAsync(parameters As TestParameters) As Task(Of TestWorkspace)
-                Dim workspace = Await CreateWorkspaceFromOptionsAsync(parameters)
+            Protected Overrides Async Function CreateWorkspaceFromFileAsync(initialMarkup As String, parameters As TestParameters) As Task(Of TestWorkspace)
+                Dim workspace = Await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters)
                 workspace.Options = workspace.Options.
                     WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic, True).
                     WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic, True)

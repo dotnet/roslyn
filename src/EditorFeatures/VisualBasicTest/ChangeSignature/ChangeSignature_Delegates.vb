@@ -18,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
             Return New ChangeSignatureCodeRefactoringProvider()
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFileAsync(parameters As TestParameters) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(parameters.initialMarkup, parameters.parseOptions, parameters.compilationOptions)
+        Protected Overrides Function CreateWorkspaceFromFileAsync(initialMarkup As String, parameters As TestParameters) As Task(Of TestWorkspace)
+            Return TestWorkspace.CreateVisualBasicAsync(initialMarkup, parameters.parseOptions, parameters.compilationOptions)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
