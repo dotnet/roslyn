@@ -94,7 +94,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function TestChangeSignatureCommandDisabledInSubmission() As Task
+        Public Sub TestChangeSignatureCommandDisabledInSubmission()
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
@@ -132,6 +132,6 @@ End Module
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace

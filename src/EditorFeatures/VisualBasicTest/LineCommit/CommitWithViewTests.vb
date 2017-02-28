@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitAfterTypingAndDownArrow() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>imports   $$
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestDontCrashOnPastingCarriageReturnContainingString() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>Module Module1
@@ -52,7 +52,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539305")>
         Public Async Function TestCommitAfterTypingAndUpArrowInLambdaFooter() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -78,7 +78,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539469")>
         Public Async Function TestCommitAfterTypingAndUpArrowInLambdaFooter2() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -106,7 +106,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539457")>
         Public Async Function TestCommitAfterTypingAndUpArrowIntoBlankLine() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -131,7 +131,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539411")>
         Public Async Function TestCommitAfterTypingInTrivia() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -155,7 +155,7 @@ $$</Document>
         <WorkItem(539599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539599")>
         <WorkItem(631913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631913")>
         Public Async Function TestCommitAfterTypingInTrivia2() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -181,7 +181,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
         Public Async Function TestCommitAfterTypingAttributeOfType() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>[|
@@ -203,7 +203,7 @@ End Class
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
         Public Async Function TestCommitAfterTypingAttributeOfMethod() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -227,7 +227,7 @@ End Class
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
         Public Async Function TestCommitAfterTypingInMethodNameAndThenMovingToAttribute() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
@@ -250,7 +250,7 @@ End Class
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestNoCommitDuringInlineRename() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
@@ -275,7 +275,7 @@ End Class
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539599")>
         Public Async Function TestCommitAfterLeavingStatementAfterLineContinuation() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -307,7 +307,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539318")>
         Public Async Function TestCommitAfterDeletingIndentationFixesIndentation() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -339,7 +339,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitIfThenOnlyAfterStartingNewBlock() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -365,7 +365,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitEndIfOnlyAfterStartingNewBlock() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -391,7 +391,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitFullIfBlockAfterCommittingElseIf() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -417,7 +417,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitFullIfBlockAfterCommittingEndIf() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -443,7 +443,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitTryBlockAfterCommittingCatch() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -469,7 +469,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitTryBlockAfterCommittingFinally() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -495,7 +495,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitDoLoopBlockAfterCommittingLoop() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -521,7 +521,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitEnumBlockAfterCommittingEndEnum() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -547,7 +547,7 @@ End Namespace
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitGetAccessorBlockAfterCommittingEndGet() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -572,7 +572,7 @@ End Namespace
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitSyncLockBlockAfterCommittingEndSyncLock() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -599,7 +599,7 @@ End Class
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539613")>
         Public Async Function TestRelativeIndentationBug() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -652,7 +652,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestBetterStartIndentation() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -709,7 +709,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(544104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544104")>
         Public Async Function TestCommitAfterMoveDownAfterIfStatement() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -739,7 +739,7 @@ End Class</Code>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitAfterXmlElementStartTag() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>Class C
@@ -767,7 +767,7 @@ End Class</Code>
         <WorkItem(545358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545358")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitWithNextStatementWithMultipleControlVariables() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>Module Program
@@ -803,7 +803,7 @@ End Module</Code>
         <WorkItem(608438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608438")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestBugfix_608438() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>[|$$Imports System
@@ -831,7 +831,7 @@ End Module|]</Document>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
         Public Async Function TestMultiLineString1() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -862,7 +862,7 @@ End Class
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
         Public Async Function TestMultiLineString2() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -893,7 +893,7 @@ End Class
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
         Public Async Function TestMultiLineString3() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -922,7 +922,7 @@ End Class
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestEnableWarningDirective1() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -946,7 +946,7 @@ End Class
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestEnableWarningDirective2() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -970,7 +970,7 @@ End Class
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestDisableWarningDirective1() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1000,7 +1000,7 @@ End Module
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestDisableWarningDirective2() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1026,7 +1026,7 @@ End Module
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestIncompleteWarningDirective() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1053,7 +1053,7 @@ End Module
         <WorkItem(3119, "https://github.com/dotnet/roslyn/issues/3119")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestMissingThenInIf() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1088,7 +1088,7 @@ End Class
         <WorkItem(3119, "https://github.com/dotnet/roslyn/issues/3119")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestMissingThenInElseIf() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>

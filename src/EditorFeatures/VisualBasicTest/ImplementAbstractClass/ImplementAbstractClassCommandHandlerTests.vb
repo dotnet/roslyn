@@ -111,7 +111,7 @@ Public Class Bar
 
 End Class</text>
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(workspace.Documents.Single.GetTextView())
                 Test(workspace,
                  expectedText,
@@ -145,7 +145,7 @@ Class SomeClass
 
 End Class</text>
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(workspace.Documents.Single.GetTextView())
                 Test(workspace,
                  expectedText,
@@ -187,7 +187,7 @@ End Class</text>
         End Function
 
         Private Async Function TestAsync(code As XElement, expectedText As XElement, nextHandler As Action, assertion As Action(Of String, String)) As Task
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Test(workspace, expectedText, nextHandler, assertion)
             End Using
         End Function
@@ -209,15 +209,15 @@ End Class</text>
             assertion(expectedText.NormalizedValue, text)
         End Sub
 
-        Private Async Function GetWorkspaceAsync(code As XElement) As Task(Of TestWorkspace)
+        Private Function GetWorkspace(code As XElement) As TestWorkspace
             Return TestWorkspace.Create(
-                <Workspace>
-                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
-                        <Document>
-                            <%= code.Value %>
-                        </Document>
-                    </Project>
-                </Workspace>)
+<Workspace>
+    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
+        <Document>
+            <%= code.Value %>
+        </Document>
+    </Project>
+</Workspace>)
         End Function
     End Class
 End Namespace

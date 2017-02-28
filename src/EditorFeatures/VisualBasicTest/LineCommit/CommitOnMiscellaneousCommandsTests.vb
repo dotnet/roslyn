@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitOnMultiLinePaste() As Task
-            Using testData = Await CommitTestData.CreateAsync(<Workspace>
+            Using testData = CommitTestData.Create(<Workspace>
                                                                   <Project Language="Visual Basic" CommonReferences="true">
                                                                       <Document>$$
                                                         </Document>
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(14391, "https://github.com/dotnet/roslyn/issues/14391")>
         Public Async Function TestCommitLineWithTupleType() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -52,7 +52,7 @@ End Class
         <WorkItem(1944, "https://github.com/dotnet/roslyn/issues/1944")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestDontCommitOnMultiLinePasteWithPrettyListingOff() As Task
-            Using testData = Await CommitTestData.CreateAsync(
+            Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>$$
@@ -70,7 +70,7 @@ End Class
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(545493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545493")>
         Public Async Function TestNoCommitOnSingleLinePaste() As Task
-            Using testData = Await CommitTestData.CreateAsync(<Workspace>
+            Using testData = CommitTestData.Create(<Workspace>
                                                                   <Project Language="Visual Basic" CommonReferences="true">
                                                                       <Document>$$
                                                         </Document>
@@ -85,7 +85,7 @@ End Class
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitOnSave() As Task
-            Using testData = Await CommitTestData.CreateAsync(<Workspace>
+            Using testData = CommitTestData.Create(<Workspace>
                                                                   <Project Language="Visual Basic" CommonReferences="true">
                                                                       <Document>$$
                                                         </Document>
@@ -101,7 +101,7 @@ End Class
         <WpfFact, WorkItem(1944, "https://github.com/dotnet/roslyn/issues/1944")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestDontCommitOnSavePrettyListingOff() As Task
-            Using testData = Await CommitTestData.CreateAsync(<Workspace>
+            Using testData = CommitTestData.Create(<Workspace>
                                                                   <Project Language="Visual Basic" CommonReferences="true">
                                                                       <Document>
 Class Program
@@ -123,7 +123,7 @@ End Class
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(545493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545493")>
         Public Async Function TestPerformAddMissingTokenOnFormatDocument() As Task
-            Using testData = Await CommitTestData.CreateAsync(<Workspace>
+            Using testData = CommitTestData.Create(<Workspace>
                                                                   <Project Language="Visual Basic" CommonReferences="true">
                                                                       <Document>$$Module Program
     Sub Main()
@@ -146,7 +146,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(867153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867153")>
         Public Async Function TestFormatDocumentWithPrettyListingDisabled() As Task
-            Using testData = Await CommitTestData.CreateAsync(<Workspace>
+            Using testData = CommitTestData.Create(<Workspace>
                                                                   <Project Language="Visual Basic" CommonReferences="true">
                                                                       <Document>Module Program
         $$Sub Main()
@@ -167,7 +167,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestDoNotCommitWithUnterminatedString() As Task
-            Using testData = Await CommitTestData.CreateAsync(<Workspace>
+            Using testData = CommitTestData.Create(<Workspace>
                                                                   <Project Language="Visual Basic" CommonReferences="true">
                                                                       <Document>Module Module1
     Sub Main()

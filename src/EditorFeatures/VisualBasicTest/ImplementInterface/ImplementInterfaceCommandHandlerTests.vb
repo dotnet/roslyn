@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
     Public Class ImplementInterfaceCommandHandlerTests
 
         Private Async Function TestAsync(code As XElement, expectedText As XElement, nextHandler As Action(Of IWpfTextView, TestWorkspace), assertion As Action(Of String, String, IWpfTextView)) As Threading.Tasks.Task
-            Using workspace = Await GetWorkspaceAsync(code.NormalizedValue)
+            Using workspace = GetWorkspace(code.NormalizedValue)
                 Dim commandHandler = MoveCaretAndCreateCommandHandler(workspace)
                 Dim view = workspace.Documents.Single().GetTextView()
 
@@ -36,20 +36,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
             Return New ImplementInterfaceCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService))
         End Function
 
-        Private Async Function GetWorkspaceAsync(code As String) As Threading.Tasks.Task(Of TestWorkspace)
+        Private Function GetWorkspace(code As String) As TestWorkspace
             Return TestWorkspace.Create(
-                <Workspace>
-                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
-                        <Document>
-                            <%= code.Replace(vbCrLf, vbLf) %>
-                        </Document>
-                    </Project>
-                </Workspace>)
+<Workspace>
+    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
+        <Document>
+            <%= code.Replace(vbCrLf, vbLf) %>
+        </Document>
+    </Project>
+</Workspace>)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function FeatureDoesNothingIfDisabled() As Threading.Tasks.Task
-            Using workspace = Await GetWorkspaceAsync("
+            Using workspace = GetWorkspace("
 Imports System
 
 Class Foo

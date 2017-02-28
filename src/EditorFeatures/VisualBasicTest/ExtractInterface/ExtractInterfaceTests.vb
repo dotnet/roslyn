@@ -1259,7 +1259,7 @@ End Namespace
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function TestExtractInterfaceCommandDisabledInSubmission() As Task
+        Public Sub TestExtractInterfaceCommandDisabledInSubmission()
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
@@ -1292,7 +1292,7 @@ End Namespace
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
             End Using
-        End Function
+        End Sub
 
         Private Shared Async Function TestTypeDiscoveryAsync(markup As String, typeDiscoveryRule As TypeDiscoveryRule, expectedExtractable As Boolean) As System.Threading.Tasks.Task
             Using testState = Await ExtractInterfaceTestState.CreateAsync(markup, LanguageNames.VisualBasic, compilationOptions:=Nothing)

@@ -241,7 +241,7 @@ rem Hello World$$|]
         <WorkItem(544372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544372")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function UndoAfterCommitOnBlankLine() As Threading.Tasks.Task
-            Using testData = Await CommitTestData.CreateAsync(<Workspace>
+            Using testData = CommitTestData.Create(<Workspace>
                                                                   <Project Language="Visual Basic" CommonReferences="true">
                                                                       <Document>$$
                                                         </Document>
@@ -347,7 +347,7 @@ End Module
         End Function
 
         Private Async Function AssertCommitsStatementAsync(test As XElement, expectCommit As Boolean, Optional usedSemantics As Boolean = True) As Threading.Tasks.Task
-            Using testData = Await CommitTestData.CreateAsync(test)
+            Using testData = CommitTestData.Create(test)
                 Dim lineNumber = testData.View.Caret.Position.BufferPosition.GetContainingLine().LineNumber
                 testData.CommandHandler.ExecuteCommand(New ReturnKeyCommandArgs(testData.View, testData.Buffer), Sub() testData.EditorOperations.InsertNewLine())
                 testData.AssertHadCommit(expectCommit)

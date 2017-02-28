@@ -936,7 +936,7 @@ End Namespace</element>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Organizing)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function TestOrganizingCommandsDisabledInSubmission() As Task
+        Public Sub TestOrganizingCommandsDisabledInSubmission()
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
@@ -973,6 +973,6 @@ End Namespace</element>
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace

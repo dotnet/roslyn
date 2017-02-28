@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Private ReadOnly _formatter As FormatterMock
         Private ReadOnly _inlineRenameService As InlineRenameServiceMock
 
-        Public Shared Async Function CreateAsync(test As XElement) As Task(Of CommitTestData)
+        Public Shared Function Create(test As XElement) As CommitTestData
             Dim workspace = TestWorkspace.Create(test)
             Return New CommitTestData(workspace)
         End Function

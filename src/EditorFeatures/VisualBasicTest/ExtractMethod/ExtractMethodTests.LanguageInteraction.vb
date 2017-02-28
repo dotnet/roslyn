@@ -3363,7 +3363,7 @@ End Namespace"
             <WpfFact>
             <Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             <Trait(Traits.Feature, Traits.Features.Interactive)>
-            Public Async Function TestExtractMethodCommandDisabledInSubmission() As Task
+            Public Sub TestExtractMethodCommandDisabledInSubmission()
                 Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
@@ -3397,7 +3397,7 @@ End Namespace"
                     Assert.True(delegatedToNext)
                     Assert.False(state.IsAvailable)
                 End Using
-            End Function
+            End Sub
         End Class
     End Class
 End Namespace

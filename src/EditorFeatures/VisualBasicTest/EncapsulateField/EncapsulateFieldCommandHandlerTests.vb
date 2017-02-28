@@ -129,7 +129,7 @@ End Class
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function EncapsulateFieldCommandDisabledInSubmission() As System.Threading.Tasks.Task
+        Public Sub EncapsulateFieldCommandDisabledInSubmission()
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
@@ -161,6 +161,6 @@ End Class
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace
