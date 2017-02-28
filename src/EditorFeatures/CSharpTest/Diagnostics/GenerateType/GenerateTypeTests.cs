@@ -2920,13 +2920,6 @@ expectedDocumentName: "Bar.cs");
         [|Bar|] b;
     }
 }",
-@"class Class
-{
-    void Foo()
-    {
-        [|Bar|] b;
-    }
-}",
 index: 1);
         }
 

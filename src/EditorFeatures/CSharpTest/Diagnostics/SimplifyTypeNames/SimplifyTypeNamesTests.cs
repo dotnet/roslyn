@@ -132,7 +132,7 @@ class A
 }", index: 0);
 
             await TestActionCountAsync(source, 1);
-            await TestSpansAsync(source,
+            await TestSpansAsync(
 @"using MyType = System.Exception;
 
 class A
@@ -481,11 +481,11 @@ namespace Root
 }", index: 0, options: featureOptions);
             await TestActionCountAsync(
                 source, count: 1, parameters: new TestParameters(options: featureOptions));
-            await TestSpansAsync(source,
+            await TestSpansAsync(
 @"class A
 {
     [|System.Int32|] i;
-}", options: featureOptions);
+}", parameters: new TestParameters(options: featureOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -564,7 +564,7 @@ namespace Root
     }
 }", index: 0);
             await TestActionCountAsync(source, 1);
-            await TestSpansAsync(source,
+            await TestSpansAsync(
 @"using System;
 
 namespace Root
@@ -868,7 +868,7 @@ namespace N1
     }
 }", index: 0);
             await TestActionCountAsync(source, 1);
-            await TestSpansAsync(source,
+            await TestSpansAsync(
 @"using MyHandler = System.EventHandler<System.EventArgs>;
 
 namespace N1
@@ -2953,7 +2953,7 @@ class C<T> : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task CodeIssueAtRightSpan()
         {
-            var code = @"
+            await TestSpansAsync(@"
 using foo = System.Console;
 class Program
 {
@@ -2962,16 +2962,7 @@ class Program
         [|System.Console|].Read();
     }
 }
-";
-
-            var parameters = new TestParameters();
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(code, parameters))
-            {
-                var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, parameters);
-                var span = diagnosticAndFix.Item1.Location.SourceSpan;
-                Assert.NotEqual(span.Start, 0);
-                Assert.NotEqual(span.End, 0);
-            }
+");
         }
 
         [WorkItem(579172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579172")]

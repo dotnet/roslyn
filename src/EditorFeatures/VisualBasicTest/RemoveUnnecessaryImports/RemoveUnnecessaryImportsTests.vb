@@ -1005,10 +1005,6 @@ End Class")
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemovalSpan1() As Task
             Await TestSpansAsync(
-<text>    [|Imports System
-
-Namespace N
-End Namespace|]</text>.NormalizedValue,
 <text>    [|Imports System|]
 
 Namespace N
@@ -1017,23 +1013,19 @@ End Namespace</text>.NormalizedValue)
 
         <WorkItem(545434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545434")>
         <WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+            <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemovalSpan2() As Task
             Await TestSpansAsync(
 <text>
 #Const A = 1
-[|Imports System
-#Const B = 1
-Imports System.Runtime.InteropServices|]</text>.NormalizedValue,
-<text>
-#Const A = 1
 [|Imports System|]
 #Const B = 1
-[|Imports System.Runtime.InteropServices|]</text>.NormalizedValue, diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId)
+[|Imports System.Runtime.InteropServices|]</text>.NormalizedValue,
+diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId)
         End Function
 
         <WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+                    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemovalSpan3() As Task
             Await TestInRegularAndScriptAsync(
 <text>
@@ -1050,7 +1042,7 @@ Class C : Dim x As Action : End Class</text>.NormalizedValue)
         End Function
 
         <WorkItem(545831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545831")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+                            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestImplicitElementAtOrDefault() As Task
             Await TestInRegularAndScriptAsync(
 <Text><![CDATA[[|Option Strict On
@@ -1121,7 +1113,7 @@ End Namespace]]></Text>.NormalizedValue)
         End Function
 
         <WorkItem(545964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545964")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+                                    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestMissingOnSynthesizedEventType() As Task
             Await TestMissingInRegularAndScriptAsync(
 "[|Class C

@@ -267,32 +267,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        protected Task TestSpansAsync(
-            string initialMarkup, string expectedMarkup,
-            int index = 0,
-            ParseOptions parseOptions = null,
-            CompilationOptions compilationOptions = null,
-            IDictionary<OptionKey, object> options = null,
-            string diagnosticId = null,
-            string fixAllActionEquivalenceId = null,
-            object fixProviderData = null)
-        {
-            return TestSpansAsync(
-                initialMarkup,
-                new TestParameters(
-                    parseOptions, compilationOptions, options,
-                    fixAllActionEquivalenceId, fixProviderData),
-                expectedMarkup, index, diagnosticId);
-        }
-
-        private async Task TestSpansAsync(
+        internal async Task TestSpansAsync(
             string initialMarkup,
-            TestParameters parameters,
-            string expectedMarkup,
-            int index ,
-            string diagnosticId)
+            int index = 0,
+            string diagnosticId = null,
+            TestParameters parameters = default(TestParameters))
         {
-            MarkupTestFile.GetSpans(expectedMarkup, out var unused, out IList<TextSpan> spansList);
+            MarkupTestFile.GetSpans(initialMarkup, out var unused, out IList<TextSpan> spansList);
 
             var expectedTextSpans = spansList.ToSet();
             using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))

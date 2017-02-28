@@ -1063,10 +1063,6 @@ namespace Foo
         public async Task TestSpan()
         {
             await TestSpansAsync(
-@"[|namespace N
-{
-    using System;
-}|]",
 @"namespace N
 {
     [|using System;|]
