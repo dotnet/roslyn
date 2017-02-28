@@ -459,7 +459,7 @@ class Class2 { }";
 }";
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                compareTokens: false);
+                ignoreTrivia: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -827,7 +827,7 @@ partial class Outer
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                compareTokens: false);
+                ignoreTrivia: false);
         }
 
         [WorkItem(17171, "https://github.com/dotnet/roslyn/issues/17171")]
@@ -866,7 +866,7 @@ partial class Outer
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                compareTokens: false,
+                ignoreTrivia: false,
                 onAfterWorkspaceCreated: w =>
                 {
                     w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, true);
@@ -908,7 +908,7 @@ partial class Outer
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                compareTokens: false,
+                ignoreTrivia: false,
                 onAfterWorkspaceCreated: w =>
                 {
                     w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, false);

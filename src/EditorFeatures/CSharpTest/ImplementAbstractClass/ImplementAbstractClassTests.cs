@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 
         internal Task TestAllOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, bool compareTokens = true,
+            int index = 0, bool ignoreTrivia = true,
             IDictionary<OptionKey, object> options = null)
         {
             options = options ?? new Dictionary<OptionKey, object>();
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 
             return TestInRegularAndScriptAsync(
                 initialMarkup, expectedMarkup,
-                index: index, compareTokens: compareTokens, options: options);
+                index: index, ignoreTrivia: ignoreTrivia, options: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -732,7 +732,7 @@ partial class Program
     }
 }
 ",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -772,7 +772,7 @@ partial class Program : Foo
 #line hidden
 }
 #line default",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(545585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545585")]
@@ -991,7 +991,7 @@ class D : C
         }
     }
 }
-", compareTokens: false);
+", ignoreTrivia: false);
         }
 
         [WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")]
@@ -1518,7 +1518,7 @@ namespace My
             throw new System.NotImplementedException();
         }
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
                 
 #if false

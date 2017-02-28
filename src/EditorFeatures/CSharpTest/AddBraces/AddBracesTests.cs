@@ -246,7 +246,7 @@ class Program
     }
 }",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -276,7 +276,7 @@ class Program
     }
 }",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -306,7 +306,7 @@ class Program
     }
 }",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -334,7 +334,7 @@ class Program
     }
 }",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -362,7 +362,7 @@ class Program
     }
 }",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -390,7 +390,7 @@ class Program
     }
 }",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -419,7 +419,7 @@ class Program
     }
 }",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -465,7 +465,7 @@ class Fizz : IDisposable
 }",
 
    index: 0,
-   compareTokens: false);
+   ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -529,7 +529,7 @@ class Buzz : IDisposable
 }",
 
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -561,7 +561,7 @@ class Program
 }",
 
    index: 0,
-   compareTokens: false);
+   ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -599,7 +599,7 @@ class Program
 }",
 
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
     }
 }

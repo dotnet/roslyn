@@ -733,7 +733,7 @@ Namespace SomeNamespace
     End Class
 End Namespace</Text>.Value.Replace(vbLf, vbCrLf),
 index:=0,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -870,7 +870,7 @@ Module Program
     End Sub
 End Module
 </Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
@@ -894,7 +894,7 @@ Module Program
     End Sub
 End Module</Text>.Value.Replace(vbLf, vbCrLf),
 index:=0,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(867425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867425")>
@@ -1486,7 +1486,7 @@ Namespace N
     <My()>
     Class Test
     End Class
-End Namespace", compareTokens:=False)
+End Namespace", ignoreTrivia:=False)
         End Function
 
         <WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
@@ -1521,7 +1521,7 @@ Namespace N
     <My()>
     Class Test
     End Class
-End Namespace", compareTokens:=False)
+End Namespace", ignoreTrivia:=False)
         End Function
 
         <WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
@@ -1556,7 +1556,7 @@ Namespace N
     <Inner.My()>
     Class Test
     End Class
-End Namespace", compareTokens:=False)
+End Namespace", ignoreTrivia:=False)
         End Function
 
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
@@ -1593,7 +1593,7 @@ Public Class C
     End Sub
 End Class
 "
-            Await TestInRegularAndScriptAsync(initial, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
@@ -1646,7 +1646,7 @@ Public Class C
     End Class
 End Class
 "
-            Await TestInRegularAndScriptAsync(initial, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia:=False)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -1675,7 +1675,7 @@ Module Program
         Dim a = File.OpenRead("""")
     End Sub
 End Module",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -1704,7 +1704,7 @@ Module Program
         Dim a = File.OpenRead("""")
     End Sub
 End Module",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -1733,7 +1733,7 @@ Module Program
         Dim a = File.OpenRead("""")
     End Sub
 End Module",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -1778,7 +1778,7 @@ Module Module1
 
 End Module
 "
-            Await TestInRegularAndScriptAsync(initial, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia:=False)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>

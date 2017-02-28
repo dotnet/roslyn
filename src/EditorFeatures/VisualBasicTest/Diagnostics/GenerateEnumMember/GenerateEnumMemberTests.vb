@@ -527,7 +527,7 @@ End Enum</Text>.Value.Replace(vbLf, vbCrLf)
 
             Await TestInRegularAndScriptAsync(code,
                     expected,
-                    compareTokens:=False)
+                    ignoreTrivia:=False)
         End Function
 
         <WorkItem(540552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540552")>

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
                     var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, testOptions);
                     await TestActionsAsync(workspace, expectedCode, index, codeIssueOrRefactoring.Actions.ToList(),
-                        conflictSpans: null, renameSpans: null, warningSpans: null, compareTokens: true);
+                        conflictSpans: null, renameSpans: null, warningSpans: null, ignoreTrivia: true);
                 }
             }
             else

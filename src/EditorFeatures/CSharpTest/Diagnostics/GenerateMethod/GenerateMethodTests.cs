@@ -4709,7 +4709,7 @@ class C
 #line hidden
     }
 #line default
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -4748,7 +4748,7 @@ class C
     {
         throw new System.NotImplementedException();
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -4795,7 +4795,7 @@ class C
     void Quux()
     {
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -4830,7 +4830,7 @@ class C
 #line hidden
     }
 #line default
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(545397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545397")]
@@ -4971,7 +4971,7 @@ class Program
     {
         throw new NotImplementedException();
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
@@ -5005,7 +5005,7 @@ class C
     }
 
     void M(int y) { }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
@@ -5039,7 +5039,7 @@ class C
     }
 
     void M(int y) { }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(769760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769760")]
@@ -5081,7 +5081,7 @@ class Program
     {
         throw new NotImplementedException();
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589")]
@@ -5109,7 +5109,7 @@ class C
     {
         throw new NotImplementedException();
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(934729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/934729")]
@@ -5138,7 +5138,7 @@ class C
     {
         throw new NotImplementedException();
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -5162,7 +5162,7 @@ class C {
     {
         throw new NotImplementedException();
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -5190,7 +5190,7 @@ class C
     {
         throw new NotImplementedException();
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -5230,7 +5230,7 @@ class Program
     {
         throw new NotImplementedException();
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -5254,7 +5254,7 @@ class C {
     {
         throw new NotImplementedException();
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -5294,7 +5294,7 @@ class Program
     {
         throw new NotImplementedException();
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -5322,7 +5322,7 @@ class Program
     {
         throw new NotImplementedException();
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -5350,7 +5350,7 @@ unsafe class Program
     {
         throw new NotImplementedException();
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -5384,7 +5384,7 @@ unsafe class Program
             throw new NotImplementedException();
         }
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
@@ -5418,7 +5418,7 @@ class Program
     {
         throw new NotImplementedException();
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]

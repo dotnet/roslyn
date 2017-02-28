@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             string originalCode,
             string expectedCode = null,
             bool expectedCodeAction = true,
-            bool compareTokens = true,
+            bool ignoreTrivia = true,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null)
         {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                     var codeActionTitle = string.Format(RenameTypeCodeActionTitle, expectedText.Substring(span.Start, span.Length));
 
                     var oldSolutionAndNewSolution = await TestOperationAsync(
-                        testOptions, workspace, expectedText, codeActionTitle, compareTokens);
+                        testOptions, workspace, expectedText, codeActionTitle, ignoreTrivia);
 
                     // the original source document does not exist in the new solution.
                     var newSolution = oldSolutionAndNewSolution.Item2;
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             string originalCode,
             string expectedDocumentName = null,
             bool expectedCodeAction = true,
-            bool compareTokens = true,
+            bool ignoreTrivia = true,
             IList<string> destinationDocumentContainers = null,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null)
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     // a new document with the same text as old document is added.
                     var oldSolutionAndNewSolution = await TestOperationAsync(
-                        testOptions, workspace, expectedText, codeActionTitle, compareTokens);
+                        testOptions, workspace, expectedText, codeActionTitle, ignoreTrivia);
 
                     // the original source document does not exist in the new solution.
                     var newSolution = oldSolutionAndNewSolution.Item2;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             Workspaces.TestWorkspace workspace,
             string expectedCode,
             string operation,
-            bool compareTokens)
+            bool ignoreTrivia)
         {
             var actions = await GetCodeActionsAsync(workspace, parameters);
             var action = actions.Single(a => a.Title.Equals(operation, StringComparison.CurrentCulture));
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 conflictSpans: null,
                 renameSpans: null,
                 warningSpans: null,
-                compareTokens: compareTokens,
+                ignoreTrivia: ignoreTrivia,
                 expectedChangedDocumentId: null);
         }
 
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             IList<string> destinationDocumentContainers = null,
             bool expectedCodeAction = true,
             int index = 0,
-            bool compareTokens = true,
+            bool ignoreTrivia = true,
             Action<Workspace> onAfterWorkspaceCreated = null)
         {
             var testOptions = new TestParameters();
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                     var oldSolutionAndNewSolution = await TestAddDocumentAsync(
                         testOptions, workspace,
                         destinationDocumentText, index, expectedDocumentName,
-                        destinationDocumentContainers, compareTokens);
+                        destinationDocumentContainers, ignoreTrivia);
 
                     // Verify source document's text after moving type.
                     var oldSolution = oldSolutionAndNewSolution.Item1;
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     var modifiedSourceDocument = newSolution.GetDocument(sourceDocumentId);
 
-                    if (compareTokens)
+                    if (ignoreTrivia)
                     {
                         TokenUtilities.AssertTokensEqual(
                             expectedSourceTextAfterRefactoring, (await modifiedSourceDocument.GetTextAsync()).ToString(), GetLanguage());

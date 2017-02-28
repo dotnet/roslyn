@@ -258,7 +258,7 @@ class Program : Base
                S == program.S;
     }
 }",
-index: 0, compareTokens: false);
+index: 0, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -373,7 +373,7 @@ class Program<T>
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -803,7 +803,7 @@ class Program
     }
 }",
 chosenSymbols: new[] { "a", "b" },
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -836,7 +836,7 @@ class Program
     }
 }",
 chosenSymbols: new[] { "c", "b" },
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -867,7 +867,7 @@ class Program
     }
 }",
 chosenSymbols: new string[] { },
-compareTokens: false);
+ignoreTrivia: false);
         }
     }
 }

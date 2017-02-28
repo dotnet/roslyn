@@ -1024,7 +1024,7 @@ End Class</Text>.NormalizedValue,
     End Class
 End Class</Text>.NormalizedValue,
 index:=2,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(543290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543290")>
@@ -1238,7 +1238,7 @@ Class AA(Of T)
 End Class
 </text>.NormalizedValue,
 index:=1,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(821277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821277")>
@@ -1269,7 +1269,7 @@ Class AA(Of T)
 End Class
 </text>.NormalizedValue,
 index:=1,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -1299,7 +1299,7 @@ Friend Class T
 End Class
 </text>.NormalizedValue,
 index:=1,
-compareTokens:=False,
+ignoreTrivia:=False,
 options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error))
         End Function
 
@@ -1336,7 +1336,7 @@ Namespace A
     End Class
 End Namespace</Text>.NormalizedValue
 
-            Await TestInRegularAndScriptAsync(initial, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")>

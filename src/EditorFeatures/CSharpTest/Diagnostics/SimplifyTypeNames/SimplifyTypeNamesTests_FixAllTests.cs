@@ -123,7 +123,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, compareTokens: false, options: PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, options: PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -233,7 +233,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, compareTokens: false, options: PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, options: PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -343,7 +343,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, compareTokens: false, options:PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, options:PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -597,7 +597,7 @@ class ProgramB3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -851,7 +851,7 @@ class ProgramB3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -939,7 +939,7 @@ class D
                 initialMarkup: input,
                 expectedMarkup: expected,
                 options: options,
-                compareTokens: false,
+                ignoreTrivia: false,
                 fixAllActionEquivalenceKey: CSharpFeaturesResources.Remove_this_qualification);
         }
 

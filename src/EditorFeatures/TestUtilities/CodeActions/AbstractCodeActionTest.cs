@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             int index,
             IList<CodeAction> actions,
             string expectedPreviewContents = null,
-            bool compareTokens = true)
+            bool ignoreTrivia = true)
         {
             var operations = await VerifyInputsAndGetOperationsAsync(index, actions);
 
@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             foreach (var document in workspace.Documents)
             {
                 var fixedRoot = await workspace.CurrentSolution.GetDocument(document.Id).GetSyntaxRootAsync();
-                var actualText = compareTokens ? fixedRoot.ToString() : fixedRoot.ToFullString();
+                var actualText = ignoreTrivia ? fixedRoot.ToString() : fixedRoot.ToFullString();
 
-                if (compareTokens)
+                if (ignoreTrivia)
                 {
                     TokenUtilities.AssertTokensEqual(expectedText, actualText, GetLanguage());
                 }
@@ -127,14 +127,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string expectedMarkup,
             string[] chosenSymbols,
             int index = 0,
-            bool compareTokens = true,
+            bool ignoreTrivia = true,
             CodeActionPriority? priority = null,
             TestParameters parameters = default(TestParameters))
         {
             var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrEmpty());
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup,
-                index, compareTokens, priority,
+                index, ignoreTrivia, priority,
                 parameters.WithFixProviderData(pickMembersService));
         }
     }

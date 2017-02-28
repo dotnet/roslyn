@@ -218,7 +218,7 @@ Class Foo
 End Class
 </File>
 
-            Await TestAsync(markup, expected, compareTokens:=False)
+            Await TestAsync(markup, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -316,7 +316,7 @@ Class Foo
 End Class
 </File>
 
-            Await TestAsync(markup, expected, compareTokens:=False)
+            Await TestAsync(markup, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -494,7 +494,7 @@ Class Foo
 End Class
 </File>
 
-            Await TestAsync(markup, expected, compareTokens:=False)
+            Await TestAsync(markup, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>

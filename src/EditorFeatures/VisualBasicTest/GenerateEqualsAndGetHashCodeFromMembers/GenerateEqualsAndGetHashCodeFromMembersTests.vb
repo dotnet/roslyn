@@ -28,7 +28,7 @@ End Class",
                a = z.a
     End Function
 End Class",
-index:=0, compareTokens:=False)
+index:=0, ignoreTrivia:=False)
         End Function
 
         <WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
@@ -68,7 +68,7 @@ End Class",
         Return -1757793268 + a.GetHashCode()
     End Function
 End Class",
-index:=2, compareTokens:=False)
+index:=2, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545205")>

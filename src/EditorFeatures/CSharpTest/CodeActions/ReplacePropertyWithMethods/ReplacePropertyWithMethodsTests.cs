@@ -636,7 +636,7 @@ class D
     {
         return 1; // Comment
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -670,7 +670,7 @@ class D
         return count;
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -688,7 +688,7 @@ compareTokens: false);
         /* return 42 */
         return 42;
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1005,7 +1005,7 @@ compareTokens: false);
 
         SetProp(GetProp() + 1);
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1041,7 +1041,7 @@ compareTokens: false);
         /* Leading */
         SetProp(GetProp() + 1); /* Trailing */
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1077,7 +1077,7 @@ compareTokens: false);
         /* Leading */
         SetProp(GetProp() + 1 /* Trailing */ );
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1198,7 +1198,7 @@ compareTokens: false);
 @"class C
 {
     private int GetProp() => 0;
-}", compareTokens: false, options: PreferExpressionBodiedMethods);
+}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1225,7 +1225,7 @@ compareTokens: false);
 {
     private int GetProp() => 0;
     private void SetProp(int value) => throw e;
-}", compareTokens: false, options: PreferExpressionBodiedMethods);
+}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1246,7 +1246,7 @@ compareTokens: false);
 {
     private int GetProp() => 0;
     private void SetProp(int value) => throw e;
-}", compareTokens: false, options: PreferExpressionBodiedMethods);
+}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1261,7 +1261,7 @@ compareTokens: false);
 @"class C
 {
     private int GetProp() => 0;
-}", compareTokens: false, options: PreferExpressionBodiedMethods);
+}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1278,7 +1278,7 @@ compareTokens: false);
     private readonly int prop;
 
     private int GetProp() => prop;
-}", compareTokens: false, options: PreferExpressionBodiedMethods);
+}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1296,7 +1296,7 @@ compareTokens: false);
 
     private int GetProp() => prop;
     private void SetProp(int value) => prop = value;
-}", compareTokens: false, options: PreferExpressionBodiedMethods);
+}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1322,7 +1322,7 @@ compareTokens: false);
         A();
         return B();
     }
-}", compareTokens: false, options: PreferExpressionBodiedMethods);
+}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
         }
 
         private IDictionary<OptionKey, object> PreferExpressionBodiedMethods =>

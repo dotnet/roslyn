@@ -776,7 +776,7 @@ End Module</Text>.Value.Replace(vbLf, vbCrLf),
     Sub Main(args As String())
     End Sub
 End Module</Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
@@ -799,7 +799,7 @@ Module Program
     End Sub
 End Module</Text>.Value.Replace(vbLf, vbCrLf),
 index:=0,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")>
@@ -843,7 +843,7 @@ Namespace N2
     End Class
 End Namespace</Text>.Value.Replace(vbLf, vbCrLf),
 index:=0,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider

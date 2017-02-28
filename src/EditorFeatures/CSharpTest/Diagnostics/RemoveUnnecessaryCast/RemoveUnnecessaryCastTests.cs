@@ -65,7 +65,7 @@ class Program
 }",
 
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(545146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545146")]
@@ -98,7 +98,7 @@ class C
 }",
 
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(545160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545160")]
@@ -129,7 +129,7 @@ class Program
 }",
 
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(545138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545138")]
@@ -391,7 +391,7 @@ class Program
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545289")]
@@ -417,7 +417,7 @@ class Program
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
@@ -445,7 +445,7 @@ class Program
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
@@ -473,7 +473,7 @@ class Program
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
@@ -501,7 +501,7 @@ class Program
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
@@ -529,7 +529,7 @@ class Program
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
@@ -559,7 +559,7 @@ class Test
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
@@ -589,7 +589,7 @@ class Test
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
@@ -619,7 +619,7 @@ class Test
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
@@ -664,7 +664,7 @@ class Test
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545459")]
@@ -700,7 +700,7 @@ class Test
     public static void M1(int i) { }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545419")]
@@ -734,7 +734,7 @@ class Test
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545422")]
@@ -768,7 +768,7 @@ class Test
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545578")]
@@ -804,7 +804,7 @@ class Test
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545595")]
@@ -834,7 +834,7 @@ class Program
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
@@ -916,7 +916,7 @@ class X
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545616")]
@@ -956,7 +956,7 @@ class MyAction
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545822")]
@@ -988,7 +988,7 @@ class Program
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545560")]
@@ -1116,7 +1116,7 @@ class E
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(545945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545945")]
@@ -1234,7 +1234,7 @@ class X
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545855")]
@@ -1293,7 +1293,7 @@ static class Program
 ",
     parseOptions: null,
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(529816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529816")]
@@ -1327,7 +1327,7 @@ class A
     }
 }",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(529816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529816")]
@@ -1535,7 +1535,7 @@ static class Program
 }
 ",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545877")]
@@ -1592,7 +1592,7 @@ class Program
 }
 ",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(529791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529791")]
@@ -1622,7 +1622,7 @@ class X
 }
 ",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545842")]
@@ -1654,7 +1654,7 @@ static class C
 }
 ",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545850")]
@@ -1684,7 +1684,7 @@ class Program
 }
 ",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(529846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529846")]
@@ -1810,7 +1810,7 @@ class C
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(545958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545958"), WorkItem(880752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/880752")]
@@ -1840,7 +1840,7 @@ class C
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(545957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545957")]
@@ -1889,7 +1889,7 @@ static class C
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(545942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545942")]
@@ -2181,7 +2181,7 @@ sealed class C : I
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
@@ -2242,7 +2242,7 @@ sealed class C : I
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
@@ -2307,7 +2307,7 @@ sealed class C : I
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
@@ -2392,7 +2392,7 @@ sealed class C : I
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
@@ -2480,7 +2480,7 @@ sealed class C : I
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
@@ -2624,7 +2624,7 @@ class Program
 }
 ",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(544655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544655")]
@@ -2661,7 +2661,7 @@ class C
 }
 ",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(545926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545926")]
@@ -2698,7 +2698,7 @@ class C
 }
 ",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         [WorkItem(529897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
@@ -2735,7 +2735,7 @@ class Program
 }
 ",
     index: 0,
-    compareTokens: false);
+    ignoreTrivia: false);
         }
 
         #endregion
@@ -2834,7 +2834,7 @@ class C
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(529911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
@@ -2866,7 +2866,7 @@ class C
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(529911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
@@ -2898,7 +2898,7 @@ class C
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(529911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
@@ -2930,7 +2930,7 @@ class C
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(529911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
@@ -2962,7 +2962,7 @@ class C
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -2992,7 +2992,7 @@ class C
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         #endregion
@@ -3230,7 +3230,7 @@ class X : Y
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(529916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529916")]
@@ -3269,7 +3269,7 @@ static class Program
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(609497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609497")]
@@ -3657,7 +3657,7 @@ class C
 }
 ",
             index: 0,
-            compareTokens: false);
+            ignoreTrivia: false);
         }
 
         [WorkItem(626026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/626026")]

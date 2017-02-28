@@ -726,7 +726,7 @@ namespace B
             await TestInRegularAndScriptAsync(
 @"class Class { void Test() { /*foo*/[|Int32|] i; } }",
 @"class Class { void Test() { /*foo*/System.Int32 i; } }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
@@ -736,7 +736,7 @@ compareTokens: false);
             await TestInRegularAndScriptAsync(
 @"class Class { void Test() { /*foo*/[|List<int>|] l; } }",
 @"class Class { void Test() { /*foo*/System.Collections.Generic.List<int> l; } }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]

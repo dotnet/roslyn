@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
     }
 }";
                 await TestAddNamedTypeAsync(input, expected,
-                    compareTokens: false);
+                    ignoreTrivia: false);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]

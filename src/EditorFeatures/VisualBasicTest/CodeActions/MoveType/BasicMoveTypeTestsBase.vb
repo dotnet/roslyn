@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
             originalCode As XElement,
             Optional expectedCode As XElement = Nothing,
             Optional expectedCodeAction As Boolean = True,
-            Optional compareTokens As Boolean = True
+            Optional ignoreTrivia As Boolean = True
         ) As Task
 
             Dim expectedText As String = Nothing
@@ -38,18 +38,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
             End If
 
             Return MyBase.TestRenameTypeToMatchFileAsync(
-                originalCode.ConvertTestSourceTag(), expectedText, expectedCodeAction, compareTokens)
+                originalCode.ConvertTestSourceTag(), expectedText, expectedCodeAction, ignoreTrivia)
         End Function
 
         Protected Overloads Function TestRenameFileToMatchTypeAsync(
             originalCode As XElement,
             Optional expectedDocumentName As String = Nothing,
             Optional expectedCodeAction As Boolean = True,
-            Optional compareTokens As Boolean = True
+            Optional ignoreTrivia As Boolean = True
         ) As Task
 
             Return MyBase.TestRenameFileToMatchTypeAsync(
-                originalCode.ConvertTestSourceTag(), expectedDocumentName, expectedCodeAction, compareTokens)
+                originalCode.ConvertTestSourceTag(), expectedDocumentName, expectedCodeAction, ignoreTrivia)
         End Function
 
         Protected Overloads Function TestMoveTypeToNewFileAsync(
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
             Optional destinationDocumentContainers As IList(Of String) = Nothing,
             Optional expectedCodeAction As Boolean = True,
             Optional index As Integer = 0,
-            Optional compareTokens As Boolean = True
+            Optional ignoreTrivia As Boolean = True
         ) As Task
 
             Dim originalCodeText = originalCode.ConvertTestSourceTag()
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
                 destinationDocumentContainers,
                 expectedCodeAction,
                 index,
-                compareTokens)
+                ignoreTrivia)
         End Function
     End Class
 End Namespace

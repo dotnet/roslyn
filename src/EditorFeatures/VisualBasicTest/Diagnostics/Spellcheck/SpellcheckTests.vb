@@ -500,7 +500,7 @@ End Class",
         Dim foo = New AwesomeClass ' trailing trivia
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider

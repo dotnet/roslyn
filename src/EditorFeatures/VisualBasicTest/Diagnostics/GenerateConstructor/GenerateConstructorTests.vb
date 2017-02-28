@@ -1191,7 +1191,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf),
         Me.v = v
     End Sub
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
@@ -1398,7 +1398,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf),
         Me.y = y
     End Sub
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(897355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897355")>

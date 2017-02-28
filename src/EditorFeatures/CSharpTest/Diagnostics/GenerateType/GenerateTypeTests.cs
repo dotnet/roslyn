@@ -880,7 +880,7 @@ index: 1);
 #endif
 }",
 index: 2,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(538495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538495")]
@@ -2652,7 +2652,7 @@ internal class T
     }
 }",
 index: 1,
-compareTokens: false,
+ignoreTrivia: false,
 options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
         }
 
@@ -4303,7 +4303,7 @@ class Program
     {
     }
 }
-", index: 1, compareTokens: false);
+", index: 1, ignoreTrivia: false);
         }
 
         [WorkItem(869506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869506")]
@@ -4352,7 +4352,7 @@ namespace A
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
 
         [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
@@ -4383,7 +4383,7 @@ namespace Namespace1.Namespace2
                 expected,
                 expectedContainers: Array.Empty<string>(),
                 expectedDocumentName: "ClassB.cs",
-                compareTokens: false);
+                ignoreTrivia: false);
         }
 
         [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
@@ -4414,7 +4414,7 @@ namespace Namespace1.Namespace2.Namespace3
                 expected,
                 expectedContainers: new List<string> { "Namespace1", "Namespace2" },
                 expectedDocumentName: "ClassB.cs",
-                compareTokens: false);
+                ignoreTrivia: false);
         }
 
         [WorkItem(612700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612700")]

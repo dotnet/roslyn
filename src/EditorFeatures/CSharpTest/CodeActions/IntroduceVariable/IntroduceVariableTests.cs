@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 3, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 3, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     int i = V + (1 + 1);
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     int i = V + V;
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     const int i = V + (1 + 1);
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     const int i = V + V;
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 code,
                 expected,
                 index: 0,
-                compareTokens: false);
+                ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -749,7 +749,7 @@ options: ImplicitTypingEverywhere());
     }
 }",
 index: 2,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(540468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")]
@@ -841,7 +841,7 @@ index: 0);
     }
 }",
 index: 2,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -1470,7 +1470,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -1515,7 +1515,7 @@ class Program
 #line hidden
 }
 #line default",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -1629,7 +1629,7 @@ class Program
     }
 }
 #line default",
-compareTokens: false,
+ignoreTrivia: false,
 parseOptions: Options.Regular);
         }
 
@@ -1724,7 +1724,7 @@ class Program
 #line default
 #line hidden
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -2081,7 +2081,7 @@ static class C
     }
 }",
 
-compareTokens: false, options: ImplicitTypingEverywhere());
+ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(606347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347")]
@@ -2126,7 +2126,7 @@ static class C
         Outer(y => Inner(x => { string {|Rename:v|} = Foo(x); v.ToString(); }, y), (object)null);
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(606347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
@@ -2163,7 +2163,7 @@ class Program
     static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
 }",
 
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(546512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546512")]
@@ -2479,7 +2479,7 @@ class C
     static Action Bar;
 }",
 
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(682683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682683")]
@@ -2508,7 +2508,7 @@ class Program
     }
 }",
 index: 2,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(828108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828108")]
@@ -2544,7 +2544,7 @@ class Program
         d.Add(""a"", exception);
     }
 }",
-compareTokens: false, options: ImplicitTypingEverywhere());
+ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
@@ -2571,7 +2571,7 @@ class C
         var l = new List<int>() { tickCount };
     }
 }",
-compareTokens: false, options: ImplicitTypingEverywhere());
+ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
@@ -2598,7 +2598,7 @@ class C
         var l = new List<int>() { tickCount };
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(854662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854662")]
@@ -2629,7 +2629,7 @@ class C
         return new Program { A = { { v, 0 } } }.A.Count;
     }
 }",
-compareTokens: false, options: ImplicitTypingEverywhere());
+ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
@@ -2656,7 +2656,7 @@ class C
         var a = new int[] { tickCount };
     }
 }",
-compareTokens: false, options: ImplicitTypingEverywhere());
+ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
@@ -2683,7 +2683,7 @@ class C
         var a = new int[] { tickCount };
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(1022447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022447")]
@@ -2719,7 +2719,7 @@ class C
     }
 }",
 index: 1,
-compareTokens: false,
+ignoreTrivia: false,
 options: ImplicitTypingEverywhere());
         }
 
@@ -2750,7 +2750,7 @@ options: ImplicitTypingEverywhere());
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 3, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 3, ignoreTrivia: false);
         }
 
         [WorkItem(939259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939259")]
@@ -2780,7 +2780,7 @@ options: ImplicitTypingEverywhere());
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 3, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 3, ignoreTrivia: false);
         }
 
         [WorkItem(1064803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064803")]
@@ -2806,7 +2806,7 @@ options: ImplicitTypingEverywhere());
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(1037057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1037057")]
@@ -2836,7 +2836,7 @@ class C
         int y = v * (x + 5);
     }
 }
-", index: 0, compareTokens: false, options: ImplicitTypingEverywhere());
+", index: 0, ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
@@ -2902,7 +2902,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
@@ -2930,7 +2930,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
@@ -2976,7 +2976,7 @@ class B
     public int Length { get; set; }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
@@ -3024,7 +3024,7 @@ class B
     public int GetAge() { return age; }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3051,7 +3051,7 @@ class T
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3075,7 +3075,7 @@ class T
     int M1() => V + 2 + 3 + m;
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3112,7 +3112,7 @@ class Complex
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3146,7 +3146,7 @@ class Complex
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3184,7 +3184,7 @@ public struct DBBool
     public static implicit operator DBBool(bool x) => x ? new DBBool(V) : dbFalse;
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3207,7 +3207,7 @@ class T
     int M1 => V + 2;
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3235,7 +3235,7 @@ class T
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3259,7 +3259,7 @@ class SampleCollection<T>
     public T this[int i] => i > V ? arr[i + 1] : arr[i + 2];
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3289,7 +3289,7 @@ class SampleCollection<T>
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3320,7 +3320,7 @@ class T
     void Cat() { }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3347,7 +3347,7 @@ class T
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3374,7 +3374,7 @@ class T
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3403,7 +3403,7 @@ class TestClass
     };
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3425,7 +3425,7 @@ class TestClass
     Func<int, int> Y() => delegate (int x) { const int {|Rename:V|} = 9; return V; };
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3454,7 +3454,7 @@ class TestClass
     };
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3479,7 +3479,7 @@ class TestClass
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3508,7 +3508,7 @@ class TestClass
     };
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3533,7 +3533,7 @@ class TestClass
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3562,7 +3562,7 @@ class TestClass
     });
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
@@ -3590,7 +3590,7 @@ class TestClass
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
@@ -3620,7 +3620,7 @@ class TestClass
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, compareTokens: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")]
@@ -3673,7 +3673,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
@@ -3703,7 +3703,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
@@ -3790,7 +3790,7 @@ namespace N
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false);
         }
 
         [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
@@ -3811,7 +3811,7 @@ class C
 
     int Prop1 { get; } = V;
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false);
         }
 
         [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
@@ -3832,7 +3832,7 @@ class C
 
     public DateTime TimeStamp { get; } = utcNow;
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 0, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 0, ignoreTrivia: false);
         }
 
         [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
@@ -3851,7 +3851,7 @@ class C
 {
     Func<int, int> X { get; } = a => { const int {|Rename:V|} = 7; return V; };
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 2, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3890,7 +3890,7 @@ class C
 }";
 
             await TestInRegularAndScriptAsync(
-                code, expected, compareTokens: false);
+                code, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3909,7 +3909,7 @@ class C
     var i = p.ToString();
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3928,7 +3928,7 @@ class C
     var i = p.ToString();
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3947,7 +3947,7 @@ class C
     var i = p.ToString() + p.ToString();
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3966,7 +3966,7 @@ class C
     var i = p.ToString() + p.ToString();
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3985,7 +3985,7 @@ class C
     var i = p.ToString() + (c: 1, d: ""hello"").ToString();
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -4004,7 +4004,7 @@ class C
     var i = p.ToString() + p.ToString();
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
 
             // no third action available
             await TestActionCountAsync(code, count: 2, parameters: new TestParameters(TestOptions.Regular));

@@ -87,12 +87,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 return string.Join(" ", tokens);
             }
 
-            public void VerifyResult(MetadataAsSourceFile file, string expected, bool compareTokens = true)
+            public void VerifyResult(MetadataAsSourceFile file, string expected, bool ignoreTrivia = true)
             {
                 var actual = File.ReadAllText(file.FilePath).Trim();
                 var actualSpan = file.IdentifierLocation.SourceSpan;
 
-                if (compareTokens)
+                if (ignoreTrivia)
                 {
                     // Compare tokens and verify location relative to the generated tokens
                     expected = GetSpaceSeparatedTokens(expected);
@@ -110,10 +110,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 Assert.Equal(expected, actual);
             }
 
-            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, bool compareTokens = true, Project project = null)
+            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, bool ignoreTrivia = true, Project project = null)
             {
                 var result = await GenerateSourceAsync(symbolMetadataName, project);
-                VerifyResult(result, expected, compareTokens);
+                VerifyResult(result, expected, ignoreTrivia);
             }
 
             public void VerifyDocumentReused(MetadataAsSourceFile a, MetadataAsSourceFile b)

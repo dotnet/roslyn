@@ -92,7 +92,7 @@ class D
                 initialMarkup: input,
                 expectedMarkup: expected,
                 options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Suggestion),
-                compareTokens: false,
+                ignoreTrivia: false,
                 fixAllActionEquivalenceKey: CSharpFeaturesResources.Add_this);
         }
     }

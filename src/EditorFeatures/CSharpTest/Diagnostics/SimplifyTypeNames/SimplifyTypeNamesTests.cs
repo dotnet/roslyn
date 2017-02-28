@@ -1631,7 +1631,7 @@ new TestParameters(Options.Script));
     }
 }",
 index: 1,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
@@ -2060,7 +2060,7 @@ class C
         object x = 1;
         var y = (x as int?) + 1;
     }
-}", index: 0, compareTokens: false);
+}", index: 0, ignoreTrivia: false);
         }
 
         [WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
@@ -2146,7 +2146,7 @@ class Program
         var x = 1 is int? ? 2 : 3;
     }
 }",
-  compareTokens: false, index: 0);
+  ignoreTrivia: false, index: 0);
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
@@ -3241,7 +3241,7 @@ class C
     public void z()
     {
     }
-}", compareTokens: false, options: PreferIntrinsicTypeEverywhere);
+}", ignoreTrivia: false, options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3265,7 +3265,7 @@ class C
     public void z()
     {
     }
-}", compareTokens: false, options: PreferIntrinsicTypeInMemberAccess);
+}", ignoreTrivia: false, options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3287,7 +3287,7 @@ class C
     public void z()
     {
     }
-}", compareTokens: false, options: PreferIntrinsicTypeEverywhere);
+}", ignoreTrivia: false, options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3311,7 +3311,7 @@ class C
     public void z()
     {
     }
-}", compareTokens: false, options: PreferIntrinsicTypeEverywhere);
+}", ignoreTrivia: false, options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]

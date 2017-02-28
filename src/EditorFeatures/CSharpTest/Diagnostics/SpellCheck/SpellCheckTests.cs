@@ -474,7 +474,7 @@ class C
   }
 }";
 
-            await TestInRegularAndScriptAsync(text, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(text, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]

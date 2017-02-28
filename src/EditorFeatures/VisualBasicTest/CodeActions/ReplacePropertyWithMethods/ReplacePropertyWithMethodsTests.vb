@@ -49,7 +49,7 @@ end class",
         next
         return count
     End Function
-end class", compareTokens:=False)
+end class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
