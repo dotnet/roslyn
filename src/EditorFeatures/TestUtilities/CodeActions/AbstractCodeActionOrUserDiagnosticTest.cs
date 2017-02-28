@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected async Task<TestWorkspace> CreateWorkspaceFromOptionsAsync(
             string initialMarkup, TestParameters parameters)
         {
-            var workspace = IsWorkspaceElement(initialMarkup)
+            var workspace = TestWorkspace.IsWorkspaceElement(initialMarkup)
                  ? await TestWorkspace.CreateAsync(initialMarkup)
                  : await CreateWorkspaceFromFileAsync(initialMarkup, parameters);
 
@@ -378,11 +378,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return await TestOperationsAsync(workspace, expected, operations.ToList(), conflictSpans, renameSpans, warningSpans, compareTokens, expectedChangedDocumentId: null, parseOptions: parseOptions);
         }
 
-        private static bool IsWorkspaceElement(string text)
-        {
-            return TestWorkspace.IsWorkspaceElement(text);
-        }
-
         protected async Task<Tuple<Solution, Solution>> TestOperationsAsync(
             TestWorkspace workspace,
             string expectedText,
@@ -398,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var oldSolution = appliedChanges.Item1;
             var newSolution = appliedChanges.Item2;
 
-            if (IsWorkspaceElement(expectedText))
+            if (TestWorkspace.IsWorkspaceElement(expectedText))
             {
                 await VerifyAgainstWorkspaceDefinitionAsync(expectedText, newSolution);
                 return Tuple.Create(oldSolution, newSolution);
