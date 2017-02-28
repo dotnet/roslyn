@@ -136,8 +136,7 @@ End Module
         <Fact>
         Public Sub LocalAsNewArrayError001()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="LocalAsNewArrayError">
-    <file name="a.vb">
+Unit.Make("LocalAsNewArrayError").With_a_vb("
 Imports System   
 
 Class X
@@ -164,12 +163,10 @@ Module M1
 
     End Sub
 End Module
-    </file>
-</compilation>)
+"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
-<expected>
-BC30053: Arrays cannot be declared with 'New'.
+"BC30053: Arrays cannot be declared with 'New'.
     Dim a(), b As New S
         ~~~
 BC30053: Arrays cannot be declared with 'New'.
@@ -180,18 +177,16 @@ BC30053: Arrays cannot be declared with 'New'.
            ~~~~
 BC30205: End of statement expected.
     Dim a, b As New S(){}
-                       ~
-</expected>)
+                       ~")
         End Sub
 
 
-        <WorkItem(545766, "http:     //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545766")>
+        <WorkItem(545766, "http:        //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545766")>
         <Fact>
         Public Sub LocalSameNameAsOperatorAllowed()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="LocalSameNameAsOperatorAllowed">
-    <file name="a.vb">
-Imports System   
+Unit.Make("LocalSameNameAsOperatorAllowed").With_a_vb(
+"Imports System   
 Class C
     Public Shared Operator IsTrue(ByVal w As C) As Boolean
         Dim IsTrue As Boolean = True
@@ -207,9 +202,7 @@ End Class
 Module M1
     Sub Main()
     End Sub
-End Module
-    </file>
-</compilation>)
+End Module"))
 
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
@@ -217,38 +210,36 @@ End Module
         <Fact>
         Public Sub ParameterlessSub()
             CompileAndVerify(
-<compilation name="ParameterlessSub">
-    <file name="a.vb">
-Imports System        
+Unit.Make("ParameterlessSub").With_a_vb(
+"Imports System        
 Module M1
     Sub Foo()
-        Console.WriteLine("Hello, world")
+        Console.WriteLine(""Hello, world"")
         Console.WriteLine()
-        Console.WriteLine("Goodbye, world")
+        Console.WriteLine(""Goodbye, world"")
     End Sub
     Sub Main()
         Foo
     End Sub
 End Module
-    </file>
-</compilation>,
-    expectedOutput:=<![CDATA[
+"),
+    expectedOutput:=
+"
 Hello, world
 
 Goodbye, world
-]]>)
+")
         End Sub
 
         <Fact>
         Public Sub CallStatement()
             CompileAndVerify(
-<compilation name="CallStatement">
-    <file name="a.vb">
-Imports System        
+Unit.Make("CallStatement").With_a_vb(
+"Imports System        
 Module M1
 
     Sub Foo()
-        Console.WriteLine("Call without parameters")
+        Console.WriteLine(""Call without parameters"")
     End Sub
 
     Sub Foo(s as string)
@@ -256,7 +247,7 @@ Module M1
     End Sub
 
     Function SayHi as string
-       return "Hi"
+       return ""Hi""
     End Function
 
     Function One as integer
@@ -267,54 +258,48 @@ Module M1
        Foo(SayHi)
        foo
        call foo
-       call foo("call with parameters")
+       call foo(""call with parameters"")
        dim i = One + One
        Console.WriteLine(i)
        i = One
        Console.WriteLine(i)
     End Sub
 End Module
-    </file>
-</compilation>,
-    expectedOutput:=<![CDATA[
+"),
+    expectedOutput:="
 Hi
 Call without parameters
 Call without parameters
 call with parameters
 2
 1
-]]>)
+")
         End Sub
 
         <Fact>
         Public Sub CallStatementMethodNotFound()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="CallStatementMethodNotFound">
-    <file name="a.vb">
-Imports System        
+Unit.Make("CallStatementMethodNotFound").With_a_vb(
+"Imports System        
 Module M1
     Sub Main()
        call foo
     End Sub
 End Module
-    </file>
-</compilation>)
+"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
-<expected>
-BC30451: 'foo' is not declared. It may be inaccessible due to its protection level.
+"BC30451: 'foo' is not declared. It may be inaccessible due to its protection level.
        call foo
-            ~~~
-</expected>)
+            ~~~")
         End Sub
 
-        <WorkItem(538590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538590")>
+        <WorkItem(538590, "http:    //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538590")>
         <Fact>
         Public Sub CallStatementNothingAsInvocationExpression_Bug_4247()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="CallStatementMethodIsNothing">
-    <file name="foo.vb">
-        Module M1
+Unit.Make("CallStatementMethodIsNothing").With_a_vb(
+"        Module M1
             Sub Main()
                 Dim myLocalArr as Integer()
                 Dim myLocalVar as Integer = 42
@@ -326,12 +311,10 @@ BC30451: 'foo' is not declared. It may be inaccessible due to its protection lev
                 call new Integer
             End Sub
         End Module
-    </file>
-</compilation>)
+"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
-<expected>
-BC30454: Expression is not a method.
+"BC30454: Expression is not a method.
                 call myLocalArr(0)
                      ~~~~~~~~~~
 BC42104: Variable 'myLocalArr' is used before it has been assigned a value. A null reference exception could result at runtime.
@@ -348,8 +331,7 @@ BC30454: Expression is not a method.
                      ~~~
 BC30454: Expression is not a method.
                 call new Integer
-                     ~~~~~~~~~~~    
-</expected>)
+                     ~~~~~~~~~~~")
         End Sub
 
 
@@ -357,61 +339,49 @@ BC30454: Expression is not a method.
         <Fact>
         Public Sub CallStatementNamespaceAsInvocationExpression()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="CallStatementMethodIsNothing">
-    <file name="foo.vb">
-        Namespace N1.N2
-            Module M1
-                Sub Main()
-                    call N1
-                    call N1.N2
-                End Sub
-            End Module
-        End Namespace
-    </file>
-</compilation>)
+Unit.Make("CallStatementMethodIsNothing").With_a_vb(
+"Namespace N1.N2
+    Module M1
+        Sub Main()
+            call N1
+            call N1.N2
+        End Sub
+    End Module
+End Namespace"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
-<expected>
-BC30112: 'N1' is a namespace and cannot be used as an expression.
-                    call N1
-                         ~~
+"BC30112: 'N1' is a namespace and cannot be used as an expression.
+            call N1
+                 ~~
 BC30112: 'N1.N2' is a namespace and cannot be used as an expression.
-                    call N1.N2
-                         ~~~~~
-
-</expected>)
+            call N1.N2
+                 ~~~~~")
         End Sub
 
-
-
         ' related to bug 4247
-        <WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
+        <WorkItem(545166, "http: //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
         <Fact>
         Public Sub CallStatementTypeAsInvocationExpression()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="CallStatementMethodIsNothing">
-    <file name="foo.vb">
-            Class Class1
-            End Class
+Unit.Make("CallStatementMethodIsNothing").WithFile("foo.vb",
+"Class Class1
+End Class
 
-            Module M1
-                Sub Main()
-                    call Class1
-                    call Integer
-                End Sub
-            End Module
-    </file>
-</compilation>)
+Module M1
+    Sub Main()
+        call Class1
+        call Integer
+    End Sub
+End Module
+"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
-<expected>
-BC30109: 'Class1' is a class type and cannot be used as an expression.
-                    call Class1
-                         ~~~~~~
+"BC30109: 'Class1' is a class type and cannot be used as an expression.
+        call Class1
+             ~~~~~~
 BC30110: 'Integer' is a structure type and cannot be used as an expression.
-                    call Integer
-                         ~~~~~~~
-</expected>)
+        call Integer
+             ~~~~~~~")
         End Sub
 
 
@@ -419,14 +389,13 @@ BC30110: 'Integer' is a structure type and cannot be used as an expression.
         <Fact>
         Public Sub AssignmentStatement()
             CompileAndVerify(
-<compilation name="AssignmentStatement1">
-    <file name="a.vb">
-Imports System        
+Unit.Make("AssignmentStatement1").With_a_vb(
+"Imports System        
 Module M1
     Sub Main()
 
         Dim s As String
-        s = "Hello world"
+        s = ""Hello world""
         Console.WriteLine(s)
 
         Dim i As Integer
@@ -441,22 +410,20 @@ Module M1
         Console.WriteLine(d)
     End Sub
 End Module
-    </file>
-</compilation>,
-    expectedOutput:=<![CDATA[
+"),
+    expectedOutput:="
 Hello world
 1
 1.5
 1
-]]>)
+")
         End Sub
 
         <Fact>
         Public Sub FieldAssignmentStatement()
             CompileAndVerify(
-<compilation name="FieldAssignmentStatement">
-    <file name="a.vb">
-Imports System   
+Unit.Make("FieldAssignmentStatement").With_a_vb(
+"Imports System   
 Class C1
    public i as integer
 End class     
@@ -473,24 +440,22 @@ Module M1
         Console.WriteLine(myC.i)
 
         dim myS as S1 = new S1
-        myS.s = "a"
+        myS.s = ""a""
         Console.WriteLine(MyS.s)
     End Sub
 End Module
-    </file>
-</compilation>,
-    expectedOutput:=<![CDATA[
+"),
+    expectedOutput:="
 10
 a
-]]>)
+")
         End Sub
 
         <Fact>
         Public Sub AssignmentWithBadLValue()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="AssignmentWithBadLValue">
-    <file name="a.vb">
-Imports System  
+Unit.Make("AssignmentWithBadLValue").With_a_vb(
+"Imports System  
 
 Module M1
 
@@ -507,12 +472,10 @@ Module M1
         dim i as integer
       End Sub
 End Module
-    </file>
-</compilation>)
+"))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
-           <expected>
-BC30068: Expression is a value and therefore cannot be the target of an assignment.
+"BC30068: Expression is a value and therefore cannot be the target of an assignment.
         f = 0
         ~
 BC30068: Expression is a value and therefore cannot be the target of an assignment.
@@ -520,16 +483,14 @@ BC30068: Expression is a value and therefore cannot be the target of an assignme
         ~
 BC42024: Unused local variable: 'i'.
         dim i as integer
-            ~               
-           </expected>)
+            ~")
         End Sub
 
         <Fact>
         Public Sub MultilineIfStatement1()
             CompileAndVerify(
-<compilation name="MultilineIfStatement1">
-    <file name="a.vb">
-Imports System        
+Unit.Make("MultilineIfStatement1").With_a_vb(
+"Imports System        
 Module M1
     Sub Main()
         Dim cond As Boolean
@@ -541,94 +502,93 @@ Module M1
         cond3 = True
 
         If cond Then
-            Console.WriteLine("1. ThenPart")
+            Console.WriteLine(""1. ThenPart"")
         End If
 
         If cond Then
-            Console.WriteLine("2. ThenPart")
+            Console.WriteLine(""2. ThenPart"")
         Else
-            Console.WriteLine("2. ElsePart")
+            Console.WriteLine(""2. ElsePart"")
+            End If
+
+        If cond Then
+            Console.WriteLine(""3. ThenPart"")
+        Else If cond2
+            Console.WriteLine(""3. ElseIfPart"")
         End If
 
         If cond Then
-            Console.WriteLine("3. ThenPart")
+            Console.WriteLine(""4. ThenPart"")
         Else If cond2
-            Console.WriteLine("3. ElseIfPart")
-        End If
-
-        If cond Then
-            Console.WriteLine("4. ThenPart")
-        Else If cond2
-            Console.WriteLine("4. ElseIf1Part")
+            Console.WriteLine(""4. ElseIf1Part"")
         Else If cond3
-            Console.WriteLine("4. ElseIf2Part")
+            Console.WriteLine(""4. ElseIf2Part"")
         Else
-            Console.WriteLine("4. ElsePart")
+            Console.WriteLine(""4. ElsePart"")
         End If
 
         cond = False
 
         If cond Then
-            Console.WriteLine("5. ThenPart")
+            Console.WriteLine(""5. ThenPart"")
         End If
 
         If cond Then
-            Console.WriteLine("6. ThenPart")
+            Console.WriteLine(""6. ThenPart"")
         Else
-            Console.WriteLine("6. ElsePart")
+            Console.WriteLine(""6. ElsePart"")
         End If
 
         If cond Then
-            Console.WriteLine("7. ThenPart")
+            Console.WriteLine(""7. ThenPart"")
         Else If cond2
-            Console.WriteLine("7. ElseIfPart")
+            Console.WriteLine(""7. ElseIfPart"")
         End If
 
         If cond Then
-            Console.WriteLine("8. ThenPart")
+            Console.WriteLine(""8. ThenPart"")
         Else If cond2
-            Console.WriteLine("8. ElseIf1Part")
+            Console.WriteLine(""8. ElseIf1Part"")
         Else If cond3
-            Console.WriteLine("8. ElseIf2Part")
+            Console.WriteLine(""8. ElseIf2Part"")
         Else
-            Console.WriteLine("8. ElsePart")
+            Console.WriteLine(""8. ElsePart"")
         End If
 
         cond2 = false
 
         If cond Then
-            Console.WriteLine("9. ThenPart")
+            Console.WriteLine(""9. ThenPart"")
         Else If cond2
-            Console.WriteLine("9. ElseIfPart")
+            Console.WriteLine(""9. ElseIfPart"")
         End If
 
         If cond Then
-            Console.WriteLine("10. ThenPart")
+            Console.WriteLine(""10. ThenPart"")
         Else If cond2
-            Console.WriteLine("10. ElseIf1Part")
-        Else If cond3
-            Console.WriteLine("10. ElseIf2Part")
-        Else
-            Console.WriteLine("10. ElsePart")
-        End If
+            Console.WriteLine(""10. ElseIf1Part"")
+            ElseIf cond3
+            Console.WriteLine(""10. ElseIf2Part"")
+            Else
+            Console.WriteLine(""10. ElsePart"")
+            End If
 
         cond3 = false
 
         If cond Then
-            Console.WriteLine("11. ThenPart")
-        Else If cond2
-            Console.WriteLine("11. ElseIf1Part")
-        Else If cond3
-            Console.WriteLine("11. ElseIf2Part")
-        Else
-            Console.WriteLine("11. ElsePart")
-        End If
+            Console.WriteLine(""11. ThenPart"")
+        ElseIf cond2
+            Console.WriteLine(""11. ElseIf1Part"")
+            ElseIf cond3
+            Console.WriteLine(""11. ElseIf2Part"")
+            Else
+            Console.WriteLine(""11. ElsePart"")
+            End If
 
     End Sub
 End Module
-    </file>
-</compilation>,
-    expectedOutput:=<![CDATA[
+"),
+    expectedOutput:="
 1. ThenPart
 2. ThenPart
 3. ThenPart
@@ -638,7 +598,7 @@ End Module
 8. ElseIf1Part
 10. ElseIf2Part
 11. ElsePart
-]]>)
+")
         End Sub
 
 
@@ -1165,7 +1125,7 @@ End Module
 </expected>)
         End Sub
 
-        <WorkItem(542987, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542987")>
+        <WorkItem(542987, "http:                        //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542987")>
         <Fact()>
         Public Sub MultiDimensionalArrayWithTooFewInitializers()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
