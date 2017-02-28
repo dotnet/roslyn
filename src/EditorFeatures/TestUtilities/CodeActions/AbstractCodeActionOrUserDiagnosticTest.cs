@@ -127,24 +127,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected abstract Task<IList<CodeAction>> GetCodeActionsWorkerAsync(
             TestWorkspace workspace, TestParameters parameters);
 
-        protected Task TestSmartTagTextAsync(
+        protected async Task TestSmartTagTextAsync(
             string initialMarkup,
             string displayText,
             int index = 0,
-            ParseOptions parseOptions = null,
-            CompilationOptions compilationOptions = null,
-            IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null)
-        {
-            return TestSmartTagTextAsync(
-                initialMarkup,
-                new TestParameters(parseOptions, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData),
-                displayText, index);
-        }
-
-        private async Task TestSmartTagTextAsync(
-            string initialMarkup, TestParameters parameters, string displayText, int index)
+            TestParameters parameters = default(TestParameters))
         {
             using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {
