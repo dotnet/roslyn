@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         protected async Task TestEquivalenceKeyAsync(
             string initialMarkup, string equivalenceKey)
         {
-            var options = new TestParameters(initialMarkup, null, null, null, null, null);
+            var options = new TestParameters(initialMarkup);
             using (var workspace = await CreateWorkspaceFromFileAsync(options))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, options);
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 testState.TestProjectManagementService.SetDefaultNamespace(
                     defaultNamespace: defaultNamespace);
 
-                var testOptions = new TestParameters(initial, null, null, null, null, null);
+                var testOptions = new TestParameters(initial);
                 var diagnosticsAndFixes = await GetDiagnosticAndFixesAsync(testState.Workspace, testOptions);
                 var generateTypeDiagFixes = diagnosticsAndFixes.SingleOrDefault(df => GenerateTypeTestState.FixIds.Contains(df.Item1.Id));
 

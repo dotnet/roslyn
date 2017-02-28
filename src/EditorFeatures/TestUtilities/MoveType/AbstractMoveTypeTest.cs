@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             bool compareTokens = true,
             Action<Workspace> onAfterWorkspaceCreated = null)
         {
-            var testOptions = new TestParameters(originalCode, null, null, null, null, null);
+            var testOptions = new TestParameters(originalCode);
             if (expectedCodeAction)
             {
                 using (var workspace = await CreateWorkspaceFromFileAsync(testOptions))

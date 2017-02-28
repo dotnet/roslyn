@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
             if (expectedCodeAction)
             {
-                var testOptions = new TestParameters(markup, null, null, null, null, null);
+                var testOptions = new TestParameters(markup);
                 using (var workspace = await CreateWorkspaceFromOptionsAsync(testOptions))
                 {
                     var optionsService = workspace.Services.GetService<IChangeSignatureOptionsService>() as TestChangeSignatureOptionsService;
