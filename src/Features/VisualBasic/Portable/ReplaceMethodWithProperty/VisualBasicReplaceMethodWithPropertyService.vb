@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplaceMethodWithPropertyService), LanguageNames.VisualBasic), [Shared]>
@@ -56,6 +57,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         End Sub
 
         Public Sub ReplaceGetMethodWithProperty(
+            documentOptions As DocumentOptionSet,
+            parseOptions As ParseOptions,
             editor As SyntaxEditor,
             semanticModel As SemanticModel,
             getAndSetMethods As GetAndSetMethods,

@@ -22,22 +22,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Return TestOptions.Script
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFileAsync(
-            definition As String,
-            parseOptions As ParseOptions,
-            compilationOptions As CompilationOptions
-        ) As Task(Of TestWorkspace)
-
+        Protected Overrides Function CreateWorkspaceFromFileAsync(initialMarkup As String, parameters As TestParameters) As Task(Of TestWorkspace)
             Return TestWorkspace.CreateVisualBasicAsync(
-                definition,
-                DirectCast(parseOptions, ParseOptions),
-                If(DirectCast(compilationOptions, CompilationOptions), New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
-        End Function
-
-        Friend Overloads Async Function TestAsync(initial As XElement, expected As XCData, Optional isLine As Boolean = True, Optional isAddedDocument As Boolean = False) As Task
-            Dim initialMarkup = initial.ToString()
-            Dim expectedMarkup = expected.Value
-            Await TestAsync(initialMarkup, expectedMarkup, isLine, isAddedDocument)
+                initialMarkup,
+                parameters.parseOptions,
+                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Protected Overrides Function GetLanguage() As String
@@ -519,7 +508,8 @@ Class C
     End Sub
 End Class]]>
 
-                    Await TestMissingAsync(fixedSource.Value, enableDocCommentProcessing)
+                    Await TestMissingAsync(fixedSource.Value,
+                                           New TestParameters(enableDocCommentProcessing))
                 End Function
 
                 <WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
@@ -1033,7 +1023,7 @@ End Namespace]]>
 <Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""namespace"", Target:=""~N:N"")>
 "
 
-                    Await TestAsync(source.Value, expected, index:=1)
+                    Await TestInRegularAndScriptAsync(source.Value, expected, index:=1)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = $"

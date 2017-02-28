@@ -197,7 +197,7 @@ set TMP=%TEMP%
         }
       }
 
-      def triggerPhraseOnly = true
+      def triggerPhraseOnly = false
       def triggerPhraseExtra = ""
       Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-rc')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')

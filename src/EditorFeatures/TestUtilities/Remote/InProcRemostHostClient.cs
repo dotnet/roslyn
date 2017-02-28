@@ -16,7 +16,7 @@ using StreamJsonRpc;
 
 namespace Roslyn.Test.Utilities.Remote
 {
-    internal class InProcRemoteHostClient : RemoteHostClient
+    internal sealed class InProcRemoteHostClient : RemoteHostClient
     {
         private readonly InProcRemoteServices _inprocServices;
         private readonly JsonRpc _rpc;
@@ -31,7 +31,8 @@ namespace Roslyn.Test.Utilities.Remote
 
             // make sure connection is done right
             var current = $"VS ({Process.GetCurrentProcess().Id})";
-            var host = await instance._rpc.InvokeAsync<string>(WellKnownRemoteHostServices.RemoteHostService_Connect, current).ConfigureAwait(false);
+            var telemetrySession = default(string);
+            var host = await instance._rpc.InvokeAsync<string>(WellKnownRemoteHostServices.RemoteHostService_Connect, current, telemetrySession).ConfigureAwait(false);
 
             // TODO: change this to non fatal watson and make VS to use inproc implementation
             Contract.ThrowIfFalse(host == current.ToString());
@@ -47,16 +48,18 @@ namespace Roslyn.Test.Utilities.Remote
         {
             _inprocServices = inprocServices;
 
-            _rpc = JsonRpc.Attach(stream, target: this);
+            _rpc = new JsonRpc(stream, stream, target: this);
             _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
             // handle disconnected situation
             _rpc.Disconnected += OnRpcDisconnected;
+
+            _rpc.StartListening();
         }
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
 
-        protected override async Task<Session> CreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
+        protected override async Task<Session> TryCreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate snapshot/asset related information
             // this is the back channel the system uses to move data between VS and remote host
@@ -66,7 +69,7 @@ namespace Roslyn.Test.Utilities.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
 
-            return await JsonRpcSession.CreateAsync(snapshot, snapshotStream, callbackTarget, serviceStream, cancellationToken).ConfigureAwait(false);
+            return await JsonRpcSession.CreateAsync(snapshot, callbackTarget, serviceStream, snapshotStream, cancellationToken).ConfigureAwait(false);
         }
 
         protected override void OnConnected()

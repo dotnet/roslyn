@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-        private string GetDebuggerDisplay()
+        internal string GetDebuggerDisplay()
         {
             var result = GetType().Name;
             if (Syntax != null)

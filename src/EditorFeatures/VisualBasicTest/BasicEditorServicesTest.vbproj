@@ -166,6 +166,7 @@
     <Compile Include="BraceMatching\BraceHighlightingTests.vb" />
     <Compile Include="BraceMatching\VisualBasicBraceMatcherTests.vb" />
     <Compile Include="CaseCorrecting\CaseCorrectionServiceTests.vb" />
+    <Compile Include="ChangeSignature\ChangeSignatureTests.vb" />
     <Compile Include="ChangeSignature\ChangeSignature_CheckAllSignatureChanges.vb" />
     <Compile Include="ChangeSignature\ChangeSignature_Delegates.vb" />
     <Compile Include="ChangeSignature\ChangeSignature_Formatting.vb" />
@@ -182,14 +183,15 @@
     <Compile Include="CodeActions\ConvertIfToSwitch\ConvertIfToSwitchTests.vb" />
     <Compile Include="CodeActions\ConvertNumericLiteral\ConvertNumericLiteralTests.vb" />
     <Compile Include="CodeActions\UseNamedArguments\UseNamedArgumentsTests.vb" />
+    <Compile Include="Diagnostics\RemoveUnusedVariable\RemoveUnusedVariableTest.vb" />
     <Compile Include="Structure\CollectionInitializerStructureProviderTests.vb" />
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.vb" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.vb" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
-    <Compile Include="CodeActions\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersTests.vb" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.vb" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.vb" />
+    <Compile Include="AddConstructorParametersFromMembers\AddConstructorParametersFromMembersTests.vb" />
+    <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.vb" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersTests.vb" />
     <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.vb" />
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.vb" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.vb" />

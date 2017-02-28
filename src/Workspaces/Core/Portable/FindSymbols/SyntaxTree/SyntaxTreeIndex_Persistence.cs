@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<TreeInfoPersistence>";
-        private const string SerializationFormat = "2";
+        private const string SerializationFormat = "3";
 
         /// <summary>
         /// in memory cache will hold onto any info related to opened documents in primary branch or all documents in forked branch
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // attempt to load from persisted state
                 using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
                 using (var stream = await storage.ReadStreamAsync(document, persistenceName, cancellationToken).ConfigureAwait(false))
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     if (reader != null)
                     {
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
                 using (var stream = SerializableBytes.CreateWritableStream())
-                using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                 {
                     data.WriteVersion(writer, formatVersion);
                     data.WriteTo(writer);
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
                 using (var stream = await storage.ReadStreamAsync(document, persistenceName, cancellationToken).ConfigureAwait(false))
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     if (reader != null)
                     {
@@ -136,6 +136,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public void WriteTo(ObjectWriter writer)
         {
+            _literalInfo.WriteTo(writer);
             _identifierInfo.WriteTo(writer);
             _contextInfo.WriteTo(writer);
             _declarationInfo.WriteTo(writer);
@@ -143,17 +144,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static SyntaxTreeIndex ReadFrom(ObjectReader reader, VersionStamp version)
         {
+            var literalInfo = LiteralInfo.TryReadFrom(reader);
             var identifierInfo = IdentifierInfo.TryReadFrom(reader);
             var contextInfo = ContextInfo.TryReadFrom(reader);
             var declarationInfo = DeclarationInfo.TryReadFrom(reader);
 
-            if (identifierInfo == null || contextInfo == null || declarationInfo == null)
+            if (literalInfo == null || identifierInfo == null || contextInfo == null || declarationInfo == null)
             {
                 return null;
             }
 
             return new SyntaxTreeIndex(
-                version, identifierInfo.Value, contextInfo.Value, declarationInfo.Value);
+                version, literalInfo.Value, identifierInfo.Value, contextInfo.Value, declarationInfo.Value);
         }
 
         private Task<bool> SaveAsync(Document document, CancellationToken cancellationToken)

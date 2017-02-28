@@ -50,6 +50,27 @@ namespace Microsoft.CodeAnalysis
         private Action<string> _testMessageLogger;
 
         /// <summary>
+        /// <see cref="OnProjectRemoved"/> takes the <see cref="_serializationLock"/>, but can also
+        /// cause Shared Project IVsHierarchys to notify us that their context hierarchy has
+        /// changed while we are still holding the lock. In response to this, we try to set the new
+        /// active context document for open files, which also tries to take the lock, and we 
+        /// deadlock.
+        /// 
+        /// For.NET Framework Projects that reference Shared Projects, two things prevent deadlocks
+        /// when projects unload. During solution close, any Shared Projects are disconnected
+        /// before the projects start to unload, so no IVsHierarchy events are fired. During a
+        /// single project unload, we receive notification of the context hierarchy change before
+        /// the project is unloaded, avoiding any IVsHierarchy events if we tell the shared
+        /// hierarchy to set its context hierarchy to what it already is.
+        /// 
+        /// Neither of these behaviors are safe to rely on with .NET Standard (CPS) projects, so we
+        /// have to prevent the deadlock ourselves. We do this by remembering if we're already in 
+        /// the serialization lock due to project unload, and then not take the lock to update 
+        /// document contexts if so (but continuing to lock if it's not during a project unload).
+        /// </summary>
+        private ThreadLocal<bool> _isProjectUnloading = new ThreadLocal<bool>(() => false);
+
+        /// <summary>
         /// Constructs a new workspace instance.
         /// </summary>
         /// <param name="host">The <see cref="HostServices"/> this workspace uses</param>
@@ -86,36 +107,24 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Services provider by the host for implementing workspace features.
         /// </summary>
-        public HostWorkspaceServices Services
-        {
-            get { return _services; }
-        }
+        public HostWorkspaceServices Services => _services;
 
         /// <summary>
         /// primary branch id that current solution has
         /// </summary>
-        internal BranchId PrimaryBranchId
-        {
-            get { return _primaryBranchId; }
-        }
+        internal BranchId PrimaryBranchId => _primaryBranchId;
 
         /// <summary>
         /// Override this property if the workspace supports partial semantics for documents.
         /// </summary>
-        protected internal virtual bool PartialSemanticsEnabled
-        {
-            get { return false; }
-        }
+        protected internal virtual bool PartialSemanticsEnabled => false;
 
         /// <summary>
         /// The kind of the workspace. 
         /// This is generally <see cref="WorkspaceKind.Host"/> if originating from the host environment, but may be 
         /// any other name used for a specific kind of workspace.
         /// </summary>
-        public string Kind
-        {
-            get { return _workspaceKind; }
-        }
+        public string Kind => _workspaceKind;
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace.
@@ -415,15 +424,24 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
-                CheckProjectIsInCurrentSolution(projectId);
-                this.CheckProjectCanBeRemoved(projectId);
+                _isProjectUnloading.Value = true;
 
-                var oldSolution = this.CurrentSolution;
+                try
+                {
+                    CheckProjectIsInCurrentSolution(projectId);
+                    this.CheckProjectCanBeRemoved(projectId);
 
-                this.ClearProjectData(projectId);
-                var newSolution = this.SetCurrentSolution(oldSolution.RemoveProject(projectId));
+                    var oldSolution = this.CurrentSolution;
 
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectRemoved, oldSolution, newSolution, projectId);
+                    this.ClearProjectData(projectId);
+                    var newSolution = this.SetCurrentSolution(oldSolution.RemoveProject(projectId));
+
+                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectRemoved, oldSolution, newSolution, projectId);
+                }
+                finally
+                {
+                    _isProjectUnloading.Value = false;
+                }
             }
         }
 

@@ -231,9 +231,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsUsingStatement(SyntaxNode node)
-        {
-            return node is UsingStatementSyntax;
-        }
+            => node.Kind() == SyntaxKind.UsingStatement;
+
+        public bool IsReturnStatement(SyntaxNode node)
+            => node.Kind() == SyntaxKind.ReturnStatement;
+
+        public SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node)
+            => (node as ReturnStatementSyntax)?.Expression;
 
         public bool IsThisConstructorInitializer(SyntaxToken token)
         {
@@ -1597,15 +1601,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsVerbatimStringLiteral(SyntaxToken token)
             => token.IsVerbatimStringLiteral();
 
+        public bool IsNumericLiteral(SyntaxToken token)
+            => token.Kind() == SyntaxKind.NumericLiteralToken;
+
+        public bool IsCharacterLiteral(SyntaxToken token)
+            => token.Kind() == SyntaxKind.CharacterLiteralToken;
+
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
         {
             return ((invocationExpression as InvocationExpressionSyntax)?.ArgumentList.Arguments).Value;
         }
 
+        public bool IsRegularComment(SyntaxTrivia trivia)
+            => trivia.IsRegularComment();
+
+        public bool IsDocumentationComment(SyntaxTrivia trivia)
+            => trivia.IsDocComment();
+
         public bool IsDocumentationComment(SyntaxNode node)
-        {
-            return SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
-        }
+            => SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
 
         public bool IsUsingOrExternOrImport(SyntaxNode node)
         {
@@ -1802,6 +1816,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode WalkDownParentheses(SyntaxNode node)
             => (node as ExpressionSyntax)?.WalkDownParentheses() ?? node;
 
+        public bool IsLogicalAndExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.LogicalAndExpression;
+
         public bool IsLogicalNotExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalNotExpression;
 
@@ -1886,5 +1903,77 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return rewritten;
             }
         }
+
+        public bool IsOnTypeHeader(SyntaxNode root, int position)
+        {
+            var token = root.FindToken(position);
+            if (token.Kind() == SyntaxKind.EndOfFileToken)
+            {
+                token = token.GetPreviousToken();
+            }
+
+            var typeDecl = token.GetAncestor<BaseTypeDeclarationSyntax>();
+            if (typeDecl == null)
+            {
+                return false;
+            }
+
+            var start = typeDecl.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
+                        typeDecl.SpanStart;
+            var end = typeDecl.GetTypeParameterList()?.GetLastToken().FullSpan.End ??
+                        typeDecl.Identifier.FullSpan.End;
+
+            return position >= start && position <= end;
+        }
+
+        public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)
+        {
+            var token = root.FindToken(position);
+            var typeDecl = token.GetAncestor<TypeDeclarationSyntax>();
+            if (typeDecl != null)
+            {
+                if (position >= typeDecl.OpenBraceToken.Span.End &&
+                    position <= typeDecl.CloseBraceToken.Span.Start)
+                {
+                    var line = sourceText.Lines.GetLineFromPosition(position);
+                    if (!line.IsEmptyOrWhitespace())
+                    {
+                        return false;
+                    }
+
+                    var member = typeDecl.Members.FirstOrDefault(d => d.FullSpan.Contains(position));
+                    if (member == null)
+                    {
+                        // There are no members, or we're after the last member.
+                        return true;
+                    }
+                    else
+                    {
+                        // We're within a member.  Make sure we're in the leading whitespace of
+                        // the member.
+                        if (position < member.SpanStart)
+                        {
+                            foreach (var trivia in member.GetLeadingTrivia())
+                            {
+                                if (!trivia.IsWhitespaceOrEndOfLine())
+                                {
+                                    return false;
+                                }
+
+                                if (trivia.FullSpan.Contains(position))
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan)
+            => ImmutableArray<SyntaxNode>.CastUp(root.GetMembersInSpan(textSpan));
     }
 }

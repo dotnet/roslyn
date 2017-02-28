@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -116,6 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         /// </summary>
         public const string CS7036 = nameof(CS7036);
 
+        /// <summary>
+        /// o Deconstruct instance or extension method was found for type 'X', with N out parameters
+        /// </summary>
+        public const string CS8129 = nameof(CS8129);
+
         public static ImmutableArray<string> FixableTypeIds =
             ImmutableArray.Create(
                 CS0103,
@@ -126,7 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 CS0307,
                 CS0616,
                 CS1580,
-                CS1581);
+                CS1581,
+                CS8129);
 
         public static ImmutableArray<string> FixableDiagnosticIds =
             FixableTypeIds.Concat(ImmutableArray.Create(
@@ -259,6 +266,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return true;
         }
 
+        protected override bool CanAddImportForDeconstruct(Diagnostic diagnostic, SyntaxNode node)
+            => diagnostic.Id == CS8129;
+
         protected override bool CanAddImportForNamespace(Diagnostic diagnostic, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
             nameNode = null;
@@ -345,6 +355,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return semanticModel.GetUsingNamespacesInScope(node);
         }
 
+        protected override ITypeSymbol GetDeconstructInfo(
+            SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetTypeInfo(node).Type;
+        }
+
         protected override ITypeSymbol GetQueryClauseInfo(
             SemanticModel semanticModel,
             SyntaxNode node,
@@ -395,12 +411,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return $"using { string.Join(".", nameParts) };";
         }
 
-        protected override string TryGetDescription(
+        protected override (string description, bool hasExistingImport) GetDescription(
             Document document,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             SemanticModel semanticModel,
             SyntaxNode contextNode,
-            bool checkForExistingUsing,
             CancellationToken cancellationToken)
         {
             var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
@@ -408,26 +423,41 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             // See if this is a reference to a type from a reference that has a specific alias
             // associated with it.  If that extern alias hasn't already been brought into scope
             // then add that one.
-            var externAlias = TryGetExternAliasDirective(
-                namespaceOrTypeSymbol, semanticModel, contextNode,
-                checkForExistingExternAlias: true);
-            if (externAlias != null)
-            {
-                return $"extern alias {externAlias.Identifier.ValueText};";
-            }
+            var (externAlias, hasExistingExtern) = GetExternAliasDirective(
+                namespaceOrTypeSymbol, semanticModel, contextNode);
 
-            var usingDirective = TryGetUsingDirective(
+            var (usingDirective, hasExistingUsing) = GetUsingDirective(
                 document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
 
-            if (usingDirective != null)
+            var externAliasString = externAlias != null ? $"extern alias {externAlias.Identifier.ValueText};" : null;
+            var usingDirectiveString = usingDirective != null ? GetUsingDirectiveString(namespaceOrTypeSymbol) :null;
+
+            if (externAlias == null && usingDirective == null)
             {
-                var displayString = namespaceOrTypeSymbol.ToDisplayString();
-                return namespaceOrTypeSymbol.IsKind(SymbolKind.Namespace)
-                    ? $"using {displayString};"
-                    : $"using static {displayString};";
+                return (null, false);
             }
 
-            return null;
+            if (externAlias != null && !hasExistingExtern)
+            {
+                return (externAliasString, false);
+            }
+
+            if (usingDirective != null && !hasExistingUsing)
+            {
+                return (usingDirectiveString, false);
+            }
+
+            return externAlias != null
+                ? (externAliasString, hasExistingExtern)
+                : (usingDirectiveString, hasExistingUsing);
+        }
+
+        private string GetUsingDirectiveString(INamespaceOrTypeSymbol namespaceOrTypeSymbol)
+        {
+            var displayString = namespaceOrTypeSymbol.ToDisplayString();
+            return namespaceOrTypeSymbol.IsKind(SymbolKind.Namespace)
+                ? $"using {displayString};"
+                : $"using static {displayString};";
         }
 
         protected override async Task<Document> AddImportAsync(
@@ -449,24 +479,28 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var externAliasDirective = TryGetExternAliasDirective(
-                namespaceOrTypeSymbol, semanticModel, contextNode,
-                checkForExistingExternAlias: true);
+            var (externAliasDirective, hasExistingExtern) = GetExternAliasDirective(
+                namespaceOrTypeSymbol, semanticModel, contextNode);
 
-            var usingDirective = TryGetUsingDirective(
+            var (usingDirective, hasExistingUsing) = GetUsingDirective(
                 document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
 
             var newImports = ArrayBuilder<SyntaxNode>.GetInstance();
             try
             {
-                if (externAliasDirective != null)
+                if (!hasExistingExtern && externAliasDirective != null)
                 {
                     newImports.Add(externAliasDirective);
                 }
 
-                if (usingDirective != null)
+                if (!hasExistingUsing && usingDirective != null)
                 {
                     newImports.Add(usingDirective);
+                }
+
+                if (newImports.Count == 0)
+                {
+                    return root;
                 }
 
                 var addImportService = document.GetLanguageService<IAddImportsService>();
@@ -515,22 +549,23 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 : SyntaxFactory.QualifiedName(CreateNameSyntax(namespaceParts, index - 1), namePiece);
         }
 
-        private static ExternAliasDirectiveSyntax TryGetExternAliasDirective(
+        private static (ExternAliasDirectiveSyntax, bool hasExistingImport) GetExternAliasDirective(
             INamespaceOrTypeSymbol namespaceSymbol,
             SemanticModel semanticModel,
-            SyntaxNode contextNode,
-            bool checkForExistingExternAlias)
+            SyntaxNode contextNode)
         {
-            if (TryGetExternAliasString(namespaceSymbol, semanticModel, contextNode, checkForExistingExternAlias, out var externAliasString))
+            var (val, hasExistingExtern) = GetExternAliasString(namespaceSymbol, semanticModel, contextNode);
+            if (val == null)
             {
-                return SyntaxFactory.ExternAliasDirective(SyntaxFactory.Identifier(externAliasString))
-                                    .WithAdditionalAnnotations(Formatter.Annotation);
+                return (null, false);
             }
 
-            return null;
+            return (SyntaxFactory.ExternAliasDirective(SyntaxFactory.Identifier(val))
+                                 .WithAdditionalAnnotations(Formatter.Annotation),
+                    hasExistingExtern);
         }
 
-        private UsingDirectiveSyntax TryGetUsingDirective(
+        private (UsingDirectiveSyntax, bool hasExistingImport) GetUsingDirective(
             Document document,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             SemanticModel semanticModel,
@@ -554,9 +589,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
             // Replace the alias that GenerateTypeSyntax added if we want this to be looked
             // up off of an extern alias.
-            var externAliasDirective = TryGetExternAliasDirective(
-                namespaceOrTypeSymbol, semanticModel, contextNode,
-                checkForExistingExternAlias: false);
+            var (externAliasDirective, _) = GetExternAliasDirective(
+                namespaceOrTypeSymbol, semanticModel, contextNode);
 
             var externAlias = externAliasDirective?.Identifier.ValueText;
             if (externAlias != null)
@@ -584,12 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 ? usingDirective
                 : usingDirective.WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
 
-            if (addImportService.HasExistingImport(semanticModel.Compilation, root, contextNode, usingDirective))
-            {
-                return null;
-            }
-
-            return usingDirective;
+            return (usingDirective, addImportService.HasExistingImport(semanticModel.Compilation, root, contextNode, usingDirective));
         }
 
         private NameSyntax RemoveGlobalAliasIfUnnecessary(
@@ -657,49 +686,47 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return aliasName.WithAlias(alias);
         }
 
-        private static bool TryGetExternAliasString(
+        private static (string, bool hasExistingImport) GetExternAliasString(
             INamespaceOrTypeSymbol namespaceSymbol,
             SemanticModel semanticModel,
-            SyntaxNode contextNode,
-            bool checkForExistingExternAlias,
-            out string externAliasString)
+            SyntaxNode contextNode)
         {
-            externAliasString = null;
+            string externAliasString = null;
             var metadataReference = semanticModel.Compilation.GetMetadataReference(namespaceSymbol.ContainingAssembly);
             if (metadataReference == null)
             {
-                return false;
+                return (null, false);
             }
 
             var aliases = metadataReference.Properties.Aliases;
             if (aliases.IsEmpty)
             {
-                return false;
+                return (null, false);
             }
 
             aliases = metadataReference.Properties.Aliases.Where(a => a != MetadataReferenceProperties.GlobalAlias).ToImmutableArray();
             if (!aliases.Any())
             {
-                return false;
+                return (null, false);
             }
 
             // Just default to using the first alias we see for this symbol.
             externAliasString = aliases.First();
-            return !checkForExistingExternAlias || ShouldAddExternAlias(externAliasString, contextNode);
+            return (externAliasString, HasExistingExternAlias(externAliasString, contextNode));
         }
 
-        private static bool ShouldAddExternAlias(string alias, SyntaxNode contextNode)
+        private static bool HasExistingExternAlias(string alias, SyntaxNode contextNode)
         {
             foreach (var externAlias in contextNode.GetEnclosingExternAliasDirectives())
             {
                 // We already have this extern alias in scope.  No need to add it.
                 if (externAlias.Identifier.ValueText == alias)
                 {
-                    return false;
+                    return true;
                 }
             }
 
-            return true;
+            return false;
         }
 
         private static CompilationUnitSyntax GetCompilationUnitSyntaxNode(

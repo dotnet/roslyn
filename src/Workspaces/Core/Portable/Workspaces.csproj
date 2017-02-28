@@ -90,6 +90,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs">
       <Link>InternalUtilities\PathUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\GeneratedCodeUtilities.cs">
+      <Link>InternalUtilities\GeneratedCodeUtilities.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
       <Link>InternalUtilities\Hash.cs</Link>
     </Compile>
@@ -270,38 +273,17 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\FixedObjectBinder.cs">
-      <Link>Serialization\FixedObjectBinder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\IObjectReadable.cs">
-      <Link>Serialization\IObjectReadable.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\IObjectWritable.cs">
       <Link>Serialization\IObjectWritable.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinder.cs">
       <Link>Serialization\ObjectBinder.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectData.cs">
-      <Link>Serialization\ObjectData.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs">
-      <Link>Serialization\ObjectReader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs">
-      <Link>Serialization\ObjectWriter.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\RecordingObjectBinder.cs">
-      <Link>Serialization\RecordingObjectBinder.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectReader.cs">
       <Link>Serialization\StreamObjectReader.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.cs">
       <Link>Serialization\StreamObjectWriter.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\TypeKey.cs">
-      <Link>Serialization\TypeKey.cs</Link>
     </Compile>
     <Compile Include="AddImports\AbstractAddImportsService.cs" />
     <Compile Include="AddImports\IAddImportsService.cs" />
@@ -381,6 +363,9 @@
     <Compile Include="Execution\SolutionAsset.cs" />
     <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
     <Compile Include="Experiments\IExperimentationService.cs" />
+    <Compile Include="FindSymbols\FindLiterals\FindLiteralsSearchEngine.cs" />
+    <Compile Include="FindSymbols\SymbolFinder.FindLiteralsServerCallback.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.LiteralInfo.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigSeverityStrings.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingRule.cs" />
@@ -398,6 +383,7 @@
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.DeclarationInfo.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.IdentifierInfo.cs" />
+    <Compile Include="NamingStyles\Serialization\NamingStylePreferencesExtensions.cs" />
     <Compile Include="PatternMatching\PatternMatch.cs" />
     <Compile Include="PatternMatching\PatternMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatcher.Segment.cs" />
@@ -413,6 +399,7 @@
     <Compile Include="NamingStyles\Serialization\NamingStylePreferences.cs" />
     <Compile Include="NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
+    <Compile Include="Simplification\DoNotAddImportsAnnotation.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactory.WorkspaceTaskScheduler.cs" />
     <Compile Include="Tags\WellKnownTags.cs" />
@@ -539,7 +526,7 @@
     <Compile Include="Packaging\IPackageInstallerService.cs" />
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="FindSymbols\StreamingProgressCollector.cs" />
-    <Compile Include="FindSymbols\SymbolFinder.ServerCallback.cs" />
+    <Compile Include="FindSymbols\SymbolFinder.FindReferencesServerCallback.cs" />
     <Compile Include="SymbolKey\SymbolKey.ComparisonOptions.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyComparer.cs" />
     <Compile Include="SymbolKey\SymbolKey.PropertySymbolKey.cs" />

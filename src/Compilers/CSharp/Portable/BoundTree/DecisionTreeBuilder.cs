@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// being built, a data structure (decision tree) representing the sequence of operations
     /// required to select the applicable case branch is constructed. See <see cref="DecisionTree"/>
     /// for the kinds of decisions that can appear in a decision tree.
+    /// 
+    /// The strategy for building the decision tree is: the top node is a ByType if the input
+    /// could possibly be null. Otherwise it is a ByValue. Then, based on the type of switch
+    /// label, we navigate to the appropriate node of the existing decision tree and insert
+    /// a new decision tree node representing the condition associated with the new switch case.
     /// </summary>
     internal abstract class DecisionTreeBuilder
     {
@@ -78,16 +83,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected delegate DecisionTree DecisionMaker(
+        /// <summary>
+        /// A delegate to create the final (guarded) decision in a path when adding to the decision tree.
+        /// </summary>
+        /// <param name="expression">The input expression, cast to the required type if needed</param>
+        /// <param name="type">The type of the input expression</param>
+        protected delegate DecisionTree.Guarded DecisionMaker(
             BoundExpression expression,
             TypeSymbol type);
 
         private DecisionTree AddByValue(DecisionTree decision, BoundConstantPattern value, DecisionMaker makeDecision)
         {
-            if (decision.MatchIsComplete)
-            {
-                return null;
-            }
+            Debug.Assert(!decision.MatchIsComplete); // otherwise we would have given a subsumption error
 
             // Even if value.ConstantValue == null, we proceed here for error recovery, so that the case label isn't
             // dropped on the floor. That is useful, for example to suppress unreachable code warnings on bad case labels.
@@ -108,14 +115,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (guarded.Default != null)
             {
-                if (guarded.Default.MatchIsComplete)
-                {
-                    return null;
-                }
+                Debug.Assert(!guarded.Default.MatchIsComplete); // otherwise we would have given a subsumption error
             }
             else
             {
-                guarded.Default = new DecisionTree.ByValue(guarded.Expression, guarded.Type, null);
+                // There is no default at this branch of the decision tree, so we create one.
+                // Before the decision tree can match by value, it needs to test if the input is of the required type.
+                // So we create a ByType node to represent that test.
+                guarded.Default = new DecisionTree.ByType(guarded.Expression, guarded.Type, null);
             }
 
             return AddByValue(guarded.Default, value, makeDecision);
@@ -165,6 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (byType.Default.MatchIsComplete)
                     {
+                        // This code may be unreachable due to https://github.com/dotnet/roslyn/issues/16878
                         byType.MatchIsComplete = true;
                     }
                 }
@@ -172,8 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (value.ConstantValue == ConstantValue.Null)
             {
-                return byType.Expression.ConstantValue?.IsNull == false
-                    ? null : AddByNull((DecisionTree)byType, makeDecision);
+                // This should not occur, as the caller will have invoked AddByNull instead.
+                throw ExceptionUtilities.Unreachable;
             }
 
             if ((object)value.Value.Type == null)
@@ -204,9 +212,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             DecisionTree forType = null;
 
-            // Find an existing decision tree for the expression's type. Since this new test
-            // should logically be last, we look for the last one we can piggy-back it onto.
-            for (int i = byType.TypeAndDecision.Count - 1; i >= 0 && forType == null; i--)
+            // This new type test should logically be last. However it might be the same type as the one that is already
+            // last. In that case we can produce better code by piggy-backing our new case on to the last decision.
+            // Also, the last one might be a non-overlapping type, in which case we can piggy-back onto the second-last
+            // type test.
+            for (int i = byType.TypeAndDecision.Count - 1; i >= 0; i--)
             {
                 var kvp = byType.TypeAndDecision[i];
                 var matchedType = kvp.Key;
@@ -218,10 +228,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (ExpressionOfTypeMatchesPatternType(value.Value.Type, matchedType, ref _useSiteDiagnostics) != false)
                 {
+                    // because there is overlap, we cannot reuse some earlier entry
                     break;
                 }
             }
 
+            // if we did not piggy-back, then create a new decision tree node for the type.
             if (forType == null)
             {
                 var type = value.Value.Type;
@@ -303,33 +315,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            foreach (var kvp in byType.TypeAndDecision)
-            {
-                var MatchedType = kvp.Key;
-                var Decision = kvp.Value;
-                // See if matching Type matches this value
-                switch (ExpressionOfTypeMatchesPatternType(type, MatchedType, ref _useSiteDiagnostics))
-                {
-                    case true:
-                        if (Decision.MatchIsComplete)
-                        {
-                            return null;
-                        }
 
-                        continue;
-                    case false:
-                        continue;
-                    case null:
-                        continue;
+            // if the last type is the type we need, add to it
+            DecisionTree result = null;
+            if (byType.TypeAndDecision.Count != 0)
+            {
+                var lastTypeAndDecision = byType.TypeAndDecision.Last();
+                if (lastTypeAndDecision.Key.TupleUnderlyingTypeOrSelf() == type.TupleUnderlyingTypeOrSelf())
+                {
+                    result = Add(lastTypeAndDecision.Value, makeDecision);
                 }
             }
 
-            var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, Syntax, false, RefKind.None);
-            var expression = new BoundLocal(Syntax, localSymbol, null, type);
-            var result = makeDecision(expression, type);
-            Debug.Assert(result.Temp == null);
-            result.Temp = localSymbol;
-            byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(type, result));
+            if (result == null)
+            {
+                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, Syntax, false, RefKind.None);
+                var expression = new BoundLocal(Syntax, localSymbol, null, type);
+                result = makeDecision(expression, type);
+                Debug.Assert(result.Temp == null);
+                result.Temp = localSymbol;
+                byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(type, result));
+            }
+
             if (ExpressionOfTypeMatchesPatternType(byType.Type, type, ref _useSiteDiagnostics) == true &&
                 result.MatchIsComplete &&
                 byType.WhenNull?.MatchIsComplete == true)
@@ -342,25 +349,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DecisionTree AddByNull(DecisionTree decision, DecisionMaker makeDecision)
         {
-            if (decision.MatchIsComplete)
-            {
-                return null;
-            }
+            // the decision tree cannot be complete, as if that were so we would have considered this decision subsumed.
+            Debug.Assert(!decision.MatchIsComplete);
 
             switch (decision.Kind)
             {
                 case DecisionTree.DecisionKind.ByType:
                     return AddByNull((DecisionTree.ByType)decision, makeDecision);
                 case DecisionTree.DecisionKind.ByValue:
-                    {
-                        var byValue = (DecisionTree.ByValue)decision;
-                        if (byValue.MatchIsComplete)
-                        {
-                            return null;
-                        }
-
-                        throw ExceptionUtilities.Unreachable;
-                    }
+                    throw ExceptionUtilities.Unreachable;
                 case DecisionTree.DecisionKind.Guarded:
                     return AddByNull((DecisionTree.Guarded)decision, makeDecision);
                 default:
@@ -370,10 +367,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DecisionTree AddByNull(DecisionTree.ByType byType, DecisionMaker makeDecision)
         {
-            if (byType.WhenNull?.MatchIsComplete == true || byType.Default?.MatchIsComplete == true)
-            {
-                return null;
-            }
+            // these tree cannot be complete, as if that were so we would have considered this decision subsumed.
+            Debug.Assert(byType.WhenNull?.MatchIsComplete != true);
+            Debug.Assert(byType.Default?.MatchIsComplete != true);
 
             if (byType.Default != null)
             {
@@ -442,10 +438,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected DecisionTree Add(DecisionTree decision, DecisionMaker makeDecision)
         {
-            if (decision.MatchIsComplete)
-            {
-                return null;
-            }
+            // the decision tree cannot be complete, otherwise we would have given a subsumption error for this case.
+            Debug.Assert(!decision.MatchIsComplete);
 
             switch (decision.Kind)
             {
@@ -464,11 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (guarded.Default != null)
             {
-                if (guarded.Default.MatchIsComplete)
-                {
-                    return null;
-                }
-
+                Debug.Assert(!guarded.Default.MatchIsComplete); // otherwise we would have given a subsumption error
                 var result = Add(guarded.Default, makeDecision);
                 if (guarded.Default.MatchIsComplete)
                 {

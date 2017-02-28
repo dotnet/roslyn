@@ -2,21 +2,43 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
+        private class FindLiteralsProgressAdapter : IStreamingFindLiteralReferencesProgress
+        {
+            private readonly IFindUsagesContext _context;
+            private readonly DefinitionItem _definition;
+
+            public FindLiteralsProgressAdapter(
+                IFindUsagesContext context, DefinitionItem definition)
+            {
+                _context = context;
+                _definition = definition;
+            }
+
+            public Task OnReferenceFoundAsync(Document document, TextSpan span)
+                => _context.OnReferenceFoundAsync(new SourceReferenceItem(
+                    _definition, new DocumentSpan(document, span)));
+
+            public Task ReportProgressAsync(int current, int maximum)
+                => _context.ReportProgressAsync(current, maximum);
+        }
+
         /// <summary>
         /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
         /// </summary>
-        private class ProgressAdapter : ForegroundThreadAffinitizedObject, IStreamingFindReferencesProgress
+        private class FindReferencesProgressAdapter : ForegroundThreadAffinitizedObject, IStreamingFindReferencesProgress
         {
             private readonly Solution _solution;
             private readonly IFindUsagesContext _context;
@@ -36,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             private readonly Func<ISymbol, DefinitionItem> _definitionFactory;
 
-            public ProgressAdapter(Solution solution, IFindUsagesContext context)
+            public FindReferencesProgressAdapter(Solution solution, IFindUsagesContext context)
             {
                 _solution = solution;
                 _context = context;
@@ -85,12 +107,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 }
             }
 
-            public async Task CallThirdPartyExtensionsAsync()
+            public async Task CallThirdPartyExtensionsAsync(CancellationToken cancellationToken)
             {
                 var factory = _solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
                 foreach (var definition in _definitionToItem.Keys)
                 {
-                    var item = factory.GetThirdPartyDefinitionItem(_solution, definition);
+                    var item = factory.GetThirdPartyDefinitionItem(
+                        _solution, definition, cancellationToken);
                     if (item != null)
                     {
                         // ConfigureAwait(true) because we want to come back on the 

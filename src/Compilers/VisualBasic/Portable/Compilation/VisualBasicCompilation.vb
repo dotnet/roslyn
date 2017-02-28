@@ -669,7 +669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _embeddedTrees,
                 _declarationTable,
                 info?.PreviousScriptCompilation,
-                info?.ReturnType,
+                info?.ReturnTypeOpt,
                 info?.GlobalsType,
                 info IsNot Nothing,
                 _referenceManager,

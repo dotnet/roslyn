@@ -24,18 +24,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if this workspace supports manually opening and closing documents.
         /// </summary>
-        public virtual bool CanOpenDocuments
-        {
-            get { return false; }
-        }
+        public virtual bool CanOpenDocuments => false;
 
         /// <summary>
         /// True if this workspace supports manually changing the active context document of a text buffer.
         /// </summary>
-        internal virtual bool CanChangeActiveContextDocument
-        {
-            get { return false; }
-        }
+        internal virtual bool CanChangeActiveContextDocument => false;
 
         private static void RemoveIfEmpty<TKey, TValue>(IDictionary<TKey, ISet<TValue>> dictionary, TKey key)
         {
@@ -344,19 +338,33 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal void OnDocumentContextUpdated(DocumentId documentId, SourceTextContainer container)
         {
-            using (_serializationLock.DisposableWait())
+            if (_isProjectUnloading.Value)
             {
-                DocumentId oldActiveContextDocumentId;
-
-                using (_stateLock.DisposableWait())
-                {
-                    oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
-                    _bufferToDocumentInCurrentContextMap[container] = documentId;
-                }
-
-                // fire and forget
-                this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
+                // When the project is unloading, the serialization lock is already taken, so there
+                // is no need for us to take the lock since everything is already serialized.
+                OnDocumentContextUpdated_NoSerializationLock(documentId, container);
             }
+            else
+            {
+                using (_serializationLock.DisposableWait())
+                {
+                    OnDocumentContextUpdated_NoSerializationLock(documentId, container);
+                }
+            }
+        }
+
+        internal void OnDocumentContextUpdated_NoSerializationLock(DocumentId documentId, SourceTextContainer container)
+        {
+            DocumentId oldActiveContextDocumentId;
+
+            using (_stateLock.DisposableWait())
+            {
+                oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
+                _bufferToDocumentInCurrentContextMap[container] = documentId;
+            }
+
+            // fire and forget
+            this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
         }
 
         protected void CheckDocumentIsClosed(DocumentId documentId)

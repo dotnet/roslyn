@@ -61,10 +61,12 @@
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
     <Compile Include="AddPackage\CSharpAddSpecificPackageCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\RemoveUnusedVariable\RemoveUnusedVariableCodeFixProvider.cs" />
     <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.cs" />
     <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.Pattern.cs" />
     <Compile Include="ConvertNumericLiteral\CSharpConvertNumericLiteralCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\UseNamedArguments\CSharpUseNamedArgumentsCodeRefactoringProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\TupleNameCompletionProvider.cs" />
     <Compile Include="CSharpFeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -334,10 +336,6 @@
     <Compile Include="ExtractMethod\CSharpSyntaxTriviaService.cs" />
     <Compile Include="ExtractMethod\CSharpSyntaxTriviaServiceFactory.cs" />
     <Compile Include="ExtractMethod\Extensions.cs" />
-    <Compile Include="GenerateFromMembers\AddConstructorParameters\CSharpAddConstructorParametersService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\CSharpGenerateConstructorFromMembersService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\CSharpGenerateEqualsAndGetHashCodeService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateFromMembersHelpers.cs" />
     <Compile Include="GenerateMember\GenerateConstructor\CSharpGenerateConstructorService.cs" />
     <Compile Include="GenerateMember\GenerateDefaultConstructors\CSharpGenerateDefaultConstructorsService.cs" />
     <Compile Include="GenerateMember\GenerateEnumMember\CSharpGenerateEnumMemberService.cs" />
