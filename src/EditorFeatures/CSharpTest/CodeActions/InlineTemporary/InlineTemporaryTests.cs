@@ -4004,7 +4004,7 @@ class C
     }
 }";
 
-            await TestMissingAsync(code, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            await TestMissingAsync(code, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]

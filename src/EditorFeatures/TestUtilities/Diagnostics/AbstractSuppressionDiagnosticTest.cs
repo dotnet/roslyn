@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex, compareTokens: false);
         }
 
-        protected Task TestMissingAsync(string initial)
-        {
-            return TestMissingAsync(initial, parseOptions: null);
-        }
-
         internal abstract Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 
         private ImmutableArray<Diagnostic> FilterDiagnostics(IEnumerable<Diagnostic> diagnostics)

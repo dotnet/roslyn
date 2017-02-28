@@ -1471,7 +1471,7 @@ index: 0);
         {
             await TestMissingAsync(
 @"[|Console.WrieLine();|]",
-Options.Script);
+new TestParameters(Options.Script));
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -2502,7 +2502,7 @@ class Program
     }
 }", parseOptions: null, index: 0);
 
-            await TestMissingAsync(source, GetScriptOptions());
+            await TestMissingAsync(source, new TestParameters(GetScriptOptions()));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -3195,7 +3195,7 @@ class Attribute : System.Attribute
     {
         [|this|].x = 4;
     }
-}", options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3327,7 +3327,7 @@ class C
     public void z()
     {
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3370,7 +3370,7 @@ class C
     public void z()
     {
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
         }
 
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
@@ -3410,7 +3410,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     public void z()
     {
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
         }
 
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
@@ -3448,7 +3448,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     {
         System.Int32 z = 9;
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3464,7 +3464,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     {
         System.Int32 z = 9;
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3480,7 +3480,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     {
         [|System.Int32|] z = 9;
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3563,7 +3563,7 @@ class C
     {
         var sss = [|Int32|].MaxValue;
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3577,7 +3577,7 @@ class C
     {
         var sss = [|System.Int32|].MaxValue;
     }
-}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
+}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
         }
 
         [WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")]

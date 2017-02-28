@@ -128,7 +128,7 @@ class C
 @"class C
 {
     [|NuGetType|] n;
-}", fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
+}", new TestParameters(fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object)));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]

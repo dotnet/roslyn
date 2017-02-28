@@ -1485,7 +1485,7 @@ class C
 #line default
         Foo([|1 + 1|]);
     }
-}", parseOptions: Options.Regular);
+}", new TestParameters(Options.Regular));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -1528,7 +1528,7 @@ compareTokens: false);
 
 #line hidden
 }
-#line default", parseOptions: Options.Regular);
+#line default", new TestParameters(Options.Regular));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -1540,7 +1540,7 @@ class Program
 {
 #line hidden
 }
-#line default", parseOptions: Options.Regular);
+#line default", new TestParameters(Options.Regular));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -1555,7 +1555,7 @@ class Program
 
 #line hidden
 }
-#line default", parseOptions: Options.Regular);
+#line default", new TestParameters(Options.Regular));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -1570,7 +1570,7 @@ class Program
 
 #line hidden
 }
-#line default", parseOptions: Options.Regular);
+#line default", new TestParameters(Options.Regular));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -1589,7 +1589,7 @@ class Program
 #line default
                 select [|x + x|];
     }
-}", parseOptions: Options.Regular);
+}", new TestParameters(Options.Regular));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]

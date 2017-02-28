@@ -1056,8 +1056,7 @@ namespace Foo
     {
         Bar b;
     }
-}|]",
-parseOptions: null);
+}|]");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -1339,7 +1338,7 @@ class C
 /// <summary><see cref=""String"" /></summary>
 class C
 {
-}|]", Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
+}|]", new TestParameters(Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose)));
         }
 
         [WorkItem(751283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751283")]

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
 class Program
 {
     [|var|] _myfield = 5;
-}", options: ExplicitTypeEverywhere());
+}", new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -85,7 +85,7 @@ class Program
 class Program
 {
     public event [|var|] _myevent;
-}", options: ExplicitTypeEverywhere());
+}", new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -102,7 +102,7 @@ class Program
             return value != ""0"";
         };
     }
-}", options: ExplicitTypeEverywhere());
+}", new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -117,7 +117,7 @@ class Program
     {
         [|var|] x = y => y * y;
     }
-}", options: ExplicitTypeEverywhere());
+}", new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -132,7 +132,7 @@ class Program
     {
         [|var|] x = 5, y = x;
     }
-}", options: ExplicitTypeEverywhere());
+}", new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -147,7 +147,7 @@ class Program
     {
         [|var|] x;
     }
-}", options: ExplicitTypeEverywhere());
+}", new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -166,7 +166,7 @@ class Program
     class var
     {
     }
-}", options: ExplicitTypeEverywhere());
+}", new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -181,7 +181,7 @@ class Program
     {
         [|Program|] p = new Program();
     }
-}", options: ExplicitTypeEverywhere());
+}", new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -215,7 +215,7 @@ class Program
     {
         [|var|] x = new Foo();
     }
-}", options: ExplicitTypeEverywhere());
+}", new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
         #endregion
@@ -232,7 +232,7 @@ class Program
     {
         [|dynamic|] x = 1;
     }
-}", options: ExplicitTypeEverywhere());
+}", new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -253,7 +253,7 @@ class Program
             Console.WriteLine(value.Value);
         }
     }
-}", options: ExplicitTypeEverywhere());
+}", new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -304,7 +304,7 @@ class Program
     {
         [|var|] x = new { Amount = 108, Message = ""Hello"" };
     }
-}", options: ExplicitTypeEverywhere());
+}", new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -319,7 +319,7 @@ class Program
     {
         [|var|] x = new[] { new { name = ""apple"", diam = 4 }, new { name = ""grape"", diam = 1 } };
     }
-}", options: ExplicitTypeEverywhere());
+}", new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -1063,7 +1063,8 @@ class C
         [|var|] n1 = new C();
     }
 }";
-            await TestMissingInRegularAndScriptAsync(source, options: ExplicitTypeNoneEnforcement());
+            await TestMissingInRegularAndScriptAsync(source,
+                new TestParameters(options: ExplicitTypeNoneEnforcement()));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]

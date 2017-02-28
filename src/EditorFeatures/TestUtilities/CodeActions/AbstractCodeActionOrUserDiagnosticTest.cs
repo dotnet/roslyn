@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.fixAllActionEquivalenceKey = fixAllActionEquivalenceKey;
                 this.fixProviderData = fixProviderData;
             }
+
+            public TestParameters WithParseOptions(ParseOptions parseOptions)
+                => new TestParameters(parseOptions, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData);
         }
 
         protected abstract string GetLanguage();
@@ -93,31 +96,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected async Task TestMissingInRegularAndScriptAsync(
             string initialMarkup,
-            CompilationOptions compilationOptions = null,
-            IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null)
+            TestParameters parameters = default(TestParameters))
         {
-            await TestMissingAsync(
-                initialMarkup, null, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData);
-            await TestMissingAsync(
-                initialMarkup, GetScriptOptions(), compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData);
+            await TestMissingAsync(initialMarkup, parameters.WithParseOptions(null));
+            await TestMissingAsync(initialMarkup, parameters.WithParseOptions(GetScriptOptions()));
         }
 
-        protected Task TestMissingAsync(
+        protected async Task TestMissingAsync(
             string initialMarkup,
-            ParseOptions parseOptions = null,
-            CompilationOptions compilationOptions = null,
-            IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null)
-        {
-            return TestMissingAsync(initialMarkup,
-                new TestParameters(
-                    parseOptions, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData));
-        }
-
-        private async Task TestMissingAsync(string initialMarkup, TestParameters parameters)
+            TestParameters parameters = default(TestParameters))
         {
             using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
             {

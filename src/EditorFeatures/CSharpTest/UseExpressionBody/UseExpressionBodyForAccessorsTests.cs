@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             [|return|] Bar();
         }
     }
-}", options: UseExpressionBodyIncludingPropertiesAndIndexers);
+}", new TestParameters(options: UseExpressionBodyIncludingPropertiesAndIndexers));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             [|return|] Bar();
         }
     }
-}", options: UseExpressionBodyIncludingPropertiesAndIndexers);
+}", new TestParameters(options: UseExpressionBodyIncludingPropertiesAndIndexers));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]

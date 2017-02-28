@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             }
             else
             {
-                await TestMissingAsync(markup, parseOptions: null);
+                await TestMissingAsync(markup);
             }
         }
 

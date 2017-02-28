@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
         Protected Overloads Async Function TestMissingAsync(initialMarkup As XElement) As Threading.Tasks.Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
 
-            Await MyBase.TestMissingAsync(initialMarkupStr, parseOptions:=Nothing, compilationOptions:=_compilationOptions)
+            Await MyBase.TestMissingAsync(initialMarkupStr, New TestParameters(parseOptions:=Nothing, compilationOptions:=_compilationOptions))
         End Function
 
         Protected Overrides Function GetLanguage() As String

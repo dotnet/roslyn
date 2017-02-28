@@ -3066,7 +3066,7 @@ index: 1);
         {
             await TestMissingAsync(
 @"[|this|] . f = f ; ",
-GetScriptOptions());
+new TestParameters(GetScriptOptions()));
         }
 
         [WorkItem(539799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539799")]
@@ -3561,8 +3561,7 @@ class A
         public async Task TestMissingOnInvalidGlobalCode()
         {
             await TestMissingAsync(
-@"[|a|] test ",
-parseOptions: null);
+@"[|a|] test ");
         }
 
         [WorkItem(539985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539985")]

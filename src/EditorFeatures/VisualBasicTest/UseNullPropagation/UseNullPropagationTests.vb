@@ -45,7 +45,7 @@ Class C
     Sub M(o As Object)
         Dim v = [||]If (o Is Nothing, Nothing, o.ToString())
     End Sub
-End Class", parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+End Class", New TestParameters(VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12)))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>

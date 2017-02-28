@@ -508,7 +508,8 @@ Class C
     End Sub
 End Class]]>
 
-                    Await TestMissingAsync(fixedSource.Value, enableDocCommentProcessing)
+                    Await TestMissingAsync(fixedSource.Value,
+                                           New TestParameters(enableDocCommentProcessing))
                 End Function
 
                 <WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>

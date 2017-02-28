@@ -137,7 +137,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
 Class C
     Dim n As [|NuGetType|]
 End Class",
-fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
+New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object)))
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>

@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             }
             else
             {
-                await TestMissingAsync(originalCode, parseOptions: null);
+                await TestMissingAsync(originalCode);
             }
         }
     }
