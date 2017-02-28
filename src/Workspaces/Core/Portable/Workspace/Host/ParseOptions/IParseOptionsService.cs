@@ -5,6 +5,6 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface IParseOptionsService : ILanguageService
     {
         string GetLanguageVersion(ParseOptions options);
-        bool CanApplyChange(ParseOptions old, ParseOptions @new);
+        ParseOptions WithLanguageVersion(ParseOptions old, string version);
     }
 }

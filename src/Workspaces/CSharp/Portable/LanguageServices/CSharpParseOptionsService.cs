@@ -16,14 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((CSharpParseOptions)options).LanguageVersion.Display();
         }
 
-        public bool CanApplyChange(ParseOptions old, ParseOptions @new)
+        public ParseOptions WithLanguageVersion(ParseOptions options, string version)
         {
-            // only changes to C# LanguageVersion are supported at this point
-            if (old is CSharpParseOptions oldCsharp && @new is CSharpParseOptions newCsharp)
-            {
-                return oldCsharp.WithLanguageVersion(newCsharp.LanguageVersion) == newCsharp;
-            }
-            return false;
+            var csharpOptions = (CSharpParseOptions)options;
+            var newVersion = LanguageVersion.Default.WithLanguageVersion(version);
+            return csharpOptions.WithLanguageVersion(newVersion);
         }
     }
 }

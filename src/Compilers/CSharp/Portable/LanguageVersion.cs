@@ -154,5 +154,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
         }
+
+        public static LanguageVersion WithLanguageVersion(this LanguageVersion @default, string @new)
+        {
+            switch (@new)
+            {
+                case "1":
+                    return LanguageVersion.CSharp1;
+                case "2":
+                    return LanguageVersion.CSharp2;
+                case "3":
+                    return LanguageVersion.CSharp3;
+                case "4":
+                    return LanguageVersion.CSharp4;
+                case "5":
+                    return LanguageVersion.CSharp5;
+                case "6":
+                    return LanguageVersion.CSharp6;
+                case "7":
+                    return LanguageVersion.CSharp7;
+                case "default":
+                    return LanguageVersion.Default;
+                case "latest":
+                    return LanguageVersion.Latest;
+                default:
+                    return @default;
+            }
+        }
     }
 }
