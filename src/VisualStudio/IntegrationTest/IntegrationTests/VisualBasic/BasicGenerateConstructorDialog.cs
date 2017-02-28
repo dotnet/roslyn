@@ -9,6 +9,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
+    /*
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicGenerateConstructorDialog : AbstractEditorTest
     {
@@ -159,4 +160,5 @@ End Class");
         private void Dialog_ClickOk()
             => PressDialogButton(DialogName, "OkButton");
     }
+    */
 }

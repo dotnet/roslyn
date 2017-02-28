@@ -7,6 +7,8 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
 
+/*
+
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
@@ -96,3 +98,5 @@ End Class");
             => PressDialogButton(DialogName, "OkButton");
     }
 }
+
+*/
