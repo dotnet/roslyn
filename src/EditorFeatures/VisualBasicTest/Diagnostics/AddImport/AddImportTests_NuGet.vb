@@ -22,16 +22,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
             Private Shared ReadOnly NugetPackageSources As ImmutableArray(Of PackageSource) =
                 ImmutableArray.Create(New PackageSource(NugetOrgSource, "http://nuget.org"))
 
-            Protected Overrides Async Function CreateWorkspaceFromFileAsync(definition As String, parseOptions As ParseOptions, compilationOptions As CompilationOptions) As Task(Of TestWorkspace)
-                Dim workspace = Await MyBase.CreateWorkspaceFromFileAsync(definition, parseOptions, compilationOptions)
+            Protected Overrides Async Function CreateWorkspaceFromFileAsync(initialMarkup As String, parameters As TestParameters) As Task(Of TestWorkspace)
+                Dim workspace = Await MyBase.CreateWorkspaceFromFileAsync(initialMarkup, parameters)
                 workspace.Options = workspace.Options.
                     WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic, True).
                     WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic, True)
                 Return workspace
             End Function
 
-            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, fixProviderData As Object) As (DiagnosticAnalyzer, CodeFixProvider)
-                Dim data = DirectCast(fixProviderData, ProviderData)
+            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, parameters As TestParameters) As (DiagnosticAnalyzer, CodeFixProvider)
+                Dim data = DirectCast(parameters.fixProviderData, ProviderData)
                 Return (Nothing, New VisualBasicAddImportCodeFixProvider(data.Item1, data.Item2))
             End Function
 
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                 packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                     Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim n As [|NuGetType|]
@@ -80,7 +80,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                     Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim n As [|NuGetType|]
@@ -107,7 +107,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                     Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim n As [|NuGetType|]
@@ -132,12 +132,12 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                     Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
-                Await TestMissingAsync(
+                Await TestMissingInRegularAndScriptAsync(
 "
 Class C
     Dim n As [|NuGetType|]
 End Class",
-fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
+New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object)))
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -161,8 +161,7 @@ Class C
     Dim n As [|NuGetType|]
 End Class",
 "Use local version '1.0'",
-index:=0,
-fixProviderData:=data)
+parameters:=New TestParameters(fixProviderData:=data))
 
                 Await TestSmartTagTextAsync(
 "
@@ -171,7 +170,7 @@ Class C
 End Class",
 "Use local version '2.0'",
 index:=1,
-fixProviderData:=data)
+parameters:=New TestParameters(fixProviderData:=data))
 
                 Await TestSmartTagTextAsync(
 "
@@ -180,7 +179,7 @@ Class C
 End Class",
 "Find and install latest version",
 index:=2,
-fixProviderData:=data)
+parameters:=New TestParameters(fixProviderData:=data))
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -195,7 +194,7 @@ fixProviderData:=data)
                 packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                     Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim n As [|NuGetType|]
@@ -223,7 +222,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                     Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim n As [|NuGetType|]

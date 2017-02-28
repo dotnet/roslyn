@@ -79,10 +79,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _optionService.OptionChanged += OnOptionChanged;
             }
 
-            public int CorrelationId
-            {
-                get { return _registration.CorrelationId; }
-            }
+            public int CorrelationId => _registration.CorrelationId;
 
             public void AddAnalyzer(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
             {

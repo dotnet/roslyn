@@ -215,11 +215,11 @@ public class Cls
 
             var x1Decl = GetDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
-            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x1Decl, x1Ref);
 
             var x2Decl = GetDeclaration(tree, "x2");
             var x2Ref = GetReference(tree, "x2");
-            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -271,11 +271,11 @@ public class Cls
 
             var x1Decl = GetDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
-            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x1Decl, x1Ref);
 
             var x2Decl = GetDeclaration(tree, "x2");
             var x2Ref = GetReference(tree, "x2");
-            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -337,15 +337,15 @@ public class Cls
 
             var x1Decl = GetDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
-            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x1Decl, x1Ref);
 
             var x2Decl = GetDeclaration(tree, "x2");
             var x2Ref = GetReference(tree, "x2");
-            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x2Decl, x2Ref);
 
             var x3Decl = GetDeclaration(tree, "x3");
             var x3Ref = GetReference(tree, "x3");
-            VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref);
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x3Decl, x3Ref);
         }
 
         [Fact]
@@ -927,6 +927,11 @@ public class Cls
             VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: false, verifyDataFlow: false, references: references);
         }
 
+        private static void VerifyModelForDeclarationVarWithoutDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
+        {
+            VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: false, verifyDataFlow: false, expectedLocalKind: LocalDeclarationKind.DeclarationExpressionVariable, references: references);
+        }
+
         private static void VerifyModelForOutVar(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
         {
             VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: false, verifyDataFlow: true, references: references);
@@ -954,6 +959,7 @@ public class Cls
             bool isExecutableCode,
             bool isShadowed,
             bool verifyDataFlow = true,
+            LocalDeclarationKind expectedLocalKind = LocalDeclarationKind.OutVariable,
             params IdentifierNameSyntax[] references)
         {
             var variableDeclaratorSyntax = GetVariableDesignation(decl);
@@ -961,7 +967,7 @@ public class Cls
             Assert.NotNull(symbol);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDeclaratorSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
-            Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Equal(expectedLocalKind, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
 
             var other = model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single();
@@ -1089,7 +1095,7 @@ public class Cls
             var symbol = model.GetDeclaredSymbol(variableDesignationSyntax);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDesignationSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
-            Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Equal(LocalDeclarationKind.OutVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDesignationSyntax));
             Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single());
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));
@@ -5257,6 +5263,39 @@ True");
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(9, 45)
                 );
 #endif
+        }
+
+        [Fact]
+        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        public void FieldInitializers_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(Test1());
+    }
+
+    static System.Func<bool> Test1 = () => TakeOutParam(1, out int x1) && Dummy(x1); 
+
+    static bool Dummy(int x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput: @"1
+True");
         }
 
         [Fact]
@@ -10675,6 +10714,39 @@ True");
         }
 
         [Fact]
+        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        public void PropertyInitializers_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(Test1());
+    }
+
+    static System.Func<bool> Test1 {get;} = () => TakeOutParam(1, out int x1) && Dummy(x1); 
+
+    static bool Dummy(int x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput: @"1
+True");
+        }
+
+        [Fact]
         public void Scope_Query_01()
         {
             var source =
@@ -10944,9 +11016,6 @@ public class X
                 // (115,15): error CS0103: The name 'u9' does not exist in the current context
                 //         Dummy(u9); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(115, 15),
-                // (108,66): error CS0165: Use of unassigned local variable 'z9'
-                //                   group x > y9 && TakeOutParam(1, out var z9) && z9 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z9").WithArguments("z9").WithLocation(108, 66),
                 // (121,24): error CS1931: The range variable 'y10' conflicts with a previous declaration of 'y10'
                 //                   from y10 in new[] { 1 }
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y10").WithArguments("y10").WithLocation(121, 24),
@@ -11921,63 +11990,63 @@ public class X
 
             // error CS0412 is misleading and reported due to preexisting bug https://github.com/dotnet/roslyn/issues/12052
             compilation.VerifyDiagnostics(
-                // (15,59): error CS0412: 'y1': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (15,59): error CS0136: A local or parameter named 'y1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   from x2 in new[] { TakeOutParam(out var y1) ? y1 : 1 }
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y1").WithArguments("y1").WithLocation(15, 59),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y1").WithArguments("y1").WithLocation(15, 59),
                 // (15,59): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   from x2 in new[] { TakeOutParam(out var y1) ? y1 : 1 }
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y1").WithLocation(15, 59),
-                // (23,48): error CS0412: 'y2': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (23,48): error CS0136: A local or parameter named 'y2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                        on TakeOutParam(out var y2) ? y2 : 0 
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y2").WithArguments("y2").WithLocation(23, 48),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y2").WithArguments("y2").WithLocation(23, 48),
                 // (23,48): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                        on TakeOutParam(out var y2) ? y2 : 0 
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(23, 48),
-                // (33,52): error CS0412: 'y3': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (33,52): error CS0136: A local or parameter named 'y3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                        equals TakeOutParam(out var y3) ? y3 : 0
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y3").WithArguments("y3").WithLocation(33, 52),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y3").WithArguments("y3").WithLocation(33, 52),
                 // (33,52): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                        equals TakeOutParam(out var y3) ? y3 : 0
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y3").WithLocation(33, 52),
-                // (40,46): error CS0412: 'y4': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (40,46): error CS0136: A local or parameter named 'y4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   where TakeOutParam(out var y4) && y4 == 1
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y4").WithArguments("y4").WithLocation(40, 46),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y4").WithArguments("y4").WithLocation(40, 46),
                 // (40,46): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   where TakeOutParam(out var y4) && y4 == 1
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(40, 46),
-                // (47,48): error CS0412: 'y5': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (47,48): error CS0136: A local or parameter named 'y5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   orderby TakeOutParam(out var y5) && y5 > 1, 
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y5").WithArguments("y5").WithLocation(47, 48),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y5").WithArguments("y5").WithLocation(47, 48),
                 // (47,48): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   orderby TakeOutParam(out var y5) && y5 > 1, 
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(47, 48),
-                // (56,48): error CS0412: 'y6': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (56,48): error CS0136: A local or parameter named 'y6' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           TakeOutParam(out var y6) && y6 > 1 
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y6").WithArguments("y6").WithLocation(56, 48),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y6").WithArguments("y6").WithLocation(56, 48),
                 // (56,48): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                           TakeOutParam(out var y6) && y6 > 1 
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(56, 48),
-                // (63,46): error CS0412: 'y7': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (63,46): error CS0136: A local or parameter named 'y7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   group TakeOutParam(out var y7) && y7 == 3 
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y7").WithArguments("y7").WithLocation(63, 46),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y7").WithArguments("y7").WithLocation(63, 46),
                 // (63,46): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   group TakeOutParam(out var y7) && y7 == 3 
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(63, 46),
-                // (71,43): error CS0412: 'y8': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (71,43): error CS0136: A local or parameter named 'y8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   by TakeOutParam(out var y8) && y8 == 3;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y8").WithArguments("y8").WithLocation(71, 43),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y8").WithArguments("y8").WithLocation(71, 43),
                 // (71,43): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   by TakeOutParam(out var y8) && y8 == 3;
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(71, 43),
-                // (77,49): error CS0412: 'y9': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (77,49): error CS0136: A local or parameter named 'y9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   let x4 = TakeOutParam(out var y9) && y9 > 0
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y9").WithArguments("y9").WithLocation(77, 49),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y9").WithArguments("y9").WithLocation(77, 49),
                 // (77,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   let x4 = TakeOutParam(out var y9) && y9 > 0
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(77, 49),
-                // (84,47): error CS0412: 'y10': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                // (84,47): error CS0136: A local or parameter named 'y10' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   select TakeOutParam(out var y10) && y10 > 0;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y10").WithArguments("y10").WithLocation(84, 47),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y10").WithArguments("y10").WithLocation(84, 47),
                 // (84,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //                   select TakeOutParam(out var y10) && y10 > 0;
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(84, 47)
@@ -17707,6 +17776,56 @@ public class Cls
         }
 
         [Fact]
+        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        public void ConstructorInitializers_05()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Do(new Test2());
+    }
+
+    static void Do(object x){}
+
+    public static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+
+    class Test2
+    {
+        Test2(System.Func<object> x)
+        {
+            System.Console.WriteLine(x());
+        }
+
+        public Test2()
+        : this(() =>
+               {
+                    Test1(out var x1);
+                    return x1;
+               })
+        {}
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
         public void SimpleVar_14()
         {
             var text = @"
@@ -22644,7 +22763,7 @@ static bool TakeOutParam(bool y, out bool x)
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16935")]
+        [Fact]
         [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
         public void GlobalCode_Lambda_02()
         {
@@ -22938,10 +23057,7 @@ static bool TakeOutParam<T>(T y, out T x)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(83, 7),
                 // (62,62): error CS0165: Use of unassigned local variable 'u7'
                 //                     x > y7 && TakeOutParam(1, out var u7) && u7 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 62),
-                // (76,60): error CS0165: Use of unassigned local variable 'z9'
-                //             group x > y9 && TakeOutParam(1, out var z9) && z9 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z9").WithArguments("z9").WithLocation(76, 60)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 62)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -32014,6 +32130,450 @@ class C
             VerifyNotInScope(model, refs[1]);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
             Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        public void GetEnclosingBinderInternalRecovery_01()
+        {
+            string source = @"
+class C
+{
+    void M<T>()
+    {
+        void Local1 (Action<T> onNext = p =>
+                                        {
+                                            weakRef.TryGetTarget(out var x);
+                                        })
+        {
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            Assert.Equal("var", varType.ToString());
+            Assert.Null(model.GetAliasInfo(varType)); // crashes
+
+            var decl = GetOutVarDeclaration(tree, "x");
+            VerifyModelForOutVarInNotExecutableCode(model, decl);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+            Assert.Equal("var", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        public void GetEnclosingBinderInternalRecovery_02()
+        {
+            string source = @"
+class C
+{
+    void M<T>()
+    {
+        void Local1 (Action<T> onNext = p1 =>
+                                        {
+                                            void Local1 (Action<T> onNext = p2 =>
+                                                                            {
+                                                                                weakRef.TryGetTarget(out var x);
+                                                                            })
+                                            {
+                                            }
+                                        })
+        {
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            Assert.Equal("var", varType.ToString());
+            Assert.Null(model.GetAliasInfo(varType)); // crashes
+
+            var decl = GetOutVarDeclaration(tree, "x");
+            VerifyModelForOutVarInNotExecutableCode(model, decl);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+            Assert.Equal("var", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        public void GetEnclosingBinderInternalRecovery_03()
+        {
+            string source = @"
+class C
+{
+    void M<T>()
+    {
+        void Local1 (Action<T> onNext = p1 =>
+                                        {
+                                            void Local1 (Action<T> onNext = p2 =>
+                                                                            {
+                                                                                void Local1 (Action<T> onNext = p3 =>
+                                                                                                                {
+                                                                                                                    weakRef.TryGetTarget(out var x);
+                                                                                                                })
+                                                                                {
+                                                                                }
+                                                                            })
+                                            {
+                                            }
+                                        })
+        {
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            Assert.Equal("var", varType.ToString());
+            Assert.Null(model.GetAliasInfo(varType)); // crashes
+
+            var decl = GetOutVarDeclaration(tree, "x");
+            VerifyModelForOutVarInNotExecutableCode(model, decl);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+            Assert.Equal("var", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        public void GetEnclosingBinderInternalRecovery_04()
+        {
+            string source = @"
+class C
+{
+    void M<T>()
+    {
+        void Local1 (object onNext = from p in y select weakRef.TryGetTarget(out var x))
+        {
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            Assert.Equal("var", varType.ToString());
+            Assert.Null(model.GetAliasInfo(varType)); // crashes
+
+            var decl = GetOutVarDeclaration(tree, "x");
+            VerifyModelForOutVarInNotExecutableCode(model, decl);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+            Assert.Equal("var", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        public void GetEnclosingBinderInternalRecovery_05()
+        {
+            string source = @"
+class C
+{
+    void M<T>()
+    {
+        void Local1 (object onNext = from p in y 
+                                     select (Action<T>)( p =>
+                                                        {
+                                                            void Local2 (object onNext = from p in y select weakRef.TryGetTarget(out var x))
+                                                            {
+                                                            }
+                                                        }
+                                                        )
+                    )
+        {
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            Assert.Equal("var", varType.ToString());
+            Assert.Null(model.GetAliasInfo(varType)); // crashes
+
+            var decl = GetOutVarDeclaration(tree, "x");
+            VerifyModelForOutVarInNotExecutableCode(model, decl);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+            Assert.Equal("var", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        public void GetEnclosingBinderInternalRecovery_06()
+        {
+            string source = @"
+class C
+{
+    void M<T>()
+    {
+        System.Type t = typeof(int[p =>
+                                    {
+                                        weakRef.TryGetTarget(out var x);
+                                    }]);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            Assert.Equal("var", varType.ToString());
+            Assert.Null(model.GetAliasInfo(varType)); 
+
+            var decl = GetOutVarDeclaration(tree, "x");
+            Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
+            VerifyModelForOutVarInNotExecutableCode(model, decl);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+            Assert.Equal("var", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        public void GetEnclosingBinderInternalRecovery_07()
+        {
+            string source = @"
+class C
+{
+    void M<T>()
+    {
+        System.Type t1 = typeof(int[p1 =>
+                                    {
+                                        System.Type t2 = typeof(int[p2 =>
+                                                                    {
+                                                                        weakRef.TryGetTarget(out var x);
+                                                                    }]);
+                                    }]);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            Assert.Equal("var", varType.ToString());
+            Assert.Null(model.GetAliasInfo(varType)); 
+
+            var decl = GetOutVarDeclaration(tree, "x");
+            Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
+            VerifyModelForOutVarInNotExecutableCode(model, decl);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+            Assert.Equal("var", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        public void GetEnclosingBinderInternalRecovery_08()
+        {
+            string source = @"
+class C
+{
+    void M<T>()
+    {
+        System.Type t1 = typeof(int[p1 =>
+                                    {
+                                        System.Type t2 = typeof(int[p2 =>
+                                                                    {
+                                                                        System.Type t3 = typeof(int[p3 =>
+                                                                                                    {
+                                                                                                        weakRef.TryGetTarget(out var x);
+                                                                                                    }]);
+                                                                    }]);
+                                    }]);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            Assert.Equal("var", varType.ToString());
+            Assert.Null(model.GetAliasInfo(varType));
+
+            var decl = GetOutVarDeclaration(tree, "x");
+            Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
+            VerifyModelForOutVarInNotExecutableCode(model, decl);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+            Assert.Equal("var", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        public void GetEnclosingBinderInternalRecovery_09()
+        {
+            string source = @"
+class C
+{
+    void M<T>()
+    {
+        System.Type t = typeof(int[from p in y select weakRef.TryGetTarget(out var x)]);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            Assert.Equal("var", varType.ToString());
+            Assert.Null(model.GetAliasInfo(varType));
+
+            var decl = GetOutVarDeclaration(tree, "x");
+            Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
+            VerifyModelForOutVarInNotExecutableCode(model, decl);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+            Assert.Equal("var", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(16919, "https://github.com/dotnet/roslyn/issues/16919")]
+        [WorkItem(378641, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=378641")]
+        public void GetEnclosingBinderInternalRecovery_10()
+        {
+            string source = @"
+class C
+{
+    void M<T>()
+    {
+        System.Type t1 = typeof(int[from p in y 
+                                    select (Action<T>)( p =>
+                                                        {
+                                                            System.Type t2 = typeof(int[from p in y select weakRef.TryGetTarget(out var x)]);
+                                                        }
+                                                        )
+                                   ]
+                               );
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            Assert.Equal("var", varType.ToString());
+            Assert.Null(model.GetAliasInfo(varType)); 
+
+            var decl = GetOutVarDeclaration(tree, "x");
+            Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
+            VerifyModelForOutVarInNotExecutableCode(model, decl);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
+            Assert.Equal("var", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(17208, "https://github.com/dotnet/roslyn/issues/17208")]
+        public void ErrorRecoveryShouldIgnoreNonDelegates()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        G(x => x > 0 && F(out var y) && y > 0);
+    }
+    static bool F(out int i)
+    {
+        i = 0;
+        return true;
+    }
+    static void G(Func<int, bool> f, object o) { }
+    static void G(C c, object o) { }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS1501: No overload for method 'G' takes 1 arguments
+                //         G(x => x > 0 && F(out var y) && y > 0);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "G").WithArguments("G", "1").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(17208, "https://github.com/dotnet/roslyn/issues/17208")]
+        public void ErrorRecoveryShouldIgnoreNonDelegates_Expression()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C
+{
+    static void Main()
+    {
+        G(x => x > 0 && F(out var y) && y > 0);
+    }
+    static bool F(out int i)
+    {
+        i = 0;
+        return true;
+    }
+    static void G(Expression<Func<int, bool>> f, object o) { }
+    static void G(C c, object o) { }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS1501: No overload for method 'G' takes 1 arguments
+                //         G(x => x > 0 && F(out var y) && y > 0);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "G").WithArguments("G", "1").WithLocation(7, 9));
+        }
+
+        [Fact]
+        [WorkItem(17208, "https://github.com/dotnet/roslyn/issues/17208")]
+        public void ErrorRecoveryShouldIgnoreNonDelegates_Query()
+        {
+            var source =
+@"using System.Linq;
+class C
+{
+    static void M()
+    {
+        var c = from x in new[] { 1, 2, 3 }
+            group x > 1 && F(out var y) && y == null
+            by x;
+    }
+    static bool F(out object o)
+    {
+        o = null;
+        return true;
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (7,38): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //             group x > 1 && F(out var y) && y == null
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y").WithLocation(7, 38));
         }
     }
 

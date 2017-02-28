@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -26,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IPropertyDefinitionDefaultValue As IMetadataConstant Implements IPropertyDefinition.DefaultValue
+        Private ReadOnly Property IPropertyDefinitionDefaultValue As MetadataConstant Implements IPropertyDefinition.DefaultValue
             Get
                 CheckDefinitionInvariant()
                 Return Nothing

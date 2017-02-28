@@ -68,14 +68,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             {
                 var accessibility = DetermineAccessibility(isAbstract);
                 var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     accessibility: accessibility,
                     statements: GenerateStatements(factory, isAbstract, cancellationToken));
 
                 var setMethod = includeSetter ? getMethod : null;
 
                 return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     accessibility: accessibility,
                     modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract),
                     type: DetermineReturnType(cancellationToken),
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var returnsByRef = DetermineReturnsByRef(cancellationToken);
 
                 var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     accessibility: DetermineAccessibility(isAbstract),
                     modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract, isUnsafe: isUnsafe),
                     returnType: returnType,
@@ -113,8 +113,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     typeParameters: DetermineTypeParameters(cancellationToken),
                     parameters: parameters,
                     statements: GenerateStatements(factory, isAbstract, cancellationToken),
-                    handlesExpressions: null,
-                    returnTypeAttributes: null,
+                    handlesExpressions: default(ImmutableArray<SyntaxNode>),
+                    returnTypeAttributes: default(ImmutableArray<AttributeData>),
                     methodKind: State.MethodKind);
 
                 // Ensure no conflicts between type parameter names and parameter names.
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 return result;
             }
 
-            private IList<SyntaxNode> GenerateStatements(
+            private ImmutableArray<SyntaxNode> GenerateStatements(
                 SyntaxGenerator factory,
                 bool isAbstract,
                 CancellationToken cancellationToken)
@@ -185,8 +185,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(factory, this.Document, "System.NotImplementedException", cancellationToken);
 
                 return isAbstract || State.TypeToGenerateIn.TypeKind == TypeKind.Interface || throwStatement == null
-                    ? null
-                    : new[] { throwStatement };
+                    ? default(ImmutableArray<SyntaxNode>)
+                    : ImmutableArray.Create(throwStatement);
             }
 
             private ImmutableArray<IParameterSymbol> DetermineParameters(CancellationToken cancellationToken)
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 for (var i = 0; i < modifiers.Length; i++)
                 {
                     result.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        attributes: null,
+                        attributes: default(ImmutableArray<AttributeData>),
                         refKind: modifiers[i],
                         isParams: false,
                         isOptional: optionality[i],

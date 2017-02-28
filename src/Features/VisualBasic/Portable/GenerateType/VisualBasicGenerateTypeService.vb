@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGeneration
@@ -368,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
         Protected Overloads Overrides Function GetTypeParameters(state As State,
                                                                  semanticModel As SemanticModel,
-                                                                 cancellationToken As CancellationToken) As IList(Of ITypeParameterSymbol)
+                                                                 cancellationToken As CancellationToken) As ImmutableArray(Of ITypeParameterSymbol)
             If TypeOf state.SimpleName Is GenericNameSyntax Then
                 Dim genericName = DirectCast(state.SimpleName, GenericNameSyntax)
                 Dim typeArguments = If(state.SimpleName.Arity = genericName.TypeArgumentList.Arguments.Count,
@@ -377,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Return Me.GetTypeParameters(state, semanticModel, typeArguments, cancellationToken)
             End If
 
-            Return SpecializedCollections.EmptyList(Of ITypeParameterSymbol)()
+            Return ImmutableArray(Of ITypeParameterSymbol).Empty
         End Function
 
         Protected Overrides Function IsInVariableTypeContext(expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) As Boolean
@@ -691,7 +692,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
         Private Function GenerateProperty(propertyName As SimpleNameSyntax, typeSymbol As ITypeSymbol) As IPropertySymbol
             Return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                            attributes:=SpecializedCollections.EmptyList(Of AttributeData),
+                            attributes:=ImmutableArray(Of AttributeData).Empty,
                             accessibility:=Accessibility.Public,
                             modifiers:=New DeclarationModifiers(),
                             explicitInterfaceSymbol:=Nothing,

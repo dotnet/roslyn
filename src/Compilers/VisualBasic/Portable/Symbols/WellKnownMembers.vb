@@ -345,6 +345,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(type, NamedTypeSymbol).IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute, Me, useSiteDiagnostics:=Nothing)
         End Function
 
+        ''' <summary>
+        ''' In case duplicate types are encountered, returns an error type.
+        ''' But if the IgnoreCorLibraryDuplicatedTypes compilation option is set, any duplicate type found in corlib is ignored and doesn't count as a duplicate.
+        ''' </summary>
         Friend Function GetWellKnownType(type As WellKnownType) As NamedTypeSymbol
             Debug.Assert(type.IsWellKnownType())
             Dim index As Integer = type - WellKnownType.First
@@ -361,7 +365,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If IsTypeMissing(type) Then
                     result = Nothing
                 Else
-                    result = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, useCLSCompliantNameArityEncoding:=True)
+                    result = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, useCLSCompliantNameArityEncoding:=True,
+                                                               ignoreCorLibraryDuplicatedTypes:=Me.Options.IgnoreCorLibraryDuplicatedTypes)
                 End If
 
                 If result Is Nothing Then
