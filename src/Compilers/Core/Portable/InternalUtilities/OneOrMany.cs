@@ -78,9 +78,85 @@ namespace Roslyn.Utilities
             return new OneOrMany<T>(builder.ToImmutableAndFree());
         }
 
+        public OneOrMany<T> InsertAt(T one, int index)
+        {
+            var builder = ArrayBuilder<T>.GetInstance();
+            if (_many.IsDefault)
+            {
+                builder.Add(_one);
+            }
+            else
+            {
+                builder.AddRange(_many);
+            }
+            builder.Insert(index, one);
+            return new OneOrMany<T>(builder.ToImmutableAndFree());
+        }
+
+        public OneOrMany<T> RemoveAll(T item)
+        {
+            if (_many.IsDefault)
+            {
+                return item.Equals(_one) ? default(OneOrMany<T>) : this;
+            }
+
+            var builder = ArrayBuilder<T>.GetInstance();
+            var iter = GetEnumerator();
+            while (iter.MoveNext())
+            {
+                if (!item.Equals(iter.Current))
+                {
+                    builder.Add(iter.Current);
+                }
+            }
+
+            if (builder.Count == 0)
+            {
+                return default(OneOrMany<T>);
+            }
+
+            return builder.Count == Count ? this : new OneOrMany<T>(builder.ToImmutableAndFree());
+        }
+
+        public OneOrMany<T> RemoveDuplicates()
+        {
+            var builder = ArrayBuilder<T>.GetInstance();
+            if (_many.IsDefault)
+            {
+                builder.Add(_one);
+            }
+            else
+            {
+                builder.AddRange(_many);
+            }
+
+            builder.RemoveDuplicates();
+            return builder.Count == Count ? this : new OneOrMany<T>(builder.ToImmutableAndFree());
+        }
+
         public Enumerator GetEnumerator()
         {
             return new Enumerator(this);
+        }
+
+        public bool Contains(T item)
+        {
+            Debug.Assert(item != null);
+            if (Count == 1)
+            {
+                return item.Equals(_one);
+            }
+
+            var iter = GetEnumerator();
+            while(iter.MoveNext())
+            {
+                if (item.Equals(iter.Current))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         internal struct Enumerator
