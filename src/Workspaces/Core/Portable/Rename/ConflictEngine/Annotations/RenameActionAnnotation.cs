@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     /// This annotation will be used by rename to mark all places where it needs to rename an identifier (token replacement) and where to 
     /// check if the semantics have been changes (conflict detection).
     /// </summary>
-    /// <remarks>This annotation should be put on tokens only.</remarks>
     internal class RenameActionAnnotation : RenameAnnotation
     {
         /// <summary>
@@ -54,11 +53,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// </summary>
         public readonly bool IsMemberGroupReference;
 
-        /// <summary>
-        /// States if this token is annotated as a part of the Invocation Expression that needs to be checked for the Conflicts
-        /// </summary>
-        public readonly bool IsInvocationExpression;
-
         public RenameActionAnnotation(
             TextSpan originalSpan,
             bool isRenameLocation,
@@ -67,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             bool isOriginalTextLocation,
             RenameDeclarationLocationReference[] renameDeclarationLocations,
             bool isNamespaceDeclarationReference,
-            bool isInvocationExpression,
             bool isMemberGroupReference)
         {
             this.OriginalSpan = originalSpan;
@@ -77,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             this.RenameDeclarationLocationReferences = renameDeclarationLocations;
             this.IsOriginalTextLocation = isOriginalTextLocation;
             this.IsNamespaceDeclarationReference = isNamespaceDeclarationReference;
-            this.IsInvocationExpression = isInvocationExpression;
             this.IsMemberGroupReference = isMemberGroupReference;
         }
     }

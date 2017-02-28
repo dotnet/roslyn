@@ -3131,6 +3131,104 @@ namespace [|$$N|] { }
             End Using
         End Sub
 
+        <WorkItem(16102, "https://github.com/dotnet/roslyn/issues/16102")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub TestNoConflictFromUnrelatedDeconstruct()
+            Using RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class C {
+    C() {
+        var (a, b) {|conflict:=|} new C();
+    }
+
+    public void Deconstruct(out int a, out int b) => a = b = 1;
+    public void [|$$Deconstruct|](out int a, out int b, out int c) => a = b = c = 1;
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="Blah")
+            End Using
+        End Sub
+
+        <WorkItem(16102, "https://github.com/dotnet/roslyn/issues/16102")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub TestConflictFromRemovingDeconstruct()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class C {
+    C() {
+        var (a, b) {|conflict:=|} new C();
+    }
+
+    public void [|$$Deconstruct|](out int a, out int b) => a = b = 1;
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="Blah")
+
+                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(16102, "https://github.com/dotnet/roslyn/issues/16102")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub TestConflictFromChangingDeconstruct()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class Base { }
+class C : Base {
+    C() {
+        // This now binds to the wrong method (and changes the type of a).
+        var (a, b) {|conflict:=|} new C();
+    }
+
+    void [|$$Deconstruct2|](out string a, out int b) { a = null; b = 0; }
+    }
+
+    static class Ex {
+        public static void Deconstruct(this Base o, out int a, out int b) => a = b = 1;
+    }
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="Deconstruct")
+
+                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(16102, "https://github.com/dotnet/roslyn/issues/16102")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub TestConflictFromAddingDeconstruct()
+            Using RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class C  {
+    C() {
+        // This is an error until the rename.
+        var (a, b) = new C();
+    }
+
+    void [|$$Deconstruct2|](out string a, out int b) { a = null; b = 0; }
+    }
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="Deconstruct")
+
+                ' Don't show conflicts for errors in the old solution that now bind in the new solution.
+            End Using
+        End Sub
+
         <WorkItem(1027506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027506")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TestNoConflictBetweenTwoNamespaces()

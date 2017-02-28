@@ -345,7 +345,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                                     isOldText,
                                     renameDeclarationLocations,
                                     isNamespaceDeclarationReference,
-                                    isInvocationExpression:=False,
                                     isMemberGroupReference:=isMemberGroupReference)
 
                 _annotatedIdentifierTokens.Add(token)
@@ -468,7 +467,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                                             renameDeclarationLocations:=renameDeclarationLocations,
                                             isOriginalTextLocation:=False,
                                             isNamespaceDeclarationReference:=False,
-                                            isInvocationExpression:=True,
                                             isMemberGroupReference:=False)
 
                     Return renameAnnotation
