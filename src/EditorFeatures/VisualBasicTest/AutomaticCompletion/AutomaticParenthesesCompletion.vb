@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_String() As Task
+        Public Sub TestInvalidLocation_String()
             Dim code = <code>Class C
     Dim s As String = "$$
 End Class</code>
@@ -42,10 +42,10 @@ End Class</code>
             Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_Comment() As Task
+        Public Sub TestInvalidLocation_Comment()
             Dim code = <code>Class C
     ' $$
 End Class</code>
@@ -53,10 +53,10 @@ End Class</code>
             Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_DocComment() As Task
+        Public Sub TestInvalidLocation_DocComment()
             Dim code = <code>Class C
     ''' $$
 End Class</code>
@@ -64,10 +64,10 @@ End Class</code>
             Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestRightAfterStringLiteral() As Task
+        Public Sub TestRightAfterStringLiteral()
             Dim code = <code>Class C
     Sub Method()
         Dim a = ""$$
@@ -78,10 +78,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestTypeParameterListSyntax() As Task
+        Public Sub TestTypeParameterListSyntax()
             Dim code = <code>Class C$$
 End Class</code>
 
@@ -89,10 +89,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestParameterListSyntax() As Task
+        Public Sub TestParameterListSyntax()
             Dim code = <code>Class C
     Sub Method$$
 End Class</code>
@@ -101,10 +101,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestArrayRankSpecifierSyntax() As Task
+        Public Sub TestArrayRankSpecifierSyntax()
             Dim code = <code>Class C
     Sub Method()
         Dim a as String$$
@@ -115,10 +115,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestParenthesizedExpressionSyntax() As Task
+        Public Sub TestParenthesizedExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
         Dim a = $$
@@ -129,10 +129,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestGetTypeExpressionSyntax() As Task
+        Public Sub TestGetTypeExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
         Dim a = GetType$$
@@ -143,10 +143,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestGetXmlNamespaceExpressionSyntax() As Task
+        Public Sub TestGetXmlNamespaceExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
         Dim a = GetXmlNamespace$$
@@ -157,10 +157,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestCTypeExpressionSyntax() As Task
+        Public Sub TestCTypeExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
         Dim a = CType$$
@@ -171,10 +171,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestDirectCastExpressionSyntax() As Task
+        Public Sub TestDirectCastExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
         Dim a = DirectCast$$
@@ -185,10 +185,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestTryCastExpressionSyntax() As Task
+        Public Sub TestTryCastExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
         Dim a = TryCast$$
@@ -199,10 +199,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestPredefinedCastExpressionSyntax() As Task
+        Public Sub TestPredefinedCastExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
         Dim a = CInt$$
@@ -213,7 +213,7 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestBinaryConditionalExpressionSyntax() As Task
@@ -299,7 +299,7 @@ End Class</code>
 
         <WorkItem(5607, "https://github.com/dotnet/roslyn/issues/5607")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestOverTypeAfterIntegerLiteral() As Task
+        Public Sub TestOverTypeAfterIntegerLiteral()
             Dim code = <code>Imports System.Collections.Generic
 Class C
     Sub Method()
@@ -314,11 +314,11 @@ End Class</code>
                 Type(session.Session, "0")
                 CheckOverType(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WorkItem(5607, "https://github.com/dotnet/roslyn/issues/5607")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestOverTypeAfterDateLiteral() As Task
+        Public Sub TestOverTypeAfterDateLiteral()
             Dim code = <code>Class C
     Sub Method()
         Test(#1AM#)$$
@@ -331,10 +331,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckOverType(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestOverTypeAfterStringLiteral() As Task
+        Public Sub TestOverTypeAfterStringLiteral()
             Dim code = <code>Class C
     Sub Method()
         Console.Write$$
@@ -347,7 +347,7 @@ End Class</code>
                 Type(session.Session, """a""")
                 CheckOverType(session.Session)
             End Using
-        End Function
+        End Sub
 
         Friend Overloads Function CreateSession(code As XElement) As Holder
             Return CreateSession(code.NormalizedValue())

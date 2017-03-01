@@ -40,7 +40,7 @@ End Class",
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyWithSubLambda() As Task
+        Public Sub TestApplyWithSubLambda()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Function foo()
@@ -56,10 +56,10 @@ End Class",
   End Function
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
-        Public Async Function TestApplyWithSubLambdaWithNoParameterParenthesis() As Task
+        Public Sub TestApplyWithSubLambdaWithNoParameterParenthesis()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Function foo()
@@ -75,10 +75,10 @@ End Class",
   End Function
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
-        Public Async Function TestApplyWithSubLambdaInsideMethodCall() As Task
+        Public Sub TestApplyWithSubLambdaInsideMethodCall()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Function foo()
@@ -94,10 +94,10 @@ End Class",
   End Function
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
-        Public Async Function TestApplyWithSubLambdaAndStatementInsideMethodCall() As Task
+        Public Sub TestApplyWithSubLambdaAndStatementInsideMethodCall()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Function foo()
@@ -113,10 +113,10 @@ End Class",
   End Function
 End Class",
                 afterCaret:={3, 10})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
-        Public Async Function TestApplyWithFunctionLambdaInsideMethodCall() As Task
+        Public Sub TestApplyWithFunctionLambdaInsideMethodCall()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Function foo()
@@ -132,7 +132,7 @@ End Class",
   End Function
 End Class",
                 afterCaret:={3, 17})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestVerifyAnonymousType() As Task

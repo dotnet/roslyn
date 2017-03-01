@@ -585,7 +585,7 @@ class d
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestTrigger()
+        public void TestTrigger()
         {
             TestCommonIsTextualTriggerCharacter();
         }

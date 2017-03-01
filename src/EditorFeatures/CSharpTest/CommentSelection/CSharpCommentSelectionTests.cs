@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
     public class CSharpCommentSelectionTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
-        public async Task UncommentAndFormat1()
+        public void UncommentAndFormat1()
         {
             var code = @"class A
 {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
-        public async Task UncommentAndFormat2()
+        public void UncommentAndFormat2()
         {
             var code = @"class A
 {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
-        public async Task UncommentSingleLineCommentInPseudoBlockComment()
+        public void UncommentSingleLineCommentInPseudoBlockComment()
         {
             var code = @"
 class C
@@ -86,7 +86,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
-        public async Task UncommentAndFormat3()
+        public void UncommentAndFormat3()
         {
             var code = @"class A
 {

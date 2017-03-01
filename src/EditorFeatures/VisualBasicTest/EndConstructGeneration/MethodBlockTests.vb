@@ -77,7 +77,7 @@ End Class",
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterSimpleFunctionDeclarationWithTrailingComment() As Task
+        Public Sub TestApplyAfterSimpleFunctionDeclarationWithTrailingComment()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Function foo() As Integer 'Extra Comment
@@ -89,19 +89,19 @@ End Class",
   End Function
 End Class",
                 afterCaret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DoNotApplyForInterfaceFunction() As Threading.Tasks.Task
+        Public Sub DoNotApplyForInterfaceFunction()
             VerifyStatementEndConstructNotApplied(
                 text:="Interface IFoo
 Function Foo() as Integer
 End Interface",
                  caret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifySubInAModule() As Task
+        Public Sub TestVerifySubInAModule()
             VerifyStatementEndConstructApplied(
                 before:="Module C
 Public Sub s
@@ -113,10 +113,10 @@ Public Sub s
 End Sub
 End Module",
                 afterCaret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifySubWithParameters() As Task
+        Public Sub TestVerifySubWithParameters()
             VerifyStatementEndConstructApplied(
                 before:="Module C
     Private Sub s1(byval x as Integer, Optional y as Integer = 5)
@@ -128,10 +128,10 @@ End Module",
     End Sub
 End Module",
                 afterCaret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyFuncWithParameters() As Task
+        Public Sub TestVerifyFuncWithParameters()
             VerifyStatementEndConstructApplied(
                 before:="Module C
     Public function f(byval x as Integer,
@@ -145,10 +145,10 @@ End Module",
     End function
 End Module",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyFuncNamedWithKeyWord() As Task
+        Public Sub TestVerifyFuncNamedWithKeyWord()
             VerifyStatementEndConstructApplied(
                 before:="Class C
     private funCtion f1(Optional x as integer = 5) as [if]
@@ -160,10 +160,10 @@ End Class",
     End funCtion
 End Class",
                 afterCaret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifySharedOperator() As Task
+        Public Sub TestVerifySharedOperator()
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Public Shared Operator +(ByVal a As bar, ByVal b As bar) As bar
@@ -175,20 +175,20 @@ End Class",
     End Operator
 End Class",
                 afterCaret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyRecommit() As Threading.Tasks.Task
+        Public Sub VerifyRecommit()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Protected friend sub S
     End sub
 End Class",
                 caret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyInvalidLocation01() As Threading.Tasks.Task
+        Public Sub VerifyInvalidLocation01()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S
@@ -196,11 +196,11 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WorkItem(528961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528961")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyInvalidLocation02() As Task
+        Public Sub TestVerifyInvalidLocation02()
             VerifyStatementEndConstructApplied(
                 before:="Sub S",
                 beforeCaret:={0, -1},
@@ -208,7 +208,7 @@ End Class",
 
 End Sub",
                 afterCaret:={1, -1})
-        End Function
+        End Sub
 
 
     End Class

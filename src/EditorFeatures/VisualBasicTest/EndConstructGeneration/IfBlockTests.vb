@@ -110,7 +110,7 @@ End Class",
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifySingleLineIfThenElse() As Task
+        Public Sub TestVerifySingleLineIfThenElse()
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
@@ -128,10 +128,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, 12})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyNestedIf() As Task
+        Public Sub TestVerifyNestedIf()
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
@@ -154,11 +154,11 @@ End Class",
 End Class",
                 afterCaret:={4, -1})
 
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(536441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536441")>
-        Public Async Function TestVerifyNestedSingleLineIf() As Task
+        Public Sub TestVerifyNestedSingleLineIf()
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
@@ -174,10 +174,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, 12})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyAddingElseIf() As Threading.Tasks.Task
+        Public Sub VerifyAddingElseIf()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S
@@ -187,7 +187,7 @@ End Class",
     End Sub
 End Class",
                 caret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestVerifyIfWithImplicitLC() As Task

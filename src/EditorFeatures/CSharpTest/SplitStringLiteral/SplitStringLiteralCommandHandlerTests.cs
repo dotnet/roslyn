@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             }
         }
 
-        private async Task TestHandledAsync(string inputMarkup, string expectedOutputMarkup)
+        private void TestHandled(string inputMarkup, string expectedOutputMarkup)
         {
             TestWorker(
                 inputMarkup, expectedOutputMarkup,
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 });
         }
 
-        private async Task TestNotHandledAsync(string inputMarkup)
+        private void TestNotHandled(string inputMarkup)
         {
             var notHandled = false;
             TestWorker(
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public async Task TestMissingBeforeString()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public async Task TestMissingBeforeInterpolatedString()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public async Task TestInEmptyString()
         {
-            await TestHandledAsync(
+            TestHandled(
 @"class C
 {
     void M()
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public async Task TestInEmptyInterpolatedString()
         {
-            await TestHandledAsync(
+            TestHandled(
 @"class C
 {
     void M()
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public async Task TestSimpleString1()
         {
-            await TestHandledAsync(
+            TestHandled(
 @"class C
 {
     void M()
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public async Task TestInterpolatedString1()
         {
-            await TestHandledAsync(
+            TestHandled(
 @"class C
 {
     void M()
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public async Task TestInterpolatedString2()
         {
-            await TestHandledAsync(
+            TestHandled(
 @"class C
 {
     void M()
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public async Task TestInterpolatedString3()
         {
-            await TestHandledAsync(
+            TestHandled(
 @"class C
 {
     void M()
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public async Task TestMissingInInterpolation1()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public async Task TestMissingInInterpolation2()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public async Task TestSelection()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     public class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Creation()
+        public void Creation()
         {
             using (var session = CreateSession("$$"))
             {
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Attribute_TopLevel()
+        public void Attribute_TopLevel()
         {
             using (var session = CreateSession("$$"))
             {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Attribute_TopLevel2()
+        public void Attribute_TopLevel2()
         {
             using (var session = CreateSession("using System;$$"))
             {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task InvalidLocation_String()
+        public void InvalidLocation_String()
         {
             var code = @"class C
 {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task InvalidLocation_String2()
+        public void InvalidLocation_String2()
         {
             var code = @"class C
 {
@@ -70,7 +70,7 @@ $$
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task InvalidLocation_Comment()
+        public void InvalidLocation_Comment()
         {
             var code = @"class C
 {
@@ -83,7 +83,7 @@ $$
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task InvalidLocation_Comment2()
+        public void InvalidLocation_Comment2()
         {
             var code = @"class C
 {
@@ -96,7 +96,7 @@ $$
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task InvalidLocation_Comment3()
+        public void InvalidLocation_Comment3()
         {
             var code = @"class C
 {
@@ -109,7 +109,7 @@ $$
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task InvalidLocation_Comment4()
+        public void InvalidLocation_Comment4()
         {
             var code = @"class C
 {
@@ -122,7 +122,7 @@ $$
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task MultiLine_Comment()
+        public void MultiLine_Comment()
         {
             var code = @"class C
 {
@@ -140,7 +140,7 @@ $$
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task MultiLine_DocComment()
+        public void MultiLine_DocComment()
         {
             var code = @"class C
 {
@@ -158,7 +158,7 @@ $$
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task String1()
+        public void String1()
         {
             var code = @"class C
 {
@@ -176,7 +176,7 @@ $$
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task String2()
+        public void String2()
         {
             var code = @"class C
 {
@@ -194,7 +194,7 @@ $$
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Attribute_OpenBracket()
+        public void Attribute_OpenBracket()
         {
             var code = @"$$
 class C { }";
@@ -208,7 +208,7 @@ class C { }";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Attribute_OpenBracket_Delete()
+        public void Attribute_OpenBracket_Delete()
         {
             var code = @"$$
 class C { }";
@@ -223,7 +223,7 @@ class C { }";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Attribute_OpenBracket_Tab()
+        public void Attribute_OpenBracket_Tab()
         {
             var code = @"$$
 class C { }";
@@ -238,7 +238,7 @@ class C { }";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Attribute_OpenBracket_CloseBracket()
+        public void Attribute_OpenBracket_CloseBracket()
         {
             var code = @"$$
 class C { }";
@@ -253,7 +253,7 @@ class C { }";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Array_Multiple_Invalid()
+        public void Array_Multiple_Invalid()
         {
             var code = @"class C 
 {
@@ -269,7 +269,7 @@ class C { }";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Array_Nested()
+        public void Array_Nested()
         {
             var code = @"class C
 {

@@ -200,7 +200,7 @@ End Class
 
         <WorkItem(537512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537512")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NotInsideMethodBody() As Task
+        Public Sub TestTypingCharacter_NotInsideMethodBody()
             Const code = "
 Class C
     Sub Foo()
@@ -216,11 +216,11 @@ Class C
 End Class
 "
             VerifyTypingCharacter(code, expected)
-        End Function
+        End Sub
 
         <WorkItem(540004, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540004")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NoReturnsOnWriteOnlyProperty() As Task
+        Public Sub TestTypingCharacter_NoReturnsOnWriteOnlyProperty()
             Const code = "
 Class C
     ''$$
@@ -242,7 +242,7 @@ Class C
 End Class
 "
             VerifyTypingCharacter(code, expected)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestPressingEnter_Class1() As Task

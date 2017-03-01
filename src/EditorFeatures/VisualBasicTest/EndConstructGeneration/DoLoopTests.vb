@@ -56,25 +56,25 @@ End Class",
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DoNotApplyFromInsideDo() As Threading.Tasks.Task
+        Public Sub DoNotApplyFromInsideDo()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 Do
 End Class",
                 caret:={1, 1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DoNotApplyFromDoOutsideMethod() As Threading.Tasks.Task
+        Public Sub DoNotApplyFromDoOutsideMethod()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 Do
 End Class",
                 caret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyDoWhile() As Task
+        Public Sub TestVerifyDoWhile()
             VerifyStatementEndConstructApplied(
                 before:="Class C
 Sub s
@@ -91,10 +91,10 @@ End Sub
 End Class",
                 afterCaret:={3, -1})
 
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyNestedDoWhile() As Task
+        Public Sub TestVerifyNestedDoWhile()
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s
@@ -114,10 +114,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={4, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyDoUntil() As Task
+        Public Sub TestVerifyDoUntil()
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s
@@ -133,10 +133,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyNestedDoUntil() As Task
+        Public Sub TestVerifyNestedDoUntil()
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s
@@ -156,10 +156,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={4, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyDoWhileInBrokenSub() As Task
+        Public Sub TestVerifyDoWhileInBrokenSub()
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s
@@ -173,10 +173,10 @@ End Class",
         Loop
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyDoUntilInvalidLocation01() As Threading.Tasks.Task
+        Public Sub VerifyDoUntilInvalidLocation01()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s
@@ -184,17 +184,17 @@ End Class",
     do Until True
 End Class",
                 caret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyDoUntilInvalidLocation02() As Threading.Tasks.Task
+        Public Sub VerifyDoUntilInvalidLocation02()
             VerifyStatementEndConstructNotApplied(
                 text:="Do",
                 caret:={0, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyDoUntilInvalidLocation03() As Threading.Tasks.Task
+        Public Sub VerifyDoUntilInvalidLocation03()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s
@@ -202,6 +202,6 @@ End Class",
     do Until
 End Class",
                 caret:={3, -1})
-        End Function
+        End Sub
     End Class
 End Namespace

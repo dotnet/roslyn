@@ -29,22 +29,22 @@ $$</code>, <code>$$</code>)
 
         <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestNamespace() As Task
+        Public Sub TestNamespace()
             Test(<code>Namespace NS
     $$
 End Namespace</code>, <code>Namespace NS$$</code>)
-        End Function
+        End Sub
 
         <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestClass() As Task
+        Public Sub TestClass()
             Test(<code>Class C
     $$
 End Class</code>, <code>Class C$$</code>)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestMethod() As Task
+        Public Sub TestMethod()
             Test(<code>Class C
     Sub Method()
         $$
@@ -52,10 +52,10 @@ End Class</code>, <code>Class C$$</code>)
 End Class</code>, <code>Class C
     Sub Method()$$
 End Class</code>)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestDim() As Task
+        Public Sub TestDim()
             Test(<code>Class C
     Sub Method()
         Dim _
@@ -66,7 +66,7 @@ End Class</code>, <code>Class C
         Dim$$
     End Sub
 End Class</code>)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestDim1() As Task

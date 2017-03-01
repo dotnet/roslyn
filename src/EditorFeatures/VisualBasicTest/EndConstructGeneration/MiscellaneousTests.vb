@@ -51,7 +51,7 @@ End Class",
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyNestedDo() As Task
+        Public Sub TestVerifyNestedDo()
             VerifyStatementEndConstructApplied(
                 before:="Class C
         function f() as string
@@ -63,10 +63,10 @@ End Class",
 
             Next",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyMultilinesChar() As Task
+        Public Sub TestVerifyMultilinesChar()
             VerifyStatementEndConstructApplied(
                 before:="Class C
     sub s
@@ -84,10 +84,10 @@ End Class",
     End sub
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyInlineComments() As Task
+        Public Sub TestVerifyInlineComments()
             VerifyStatementEndConstructApplied(
                 before:="Class C
     sub s
@@ -103,24 +103,24 @@ End Class",
     End sub
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyNotAppliedWithJunkAtEndOfLine() As Tasks.Task
+        Public Sub VerifyNotAppliedWithJunkAtEndOfLine()
             ' Try this without a newline at the end of the file
             VerifyStatementEndConstructNotApplied(
                 text:="Class C End Class",
                 caret:={0, "Class C".Length})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyNotAppliedWithJunkAtEndOfLine2() As Tasks.Task
+        Public Sub VerifyNotAppliedWithJunkAtEndOfLine2()
             ' Try this with a newline at the end of the file
             VerifyStatementEndConstructNotApplied(
                 text:="Class C End Class
 ",
                 caret:={0, "Class C".Length})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(539727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539727")>

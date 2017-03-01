@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         // TODO: Author this as a performance test.
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
-        public async Task RegionPerformance()
+        public void RegionPerformance()
         {
             var code =
             #region very long sample code

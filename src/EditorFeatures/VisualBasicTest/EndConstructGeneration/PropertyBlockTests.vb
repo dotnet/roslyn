@@ -23,16 +23,16 @@ End Class",
 
         <WorkItem(530329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530329")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyForMustInheritProperty() As Task
+        Public Sub DontApplyForMustInheritProperty()
             VerifyStatementEndConstructNotApplied(
                 text:="MustInherit Class C
     MustOverride Property foo(x as integer) As Integer
 End Class",
             caret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyForPropertyWithParameters() As Task
+        Public Sub TestApplyForPropertyWithParameters()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
     Property foo(i As Integer) As Integer
@@ -49,19 +49,19 @@ End Class",
     End Property
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyForReadOnlyProperty() As Task
+        Public Sub DontApplyForReadOnlyProperty()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property foo As Integer
 End Class",
                 caret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyForReadOnlyPropertyAfterExistingGet() As Task
+        Public Sub DontApplyForReadOnlyPropertyAfterExistingGet()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property foo As Integer
@@ -71,7 +71,7 @@ End Class",
     End Property
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyForReadOnlyWithSecondGetPropertyAfterExistingGet() As Task

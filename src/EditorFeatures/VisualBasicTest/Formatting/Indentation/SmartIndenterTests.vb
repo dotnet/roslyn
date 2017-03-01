@@ -121,7 +121,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529886")>
-        Public Async Function TestAtContinuationInsideOfNugget() As Task
+        Public Sub TestAtContinuationInsideOfNugget()
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -138,22 +138,22 @@ End Module
             AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + extra)
-        End Function
+        End Sub
 
 #Region "Non-line-continued constructs"
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestBadLineNumberLabelInFile() As Task
+        Public Sub TestBadLineNumberLabelInFile()
             AssertSmartIndent(
                 code:="10:",
                 indentationLine:=0,
                 expectedIndentation:=0)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestImportStatement() As Task
+        Public Sub TestImportStatement()
             Dim code = <Code>Import System
 </Code>.Value
 
@@ -161,7 +161,7 @@ End Module
                 code,
                 indentationLine:=1,
                 expectedIndentation:=0)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>

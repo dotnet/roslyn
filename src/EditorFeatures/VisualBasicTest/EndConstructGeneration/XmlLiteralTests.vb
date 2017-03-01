@@ -40,7 +40,7 @@ End Class",
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterXmlStartElementWithNamespace() As Task
+        Public Sub TestApplyAfterXmlStartElementWithNamespace()
             VerifyXmlElementEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -54,17 +54,17 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={2, 21})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyInParameterDeclaration1() As Threading.Tasks.Task
+        Public Sub DontApplyInParameterDeclaration1()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
     Sub M1(<xml>)
     End Sub
 End Class",
                 caret:={1, 16})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyInParameterDeclaration2() As Threading.Tasks.Task

@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_String() As Task
+        Public Sub TestInvalidLocation_String()
             Dim code = <code>Class C
     Dim s As String = "$$
 End Class</code>
@@ -42,10 +42,10 @@ End Class</code>
             Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_Comment() As Task
+        Public Sub TestInvalidLocation_Comment()
             Dim code = <code>Class C
     ' $$
 End Class</code>
@@ -53,10 +53,10 @@ End Class</code>
             Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_DocComment() As Task
+        Public Sub TestInvalidLocation_DocComment()
             Dim code = <code>Class C
     ''' $$
 End Class</code>
@@ -64,10 +64,10 @@ End Class</code>
             Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestString_Tab() As Task
+        Public Sub TestString_Tab()
             Dim code = <code>Class C
     Sub Method()
         Dim a = $$
@@ -79,10 +79,10 @@ End Class</code>
                 CheckStart(session.Session)
                 CheckTab(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestString_Quotation() As Task
+        Public Sub TestString_Quotation()
             Dim code = <code>Class C
     Sub Method()
         Dim a = $$
@@ -94,10 +94,10 @@ End Class</code>
                 CheckStart(session.Session)
                 CheckOverType(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestString_Backspace() As Task
+        Public Sub TestString_Backspace()
             Dim code = <code>Class C
     Sub Method()
         Dim a = $$
@@ -109,10 +109,10 @@ End Class</code>
                 CheckStart(session.Session)
                 CheckBackspace(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestProprocessor_Backspace() As Task
+        Public Sub TestProprocessor_Backspace()
             Dim code = <code>Class C
     Sub Method()
         #Region $$
@@ -124,10 +124,10 @@ End Class</code>
                 CheckStart(session.Session)
                 CheckBackspace(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestProprocessor_Tab() As Task
+        Public Sub TestProprocessor_Tab()
             Dim code = <code>Class C
     Sub Method()
         #Region $$
@@ -139,10 +139,10 @@ End Class</code>
                 CheckStart(session.Session)
                 CheckTab(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestProprocessor_EndPoint() As Task
+        Public Sub TestProprocessor_EndPoint()
             Dim code = <code>Class C
     Sub Method()
         #Region $$
@@ -154,7 +154,7 @@ End Class</code>
                 CheckStart(session.Session)
                 CheckOverType(session.Session)
             End Using
-        End Function
+        End Sub
 
         Friend Overloads Function CreateSession(code As XElement) As Holder
             Return CreateSession(code.NormalizedValue())

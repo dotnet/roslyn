@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
     public class EncapsulateFieldCommandHandlerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task EncapsulatePrivateField()
+        public void EncapsulatePrivateField()
         {
             var text = @"
 class C
@@ -60,7 +60,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task EncapsulateNonPrivateField()
+        public void EncapsulateNonPrivateField()
         {
             var text = @"
 class C
@@ -103,7 +103,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task DialogShownIfNotFieldsFound()
+        public void DialogShownIfNotFieldsFound()
         {
             var text = @"
 class$$ C
@@ -124,7 +124,7 @@ class$$ C
 
         [WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task EncapsulateTwoFields()
+        public void EncapsulateTwoFields()
         {
             var text = @"
 class Program

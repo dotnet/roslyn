@@ -165,25 +165,25 @@ End Class</code>.Value
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestContinuousEditsOnFunctionToInterfaceWithLeadingAndTrailingSpaces() As Task
+        Public Sub TestContinuousEditsOnFunctionToInterfaceWithLeadingAndTrailingSpaces()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer
     End [|Function|]
 End Class</code>.Value
 
             VerifyContinuousEdits(code, "             Interface              ", Function(s) If(s.Trim() = "Interface", "Interface", "Function"), removeOriginalContent:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestAddSharedModifierToFunction() As Task
+        Public Sub TestAddSharedModifierToFunction()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer
     End [|Function|]
 End Class</code>.Value
 
             VerifyContinuousEdits(code, " Shared ", Function(s) "Function", removeOriginalContent:=False)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
