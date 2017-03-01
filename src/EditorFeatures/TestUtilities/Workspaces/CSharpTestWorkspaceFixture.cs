@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public class CSharpTestWorkspaceFixture : TestWorkspaceFixture
     {
-        protected override async Task<TestWorkspace> CreateWorkspaceAsync()
+        protected override TestWorkspace CreateWorkspace()
         {
             return TestWorkspace.CreateCSharp(
                 new string[] { string.Empty, },
