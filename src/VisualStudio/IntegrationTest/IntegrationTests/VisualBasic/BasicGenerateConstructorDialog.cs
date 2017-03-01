@@ -17,7 +17,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         protected override string LanguageName => LanguageNames.VisualBasic;
 
         public BasicGenerateConstructorDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicChangeSignatureDialog))
+            : base(instanceFactory, nameof(BasicGenerateConstructorDialog))
         {
         }
 

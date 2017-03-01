@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             string desiredGetMethodName, string desiredSetMethodName,
             CancellationToken cancellationToken);
 
-        IList<SyntaxNode> GetReplacementMembers(
+        Task<IList<SyntaxNode>> GetReplacementMembersAsync(
             Document document,
             IPropertySymbol property, SyntaxNode propertyDeclaration,
             IFieldSymbol propertyBackingField,

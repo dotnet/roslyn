@@ -14,12 +14,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
             Return LanguageNames.VisualBasic
         End Function
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New ChangeSignatureCodeRefactoringProvider()
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFileAsync(definition As String, parseOptions As ParseOptions, compilationOptions As CompilationOptions) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(definition, DirectCast(parseOptions, VisualBasicParseOptions), DirectCast(compilationOptions, VisualBasicCompilationOptions))
+        Protected Overrides Function CreateWorkspaceFromFileAsync(initialMarkup As String, parameters As TestParameters) As Task(Of TestWorkspace)
+            Return TestWorkspace.CreateVisualBasicAsync(initialMarkup, parameters.parseOptions, parameters.compilationOptions)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>

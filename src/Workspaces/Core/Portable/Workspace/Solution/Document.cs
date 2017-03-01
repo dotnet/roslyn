@@ -39,6 +39,32 @@ namespace Microsoft.CodeAnalysis
         public SourceCodeKind SourceCodeKind => DocumentState.SourceCodeKind;
 
         /// <summary>
+        /// True if the info of the document change (name, folders, file path; not the content)
+        /// </summary>
+        internal bool HasInfoChanged(Document otherDocument)
+        {
+            return DocumentState.Info != otherDocument.DocumentState.Info
+                || DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
+        }
+
+        /// <summary>
+        /// Gets a <see cref="DocumentInfo"/> for this document w/o the content.
+        /// </summary>
+        internal DocumentInfo GetDocumentInfoWithoutContent()
+        {
+            return DocumentState.Info.WithSourceCodeKind(DocumentState.SourceCodeKind);
+        }
+
+        /// <summary>
+        /// True if the document content has potentially changed.
+        /// Does not compare actual text.
+        /// </summary>
+        internal bool HasContentChanged(Document otherDocument)
+        {
+            return DocumentState.HasContentChanged(otherDocument.DocumentState);
+        }
+
+        /// <summary>
         /// Get the current syntax tree for the document if the text is already loaded and the tree is already parsed.
         /// In almost all cases, you should call <see cref="GetSyntaxTreeAsync"/> to fetch the tree, which will parse the tree
         /// if it's not already parsed.
@@ -287,6 +313,31 @@ namespace Microsoft.CodeAnalysis
         public Document WithSyntaxRoot(SyntaxNode root)
         {
             return this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetDocument(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this document updated to have the specified name.
+        /// </summary>
+        public Document WithName(string name)
+        {
+            return this.Project.Solution.WithDocumentName(this.Id, name).GetDocument(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this document updated to have the specified folders.
+        /// </summary>
+        public Document WithFolders(IEnumerable<string> folders)
+        {
+            return this.Project.Solution.WithDocumentFolders(this.Id, folders).GetDocument(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this document updated to have the specified file path.
+        /// </summary>
+        /// <param name="filePath"></param>
+        public Document WithFilePath(string filePath)
+        {
+            return this.Project.Solution.WithDocumentFilePath(this.Id, filePath).GetDocument(this.Id);
         }
 
         /// <summary>

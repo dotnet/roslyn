@@ -41,21 +41,32 @@ namespace Microsoft.CodeAnalysis.Options
             }
         };
 
-        private Func<IReadOnlyDictionary<string, object>, Type, (object result, bool succeeded)> _tryParseDictionary;
+        private Func<object, IReadOnlyDictionary<string, object>, Type, (object result, bool succeeded)> _tryParseDictionary;
 
-        private static Func<IReadOnlyDictionary<string, object>, Type, (object result, bool succeeded)> _cachedTryParseDictionary = (dictionary, type) =>
+        private static Func<object, IReadOnlyDictionary<string, object>, Type, (object result, bool succeeded)> _cachedTryParseDictionary = (underlyingOption, dictionary, type) =>
         {
             if (type == typeof(NamingStylePreferences))
             {
-                var result = EditorConfigNamingStyleParser.GetNamingStylesFromDictionary(dictionary);
-                if (!result.NamingRules.Any() &&
-                    !result.NamingStyles.Any() &&
-                    !result.SymbolSpecifications.Any())
+                var editorconfigNamingStylePreferences = EditorConfigNamingStyleParser.GetNamingStylesFromDictionary(dictionary);
+
+                if (!editorconfigNamingStylePreferences.NamingRules.Any() &&
+                    !editorconfigNamingStylePreferences.NamingStyles.Any() &&
+                    !editorconfigNamingStylePreferences.SymbolSpecifications.Any())
                 {
-                    return (result: result, succeeded: false);
+                    // We were not able to parse any rules from editorconfig, tell the caller that the parse failed
+                    return (result: editorconfigNamingStylePreferences, succeeded: false);
                 }
 
-                return (result: result, succeeded: true);
+                var workspaceNamingStylePreferences = underlyingOption as NamingStylePreferences;
+                if (workspaceNamingStylePreferences != null)
+                {
+                    // We parsed naming styles from editorconfig, append them to our existing styles
+                    var combinedNamingStylePreferences = workspaceNamingStylePreferences.PrependNamingStylePreferences(editorconfigNamingStylePreferences);
+                    return (result: (object)combinedNamingStylePreferences, succeeded: true);
+                }
+
+                // no existing naming styles were passed so just return the set of styles that were parsed from editorconfig
+                return (result: editorconfigNamingStylePreferences, succeeded: true);
             }
             else
             {
@@ -63,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
         };
 
-        public bool TryParseReadonlyDictionary(IReadOnlyDictionary<string, object> allRawConventions, Type type, out object result)
+        public bool TryGetOption(object underlyingOption, IReadOnlyDictionary<string, object> allRawConventions, Type type, out object result)
         {
             if (_parseValue != null && KeyName != null)
             {
@@ -75,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
             else if (_tryParseDictionary != null)
             {
-                var tuple = _tryParseDictionary(allRawConventions, type);
+                var tuple = _tryParseDictionary(underlyingOption, allRawConventions, type);
                 result = tuple.result;
                 return tuple.succeeded;
             }
@@ -104,10 +115,10 @@ namespace Microsoft.CodeAnalysis.Options
             _tryParseDictionary = _cachedTryParseDictionary;
         }
 
-        public EditorConfigStorageLocation(Func<IReadOnlyDictionary<string, object>, (object result, bool succeeded)> tryParseDictionary)
+        public EditorConfigStorageLocation(Func<object, IReadOnlyDictionary<string, object>, (object result, bool succeeded)> tryParseDictionary)
         {
             // If we're explicitly given a parsing function we can throw away the type when parsing
-            _tryParseDictionary = (dictionary, type) => tryParseDictionary(dictionary);
+            _tryParseDictionary = (underlyingOption, dictionary, type) => tryParseDictionary(underlyingOption, dictionary);
         }
     }
 }
