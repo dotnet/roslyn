@@ -1716,7 +1716,7 @@ public class C
         ref var b = ref {4, 5, 6};
         Console.WriteLine(b[0]);
 
-        ref object c = ref {1,2,3};
+        ref object c = ref {7,8,9};
         Console.WriteLine(c);
     }        
 }
@@ -1732,8 +1732,8 @@ public class C
                 //         ref var b = ref {4, 5, 6};
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedArrayInitializer, "b = ref {4, 5, 6}").WithLocation(11, 17),
                 // (14,28): error CS0622: Can only use array initializer expressions to assign to array types. Try using a new expression instead.
-                //         ref object c = ref {1,2,3};
-                Diagnostic(ErrorCode.ERR_ArrayInitToNonArrayType, "{1,2,3}").WithLocation(14, 28)
+                //         ref object c = ref {7,8,9};
+                Diagnostic(ErrorCode.ERR_ArrayInitToNonArrayType, "{7,8,9}").WithLocation(14, 28)
             );
         }
     }
