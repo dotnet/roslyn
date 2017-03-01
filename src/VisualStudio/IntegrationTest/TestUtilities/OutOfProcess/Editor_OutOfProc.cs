@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -73,6 +74,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _inProc.GetCurrentSignature();
         }
 
+        
+
         public void ShowLightBulb()
             => _inProc.ShowLightBulb();
 
@@ -114,7 +117,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
             => _inProc.PressDialogButton(dialogAutomationName, buttonAutomationName);
 
+        public void PressDialogButtonWithName(string dialogAutomationName, string buttonName)
+            => _inProc.PressDialogButtonWithName(dialogAutomationName, buttonName);
+
         public void DialogSendKeys(string dialogAutomationName, string keys)
             => _inProc.DialogSendKeys(dialogAutomationName, keys);
+
+        public void DialogSelectComboBoxItem(string dialogAutomationName, string comboBoxAutomationName, string itemText)
+            => _inProc.DialogSelectComboBoxItem(dialogAutomationName, comboBoxAutomationName, itemText);
+
+        public void DialogSelectRadioButton(string dialogAutomationName, string radioButtonAutomationName)
+            => _inProc.DialogSelectRadioButton(dialogAutomationName, radioButtonAutomationName);
+
+        public void DialogSetElementValue(string dialogAutomationName, string elementAutomationName, string value)
+            => _inProc.DialogSetElementValue(dialogAutomationName, elementAutomationName, value);
     }
 }
