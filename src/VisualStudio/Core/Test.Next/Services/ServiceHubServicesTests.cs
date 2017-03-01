@@ -77,7 +77,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestRemoteHostSynchronizeIncrementalUpdate()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(Array.Empty<string>(), metadataReferences: null))
+            using (var workspace = TestWorkspace.CreateCSharp(Array.Empty<string>(), metadataReferences: null))
             {
                 var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
 
