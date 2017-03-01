@@ -124,7 +124,7 @@ commitPullList.each { isPr ->
   Utilities.setMachineAffinity(myJob, 'OSX10.11', 'latest-or-auto')
   Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-  }
+}
 
 // Determinism
 commitPullList.each { isPr -> 
