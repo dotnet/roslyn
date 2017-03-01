@@ -419,7 +419,7 @@ End Class
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_EnumsAndCasts() As Task
+        Public Sub TestVBAssignments_EnumsAndCasts()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -517,7 +517,7 @@ End Enum
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(743120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743120")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
