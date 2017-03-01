@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
     {
         protected async Task AssertFormatAsync(string expected, string code, bool debugMode = false, Dictionary<OptionKey, object> changedOptionSet = null, bool useTab = false, bool testWithTransformation = true)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var hostdoc = workspace.Documents.First();
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
         protected async Task AssertFormatAsync(string expected, string code, IEnumerable<TextSpan> spans, bool debugMode = false, Dictionary<OptionKey, object> changedOptionSet = null, int? baseIndentation = null)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var hostdoc = workspace.Documents.First();
                 var buffer = hostdoc.GetTextBuffer();
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
             editorOperationsFactoryService.Setup(s => s.GetEditorOperations(It.IsAny<ITextView>())).Returns(editorOperations.Object);
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(codeWithMarker))
+            using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker))
             {
                 // set up caret position
                 var testDocument = workspace.Documents.Single();
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
         protected static async Task AssertFormatWithPasteOrReturnAsync(string expectedWithMarker, string codeWithMarker, bool allowDocumentChanges, bool isPaste = true)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(codeWithMarker))
+            using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker))
             {
                 workspace.CanApplyChangeDocument = allowDocumentChanges;
 

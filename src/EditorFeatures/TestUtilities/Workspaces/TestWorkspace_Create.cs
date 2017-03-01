@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         #region C#
 
-        public static async Task<TestWorkspace> CreateCSharpAsync(
+        public static TestWorkspace CreateCSharp(
             string file,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,

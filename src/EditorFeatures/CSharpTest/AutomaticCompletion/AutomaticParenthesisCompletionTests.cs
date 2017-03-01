@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         internal async Task<Holder> CreateSessionAsync(string code)
         {
             return CreateSession(
-                await TestWorkspace.CreateCSharpAsync(code),
+                TestWorkspace.CreateCSharp(code),
                 BraceCompletionSessionProvider.Parenthesis.OpenCharacter, BraceCompletionSessionProvider.Parenthesis.CloseCharacter);
         }
     }

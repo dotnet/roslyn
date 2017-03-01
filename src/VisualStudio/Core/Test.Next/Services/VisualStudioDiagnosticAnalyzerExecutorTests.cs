@@ -183,7 +183,7 @@ End Class";
         private async Task<TestWorkspace> CreateWorkspaceAsync(string language, string code, ParseOptions options = null)
         {
             var workspace = (language == LanguageNames.CSharp) ?
-                await TestWorkspace.CreateCSharpAsync(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider) :
+                TestWorkspace.CreateCSharp(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider) :
                 await TestWorkspace.CreateVisualBasicAsync(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider);
 
             workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)

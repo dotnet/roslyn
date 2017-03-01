@@ -677,7 +677,7 @@ $$*";
             await VerifyTabsAsync(code, expected);
         }
 
-        protected override Task<TestWorkspace> CreateTestWorkspaceAsync(string initialMarkup) => TestWorkspace.CreateCSharpAsync(initialMarkup);
+        protected override Task<TestWorkspace> CreateTestWorkspaceAsync(string initialMarkup) => TestWorkspace.CreateCSharp(initialMarkup);
 
         internal override ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService)
             => new BlockCommentEditingCommandHandler(undoHistoryRegistry, editorOperationsFactoryService);

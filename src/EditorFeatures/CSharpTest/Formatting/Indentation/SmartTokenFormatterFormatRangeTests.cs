@@ -3225,7 +3225,7 @@ class Program{
 
         internal static async Task AutoFormatTokenAsync(string markup, string expected)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
+            using (var workspace = TestWorkspace.CreateCSharp(markup))
             {
                 var subjectDocument = workspace.Documents.Single();
 
@@ -3268,7 +3268,7 @@ class Program{
 
         private async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, SyntaxKind tokenKind, SyntaxKind startTokenKind)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(initialMarkup))
+            using (var workspace = TestWorkspace.CreateCSharp(initialMarkup))
             {
                 var tuple = GetService(workspace);
                 var testDocument = workspace.Documents.Single();

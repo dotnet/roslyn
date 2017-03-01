@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
             if (language == LanguageNames.CSharp)
             {
-                return TestWorkspace.CreateCSharpAsync(source);
+                return TestWorkspace.CreateCSharp(source);
             }
             else
             {

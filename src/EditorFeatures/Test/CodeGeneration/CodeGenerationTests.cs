@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             {
                 return isVisualBasic ?
                     await TestWorkspace.CreateVisualBasicAsync(file, (VB.VisualBasicParseOptions)parseOptions, (VB.VisualBasicCompilationOptions)compilationOptions) :
-                    await TestWorkspace.CreateCSharpAsync(file, (CS.CSharpParseOptions)parseOptions, (CS.CSharpCompilationOptions)compilationOptions);
+                    TestWorkspace.CreateCSharp(file, (CS.CSharpParseOptions)parseOptions, (CS.CSharpCompilationOptions)compilationOptions);
             }
         }
     }

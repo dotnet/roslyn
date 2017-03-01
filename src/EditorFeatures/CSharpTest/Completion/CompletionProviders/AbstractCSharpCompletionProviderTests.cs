@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         protected override Task<TestWorkspace> CreateWorkspaceAsync(string fileContents)
         {
-            return TestWorkspace.CreateCSharpAsync(fileContents);
+            return TestWorkspace.CreateCSharp(fileContents);
         }
 
         internal override CompletionServiceWithProviders CreateCompletionService(
@@ -126,7 +126,7 @@ text;
 
         protected async Task VerifySendEnterThroughToEnterAsync(string initialMarkup, string textTypedSoFar, EnterKeyRule sendThroughEnterOption, bool expected)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(initialMarkup))
+            using (var workspace = TestWorkspace.CreateCSharp(initialMarkup))
             {
                 var hostDocument = workspace.DocumentWithCursor;
                 var documentId = workspace.GetDocumentId(hostDocument);

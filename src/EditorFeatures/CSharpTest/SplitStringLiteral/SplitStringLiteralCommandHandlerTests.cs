@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         private async Task TestWorkerAsync(
             string inputMarkup, string expectedOutputMarkup, Action callback)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(inputMarkup))
+            using (var workspace = TestWorkspace.CreateCSharp(inputMarkup))
             {
                 var document = workspace.Documents.Single();
                 var view = document.GetTextView();

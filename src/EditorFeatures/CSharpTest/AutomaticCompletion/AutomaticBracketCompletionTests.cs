@@ -286,7 +286,7 @@ class C { }";
         internal async Task<Holder> CreateSessionAsync(string code)
         {
             return CreateSession(
-                await TestWorkspace.CreateCSharpAsync(code),
+                TestWorkspace.CreateCSharp(code),
                 BraceCompletionSessionProvider.Bracket.OpenCharacter, BraceCompletionSessionProvider.Bracket.CloseCharacter);
         }
     }

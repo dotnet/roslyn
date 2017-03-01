@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     {
         private async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<object>[] expectedResults)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup, options))
+            using (var workspace = TestWorkspace.CreateCSharp(markup, options))
             {
                 await TestWithOptionsAsync(workspace, expectedResults);
             }

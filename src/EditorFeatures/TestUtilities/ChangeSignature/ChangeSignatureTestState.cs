@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         public static async Task<ChangeSignatureTestState> CreateAsync(string markup, string languageName, ParseOptions parseOptions = null)
         {
             var workspace = languageName == LanguageNames.CSharp
-                  ? await TestWorkspace.CreateCSharpAsync(markup, exportProvider: s_exportProvider, parseOptions: (CSharpParseOptions)parseOptions)
+                  ? TestWorkspace.CreateCSharp(markup, exportProvider: s_exportProvider, parseOptions: (CSharpParseOptions)parseOptions)
                   : await TestWorkspace.CreateVisualBasicAsync(markup, exportProvider: s_exportProvider, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             return new ChangeSignatureTestState(workspace);

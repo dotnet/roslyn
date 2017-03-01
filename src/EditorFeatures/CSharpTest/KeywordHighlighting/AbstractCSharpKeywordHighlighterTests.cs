@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
     {
         protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string code, ParseOptions options)
         {
-            return TestWorkspace.CreateCSharpAsync(code, (CSharpParseOptions)options);
+            return TestWorkspace.CreateCSharp(code, (CSharpParseOptions)options);
         }
 
         protected override IEnumerable<ParseOptions> GetOptions()

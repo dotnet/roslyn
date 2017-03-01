@@ -370,7 +370,7 @@ using G=   H.I;
                                                    </Import>)
             Next
 
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(originalCode)
+            Using workspace = TestWorkspace.CreateCSharp(originalCode)
                 Dim expansionClient = New SnippetExpansionClient(
                     Guids.VisualBasicDebuggerLanguageId,
                     workspace.Documents.Single().GetTextView(),

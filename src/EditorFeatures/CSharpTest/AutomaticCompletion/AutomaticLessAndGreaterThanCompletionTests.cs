@@ -441,7 +441,7 @@ public class Inner
         internal async Task<Holder> CreateSessionAsync(string code)
         {
             return CreateSession(
-                await TestWorkspace.CreateCSharpAsync(code),
+                TestWorkspace.CreateCSharp(code),
                 BraceCompletionSessionProvider.LessAndGreaterThan.OpenCharacter, BraceCompletionSessionProvider.LessAndGreaterThan.CloseCharacter);
         }
     }

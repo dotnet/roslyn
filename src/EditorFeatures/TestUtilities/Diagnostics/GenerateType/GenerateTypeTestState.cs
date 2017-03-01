@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             var workspace = TestWorkspace.IsWorkspaceElement(initial)
                 ? TestWorkspace.Create(initial, exportProvider: s_exportProvider)
                 : languageName == LanguageNames.CSharp
-                  ? await TestWorkspace.CreateCSharpAsync(initial, exportProvider: s_exportProvider)
+                  ? TestWorkspace.CreateCSharp(initial, exportProvider: s_exportProvider)
                   : await TestWorkspace.CreateVisualBasicAsync(initial, exportProvider: s_exportProvider);
 
             return new GenerateTypeTestState(projectToBeModified, typeName, existingFileName, workspace);
