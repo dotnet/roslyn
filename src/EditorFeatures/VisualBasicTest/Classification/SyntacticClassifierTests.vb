@@ -3857,5 +3857,32 @@ End Region ' Stuff",
 TextSpan.FromBounds(28, 36),
 Comment("' Stuff"))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestConflictMarkers1() As Task
+            Await TestAsync(
+"interface I
+<<<<<<< Start
+    sub Foo()
+=======
+    sub Bar()
+>>>>>>> End
+end interface",
+                Keyword("interface"),
+                [Interface]("I"),
+                Comment("<<<<<<< Start"),
+                Keyword("sub"),
+                Identifier("Foo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Comment("======="),
+                Keyword("sub"),
+                Identifier("Bar"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Comment(">>>>>>> End"),
+                Keyword("end"),
+                Keyword("interface"))
+        End Function
     End Class
 End Namespace
