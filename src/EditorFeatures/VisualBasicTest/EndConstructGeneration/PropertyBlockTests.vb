@@ -4,27 +4,27 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class PropertyBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyForAutoProperty() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub DontApplyForAutoProperty()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     Property foo As Integer
 End Class",
                 caret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyForAutoPropertyWithEmptyParens() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub DontApplyForAutoPropertyWithEmptyParens()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     Property foo() As Integer
 End Class",
                 caret:={1, -1})
-        End Function
+        End Sub
 
         <WorkItem(530329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530329")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyForMustInheritProperty() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="MustInherit Class C
     MustOverride Property foo(x as integer) As Integer
 End Class",
@@ -53,7 +53,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyForReadOnlyProperty() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property foo As Integer
 End Class",
@@ -62,7 +62,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyForReadOnlyPropertyAfterExistingGet() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property foo As Integer
         Get
@@ -75,7 +75,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyForReadOnlyWithSecondGetPropertyAfterExistingGet() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property foo As Integer
         Get
@@ -90,7 +90,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyForWriteOnlyProperty() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     WriteOnly Property foo As Integer
 End Class",
@@ -141,7 +141,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyForReadOnlyPropertyIfEndPropertyMissingWhenInvokedAfterProperty() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property foo As Integer
         Get
@@ -178,7 +178,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyForWriteOnlyPropertyWithTypeCharacter() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     WriteOnly Property foo$
 End Class",
@@ -209,7 +209,7 @@ End Class",
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
         Public Async Function DontApplyForDuplicateGet() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property foo As Integer
         Get
@@ -224,7 +224,7 @@ End Class",
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
         Public Async Function DontApplyForDuplicateSet() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     WriteOnly Property foo As Integer
         Set(ByVal value As Integer)
@@ -239,7 +239,7 @@ End Class",
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
         Public Async Function DontApplyForSetInReadOnly() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property foo As Integer
         Set
@@ -251,7 +251,7 @@ End Class",
         <WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyForGetInReadOnly() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     WriteOnly Property foo As Integer
         Get
@@ -262,7 +262,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyInternationalCharacter() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     WriteOnly Property fooæ
 End Class",
@@ -272,7 +272,7 @@ End Class",
         <WorkItem(544197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544197")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyInsideAnInterface() As Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Interface IFoo
     Property Foo(x As Integer) As String
 End Interface",

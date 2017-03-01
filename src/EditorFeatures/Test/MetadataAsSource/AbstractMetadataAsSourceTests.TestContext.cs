@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                     ? new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource }
                     : metadataSources;
 
-                var workspace = await CreateWorkspaceAsync(projectLanguage, metadataSources, includeXmlDocComments, sourceWithSymbolReference);
+                var workspace = CreateWorkspace(projectLanguage, metadataSources, includeXmlDocComments, sourceWithSymbolReference);
                 return new TestContext(workspace);
             }
 
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                     ? LanguageNames.VisualBasic : LanguageNames.CSharp;
             }
 
-            private static async Task<TestWorkspace> CreateWorkspaceAsync(string projectLanguage, IEnumerable<string> metadataSources, bool includeXmlDocComments, string sourceWithSymbolReference)
+            private static TestWorkspace CreateWorkspace(string projectLanguage, IEnumerable<string> metadataSources, bool includeXmlDocComments, string sourceWithSymbolReference)
             {
                 var xmlString = string.Concat(@"
 <Workspace>

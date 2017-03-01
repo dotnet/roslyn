@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task String_TopLevel()
         {
-            using (var session = await CreateSessionDoubleQuoteAsync("$$"))
+            using (var session = CreateSessionDoubleQuote("$$"))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task VerbatimString_TopLevel()
         {
-            using (var session = await CreateSessionDoubleQuoteAsync("@$$"))
+            using (var session = CreateSessionDoubleQuote("@$$"))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task String_TopLevel2()
         {
-            using (var session = await CreateSessionDoubleQuoteAsync("using System;$$"))
+            using (var session = CreateSessionDoubleQuote("using System;$$"))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task VerbatimString_TopLevel2()
         {
-            using (var session = await CreateSessionDoubleQuoteAsync("using System;@$$"))
+            using (var session = CreateSessionDoubleQuote("using System;@$$"))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = """"$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = """"@$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = @$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = @$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $[||]$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $[||]$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $[||]$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $[||]$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $@$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $@$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $@$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $@$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 #line $$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 #line $$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 #line $$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = @""""$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);

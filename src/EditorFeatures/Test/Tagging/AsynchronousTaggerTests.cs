@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         }
 
         [WpfFact]
-        public async Task TestSynchronousOutlining()
+        public void TestSynchronousOutlining()
         {
             using (var workspace = TestWorkspace.CreateCSharp("class Program {\r\n\r\n}"))
             {

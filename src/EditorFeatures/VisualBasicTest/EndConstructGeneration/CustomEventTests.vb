@@ -4,7 +4,7 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class CustomEventTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterCustomEvent() As Task
+        Public Sub TestApplyAfterCustomEvent()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
     Custom Event foo As System.EventHandler
@@ -24,10 +24,10 @@ End Class",
     End Event
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterCustomEventWithImportsStatement() As Task
+        Public Sub TestApplyAfterCustomEventWithImportsStatement()
             VerifyStatementEndConstructApplied(
                 before:="Imports System
 Class c1
@@ -49,10 +49,10 @@ Class c1
     End Event
 End Class",
                 afterCaret:={4, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterCustomEventWithMissingDelegateType() As Task
+        Public Sub TestApplyAfterCustomEventWithMissingDelegateType()
             VerifyStatementEndConstructApplied(
                 before:="Imports System
 Class c1
@@ -74,10 +74,10 @@ Class c1
     End Event
 End Class",
                 afterCaret:={4, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterCustomEventWithNonDelegateType() As Task
+        Public Sub TestApplyAfterCustomEventWithNonDelegateType()
             VerifyStatementEndConstructApplied(
                 before:="Imports System
 Class c1
@@ -99,10 +99,10 @@ Class c1
     End Event
 End Class",
                 afterCaret:={4, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterCustomEventWithGenericType() As Task
+        Public Sub TestApplyAfterCustomEventWithGenericType()
             VerifyStatementEndConstructApplied(
                 before:="Imports System
 Class c1
@@ -124,11 +124,11 @@ Class c1
     End Event
 End Class",
                 afterCaret:={4, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DoNotApplyAfterCustomEventAlreadyTerminated() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub DoNotApplyAfterCustomEventAlreadyTerminated()
+            VerifyStatementEndConstructNotApplied(
                 text:="Imports System
 Class c1
     Custom Event foo As EventHandler(Of ConsoleCancelEventArgs)
@@ -144,6 +144,6 @@ Class c1
     End Event
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
     End Class
 End Namespace

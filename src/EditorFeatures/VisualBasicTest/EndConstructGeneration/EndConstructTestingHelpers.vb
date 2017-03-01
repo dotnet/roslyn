@@ -156,53 +156,53 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             End Using
         End Sub
 
-        Public Async Function VerifyStatementEndConstructAppliedAsync(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer()) As Tasks.Task
+        Public Sub VerifyStatementEndConstructApplied(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer())
             VerifyApplied(Function(s, v, b) s.TryDoEndConstructForEnterKey(v, b, CancellationToken.None), before, beforeCaret, after, afterCaret)
-        End Function
+        End Sub
 
-        Public Async Function VerifyStatementEndConstructNotAppliedAsync(text As String, caret As Integer()) As Tasks.Task
+        Public Sub VerifyStatementEndConstructNotApplied(text As String, caret As Integer())
             VerifyNotApplied(Function(s, v, b) s.TryDoEndConstructForEnterKey(v, b, CancellationToken.None), text, caret)
-        End Function
+        End Sub
 
-        Public Async Function VerifyXmlElementEndConstructAppliedAsync(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer()) As Tasks.Task
+        Public Sub VerifyXmlElementEndConstructApplied(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer())
             VerifyApplied(Function(s, v, b) s.TryDoXmlElementEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
-        End Function
+        End Sub
 
-        Public Async Function VerifyXmlElementEndConstructNotAppliedAsync(text As String, caret As Integer()) As Tasks.Task
+        Public Sub VerifyXmlElementEndConstructNotApplied(text As String, caret As Integer())
             VerifyNotApplied(Function(s, v, b) s.TryDoXmlElementEndConstruct(v, b, Nothing), text, caret)
-        End Function
+        End Sub
 
-        Public Async Function VerifyXmlCommentEndConstructAppliedAsync(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer()) As Tasks.Task
+        Public Sub VerifyXmlCommentEndConstructApplied(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer())
             VerifyApplied(Function(s, v, b) s.TryDoXmlCommentEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
-        End Function
+        End Sub
 
-        Public Async Function VerifyXmlCommentEndConstructNotAppliedAsync(text As String, caret As Integer()) As Tasks.Task
+        Public Sub VerifyXmlCommentEndConstructNotApplied(text As String, caret As Integer())
             VerifyNotApplied(Function(s, v, b) s.TryDoXmlCommentEndConstruct(v, b, Nothing), text, caret)
-        End Function
+        End Sub
 
-        Public Async Function VerifyXmlCDataEndConstructAppliedAsync(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer()) As Tasks.Task
+        Public Sub VerifyXmlCDataEndConstructApplied(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer())
             VerifyApplied(Function(s, v, b) s.TryDoXmlCDataEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
-        End Function
+        End Sub
 
-        Public Async Function VerifyXmlCDataEndConstructNotAppliedAsync(text As String, caret As Integer()) As Tasks.Task
+        Public Sub VerifyXmlCDataEndConstructNotApplied(text As String, caret As Integer())
             VerifyNotApplied(Function(s, v, b) s.TryDoXmlCDataEndConstruct(v, b, Nothing), text, caret)
-        End Function
+        End Sub
 
-        Public Async Function VerifyXmlEmbeddedExpressionEndConstructAppliedAsync(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer()) As Tasks.Task
+        Public Sub VerifyXmlEmbeddedExpressionEndConstructApplied(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer())
             VerifyApplied(Function(s, v, b) s.TryDoXmlEmbeddedExpressionEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
-        End Function
+        End Sub
 
-        Public Async Function VerifyXmlEmbeddedExpressionEndConstructNotAppliedAsync(text As String, caret As Integer()) As Tasks.Task
+        Public Sub VerifyXmlEmbeddedExpressionEndConstructNotApplied(text As String, caret As Integer())
             VerifyNotApplied(Function(s, v, b) s.TryDoXmlEmbeddedExpressionEndConstruct(v, b, Nothing), text, caret)
-        End Function
+        End Sub
 
-        Public Async Function VerifyXmlProcessingInstructionEndConstructAppliedAsync(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer()) As Tasks.Task
+        Public Sub VerifyXmlProcessingInstructionEndConstructApplied(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer())
             VerifyApplied(Function(s, v, b) s.TryDoXmlProcessingInstructionEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
-        End Function
+        End Sub
 
-        Public Async Function VerifyXmlProcessingInstructionNotAppliedAsync(text As String, caret As Integer()) As Tasks.Task
+        Public Sub VerifyXmlProcessingInstructionNotApplied(text As String, caret As Integer())
             VerifyNotApplied(Function(s, v, b) s.TryDoXmlProcessingInstructionEndConstruct(v, b, Nothing), text, caret)
-        End Function
+        End Sub
 
         Public Sub VerifyEndConstructAppliedAfterChar(before As String, after As String, typedChar As Char, endCaretPos As Integer())
             VerifyTypedCharApplied(Function(s, v, b) s.TryDo(v, b, typedChar, Nothing), before, after, typedChar, endCaretPos)

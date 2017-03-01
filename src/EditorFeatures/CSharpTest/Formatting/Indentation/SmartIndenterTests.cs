@@ -1017,7 +1017,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 16);
@@ -1037,7 +1037,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 16);
@@ -1057,7 +1057,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 16);
@@ -1078,7 +1078,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 6,
                 expectedIndentation: 20);
@@ -1100,7 +1100,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 7,
                 expectedIndentation: 20);
@@ -1123,7 +1123,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 16);
@@ -1147,7 +1147,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 6,
                 expectedIndentation: 30);
@@ -1170,7 +1170,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 6,
                 expectedIndentation: 16);
@@ -1194,7 +1194,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 7,
                 expectedIndentation: 24);
@@ -1210,7 +1210,7 @@ namespace NS
     void Test() { }
 
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 3,
                 expectedIndentation: 4);
@@ -1229,7 +1229,7 @@ namespace NS
 
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 6,
                 expectedIndentation: 8);
@@ -1247,7 +1247,7 @@ namespace NS
         var foo = @""Foo
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 0);
@@ -1275,7 +1275,7 @@ class Program
 }
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 11,
                 expectedIndentation: 15);
@@ -1302,7 +1302,7 @@ class Program
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 11,
                 expectedIndentation: 12);
@@ -1330,7 +1330,7 @@ class Program
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 11,
                 expectedIndentation: 16);
@@ -1346,7 +1346,7 @@ class Program
         return 1;
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 4,
                 expectedIndentation: 4,
@@ -1364,7 +1364,7 @@ class Program
 
 }
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 4,
                 expectedIndentation: 4,
@@ -1394,7 +1394,7 @@ class Program
     {
     }
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 9,
                 expectedIndentation: 16);
@@ -1412,7 +1412,7 @@ class Program
         ;) { }
     }
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 12);
@@ -1428,7 +1428,7 @@ class Program
     base() { }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 3,
                 expectedIndentation: 8);
@@ -1447,7 +1447,7 @@ class Program
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 12);
@@ -1466,7 +1466,7 @@ class Program
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 12);
@@ -1489,7 +1489,7 @@ class Program
         }
     }
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 7,
                 expectedIndentation: 16);
@@ -1504,7 +1504,7 @@ class Program
     static void Foo<T1,                 
 T2>() { }
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 3,
                 expectedIndentation: 8);
@@ -1525,7 +1525,7 @@ T2>() { }
             int>(4, 2);
         }
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 7,
                 expectedIndentation: 16);
@@ -1541,7 +1541,7 @@ T2>() { }
     public Asset() : this(
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 3,
                 expectedIndentation: 8);
@@ -1558,7 +1558,7 @@ T2>() { }
         : this(
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 4,
                 expectedIndentation: 14);
@@ -1575,7 +1575,7 @@ T2>() { }
         this(
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 4,
                 expectedIndentation: 12);
@@ -1600,7 +1600,7 @@ class Program
         return sum;
     }
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 10,
                 expectedIndentation: 12);
@@ -1616,7 +1616,7 @@ class Program
     public Asset() :
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 3,
                 expectedIndentation: 8);
@@ -1640,7 +1640,7 @@ class Program
     }
 }
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 12);
@@ -1680,7 +1680,7 @@ class FooClass : IDisposable
         throw new NotImplementedException();
     }
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 10,
                 expectedIndentation: 12);
@@ -1699,7 +1699,7 @@ class FooClass : IDisposable
 
     }
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 16);
@@ -1737,7 +1737,7 @@ class FooClass : IDisposable
         throw new NotImplementedException();
     }
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 12);
@@ -1757,7 +1757,7 @@ class FooClass : IDisposable
 
     }
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 6,
                 expectedIndentation: 16);
@@ -1784,7 +1784,7 @@ class Class
     }
     private void OtherMethod(Action action) { }
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 10,
                 expectedIndentation: 16);
@@ -1803,7 +1803,7 @@ class Class
 
     }
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 12);
@@ -1822,7 +1822,7 @@ class Class
 )
     }
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 12);
@@ -1841,7 +1841,7 @@ class Class
 
     }
 }";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 12);
@@ -1861,7 +1861,7 @@ class Class
 .Sort(symbolDisplayService, invocationExpression.GetLocation(), semanticModel);
     }
 }";
-            await AssertSmartIndentAsync(code, indentationLine: 7, expectedIndentation: 39);
+            AssertSmartIndent(code, indentationLine: 7, expectedIndentation: 39);
         }
 
         [WorkItem(648068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648068")]
@@ -2263,7 +2263,7 @@ if(languages == null || languages.Length == 0)
 
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 3,
                 expectedIndentation: 4);
@@ -2284,7 +2284,7 @@ if(languages == null || languages.Length == 0)
 }
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 6,
                 expectedIndentation: 12);
@@ -2312,27 +2312,27 @@ if(languages == null || languages.Length == 0)
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 6,
                 expectedIndentation: 12);
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 16);
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 10,
                 expectedIndentation: 16);
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 12,
                 expectedIndentation: 16);
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 14,
                 expectedIndentation: 16);
@@ -2365,27 +2365,27 @@ if(languages == null || languages.Length == 0)
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 7,
                 expectedIndentation: 12);
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 10,
                 expectedIndentation: 16);
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 13,
                 expectedIndentation: 16);
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 16,
                 expectedIndentation: 12);
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 19,
                 expectedIndentation: 12);
@@ -2408,12 +2408,12 @@ class Program
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 29);
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 9,
                 expectedIndentation: 8);
@@ -2436,12 +2436,12 @@ class Program
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 8);
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 9,
                 expectedIndentation: 8);
@@ -2468,12 +2468,12 @@ class Program
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 12,
                 expectedIndentation: 39);
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 13,
                 expectedIndentation: 36);
@@ -2523,7 +2523,7 @@ namespace ConsoleApplication1
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 13,
                 expectedIndentation: 25);
@@ -2545,7 +2545,7 @@ class C
     }
 }
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 16);
@@ -2564,7 +2564,7 @@ class C
 }
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 8);
@@ -2585,7 +2585,7 @@ class Program
 ";
             // Need to confirm expected behavior after discard/deconstruction parsing changes
             // https://github.com/dotnet/roslyn/issues/15813
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 6,
                 expectedIndentation: 8);
@@ -2606,7 +2606,7 @@ class C
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 7,
                 expectedIndentation: 12);
@@ -2628,7 +2628,7 @@ class C
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 12);
@@ -2653,7 +2653,7 @@ class C
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 9,
                 expectedIndentation: 16);
@@ -2678,7 +2678,7 @@ class C
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 10,
                 expectedIndentation: 16);

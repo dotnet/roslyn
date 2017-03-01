@@ -14,23 +14,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
         Inherits AbstractAutomaticLineEnderTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestCreation() As Task
-            Await TestAsync(<code>
+        Public Sub TestCreation()
+            Test(<code>
 $$</code>, <code>$$</code>)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestImports() As Task
-            Await TestAsync(<code>Imports _
+        Public Sub TestImports()
+            Test(<code>Imports _
     $$
 </code>, <code>Imports$$
 </code>)
-        End Function
+        End Sub
 
         <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestNamespace() As Task
-            Await TestAsync(<code>Namespace NS
+            Test(<code>Namespace NS
     $$
 End Namespace</code>, <code>Namespace NS$$</code>)
         End Function
@@ -38,14 +38,14 @@ End Namespace</code>, <code>Namespace NS$$</code>)
         <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestClass() As Task
-            Await TestAsync(<code>Class C
+            Test(<code>Class C
     $$
 End Class</code>, <code>Class C$$</code>)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestMethod() As Task
-            Await TestAsync(<code>Class C
+            Test(<code>Class C
     Sub Method()
         $$
     End Sub
@@ -56,7 +56,7 @@ End Class</code>)
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestDim() As Task
-            Await TestAsync(<code>Class C
+            Test(<code>Class C
     Sub Method()
         Dim _
             $$
@@ -70,7 +70,7 @@ End Class</code>)
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestDim1() As Task
-            Await TestAsync(<code>Class C
+            Test(<code>Class C
     Sub Method()
         Dim i =
             $$
@@ -84,7 +84,7 @@ End Class</code>)
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestDim2() As Task
-            Await TestAsync(<code>Class C
+            Test(<code>Class C
     Sub Method()
         Dim i
         $$
@@ -99,7 +99,7 @@ End Class</code>)
         <WorkItem(712977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712977")>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestDim3() As Task
-            Await TestAsync(<code>Class C
+            Test(<code>Class C
     Sub Method()
         Dim _
  _
@@ -116,7 +116,7 @@ End Class</code>)
         <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestDim_After_MalformedStatement() As Task
-            Await TestAsync(<code>Class C
+            Test(<code>Class C
     Sub Method()
         Dim _ ' test
 
@@ -132,7 +132,7 @@ End Class</code>)
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestIf() As Task
-            Await TestAsync(
+            Test(
 <code>
 Class C
     Sub Method()
@@ -154,7 +154,7 @@ End Class
         <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestIf_Trivia() As Task
-            Await TestAsync(
+            Test(
 <code>
 Class C
     Sub Method()
@@ -176,7 +176,7 @@ End Class
         <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestIf_Trivia2() As Task
-            Await TestAsync(
+            Test(
 <code>
 Class C
     Sub Method()
@@ -198,7 +198,7 @@ End Class
         <WorkItem(577920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577920")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestEndOfFile_SkippedToken() As Task
-            Await TestAsync(
+            Test(
 <code>
 Module M
     Sub Main()
@@ -218,7 +218,7 @@ End Module
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestWithLineContinuation() As Task
-            Await TestAsync(
+            Test(
 <code>
 Module M
     Sub Main()
@@ -236,9 +236,9 @@ End Module
 </code>)
         End Function
 
-        Private Overloads Async Function TestAsync(expected As XElement, code As XElement) As Task
+        Private Overloads Sub Test(expected As XElement, code As XElement)
             Test(expected.NormalizedValue(), code.NormalizedValue())
-        End Function
+        End Sub
 
         Friend Overrides Function CreateCommandHandler(
             waitIndicator As Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator,

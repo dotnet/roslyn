@@ -24,7 +24,7 @@ $$/**/
 
 $$/**/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WorkItem(11057, "https://github.com/dotnet/roslyn/issues/11057")]
@@ -38,7 +38,7 @@ $$/**/
 /**/
 $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WorkItem(11056, "https://github.com/dotnet/roslyn/issues/11056")]
@@ -52,7 +52,7 @@ $$/* */
 
 $$/* */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WorkItem(11056, "https://github.com/dotnet/roslyn/issues/11056")]
@@ -66,7 +66,7 @@ $$/* */
 /* */
 $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
@@ -78,7 +78,7 @@ $$
             var expected = @"
 /* */
 $$";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
@@ -90,7 +90,7 @@ $$";
             var expected = @"
     /*
      * $$";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
@@ -102,7 +102,7 @@ $$";
             var expected = @"
     /***
      * $$";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -115,7 +115,7 @@ $$";
     /*
      * $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -128,7 +128,7 @@ $$";
     /*
      $$*/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -141,7 +141,7 @@ $$";
     /*
      *$$*/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -156,7 +156,7 @@ $$";
      * $$1.
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -171,7 +171,7 @@ $$";
      *  $$
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -184,7 +184,7 @@ $$";
     /********
      * $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -197,7 +197,7 @@ $$";
     /**
      * $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -210,7 +210,7 @@ $$";
     /*   
      *   $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -225,7 +225,7 @@ $$";
 $$*
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -240,7 +240,7 @@ $$*
      *
      * $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -255,7 +255,7 @@ $$*
      *
      $$*/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -270,7 +270,7 @@ $$*
      *
      *$$*/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -287,7 +287,7 @@ $$*
      * $$1.
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -304,7 +304,7 @@ $$*
      *  $$
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -323,7 +323,7 @@ $$*
      *   $$
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -340,7 +340,7 @@ $$*
      * $$*
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -357,7 +357,7 @@ $$*
      * $$
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -374,7 +374,7 @@ $$*
      * $$
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -389,7 +389,7 @@ $$*
       *
       * $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -404,7 +404,7 @@ $$*
      *
      *$$/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -419,7 +419,7 @@ $$*
      *
      *$$/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -436,7 +436,7 @@ $$*
       *
       *$$/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -451,7 +451,7 @@ $$*
   
      * $$*/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -466,7 +466,7 @@ $$*
      
      $$*/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -483,7 +483,7 @@ var code = @""
 $$
 "";
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -502,7 +502,7 @@ var code = @""
 $$
 "";
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -513,7 +513,7 @@ $$
             var expected = @"
     /
 $$*";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -524,7 +524,7 @@ $$*";
             var expected = @"
     /*
      *$$";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -537,7 +537,7 @@ $$*";
     /*
      *
      *$$";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -550,7 +550,7 @@ $$*";
     /*
      *
      *$$/";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -563,7 +563,7 @@ $$*";
     /*
      *$$*/
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -578,7 +578,7 @@ $$*";
      *<tab>$$1.
      */
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -593,7 +593,7 @@ $$*";
      * <tab>$$
      */
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -606,7 +606,7 @@ $$*";
     /*<tab>
      *<tab>$$
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -621,7 +621,7 @@ $$*";
      *
      *$$*/
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -638,7 +638,7 @@ $$*";
      * $$1.
      */
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -655,7 +655,7 @@ $$*";
      * <tab>$$
      */
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -674,7 +674,7 @@ $$*";
      *<tab> $$
      */
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         protected override TestWorkspace CreateTestWorkspace(string initialMarkup)

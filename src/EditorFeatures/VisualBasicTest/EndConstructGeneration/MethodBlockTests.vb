@@ -4,7 +4,7 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class MethodBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterSimpleSubDeclarationWithTrailingComment() As Task
+        Public Sub TestApplyAfterSimpleSubDeclarationWithTrailingComment()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Sub foo() 'Extra Comment
@@ -16,10 +16,10 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterConstructorDeclaration() As Task
+        Public Sub TestApplyAfterConstructorDeclaration()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Sub New()
@@ -31,10 +31,10 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterConstructorDeclarationForDesignerGeneratedClass() As Task
+        Public Sub TestApplyAfterConstructorDeclarationForDesignerGeneratedClass()
             VerifyStatementEndConstructApplied(
                 before:="<Microsoft.VisualBasic.CompilerServices.DesignerGenerated>
 Class c1
@@ -59,10 +59,10 @@ Class c1
     End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterConstructorDeclarationWithTrailingComment() As Task
+        Public Sub TestApplyAfterConstructorDeclarationWithTrailingComment()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Sub New() 'Extra Comment
@@ -74,7 +74,7 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyAfterSimpleFunctionDeclarationWithTrailingComment() As Task
@@ -93,7 +93,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DoNotApplyForInterfaceFunction() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Interface IFoo
 Function Foo() as Integer
 End Interface",
@@ -179,7 +179,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyRecommit() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Protected friend sub S
     End sub
@@ -189,7 +189,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyInvalidLocation01() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S
         Sub P

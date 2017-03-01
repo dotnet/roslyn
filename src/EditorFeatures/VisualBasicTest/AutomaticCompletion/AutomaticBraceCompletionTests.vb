@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_String() As Task
+        Public Sub TestInvalidLocation_String()
             Dim code = <code>Class C
     Dim s As String = "$$
 End Class</code>
@@ -26,10 +26,10 @@ End Class</code>
             Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_Comment() As Task
+        Public Sub TestInvalidLocation_Comment()
             Dim code = <code>Class C
     ' $$
 End Class</code>
@@ -37,10 +37,10 @@ End Class</code>
             Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_DocComment() As Task
+        Public Sub TestInvalidLocation_DocComment()
             Dim code = <code>Class C
     ''' $$
 End Class</code>
@@ -48,10 +48,10 @@ End Class</code>
             Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestTypeParameterMultipleConstraint() As Task
+        Public Sub TestTypeParameterMultipleConstraint()
             Dim code = <code>Class C
     Sub Method(Of t As $$
 End Class</code>
@@ -60,10 +60,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestObjectMemberInitializerSyntax() As Task
+        Public Sub TestObjectMemberInitializerSyntax()
             Dim code = <code>Class C
     Sub Method()
         Dim a = New With $$
@@ -74,10 +74,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestCollectionInitializerSyntax() As Task
+        Public Sub TestCollectionInitializerSyntax()
             Dim code = <code>Class C
     Sub Method()
         Dim a = New List(Of Integer) From $$
@@ -88,7 +88,7 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         Friend Overloads Function CreateSession(code As XElement) As Holder
             Return CreateSessionASync(code.NormalizedValue())

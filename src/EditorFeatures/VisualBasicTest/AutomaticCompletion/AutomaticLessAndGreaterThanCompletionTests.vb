@@ -18,80 +18,80 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestAttribute_LessThan() As Task
+        Public Sub TestAttribute_LessThan()
             Using session = CreateSession("$$")
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_LessThan() As Task
+        Public Sub TestInvalidLocation_LessThan()
             Using session = CreateSession("Imports System$$")
                 Assert.NotNull(session)
                 CheckStart(session.Session, expectValidSession:=False)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_String() As Task
+        Public Sub TestInvalidLocation_String()
             Dim code = <code>Class C
     Dim s As String = "$$
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_Comment() As Task
+        Public Sub TestInvalidLocation_Comment()
             Dim code = <code>Class C
     ' $$
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_DocComment() As Task
+        Public Sub TestInvalidLocation_DocComment()
             Dim code = <code>Class C
     ''' $$
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestAttribute_LessThan_Method() As Task
+        Public Sub TestAttribute_LessThan_Method()
             Dim code = <code>Class C
     Sub Method($$
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestXmlNamespaceImport_LessThan() As Task
+        Public Sub TestXmlNamespaceImport_LessThan()
             Dim code = <code>Imports $$</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 CheckOverType(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestBracketName_Member() As Task
+        Public Sub TestBracketName_Member()
             Dim code = <code>Class C
     Sub Method()
         Dim a = &lt;start&gt;&lt;/start&gt;
@@ -99,13 +99,13 @@ End Class</code>
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
-        Friend Overloads Async Function CreateSessionAsync(code As XElement) As Threading.Tasks.Task(Of Holder)
+        Friend Overloads Function CreateSession(code As XElement) As Holder
             Return CreateSession(code.NormalizedValue())
         End Function
 

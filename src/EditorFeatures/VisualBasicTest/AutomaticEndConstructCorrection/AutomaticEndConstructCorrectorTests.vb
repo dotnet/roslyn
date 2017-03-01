@@ -132,36 +132,36 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestContinuousEditsOnFunctionToInterface() As Task
+        Public Sub TestContinuousEditsOnFunctionToInterface()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer
     End [|Function|]
 End Class</code>.Value
 
             VerifyContinuousEdits(code, "Interface", Function(s) If(s.Trim() = "Interface", "Interface", "Function"), removeOriginalContent:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestContinuousEditsOnFunctionToInterfaceWithLeadingSpaces() As Task
+        Public Sub TestContinuousEditsOnFunctionToInterfaceWithLeadingSpaces()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer
     End [|Function|]
 End Class</code>.Value
 
             VerifyContinuousEdits(code, "     Interface", Function(s) If(s.Trim() = "Interface", "Interface", "Function"), removeOriginalContent:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestContinuousEditsOnFunctionToInterfaceWithTrailingSpaces() As Task
+        Public Sub TestContinuousEditsOnFunctionToInterfaceWithTrailingSpaces()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer
     End [|Function|]
 End Class</code>.Value
 
             VerifyContinuousEdits(code, "Interface              ", Function(s) If(s.Trim() = "Interface", "Interface", "Function"), removeOriginalContent:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>

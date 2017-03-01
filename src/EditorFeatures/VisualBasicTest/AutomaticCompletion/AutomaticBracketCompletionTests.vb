@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_Bracket() As Task
+        Public Sub TestInvalidLocation_Bracket()
             Dim code = <code>Class C
     Dim s As String = "$$
 End Class</code>
@@ -42,10 +42,10 @@ End Class</code>
             Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_Comment() As Task
+        Public Sub TestInvalidLocation_Comment()
             Dim code = <code>Class C
     ' $$
 End Class</code>
@@ -53,10 +53,10 @@ End Class</code>
             Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_DocComment() As Task
+        Public Sub TestInvalidLocation_DocComment()
             Dim code = <code>Class C
     ''' $$
 End Class</code>
@@ -64,10 +64,10 @@ End Class</code>
             Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_Comment_CloseBracket() As Task
+        Public Sub TestInvalidLocation_Comment_CloseBracket()
             Dim code = <code>Class C
     Sub Method()
         Dim $$
@@ -80,10 +80,10 @@ End Class</code>
                 Type(session.Session, "'")
                 CheckOverType(session.Session, allowOverType:=False)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_Comment_Tab() As Task
+        Public Sub TestInvalidLocation_Comment_Tab()
             Dim code = <code>Class C
     Sub Method()
         Dim $$
@@ -96,7 +96,7 @@ End Class</code>
                 Type(session.Session, "'")
                 CheckTab(session.Session)
             End Using
-        End Function
+        End Sub
 
         Friend Overloads Function CreateSession(code As XElement) As Holder
             Return CreateSession(code.NormalizedValue())

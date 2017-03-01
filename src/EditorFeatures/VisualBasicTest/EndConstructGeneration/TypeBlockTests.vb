@@ -4,7 +4,7 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class TypeBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterClassStatement() As Task
+        Public Sub TestApplyAfterClassStatement()
             VerifyStatementEndConstructApplied(
                 before:="Class c1",
                 beforeCaret:={0, -1},
@@ -12,10 +12,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
 End Class",
                 afterCaret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterModuleStatement() As Task
+        Public Sub TestApplyAfterModuleStatement()
             VerifyStatementEndConstructApplied(
                 before:="Module m1",
                 beforeCaret:={0, -1},
@@ -23,18 +23,18 @@ End Class",
 
 End Module",
                 afterCaret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyForMatchedClass() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub DontApplyForMatchedClass()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 End Class",
                 caret:={0, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterInterfaceStatement() As Task
+        Public Sub TestApplyAfterInterfaceStatement()
             VerifyStatementEndConstructApplied(
                 before:="Interface IFoo",
                 beforeCaret:={0, -1},
@@ -42,7 +42,7 @@ End Class",
 
 End Interface",
                 afterCaret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyAfterStructureStatement() As Task
@@ -137,7 +137,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyInvalidSyntax() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class EC
     Sub S
         Class B
@@ -148,14 +148,14 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyInvalidSyntax01() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Enum e(Of T)",
                 caret:={0, -1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyInvalidSyntax02() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C Class",
                 caret:={0, -1})
         End Function
@@ -173,7 +173,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyInheritsDeclNotApplied() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C : Inherits B
 End Class",
                 caret:={0, -1})
@@ -192,7 +192,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyImplementsDeclNotApplied() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C : Implements IB
 End Class",
                 caret:={0, -1})

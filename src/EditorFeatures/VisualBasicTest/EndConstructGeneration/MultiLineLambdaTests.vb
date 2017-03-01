@@ -4,7 +4,7 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class MultiLineLambdaTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyWithFunctionLambda() As Task
+        Public Sub TestApplyWithFunctionLambda()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Sub foo()
@@ -20,10 +20,10 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyWithFunctionLambdaWithMissingEndFunction() As Task
+        Public Sub TestApplyWithFunctionLambdaWithMissingEndFunction()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Function foo()
@@ -37,7 +37,7 @@ End Class",
             End Function
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyWithSubLambda() As Task
@@ -155,7 +155,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifySingleLineLambdaFunc() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s()
         Dim x = Function(x) x
@@ -166,7 +166,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifySingleLineLambdaSub() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s()
         Dim y = Sub(x As Integer) x.ToString()
@@ -230,7 +230,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyInvalidLambdaSyntax() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s()
         Sub(x)
@@ -241,7 +241,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyNotAppliedIfSubLambdaContainsEndSub() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s()
         Dim x = Sub() End Sub
@@ -252,7 +252,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyNotAppliedIfSyntaxIsFunctionLambdaContainsEndFunction() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s()
         Dim x = Function() End Function
@@ -263,7 +263,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyLambdaWithImplicitLC() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s()
         Dim x = Function(y As Integer) y +

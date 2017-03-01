@@ -60,7 +60,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529886")>
-        Public Async Function TestAtEndOfSpanInNugget() As Task
+        Public Sub TestAtEndOfSpanInNugget()
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -74,12 +74,12 @@ End Module
             AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529886")>
-        Public Async Function TestInsideMiddleOfSpanInNugget() As Task
+        Public Sub TestInsideMiddleOfSpanInNugget()
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -93,12 +93,12 @@ End Module
             AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529886")>
-        Public Async Function TestAtContinuationAtStartOfNugget() As Task
+        Public Sub TestAtContinuationAtStartOfNugget()
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -116,7 +116,7 @@ End Module
             AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 8)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>

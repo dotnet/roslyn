@@ -18,20 +18,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestString_TopLevel() As Task
+        Public Sub TestString_TopLevel()
             Using session = CreateSession("$$")
                 Assert.NotNull(session)
                 CheckStart(session.Session, expectValidSession:=False)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestString_TopLevel2() As Task
+        Public Sub TestString_TopLevel2()
             Using session = CreateSession("Imports System$$")
                 Assert.NotNull(session)
                 CheckStart(session.Session, expectValidSession:=False)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestInvalidLocation_String() As Task
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
     Dim s As String = "$$
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
         End Function
@@ -50,7 +50,7 @@ End Class</code>
     ' $$
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
         End Function
@@ -61,7 +61,7 @@ End Class</code>
     ''' $$
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
         End Function
@@ -74,7 +74,7 @@ End Class</code>
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 CheckTab(session.Session)
@@ -89,7 +89,7 @@ End Class</code>
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 CheckOverType(session.Session)
@@ -104,7 +104,7 @@ End Class</code>
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 CheckBackspace(session.Session)
@@ -119,7 +119,7 @@ End Class</code>
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 CheckBackspace(session.Session)
@@ -134,7 +134,7 @@ End Class</code>
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 CheckTab(session.Session)
@@ -149,14 +149,14 @@ End Class</code>
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 CheckOverType(session.Session)
             End Using
         End Function
 
-        Friend Overloads Async Function CreateSessionAsync(code As XElement) As Threading.Tasks.Task(Of Holder)
+        Friend Overloads Function CreateSession(code As XElement) As Holder
             Return CreateSession(code.NormalizedValue())
         End Function
 

@@ -26,7 +26,7 @@ End Class
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_Class() As Task
+        Public Sub TestTypingCharacter_Class()
             Const code = "
 ''$$
 Class C
@@ -40,10 +40,10 @@ Class C
 End Class
 "
             VerifyTypingCharacter(code, expected)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_Method() As Task
+        Public Sub TestTypingCharacter_Method()
             Const code = "
 Class C
     ''$$
@@ -67,11 +67,11 @@ Class C
 End Class
 "
             VerifyTypingCharacter(code, expected)
-        End Function
+        End Sub
 
         <WorkItem(538715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NoReturnType() As Task
+        Public Sub TestTypingCharacter_NoReturnType()
             Const code = "
 Class C
    ''$$
@@ -90,10 +90,10 @@ Class C
 End Class
 "
             VerifyTypingCharacter(code, expected)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NotWhenDocCommentExists1() As Task
+        Public Sub TestTypingCharacter_NotWhenDocCommentExists1()
             Const code = "
 ''$$
 ''' <summary></summary>
@@ -107,10 +107,10 @@ Class C
 End Class
 "
             VerifyTypingCharacter(code, expected)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NotWhenDocCommentExists2() As Task
+        Public Sub TestTypingCharacter_NotWhenDocCommentExists2()
             Const code = "
 Class C
     ''$$
@@ -130,11 +130,11 @@ Class C
 End Class
 "
             VerifyTypingCharacter(code, expected)
-        End Function
+        End Sub
 
         <WorkItem(537506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537506")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NotAfterClassName() As Task
+        Public Sub TestTypingCharacter_NotAfterClassName()
             Const code = "
 Class C''$$
 End Class
@@ -144,11 +144,11 @@ Class C'''$$
 End Class
 "
             VerifyTypingCharacter(code, expected)
-        End Function
+        End Sub
 
         <WorkItem(537508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537508")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NotInsideClass() As Task
+        Public Sub TestTypingCharacter_NotInsideClass()
             Const code = "
 Class C
     ''$$
@@ -160,11 +160,11 @@ Class C
 End Class
 "
             VerifyTypingCharacter(code, expected)
-        End Function
+        End Sub
 
         <WorkItem(537510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537510")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NotAfterConstructorName() As Task
+        Public Sub TestTypingCharacter_NotAfterConstructorName()
             Const code = "
 Class C
     Sub New() ''$$
@@ -176,11 +176,11 @@ Class C
 End Class
 "
             VerifyTypingCharacter(code, expected)
-        End Function
+        End Sub
 
         <WorkItem(537511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537511")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NotInsideConstructor() As Task
+        Public Sub TestTypingCharacter_NotInsideConstructor()
             Const code = "
 Class C
     Sub New()
@@ -196,7 +196,7 @@ Class C
 End Class
 "
             VerifyTypingCharacter(code, expected)
-        End Function
+        End Sub
 
         <WorkItem(537512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537512")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>

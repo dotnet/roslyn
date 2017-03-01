@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             }
         }
 
-        private Task TestHandledAsync(string inputMarkup, string expectedOutputMarkup)
+        private async Task TestHandledAsync(string inputMarkup, string expectedOutputMarkup)
         {
-            return TestWorker(
+            TestWorker(
                 inputMarkup, expectedOutputMarkup,
                 callback: () =>
                 {

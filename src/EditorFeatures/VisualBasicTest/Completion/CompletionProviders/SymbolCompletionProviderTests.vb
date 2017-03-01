@@ -706,9 +706,9 @@ End Class"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function IsTextualTriggerCharacterTest() As Task
+        Public Sub IsTextualTriggerCharacterTest()
             TestCommonIsTextualTriggerCharacter()
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SendEnterThroughToEditorTest() As Task

@@ -4,7 +4,7 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class SyncLockBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function ApplyAfterSyncLockStatement() As Threading.Tasks.Task
+        Public Sub ApplyAfterSyncLockStatement()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
 Sub foo()
@@ -20,11 +20,11 @@ End SyncLock
 End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyForMatchedUsing() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub DontApplyForMatchedUsing()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 Sub foo()
 SyncLock variable
@@ -32,10 +32,10 @@ End SyncLock
 End Sub
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyNestedSyncBlock() As Threading.Tasks.Task
+        Public Sub VerifyNestedSyncBlock()
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
@@ -55,26 +55,26 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={4, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyInvalidSyntax() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyInvalidSyntax()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S
         Using (SyncLock 1) 
     End Sub
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyInvalidLocation() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyInvalidLocation()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class EC
     Synclock 1
 End Class",
                 caret:={1, -1})
-        End Function
+        End Sub
     End Class
 End Namespace
