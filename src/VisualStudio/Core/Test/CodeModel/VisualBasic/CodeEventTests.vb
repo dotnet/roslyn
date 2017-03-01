@@ -45,7 +45,7 @@ End Class
 
         <WorkItem(639075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639075")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_SimpleEventWithAttributes() As Task
+        Public Sub TestGetStartPoint_SimpleEventWithAttributes()
             Dim code =
 <Code>
 Class C
@@ -75,7 +75,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=45, lineLength:=25)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=13, lineLength:=31)))
-        End Function
+        End Sub
 
         <WorkItem(639075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639075")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

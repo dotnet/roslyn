@@ -183,7 +183,7 @@ class C : B
 
         <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
-        Public Async Function TestContent_InheritedMembers3() As Task
+        Public Sub TestContent_InheritedMembers3()
             Dim code =
 <Code>
 class A
@@ -234,7 +234,7 @@ class C : B
                     "GetType()",
                     "MemberwiseClone()")
             End Using
-        End Function
+        End Sub
 
         <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
@@ -1222,7 +1222,7 @@ $"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
         End Function
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
-        Public Async Function TestDescription_Operator_Implicit() As Task
+        Public Sub TestDescription_Operator_Implicit()
             Dim code =
 <Code>
 class C
@@ -1244,10 +1244,10 @@ class C
 "public static implicit operator bool(C c)" & vbCrLf &
 $"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
-        End Function
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
-        Public Async Function TestDescription_Operator_Explicit() As Task
+        Public Sub TestDescription_Operator_Explicit()
             Dim code =
 <Code>
 class C
@@ -1269,10 +1269,10 @@ class C
 "public static explicit operator bool(C c)" & vbCrLf &
 $"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
-        End Function
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
-        Public Async Function TestDescription_ExternMethod() As Task
+        Public Sub TestDescription_ExternMethod()
             Dim code =
 <Code>
 using System.Runtime.InteropServices;
@@ -1293,11 +1293,11 @@ class C
 "public static extern int MessageBox(System.IntPtr h, string m, string c, int type)" & vbCrLf &
 $"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
-        End Function
+        End Sub
 
         <WorkItem(942021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
-        Public Async Function TestNavInfo_Class() As Task
+        Public Sub TestNavInfo_Class()
             Dim code =
 <Code>
 namespace EditorFunctionalityHelper
@@ -1319,11 +1319,11 @@ namespace EditorFunctionalityHelper
                     NamespaceNode("EditorFunctionalityHelper"),
                     TypeNode("EditorFunctionalityHelper"))
             End Using
-        End Function
+        End Sub
 
         <WorkItem(942021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
-        Public Async Function TestNavInfo_NestedEnum() As Task
+        Public Sub TestNavInfo_NestedEnum()
             Dim code =
 <Code>
 namespace EditorFunctionalityHelper
@@ -1352,7 +1352,7 @@ namespace EditorFunctionalityHelper
                     TypeNode("EditorFunctionalityHelper"),
                     TypeNode("Mapping"))
             End Using
-        End Function
+        End Sub
 
     End Class
 End Namespace

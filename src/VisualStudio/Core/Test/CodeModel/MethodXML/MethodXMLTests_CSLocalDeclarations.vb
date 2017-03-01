@@ -68,7 +68,7 @@ public class C
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_EscapedKeywordName() As Task
+        Public Sub TestCSLocalDeclarations_EscapedKeywordName()
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -98,7 +98,7 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestCSLocalDeclarations_ArrayNoInitializer() As Task

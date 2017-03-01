@@ -55,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <Fact>
-        Public Async Function TestInitialEntries() As Task
+        Public Sub TestInitialEntries()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim provider = New TestDiagnosticService(CreateItem(workspace, documentId))
@@ -71,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
                 Assert.Equal(1, sink.Entries.Count)
             End Using
-        End Function
+        End Sub
 
         <Fact>
         Public Async Function TestEntryChanged() As Task
@@ -343,7 +343,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         <Fact>
-        Public Async Function TestHyperLink() As Task
+        Public Sub TestHyperLink()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
@@ -372,7 +372,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Assert.Null(ui)
             End Using
-        End Function
+        End Sub
 
         <Fact>
         Public Async Function TestBingHyperLink() As Task

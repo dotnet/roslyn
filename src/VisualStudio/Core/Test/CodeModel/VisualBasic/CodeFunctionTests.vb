@@ -112,7 +112,7 @@ End Class
 
         <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_DeclareFunction_WithAttribute() As Task
+        Public Sub TestGetStartPoint_DeclareFunction_WithAttribute()
             Dim code =
 <Code>
 Public Class C1
@@ -142,7 +142,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=59)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)))
-        End Function
+        End Sub
 
         <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

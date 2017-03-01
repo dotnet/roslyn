@@ -150,7 +150,7 @@ class C1 : I1
 #Region "GetEndPoint tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint1() As Task
+        Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
 class C
@@ -180,10 +180,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=43, absoluteOffset:=53, lineLength:=42)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint2() As Task
+        Public Sub TestGetEndPoint2()
             Dim code =
 <Code>
 class C
@@ -213,10 +213,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=43, absoluteOffset:=53, lineLength:=42)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint3() As Task
+        Public Sub TestGetEndPoint3()
             Dim code =
 <Code>
 class C
@@ -250,11 +250,11 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=7, lineOffset:=6, absoluteOffset:=96, lineLength:=5)))
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPointExplicitlyImplementedEvent() As Task
+        Public Sub TestGetEndPointExplicitlyImplementedEvent()
             Dim code =
 <Code>
 delegate void SampleEventHandler(object sender);
@@ -282,14 +282,14 @@ class C1 : I1
             TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=19, lineOffset:=6, absoluteOffset:=250, lineLength:=5)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Access tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess1() As Task
+        Public Sub TestAccess1()
             Dim code =
 <Code>
 class C
@@ -299,10 +299,10 @@ class C
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess2() As Task
+        Public Sub TestAccess2()
             Dim code =
 <Code>
 class C
@@ -312,10 +312,10 @@ class C
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess3() As Task
+        Public Sub TestAccess3()
             Dim code =
 <Code>
 class C
@@ -325,10 +325,10 @@ class C
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess4() As Task
+        Public Sub TestAccess4()
             Dim code =
 <Code>
 class C
@@ -338,10 +338,10 @@ class C
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess5() As Task
+        Public Sub TestAccess5()
             Dim code =
 <Code>
 class C
@@ -351,10 +351,10 @@ class C
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess6() As Task
+        Public Sub TestAccess6()
             Dim code =
 <Code>
 class C
@@ -364,14 +364,14 @@ class C
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "FullName tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName1() As Task
+        Public Sub TestFullName1()
             Dim code =
 <Code>
 class C
@@ -381,10 +381,10 @@ class C
 </Code>
 
             TestFullName(code, "C.E")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName2() As Task
+        Public Sub TestFullName2()
             Dim code =
 <Code>
 class C
@@ -394,11 +394,11 @@ class C
 </Code>
 
             TestFullName(code, "C.F")
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName_ExplicitlyImplementedEvent() As Task
+        Public Sub TestFullName_ExplicitlyImplementedEvent()
             Dim code =
 <Code>
 delegate void SampleEventHandler(object sender);
@@ -424,7 +424,7 @@ class C1 : I1
 </Code>
 
             TestFullName(code, "C1.I1.SampleEvent")
-        End Function
+        End Sub
 
 #End Region
 

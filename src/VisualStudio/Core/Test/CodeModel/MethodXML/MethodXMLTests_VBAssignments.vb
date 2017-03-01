@@ -97,7 +97,7 @@ End Class
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_FieldWithMe() As Task
+        Public Sub TestVBAssignments_FieldWithMe()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -138,7 +138,7 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBAssignments_PropertyThroughFieldWithoutMe() As Task

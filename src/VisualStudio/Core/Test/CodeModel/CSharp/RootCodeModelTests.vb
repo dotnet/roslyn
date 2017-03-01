@@ -92,7 +92,7 @@ class Foo { }
 #Region "CreateCodeTypeRef"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCreateCodeTypeRef_Int32() As Task
+        Public Sub TestCreateCodeTypeRef_Int32()
             TestCreateCodeTypeRef("System.Int32",
                                   New CodeTypeRefData With {
                                       .AsString = "int",
@@ -100,10 +100,10 @@ class Foo { }
                                       .CodeTypeFullName = "System.Int32",
                                       .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefInt
                                   })
-        End Function
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCreateCodeTypeRef_System_Text_StringBuilder() As Task
+        Public Sub TestCreateCodeTypeRef_System_Text_StringBuilder()
             TestCreateCodeTypeRef("System.Text.StringBuilder",
                                   New CodeTypeRefData With {
                                       .AsString = "System.Text.StringBuilder",
@@ -111,10 +111,10 @@ class Foo { }
                                       .CodeTypeFullName = "System.Text.StringBuilder",
                                       .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType
                                   })
-        End Function
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCreateCodeTypeRef_NullableInteger() As Task
+        Public Sub TestCreateCodeTypeRef_NullableInteger()
             TestCreateCodeTypeRef("int?",
                                   New CodeTypeRefData With {
                                       .AsString = "int?",
@@ -122,10 +122,10 @@ class Foo { }
                                       .CodeTypeFullName = "System.Int32?",
                                       .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType
                                   })
-        End Function
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCreateCodeTypeRef_ListOfInt() As Task
+        Public Sub TestCreateCodeTypeRef_ListOfInt()
             TestCreateCodeTypeRef("System.Collections.Generic.List<int>",
                                   New CodeTypeRefData With {
                                       .AsString = "System.Collections.Generic.List<int>",
@@ -133,7 +133,7 @@ class Foo { }
                                       .CodeTypeFullName = "System.Collections.Generic.List<System.Int32>",
                                       .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType
                                   })
-        End Function
+        End Sub
 
 #End Region
 

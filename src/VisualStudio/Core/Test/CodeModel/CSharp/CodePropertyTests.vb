@@ -345,7 +345,7 @@ class C1 : I1
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_ExplicitlyImplementedProperty() As Task
+        Public Sub TestGetStartPoint_ExplicitlyImplementedProperty()
             Dim code =
 <Code>
 interface I1
@@ -372,7 +372,7 @@ class C1 : I1
             TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=8, lineOffset:=5, absoluteOffset:=67, lineLength:=16)))
-        End Function
+        End Sub
 
 #End Region
 

@@ -368,7 +368,7 @@ End Class
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment4() As Task
+        Public Sub TestDocComment4()
             Dim code =
 <Code>
 Namespace N
@@ -388,7 +388,7 @@ End Namespace
 " <remarks></remarks>"
 
             TestDocComment(code, result)
-        End Function
+        End Sub
 
 #End Region
 

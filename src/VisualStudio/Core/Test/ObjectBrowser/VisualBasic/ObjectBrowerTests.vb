@@ -183,7 +183,7 @@ End Class
 
         <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
-        Public Async Function TestContent_InheritedMembers3() As Task
+        Public Sub TestContent_InheritedMembers3()
             Dim code =
 <Code>
 Class A
@@ -236,7 +236,7 @@ End Class
                     "Finalize()",
                     "MemberwiseClone() As Object")
             End Using
-        End Function
+        End Sub
 
         <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>

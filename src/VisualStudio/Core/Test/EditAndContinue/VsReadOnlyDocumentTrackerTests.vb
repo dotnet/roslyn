@@ -147,7 +147,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
         <WorkItem(1147868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147868")>
         <WpfFact>
-        Public Async Function InvalidDocumentTest2() As Task
+        Public Sub InvalidDocumentTest2()
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
             Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
@@ -171,7 +171,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             ' the given project does not contain this document
             Dim newDocumentId = DocumentId.CreateFromSerialized(ProjectId.CreateFromSerialized(Guid.NewGuid(), "TestProject"), Guid.NewGuid(), "TestDoc")
             readOnlyDocumentTracker.SetReadOnly(newDocumentId, False) ' Check no NRE
-        End Function
+        End Sub
 
 #Region "Helper Methods"
 

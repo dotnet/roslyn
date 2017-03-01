@@ -595,7 +595,7 @@ End Enum
 #Region "Prototype tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_UniqueSignature() As Task
+        Public Sub TestPrototype_UniqueSignature()
             Dim code =
 <Code>
 Namespace N
@@ -606,10 +606,10 @@ End Namespace
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "F:N.C.x")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_ClassName1() As Task
+        Public Sub TestPrototype_ClassName1()
             Dim code =
 <Code>
 Namespace N
@@ -620,10 +620,10 @@ End Namespace
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "Private C.x")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_ClassName2() As Task
+        Public Sub TestPrototype_ClassName2()
             Dim code =
 <Code>
 Namespace N
@@ -634,10 +634,10 @@ End Namespace
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "Private C(Of T).x")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_ClassName3() As Task
+        Public Sub TestPrototype_ClassName3()
             Dim code =
 <Code>
 Namespace N
@@ -648,10 +648,10 @@ End Namespace
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "Public C.x")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_ClassName_InitExpression() As Task
+        Public Sub TestPrototype_ClassName_InitExpression()
             Dim code =
 <Code>
 Namespace N
@@ -662,10 +662,10 @@ End Namespace
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression, "Private C.x = 42")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_FullName1() As Task
+        Public Sub TestPrototype_FullName1()
             Dim code =
 <Code>
 Namespace N
@@ -676,10 +676,10 @@ End Namespace
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "Private N.C.x")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_FullName2() As Task
+        Public Sub TestPrototype_FullName2()
             Dim code =
 <Code>
 Namespace N
@@ -690,10 +690,10 @@ End Namespace
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "Private N.C(Of T).x")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_FullName_InitExpression() As Task
+        Public Sub TestPrototype_FullName_InitExpression()
             Dim code =
 <Code>
 Namespace N
@@ -704,10 +704,10 @@ End Namespace
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname Or EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression, "Private N.C.x = 42")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_NoName() As Task
+        Public Sub TestPrototype_NoName()
             Dim code =
 <Code>
 Namespace N
@@ -718,10 +718,10 @@ End Namespace
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeNoName, "Private ")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_NoName_InitExpression() As Task
+        Public Sub TestPrototype_NoName_InitExpression()
             Dim code =
 <Code>
 Namespace N
@@ -732,10 +732,10 @@ End Namespace
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeNoName Or EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression, "Private  = 42")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_NoName_InitExpression_Type() As Task
+        Public Sub TestPrototype_NoName_InitExpression_Type()
             Dim code =
 <Code>
 Namespace N
@@ -746,10 +746,10 @@ End Namespace
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeNoName Or EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression Or EnvDTE.vsCMPrototype.vsCMPrototypeType, "Private  As Integer = 42")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_InitExpression_Type_ForAsNew() As Task
+        Public Sub TestPrototype_InitExpression_Type_ForAsNew()
             ' Amusingly, this will *crash* Dev10.
 
             Dim code =
@@ -762,10 +762,10 @@ End Namespace
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression Or EnvDTE.vsCMPrototype.vsCMPrototypeType, "Private x As System.Text.StringBuilder")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Type() As Task
+        Public Sub TestPrototype_Type()
             Dim code =
 <Code>
 Namespace N
@@ -776,14 +776,14 @@ End Namespace
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "Private x As Integer")
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Type tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestType1() As Task
+        Public Sub TestType1()
             Dim code =
 <Code>
 Class C
@@ -798,10 +798,10 @@ End Class
                              .CodeTypeFullName = "System.Int32",
                              .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefInt
                          })
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestType2() As Task
+        Public Sub TestType2()
             Dim code =
 <Code>
 Class C
@@ -816,10 +816,10 @@ End Class
                  .CodeTypeFullName = "System.Object",
                  .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefObject
              })
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestType3() As Task
+        Public Sub TestType3()
             Dim code =
 <Code>
 Class C
@@ -834,7 +834,7 @@ End Class
                  .CodeTypeFullName = "System.Object",
                  .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefObject
              })
-        End Function
+        End Sub
 
 #End Region
 

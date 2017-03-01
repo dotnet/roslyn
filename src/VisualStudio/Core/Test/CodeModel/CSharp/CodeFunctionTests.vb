@@ -426,7 +426,7 @@ public class C1 : I1
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName_ImplicitOperator() As Task
+        Public Sub TestFullName_ImplicitOperator()
             Dim code =
 <Code>
 public class ComplexType
@@ -445,11 +445,11 @@ public class ComplexType
 </Code>
 
             TestFullName(code, "ComplexType.implicit operator ComplexType")
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName_ExplicitOperator() As Task
+        Public Sub TestFullName_ExplicitOperator()
             Dim code =
 <Code>
 public class ComplexType
@@ -468,11 +468,11 @@ public class ComplexType
 </Code>
 
             TestFullName(code, "ComplexType.explicit operator ComplexType")
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName_OperatorOverload() As Task
+        Public Sub TestFullName_OperatorOverload()
             Dim code =
 <Code>
 public class ComplexType
@@ -491,14 +491,14 @@ public class ComplexType
 </Code>
 
             TestFullName(code, "ComplexType.operator +")
-        End Function
+        End Sub
 
 #End Region
 
 #Region "FunctionKind tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_Destructor() As Task
+        Public Sub TestFunctionKind_Destructor()
             Dim code =
 <Code>
 class C
@@ -508,10 +508,10 @@ class C
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionDestructor)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_ExplicitInterfaceImplementation() As Task
+        Public Sub TestFunctionKind_ExplicitInterfaceImplementation()
             Dim code =
 <Code>
 public interface I1
@@ -528,10 +528,10 @@ public class C1: I1
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionFunction)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_Operator() As Task
+        Public Sub TestFunctionKind_Operator()
             Dim code =
 <Code>
 public class C
@@ -543,10 +543,10 @@ public class C
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionOperator)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_ExplicitConversion() As Task
+        Public Sub TestFunctionKind_ExplicitConversion()
             Dim code =
 <Code>
 public class C
@@ -558,10 +558,10 @@ public class C
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionOperator)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_ImplicitConversion() As Task
+        Public Sub TestFunctionKind_ImplicitConversion()
             Dim code =
 <Code>
 public class C
@@ -573,14 +573,14 @@ public class C
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionOperator)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "MustImplement tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestMustImplement1() As Task
+        Public Sub TestMustImplement1()
             Dim code =
 <Code>
 abstract class C
@@ -590,10 +590,10 @@ abstract class C
 </Code>
 
             TestMustImplement(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestMustImplement2() As Task
+        Public Sub TestMustImplement2()
             Dim code =
 <Code>
 interface I
@@ -603,10 +603,10 @@ interface I
 </Code>
 
             TestMustImplement(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestMustImplement3() As Task
+        Public Sub TestMustImplement3()
             Dim code =
 <Code>
 class C
@@ -616,10 +616,10 @@ class C
 </Code>
 
             TestMustImplement(code, False)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestMustImplement4() As Task
+        Public Sub TestMustImplement4()
             Dim code =
 <Code>
 class C
@@ -629,10 +629,10 @@ class C
 </Code>
 
             TestMustImplement(code, False)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestMustImplement5() As Task
+        Public Sub TestMustImplement5()
             Dim code =
 <Code>
 class B
@@ -652,7 +652,7 @@ class C : B
 </Code>
 
             TestMustImplement(code, False)
-        End Function
+        End Sub
 
 #End Region
 
@@ -660,7 +660,7 @@ class C : B
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_ExplicitlyImplementedMethod() As Task
+        Public Sub TestName_ExplicitlyImplementedMethod()
             Dim code =
 <Code>
 public interface I1
@@ -678,7 +678,7 @@ public class C1 : I1
 </Code>
 
             TestName(code, "I1.f1")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestName_Destructor() As Task

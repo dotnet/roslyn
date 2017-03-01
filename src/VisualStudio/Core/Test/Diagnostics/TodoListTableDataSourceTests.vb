@@ -91,7 +91,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <Fact>
-        Public Async Function TestEntry() As Task
+        Public Sub TestEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -129,7 +129,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Column, column))
                 Assert.Equal(item.MappedColumn, column)
             End Using
-        End Function
+        End Sub
 
         <Fact>
         Public Async Function TestSnapshotEntry() As Task

@@ -38,9 +38,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestIsValidId_Keyword() As Task
+        Public Sub TestIsValidId_Keyword()
             AssertNotValidId("Class")
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_StartsWithNumber() As Task
@@ -608,7 +608,7 @@ End Sub</text>.NormalizedValue
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(850035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850035")>
-        Public Async Function TestEnsureEventHandler_WithHandlesAndNullObjectName() As Task
+        Public Sub TestEnsureEventHandler_WithHandlesAndNullObjectName()
             Dim code As String = "
 Imports System
 
@@ -648,7 +648,7 @@ End Sub"
                 TokenUtilities.AssertTokensEqual(generatedCode, eventHandlerIdTextPosition.Item2, Language)
                 Assert.Equal(New TextSpan With {.iStartLine = 12, .iEndLine = 12}, eventHandlerIdTextPosition.Item3)
             End Using
-        End Function
+        End Sub
 #End Region
 
 #Region "GetMemberNavigationPoint"
