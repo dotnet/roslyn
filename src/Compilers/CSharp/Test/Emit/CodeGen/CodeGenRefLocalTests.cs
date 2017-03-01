@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1696,6 +1697,44 @@ class Program
 
             Assert.Null(model.GetSymbolInfo(refInt).Symbol);
             Assert.Null(model.GetTypeInfo(refInt).Type);
+        }
+
+        [WorkItem(17395, "https://github.com/dotnet/roslyn/issues/17453")]
+        [Fact]
+        public void Regression17395()
+        {
+            var source = @"
+using System;
+
+public class C 
+{            
+    public void F()
+    {
+        ref int[] a = ref {1,2,3};
+        Console.WriteLine(a[0]);
+
+        ref var b = ref {4, 5, 6};
+        Console.WriteLine(b[0]);
+
+        ref object c = ref {7,8,9};
+        Console.WriteLine(c);
+    }        
+}
+";
+
+            var c = CreateCompilationWithMscorlib(source);
+
+            c.VerifyDiagnostics(
+                // (8,27): error CS1510: A ref or out value must be an assignable variable
+                //         ref int[] a = ref {1,2,3};
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "{1,2,3}"),
+                // (11,17): error CS0820: Cannot initialize an implicitly-typed variable with an array initializer
+                //         ref var b = ref {4, 5, 6};
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedArrayInitializer, "b = ref {4, 5, 6}").WithLocation(11, 17),
+                // (14,28): error CS0622: Can only use array initializer expressions to assign to array types. Try using a new expression instead.
+                //         ref object c = ref {7,8,9};
+                Diagnostic(ErrorCode.ERR_ArrayInitToNonArrayType, "{7,8,9}").WithLocation(14, 28)
+            );
         }
     }
 }
