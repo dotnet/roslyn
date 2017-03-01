@@ -331,12 +331,14 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 // Make sure the previous and next tokens we found do not overlap with any existing spans. If they do, merge two spans.
                 previousToken = (previousToken.RawKind == 0) ? root.GetFirstToken(includeZeroWidth: true) : previousToken;
-                var start = intervalTree.GetOverlappingIntervals(previousToken.SpanStart, previousToken.Span.Length).Any() ?
-                    previousToken.SpanStart : startToken.SpanStart;
+                var start = intervalTree.HasIntervalThatOverlapsWith(previousToken.SpanStart, previousToken.Span.Length)
+                    ? previousToken.SpanStart
+                    : startToken.SpanStart;
 
                 nextToken = (nextToken.RawKind == 0) ? root.GetLastToken(includeZeroWidth: true) : nextToken;
-                var end = intervalTree.GetOverlappingIntervals(nextToken.SpanStart, nextToken.Span.Length).Any() ?
-                    nextToken.Span.End : endToken.Span.End;
+                var end = intervalTree.HasIntervalThatOverlapsWith(nextToken.SpanStart, nextToken.Span.Length)
+                    ? nextToken.Span.End
+                    : endToken.Span.End;
 
                 tokenSpans.Add(TextSpan.FromBounds(start, end));
             }

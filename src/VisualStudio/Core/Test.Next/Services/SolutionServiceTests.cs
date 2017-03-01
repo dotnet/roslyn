@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var solution = workspace.CurrentSolution;
                 var service = await GetSolutionServiceAsync(solution);
@@ -98,7 +98,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var options = new TestOptionSet().WithChangedOption(RemoteHostOptions.RemoteHostTest, true);
 
@@ -121,7 +121,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var solution = workspace.CurrentSolution;
                 var service = await GetSolutionServiceAsync(solution);
@@ -145,7 +145,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var solution = workspace.CurrentSolution;
                 var service = await GetSolutionServiceAsync(solution);
@@ -166,7 +166,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var options = new TestOptionSet().WithChangedOption(RemoteHostOptions.RemoteHostTest, true);
 
@@ -253,7 +253,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public async Task TestAdditionalDocument()
         {
             var code = @"class Test { void Method() { } }";
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var projectId = workspace.CurrentSolution.ProjectIds.First();
                 var additionalDocumentId = DocumentId.CreateNewId(projectId);
@@ -285,7 +285,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var projectId = workspace.CurrentSolution.ProjectIds.First();
                 var documentId = DocumentId.CreateNewId(projectId);
@@ -318,7 +318,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var code = @"class Test { void Method() { } }";
 
             // create base solution
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 // create solution service
                 var solution = workspace.CurrentSolution;
@@ -358,7 +358,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 await VerifySolutionUpdate(workspace, newSolutionGetter);
             }

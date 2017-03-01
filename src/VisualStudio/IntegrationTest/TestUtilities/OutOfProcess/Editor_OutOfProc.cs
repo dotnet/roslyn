@@ -61,6 +61,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _inProc.IsCompletionActive();
         }
 
+        public bool IsSignatureHelpActive()
+        {
+            WaitForSignatureHelp();
+            return _inProc.IsSignatureHelpActive();
+        }
+
         public Signature[] GetSignatures()
         {
             WaitForSignatureHelp();

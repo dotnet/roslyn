@@ -16,5 +16,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public string GetActiveWindowCaption()
             => _inProc.GetActiveWindowCaption();
+
+        public int GetHWnd()
+            => _inProc.GetHWnd();
     }
 }
