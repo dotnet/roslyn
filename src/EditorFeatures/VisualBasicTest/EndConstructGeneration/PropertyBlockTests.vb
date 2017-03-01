@@ -74,7 +74,7 @@ End Class",
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyForReadOnlyWithSecondGetPropertyAfterExistingGet() As Task
+        Public Sub DontApplyForReadOnlyWithSecondGetPropertyAfterExistingGet()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property foo As Integer
@@ -86,19 +86,19 @@ End Class",
     End Property
 End Class",
                 caret:={6, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyForWriteOnlyProperty() As Task
+        Public Sub DontApplyForWriteOnlyProperty()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     WriteOnly Property foo As Integer
 End Class",
                 caret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyOnGetForRegularProperty() As Task
+        Public Sub TestApplyOnGetForRegularProperty()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
     Property foo As Integer
@@ -116,10 +116,10 @@ End Class",
     End Property
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyOnSetForRegularProperty() As Task
+        Public Sub TestApplyOnSetForRegularProperty()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
     Property foo As Integer
@@ -137,20 +137,20 @@ End Class",
     End Property
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyForReadOnlyPropertyIfEndPropertyMissingWhenInvokedAfterProperty() As Task
+        Public Sub DontApplyForReadOnlyPropertyIfEndPropertyMissingWhenInvokedAfterProperty()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property foo As Integer
         Get
 End Class",
                 caret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyOnGetForRegularPropertyWithSetPresent() As Task
+        Public Sub TestApplyOnGetForRegularPropertyWithSetPresent()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
     Property foo As Integer
@@ -174,20 +174,20 @@ End Class",
     End Property
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyForWriteOnlyPropertyWithTypeCharacter() As Task
+        Public Sub DontApplyForWriteOnlyPropertyWithTypeCharacter()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     WriteOnly Property foo$
 End Class",
                 caret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(536376, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536376")>
-        Public Async Function TestApplyForPropertyWithIndexer() As Task
+        Public Sub TestApplyForPropertyWithIndexer()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
     Property foo(arg as Integer) As Integer
@@ -204,11 +204,11 @@ End Class",
     End Property
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
-        Public Async Function DontApplyForDuplicateGet() As Task
+        Public Sub DontApplyForDuplicateGet()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property foo As Integer
@@ -219,11 +219,11 @@ End Class",
     End Property
 End Class",
                 caret:={5, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
-        Public Async Function DontApplyForDuplicateSet() As Task
+        Public Sub DontApplyForDuplicateSet()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     WriteOnly Property foo As Integer
@@ -234,11 +234,11 @@ End Class",
     End Property
 End Class",
                 caret:={5, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
-        Public Async Function DontApplyForSetInReadOnly() As Task
+        Public Sub DontApplyForSetInReadOnly()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property foo As Integer
@@ -246,11 +246,11 @@ End Class",
     End Property
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyForGetInReadOnly() As Task
+        Public Sub DontApplyForGetInReadOnly()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     WriteOnly Property foo As Integer
@@ -258,30 +258,30 @@ End Class",
     End Property
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyInternationalCharacter() As Task
+        Public Sub VerifyInternationalCharacter()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     WriteOnly Property fooæ
 End Class",
                 caret:={1, -1})
-        End Function
+        End Sub
 
         <WorkItem(544197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544197")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyInsideAnInterface() As Task
+        Public Sub DontApplyInsideAnInterface()
             VerifyStatementEndConstructNotApplied(
                 text:="Interface IFoo
     Property Foo(x As Integer) As String
 End Interface",
                 caret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(2096, "https://github.com/dotnet/roslyn/issues/2096")>
-        Public Async Function TestDontGenerateSetForReadonlyProperty() As Task
+        Public Sub TestDontGenerateSetForReadonlyProperty()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
     Readonly Property foo(arg as Integer) As Integer
@@ -295,11 +295,11 @@ End Class",
     End Property
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(2096, "https://github.com/dotnet/roslyn/issues/2096")>
-        Public Async Function TestDontGenerateGetForWriteonlyProperty() As Task
+        Public Sub TestDontGenerateGetForWriteonlyProperty()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
     Writeonly Property foo(arg as Integer) As Integer
@@ -313,6 +313,6 @@ End Class",
     End Property
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
     End Class
 End Namespace

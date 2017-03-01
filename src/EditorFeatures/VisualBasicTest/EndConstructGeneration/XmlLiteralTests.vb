@@ -67,7 +67,7 @@ End Class",
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyInParameterDeclaration2() As Threading.Tasks.Task
+        Public Sub DontApplyInParameterDeclaration2()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
     Sub M1(i As Integer,
@@ -75,10 +75,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, 16})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyAfterXmlStartElementWithEndElement() As Threading.Tasks.Task
+        Public Sub DontApplyAfterXmlStartElementWithEndElement()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
     Sub M1()
@@ -86,10 +86,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, 23})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyAfterXmlEndElement() As Threading.Tasks.Task
+        Public Sub DontApplyAfterXmlEndElement()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
     Sub M1()
@@ -97,10 +97,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyAfterSingleXmlTag() As Threading.Tasks.Task
+        Public Sub DontApplyAfterSingleXmlTag()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
     Sub M1()
@@ -108,10 +108,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyAfterProcessingInstruction() As Threading.Tasks.Task
+        Public Sub DontApplyAfterProcessingInstruction()
             VerifyXmlElementEndConstructNotApplied(
                 text:="Class C1
     Sub M1()
@@ -119,10 +119,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterXmlStartElementWhenPassedAsParameter1() As Task
+        Public Sub TestApplyAfterXmlStartElementWhenPassedAsParameter1()
             VerifyXmlElementEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -136,10 +136,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={2, 16})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterXmlStartElementWhenPassedAsParameter2() As Task
+        Public Sub TestApplyAfterXmlStartElementWhenPassedAsParameter2()
             VerifyXmlElementEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -153,10 +153,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={2, 16})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterXmlComment() As Task
+        Public Sub TestApplyAfterXmlComment()
             VerifyXmlCommentEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -170,10 +170,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={2, 20})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterXmlCommentWhenPassedAsParameter1() As Task
+        Public Sub TestApplyAfterXmlCommentWhenPassedAsParameter1()
             VerifyXmlCommentEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -187,10 +187,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={2, 15})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterXmlCommentWhenPassedAsParameter2() As Task
+        Public Sub TestApplyAfterXmlCommentWhenPassedAsParameter2()
             VerifyXmlCommentEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -204,10 +204,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={2, 15})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterXmlCData() As Task
+        Public Sub TestApplyAfterXmlCData()
             VerifyXmlCDataEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -221,10 +221,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={2, 25})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterXmlCData2() As Task
+        Public Sub TestApplyAfterXmlCData2()
             VerifyXmlCDataEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -238,10 +238,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={2, 31})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterXmlEmbeddedExpression1() As Task
+        Public Sub TestApplyAfterXmlEmbeddedExpression1()
             VerifyXmlEmbeddedExpressionEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -255,10 +255,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={2, 20})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterXmlEmbeddedExpression2() As Task
+        Public Sub TestApplyAfterXmlEmbeddedExpression2()
             VerifyXmlEmbeddedExpressionEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -272,10 +272,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={2, 23})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterXmlEmbeddedExpression3() As Task
+        Public Sub TestApplyAfterXmlEmbeddedExpression3()
             VerifyXmlEmbeddedExpressionEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -289,10 +289,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={2, 23})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterXmlProcessingInstruction() As Task
+        Public Sub TestApplyAfterXmlProcessingInstruction()
             VerifyXmlProcessingInstructionEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -306,10 +306,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={2, 18})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterXmlProcessingInstructionWhenPassedAsParameter1() As Task
+        Public Sub TestApplyAfterXmlProcessingInstructionWhenPassedAsParameter1()
             VerifyXmlProcessingInstructionEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -323,10 +323,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={2, 13})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterXmlProcessingInstructionWhenPassedAsParameter2() As Task
+        Public Sub TestApplyAfterXmlProcessingInstructionWhenPassedAsParameter2()
             VerifyXmlProcessingInstructionEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -340,10 +340,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={2, 13})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestInsertBlankLineWhenPressingEnterInEmptyXmlTag() As Task
+        Public Sub TestInsertBlankLineWhenPressingEnterInEmptyXmlTag()
             VerifyStatementEndConstructApplied(
                 before:="Class C1
     Sub M1()
@@ -359,6 +359,6 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
     End Class
 End Namespace

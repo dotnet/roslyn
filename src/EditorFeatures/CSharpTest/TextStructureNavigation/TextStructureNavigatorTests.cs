@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
     public class TextStructureNavigatorTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task Empty()
+        public void Empty()
         {
             AssertExtent(
                 string.Empty,
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task Whitespace()
+        public void Whitespace()
         {
             AssertExtent(
                 "   ",
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task EndOfFile()
+        public void EndOfFile()
         {
             AssertExtent(
                 "using System;",
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task NewLine()
+        public void NewLine()
         {
             AssertExtent(
                 "class Class1 {\r\n\r\n}",
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task SingleLineComment()
+        public void SingleLineComment()
         {
             AssertExtent(
                 "// Comment  ",
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task MultiLineComment()
+        public void MultiLineComment()
         {
             AssertExtent(
                 "/* Comment */",
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task Keyword()
+        public void Keyword()
         {
             for (int i = 7; i <= 7 + 4; i++)
             {
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task Identifier()
+        public void Identifier()
         {
             for (int i = 13; i <= 13 + 8; i++)
             {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task EscapedIdentifier()
+        public void EscapedIdentifier()
         {
             for (int i = 12; i <= 12 + 9; i++)
             {
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task Number()
+        public void Number()
         {
             for (int i = 37; i <= 37 + 10; i++)
             {
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task String()
+        public void String()
         {
             const string TestString = "class Test { private string s1 = \" () test  \"; }";
             int startOfString = TestString.IndexOf('"');
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task InterpolatedString1()
+        public void InterpolatedString1()
         {
             const string TestString = "class Test { string x = \"hello\"; string s = $\" { x } hello\"; }";
 
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task GetSpanOfEnclosingTest()
+        public void GetSpanOfEnclosingTest()
         {
             // First operation returns span of 'Class1'
             TestNavigator(
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task GetSpanOfFirstChildTest()
+        public void GetSpanOfFirstChildTest()
         {
             // Go from 'class Class1 { }' to 'class'
             TestNavigator(
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task GetSpanOfNextSiblingTest()
+        public void GetSpanOfNextSiblingTest()
         {
             // Go from 'class' to 'Class1'
             TestNavigator(
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
-        public async Task GetSpanOfPreviousSiblingTest()
+        public void GetSpanOfPreviousSiblingTest()
         {
             // Go from '{' to 'Class1'
             TestNavigator(

@@ -69,7 +69,7 @@ End Class</code>)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestDim1() As Task
+        Public Sub TestDim1()
             Test(<code>Class C
     Sub Method()
         Dim i =
@@ -80,10 +80,10 @@ End Class</code>, <code>Class C
         Dim i =$$
     End Sub
 End Class</code>)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestDim2() As Task
+        Public Sub TestDim2()
             Test(<code>Class C
     Sub Method()
         Dim i
@@ -94,11 +94,11 @@ End Class</code>, <code>Class C
         Dim i$$
     End Sub
 End Class</code>)
-        End Function
+        End Sub
 
         <WorkItem(712977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712977")>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestDim3() As Task
+        Public Sub TestDim3()
             Test(<code>Class C
     Sub Method()
         Dim _
@@ -111,11 +111,11 @@ End Class</code>, <code>Class C
 $$
     End Sub
 End Class</code>)
-        End Function
+        End Sub
 
         <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestDim_After_MalformedStatement() As Task
+        Public Sub TestDim_After_MalformedStatement()
             Test(<code>Class C
     Sub Method()
         Dim _ ' test
@@ -128,10 +128,10 @@ End Class</code>, <code>Class C
 $$
     End Sub
 End Class</code>)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestIf() As Task
+        Public Sub TestIf()
             Test(
 <code>
 Class C
@@ -149,11 +149,11 @@ Class C
     End Sub
 End Class
 </code>)
-        End Function
+        End Sub
 
         <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestIf_Trivia() As Task
+        Public Sub TestIf_Trivia()
             Test(
 <code>
 Class C
@@ -171,11 +171,11 @@ Class C
     End Sub
 End Class
 </code>)
-        End Function
+        End Sub
 
         <WorkItem(530591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestIf_Trivia2() As Task
+        Public Sub TestIf_Trivia2()
             Test(
 <code>
 Class C
@@ -193,11 +193,11 @@ Class C
     End Sub
 End Class
 </code>)
-        End Function
+        End Sub
 
         <WorkItem(577920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577920")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestEndOfFile_SkippedToken() As Task
+        Public Sub TestEndOfFile_SkippedToken()
             Test(
 <code>
 Module M
@@ -214,10 +214,10 @@ Module M
 End Module
 "$$
 </code>)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestWithLineContinuation() As Task
+        Public Sub TestWithLineContinuation()
             Test(
 <code>
 Module M
@@ -234,7 +234,7 @@ Module M
     End Sub
 End Module
 </code>)
-        End Function
+        End Sub
 
         Private Overloads Sub Test(expected As XElement, code As XElement)
             Test(expected.NormalizedValue(), code.NormalizedValue())

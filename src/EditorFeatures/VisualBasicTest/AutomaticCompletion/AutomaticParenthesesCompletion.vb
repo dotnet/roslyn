@@ -216,7 +216,7 @@ End Class</code>
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestBinaryConditionalExpressionSyntax() As Task
+        Public Sub TestBinaryConditionalExpressionSyntax()
             Dim code = <code>Class C
     Sub Method()
         Dim a = If$$
@@ -227,10 +227,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestArgumentListSyntax() As Task
+        Public Sub TestArgumentListSyntax()
             Dim code = <code>Class C
     Sub Method()
         Method$$
@@ -241,10 +241,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestFunctionAggregationSyntax() As Task
+        Public Sub TestFunctionAggregationSyntax()
             Dim code = <code>Class C
     Sub Method()
         Dim max = Aggregate o In metaData.Order Into m = Max$$
@@ -255,10 +255,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestTypeArgumentListSyntax() As Task
+        Public Sub TestTypeArgumentListSyntax()
             Dim code = <code>Class C
     Sub Method()
         Dim d = new List$$
@@ -269,10 +269,10 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestExternalSourceDirectiveSyntax() As Task
+        Public Sub TestExternalSourceDirectiveSyntax()
             Dim code = <code>Imports System
 
 Public Class ExternalSourceClass
@@ -286,7 +286,7 @@ End Class</code>
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Sub TestExternalChecksumDirectiveSyntax()

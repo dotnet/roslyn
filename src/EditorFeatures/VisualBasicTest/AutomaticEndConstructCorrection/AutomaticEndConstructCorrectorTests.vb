@@ -12,111 +12,111 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticEndConstr
     Public Class AutomaticEndConstructCorrectorTests
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestStructureToInterface() As Task
+        Public Sub TestStructureToInterface()
             Dim code = <code>[|Structure|] A
 End [|Structure|]</code>.Value
 
-            Await VerifyAsync(code, "Interface")
-        End Function
+            Verify(code, "Interface")
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestEnumToInterface() As Task
+        Public Sub TestEnumToInterface()
             Dim code = <code>[|Enum|] A
 End [|Enum|]</code>.Value
 
-            Await VerifyAsync(code, "Interface")
-        End Function
+            Verify(code, "Interface")
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestInterfaceToEnum() As Task
+        Public Sub TestInterfaceToEnum()
             Dim code = <code>[|Interface|] A
 End [|Interface|]</code>.Value
 
-            Await VerifyAsync(code, "Enum")
-        End Function
+            Verify(code, "Enum")
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestClassToInterface() As Task
+        Public Sub TestClassToInterface()
             Dim code = <code>[|Class|] A
 End [|Class|]</code>.Value
 
-            Await VerifyAsync(code, "Interface")
-        End Function
+            Verify(code, "Interface")
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestModuleToInterface() As Task
+        Public Sub TestModuleToInterface()
             Dim code = <code>[|Module|] A
 End [|Module|]</code>.Value
 
-            Await VerifyAsync(code, "Interface")
-        End Function
+            Verify(code, "Interface")
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestNamespaceToInterface() As Task
+        Public Sub TestNamespaceToInterface()
             Dim code = <code>[|Namespace|] A
 End [|Namespace|]</code>.Value
 
-            Await VerifyAsync(code, "Interface")
-        End Function
+            Verify(code, "Interface")
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestSubToFunction() As Task
+        Public Sub TestSubToFunction()
             Dim code = <code>Class A
     [|Sub|] Test()
     End [|Sub|]
 End Class</code>.Value
 
-            Await VerifyAsync(code, "Function")
-        End Function
+            Verify(code, "Function")
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestFunctionToSub() As Task
+        Public Sub TestFunctionToSub()
             Dim code = <code>Class A
     [|Function|] Test() As Integer
     End [|Function|]
 End Class</code>.Value
 
-            Await VerifyAsync(code, "Sub")
-        End Function
+            Verify(code, "Sub")
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestModuleToInterface1() As Task
+        Public Sub TestModuleToInterface1()
             Dim code = <code>[|Module|] A : End [|Module|] : Module B : End Module</code>.Value
 
-            Await VerifyAsync(code, "Interface")
-        End Function
+            Verify(code, "Interface")
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestModuleToInterface2() As Task
+        Public Sub TestModuleToInterface2()
             Dim code = <code>Module A : End Module : [|Module|] B : End [|Module|]</code>.Value
 
-            Await VerifyAsync(code, "Interface")
-        End Function
+            Verify(code, "Interface")
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestModuleToInterface3() As Task
+        Public Sub TestModuleToInterface3()
             Dim code = <code>Module A : End Module:[|Module|] B : End [|Module|]</code>.Value
 
-            Await VerifyAsync(code, "Interface")
-        End Function
+            Verify(code, "Interface")
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestModuleToInterface4() As Task
+        Public Sub TestModuleToInterface4()
             Dim code = <code>[|Module|] A : End [|Module|]:Module B : End Module</code>.Value
 
-            Await VerifyAsync(code, "Interface")
-        End Function
+            Verify(code, "Interface")
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
@@ -187,51 +187,51 @@ End Class</code>.Value
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestAddSharedModifierToFunction1() As Task
+        Public Sub TestAddSharedModifierToFunction1()
             Dim code = <code>Class A
     [|Function$$|] Test() As Integer
     End [|Function|]
 End Class</code>.Value
 
             VerifyContinuousEdits(code, "Shared   ", Function(s) "Function", removeOriginalContent:=False)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestAddTrailingSpaceToFunction() As Task
+        Public Sub TestAddTrailingSpaceToFunction()
             Dim code = <code>Class A
     [|Function$$|] Test() As Integer
     End [|Function|]
 End Class</code>.Value
 
             VerifyContinuousEdits(code, "           ", Function(s) "Function", removeOriginalContent:=False)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestAddLeadingSpaceToFunction() As Task
+        Public Sub TestAddLeadingSpaceToFunction()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer
     End [|Function|]
 End Class</code>.Value
 
             VerifyContinuousEdits(code, "           ", Function(s) "Function", removeOriginalContent:=False)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestAddSharedModifierToFunction2() As Task
+        Public Sub TestAddSharedModifierToFunction2()
             Dim code = <code>Class A
     [|Function$$|] Test() As Integer
     End [|Function|]
 End Class</code>.Value
 
             VerifyContinuousEdits(code, "Shared", Function(s) "Function", removeOriginalContent:=False, split:="Function")
-        End Function
+        End Sub
 
         <WorkItem(539362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestMultiLineLambdaSubToFunction() As Task
+        Public Sub TestMultiLineLambdaSubToFunction()
             Dim code = <code>Class A
     Public Sub F()
         Dim nums() As Integer = {1, 2, 3, 4, 5}
@@ -242,12 +242,12 @@ End Class</code>.Value
     End Sub
 End Class</code>.Value
 
-            Await VerifyAsync(code, "Function")
-        End Function
+            Verify(code, "Function")
+        End Sub
 
         <WorkItem(539362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestMultiLineLambdaFunctionToSub() As Task
+        Public Sub TestMultiLineLambdaFunctionToSub()
             Dim code = <code>Class A
     Public Sub F()
         Dim nums() As Integer = {1, 2, 3, 4, 5}
@@ -257,12 +257,12 @@ End Class</code>.Value
     End Sub
 End Class</code>.Value
 
-            Await VerifyAsync(code, "Sub")
-        End Function
+            Verify(code, "Sub")
+        End Sub
 
         <WorkItem(539365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539365")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function BugFix5290() As Task
+        Public Sub BugFix5290()
             Dim code = <code>Public Class Class1
     Sub M()
         [|Class|]
@@ -271,46 +271,46 @@ End [|Class|]</code>.Value
 
             VerifyBegin(code, "Structure", "Class")
             VerifyEnd(code, "Structure", "Class")
-        End Function
+        End Sub
 
         <WorkItem(539357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539357")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestBugFix5276() As Task
+        Public Sub TestBugFix5276()
             Dim code = <code>Class A
     [|Func$$tion|] Test() As Integer
     End [|Function|]
 End Class</code>.Value
 
             VerifyContinuousEdits(code, "  ", Function(s) "Function", removeOriginalContent:=False)
-        End Function
+        End Sub
 
         <WorkItem(539360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539360")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestBugFix5283() As Task
+        Public Sub TestBugFix5283()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer
     End [|Function|]
 End Class</code>.Value
 
             VerifyContinuousEdits(code, "Shared Sub", Function(s) If(s.Trim() = "Shared Sub", "Sub", "Function"), removeOriginalContent:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         <WorkItem(539498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539498")>
-        Public Async Function TestDontThrowDueToSingleLineDeletion() As Task
+        Public Sub TestDontThrowDueToSingleLineDeletion()
             Dim code = <code>Class A
     [|$$Sub M() : End Sub|]
 End Class</code>.Value
 
             VerifyContinuousEdits(code, "", Function() "", removeOriginalContent:=True)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestPropertySet() As Task
+        Public Sub TestPropertySet()
             Dim code = <code>Class A
     Property Test
         [|Get|]
@@ -320,12 +320,12 @@ End Class</code>.Value
     End Property
 End Class</code>.Value
 
-            Await VerifyAsync(code, "Set")
-        End Function
+            Verify(code, "Set")
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestPropertyGet() As Task
+        Public Sub TestPropertyGet()
             Dim code = <code>Class A
     Property Test
         Get
@@ -335,8 +335,8 @@ End Class</code>.Value
     End Property
 End Class</code>.Value
 
-            Await VerifyAsync(code, "Get")
-        End Function
+            Verify(code, "Get")
+        End Sub
 
         Private Sub VerifyContinuousEdits(codeWithMarker As String,
                                           type As String,
@@ -388,13 +388,13 @@ End Class</code>.Value
             End Using
         End Sub
 
-        Private Async Function VerifyAsync(codeWithMarker As String, keyword As String) As Task
+        Private Sub Verify(codeWithMarker As String, keyword As String)
             ' do this since xml value put only vbLf
             codeWithMarker = codeWithMarker.Replace(vbLf, vbCrLf)
 
             VerifyBegin(codeWithMarker, keyword)
             VerifyEnd(codeWithMarker, keyword)
-        End Function
+        End Sub
 
         Private Sub VerifyBegin(code As String, keyword As String, Optional expected As String = Nothing)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
