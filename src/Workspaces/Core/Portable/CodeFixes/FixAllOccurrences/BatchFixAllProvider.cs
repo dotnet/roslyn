@@ -315,15 +315,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var totalChangesIntervalTree = SimpleIntervalTree.Create(this);
 
-            var documentId = default(DocumentId);
-            var oldDocument = default(Document);
+            var oldDocument = oldSolution.GetDocument(orderedDocuments[0].document.Id);
+
             foreach (var (_, currentDocument) in orderedDocuments)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                Debug.Assert(documentId == null || currentDocument.Id == documentId);
-                documentId = currentDocument.Id;
-
-                oldDocument = oldDocument ?? oldSolution.GetDocument(documentId);
+                Debug.Assert(currentDocument.Id == oldDocument.Id);
 
                 await TryAddDocumentMergeChangesAsync(
                     oldDocument,
@@ -335,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = oldText.WithChanges(totalChangesIntervalTree);
 
-            documentIdToFinalText.TryAdd(documentId, newText);
+            documentIdToFinalText.TryAdd(oldDocument.Id, newText);
         }
 
         int IIntervalIntrospector<TextChange>.GetStart(TextChange value) => value.Span.Start;
