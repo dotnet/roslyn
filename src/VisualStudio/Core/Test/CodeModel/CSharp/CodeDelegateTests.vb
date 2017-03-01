@@ -246,7 +246,7 @@ delegate C $$D();
 #Region "Set Type tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestSetType1()
+        Public Async Function TestSetType1() As Task
             Dim code =
 <Code>
 public delegate int $$D();
@@ -257,8 +257,8 @@ public delegate int $$D();
 public delegate void D();
 </Code>
 
-            TestSetTypeProp(code, expected, "void")
-        End Sub
+            Await TestSetTypeProp(code, expected, "void")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetType2() As Task
