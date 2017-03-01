@@ -1405,7 +1405,7 @@ End Module
 #Region "Explicit line-continuation"
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestExplicitLineContinuationInExpression() As Task
+        Public Sub TestExplicitLineContinuationInExpression()
             Dim code = <Code>Class C
     Sub Method()
         Dim q = 1 + _
@@ -1415,11 +1415,11 @@ End Module
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestMultipleExplicitLineContinuationsInExpression() As Task
+        Public Sub TestMultipleExplicitLineContinuationsInExpression()
             Dim code = <Code>Class C
     Sub Method()
         Dim q = 1 + _
@@ -1431,11 +1431,11 @@ End Module
                 code,
                 indentationLine:=5,
                 expectedIndentation:=24)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestExplicitLineContinuationInFieldDeclaration() As Task
+        Public Sub TestExplicitLineContinuationInFieldDeclaration()
             Dim code = <Code>Class C
     Dim q _
 </Code>.Value
@@ -1444,11 +1444,11 @@ End Module
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestExplicitLineContinuationAfterAttributeInNamespace() As Task
+        Public Sub TestExplicitLineContinuationAfterAttributeInNamespace()
             Dim code = "Namespace foo" & vbCrLf &
                        "    <SomeAttribute()> _" & vbCrLf &
                        ""
@@ -1457,11 +1457,11 @@ End Module
                 code,
                 indentationLine:=2,
                 expectedIndentation:=4)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestExplicitLineContinuationWithMultipleAttributes() As Task
+        Public Sub TestExplicitLineContinuationWithMultipleAttributes()
             Dim code = "Namespace foo" & vbCrLf &
                        "    <SomeAttribute1()> _" & vbCrLf &
                        "    <SomeAttribute2()> _" & vbCrLf &
@@ -1471,7 +1471,7 @@ End Module
                 code,
                 indentationLine:=3,
                 expectedIndentation:=4)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
@@ -1612,7 +1612,7 @@ End Module
         <WpfFact>
         <WorkItem(538937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538937")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestPreprocessorEndIf() As Task
+        Public Sub TestPreprocessorEndIf()
             Dim code = <Code>Namespace SomeNamespace
     Class C
         Sub Method()
@@ -1624,14 +1624,14 @@ End Module
                 code,
                 indentationLine:=5,
                 expectedIndentation:=12)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "XML Literals"
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestXMLLiteralOpenTag() As Task
+        Public Sub TestXMLLiteralOpenTag()
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
@@ -1641,11 +1641,11 @@ End Module
                 code,
                 indentationLine:=3,
                 expectedIndentation:=20)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestXMLLiteralNestOpenTag() As Task
+        Public Sub TestXMLLiteralNestOpenTag()
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
@@ -1656,11 +1656,11 @@ End Module
                 code,
                 indentationLine:=4,
                 expectedIndentation:=24)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestXMLLiteralCloseTag() As Task
+        Public Sub TestXMLLiteralCloseTag()
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
@@ -1672,12 +1672,12 @@ End Module
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(538938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538938")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestXMLLiteralCloseTagInXML() As Task
+        Public Sub TestXMLLiteralCloseTagInXML()
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
@@ -1689,13 +1689,13 @@ End Module
                 code,
                 indentationLine:=5,
                 expectedIndentation:=20)
-        End Function
+        End Sub
 
         <WpfFact(Skip:="Bug 816976")>
         <WorkItem(816976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/816976")>
         <WorkItem(538938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538938")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestXMLExpressionHole() As Task
+        Public Sub TestXMLExpressionHole()
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
@@ -1707,11 +1707,11 @@ End Module
                 code,
                 indentationLine:=4,
                 expectedIndentation:=24)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestXMLExpressionHoleWithMultilineLambda() As Task
+        Public Sub TestXMLExpressionHoleWithMultilineLambda()
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
@@ -1722,12 +1722,12 @@ End Module
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(538938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538938")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestXMLExpressionHoleClosed() As Task
+        Public Sub TestXMLExpressionHoleClosed()
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
@@ -1738,11 +1738,11 @@ End Module
                 code,
                 indentationLine:=4,
                 expectedIndentation:=20)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestXMLExpressionHoleWithXMLInIt() As Task
+        Public Sub TestXMLExpressionHoleWithXMLInIt()
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
@@ -1753,11 +1753,11 @@ End Module
                 code,
                 indentationLine:=4,
                 expectedIndentation:=28)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestXMLLiteralText() As Task
+        Public Sub TestXMLLiteralText()
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
@@ -1768,7 +1768,7 @@ End Module
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
