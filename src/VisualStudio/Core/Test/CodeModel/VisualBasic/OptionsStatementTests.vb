@@ -21,7 +21,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -58,7 +58,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -92,7 +92,7 @@ End Class
 $$Option Strict On
 </Code>
 
-            Await TestKind(code, EnvDTE.vsCMElement.vsCMElementOptionStmt)
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementOptionStmt)
         End Function
 
 #End Region
@@ -106,7 +106,7 @@ $$Option Strict On
 $$Option Strict On
 </Code>
 
-            Await TestName(code, "Option Strict On")
+            TestName(code, "Option Strict On")
         End Function
 
 #End Region

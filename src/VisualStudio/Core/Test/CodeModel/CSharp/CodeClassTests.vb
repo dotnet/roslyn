@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 class $$C {}
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -52,7 +52,7 @@ class $$C {}
 class $$C { }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -82,7 +82,7 @@ class $$C { }
 class $$C {  }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -113,7 +113,7 @@ using System;
 [CLSCompliant(true)] class $$C { }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -145,7 +145,7 @@ using System;
 class $$C { }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -178,7 +178,7 @@ class $$C {
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -212,7 +212,7 @@ class $$C {
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -247,7 +247,7 @@ class $$C
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -278,7 +278,7 @@ using System;
 [CLSCompliant(true)]
 class $$C {void M() { }}
 </Code>
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -309,7 +309,7 @@ using System;
 [CLSCompliant(true)]
 class $$C { void M() { } }
 </Code>
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -342,7 +342,7 @@ class $$C {
     void M() { }
 }
 </Code>
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -376,7 +376,7 @@ class $$C
     void M() { }
 }
 </Code>
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -410,7 +410,7 @@ class $$C
 class $$C {}
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -440,7 +440,7 @@ class $$C {}
 class $$C { }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -470,7 +470,7 @@ class $$C { }
 class $$C {  }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -501,7 +501,7 @@ using System;
 [CLSCompliant(true)] class $$C { }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -533,7 +533,7 @@ using System;
 class $$C { }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -566,7 +566,7 @@ class $$C {
 }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -600,7 +600,7 @@ class $$C {
 }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -635,7 +635,7 @@ class $$C
 }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -666,7 +666,7 @@ using System;
 [CLSCompliant(true)]
 class $$C {void M() { }}
 </Code>
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -697,7 +697,7 @@ using System;
 [CLSCompliant(true)]
 class $$C { void M() { } }
 </Code>
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -730,7 +730,7 @@ class $$C {
     void M() { }
 }
 </Code>
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -764,7 +764,7 @@ class $$C
     void M() { }
 }
 </Code>
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -798,7 +798,7 @@ class $$C
 class $$C { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -808,7 +808,7 @@ class $$C { }
 internal class $$C { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -818,7 +818,7 @@ internal class $$C { }
 public class $$C { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -828,7 +828,7 @@ public class $$C { }
 class C { class $$D { } }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -838,7 +838,7 @@ class C { class $$D { } }
 class C { private class $$D { } }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -848,7 +848,7 @@ class C { private class $$D { } }
 class C { protected class $$D { } }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -858,7 +858,7 @@ class C { protected class $$D { } }
 class C { protected internal class $$D { } }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -868,7 +868,7 @@ class C { protected internal class $$D { } }
 class C { internal class $$D { } }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -878,7 +878,7 @@ class C { internal class $$D { } }
 class C { public class $$D { } }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
 #End Region
@@ -892,7 +892,7 @@ class C { public class $$D { } }
 class $$C { }
 </Code>
 
-            Await TestAttributes(code, NoElements)
+            TestAttributes(code, NoElements)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -905,7 +905,7 @@ using System;
 class $$C { }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"))
+            TestAttributes(code, IsElement("Serializable"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -918,7 +918,7 @@ class $$C { }
 class $$C { }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
+            TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -930,7 +930,7 @@ class $$C { }
 class $$C { }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
+            TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
         End Function
 #End Region
 
@@ -943,7 +943,7 @@ class $$C { }
 class $$C { }
 </Code>
 
-            Await TestBases(code, IsElement("Object"))
+            TestBases(code, IsElement("Object"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -953,7 +953,7 @@ class $$C { }
 class $$C : object { }
 </Code>
 
-            Await TestBases(code, IsElement("Object"))
+            TestBases(code, IsElement("Object"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -964,7 +964,7 @@ class C { }
 class $$D : C { }
 </Code>
 
-            Await TestBases(code, IsElement("C"))
+            TestBases(code, IsElement("C"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -975,7 +975,7 @@ interface I { }
 class $$D : I { }
 </Code>
 
-            Await TestBases(code, IsElement("Object"))
+            TestBases(code, IsElement("Object"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -985,7 +985,7 @@ class $$D : I { }
 class $$C : System.Collections.Generic.List&lt;int&gt; { }
 </Code>
 
-            Await TestBases(code, IsElement("List"))
+            TestBases(code, IsElement("List"))
         End Function
 
 #End Region
@@ -999,7 +999,7 @@ class $$C : System.Collections.Generic.List&lt;int&gt; { }
 class $$C { }
 </Code>
 
-            Await TestChildren(code, NoElements)
+            TestChildren(code, NoElements)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1009,7 +1009,7 @@ class $$C { }
 class $$C { void M() { } }
 </Code>
 
-            Await TestChildren(code, IsElement("M"))
+            TestChildren(code, IsElement("M"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1020,7 +1020,7 @@ class $$C { void M() { } }
 class $$C { void M() { } }
 </Code>
 
-            Await TestChildren(code, IsElement("Obsolete"), IsElement("M"))
+            TestChildren(code, IsElement("Obsolete"), IsElement("M"))
         End Function
 
 
@@ -1037,7 +1037,7 @@ class $$C
 }
 </Code>
 
-            Await TestClassKind(code, EnvDTE80.vsCMClassKind.vsCMClassKindMainClass)
+            TestClassKind(code, EnvDTE80.vsCMClassKind.vsCMClassKindMainClass)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1049,7 +1049,7 @@ partial class $$C
 }
 </Code>
 
-            Await TestClassKind(code, EnvDTE80.vsCMClassKind.vsCMClassKindPartialClass)
+            TestClassKind(code, EnvDTE80.vsCMClassKind.vsCMClassKindPartialClass)
         End Function
 
 #End Region
@@ -1063,7 +1063,7 @@ partial class $$C
 class $$C { }
 </Code>
 
-            Await TestComment(code, String.Empty)
+            TestComment(code, String.Empty)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1075,7 +1075,7 @@ class $$C { }
 class $$C { }
 </Code>
 
-            Await TestComment(code, "Foo" & vbCrLf & "Bar" & vbCrLf)
+            TestComment(code, "Foo" & vbCrLf & "Bar" & vbCrLf)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1087,7 +1087,7 @@ class B { } // Foo
 class $$C { }
 </Code>
 
-            Await TestComment(code, "Bar" & vbCrLf)
+            TestComment(code, "Bar" & vbCrLf)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1099,7 +1099,7 @@ class B { } // Foo
 class $$C { }
 </Code>
 
-            Await TestComment(code, "Bar" & vbCrLf)
+            TestComment(code, "Bar" & vbCrLf)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1113,7 +1113,7 @@ class B { } // Foo
 class $$C { }
 </Code>
 
-            Await TestComment(code, "Bar" & vbCrLf)
+            TestComment(code, "Bar" & vbCrLf)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1128,7 +1128,7 @@ class B { } // Foo
 class $$C { }
 </Code>
 
-            Await TestComment(code, "Hello" & vbCrLf & "World!" & vbCrLf)
+            TestComment(code, "Hello" & vbCrLf & "World!" & vbCrLf)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1144,7 +1144,7 @@ class B { } // Foo
 class $$C { }
 </Code>
 
-            Await TestComment(code, "Hello" & vbCrLf & vbCrLf & "World!" & vbCrLf)
+            TestComment(code, "Hello" & vbCrLf & vbCrLf & "World!" & vbCrLf)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1160,7 +1160,7 @@ class $$C { }
 class $$C { }
 </Code>
 
-            Await TestComment(code, "This" & vbCrLf & "is" & vbCrLf & "a" & vbCrLf & "multi-line" & vbCrLf & "comment!" & vbCrLf)
+            TestComment(code, "This" & vbCrLf & "is" & vbCrLf & "a" & vbCrLf & "multi-line" & vbCrLf & "comment!" & vbCrLf)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1172,7 +1172,7 @@ class $$C { }
 class $$C { }
 </Code>
 
-            Await TestComment(code, String.Empty)
+            TestComment(code, String.Empty)
         End Function
 
 #End Region
@@ -1187,7 +1187,7 @@ class $$C { }
 class $$C { }
 </Code>
 
-            Await TestDocComment(code, "<doc>" & vbCrLf & "<summary>Hello World</summary>" & vbCrLf & "</doc>")
+            TestDocComment(code, "<doc>" & vbCrLf & "<summary>Hello World</summary>" & vbCrLf & "</doc>")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1200,7 +1200,7 @@ class $$C { }
 class $$C { }
 </Code>
 
-            Await TestDocComment(code, "<doc>" & vbCrLf & "<summary>" & vbCrLf & "Hello World" & vbCrLf & "</summary>" & vbCrLf & "</doc>")
+            TestDocComment(code, "<doc>" & vbCrLf & "<summary>" & vbCrLf & "Hello World" & vbCrLf & "</summary>" & vbCrLf & "</doc>")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1213,7 +1213,7 @@ class $$C { }
 class $$C { }
 </Code>
 
-            Await TestDocComment(code, "<doc>" & vbCrLf & "    <summary>" & vbCrLf & " Hello World" & vbCrLf & "</summary>" & vbCrLf & "</doc>")
+            TestDocComment(code, "<doc>" & vbCrLf & "    <summary>" & vbCrLf & " Hello World" & vbCrLf & "</summary>" & vbCrLf & "</doc>")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1227,7 +1227,7 @@ class $$C { }
 class $$C { }
 </Code>
 
-            Await TestDocComment(code, "<doc>" & vbCrLf & "<summary>" & vbCrLf & "Summary" & vbCrLf & "</summary>" & vbCrLf & "<remarks>Remarks</remarks>" & vbCrLf & "</doc>")
+            TestDocComment(code, "<doc>" & vbCrLf & "<summary>" & vbCrLf & "Summary" & vbCrLf & "</summary>" & vbCrLf & "<remarks>Remarks</remarks>" & vbCrLf & "</doc>")
         End Function
 
 #End Region
@@ -1243,7 +1243,7 @@ class $$C
 }
 </Code>
 
-            Await TestInheritanceKind(code, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindNone)
+            TestInheritanceKind(code, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindNone)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1255,7 +1255,7 @@ abstract class $$C
 }
 </Code>
 
-            Await TestInheritanceKind(code, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindAbstract)
+            TestInheritanceKind(code, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindAbstract)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1267,7 +1267,7 @@ sealed class $$C
 }
 </Code>
 
-            Await TestInheritanceKind(code, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindSealed)
+            TestInheritanceKind(code, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindSealed)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1285,7 +1285,7 @@ class D
 }
 </Code>
 
-            Await TestInheritanceKind(code, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindNew)
+            TestInheritanceKind(code, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindNew)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1303,7 +1303,7 @@ class D
 }
 </Code>
 
-            Await TestInheritanceKind(code, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindAbstract Or EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindNew)
+            TestInheritanceKind(code, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindAbstract Or EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindNew)
         End Function
 
 #End Region
@@ -1319,7 +1319,7 @@ class $$C
 }
 </Code>
 
-            Await TestIsAbstract(code, False)
+            TestIsAbstract(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1331,7 +1331,7 @@ abstract class $$C
 }
 </Code>
 
-            Await TestIsAbstract(code, True)
+            TestIsAbstract(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1347,7 +1347,7 @@ partial class C
 }
 </Code>
 
-            Await TestIsAbstract(code, True)
+            TestIsAbstract(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3871,7 +3871,7 @@ class $$C : Generic&lt;string&gt;
 }
 </Code>
 
-            Await TestGetBaseName(code, "N.M.Generic<string>")
+            TestGetBaseName(code, "N.M.Generic<string>")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3938,11 +3938,11 @@ class $$C
                  "ClassKind", "PartialClasses", "DataTypeKind", "Parts", "InheritanceKind", "IsGeneric",
                  "IsShared"}
 
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(code, expectedPropertyNames)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestExternalClass_ImplementedInterfaces() As Task
+        Public Sub TestExternalClass_ImplementedInterfaces()
             Dim code =
 <Code>
 class $$Foo : System.Collections.Generic.List&lt;int&gt;
@@ -3957,10 +3957,10 @@ class $$Foo : System.Collections.Generic.List&lt;int&gt;
 
                     Assert.Equal(8, listType.ImplementedInterfaces.Count)
                 End Sub)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestExternalFunction_Overloads() As Task
+        Public Sub TestExternalFunction_Overloads()
             Dim code =
 <Code>
 class $$Derived : System.Console
@@ -3980,10 +3980,10 @@ class $$Derived : System.Console
                     Assert.Equal(19, method1.Overloads.Count)
                 End Sub)
 
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestExternalFunction_Overloads_NotOverloaded() As Task
+        Public Sub TestExternalFunction_Overloads_NotOverloaded()
             Dim code =
 <Code>
 class $$Derived : System.Console
@@ -4003,7 +4003,7 @@ class $$Derived : System.Console
                     Assert.Equal("System.Console.Clear", TryCast(method2.Overloads.Item(1), EnvDTE80.CodeFunction2).FullName)
                 End Sub)
 
-        End Function
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

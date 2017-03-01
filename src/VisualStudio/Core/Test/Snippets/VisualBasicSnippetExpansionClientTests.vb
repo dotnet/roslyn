@@ -197,7 +197,7 @@ Imports System.Data ' Original trivia!
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Async Function TestSnippetFormatting_ProjectionBuffer_FullyInSubjectBuffer() As Task
+        Public Sub TestSnippetFormatting_ProjectionBuffer_FullyInSubjectBuffer()
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
     <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
@@ -222,10 +222,10 @@ Next
 &lt;/div&gt;</SurfaceBuffer>
 
             TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Async Function TestSnippetFormatting_ProjectionBuffer_FullyInSubjectBuffer2() As Task
+        Public Sub TestSnippetFormatting_ProjectionBuffer_FullyInSubjectBuffer2()
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
     <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
@@ -254,7 +254,7 @@ For index2 = 1 to length
 &lt;/div&gt;</SurfaceBuffer>
 
             TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function TestSnippetFormatting_ProjectionBuffer_ExpandedIntoSurfaceBuffer() As Task

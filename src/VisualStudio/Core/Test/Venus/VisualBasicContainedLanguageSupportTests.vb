@@ -19,22 +19,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 #Region "IsValid Tests"
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_1() As Task
-            Await AssertValidIdAsync("field")
+            AssertValidId("field")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_Escaped() As Task
-            Await AssertValidIdAsync("[field]")
+            AssertValidId("[field]")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_EscapedKeyword() As Task
-            Await AssertValidIdAsync("[Class]")
+            AssertValidId("[Class]")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_ContainsNumbers() As Task
-            Await AssertValidIdAsync("abc123")
+            AssertValidId("abc123")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
@@ -54,19 +54,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_TypeChar() As Task
-            Await AssertValidIdAsync("abc$")
+            AssertValidId("abc$")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_TypeCharInMiddle() As Task
-            Await AssertNotValidIdAsync("abc$abc")
+            AssertNotValidId("abc$abc")
         End Function
 #End Region
 
 #Region "GetBaseClassName Tests"
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetBaseClassName_NonexistingClass() As Task
+        Public Sub TestGetBaseClassName_NonexistingClass()
             Dim code As String = <text>Class c
 End Class</text>.Value
             Using workspace = GetWorkspace(code)
@@ -76,10 +76,10 @@ End Class</text>.Value
                     CancellationToken.None, baseClassName))
                 Assert.Null(baseClassName)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetBaseClassName_DerivedFromObject() As Task
+        Public Sub TestGetBaseClassName_DerivedFromObject()
             Dim code As String = <text>Class C
 End Class</text>.Value
             Using workspace = GetWorkspace(code)
@@ -89,10 +89,10 @@ End Class</text>.Value
                     CancellationToken.None, baseClassName))
                 Assert.Equal("Object", baseClassName)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetBaseClassName_DerivedFromFrameworkType() As Task
+        Public Sub TestGetBaseClassName_DerivedFromFrameworkType()
             Dim code As String = <text>
 Imports System
 Class C
@@ -105,10 +105,10 @@ End Class</text>.Value
                     CancellationToken.None, baseClassName))
                 Assert.Equal("System.Exception", baseClassName)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetBaseClassName_DerivedFromUserDefinedType() As Task
+        Public Sub TestGetBaseClassName_DerivedFromUserDefinedType()
             Dim code As String = <text>
 Class B
 End Class
@@ -122,10 +122,10 @@ End Class</text>.Value
                     CancellationToken.None, baseClassName))
                 Assert.Equal("B", baseClassName)
             End Using
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetBaseClassName_FullyQualifiedNames() As Task
+        Public Sub TestGetBaseClassName_FullyQualifiedNames()
             Dim code As String = <text>
 Namespace N
 Class B
@@ -141,10 +141,10 @@ End Namespace</text>.Value
                     CancellationToken.None, baseClassName))
                 Assert.Equal("N.B", baseClassName)
             End Using
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetBaseClassName_MinimallyQualifiedNames() As Task
+        Public Sub TestGetBaseClassName_MinimallyQualifiedNames()
             Dim code As String = <text>
 Namespace N
 Class B
@@ -160,10 +160,10 @@ End Namespace</text>.Value
                     CancellationToken.None, baseClassName))
                 Assert.Equal("N.B", baseClassName)
             End Using
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetBaseClassName_EscapedKeyword() As Task
+        Public Sub TestGetBaseClassName_EscapedKeyword()
             Dim code As String = <text>
 Class [Class]
 End Class
@@ -178,13 +178,13 @@ End Class
                     CancellationToken.None, baseClassName))
                 Assert.Equal("[Class]", baseClassName)
             End Using
-        End Function
+        End Sub
 #End Region
 
 #Region "CreateUniqueEventName Tests"
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestCreateUniqueEventName_ButtonClick() As Task
+        Public Sub TestCreateUniqueEventName_ButtonClick()
             Dim code As String = <text>
 Public Partial Class _Default
 	Inherits System.Web.UI.Page
@@ -205,10 +205,10 @@ End Class
 
                 Assert.Equal("Button1_Click", eventName)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestCreateUniqueEventName_NameCollisionWithEventHandler() As Task
+        Public Sub TestCreateUniqueEventName_NameCollisionWithEventHandler()
             Dim code As String = <text>
 Public Partial Class _Default
 	Inherits System.Web.UI.Page
@@ -233,10 +233,10 @@ End Class
 
                 Assert.Equal("Button1_Click1", eventName)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestCreateUniqueEventName_NameCollisionWithOtherMembers() As Task
+        Public Sub TestCreateUniqueEventName_NameCollisionWithOtherMembers()
             Dim code As String = <text>
 Public Partial Class _Default
 	Inherits System.Web.UI.Page
@@ -259,10 +259,10 @@ End Class</text>.Value
 
                 Assert.Equal("Button1_Click1", eventName)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestCreateUniqueEventName_NameCollisionFromPartialClass() As Task
+        Public Sub TestCreateUniqueEventName_NameCollisionFromPartialClass()
             Dim code As String = <text>
 Public Partial Class _Default
 	Inherits System.Web.UI.Page
@@ -286,10 +286,10 @@ End Class</text>.Value
 
                 Assert.Equal("Button1_Click1", eventName)
             End Using
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestCreateUniqueEventName_NameCollisionFromBaseClass() As Task
+        Public Sub TestCreateUniqueEventName_NameCollisionFromBaseClass()
             Dim code As String = <text>
 Public Partial Class _Default
 	Inherits MyBaseClass
@@ -315,14 +315,14 @@ End Class</text>.Value
 
                 Assert.Equal("Button1_Click1", eventName)
             End Using
-        End Function
+        End Sub
 
 #End Region
 
 #Region "GetCompatibleEventHandlers"
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetCompatibleEventHandlers_EventDoesntExist() As Task
+        Public Sub TestGetCompatibleEventHandlers_EventDoesntExist()
             Dim code As String = <text>
 Imports System
 Public Class Button
@@ -348,10 +348,10 @@ End Class</text>.Value
                             cancellationToken:=Nothing)
                     End Sub)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetCompatibleEventHandlers_ObjTypeNameIsWrong() As Task
+        Public Sub TestGetCompatibleEventHandlers_ObjTypeNameIsWrong()
             Dim code As String = <text>
 Imports System
 Public Class Button
@@ -378,11 +378,11 @@ End Class</text>.Value
                             cancellationToken:=Nothing)
                     End Sub)
             End Using
-        End Function
+        End Sub
 
         ' To Do: Investigate - this feels wrong. when Handles Clause exists
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetCompatibleEventHandlers_MatchExists() As Task
+        Public Sub TestGetCompatibleEventHandlers_MatchExists()
             Dim code As String = <text>
 Imports System
 Public Class Button
@@ -410,10 +410,10 @@ End Class</text>.Value
                 Assert.Equal("Page_Load", eventHandlers.Single().Item1)
                 Assert.Equal("Page_Load(Object,System.EventArgs)", eventHandlers.Single().Item2)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetCompatibleEventHandlers_MatchesExist() As Task
+        Public Sub TestGetCompatibleEventHandlers_MatchesExist()
             Dim code As String = <text>
 Imports System
 Public Class Button
@@ -444,7 +444,7 @@ End Class</text>.Value
                 Assert.Equal(2, eventHandlers.Count())
                 ' It has to be page_load and button click, but are they always ordered in the same way?
             End Using
-        End Function
+        End Sub
 
         ' add tests for CompatibleSignatureToDelegate (#params, return type)
 #End Region
@@ -452,7 +452,7 @@ End Class</text>.Value
 #Region "GetEventHandlerMemberId"
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetEventHandlerMemberId_HandlerExists() As Task
+        Public Sub TestGetEventHandlerMemberId_HandlerExists()
             Dim code As String = <text>
 Imports System
 Public Class Button
@@ -483,10 +483,10 @@ End Class</text>.Value
 
                 Assert.Equal("Button1_Click(Object,System.EventArgs)", eventHandlerId)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetEventHandlerMemberId_CantFindHandler() As Task
+        Public Sub TestGetEventHandlerMemberId_CantFindHandler()
             Dim code As String = <text>
 Imports System
 Public Class Button
@@ -513,14 +513,14 @@ End Class</text>.Value
 
                 Assert.Equal(Nothing, eventHandlerId)
             End Using
-        End Function
+        End Sub
 
 #End Region
 
 #Region "EnsureEventHandler"
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestEnsureEventHandler_HandlerExists() As Task
+        Public Sub TestEnsureEventHandler_HandlerExists()
             Dim code As String = <text>
 Imports System
 Public Class Button
@@ -560,10 +560,10 @@ End Class</text>.Value
                 Assert.Equal(Nothing, eventHandlerIdTextPosition.Item2)
                 Assert.Equal(New TextSpan(), eventHandlerIdTextPosition.Item3)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestEnsureEventHandler_GenerateNewHandler() As Task
+        Public Sub TestEnsureEventHandler_GenerateNewHandler()
             Dim code As String = <text>
 Imports System
 Public Class Button
@@ -604,7 +604,7 @@ End Sub</text>.NormalizedValue
                 TokenUtilities.AssertTokensEqual(generatedCode, eventHandlerIdTextPosition.Item2, Language)
                 Assert.Equal(New TextSpan With {.iStartLine = 12, .iEndLine = 12}, eventHandlerIdTextPosition.Item3)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(850035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850035")>

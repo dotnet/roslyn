@@ -28,7 +28,7 @@ class Foo { }
 #End Region
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDotNetNameFromLanguageSpecific1() As Task
+        Public Sub TestDotNetNameFromLanguageSpecific1()
             Dim code =
 <code>
 using N.M;
@@ -47,27 +47,27 @@ namespace N
                     Dim dotNetName = rootCodeModel.DotNetNameFromLanguageSpecific("N.M.Generic<string>")
                     Assert.Equal("N.M.Generic`1[System.String]", dotNetName)
                 End Sub)
-        End Function
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDotNetNameFromLanguageSpecific2() As Task
+        Public Sub TestDotNetNameFromLanguageSpecific2()
             TestRootCodeModelWithCodeFile(<code></code>,
                 Sub(rootCodeModel)
                     Dim dotNetName = rootCodeModel.DotNetNameFromLanguageSpecific("System.Collections.Generic.Dictionary<int, string>")
                     Assert.Equal("System.Collections.Generic.Dictionary`2[System.Int32,System.String]", dotNetName)
                 End Sub)
-        End Function
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDotNetNameFromLanguageSpecificWithAssemblyQualifiedName() As Task
+        Public Sub TestDotNetNameFromLanguageSpecificWithAssemblyQualifiedName()
             TestRootCodeModelWithCodeFile(<code></code>,
                 Sub(rootCodeModel)
                     Assert.Throws(Of ArgumentException)(Sub() rootCodeModel.DotNetNameFromLanguageSpecific("System.Collections.Generic.Dictionary<int, string>, mscorlib"))
                 End Sub)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestExternalNamespaceChildren() As Task
+        Public Sub TestExternalNamespaceChildren()
             Dim code =
 <code>
 class Foo { }
@@ -87,7 +87,7 @@ class Foo { }
                     Dim listClass = genericNamespace.Members.Find(Of EnvDTE.CodeClass)("List")
                     Assert.NotNull(listClass)
                 End Sub)
-        End Function
+        End Sub
 
 #Region "CreateCodeTypeRef"
 
@@ -156,7 +156,7 @@ namespace N
                                 </Project>
                             </Workspace>
 
-            Await TestCodeTypeFromFullName(workspace, "N.C",
+            TestCodeTypeFromFullName(workspace, "N.C",
                 Sub(codeType)
                     Assert.NotNull(codeType)
                     Assert.Equal("N.C", codeType.FullName)
@@ -194,7 +194,7 @@ namespace N
                                 </Project>
                             </Workspace>
 
-            Await TestCodeTypeFromFullName(workspace, "N.C",
+            TestCodeTypeFromFullName(workspace, "N.C",
                 Sub(codeType)
                     Assert.NotNull(codeType)
                     Assert.Equal("N.C", codeType.FullName)
@@ -239,7 +239,7 @@ namespace N
                                 </Project>
                             </Workspace>
 
-            Await TestCodeTypeFromFullName(workspace, "N.C",
+            TestCodeTypeFromFullName(workspace, "N.C",
                 Sub(codeType)
                     Assert.NotNull(codeType)
                     Assert.Equal("N.C", codeType.FullName)
@@ -284,7 +284,7 @@ namespace N
                                 </Project>
                             </Workspace>
 
-            Await TestCodeTypeFromFullName(workspace, "N.C",
+            TestCodeTypeFromFullName(workspace, "N.C",
                 Sub(codeType)
                     Assert.NotNull(codeType)
                     Assert.Equal("N.C", codeType.FullName)

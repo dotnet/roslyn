@@ -51,13 +51,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         private readonly CodeFixProvider _codeFixProvider;
         private readonly RenameTrackingCancellationCommandHandler _commandHandler = new RenameTrackingCancellationCommandHandler();
 
-        public static async Task<RenameTrackingTestState> CreateAsync(
+        public static RenameTrackingTestState Create(
             string markup,
             string languageName,
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
         {
-            var workspace = await CreateTestWorkspaceAsync(markup, languageName, EditorServicesUtil.CreateExportProvider());
+            var workspace = CreateTestWorkspace(markup, languageName, EditorServicesUtil.CreateExportProvider());
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             }
         }
 
-        private static async Task<TestWorkspace> CreateTestWorkspaceAsync(string code, string languageName, ExportProvider exportProvider = null)
+        private static TestWorkspace CreateTestWorkspace(string code, string languageName, ExportProvider exportProvider = null)
         {
             var xml = string.Format(@"
 <Workspace>

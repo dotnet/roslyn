@@ -20,7 +20,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -54,7 +54,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=13, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -96,7 +96,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -139,7 +139,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=13, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -176,7 +176,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -448,7 +448,7 @@ Class C
 End Class
 </Code>
 
-            Await TestIsPropertyStyleEvent(code, False)
+            TestIsPropertyStyleEvent(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -460,7 +460,7 @@ Class C
 End Class
 </Code>
 
-            Await TestIsPropertyStyleEvent(code, False)
+            TestIsPropertyStyleEvent(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -484,7 +484,7 @@ Class C
 End Class
 </Code>
 
-            Await TestIsPropertyStyleEvent(code, True)
+            TestIsPropertyStyleEvent(code, True)
         End Function
 
 #End Region
@@ -500,7 +500,7 @@ Class C
 End Class
 </Code>
 
-            Await TestIsShared(code, False)
+            TestIsShared(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -512,7 +512,7 @@ Class C
 End Class
 </Code>
 
-            Await TestIsShared(code, True)
+            TestIsShared(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -536,7 +536,7 @@ Class C
 End Class
 </Code>
 
-            Await TestIsShared(code, False)
+            TestIsShared(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -560,7 +560,7 @@ Class C
 End Class
 </Code>
 
-            Await TestIsShared(code, True)
+            TestIsShared(code, True)
         End Function
 
 #End Region
@@ -575,7 +575,7 @@ Class C
 End Class
 </Code>
 
-            Await TestName(code, "Foo")
+            TestName(code, "Foo")
         End Function
 #End Region
 
@@ -591,7 +591,7 @@ Class C
 End Class
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
         End Function
 
         <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
@@ -611,7 +611,7 @@ Class C
 End Class
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
         End Function
 
 #End Region
@@ -627,7 +627,7 @@ Class C
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "C.EEventHandler",
                              .AsFullName = "C.EEventHandler",
@@ -645,7 +645,7 @@ Class C
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "System.EventHandler",
                              .AsFullName = "System.EventHandler",
@@ -672,7 +672,7 @@ Class C
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "System.EventHandler",
                              .AsFullName = "System.EventHandler",

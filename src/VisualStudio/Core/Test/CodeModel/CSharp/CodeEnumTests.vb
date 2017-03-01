@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 enum $$E { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -30,7 +30,7 @@ class C
 }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -40,7 +40,7 @@ class C
 private enum $$E { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -50,7 +50,7 @@ private enum $$E { }
 protected enum $$E { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -60,7 +60,7 @@ protected enum $$E { }
 protected internal enum $$E { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -70,7 +70,7 @@ protected internal enum $$E { }
 internal enum $$E { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -80,7 +80,7 @@ internal enum $$E { }
 public enum $$E { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
 #End Region
@@ -114,7 +114,7 @@ enum $$C
 }
 </Code>
 
-            Await TestAttributes(code, NoElements)
+            TestAttributes(code, NoElements)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -130,7 +130,7 @@ enum $$C
 }
 </Code>
 
-            Await TestAttributes(code, IsElement("Flags"))
+            TestAttributes(code, IsElement("Flags"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -146,7 +146,7 @@ enum $$C
 }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"), IsElement("Flags"))
+            TestAttributes(code, IsElement("Serializable"), IsElement("Flags"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -161,7 +161,7 @@ enum $$C
 }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"), IsElement("Flags"))
+            TestAttributes(code, IsElement("Serializable"), IsElement("Flags"))
         End Function
 #End Region
 
@@ -177,7 +177,7 @@ enum $$E
     Bar
 }</Code>
 
-            Await TestFullName(code, "E")
+            TestFullName(code, "E")
         End Function
 
 #End Region
@@ -195,7 +195,7 @@ enum $$E
 }
 </Code>
 
-            Await TestName(code, "E")
+            TestName(code, "E")
         End Function
 
 #End Region
@@ -583,7 +583,7 @@ enum $$E
                  "ExtenderCATID", "Parent", "Namespace", "Bases", "Members", "Access", "Attributes",
                  "DocComment", "Comment", "DerivedTypes"}
 
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(code, expectedPropertyNames)
         End Function
 
         Protected Overrides ReadOnly Property LanguageName As String

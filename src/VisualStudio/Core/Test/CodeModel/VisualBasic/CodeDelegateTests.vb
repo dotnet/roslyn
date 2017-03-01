@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 Delegate Sub $$Foo(i As Integer)
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -50,7 +50,7 @@ Delegate Sub $$Foo(i As Integer)
 Delegate Sub $$Foo(i As Integer)
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=27)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -166,7 +166,7 @@ Delegate Sub $$D()
 Delegate Sub $$D()
 </Code>
 
-            Await TestBaseClass(code, "System.Delegate")
+            TestBaseClass(code, "System.Delegate")
         End Function
 
 #End Region
@@ -180,7 +180,7 @@ Delegate Sub $$D()
 Delegate Sub $$D()
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "Void",
                              .AsFullName = "System.Void",
@@ -196,7 +196,7 @@ Delegate Sub $$D()
 Delegate Function $$D() As Integer
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "Integer",
                              .AsFullName = "System.Int32",
@@ -213,7 +213,7 @@ Class C : End Class
 Delegate Function $$D() As C
 </Code>
 
-            Await TestTypeProp(code, New CodeTypeRefData With {.CodeTypeFullName = "C", .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType})
+            TestTypeProp(code, New CodeTypeRefData With {.CodeTypeFullName = "C", .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType})
         End Function
 
 #End Region
@@ -461,7 +461,7 @@ Delegate Sub M(a As Integer, c As Integer)
 Delegate Sub $$D()
 </Code>
 
-            Await TestGenericNameExtender_GetBaseTypesCount(code, 1)
+            TestGenericNameExtender_GetBaseTypesCount(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -481,7 +481,7 @@ Delegate Sub $$D()
 Delegate Sub $$D()
 </Code>
 
-            Await TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
+            TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -491,7 +491,7 @@ Delegate Sub $$D()
 Delegate Sub $$D()
 </Code>
 
-            Await TestGenericNameExtender_GetImplTypeGenericName(code, 1, Nothing)
+            TestGenericNameExtender_GetImplTypeGenericName(code, 1, Nothing)
         End Function
 
 #End Region
@@ -506,7 +506,7 @@ Delegate Sub $$D()
 Delegate Sub $$D([integer] as Integer)
 </Code>
 
-            Await TestAllParameterNames(code, "[integer]")
+            TestAllParameterNames(code, "[integer]")
         End Function
 
         <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
@@ -517,7 +517,7 @@ Delegate Sub $$D([integer] as Integer)
 Delegate Sub $$D([integer] as Integer, [string] as String)
 </Code>
 
-            Await TestAllParameterNames(code, "[integer]", "[string]")
+            TestAllParameterNames(code, "[integer]", "[string]")
         End Function
 
 #End Region

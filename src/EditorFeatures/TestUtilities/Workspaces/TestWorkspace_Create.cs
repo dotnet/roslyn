@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return Create(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
         }
 
-        internal static async Task<TestWorkspace> CreateAsync(
+        internal static TestWorkspace Create(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions[] parseOptions,
@@ -220,13 +220,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return Create(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider, metadataReferences);
         }
 
-        public static Task<TestWorkspace> CreateCSharpAsync(
+        public static async Task<TestWorkspace> CreateCSharpAsync(
             string[] files,
             ParseOptions[] parseOptions = null,
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null)
         {
-            return CreateAsync(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider);
+            return Create(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider);
         }
 
         #endregion
@@ -254,13 +254,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         /// <param name="files">Can pass in multiple file contents with individual source kind: files will be named test1.vb, test2.vbx, etc.</param>
-        public static Task<TestWorkspace> CreateVisualBasicAsync(
+        public static async Task<TestWorkspace> CreateVisualBasicAsync(
             string[] files,
             ParseOptions[] parseOptions = null,
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null)
         {
-            return CreateAsync(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, exportProvider);
+            return Create(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, exportProvider);
         }
 
         #endregion

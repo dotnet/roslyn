@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 interface $$I { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -27,7 +27,7 @@ interface $$I { }
 internal interface $$I { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -37,7 +37,7 @@ internal interface $$I { }
 public interface $$I { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
 #End Region
@@ -51,7 +51,7 @@ public interface $$I { }
 interface $$C { }
 </Code>
 
-            Await TestAttributes(code, NoElements)
+            TestAttributes(code, NoElements)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -64,7 +64,7 @@ using System;
 interface $$C { }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"))
+            TestAttributes(code, IsElement("Serializable"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -77,7 +77,7 @@ interface $$C { }
 interface $$C { }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
+            TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -89,7 +89,7 @@ interface $$C { }
 interface $$C { }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
+            TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
         End Function
 #End Region
 
@@ -103,7 +103,7 @@ interface $$I
 }
 </Code>
 
-            Await TestParts(code, 1)
+            TestParts(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -115,7 +115,7 @@ partial interface $$I
 }
 </Code>
 
-            Await TestParts(code, 1)
+            TestParts(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -131,7 +131,7 @@ partial interface I
 }
 </Code>
 
-            Await TestParts(code, 2)
+            TestParts(code, 2)
         End Function
 #End Region
 
@@ -427,7 +427,7 @@ interface $$I
                  "ExtenderCATID", "Parent", "Namespace", "Bases", "Members", "Access", "Attributes",
                  "DocComment", "Comment", "DerivedTypes", "IsGeneric", "DataTypeKind", "Parts"}
 
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(code, expectedPropertyNames)
         End Function
 
         Protected Overrides ReadOnly Property LanguageName As String

@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.Visual
         End Function
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
-        Public Async Function TestSimpleContent_NamespaceClassAndMethod() As Task
+        Public Sub TestSimpleContent_NamespaceClassAndMethod()
             Dim code =
 <Code>
 Namespace N
@@ -48,10 +48,10 @@ End Namespace
                 list = list.GetMemberList(0)
                 list.VerifyNames(AddressOf IsImmediateMember, "M()")
             End Using
-        End Function
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
-        Public Async Function TestSimpleContent_NoNamespaceWithoutType() As Task
+        Public Sub TestSimpleContent_NoNamespaceWithoutType()
             Dim code =
 <Code>
 Namespace N
@@ -66,11 +66,11 @@ End Namespace
 
                 list.VerifyEmpty()
             End Using
-        End Function
+        End Sub
 
         <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
-        Public Async Function TestContent_InheritedMembers1() As Task
+        Public Sub TestContent_InheritedMembers1()
             Dim code =
 <Code>
 Class A
@@ -122,7 +122,7 @@ End Class
                     "Finalize()",
                     "MemberwiseClone() As Object")
             End Using
-        End Function
+        End Sub
 
         <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>

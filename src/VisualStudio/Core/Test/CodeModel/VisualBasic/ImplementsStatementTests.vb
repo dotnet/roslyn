@@ -23,7 +23,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -62,7 +62,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -101,7 +101,7 @@ Class C
 End Class
 </Code>
 
-            Await TestKind(code, EnvDTE.vsCMElement.vsCMElementImplementsStmt)
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementImplementsStmt)
         End Function
 
 #End Region
@@ -120,7 +120,7 @@ Class C
 End Class
 </Code>
 
-            Await TestName(code, "Implements")
+            TestName(code, "Implements")
         End Function
 
 #End Region

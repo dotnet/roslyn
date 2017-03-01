@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 struct $$C { }
 </Code>
 
-            Await TestAttributes(code, NoElements)
+            TestAttributes(code, NoElements)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -30,7 +30,7 @@ using System;
 struct $$C { }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"))
+            TestAttributes(code, IsElement("Serializable"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -43,7 +43,7 @@ struct $$C { }
 struct $$C { }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
+            TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -55,7 +55,7 @@ struct $$C { }
 struct $$C { }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
+            TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
         End Function
 #End Region
 
@@ -68,7 +68,7 @@ struct $$C { }
 struct $$S { }
 </Code>
 
-            Await TestBases(code, IsElement("ValueType", kind:=EnvDTE.vsCMElement.vsCMElementClass))
+            TestBases(code, IsElement("ValueType", kind:=EnvDTE.vsCMElement.vsCMElementClass))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -78,7 +78,7 @@ struct $$S { }
 struct $$S : System.IDisposable { }
 </Code>
 
-            Await TestBases(code, IsElement("ValueType", kind:=EnvDTE.vsCMElement.vsCMElementClass))
+            TestBases(code, IsElement("ValueType", kind:=EnvDTE.vsCMElement.vsCMElementClass))
         End Function
 
 
@@ -93,7 +93,7 @@ struct $$S : System.IDisposable { }
 struct $$S { }
 </Code>
 
-            Await TestDataTypeKind(code, EnvDTE80.vsCMDataTypeKind.vsCMDataTypeKindMain)
+            TestDataTypeKind(code, EnvDTE80.vsCMDataTypeKind.vsCMDataTypeKindMain)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -105,7 +105,7 @@ partial struct $$S { }
 partial struct S { }
 </Code>
 
-            Await TestDataTypeKind(code, EnvDTE80.vsCMDataTypeKind.vsCMDataTypeKindPartial)
+            TestDataTypeKind(code, EnvDTE80.vsCMDataTypeKind.vsCMDataTypeKindPartial)
         End Function
 
 #End Region
@@ -119,7 +119,7 @@ partial struct S { }
 struct $$S { }
 </Code>
 
-            Await TestFullName(code, "S")
+            TestFullName(code, "S")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -132,7 +132,7 @@ namespace N
 }
 </Code>
 
-            Await TestFullName(code, "N.S")
+            TestFullName(code, "N.S")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -148,7 +148,7 @@ namespace N
 }
 </Code>
 
-            Await TestFullName(code, "N.C.S")
+            TestFullName(code, "N.C.S")
         End Function
 
 #End Region
@@ -162,7 +162,7 @@ namespace N
 struct $$S : System.IDisposable { }
 </Code>
 
-            Await TestImplementedInterfaces(code, IsElement("IDisposable", kind:=EnvDTE.vsCMElement.vsCMElementInterface))
+            TestImplementedInterfaces(code, IsElement("IDisposable", kind:=EnvDTE.vsCMElement.vsCMElementInterface))
         End Function
 
 #End Region
@@ -176,7 +176,7 @@ struct $$S : System.IDisposable { }
 struct $$S { }
 </Code>
 
-            Await TestName(code, "S")
+            TestName(code, "S")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -189,7 +189,7 @@ namespace N
 }
 </Code>
 
-            Await TestName(code, "S")
+            TestName(code, "S")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -205,7 +205,7 @@ namespace N
 }
 </Code>
 
-            Await TestName(code, "S")
+            TestName(code, "S")
         End Function
 
 #End Region
@@ -219,7 +219,7 @@ namespace N
 struct $$S { }
 </Code>
 
-            Await TestParent(code, IsFileCodeModel)
+            TestParent(code, IsFileCodeModel)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -232,7 +232,7 @@ namespace N
 }
 </Code>
 
-            Await TestParent(code, IsElement("N", kind:=EnvDTE.vsCMElement.vsCMElementNamespace))
+            TestParent(code, IsElement("N", kind:=EnvDTE.vsCMElement.vsCMElementNamespace))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -248,7 +248,7 @@ namespace N
 }
 </Code>
 
-            Await TestParent(code, IsElement("C", kind:=EnvDTE.vsCMElement.vsCMElementClass))
+            TestParent(code, IsElement("C", kind:=EnvDTE.vsCMElement.vsCMElementClass))
         End Function
 
 #End Region
@@ -532,7 +532,7 @@ struct $$S
                  "DocComment", "Comment", "DerivedTypes", "ImplementedInterfaces", "IsAbstract",
                  "IsGeneric", "DataTypeKind", "Parts"}
 
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(code, expectedPropertyNames)
         End Function
 
         Protected Overrides ReadOnly Property LanguageName As String

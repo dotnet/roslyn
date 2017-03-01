@@ -20,7 +20,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -53,7 +53,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -83,7 +83,7 @@ End Class
 &lt;$$Assembly: CLSCompliant(True)&gt;
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -229,7 +229,7 @@ Class FooAttribute
 End Class
 </Code>
 
-            Await TestAttributeArgumentStartPoint(code, 1,
+            TestAttributeArgumentStartPoint(code, 1,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -271,7 +271,7 @@ Class FooAttribute
 End Class
 </Code>
 
-            Await TestAttributeArgumentStartPoint(code, 2,
+            TestAttributeArgumentStartPoint(code, 2,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -624,7 +624,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAttributeArguments(code, NoElements)
+            TestAttributeArguments(code, NoElements)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -638,7 +638,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAttributeArguments(code, NoElements)
+            TestAttributeArguments(code, NoElements)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -652,7 +652,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAttributeArguments(code, IsAttributeArgument(value:="True"))
+            TestAttributeArguments(code, IsAttributeArgument(value:="True"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -667,7 +667,7 @@ Class CAttribute
 End Class
 </Code>
 
-            Await TestAttributeArguments(code, IsAttributeArgument(value:="AttributeTargets.All"), IsAttributeArgument(name:="AllowMultiple", value:="False"))
+            TestAttributeArguments(code, IsAttributeArgument(value:="AttributeTargets.All"), IsAttributeArgument(name:="AllowMultiple", value:="False"))
 
         End Function
 
@@ -694,7 +694,7 @@ Class FooAttribute
 End Class
 </Code>
 
-            Await TestAttributeArguments(code, IsAttributeArgument(name:=""), IsAttributeArgument(name:="Baz", value:="True"))
+            TestAttributeArguments(code, IsAttributeArgument(name:=""), IsAttributeArgument(name:="Baz", value:="True"))
 
         End Function
 
@@ -710,7 +710,7 @@ Imports System
 &lt;Assembly: CLSCompliant$$(False)&gt;
 </Code>
 
-            Await TestTarget(code, "Assembly")
+            TestTarget(code, "Assembly")
         End Function
 #End Region
 
@@ -726,7 +726,7 @@ Class C
 End Class
 </Code>
 
-            Await TestValue(code, "")
+            TestValue(code, "")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -740,7 +740,7 @@ Class C
 End Class
 </Code>
 
-            Await TestValue(code, "")
+            TestValue(code, "")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -754,7 +754,7 @@ Class C
 End Class
 </Code>
 
-            Await TestValue(code, "False")
+            TestValue(code, "False")
 
         End Function
 
@@ -770,7 +770,7 @@ Class CAttribute
 End Class
 </Code>
 
-            Await TestValue(code, "AttributeTargets.All, AllowMultiple = False")
+            TestValue(code, "AttributeTargets.All, AllowMultiple = False")
         End Function
 #End Region
 

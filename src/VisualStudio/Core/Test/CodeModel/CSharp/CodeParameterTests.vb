@@ -75,7 +75,7 @@ class C
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDefaultValue_ExternalCodeParameter_NoDefaultValue() As Task
+        Public Sub TestDefaultValue_ExternalCodeParameter_NoDefaultValue()
             Dim code =
 <Code>
 class C : System.Console
@@ -99,7 +99,7 @@ class C : System.Console
                             Dim defaultValue = CType(method2.Parameters.Item(1), EnvDTE80.CodeParameter2).DefaultValue
                         End Sub)
 
-        End Function
+        End Sub
 
 #End Region
 
@@ -233,7 +233,7 @@ class C
 }
 </Code>
 
-            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindNone)
+            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindNone)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -248,7 +248,7 @@ class C
 }
 </Code>
 
-            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
+            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
         End Function
 
 
@@ -264,7 +264,7 @@ class C
 }
 </Code>
 
-            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOut)
+            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOut)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -279,7 +279,7 @@ class C
 }
 </Code>
 
-            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray)
+            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -294,7 +294,7 @@ class C
 }
 </Code>
 
-            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional)
+            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -309,7 +309,7 @@ class C
 }
 </Code>
 
-            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional Or EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
+            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional Or EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
         End Function
 #End Region
 
@@ -669,7 +669,7 @@ class C
 }
 </Code>
 
-            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+            TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -684,7 +684,7 @@ class C
 }
 </Code>
 
-            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
+            TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -699,7 +699,7 @@ class C
 }
 </Code>
 
-            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeOut)
+            TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeOut)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -714,7 +714,7 @@ class C
 }
 </Code>
 
-            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+            TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -729,7 +729,7 @@ class C
 }
 </Code>
 
-            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+            TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -744,7 +744,7 @@ class C
 }
 </Code>
 
-            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
+            TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
         End Function
 
 #End Region
@@ -997,7 +997,7 @@ class C
 </Code>
 
 
-            Await TestGetParameterArrayCount(code, 0)
+            TestGetParameterArrayCount(code, 0)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1011,7 +1011,7 @@ class C
 </Code>
 
 
-            Await TestGetParameterArrayCount(code, 1)
+            TestGetParameterArrayCount(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1025,7 +1025,7 @@ class C
 </Code>
 
 
-            Await TestGetParameterArrayCount(code, 2)
+            TestGetParameterArrayCount(code, 2)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1039,7 +1039,7 @@ class C
 </Code>
 
 
-            Await TestGetParameterArrayCount(code, 1)
+            TestGetParameterArrayCount(code, 1)
         End Function
 
 #End Region
@@ -1057,7 +1057,7 @@ class C
 </Code>
 
 
-            Await TestGetParameterArrayDimensions(code, index:=0, expected:=1)
+            TestGetParameterArrayDimensions(code, index:=0, expected:=1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1071,7 +1071,7 @@ class C
 </Code>
 
 
-            Await TestGetParameterArrayDimensions(code, index:=0, expected:=2)
+            TestGetParameterArrayDimensions(code, index:=0, expected:=2)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1085,7 +1085,7 @@ class C
 </Code>
 
 
-            Await TestGetParameterArrayDimensions(code, index:=0, expected:=3)
+            TestGetParameterArrayDimensions(code, index:=0, expected:=3)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1099,7 +1099,7 @@ class C
 </Code>
 
 
-            Await TestGetParameterArrayDimensions(code, index:=1, expected:=1)
+            TestGetParameterArrayDimensions(code, index:=1, expected:=1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1113,7 +1113,7 @@ class C
 </Code>
 
 
-            Await TestGetParameterArrayDimensions(code, index:=1, expected:=2)
+            TestGetParameterArrayDimensions(code, index:=1, expected:=2)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1127,7 +1127,7 @@ class C
 </Code>
 
 
-            Await TestGetParameterArrayDimensions(code, index:=2, expected:=1)
+            TestGetParameterArrayDimensions(code, index:=2, expected:=1)
         End Function
 
 #End Region
@@ -1259,7 +1259,7 @@ class C
                  "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
                  "ExtenderCATID", "Parent", "Type", "Attributes", "DocComment", "ParameterKind", "DefaultValue"}
 
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(code, expectedPropertyNames)
         End Function
 
         Protected Overrides ReadOnly Property LanguageName As String

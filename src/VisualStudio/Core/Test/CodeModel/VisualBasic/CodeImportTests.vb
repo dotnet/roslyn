@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 Imports $$System
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -49,7 +49,7 @@ Imports $$System
 Imports System, $$System.Linq
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -79,7 +79,7 @@ Imports System, $$System.Linq
 Imports System, $$S = System.Linq
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -113,7 +113,7 @@ Imports System, $$S = System.Linq
 Imports $$System
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -280,7 +280,7 @@ Imports System, S = System.Linq$$
 Imports $$Foo
 </Code>
 
-            Await TestNamespace(code, "Foo")
+            TestNamespace(code, "Foo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -292,7 +292,7 @@ Imports System _
         Linq$$
 </Code>
 
-            Await TestNamespace(code, "System.Linq")
+            TestNamespace(code, "System.Linq")
         End Function
 
 #End Region

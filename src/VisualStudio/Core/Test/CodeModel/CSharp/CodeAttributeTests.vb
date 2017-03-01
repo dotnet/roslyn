@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 class C { }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -52,7 +52,7 @@ class C { }
 class C { }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -167,7 +167,7 @@ class FooAttribute : Attribute
 }
 </Code>
 
-            Await TestAttributeArgumentStartPoint(code, 1,
+            TestAttributeArgumentStartPoint(code, 1,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -206,7 +206,7 @@ class FooAttribute : Attribute
 }
 </Code>
 
-            Await TestAttributeArgumentStartPoint(code, 2,
+            TestAttributeArgumentStartPoint(code, 2,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -460,7 +460,7 @@ using System;
 class C { }
 </Code>
 
-            Await TestAttributeArguments(code, NoElements)
+            TestAttributeArguments(code, NoElements)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -473,7 +473,7 @@ using System;
 class C { }
 </Code>
 
-            Await TestAttributeArguments(code, NoElements)
+            TestAttributeArguments(code, NoElements)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -486,7 +486,7 @@ using System;
 class C { }
 </Code>
 
-            Await TestAttributeArguments(code, IsAttributeArgument(value:="true"))
+            TestAttributeArguments(code, IsAttributeArgument(value:="true"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -499,7 +499,7 @@ using System;
 class CAttribute : Attribute { }
 </Code>
 
-            Await TestAttributeArguments(code, IsAttributeArgument(value:="AttributeTargets.All"), IsAttributeArgument(name:="AllowMultiple", value:="false"))
+            TestAttributeArguments(code, IsAttributeArgument(value:="AttributeTargets.All"), IsAttributeArgument(name:="AllowMultiple", value:="false"))
 
         End Function
 #End Region
@@ -515,7 +515,7 @@ using System;
 class C { }
 </Code>
 
-            Await TestTarget(code, "type")
+            TestTarget(code, "type")
         End Function
 #End Region
 
@@ -530,7 +530,7 @@ using System;
 class C { }
 </Code>
 
-            Await TestValue(code, "")
+            TestValue(code, "")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -543,7 +543,7 @@ using System;
 class C { }
 </Code>
 
-            Await TestValue(code, "")
+            TestValue(code, "")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -556,7 +556,7 @@ using System;
 class C { }
 </Code>
 
-            Await TestValue(code, "false")
+            TestValue(code, "false")
 
         End Function
 
@@ -570,7 +570,7 @@ using System;
 class CAttribute : Attribute { }
 </Code>
 
-            Await TestValue(code, "AttributeTargets.All, AllowMultiple=false")
+            TestValue(code, "AttributeTargets.All, AllowMultiple=false")
         End Function
 #End Region
 
@@ -1044,7 +1044,7 @@ class C
                  "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
                  "ExtenderCATID", "Parent", "Value", "Target", "Arguments"}
 
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(code, expectedPropertyNames)
         End Function
 
         Protected Overrides ReadOnly Property LanguageName As String

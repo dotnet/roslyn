@@ -7,7 +7,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBStatements_AddHandler1() As Task
+        Public Sub TestVBStatements_AddHandler1()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -59,7 +59,7 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBStatements_AddHandler2() As Task

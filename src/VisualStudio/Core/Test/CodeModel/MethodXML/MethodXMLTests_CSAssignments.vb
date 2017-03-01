@@ -7,7 +7,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_FieldWithThis() As Task
+        Public Sub TestCSAssignments_FieldWithThis()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -49,7 +49,7 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestCSAssignments_FieldWithoutThis() As Task

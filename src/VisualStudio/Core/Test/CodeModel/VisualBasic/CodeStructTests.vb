@@ -20,7 +20,7 @@ Structure $$S
 End Structure
 </Code>
 
-            Await TestParts(code, 1)
+            TestParts(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -31,7 +31,7 @@ Partial Structure $$S
 End Structure
 </Code>
 
-            Await TestParts(code, 1)
+            TestParts(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -45,7 +45,7 @@ Partial Structure S
 End Structure
 </Code>
 
-            Await TestParts(code, 2)
+            TestParts(code, 2)
         End Function
 #End Region
 
@@ -309,7 +309,7 @@ Structure S$$
 End Structure
 </Code>
 
-            Await TestGenericNameExtender_GetBaseTypesCount(code, 1)
+            TestGenericNameExtender_GetBaseTypesCount(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -331,7 +331,7 @@ Structure S$$
 End Structure
 </Code>
 
-            Await TestGenericNameExtender_GetImplementedTypesCount(code, 0)
+            TestGenericNameExtender_GetImplementedTypesCount(code, 0)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -349,7 +349,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestGenericNameExtender_GetImplementedTypesCount(code, 1)
+            TestGenericNameExtender_GetImplementedTypesCount(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -360,7 +360,7 @@ Structure S$$
 End Structure
 </Code>
 
-            Await TestGenericNameExtender_GetImplTypeGenericName(code, 1, Nothing)
+            TestGenericNameExtender_GetImplTypeGenericName(code, 1, Nothing)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -378,7 +378,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestGenericNameExtender_GetImplTypeGenericName(code, 1, "N.IFoo(Of Integer)")
+            TestGenericNameExtender_GetImplTypeGenericName(code, 1, "N.IFoo(Of Integer)")
         End Function
 
 #End Region

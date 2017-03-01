@@ -19,7 +19,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -52,7 +52,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=13, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -84,7 +84,7 @@ Enum E
 End Enum
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -117,7 +117,7 @@ Enum E
 End Enum
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=12, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -153,7 +153,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -186,7 +186,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=2, lineOffset:=32, absoluteOffset:=40, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -498,7 +498,7 @@ Enum E
     $$Foo
 End Enum
 </Code>
-            Await TestIsConstant(code, True)
+            TestIsConstant(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -509,7 +509,7 @@ Class C
     Dim $$x As Integer
 End Class
 </Code>
-            Await TestIsConstant(code, False)
+            TestIsConstant(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -520,7 +520,7 @@ Class C
     Const $$x As Integer = 0
 End Class
 </Code>
-            Await TestIsConstant(code, True)
+            TestIsConstant(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -531,7 +531,7 @@ Class C
     ReadOnly $$x As Integer = 0
 End Class
 </Code>
-            Await TestIsConstant(code, True)
+            TestIsConstant(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -542,7 +542,7 @@ Class C
     WithEvents $$x As Integer
 End Class
 </Code>
-            Await TestIsConstant(code, False)
+            TestIsConstant(code, False)
         End Function
 
 #End Region
@@ -558,7 +558,7 @@ Class C
 End Class
 </Code>
 
-            Await TestIsShared(code, False)
+            TestIsShared(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -570,7 +570,7 @@ Class C
 End Class
 </Code>
 
-            Await TestIsShared(code, True)
+            TestIsShared(code, True)
         End Function
 
 #End Region
@@ -587,7 +587,7 @@ Enum SomeEnum
 End Enum
 </Code>
 
-            Await TestName(code, "A")
+            TestName(code, "A")
         End Function
 
 #End Region
@@ -605,7 +605,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "F:N.C.x")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "F:N.C.x")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -619,7 +619,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "Private C.x")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "Private C.x")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -633,7 +633,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "Private C(Of T).x")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "Private C(Of T).x")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -647,7 +647,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "Public C.x")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "Public C.x")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -661,7 +661,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression, "Private C.x = 42")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression, "Private C.x = 42")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -675,7 +675,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "Private N.C.x")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "Private N.C.x")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -689,7 +689,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "Private N.C(Of T).x")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "Private N.C(Of T).x")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -703,7 +703,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname Or EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression, "Private N.C.x = 42")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname Or EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression, "Private N.C.x = 42")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -717,7 +717,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeNoName, "Private ")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeNoName, "Private ")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -731,7 +731,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeNoName Or EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression, "Private  = 42")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeNoName Or EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression, "Private  = 42")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -745,7 +745,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeNoName Or EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression Or EnvDTE.vsCMPrototype.vsCMPrototypeType, "Private  As Integer = 42")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeNoName Or EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression Or EnvDTE.vsCMPrototype.vsCMPrototypeType, "Private  As Integer = 42")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -761,7 +761,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression Or EnvDTE.vsCMPrototype.vsCMPrototypeType, "Private x As System.Text.StringBuilder")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression Or EnvDTE.vsCMPrototype.vsCMPrototypeType, "Private x As System.Text.StringBuilder")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -775,7 +775,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "Private x As Integer")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "Private x As Integer")
         End Function
 
 #End Region
@@ -791,7 +791,7 @@ Class C
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "Integer",
                              .AsFullName = "System.Int32",
@@ -809,7 +809,7 @@ Class C
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
              New CodeTypeRefData With {
                  .AsString = "Object",
                  .AsFullName = "System.Object",
@@ -827,7 +827,7 @@ Class C
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
              New CodeTypeRefData With {
                  .AsString = "Object",
                  .AsFullName = "System.Object",

@@ -24,7 +24,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -61,7 +61,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -102,7 +102,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -143,7 +143,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -184,7 +184,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -225,7 +225,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -468,7 +468,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionPropertyGet)
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionPropertyGet)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -485,7 +485,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionPropertySet)
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionPropertySet)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -512,7 +512,7 @@ Public Class C1
 End Clas
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionAddHandler)
+            TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionAddHandler)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -539,7 +539,7 @@ Public Class C1
 End Clas
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionRemoveHandler)
+            TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionRemoveHandler)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -566,7 +566,7 @@ Public Class C1
 End Clas
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionRaiseEvent)
+            TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionRaiseEvent)
         End Function
 
 #End Region

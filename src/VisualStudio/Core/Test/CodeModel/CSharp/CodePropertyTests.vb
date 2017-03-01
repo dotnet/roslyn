@@ -31,7 +31,7 @@ class C
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -55,7 +55,7 @@ class C
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAutoPropGetStartPoint1() As Task
+        Public Sub TestAutoPropGetStartPoint1()
             Dim code =
 <Code>
 class C
@@ -83,10 +83,10 @@ class C
                     Part(EnvDTE.vsCMPart.vsCMPartWhole, TextPoint(line:=3, lineOffset:=18, absoluteOffset:=28, lineLength:=22))(textPointGetter)
                     Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes, ThrowsNotImplementedException)(textPointGetter)
                 End Sub)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAutoPropGetEndPoint1() As Task
+        Public Sub TestAutoPropGetEndPoint1()
             Dim code =
 <Code>
 class C
@@ -114,7 +114,7 @@ class C
                     Part(EnvDTE.vsCMPart.vsCMPartWhole, TextPoint(line:=3, lineOffset:=22, absoluteOffset:=32, lineLength:=22))(textPointGetter)
                     Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes, ThrowsNotImplementedException)(textPointGetter)
                 End Sub)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestGetStartPoint_Attribute() As Task
@@ -136,7 +136,7 @@ class C
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -169,7 +169,7 @@ class C
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -203,7 +203,7 @@ class C
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -245,7 +245,7 @@ class C
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -288,7 +288,7 @@ class C
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -338,7 +338,7 @@ class C1 : I1
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=9, lineOffset:=5, absoluteOffset:=76, lineLength:=22)))
         End Function
@@ -369,7 +369,7 @@ class C1 : I1
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=8, lineOffset:=5, absoluteOffset:=67, lineLength:=16)))
         End Function
@@ -397,7 +397,7 @@ class C
 }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -440,7 +440,7 @@ class C
 }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -473,7 +473,7 @@ class C
 }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -507,7 +507,7 @@ class C
 }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -1499,7 +1499,7 @@ public class C
 }
 </Code>
 
-            Await TestAutoImplementedPropertyExtender_IsAutoImplemented(code, True)
+            TestAutoImplementedPropertyExtender_IsAutoImplemented(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1516,7 +1516,7 @@ public class C
 }
 </Code>
 
-            Await TestAutoImplementedPropertyExtender_IsAutoImplemented(code, False)
+            TestAutoImplementedPropertyExtender_IsAutoImplemented(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1529,7 +1529,7 @@ public interface I
 }
 </Code>
 
-            Await TestAutoImplementedPropertyExtender_IsAutoImplemented(code, False)
+            TestAutoImplementedPropertyExtender_IsAutoImplemented(code, False)
         End Function
 
 #End Region
@@ -1681,7 +1681,7 @@ class C
                  "DocComment", "Comment", "Parameters", "IsGeneric", "OverrideKind", "IsShared",
                  "IsDefault", "Parent2", "ReadWrite"}
 
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(code, expectedPropertyNames)
         End Function
 
         Private Function GetAutoImplementedPropertyExtender(codeElement As EnvDTE80.CodeProperty2) As ICSAutoImplementedPropertyExtender

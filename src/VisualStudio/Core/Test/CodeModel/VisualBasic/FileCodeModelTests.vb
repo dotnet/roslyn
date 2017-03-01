@@ -193,7 +193,7 @@ Class C
 End Class
 </Code>
 
-            Await TestChildren(code,
+            TestChildren(code,
                 IsElement("C"))
         End Function
 
@@ -783,7 +783,7 @@ End Namespace
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestClass() As Task
+        Public Sub TestClass()
             Dim code =
 <Code>
 Class C
@@ -804,10 +804,10 @@ End Class
                 Assert.Equal(2, codeClass.EndPoint.Line)
                 Assert.Equal(10, codeClass.EndPoint.LineCharOffset)
             End Using
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestClassWithTopLevelJunk() As Task
+        Public Sub TestClassWithTopLevelJunk()
             Dim code =
 <Code>
 Class C
@@ -829,10 +829,10 @@ A
                 Assert.Equal(2, codeClass.EndPoint.Line)
                 Assert.Equal(10, codeClass.EndPoint.LineCharOffset)
             End Using
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestClassNavigatePoints() As Task
+        Public Sub TestClassNavigatePoints()
             Dim code =
 <Code>
 Class B
@@ -865,11 +865,11 @@ End Class
                 Assert.Equal(6, startPointC.Line)
                 Assert.Equal(5, startPointC.LineCharOffset)
             End Using
-        End Function
+        End Sub
 
         <WorkItem(579801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579801")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOptionStatement() As Task
+        Public Sub TestOptionStatement()
             Dim code =
 <Code>
 Option Explicit On
@@ -891,7 +891,7 @@ End Class
                 Assert.NotNull(codeClassC)
                 Assert.Equal("C", codeClassC.Name)
             End Using
-        End Function
+        End Sub
 
 #Region "Remove tests"
 

@@ -172,7 +172,7 @@ using G=   H.I;
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Async Function TestSnippetFormatting_ProjectionBuffer_FullyInSubjectBuffer() As Task
+        Public Sub TestSnippetFormatting_ProjectionBuffer_FullyInSubjectBuffer()
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -199,7 +199,7 @@ using G=   H.I;
 &lt;/div&gt;</SurfaceBuffer>
 
             TestProjectionFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function TestSnippetFormatting_ProjectionBuffer_ExpandedIntoSurfaceBuffer() As Task

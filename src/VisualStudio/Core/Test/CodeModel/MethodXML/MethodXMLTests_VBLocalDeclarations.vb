@@ -7,7 +7,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBLocalDeclarations_NoInitializer() As Task
+        Public Sub TestVBLocalDeclarations_NoInitializer()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -31,7 +31,7 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBLocalDeclarations_WithLiteralInitializer() As Task

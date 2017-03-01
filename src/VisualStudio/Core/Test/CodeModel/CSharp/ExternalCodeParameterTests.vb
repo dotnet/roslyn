@@ -22,7 +22,7 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "s")
+            TestFullName(code, "s")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -37,7 +37,7 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "s")
+            TestFullName(code, "s")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -52,7 +52,7 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "s")
+            TestFullName(code, "s")
         End Function
 
 #End Region
@@ -71,7 +71,7 @@ class C
 }
 </Code>
 
-            Await TestName(code, "s")
+            TestName(code, "s")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -86,7 +86,7 @@ class C
 }
 </Code>
 
-            Await TestName(code, "s")
+            TestName(code, "s")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -101,7 +101,7 @@ class C
 }
 </Code>
 
-            Await TestName(code, "s")
+            TestName(code, "s")
         End Function
 
 #End Region

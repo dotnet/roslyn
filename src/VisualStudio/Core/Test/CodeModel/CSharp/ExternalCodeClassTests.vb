@@ -40,7 +40,7 @@ class C$$
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestExpectedClassMembers() As Task
+        Public Sub TestExpectedClassMembers()
             Dim code =
 <Code>
 class C$$
@@ -94,7 +94,7 @@ class C$$
                     Assert.Equal("C", member7.Name)
                     Assert.Equal(EnvDTE.vsCMElement.vsCMElementFunction, member7.Kind)
                 End Sub)
-        End Function
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

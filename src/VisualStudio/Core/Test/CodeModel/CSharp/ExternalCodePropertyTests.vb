@@ -30,7 +30,7 @@ class C
 }
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
         End Function
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
@@ -48,7 +48,7 @@ abstract class C
 }
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
         End Function
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
@@ -71,7 +71,7 @@ class C
 }
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
         End Function
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
@@ -94,7 +94,7 @@ class C : B
 }
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
         End Function
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
@@ -117,7 +117,7 @@ class C : B
 }
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride Or EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed)
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride Or EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed)
         End Function
 
 #End Region
@@ -166,7 +166,7 @@ class C
 }
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
         End Function
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
@@ -186,7 +186,7 @@ class C
 }
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
         End Function
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
@@ -205,7 +205,7 @@ class C
 }
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly)
         End Function
 
 #End Region

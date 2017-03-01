@@ -53,7 +53,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End Using
         End Sub
 
-        Protected Overrides Async Function TestChildren(code As XElement, ParamArray expectedChildren() As Action(Of Object)) As Task
+        Protected Overrides Sub TestChildren(code As XElement, ParamArray expectedChildren() As Action(Of Object))
             TestOperation(code,
                 Sub(fileCodeModel)
                     Dim children = fileCodeModel.CodeElements
@@ -63,7 +63,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         expectedChildren(i - 1)(children.Item(i))
                     Next
                 End Sub)
-        End Function
+        End Sub
 
         Protected Overrides Async Function TestAddAttribute(code As XElement, expectedCode As XElement, data As AttributeData) As Task
             Await TestOperation(code, expectedCode,

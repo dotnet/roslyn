@@ -20,7 +20,7 @@ Class C
 End Class
 </Code>
 
-            Await TestFullName(code, "s")
+            TestFullName(code, "s")
         End Function
 #End Region
 
@@ -38,7 +38,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p1")
+            TestName(code, "p1")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -53,7 +53,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p2")
+            TestName(code, "p2")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -68,7 +68,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p3")
+            TestName(code, "p3")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -83,7 +83,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p4")
+            TestName(code, "p4")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -98,7 +98,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p5")
+            TestName(code, "p5")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -113,7 +113,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p6")
+            TestName(code, "p6")
         End Function
 
 #End Region

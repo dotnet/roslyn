@@ -20,7 +20,7 @@ Class Foo
 End Class
 </code>
 
-            Await TestChildren(code, "MS", "My", "Microsoft", "System", "Foo")
+            TestChildren(code, "MS", "My", "Microsoft", "System", "Foo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -31,7 +31,7 @@ Module Foo
 End Module
 </code>
 
-            Await TestChildren(code, "MS", "My", "Microsoft", "System", "Foo")
+            TestChildren(code, "MS", "My", "Microsoft", "System", "Foo")
         End Function
 
 #End Region
@@ -90,7 +90,7 @@ End Namespace
                                 </Project>
                             </Workspace>
 
-            Await TestCodeTypeFromFullName(workspace, "N.C",
+            TestCodeTypeFromFullName(workspace, "N.C",
                 Sub(codeType)
                     Assert.NotNull(codeType)
                     Assert.Equal("N.C", codeType.FullName)
@@ -126,7 +126,7 @@ End Namespace
                                 </Project>
                             </Workspace>
 
-            Await TestCodeTypeFromFullName(workspace, "N.C",
+            TestCodeTypeFromFullName(workspace, "N.C",
                 Sub(codeType)
                     Assert.NotNull(codeType)
                     Assert.Equal("N.C", codeType.FullName)
@@ -167,7 +167,7 @@ End Namespace
                                 </Project>
                             </Workspace>
 
-            Await TestCodeTypeFromFullName(workspace, "N.C",
+            TestCodeTypeFromFullName(workspace, "N.C",
                 Sub(codeType)
                     Assert.NotNull(codeType)
                     Assert.Equal("N.C", codeType.FullName)
@@ -208,7 +208,7 @@ End Namespace
                                 </Project>
                             </Workspace>
 
-            Await TestCodeTypeFromFullName(workspace, "N.C",
+            TestCodeTypeFromFullName(workspace, "N.C",
                 Sub(codeType)
                     Assert.NotNull(codeType)
                     Assert.Equal("N.C", codeType.FullName)
@@ -231,7 +231,7 @@ End Namespace
 #End Region
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDotNetNameFromLanguageSpecific1() As Task
+        Public Sub TestDotNetNameFromLanguageSpecific1()
             Dim code =
 <code>
 Imports N.M
@@ -249,24 +249,24 @@ End Namespace
                     Dim dotNetName = rootCodeModel.DotNetNameFromLanguageSpecific("N.M.Generic(Of String)")
                     Assert.Equal("N.M.Generic`1[System.String]", dotNetName)
                 End Sub)
-        End Function
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDotNetNameFromLanguageSpecific2() As Task
+        Public Sub TestDotNetNameFromLanguageSpecific2()
             TestRootCodeModelWithCodeFile(<code></code>,
                 Sub(rootCodeModel)
                     Dim dotNetName = rootCodeModel.DotNetNameFromLanguageSpecific("System.Collections.Generic.Dictionary(Of Integer, String)")
                     Assert.Equal("System.Collections.Generic.Dictionary`2[System.Int32,System.String]", dotNetName)
                 End Sub)
-        End Function
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDotNetNameFromLanguageSpecificWithAssemblyQualifiedName() As Task
+        Public Sub TestDotNetNameFromLanguageSpecificWithAssemblyQualifiedName()
             TestRootCodeModelWithCodeFile(<code></code>,
                 Sub(rootCodeModel)
                     Assert.Throws(Of ArgumentException)(Sub() rootCodeModel.DotNetNameFromLanguageSpecific("System.Collections.Generic.Dictionary(Of Integer, String), mscorlib"))
                 End Sub)
-        End Function
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

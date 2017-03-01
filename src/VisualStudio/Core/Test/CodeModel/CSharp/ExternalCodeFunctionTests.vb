@@ -22,7 +22,7 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "C.Foo")
+            TestFullName(code, "C.Foo")
         End Function
 
 #End Region
@@ -41,7 +41,7 @@ class C
 }
 </Code>
 
-            Await TestName(code, "Foo")
+            TestName(code, "Foo")
         End Function
 
 #End Region

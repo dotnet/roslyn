@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 delegate void $$Foo(int i);
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -48,7 +48,7 @@ delegate void $$Foo(int i);
 delegate void $$Foo(int i);
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -147,7 +147,7 @@ delegate void $$Foo(int i);
 delegate void $$D();
 </Code>
 
-            Await TestBaseClass(code, "System.Delegate")
+            TestBaseClass(code, "System.Delegate")
         End Function
 
 #End Region
@@ -382,7 +382,7 @@ delegate void $$D();
                  "Bases", "Members", "Access", "Attributes", "DocComment", "Comment",
                  "DerivedTypes", "BaseClass", "Type", "Parameters", "IsGeneric"}
 
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(code, expectedPropertyNames)
         End Function
 
         Protected Overrides ReadOnly Property LanguageName As String

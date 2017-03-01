@@ -20,7 +20,7 @@ using $$Foo;
 
             Dim ex = Await Assert.ThrowsAsync(Of COMException)(
                 Async Function()
-                    Await TestName(code, "Foo")
+                    TestName(code, "Foo")
                 End Function)
 
             Assert.Equal(E_FAIL, ex.ErrorCode)
@@ -56,7 +56,7 @@ using $$Foo;
 using $$Foo;
 </Code>
 
-            Await TestNamespace(code, "Foo")
+            TestNamespace(code, "Foo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -69,7 +69,7 @@ namespace Bar
 }
 </Code>
 
-            Await TestNamespace(code, "Foo")
+            TestNamespace(code, "Foo")
         End Function
 
 #End Region
@@ -86,7 +86,7 @@ using $$System;
                  "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
                  "ExtenderCATID", "Namespace", "Alias", "Parent"}
 
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(code, expectedPropertyNames)
         End Function
 
         Protected Overrides ReadOnly Property LanguageName As String

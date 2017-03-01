@@ -111,7 +111,7 @@ event System.EventHandler E;
 class C { }
 </Code>
 
-            Await TestChildren(code,
+            TestChildren(code,
                 IsElement("C"))
         End Function
 
@@ -460,7 +460,7 @@ class C : B, IFoo, IBar
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAddClass_Stress() As Task
+        Public Sub TestAddClass_Stress()
             Dim code =
 <Code>
 class B { }
@@ -477,7 +477,7 @@ interface IBar { }
                         Assert.Equal(name, newClass.Name)
                     Next
                 End Sub)
-        End Function
+        End Sub
 
 #End Region
 
@@ -957,7 +957,7 @@ class $$C
 
         <WorkItem(921220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/921220")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestClosedDocument() As Task
+        Public Sub TestClosedDocument()
             Dim code =
 <Code>
 class $$C
@@ -979,7 +979,7 @@ class $$C
                         Dim count = codeClass.Members.OfType(Of EnvDTE80.CodeFunction2)().Count()
                     End Sub)
             End Using
-        End Function
+        End Sub
 
         <WorkItem(1980, "https://github.com/dotnet/roslyn/issues/1980")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1034,7 +1034,7 @@ class D
 
         <WorkItem(925569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925569")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestChangeClassNameAndGetNameOfChildFunction() As Task
+        Public Sub TestChangeClassNameAndGetNameOfChildFunction()
             Dim code =
 <Code>
 class C
@@ -1057,11 +1057,11 @@ class C
                     Assert.Equal("NewClassName", codeClass.Name)
                     Assert.Equal("M", codeFunction.Name)
                 End Sub)
-        End Function
+        End Sub
 
         <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCodeElements_PropertyAccessor() As Task
+        Public Sub TestCodeElements_PropertyAccessor()
             Dim code =
 <code>
 class C
@@ -1110,11 +1110,11 @@ class C
                     Assert.Equal("C.P", member2.NodeKey.Name)
                     Assert.Equal(1, member2.NodeKey.Ordinal)
                 End Sub)
-        End Function
+        End Sub
 
         <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCodeElements_EventAccessor() As Task
+        Public Sub TestCodeElements_EventAccessor()
             Dim code =
 <code>
 class C
@@ -1164,7 +1164,7 @@ class C
                     Assert.Equal("C.E", member2.NodeKey.Name)
                     Assert.Equal(1, member2.NodeKey.Ordinal)
                 End Sub)
-        End Function
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

@@ -29,7 +29,7 @@ class C
 }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -73,7 +73,7 @@ class C
                  "IsShared", "MustImplement", "Overloads", "Attributes", "DocComment", "Comment",
                  "CanOverride", "OverrideKind", "IsGeneric"}
 
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(code, expectedPropertyNames)
         End Function
 
         Protected Overrides ReadOnly Property LanguageName As String

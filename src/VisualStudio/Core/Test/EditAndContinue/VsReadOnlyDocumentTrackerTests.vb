@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
     Public Class VsReadOnlyDocumentTrackerTests
         <WpfFact>
-        Public Async Function StandardTextDocumentTest() As Task
+        Public Sub StandardTextDocumentTest()
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
             Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
@@ -67,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(1, mockVsBuffer._oldFlags) ' Read-Only
-        End Function
+        End Sub
 
         <WorkItem(1089964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089964")>
         <WpfFact>
@@ -120,7 +120,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
         <WorkItem(1147868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147868")>
         <WpfFact>
-        Public Async Function InvalidDocumentTest1() As Task
+        Public Sub InvalidDocumentTest1()
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
             Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
@@ -143,7 +143,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
             ' invalid documentId
             readOnlyDocumentTracker.SetReadOnly(Nothing, False) ' Check no NRE
-        End Function
+        End Sub
 
         <WorkItem(1147868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147868")>
         <WpfFact>

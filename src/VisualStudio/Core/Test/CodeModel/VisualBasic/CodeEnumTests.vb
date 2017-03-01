@@ -21,7 +21,7 @@ Enum E$$
 End Enum
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -57,7 +57,7 @@ Enum E$$
 End Enum
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -91,7 +91,7 @@ End Enum
 Enum $$E : End Enum
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -103,7 +103,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -113,7 +113,7 @@ End Class
 Private Enum $$E : End Enum
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -123,7 +123,7 @@ Private Enum $$E : End Enum
 Protected Enum $$E : End Enum
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -133,7 +133,7 @@ Protected Enum $$E : End Enum
 Protected Friend Enum $$E : End Enum
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -143,7 +143,7 @@ Protected Friend Enum $$E : End Enum
 Friend Enum $$E : End Enum
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -153,7 +153,7 @@ Friend Enum $$E : End Enum
 Public Enum $$E : End Enum
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
 #End Region
@@ -271,7 +271,7 @@ Enum E$$
 End Enum
 </Code>
 
-            Await TestGenericNameExtender_GetBaseTypesCount(code, 1)
+            TestGenericNameExtender_GetBaseTypesCount(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -293,7 +293,7 @@ Enum E$$
 End Enum
 </Code>
 
-            Await TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
+            TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -304,7 +304,7 @@ Enum E$$
 End Enum
 </Code>
 
-            Await TestGenericNameExtender_GetImplTypeGenericName(code, 1, Nothing)
+            TestGenericNameExtender_GetImplTypeGenericName(code, 1, Nothing)
         End Function
 
 #End Region

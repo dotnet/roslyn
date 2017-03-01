@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 Interface $$I : End Interface
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -30,7 +30,7 @@ Interface $$I : End Interface
 Friend Interface $$I : End Interface
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -40,7 +40,7 @@ Friend Interface $$I : End Interface
 Public Interface $$I : End Interface
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
 #End Region
@@ -54,7 +54,7 @@ Interface $$I
 End Interface
 </Code>
 
-            Await TestParts(code, 1)
+            TestParts(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -65,7 +65,7 @@ Partial Interface $$I
 End Interface
 </Code>
 
-            Await TestParts(code, 1)
+            TestParts(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -79,7 +79,7 @@ Partial Interface I
 End Interface
 </Code>
 
-            Await TestParts(code, 2)
+            TestParts(code, 2)
         End Function
 #End Region
 
@@ -305,7 +305,7 @@ Interface I$$
 End Interface
 </Code>
 
-            Await TestGenericNameExtender_GetBaseTypesCount(code, 0)
+            TestGenericNameExtender_GetBaseTypesCount(code, 0)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -326,7 +326,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestGenericNameExtender_GetBaseTypesCount(code, 1)
+            TestGenericNameExtender_GetBaseTypesCount(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -369,7 +369,7 @@ Interface I$$
 End Interface
 </Code>
 
-            Await TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
+            TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -390,7 +390,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
+            TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -401,7 +401,7 @@ Interface I$$
 End Interface
 </Code>
 
-            Await TestGenericNameExtender_GetImplTypeGenericNameThrows(Of ArgumentException)(code, 1)
+            TestGenericNameExtender_GetImplTypeGenericNameThrows(Of ArgumentException)(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -422,7 +422,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestGenericNameExtender_GetImplTypeGenericNameThrows(Of ArgumentException)(code, 1)
+            TestGenericNameExtender_GetImplTypeGenericNameThrows(Of ArgumentException)(code, 1)
         End Function
 
 #End Region

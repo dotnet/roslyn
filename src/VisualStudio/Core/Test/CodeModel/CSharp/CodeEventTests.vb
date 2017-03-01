@@ -20,7 +20,7 @@ class C
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -53,7 +53,7 @@ class C
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -90,7 +90,7 @@ class C
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -140,7 +140,7 @@ class C1 : I1
 }
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=10, lineOffset:=5, absoluteOffset:=131, lineLength:=43)))
         End Function
@@ -159,7 +159,7 @@ class C
 }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -440,7 +440,7 @@ class C
 }
 </Code>
 
-            Await TestIsPropertyStyleEvent(code, False)
+            TestIsPropertyStyleEvent(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -457,7 +457,7 @@ class C
 }
 </Code>
 
-            Await TestIsPropertyStyleEvent(code, True)
+            TestIsPropertyStyleEvent(code, True)
         End Function
 
 #End Region
@@ -969,7 +969,7 @@ class C
                  "ExtenderCATID", "Parent", "Access", "Attributes", "DocComment", "Comment", "Adder",
                  "Remover", "Thrower", "IsPropertyStyleEvent", "Type", "OverrideKind", "IsShared"}
 
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(code, expectedPropertyNames)
         End Function
 
         Protected Overrides ReadOnly Property LanguageName As String

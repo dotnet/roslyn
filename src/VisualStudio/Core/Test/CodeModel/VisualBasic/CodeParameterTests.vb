@@ -23,7 +23,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -58,7 +58,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -93,7 +93,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -128,7 +128,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -163,7 +163,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -198,7 +198,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -237,7 +237,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -272,7 +272,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -669,7 +669,7 @@ Class C
 End Class
 </Code>
 
-            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindIn)
+            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindIn)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -682,7 +682,7 @@ Class C
 End Class
 </Code>
 
-            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
+            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
         End Function
 
 
@@ -696,7 +696,7 @@ Class C
 End Class
 </Code>
 
-            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray Or EnvDTE80.vsCMParameterKind.vsCMParameterKindIn)
+            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray Or EnvDTE80.vsCMParameterKind.vsCMParameterKindIn)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -709,7 +709,7 @@ Class C
 End Class
 </Code>
 
-            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional Or EnvDTE80.vsCMParameterKind.vsCMParameterKindIn)
+            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional Or EnvDTE80.vsCMParameterKind.vsCMParameterKindIn)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -722,7 +722,7 @@ Class C
 End Class
 </Code>
 
-            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional Or EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
+            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional Or EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
         End Function
 
 #End Region
@@ -796,7 +796,7 @@ Class C
 End Class
 </Code>
 
-            Await TestDefaultValue(code, """Foo""")
+            TestDefaultValue(code, """Foo""")
         End Function
 
 #End Region
@@ -1153,7 +1153,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+            TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1166,7 +1166,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
+            TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1179,7 +1179,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+            TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1192,7 +1192,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+            TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1205,7 +1205,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
+            TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
         End Function
 
 #End Region
@@ -1542,7 +1542,7 @@ End Class
 </Code>
 
 
-            Await TestGetParameterArrayCount(code, 0)
+            TestGetParameterArrayCount(code, 0)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1556,7 +1556,7 @@ End Class
 </Code>
 
 
-            Await TestGetParameterArrayCount(code, 1)
+            TestGetParameterArrayCount(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1570,7 +1570,7 @@ End Class
 </Code>
 
 
-            Await TestGetParameterArrayCount(code, 2)
+            TestGetParameterArrayCount(code, 2)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1584,7 +1584,7 @@ End Class
 </Code>
 
 
-            Await TestGetParameterArrayCount(code, 1)
+            TestGetParameterArrayCount(code, 1)
         End Function
 
 #End Region
@@ -1602,7 +1602,7 @@ End Class
 </Code>
 
 
-            Await TestGetParameterArrayDimensions(code, index:=0, expected:=1)
+            TestGetParameterArrayDimensions(code, index:=0, expected:=1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1616,7 +1616,7 @@ End Class
 </Code>
 
 
-            Await TestGetParameterArrayDimensions(code, index:=0, expected:=2)
+            TestGetParameterArrayDimensions(code, index:=0, expected:=2)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1630,7 +1630,7 @@ End Class
 </Code>
 
 
-            Await TestGetParameterArrayDimensions(code, index:=0, expected:=3)
+            TestGetParameterArrayDimensions(code, index:=0, expected:=3)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1644,7 +1644,7 @@ End Class
 </Code>
 
 
-            Await TestGetParameterArrayDimensions(code, index:=1, expected:=1)
+            TestGetParameterArrayDimensions(code, index:=1, expected:=1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1658,7 +1658,7 @@ End Class
 </Code>
 
 
-            Await TestGetParameterArrayDimensions(code, index:=1, expected:=2)
+            TestGetParameterArrayDimensions(code, index:=1, expected:=2)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1672,7 +1672,7 @@ End Class
 </Code>
 
 
-            Await TestGetParameterArrayDimensions(code, index:=2, expected:=1)
+            TestGetParameterArrayDimensions(code, index:=2, expected:=1)
         End Function
 
 #End Region

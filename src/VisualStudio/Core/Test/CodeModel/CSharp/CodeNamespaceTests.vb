@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 namespace $$N { }
 </Code>
 
-            Await TestComment(code, String.Empty)
+            TestComment(code, String.Empty)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -30,7 +30,7 @@ namespace $$N { }
 namespace $$N { }
 </Code>
 
-            Await TestComment(code, "Foo" & vbCrLf & "Bar" & vbCrLf)
+            TestComment(code, "Foo" & vbCrLf & "Bar" & vbCrLf)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -42,7 +42,7 @@ namespace N1 { } // Foo
 namespace $$N2 { }
 </Code>
 
-            Await TestComment(code, "Bar" & vbCrLf)
+            TestComment(code, "Bar" & vbCrLf)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -54,7 +54,7 @@ namespace N1 { } // Foo
 namespace $$N2 { }
 </Code>
 
-            Await TestComment(code, "Bar" & vbCrLf)
+            TestComment(code, "Bar" & vbCrLf)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -68,7 +68,7 @@ namespace N1 { } // Foo
 namespace $$N2 { }
 </Code>
 
-            Await TestComment(code, "Bar" & vbCrLf)
+            TestComment(code, "Bar" & vbCrLf)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -83,7 +83,7 @@ namespace N1 { } // Foo
 namespace $$N2 { }
 </Code>
 
-            Await TestComment(code, "Hello" & vbCrLf & "World!" & vbCrLf)
+            TestComment(code, "Hello" & vbCrLf & "World!" & vbCrLf)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -99,7 +99,7 @@ namespace N1 { } // Foo
 namespace $$N2 { }
 </Code>
 
-            Await TestComment(code, "Hello" & vbCrLf & vbCrLf & "World!" & vbCrLf)
+            TestComment(code, "Hello" & vbCrLf & vbCrLf & "World!" & vbCrLf)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -115,7 +115,7 @@ namespace $$N2 { }
 namespace $$N { }
 </Code>
 
-            Await TestComment(code, "This" & vbCrLf & "is" & vbCrLf & "a" & vbCrLf & "multi-line" & vbCrLf & "comment!" & vbCrLf)
+            TestComment(code, "This" & vbCrLf & "is" & vbCrLf & "a" & vbCrLf & "multi-line" & vbCrLf & "comment!" & vbCrLf)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -127,7 +127,7 @@ namespace $$N { }
 namespace $$N { }
 </Code>
 
-            Await TestComment(code, String.Empty)
+            TestComment(code, String.Empty)
         End Function
 
 #End Region
@@ -142,7 +142,7 @@ namespace $$N { }
 namespace $$N { }
 </Code>
 
-            Await TestDocComment(code, "<doc>" & vbCrLf & "<summary>Hello World</summary>" & vbCrLf & "</doc>")
+            TestDocComment(code, "<doc>" & vbCrLf & "<summary>Hello World</summary>" & vbCrLf & "</doc>")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -155,7 +155,7 @@ namespace $$N { }
 namespace $$N { }
 </Code>
 
-            Await TestDocComment(code, "<doc>" & vbCrLf & "<summary>" & vbCrLf & "Hello World" & vbCrLf & "</summary>" & vbCrLf & "</doc>")
+            TestDocComment(code, "<doc>" & vbCrLf & "<summary>" & vbCrLf & "Hello World" & vbCrLf & "</summary>" & vbCrLf & "</doc>")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -168,7 +168,7 @@ namespace $$N { }
 namespace $$N { }
 </Code>
 
-            Await TestDocComment(code, "<doc>" & vbCrLf & "    <summary>" & vbCrLf & " Hello World" & vbCrLf & "</summary>" & vbCrLf & "</doc>")
+            TestDocComment(code, "<doc>" & vbCrLf & "    <summary>" & vbCrLf & " Hello World" & vbCrLf & "</summary>" & vbCrLf & "</doc>")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -182,7 +182,7 @@ namespace $$N { }
 namespace $$N { }
 </Code>
 
-            Await TestDocComment(code, "<doc>" & vbCrLf & "<summary>" & vbCrLf & "Summary" & vbCrLf & "</summary>" & vbCrLf & "<remarks>Remarks</remarks>" & vbCrLf & "</doc>")
+            TestDocComment(code, "<doc>" & vbCrLf & "<summary>" & vbCrLf & "Summary" & vbCrLf & "</summary>" & vbCrLf & "<remarks>Remarks</remarks>" & vbCrLf & "</doc>")
         End Function
 
 #End Region
@@ -464,7 +464,7 @@ namespace $$N
                  "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
                  "ExtenderCATID", "Parent", "Members", "DocComment", "Comment"}
 
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(code, expectedPropertyNames)
         End Function
 
         Protected Overrides ReadOnly Property LanguageName As String
