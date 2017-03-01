@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         /// <param name="files">Can pass in multiple file contents with individual source kind: files will be named test1.vb, test2.vbx, etc.</param>
-        public static async Task<TestWorkspace> CreateVisualBasicAsync(
+        public static TestWorkspace CreateVisualBasic(
             string[] files,
             ParseOptions[] parseOptions = null,
             CompilationOptions compilationOptions = null,

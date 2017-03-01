@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public class VisualBasicTestWorkspaceFixture : TestWorkspaceFixture
     {
-        protected override Task<TestWorkspace> CreateWorkspaceAsync()
+        protected override async Task<TestWorkspace> CreateWorkspaceAsync()
         {
-            return TestWorkspace.CreateVisualBasicAsync(
+            return TestWorkspace.CreateVisualBasic(
                 new string[] { string.Empty },
                 new VisualBasicParseOptions[] { new VisualBasicParseOptions(kind: SourceCodeKind.Regular) },
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
