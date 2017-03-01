@@ -2542,7 +2542,7 @@ namespace ConsoleApplication46
         override $$
     }
 }";
-            using (var workspace = await TestWorkspace.CreateAsync(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), text))
+            using (var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), text))
             {
                 var provider = new OverrideCompletionProvider();
                 var testDocument = workspace.Documents.Single();

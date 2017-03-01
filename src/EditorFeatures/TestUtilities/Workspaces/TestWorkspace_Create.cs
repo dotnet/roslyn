@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// Creates a single buffer in a workspace.
         /// </summary>
         /// <param name="content">Lines of text, the buffer contents</param>
-        internal static async Task<TestWorkspace> CreateAsync(
+        internal static TestWorkspace Create(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
@@ -73,14 +73,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// Creates a single buffer in a workspace.
         /// </summary>
         /// <param name="content">Lines of text, the buffer contents</param>
-        internal static Task<TestWorkspace> CreateAsync(
+        internal static async Task<TestWorkspace> CreateAsync(
             string workspaceKind,
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             string content)
         {
-            return CreateAsync(workspaceKind, language, compilationOptions, parseOptions, new[] { content });
+            return Create(workspaceKind, language, compilationOptions, parseOptions, new[] { content });
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
-        internal static async Task<TestWorkspace> CreateAsync(
+        internal static TestWorkspace Create(
             string workspaceKind,
             string language,
             CompilationOptions compilationOptions,
