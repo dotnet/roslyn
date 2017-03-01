@@ -65,19 +65,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return codeElement.AddAttribute(data.Name, data.Value, data.Position)
         End Function
 
-        Protected Async Function TestParameterKind(code As XElement, kind As EnvDTE80.vsCMParameterKind) As Task
-            Await TestElement(code,
+        Protected Sub TestParameterKind(code As XElement, kind As EnvDTE80.vsCMParameterKind)
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(kind, codeElement.ParameterKind)
                 End Sub)
-        End Function
+        End Sub
 
-        Protected Async Function TestDefaultValue(code As XElement, expectedValue As String) As Task
-            Await TestElement(code,
+        Protected Sub TestDefaultValue(code As XElement, expectedValue As String)
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expectedValue, codeElement.DefaultValue)
                 End Sub)
-        End Function
+        End Sub
 
         Protected Async Function TestSetParameterKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind) As Task
             Await TestSetParameterKind(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMParameterKind)())
@@ -103,8 +103,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Friend Async Function TestGetParameterPassingMode(code As XElement, expected As PARAMETER_PASSING_MODE) As Task
-            Await TestElement(code,
+        Friend Sub TestGetParameterPassingMode(code As XElement, expected As PARAMETER_PASSING_MODE)
+            TestElement(code,
                 Sub(codeElement)
                     Dim parameterKind = TryCast(codeElement, IParameterKind)
                     Assert.NotNull(parameterKind)
@@ -112,7 +112,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     Dim actual = parameterKind.GetParameterPassingMode()
                     Assert.Equal(expected, actual)
                 End Sub)
-        End Function
+        End Sub
 
         Friend Async Function TestSetParameterPassingMode(code As XElement, expectedCode As XElement, passingMode As PARAMETER_PASSING_MODE) As Task
             Await TestSetParameterPassingMode(code, expectedCode, passingMode, NoThrow(Of PARAMETER_PASSING_MODE)())
@@ -132,8 +132,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Friend Async Function TestGetParameterArrayCount(code As XElement, expected As Integer) As Task
-            Await TestElement(code,
+        Friend Sub TestGetParameterArrayCount(code As XElement, expected As Integer)
+            TestElement(code,
                 Sub(codeElement)
                     Dim parameterKind = TryCast(codeElement, IParameterKind)
                     Assert.NotNull(parameterKind)
@@ -141,10 +141,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     Dim actual = parameterKind.GetParameterArrayCount()
                     Assert.Equal(expected, actual)
                 End Sub)
-        End Function
+        End Sub
 
-        Friend Async Function TestGetParameterArrayDimensions(code As XElement, index As Integer, expected As Integer) As Task
-            Await TestElement(code,
+        Friend Sub TestGetParameterArrayDimensions(code As XElement, index As Integer, expected As Integer)
+            TestElement(code,
                 Sub(codeElement)
                     Dim parameterKind = TryCast(codeElement, IParameterKind)
                     Assert.NotNull(parameterKind)
@@ -152,7 +152,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     Dim actual = parameterKind.GetParameterArrayDimensions(index)
                     Assert.Equal(expected, actual)
                 End Sub)
-        End Function
+        End Sub
 
         Friend Async Function TestSetParameterArrayDimensions(code As XElement, expectedCode As XElement, dimensions As Integer) As Task
             Await TestSetParameterArrayDimensions(code, expectedCode, dimensions, NoThrow(Of Integer)())
