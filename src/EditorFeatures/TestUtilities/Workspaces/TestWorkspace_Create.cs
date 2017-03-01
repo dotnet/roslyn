@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// Creates a single buffer in a workspace.
         /// </summary>
         /// <param name="content">Lines of text, the buffer contents</param>
-        internal static async Task<TestWorkspace> CreateAsync(
+        internal static TestWorkspace Create(
             string workspaceKind,
             string language,
             CompilationOptions compilationOptions,
