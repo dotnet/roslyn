@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             var end = start + length;
 
-            candidates.Push((root, true));
+            candidates.Push((root, firstTime: true));
 
             while (candidates.Count > 0)
             {
