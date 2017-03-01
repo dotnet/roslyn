@@ -331,7 +331,7 @@ class C
 }
 </Code>
 
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

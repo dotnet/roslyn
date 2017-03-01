@@ -614,7 +614,7 @@ public class C
 
         <WorkItem(743120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743120")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_PropertyOffParameter() As Task
+        Public Sub TestCSAssignments_PropertyOffParameter()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -656,11 +656,11 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_NullableValue() As Task
+        Public Sub TestCSAssignments_NullableValue()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -700,11 +700,11 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_ClosedGeneric1() As Task
+        Public Sub TestCSAssignments_ClosedGeneric1()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -736,11 +736,11 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_ClosedGeneric2() As Task
+        Public Sub TestCSAssignments_ClosedGeneric2()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -772,11 +772,11 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_ClosedGeneric3() As Task
+        Public Sub TestCSAssignments_ClosedGeneric3()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -808,11 +808,11 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_ClosedGeneric4() As Task
+        Public Sub TestCSAssignments_ClosedGeneric4()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -844,11 +844,11 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_Pointer1() As Task
+        Public Sub TestCSAssignments_Pointer1()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -870,11 +870,11 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_Pointer2() As Task
+        Public Sub TestCSAssignments_Pointer2()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -904,11 +904,11 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_Pointer3() As Task
+        Public Sub TestCSAssignments_Pointer3()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -938,7 +938,7 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>

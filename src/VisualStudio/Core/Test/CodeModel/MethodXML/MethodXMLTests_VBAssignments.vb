@@ -640,7 +640,7 @@ End Class
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_ClosedGeneric2() As Task
+        Public Sub TestVBAssignments_ClosedGeneric2()
             Dim definition =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">
@@ -669,11 +669,11 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_ClosedGeneric3() As Task
+        Public Sub TestVBAssignments_ClosedGeneric3()
             Dim definition =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">
@@ -702,11 +702,11 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_ClosedGeneric4() As Task
+        Public Sub TestVBAssignments_ClosedGeneric4()
             Dim definition =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">
@@ -735,11 +735,11 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_TypeConfluence() As Task
+        Public Sub TestVBAssignments_TypeConfluence()
             Dim definition =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">
@@ -768,11 +768,11 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(887584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/887584")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_EscapedNames() As Task
+        Public Sub TestVBAssignments_EscapedNames()
             Dim definition =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">
@@ -821,10 +821,10 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_FloatingPointLiteralInGermanUICulture() As Task
+        Public Sub TestVBAssignments_FloatingPointLiteralInGermanUICulture()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -872,10 +872,10 @@ End Class
             Finally
                 currentThread.CurrentCulture = oldCulture
             End Try
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_DontThrowWhenLeftHandSideDoesntBind() As Task
+        Public Sub TestVBAssignments_DontThrowWhenLeftHandSideDoesntBind()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -937,11 +937,11 @@ End Class
             Finally
                 currentThread.CurrentCulture = oldCulture
             End Try
-        End Function
+        End Sub
 
         <WorkItem(4312, "https://github.com/dotnet/roslyn/issues/4312")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_PropertyAssignedWithEmptyArray() As Task
+        Public Sub TestVBAssignments_PropertyAssignedWithEmptyArray()
             Dim definition =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">
@@ -989,11 +989,11 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_RoundTrippedDoubles() As Task
+        Public Sub TestVBAssignments_RoundTrippedDoubles()
             Dim definition =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">
@@ -1021,11 +1021,11 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_RoundTrippedSingles() As Task
+        Public Sub TestVBAssignments_RoundTrippedSingles()
             Dim definition =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">
@@ -1053,7 +1053,7 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
     End Class
 End Namespace
