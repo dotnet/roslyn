@@ -1772,7 +1772,7 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestXMLIndentOnBlankLine() As Task
+        Public Sub TestXMLIndentOnBlankLine()
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
@@ -1783,12 +1783,12 @@ End Module
                 code,
                 indentationLine:=3,
                 expectedIndentation:=20)
-        End Function
+        End Sub
 
         <WorkItem(816976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/816976")>
         <WpfFact(Skip:="Bug 816976")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestXMLIndentOnLineContinuedXMLExpressionHole() As Task
+        Public Sub TestXMLIndentOnLineContinuedXMLExpressionHole()
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
@@ -1799,7 +1799,7 @@ End Module
                 code,
                 indentationLine:=4,
                 expectedIndentation:=28)
-        End Function
+        End Sub
 #End Region
 
 #Region "Bugs"
@@ -1807,7 +1807,7 @@ End Module
         <WorkItem(538771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538771")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestBugFix4481() As Task
+        Public Sub TestBugFix4481()
             Dim code = <Code>_
 </Code>.Value
 
@@ -1815,12 +1815,12 @@ End Module
                 code,
                 indentationLine:=1,
                 expectedIndentation:=4)
-        End Function
+        End Sub
 
         <WorkItem(538771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538771")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestBugFix4481_2() As Task
+        Public Sub TestBugFix4481_2()
             Dim code = <Code>  _
 </Code>.Value
 
@@ -1828,12 +1828,12 @@ End Module
                 code,
                 indentationLine:=1,
                 expectedIndentation:=6)
-        End Function
+        End Sub
 
         <WorkItem(539553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539553")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestBug5559() As Task
+        Public Sub TestBug5559()
             Dim code = <Code>Public Class Class1
     Property too(ByVal d As Char)
         Get
@@ -1849,12 +1849,12 @@ End Class</Code>.Value
                 code,
                 indentationLine:=7,
                 expectedIndentation:=8)
-        End Function
+        End Sub
 
         <WorkItem(539575, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539575")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestBug5586() As Task
+        Public Sub TestBug5586()
             Dim code = <Code>Module Program
     Sub Main()
         Dim x = &lt;?xml version="1.0"?&gt;
@@ -1866,12 +1866,12 @@ End Module</Code>.Value
                 code,
                 indentationLine:=3,
                 expectedIndentation:=16)
-        End Function
+        End Sub
 
         <WorkItem(539609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539609")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestBug5629() As Task
+        Public Sub TestBug5629()
             Dim code = <Code>Module Module1
     Sub Main()
         Dim q = Sub()
@@ -1885,12 +1885,12 @@ End Module</Code>.Value
                 code,
                 indentationLine:=4,
                 expectedIndentation:=20)
-        End Function
+        End Sub
 
         <WorkItem(539686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539686")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestBug5730() As Task
+        Public Sub TestBug5730()
             Dim code = <Code>Module Program
     Sub Main(args As String())
         Dim y = New List(Of Integer) From
@@ -1903,12 +1903,12 @@ End Module
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Function
+        End Sub
 
         <WorkItem(539686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539686")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestBug5730_1() As Task
+        Public Sub TestBug5730_1()
             Dim code = <Code>Module Program
     Sub Main(args As String())
         Dim query = From
@@ -1920,12 +1920,12 @@ End Module</Code>.Value
                 code,
                 indentationLine:=3,
                 expectedIndentation:=20)
-        End Function
+        End Sub
 
         <WorkItem(539639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539639")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestBug5666() As Task
+        Public Sub TestBug5666()
             Dim code = <Code>Module Program
     Sub Main(args As String())
         If True Then
@@ -1940,24 +1940,24 @@ End Module
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
-        End Function
+        End Sub
 
         <WorkItem(539453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539453")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestBug5430_1() As Task
+        Public Sub TestBug5430_1()
             Dim code = My.Resources.XmlLiterals.IndentationTest2
 
             AssertSmartIndent(
                 code,
                 indentationLine:=11,
                 expectedIndentation:=16)
-        End Function
+        End Sub
 
         <WorkItem(540198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540198")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestBug6374() As Task
+        Public Sub TestBug6374()
             Dim code = <text>Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -1974,12 +1974,12 @@ End Module</text>.Value
                 code,
                 indentationLine:=8,
                 expectedIndentation:=8)
-        End Function
+        End Sub
 
         <WorkItem(542240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542240")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestMissingEndStatement() As Task
+        Public Sub TestMissingEndStatement()
             Dim code = <text>Module Module1
     Sub Main()
         If True Then
@@ -1993,7 +1993,7 @@ End Module</text>.Value
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
-        End Function
+        End Sub
 #End Region
 
         <WpfFact>
@@ -2005,7 +2005,7 @@ End Module</text>.Value
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestParameter1() As Task
+        Public Sub TestParameter1()
             Dim code = <code>Class CL
     Sub Method(Arg1 As Integer,
 Arg2 As Integer)
@@ -2016,11 +2016,11 @@ End Class</code>.Value
                 code,
                 indentationLine:=2,
                 expectedIndentation:=15)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestArgument() As Task
+        Public Sub TestArgument()
             Dim code = <code>Class CL
     Sub Method(Arg1 As Integer, Arg2 As Integer)
         Method(1,
@@ -2032,11 +2032,11 @@ End Class</code>.Value
                 code,
                 indentationLine:=3,
                 expectedIndentation:=15)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestParameter_LineContinuation() As Task
+        Public Sub TestParameter_LineContinuation()
             Dim code = <code>Class CL
     Sub Method(Arg1 _ 
 As Integer, Arg2 As Integer)
@@ -2047,11 +2047,11 @@ End Class</code>.Value
                 code,
                 indentationLine:=2,
                 expectedIndentation:=15)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestParameter_LineContinuation2() As Task
+        Public Sub TestParameter_LineContinuation2()
             Dim code = <code>Class CL
     Sub Method(Arg1 As _ 
 Integer, Arg2 As Integer)
@@ -2062,11 +2062,11 @@ End Class</code>.Value
                 code,
                 indentationLine:=2,
                 expectedIndentation:=15)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestParameter2() As Task
+        Public Sub TestParameter2()
             Dim code = <code>Class CL
     Sub Method(Arg1 As Integer, Arg2 _
 As Integer)
@@ -2077,11 +2077,11 @@ End Class</code>.Value
                 code,
                 indentationLine:=2,
                 expectedIndentation:=15)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestTypeParameter() As Task
+        Public Sub TestTypeParameter()
             Dim code = <code>Class CL
     Sub Method(Of 
 T, T2)()
@@ -2092,11 +2092,11 @@ End Class</code>.Value
                 code,
                 indentationLine:=2,
                 expectedIndentation:=19)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestTypeParameter2() As Task
+        Public Sub TestTypeParameter2()
             Dim code = <code>Class CL
     Sub Method(Of T,
 T2)()
@@ -2107,7 +2107,7 @@ End Class</code>.Value
                 code,
                 indentationLine:=2,
                 expectedIndentation:=19)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
@@ -2127,7 +2127,7 @@ End Class</code>.Value
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestTypeArgument2() As Task
+        Public Sub TestTypeArgument2()
             Dim code = <code>Class CL
     Sub Method(Of T, T2)()
         Method(Of Integer, 
@@ -2139,11 +2139,11 @@ End Class</code>.Value
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestArgument_ImplicitLineContinuation() As Task
+        Public Sub TestArgument_ImplicitLineContinuation()
             Dim code = <code>Class CL
     Sub Method()(i as Integer, i2 as Integer)
         Method(
@@ -2155,11 +2155,11 @@ End Class</code>.Value
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestArgument_ImplicitLineContinuation2() As Task
+        Public Sub TestArgument_ImplicitLineContinuation2()
             Dim code = <code>Class CL
     Sub Method()(i as Integer, i2 as Integer)
         Method(1,
@@ -2171,11 +2171,11 @@ End Class</code>.Value
                 code,
                 indentationLine:=3,
                 expectedIndentation:=15)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestStatementAfterLabel() As Task
+        Public Sub TestStatementAfterLabel()
             Dim code = <code>Module Module1
     Sub Main(args As String())
 x100:
@@ -2188,11 +2188,11 @@ End Module
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestAfterStatementInNugget() As Task
+        Public Sub TestAfterStatementInNugget()
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -2208,11 +2208,11 @@ End Module
             AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestAfterStatementOnFirstLineOfNugget() As Task
+        Public Sub TestAfterStatementOnFirstLineOfNugget()
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -2237,11 +2237,11 @@ End Module
             AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestInQueryInNugget() As Task
+        Public Sub TestInQueryInNugget()
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -2258,11 +2258,11 @@ End Module
             AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=26)
-        End Function
+        End Sub
 
         <WorkItem(574314, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574314")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestInQueryOnFirstLineOfNugget() As Task
+        Public Sub TestInQueryOnFirstLineOfNugget()
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 ExternalSource ("Default.aspx", 3)
@@ -2277,11 +2277,11 @@ End Module
             AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 2 + "Dim query = ".Length)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestInNestedBlockInNugget() As Task
+        Public Sub TestInNestedBlockInNugget()
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -2297,11 +2297,11 @@ End Module
             AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 8)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestInNestedBlockStartingOnFirstLineOfNugget() As Task
+        Public Sub TestInNestedBlockStartingOnFirstLineOfNugget()
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -2316,11 +2316,11 @@ End Module
             AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 8)
-        End Function
+        End Sub
 
         <WpfFact, WorkItem(646663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/646663")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestInEmptyNugget() As Task
+        Public Sub TestInEmptyNugget()
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -2334,11 +2334,11 @@ End Module
             AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
-        End Function
+        End Sub
 
         <WpfFact, WorkItem(1190278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1190278")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function GetNextTokenForFormattingSpanCalculationIncludesZeroWidthToken_VB() As Tasks.Task
+        Public Sub GetNextTokenForFormattingSpanCalculationIncludesZeroWidthToken_VB()
             Dim markup = <code>Option Strict Off
 Option Explicit On
  
@@ -2447,7 +2447,7 @@ End Namespace
             AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=15)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
@@ -2465,7 +2465,7 @@ End Namespace
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestBlockIndentation2() As Task
+        Public Sub TestBlockIndentation2()
             Dim code = <code>Class C
     Sub Main()
         Dim x = 3
@@ -2476,11 +2476,11 @@ End Namespace
                 indentationLine:=3,
                 expectedIndentation:=8,
                 indentStyle:=FormattingOptions.IndentStyle.Block)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestNoIndentation() As Task
+        Public Sub TestNoIndentation()
             Dim code = <code>Class C
     Sub Main()
         Dim x = 3
@@ -2491,12 +2491,12 @@ End Namespace
                 indentationLine:=3,
                 expectedIndentation:=Nothing,
                 indentStyle:=FormattingOptions.IndentStyle.None)
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(809354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809354")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestCaseStatement1() As Task
+        Public Sub TestCaseStatement1()
             Dim code = <code>Enum E
     A
     B
@@ -2518,12 +2518,12 @@ End Module
                 code,
                 indentationLine:=10,
                 expectedIndentation:=17)
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(1082028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082028")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestNotLineContinuationIndentation_Empty() As Task
+        Public Sub TestNotLineContinuationIndentation_Empty()
             Dim code = <code>Module Module1
     Sub Main()
         Dim cust2 = New Customer With {
@@ -2541,12 +2541,12 @@ End Class
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(1082028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082028")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestLineContinuationIndentation() As Task
+        Public Sub TestLineContinuationIndentation()
             Dim code = <code>Module Module1
     Sub Main()
         Dim cust2 = New Customer With {
@@ -2565,12 +2565,12 @@ End Class
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(1082028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082028")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestNotLineContinuationIndentation_ObjectMember() As Task
+        Public Sub TestNotLineContinuationIndentation_ObjectMember()
             Dim code = <code>Module Module1
     Sub Main()
         Dim cust2 = New Customer With {
@@ -2589,7 +2589,7 @@ End Class
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(1082028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082028")>
@@ -2648,7 +2648,7 @@ End Module
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestSmartIndentInsideInterpolatedMultiLineString_1() As Task
+        Public Sub TestSmartIndentInsideInterpolatedMultiLineString_1()
             Dim code = <code>Module Module1
     Sub Main()
         Dim c2() = $"
@@ -2661,11 +2661,11 @@ End Module
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
-        End Function
+        End Sub
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestSmartIndentInsideInterpolatedMultiLineString_2() As Task
+        Public Sub TestSmartIndentInsideInterpolatedMultiLineString_2()
             Dim code = <code>Module Module1
     Sub Main()
         Dim c2() = $"what
@@ -2678,11 +2678,11 @@ End Module
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
-        End Function
+        End Sub
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestSmartIndentInsideInterpolatedMultiLineString_3() As Task
+        Public Sub TestSmartIndentInsideInterpolatedMultiLineString_3()
             Dim code = <code>Module Module1
     Sub Main()
         Dim c2() = $"what
@@ -2695,11 +2695,11 @@ End Module
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
-        End Function
+        End Sub
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestSmartIndentInsideInterpolatedMultiLineString_4() As Task
+        Public Sub TestSmartIndentInsideInterpolatedMultiLineString_4()
             Dim code = <code>Module Module1
     Sub Main()
         Dim c2() = $"what{0}
@@ -2712,11 +2712,11 @@ End Module
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
-        End Function
+        End Sub
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestSmartIndentInsideMultiLineString() As Task
+        Public Sub TestSmartIndentInsideMultiLineString()
             Dim code = <code>Module Module1
     Sub Main()
         Dim c2() = $"1
@@ -2729,11 +2729,11 @@ End Module
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
-        End Function
+        End Sub
 
         <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestSmartIndentAtCaseBlockEnd() As Task
+        Public Sub TestSmartIndentAtCaseBlockEnd()
             Dim code = <code>Class Program
     Public Sub M()
         Dim s = 1
@@ -2751,11 +2751,11 @@ End Class
                 code,
                 indentationLine:=6,
                 expectedIndentation:=16)
-        End Function
+        End Sub
 
         <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestSmartIndentAtCaseBlockEndComment() As Task
+        Public Sub TestSmartIndentAtCaseBlockEndComment()
             Dim code = <code>Class Program
     Public Sub M()
         Dim s = 1
@@ -2774,7 +2774,7 @@ End Class
                 code,
                 indentationLine:=7,
                 expectedIndentation:=16)
-        End Function
+        End Sub
 
         <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
