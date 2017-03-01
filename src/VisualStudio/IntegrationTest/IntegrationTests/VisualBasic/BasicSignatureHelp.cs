@@ -12,16 +12,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicSignatureHelp(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpSignatureHelp))
-        {
-
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void MethodSignatureHelp()
-        {
-            SetUpEditor(@"
+        private const string Baseline = @"
 Class C
     Sub M()
         $$
@@ -67,7 +58,18 @@ Class C
     ''' <returns>Null</returns>
     Sub OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)
     End Sub
-End Class");
+End Class
+";
+
+        public BasicSignatureHelp(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicSignatureHelp))
+        {
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void MethodSignatureHelp()
+        {
+            SetUpEditor(Baseline);
 
             SendKeys("Dim m=Method(1,");
             InvokeSignatureHelp();
@@ -81,53 +83,7 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void GenericMethodSignatureHelp1()
         {
-            SetUpEditor(@"
-Class C
-    Sub M()
-        $$
-    End Sub
-    
-    Function Method(i As Integer) As C
-        Return Nothing
-    End Function
-    
-    ''' <summary>
-    ''' Hello World 2.0!
-    ''' </summary>
-    ''' <param name=""i"">an integer, preferably 42.</param>
-    ''' <param name=""i2"">an integer, anything you like.</param>
-    ''' <returns>returns an object of type C</returns>
-    Function Method(i As Integer, i2 As Integer) As C
-        Return Nothing
-    End Function
-
-
-    ''' <summary>
-    ''' Hello Generic World!
-    ''' </summary>
-    ''' <typeparam name=""T1"">Type Param 1</typeparam>
-    ''' <param name=""i"">Param 1 of type T1</param>
-    ''' <returns>Null</returns>
-    Function GenericMethod(Of T1)(i As T1) As C
-        Return Nothing
-    End Function
-
-
-    Function GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C
-        Return Nothing
-    End Function
-
-
-    ''' <summary>
-    ''' Complex Method Params
-    ''' </summary>
-    ''' <param name=""strings"">Jagged MultiDimensional Array</param>
-    ''' <param name=""outArr"">Out Array</param>
-    ''' <param name=""d"">Dynamic and Params param</param>
-    ''' <returns>Null</returns>
-    Sub OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)
-    End Sub
-End Class");
+            SetUpEditor(Baseline);
 
             SendKeys("Dim gm = GenericMethod");
             SendKeys(VirtualKey.Escape);
@@ -180,7 +136,7 @@ End Class");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void GenericMethodSignatureHelp_CtrlKP()
+        public void GenericMethodSignatureHelp_InvokeSighelp()
         {
             SetUpEditor(@"
 Imports System
@@ -242,59 +198,13 @@ End Class");
 Class C
     'Marker");
 
-            VerifySignatureHelpIsActive(expected: false);
+            Assert.False(Editor.IsSignatureHelpActive());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void JaggedMultidimensionalArray()
         {
-            SetUpEditor(@"
-Class C
-    Sub M()
-        $$
-    End Sub
-    
-    Function Method(i As Integer) As C
-        Return Nothing
-    End Function
-    
-    ''' <summary>
-    ''' Hello World 2.0!
-    ''' </summary>
-    ''' <param name=""i"">an integer, preferably 42.</param>
-    ''' <param name=""i2"">an integer, anything you like.</param>
-    ''' <returns>returns an object of type C</returns>
-    Function Method(i As Integer, i2 As Integer) As C
-        Return Nothing
-    End Function
-
-
-    ''' <summary>
-    ''' Hello Generic World!
-    ''' </summary>
-    ''' <typeparam name=""T1"">Type Param 1</typeparam>
-    ''' <param name=""i"">Param 1 of type T1</param>
-    ''' <returns>Null</returns>
-    Function GenericMethod(Of T1)(i As T1) As C
-        Return Nothing
-    End Function
-
-
-    Function GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C
-        Return Nothing
-    End Function
-
-
-    ''' <summary>
-    ''' Complex Method Params
-    ''' </summary>
-    ''' <param name=""strings"">Jagged MultiDimensional Array</param>
-    ''' <param name=""outArr"">Out Array</param>
-    ''' <param name=""d"">Dynamic and Params param</param>
-    ''' <returns>Null</returns>
-    Sub OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)
-    End Sub
-End Class");
+            SetUpEditor(Baseline);
 
             SendKeys("Dim op = OutAndParam(");
             VerifyCurrentSignature("C.OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)\r\nComplex Method Params");

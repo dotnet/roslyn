@@ -142,6 +142,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 view.Caret.MoveTo(point);
             });
 
+        /// <remarks>
+        /// This method does not wait for async operations before 
+        /// querying the editor
+        /// </remarks>
         public string[] GetCompletionItems()
             => ExecuteOnActiveView(view =>
             {
@@ -158,6 +162,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return selectedCompletionSet.Completions.Select(c => c.DisplayText).ToArray();
             });
 
+        /// <remarks>
+        /// This method does not wait for async operations before 
+        /// querying the editor
+        /// </remarks>
         public string GetCurrentCompletionItem()
             => ExecuteOnActiveView(view =>
             {
@@ -173,6 +181,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return selectedCompletionSet.SelectionStatus.Completion.DisplayText;
             });
 
+        /// <remarks>
+        /// This method does not wait for async operations before 
+        /// querying the editor
+        /// </remarks>
         public bool IsCompletionActive()
             => ExecuteOnActiveView(view =>
             {
@@ -180,6 +192,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return broker.IsCompletionActive(view);
             });
 
+        /// <remarks>
+        /// This method does not wait for async operations before 
+        /// querying the editor
+        /// </remarks>
         public bool IsSignatureHelpActive()
             => ExecuteOnActiveView(view =>
             {
@@ -187,12 +203,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return broker.IsSignatureHelpActive(view);
             });
 
+        /// <remarks>
+        /// This method does not wait for async operations before 
+        /// querying the editor
+        /// </remarks>
         public Signature[] GetSignatures()
             => ExecuteOnActiveView(view =>
             {
-                var broken = GetComponentModelService<ISignatureHelpBroker>();
+                var broker = GetComponentModelService<ISignatureHelpBroker>();
 
-                var sessions = broken.GetSessions(view);
+                var sessions = broker.GetSessions(view);
                 if (sessions.Count != 1)
                 {
                     throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
@@ -201,6 +221,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return sessions[0].Signatures.Select(s => new Signature(s)).ToArray();
             });
 
+        /// <remarks>
+        /// This method does not wait for async operations before 
+        /// querying the editor
+        /// </remarks>
         public Signature GetCurrentSignature()
             => ExecuteOnActiveView(view =>
             {
