@@ -983,19 +983,6 @@ public class Cls
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));
 
             var local = (SourceLocalSymbol)symbol;
-            var typeSyntax = decl.Type;
-
-            Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
-            Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
-
-            if (local.Type.IsErrorType())
-            {
-                Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
-            }
-            else
-            {
-                Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
-            }
 
             AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: local.Type);
 
@@ -1030,6 +1017,29 @@ public class Cls
             Assert.Equal(expectedType, typeInfo.Type);
             Assert.Equal(expectedType, typeInfo.ConvertedType);
             Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl));
+            Assert.True(model.GetConversion(decl).IsIdentity);
+
+            var typeSyntax = decl.Type;
+
+            Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
+            Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
+
+            TypeSymbol expected = expectedSymbol?.GetTypeOrReturnType();
+
+            if (expected?.IsErrorType() != false)
+            {
+                Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
+            }
+            else
+            {
+                Assert.Equal(expected, model.GetSymbolInfo(typeSyntax).Symbol);
+            }
+
+            typeInfo = model.GetTypeInfo(typeSyntax);
+            Assert.Equal(expected, typeInfo.Type);
+            Assert.Equal(expected, typeInfo.ConvertedType);
+            Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(typeSyntax));
+            Assert.True(model.GetConversion(typeSyntax).IsIdentity);
 
             var conversion = model.ClassifyConversion(decl, model.Compilation.ObjectType, false);
             Assert.False(conversion.Exists);
@@ -1102,14 +1112,7 @@ public class Cls
 
             var local = (SourceLocalSymbol)symbol;
 
-            if (decl.Type.IsVar && local.IsVar && local.Type.IsErrorType())
-            {
-                Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
-            }
-            else
-            {
-                Assert.Equal(local.Type, model.GetSymbolInfo(decl.Type).Symbol);
-            }
+            AssertInfoForDeclarationExpressionSyntax(model, decl, local, local.Type);
         }
 
         private static void VerifyNotInScope(SemanticModel model, IdentifierNameSyntax reference)
@@ -30431,19 +30434,6 @@ class Program
             Assert.Contains(decl.Identifier().ValueText, names);
 
             var local = (FieldSymbol)symbol;
-            var typeSyntax = decl.Type;
-
-            Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
-            Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
-
-            if (typeSyntax.IsVar && local.Type.IsErrorType())
-            {
-                Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
-            }
-            else
-            {
-                Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
-            }
 
             var declarator = decl.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
             var inFieldDeclaratorArgumentlist = declarator != null && declarator.Parent.Parent.Kind() != SyntaxKind.LocalDeclarationStatement &&
@@ -30730,7 +30720,7 @@ public class C
         }
 
         [Fact]
-        public void OutVarDiscardInCtor()
+        public void OutVarDiscardInCtor_01()
         {
             var source =
     @"
@@ -30761,6 +30751,14 @@ public class C
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(declaration1).Symbol);
 
+            Assert.Equal("int", declaration1.Type.ToString());
+            Assert.Equal("System.Int32", model.GetSymbolInfo(declaration1.Type).Symbol.ToTestDisplayString());
+            TypeInfo typeInfo = model.GetTypeInfo(declaration1.Type);
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.True(model.GetConversion(declaration1.Type).IsIdentity);
+            Assert.Null(model.GetAliasInfo(declaration1.Type));
+
             var discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
             Assert.Null(model.GetSymbolInfo(discard2).Symbol);
@@ -30769,10 +30767,193 @@ public class C
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration2).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
 
+            Assert.Equal("var", declaration2.Type.ToString());
+            Assert.Equal("System.Int32", model.GetSymbolInfo(declaration2.Type).Symbol.ToTestDisplayString());
+            typeInfo = model.GetTypeInfo(declaration2.Type);
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.True(model.GetConversion(declaration2.Type).IsIdentity);
+            Assert.Null(model.GetAliasInfo(declaration2.Type));
+
             var discard3 = GetDiscardIdentifiers(tree).First();
             Assert.Equal("System.Int32", model.GetTypeInfo(discard3).Type.ToTestDisplayString());
             var discard3Symbol = (IDiscardSymbol)model.GetSymbolInfo(discard3).Symbol;
             Assert.Equal("int _", discard3Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+        }
+
+        [Fact]
+        public void OutVarDiscardInCtor_02()
+        {
+            var source =
+    @"
+public class C
+{
+    public C(out int i) { i = 1; System.Console.Write(""C""); }
+    static void Main()
+    {
+        new C(out long x1);
+        new C(out long _);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,19): error CS1503: Argument 1: cannot convert from 'out long' to 'out int'
+                //         new C(out long x1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "long x1").WithArguments("1", "out long", "out int").WithLocation(7, 19),
+                // (8,19): error CS1503: Argument 1: cannot convert from 'out long' to 'out int'
+                //         new C(out long _);
+                Diagnostic(ErrorCode.ERR_BadArgType, "long _").WithArguments("1", "out long", "out int").WithLocation(8, 19),
+                // (7,19): error CS0165: Use of unassigned local variable 'x1'
+                //         new C(out long x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "long x1").WithArguments("x1").WithLocation(7, 19)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl);
+
+            var discard1 = GetDiscardDesignations(tree).Single();
+            Assert.Null(model.GetDeclaredSymbol(discard1));
+            Assert.Null(model.GetSymbolInfo(discard1).Symbol);
+            var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
+            Assert.Equal("long _", declaration1.ToString());
+            Assert.Equal("System.Int64", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration1).Symbol);
+
+            Assert.Equal("long", declaration1.Type.ToString());
+            Assert.Equal("System.Int64", model.GetSymbolInfo(declaration1.Type).Symbol.ToTestDisplayString());
+            TypeInfo typeInfo = model.GetTypeInfo(declaration1.Type);
+            Assert.Equal("System.Int64", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int64", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.True(model.GetConversion(declaration1.Type).IsIdentity);
+            Assert.Null(model.GetAliasInfo(declaration1.Type));
+        }
+
+        [Fact]
+        public void OutVarDiscardAliasInfo_01()
+        {
+            var source =
+@"
+using alias1 = System.Int32;
+using var = System.Int32;
+
+public class C
+{
+    public C(out int i) { i = 1; System.Console.Write(""C""); }
+    static void Main()
+    {
+        new C(out alias1 _);
+        new C(out var _);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "CC");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var discard1 = GetDiscardDesignations(tree).ElementAt(0);
+            Assert.Null(model.GetDeclaredSymbol(discard1));
+            Assert.Null(model.GetSymbolInfo(discard1).Symbol);
+            var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
+            Assert.Equal("alias1 _", declaration1.ToString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration1).Symbol);
+
+            Assert.Equal("alias1", declaration1.Type.ToString());
+            Assert.Equal("System.Int32", model.GetSymbolInfo(declaration1.Type).Symbol.ToTestDisplayString());
+            TypeInfo typeInfo = model.GetTypeInfo(declaration1.Type);
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.True(model.GetConversion(declaration1.Type).IsIdentity);
+            Assert.Equal("alias1=System.Int32", model.GetAliasInfo(declaration1.Type).ToTestDisplayString());
+
+            var discard2 = GetDiscardDesignations(tree).ElementAt(1);
+            Assert.Null(model.GetDeclaredSymbol(discard2));
+            Assert.Null(model.GetSymbolInfo(discard2).Symbol);
+            var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
+            Assert.Equal("var _", declaration2.ToString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration2).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
+
+            Assert.Equal("var", declaration2.Type.ToString());
+            Assert.Equal("System.Int32", model.GetSymbolInfo(declaration2.Type).Symbol.ToTestDisplayString());
+            typeInfo = model.GetTypeInfo(declaration2.Type);
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.True(model.GetConversion(declaration2.Type).IsIdentity);
+            Assert.Equal("var=System.Int32", model.GetAliasInfo(declaration2.Type).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void OutVarDiscardAliasInfo_02()
+        {
+            var source =
+@"
+enum alias1 : long {}
+class var {}
+
+public class C
+{
+    public C(out int i) { i = 1; System.Console.Write(""C""); }
+    static void Main()
+    {
+        new C(out alias1 _);
+        new C(out var _);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (10,19): error CS1503: Argument 1: cannot convert from 'out alias1' to 'out int'
+                //         new C(out alias1 _);
+                Diagnostic(ErrorCode.ERR_BadArgType, "alias1 _").WithArguments("1", "out alias1", "out int").WithLocation(10, 19),
+                // (11,19): error CS1503: Argument 1: cannot convert from 'out var' to 'out int'
+                //         new C(out var _);
+                Diagnostic(ErrorCode.ERR_BadArgType, "var _").WithArguments("1", "out var", "out int").WithLocation(11, 19)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var discard1 = GetDiscardDesignations(tree).ElementAt(0);
+            Assert.Null(model.GetDeclaredSymbol(discard1));
+            Assert.Null(model.GetSymbolInfo(discard1).Symbol);
+            var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
+            Assert.Equal("alias1 _", declaration1.ToString());
+            Assert.Equal("alias1", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration1).Symbol);
+
+            Assert.Equal("alias1", declaration1.Type.ToString());
+            Assert.Equal("alias1", model.GetSymbolInfo(declaration1.Type).Symbol.ToTestDisplayString());
+            TypeInfo typeInfo = model.GetTypeInfo(declaration1.Type);
+            Assert.Equal("alias1", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("alias1", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.True(model.GetConversion(declaration1.Type).IsIdentity);
+            Assert.Null(model.GetAliasInfo(declaration1.Type));
+
+            var discard2 = GetDiscardDesignations(tree).ElementAt(1);
+            Assert.Null(model.GetDeclaredSymbol(discard2));
+            Assert.Null(model.GetSymbolInfo(discard2).Symbol);
+            var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
+            Assert.Equal("var _", declaration2.ToString());
+            Assert.Equal("var", model.GetTypeInfo(declaration2).Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, model.GetTypeInfo(declaration2).Type.TypeKind);
+            Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
+
+            Assert.Equal("var", declaration2.Type.ToString());
+            Assert.Equal("var", model.GetSymbolInfo(declaration2.Type).Symbol.ToTestDisplayString());
+            typeInfo = model.GetTypeInfo(declaration2.Type);
+            Assert.Equal("var", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+            Assert.True(model.GetConversion(declaration2.Type).IsIdentity);
+            Assert.Null(model.GetAliasInfo(declaration2.Type));
         }
 
         [Fact]
