@@ -51,6 +51,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return child;
         }
 
+        /// <summary>
+        /// Given an <see cref="AutomationElement"/>, returns all descendants with the given <paramref name="className"/>.
+        /// If none are found, the resulting collection will be empty.
+        /// </summary>
+        /// <returns></returns>
+        public static AutomationElementCollection FindDescendantsByClass(this AutomationElement parent, string className)
+        {
+            if (parent == null)
+            {
+                throw new ArgumentNullException(nameof(parent));
+            }
+
+            var condition = new PropertyCondition(AutomationElement.ClassNameProperty, className);
+            return parent.FindAll(TreeScope.Descendants, condition);
+        }
 
         /// <summary>
         /// Invokes an <see cref="AutomationElement"/>.
