@@ -45,9 +45,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestIsValidId_StartsWithNumber() As Task
+        Public Sub TestIsValidId_StartsWithNumber()
             AssertNotValidId("123abc")
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_Punctuation() As Task

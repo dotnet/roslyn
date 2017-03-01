@@ -238,7 +238,7 @@ class C : B
 
         <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
-        Public Async Function TestContent_HelpKeyword_Ctor() As Task
+        Public Sub TestContent_HelpKeyword_Ctor()
             Dim code =
 <Code>
 namespace N
@@ -260,7 +260,7 @@ namespace N
 
                 list.VerifyHelpKeywords("N.C.#ctor")
             End Using
-        End Function
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_Project() As Task

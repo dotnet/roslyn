@@ -379,7 +379,7 @@ class C1 : I1
 #Region "GetEndPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint1() As Task
+        Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
 class C
@@ -418,10 +418,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=12, lineOffset:=6, absoluteOffset:=136, lineLength:=5)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_Attribute() As Task
+        Public Sub TestGetEndPoint_Attribute()
             Dim code =
 <Code>
 class C
@@ -461,10 +461,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=13, lineOffset:=6, absoluteOffset:=168, lineLength:=5)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_AutoProperty() As Task
+        Public Sub TestGetEndPoint_AutoProperty()
             Dim code =
 <Code>
 class C
@@ -494,10 +494,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=31, absoluteOffset:=41, lineLength:=30)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_AutoProperty_Attribute() As Task
+        Public Sub TestGetEndPoint_AutoProperty_Attribute()
             Dim code =
 <Code>
 class C
@@ -528,10 +528,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=4, lineOffset:=31, absoluteOffset:=73, lineLength:=30)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_Indexer() As Task
+        Public Sub TestGetEndPoint_Indexer()
             Dim code =
 <Code>
 class C
@@ -570,10 +570,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=12, lineOffset:=6, absoluteOffset:=150, lineLength:=5)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_Indexer_Attribute() As Task
+        Public Sub TestGetEndPoint_Indexer_Attribute()
             Dim code =
 <Code>
 class C
@@ -613,11 +613,11 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=13, lineOffset:=6, absoluteOffset:=182, lineLength:=5)))
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_ExplicitlyImplementedProperty() As Task
+        Public Sub TestGetEndPoint_ExplicitlyImplementedProperty()
             Dim code =
 <Code>
 interface I1
@@ -644,7 +644,7 @@ class C1 : I1
             TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=18, lineOffset:=6, absoluteOffset:=178, lineLength:=5)))
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

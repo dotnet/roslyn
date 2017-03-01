@@ -431,7 +431,7 @@ class C1 : I1
 #Region "IsPropertyStyleEvent tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsPropertyStyleEvent1() As Task
+        Public Sub TestIsPropertyStyleEvent1()
             Dim code =
 <Code>
 class C
@@ -441,10 +441,10 @@ class C
 </Code>
 
             TestIsPropertyStyleEvent(code, False)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsPropertyStyleEvent2() As Task
+        Public Sub TestIsPropertyStyleEvent2()
             Dim code =
 <Code>
 class C
@@ -458,14 +458,14 @@ class C
 </Code>
 
             TestIsPropertyStyleEvent(code, True)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "IsShared tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsShared1() As Task
+        Public Sub TestIsShared1()
             Dim code =
 <Code>
 class C
@@ -475,10 +475,10 @@ class C
 </Code>
 
             TestIsShared(code, False)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsShared2() As Task
+        Public Sub TestIsShared2()
             Dim code =
 <Code>
 class C
@@ -488,14 +488,14 @@ class C
 </Code>
 
             TestIsShared(code, True)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        Public Sub TestName1()
             Dim code =
 <Code>
 class C
@@ -505,10 +505,10 @@ class C
 </Code>
 
             TestName(code, "E")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName2() As Task
+        Public Sub TestName2()
             Dim code =
 <Code>
 class C
@@ -518,11 +518,11 @@ class C
 </Code>
 
             TestName(code, "F")
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_ExplicitlyImplementedEvent() As Task
+        Public Sub TestName_ExplicitlyImplementedEvent()
             Dim code =
 <Code>
 delegate void SampleEventHandler(object sender);
@@ -548,7 +548,7 @@ class C1 : I1
 </Code>
 
             TestName(code, "I1.SampleEvent")
-        End Function
+        End Sub
 
 #End Region
 

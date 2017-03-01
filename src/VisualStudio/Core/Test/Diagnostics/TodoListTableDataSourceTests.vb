@@ -132,7 +132,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <Fact>
-        Public Async Function TestSnapshotEntry() As Task
+        Public Sub TestSnapshotEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -177,10 +177,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Column, column))
                 Assert.Equal(item.MappedColumn, column)
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestSnapshotTranslateTo() As Task
+        Public Sub TestSnapshotTranslateTo()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -207,10 +207,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Assert.Equal(0, snapshot1.IndexOf(0, snapshot2))
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestSnapshotTranslateTo2() As Task
+        Public Sub TestSnapshotTranslateTo2()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -240,10 +240,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim snapshot2 = factory.GetCurrentSnapshot()
                 Assert.Equal(1, snapshot1.IndexOf(0, snapshot2))
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestSnapshotTranslateTo3() As Task
+        Public Sub TestSnapshotTranslateTo3()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -273,10 +273,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim snapshot2 = factory.GetCurrentSnapshot()
                 Assert.Equal(-1, snapshot1.IndexOf(0, snapshot2))
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestInvalidEntry() As Task
+        Public Sub TestInvalidEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -301,7 +301,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.False(snapshot.TryGetValue(1, StandardTableKeyNames.DocumentName, temp))
                 Assert.False(snapshot.TryGetValue(0, "Test", temp))
             End Using
-        End Function
+        End Sub
 
         <Fact>
         Public Sub TestAggregatedEntries()

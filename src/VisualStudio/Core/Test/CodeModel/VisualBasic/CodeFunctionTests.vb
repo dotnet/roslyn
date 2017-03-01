@@ -146,7 +146,7 @@ End Class
 
         <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_DeclareSub_WithoutAttribute() As Task
+        Public Sub TestGetStartPoint_DeclareSub_WithoutAttribute()
             Dim code =
 <Code>
 Public Class C1
@@ -175,7 +175,7 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)))
-        End Function
+        End Sub
 
         <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

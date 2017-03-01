@@ -931,7 +931,7 @@ End Class
 #End Region
 
         <ConditionalWpfFact(GetType(x86))>
-        Public Async Function TestOutsideEditsFormattedAfterEndBatch() As Task
+        Public Sub TestOutsideEditsFormattedAfterEndBatch()
             Using state = CreateCodeModelTestState(GetWorkspaceDefinition(<File>Class C : End Class</File>))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
@@ -948,11 +948,11 @@ End Class
                 Assert.Contains("Class C", buffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
             End Using
 
-        End Function
+        End Sub
 
         <WorkItem(925569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925569")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function ChangeClassNameAndGetNameOfChildFunction() As Task
+        Public Sub ChangeClassNameAndGetNameOfChildFunction()
             Dim code =
     <Code>
 Class C
@@ -975,7 +975,7 @@ End Class
                     Assert.Equal("NewClassName", codeClass.Name)
                     Assert.Equal("M", codeFunction.Name)
                 End Sub)
-        End Function
+        End Sub
 
         <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1051,7 +1051,7 @@ End Class
 
         <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCodeElements_InheritsStatements() As Task
+        Public Sub TestCodeElements_InheritsStatements()
             Dim code =
     <code>
 Class A
@@ -1093,11 +1093,11 @@ End Class
                         Assert.Equal("C", member2.NodeKey.Name)
                         Assert.Equal(1, member2.NodeKey.Ordinal)
                     End Sub)
-        End Function
+        End Sub
 
         <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCodeElements_ImplementsStatements() As Task
+        Public Sub TestCodeElements_ImplementsStatements()
             Dim code =
     <code>
 Interface I
@@ -1139,11 +1139,11 @@ End Class
                         Assert.Equal("C", member2.NodeKey.Name)
                         Assert.Equal(1, member2.NodeKey.Ordinal)
                     End Sub)
-        End Function
+        End Sub
 
         <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCodeElements_PropertyAccessor() As Task
+        Public Sub TestCodeElements_PropertyAccessor()
             Dim code =
     <code>
 Class C
@@ -1191,11 +1191,11 @@ End Class
                         Assert.Equal("C.P As Integer", member2.NodeKey.Name)
                         Assert.Equal(1, member2.NodeKey.Ordinal)
                     End Sub)
-        End Function
+        End Sub
 
         <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCodeElements_EventAccessor() As Task
+        Public Sub TestCodeElements_EventAccessor()
             Dim code =
     <code>
 Class C
@@ -1250,7 +1250,7 @@ End Class
                     Assert.Equal("C.E As System.EventHandler", member2.NodeKey.Name)
                     Assert.Equal(1, member2.NodeKey.Ordinal)
                 End Sub)
-        End Function
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

@@ -101,7 +101,7 @@ public class C
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_ArrayNoInitializer() As Task
+        Public Sub TestCSLocalDeclarations_ArrayNoInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -128,10 +128,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_ArrayWithInitializer() As Task
+        Public Sub TestCSLocalDeclarations_ArrayWithInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -172,10 +172,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_WithBinaryPlusInitializer() As Task
+        Public Sub TestCSLocalDeclarations_WithBinaryPlusInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -214,10 +214,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_WithBitwiseOrInitializer() As Task
+        Public Sub TestCSLocalDeclarations_WithBitwiseOrInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -256,7 +256,7 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestCSLocalDeclarations_WithBitwiseAndInitializer() As Task

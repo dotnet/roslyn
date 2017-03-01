@@ -681,7 +681,7 @@ public class C1 : I1
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_Destructor() As Task
+        Public Sub TestName_Destructor()
             Dim code =
 <Code>
 class C
@@ -691,11 +691,11 @@ class C
 </Code>
 
             TestName(code, "~C")
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_ImplicitOperator() As Task
+        Public Sub TestName_ImplicitOperator()
             Dim code =
 <Code>
 public class ComplexType
@@ -714,7 +714,7 @@ public class ComplexType
 </Code>
 
             TestName(code, "implicit operator ComplexType")
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

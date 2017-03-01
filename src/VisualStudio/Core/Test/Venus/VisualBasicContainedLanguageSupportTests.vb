@@ -43,24 +43,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestIsValidId_StartsWithNumber() As Task
+        Public Sub TestIsValidId_StartsWithNumber()
             AssertNotValidId("123abc")
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestIsValidId_Punctuation() As Task
+        Public Sub TestIsValidId_Punctuation()
             AssertNotValidId("abc.abc")
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestIsValidId_TypeChar() As Task
+        Public Sub TestIsValidId_TypeChar()
             AssertValidId("abc$")
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestIsValidId_TypeCharInMiddle() As Task
+        Public Sub TestIsValidId_TypeCharInMiddle()
             AssertNotValidId("abc$abc")
-        End Function
+        End Sub
 #End Region
 
 #Region "GetBaseClassName Tests"
@@ -653,7 +653,7 @@ End Sub"
 
 #Region "GetMemberNavigationPoint"
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetMemberNavigationPoint() As Task
+        Public Sub TestGetMemberNavigationPoint()
             Dim code As String = <text>
 Imports System
 Public Class Button
@@ -699,7 +699,7 @@ End Class</text>.Value
 
                 Assert.Equal(expectedSpan, actualSpan)
             End Using
-        End Function
+        End Sub
 #End Region
 
 #Region "GetMembers"

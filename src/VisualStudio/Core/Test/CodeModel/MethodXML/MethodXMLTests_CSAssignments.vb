@@ -142,7 +142,7 @@ public class C
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_FieldWithEnumMember() As Task
+        Public Sub TestCSAssignments_FieldWithEnumMember()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -189,7 +189,7 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestCSAssignments_PropertyWithThis() As Task
