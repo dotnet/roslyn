@@ -97,10 +97,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Dim result = CompletionUtilities.GetDisplayAndInsertionText(symbol,
-                                                                  context.IsAttributeNameContext,
-                                                                  context.IsRightOfNameSeparator,
-                                                                  DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod,
-                                                                  context.GetLanguageService(Of ISyntaxFactsService)())
+                                                                  context.GetLanguageService(Of ISyntaxFactsService)(),
+                                                                  DirectCast(context, VisualBasicSyntaxContext))
             Return result
         End Function
 
@@ -110,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function CreateItem(displayText As String, insertionText As String, position As Integer, symbols As List(Of ISymbol), context As AbstractSyntaxContext, span As TextSpan, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Return SymbolCompletionItem.Create(
+            Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
                 insertionText:=insertionText,
                 filterText:=GetFilterText(symbols(0), displayText, context),
@@ -133,8 +131,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Task.FromResult(Of TextChange?)(New TextChange(selectedItem.Span, insertionText))
         End Function
 
-        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
+        Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
+            Return CompletionUtilities.GetInsertionTextAtInsertionTime(item, ch)
         End Function
 
     End Class

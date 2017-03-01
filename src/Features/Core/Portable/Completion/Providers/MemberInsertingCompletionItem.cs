@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .Add("Modifiers", modifiers.ToString())
                 .Add("TokenSpanEnd", token.Span.End.ToString());
 
-            return SymbolCompletionItem.Create(
+            return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 span: span,
-                symbol: symbol,
+                symbols: ImmutableArray<ISymbol>.Empty.Add(symbol),
                 glyph: glyph,
                 descriptionPosition: descriptionPosition,
                 properties: props,

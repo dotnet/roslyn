@@ -15,7 +15,7 @@
     <Otherwise>
       <PropertyGroup>
         <NuGetVersionSuffix>rc2-$(BuildNumber.Split('.')[0])-$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</NuGetVersionSuffix>
-        <BuildVersion>$(AssemblyVersion).$(BuildNumber.Split('.')[0])</BuildVersion>
+        <BuildVersion>$(AssemblyVersion).$([MSBuild]::Subtract($(BuildNumber.Split('.')[0]), 8800))</BuildVersion>
       </PropertyGroup>
     </Otherwise>
   </Choose>

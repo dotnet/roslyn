@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class CrefCompletionProvider
-        Inherits CommonCompletionProvider
+        Inherits AbstractCrefCompletionProvider
 
         Private Shared ReadOnly s_crefFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
@@ -32,24 +32,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim position = context.Position
             Dim cancellationToken = context.CancellationToken
 
-            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-            Dim token = tree.GetTargetToken(position, cancellationToken)
-
-            If IsCrefTypeParameterContext(token) Then
-                Return
-            End If
-
-            ' To get a Speculative SemanticModel (which is much faster), we need to 
-            ' walk up to the node the DocumentationTrivia is attached to.
-            Dim parentNode = token.Parent?.FirstAncestorOrSelf(Of DocumentationCommentTriviaSyntax)()?.ParentTrivia.Token.Parent
-            If parentNode Is Nothing Then
-                Return
-            End If
-
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
             Dim workspace = document.Project.Solution.Workspace
 
-            Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
+            Dim info = Await GetSymbolsAsync(document, position, workspace.Options, cancellationToken).ConfigureAwait(False)
+            If info Is Nothing Then
+                Return
+            End If
+
+            Dim token = info.Item1
+            Dim semanticModel = info.Item2
+            Dim symbols = info.Item3
+
             If Not symbols.Any() Then
                 Return
             End If
@@ -65,6 +58,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             context.IsExclusive = True
+        End Function
+
+        Protected Overrides Async Function GetSymbolsAsync(document As Document, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of Tuple(Of SyntaxToken, SemanticModel, ImmutableArray(Of ISymbol)))
+            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim token = tree.GetTargetToken(position, cancellationToken)
+
+            If IsCrefTypeParameterContext(token) Then
+                Return Nothing
+            End If
+
+            ' To get a Speculative SemanticModel (which is much faster), we need to 
+            ' walk up to the node the DocumentationTrivia is attached to.
+            Dim parentNode = token.Parent?.FirstAncestorOrSelf(Of DocumentationCommentTriviaSyntax)()?.ParentTrivia.Token.Parent
+            If parentNode Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
+            Dim workspace = document.Project.Solution.Workspace
+
+            Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
+            Return Tuple.Create(token, semanticModel, symbols.ToImmutableArray())
         End Function
 
         Private Shared Function IsCrefTypeParameterContext(token As SyntaxToken) As Boolean
@@ -185,10 +200,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim displayString = builder.ToString()
 
-            Return SymbolCompletionItem.Create(displayText:=displayString,
+            Return SymbolCompletionItem.CreateWithSymbolId(displayText:=displayString,
                                                insertionText:=Nothing,
                                                span:=span,
-                                               symbol:=symbol,
+                                               symbols:=ImmutableArray(Of ISymbol).Empty.Add(symbol),
                                                descriptionPosition:=position,
                                                rules:=GetRules(displayString))
         End Function

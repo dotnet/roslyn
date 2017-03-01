@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected override CompletionItem CreateItem(string displayText, string insertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, TextSpan span, bool preselect, SupportedPlatformData supportedPlatformData)
         {
-            return SymbolCompletionItem.Create(
+            return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),

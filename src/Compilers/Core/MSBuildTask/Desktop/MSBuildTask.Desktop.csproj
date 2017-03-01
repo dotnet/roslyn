@@ -20,7 +20,7 @@
          version to be loaded in multiple builds. Since nothing depends on the exact
          assembly version of the build task we'll append the build number to the assembly
          version when available (which it always is in official builds) -->
-    <AssemblyVersion>$(RoslynSemanticVersion).$(BuildNumber.Split('.')[0])</AssemblyVersion>
+    <AssemblyVersion>$(BuildVersion)</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />

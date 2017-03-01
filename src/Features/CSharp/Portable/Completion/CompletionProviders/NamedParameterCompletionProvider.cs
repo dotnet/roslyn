@@ -90,11 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // exact match.
                 var escapedName = parameter.Name.ToIdentifierToken().ToString();
 
-                context.AddItem(SymbolCompletionItem.Create(
+                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: escapedName + ColonString,
                     insertionText: null,
                     span: context.DefaultItemSpan,
-                    symbol: parameter,
+                    symbols: ImmutableArray<ISymbol>.Empty.Add(parameter),
                     descriptionPosition: token.SpanStart,
                     filterText: escapedName,
                     rules: CompletionItemRules.Default));

@@ -119,16 +119,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 displayText = symbol.ToMinimalDisplayString(context.SemanticModel, position, format:=_partialNameFormat)
                 insertionText = displayText
             Else
-                Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(symbol, isAttributeNameContext:=False, isAfterDot:=False, isWithinAsyncMethod:=False, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService))
+                Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(symbol, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService), context:=context)
                 displayText = displayAndInsertionText.Item1
                 insertionText = displayAndInsertionText.Item2
             End If
 
-            Return SymbolCompletionItem.Create(
+            Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
                 insertionText:=insertionText,
                 span:=textSpan,
-                symbol:=symbol,
+                symbols:=ImmutableArray(Of ISymbol).Empty.Add(symbol),
                 contextPosition:=context.Position,
                 descriptionPosition:=position,
                 rules:=CompletionItemRules.Default)

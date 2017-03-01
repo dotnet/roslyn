@@ -115,13 +115,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                               context As VisualBasicSyntaxContext) As CompletionItem
 
             Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(
-                symbol, isAttributeNameContext:=False, isAfterDot:=context.IsRightOfNameSeparator, isWithinAsyncMethod:=context.WithinAsyncMethod, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService)())
+                symbol, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService), context:=context)
 
-            Return SymbolCompletionItem.Create(
+            Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayAndInsertionText.Item1,
                 insertionText:=displayAndInsertionText.Item2,
                 span:=span,
-                symbol:=symbol,
+                symbols:=ImmutableArray(Of ISymbol).Empty.Add(symbol),
                 contextPosition:=context.Position,
                 descriptionPosition:=position,
                 rules:=CompletionItemRules.Default)
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol,
                                                                 context As AbstractSyntaxContext) As ValueTuple(Of String, String)
 
-            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context.IsAttributeNameContext, context.IsRightOfNameSeparator, isWithinAsyncMethod:=DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService))
+            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService), context:=DirectCast(context, VisualBasicSyntaxContext))
         End Function
 
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
@@ -151,8 +151,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionItemRules.Default
         End Function
 
-        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
+        Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
+            Return CompletionUtilities.GetInsertionTextAtInsertionTime(item, ch)
         End Function
 
     End Class
