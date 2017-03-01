@@ -12,38 +12,38 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "FullName tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName1() As Task
+        Public Sub TestFullName1()
             Dim code =
 <Code>
 using $$Foo;
 </Code>
 
-            Dim ex = Await Assert.ThrowsAsync(Of COMException)(
-                Function()
+            Dim ex = Assert.Throws(Of COMException)(
+                Sub()
                     TestName(code, "Foo")
-                End Function)
+                End Sub)
 
             Assert.Equal(E_FAIL, ex.ErrorCode)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        Public Sub TestName1()
             Dim code =
 <Code>
 using $$Foo;
 </Code>
 
-            Dim ex = Await Assert.ThrowsAsync(Of COMException)(
-                Function()
+            Dim ex = Assert.Throws(Of COMException)(
+                Sub()
                     TestName(code, "Foo")
-                End Function)
+                End Sub)
 
             Assert.Equal(E_FAIL, ex.ErrorCode)
-        End Function
+        End Sub
 
 #End Region
 

@@ -439,7 +439,7 @@ public class C
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_CompoundAdd() As Task
+        Public Sub TestCSAssignments_CompoundAdd()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -486,10 +486,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_CompoundSubtract() As Task
+        Public Sub TestCSAssignments_CompoundSubtract()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -521,10 +521,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_ArrayElementAccess() As Task
+        Public Sub TestCSAssignments_ArrayElementAccess()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -610,7 +610,7 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(743120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743120")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -1179,7 +1179,7 @@ class C
 
         <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_RoundTrippedSingles() As Task
+        Public Sub TestCSAssignments_RoundTrippedSingles()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -1209,7 +1209,7 @@ class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
     End Class
 End Namespace
