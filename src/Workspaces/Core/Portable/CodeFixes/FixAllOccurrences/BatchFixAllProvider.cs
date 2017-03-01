@@ -316,6 +316,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var totalChangesIntervalTree = SimpleIntervalTree.Create(this);
 
             var oldDocument = oldSolution.GetDocument(orderedDocuments[0].document.Id);
+            var differenceService = oldSolution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
 
             foreach (var (_, currentDocument) in orderedDocuments)
             {
@@ -323,6 +324,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 Debug.Assert(currentDocument.Id == oldDocument.Id);
 
                 await TryAddDocumentMergeChangesAsync(
+                    differenceService,
                     oldDocument,
                     currentDocument,
                     totalChangesIntervalTree,
@@ -371,15 +373,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         /// <summary>
-        /// Try to merge the changes between <paramref name="newDocument"/> and <paramref name="oldDocument"/> into <paramref name="cumulativeChanges"/>.
-        /// If there is any conflicting change in <paramref name="newDocument"/> with existing <paramref name="cumulativeChanges"/>, then the original <paramref name="cumulativeChanges"/> are returned.
-        /// Otherwise, the newly merged changes are returned.
+        /// Try to merge the changes between <paramref name="newDocument"/> and <paramref name="oldDocument"/>
+        /// into <paramref name="cumulativeChanges"/>. If there is any conflicting change in 
+        /// <paramref name="newDocument"/> with existing <paramref name="cumulativeChanges"/>, then no
+        /// changes are added
         /// </summary>
-        /// <param name="oldDocument">Base document on which FixAll was invoked.</param>
-        /// <param name="newDocument">New document with a code fix that is being merged.</param>
-        /// <param name="cumulativeChanges">Existing merged changes from other batch fixes into which newDocument changes are being merged.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
         private static async Task TryAddDocumentMergeChangesAsync(
+            IDocumentTextDifferencingService differenceService,
             Document oldDocument,
             Document newDocument,
             SimpleIntervalTree<TextChange> cumulativeChanges,
@@ -387,9 +387,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var changesToAdd = new List<TextChange>();
 
-            var currentChangesStream = await newDocument.GetTextChangesAsync(
-                oldDocument, cancellationToken).ConfigureAwait(false);
-            var currentChanges = (currentChangesStream as IList<TextChange>) ?? currentChangesStream.ToList();
+            var currentChanges = await differenceService.GetTextChangesAsync(
+                oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
 
             if (AllChangesCanBeApplied(cumulativeChanges, currentChanges))
             {
@@ -405,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static bool AllChangesCanBeApplied(
-            SimpleIntervalTree<TextChange> cumulativeChanges, IList<TextChange> currentChanges)
+            SimpleIntervalTree<TextChange> cumulativeChanges, ImmutableArray<TextChange> currentChanges)
         {
             var overlappingSpans = ArrayBuilder<TextChange>.GetInstance();
 
