@@ -128,6 +128,7 @@
     <Compile Include="WorkspaceServiceTests\OptionServiceTests.cs" />
     <Compile Include="Host\WorkspaceServices\TestPersistenceService.cs" />
     <Compile Include="Host\TestHost.cs" />
+    <Compile Include="WorkspaceTests\GeneralWorkspaceTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
