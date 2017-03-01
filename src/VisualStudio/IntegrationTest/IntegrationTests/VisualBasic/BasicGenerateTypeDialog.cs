@@ -45,9 +45,6 @@ End Class
             GenerateTypeDialog.SetTargetProject("CSProj");
             GenerateTypeDialog.SetTargetFileToNewName("GenerateTypeTest.cs");
             GenerateTypeDialog.ClickOK();
-
-            WaitForAsyncOperations(FeatureAttribute.LightBulb);
-
             GenerateTypeDialog.VerifyClosed();
 
             VerifyTextContains(@"Imports CSProj
@@ -66,6 +63,68 @@ End Class
     {
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void SameProject()
+        {
+            SetUpEditor(@"
+Class C
+    Sub Method()
+        $$Dim _A As A
+    End Sub
+End Class
+");
+
+            VerifyCodeAction("Generate new type...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            GenerateTypeDialog.VerifyOpen();
+            GenerateTypeDialog.SetAccessibility("Public");
+            GenerateTypeDialog.SetKind("Structure");
+            GenerateTypeDialog.SetTargetFileToNewName("GenerateTypeTest");
+            GenerateTypeDialog.ClickOK();
+            GenerateTypeDialog.VerifyClosed();
+
+            VisualStudio.Instance.SolutionExplorer.OpenFile(ProjectName, "GenerateTypeTest.vb");
+            VerifyTextContains(@"Public Structure A
+End Structure
+");
+
+            VisualStudio.Instance.SolutionExplorer.OpenFile(ProjectName, "Class1.vb");
+            VerifyTextContains(@"Class C
+    Sub Method()
+        Dim _A As A
+    End Sub
+End Class
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void CheckFoldersPopulateComboBox()
+        {
+            VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, @"folder1\folder2\GenerateTypeTests.vb", open: true);
+
+            SetUpEditor(@"Class C
+    Sub Method() 
+        $$Dim _A As A
+    End Sub
+End Class
+");
+            VerifyCodeAction("Generate new type...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            GenerateTypeDialog.VerifyOpen();
+            GenerateTypeDialog.SetTargetFileToNewName("Other");
+
+            var folders = GenerateTypeDialog.GetNewFileComboBoxItems();
+
+            Assert.Contains(@"\folder1\", folders);
+            Assert.Contains(@"\folder1\folder2\", folders);
+
+            GenerateTypeDialog.ClickCancel();
         }
     }
 }

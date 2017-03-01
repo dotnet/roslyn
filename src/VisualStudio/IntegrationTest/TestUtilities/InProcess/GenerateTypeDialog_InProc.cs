@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
+using System.Windows.Automation;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -68,6 +70,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void ClickCancel()
         {
             DialogHelpers.PressButtonWithName(GetMainWindowHWnd(), GenerateTypeDialogID, "Cancel");
+        }
+
+        public string[] GetNewFileComboBoxItems()
+        {
+            var dialog = DialogHelpers.GetOpenDialog(GetMainWindowHWnd(), GenerateTypeDialogID);
+            var createNewFileComboBox = dialog.FindDescendantByAutomationId("CreateNewFileComboBox");
+            createNewFileComboBox.Expand();
+
+            var children = createNewFileComboBox.FindDescendantsByClass("ListBoxItem");
+
+            createNewFileComboBox.Collapse();
+
+            return children.Cast<AutomationElement>().Select(element => element.Current.Name).ToArray();
         }
 
         private static int GetMainWindowHWnd()

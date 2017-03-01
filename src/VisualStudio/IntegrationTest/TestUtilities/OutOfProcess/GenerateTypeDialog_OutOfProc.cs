@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -35,10 +36,25 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetTargetFileToExisting(string existingFileName)
             => _inProc.SetTargetFileToExisting(existingFileName);
 
+        /// <summary>
+        /// Clicks the "OK" button and waits for the related Code Action to complete.
+        /// </summary>
         public void ClickOK()
-            => _inProc.ClickOK();
+        {
+            _inProc.ClickOK();
+            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+        }
 
+        /// <summary>
+        /// Clicks the "Cancel" button and waits for the related Code Action to complete.
+        /// </summary>
         public void ClickCancel()
-            => _inProc.ClickCancel();
+        {
+            _inProc.ClickCancel();
+            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+        }
+
+        public string[] GetNewFileComboBoxItems()
+            => _inProc.GetNewFileComboBoxItems();
     }
 }
