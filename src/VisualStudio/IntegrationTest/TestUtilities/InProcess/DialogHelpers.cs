@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -11,6 +13,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     public static class DialogHelpers
     {
+        /// <summary>
+        /// Returns an <see cref="AutomationElement"/> representing the open dialog with automation ID
+        /// <paramref name="dialogAutomationName"/>.
+        /// Throws an <see cref="InvalidOperationException"/> if an open dialog with that name cannot be
+        /// found.
+        /// </summary>
+        public static AutomationElement GetOpenDialog(int visualStudioHWnd, string dialogAutomationName)
+        {
+            var dialogAutomationElement = FindDialog(visualStudioHWnd, dialogAutomationName, isOpen: true);
+            if (dialogAutomationElement == null)
+            {
+                throw new InvalidOperationException($"Expected the {dialogAutomationName} dialog to be open, but it is not.");
+            }
+
+            return dialogAutomationElement;
+        }
+
         public static AutomationElement FindDialog(int visualStudioHWnd, string dialogAutomationName, bool isOpen)
         {
             return Retry(
