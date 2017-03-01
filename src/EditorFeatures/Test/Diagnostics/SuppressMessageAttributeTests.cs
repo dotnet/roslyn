@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
             else
             {
-                return TestWorkspace.CreateVisualBasicAsync(
+                return TestWorkspace.CreateVisualBasic(
                     source,
                     compilationOptions: new VisualBasic.VisualBasicCompilationOptions(
                         OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace));

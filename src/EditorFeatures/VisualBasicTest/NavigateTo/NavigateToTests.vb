@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         Protected Overrides ReadOnly Property Language As String = "vb"
 
         Protected Overrides Function CreateWorkspace(content As String, exportProvider As ExportProvider) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(content, exportProvider:=exportProvider)
+            Return TestWorkspace.CreateVisualBasic(content, exportProvider:=exportProvider)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>

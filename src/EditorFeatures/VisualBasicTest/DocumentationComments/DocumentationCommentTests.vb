@@ -1203,7 +1203,7 @@ End Class
         End Function
 
         Protected Overrides Function CreateTestWorkspaceAsync(code As String) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(code)
+            Return TestWorkspace.CreateVisualBasic(code)
         End Function
 
         Protected Overrides ReadOnly Property DocumentationCommentCharacter As Char

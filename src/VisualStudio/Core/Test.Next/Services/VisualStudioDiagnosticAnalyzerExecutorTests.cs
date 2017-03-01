@@ -184,7 +184,7 @@ End Class";
         {
             var workspace = (language == LanguageNames.CSharp) ?
                 TestWorkspace.CreateCSharp(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider) :
-                await TestWorkspace.CreateVisualBasicAsync(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider);
+                TestWorkspace.CreateVisualBasic(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider);
 
             workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
                                      .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, true)

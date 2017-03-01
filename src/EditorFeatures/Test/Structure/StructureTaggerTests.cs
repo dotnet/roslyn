@@ -119,7 +119,7 @@ Namespace MyNamespace
 #End Region
 End Namespace";
 
-            using (var workspace = await TestWorkspace.CreateVisualBasicAsync(code))
+            using (var workspace = TestWorkspace.CreateVisualBasic(code))
             {
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -150,7 +150,7 @@ End Namespace";
     End Sub
 End Module";
 
-            using (var workspace = await TestWorkspace.CreateVisualBasicAsync(code))
+            using (var workspace = TestWorkspace.CreateVisualBasic(code))
             {
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 

@@ -238,7 +238,7 @@ class 123 { }
 Class 123
 End Class
                        </code>
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code.Value)
+            Using workspace = TestWorkspace.CreateVisualBasic(code.Value)
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New MockDiagnosticUpdateSourceRegistrationService())
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)

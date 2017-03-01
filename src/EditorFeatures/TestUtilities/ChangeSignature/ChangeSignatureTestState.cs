@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
             var workspace = languageName == LanguageNames.CSharp
                   ? TestWorkspace.CreateCSharp(markup, exportProvider: s_exportProvider, parseOptions: (CSharpParseOptions)parseOptions)
-                  : await TestWorkspace.CreateVisualBasicAsync(markup, exportProvider: s_exportProvider, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                  : TestWorkspace.CreateVisualBasic(markup, exportProvider: s_exportProvider, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             return new ChangeSignatureTestState(workspace);
         }

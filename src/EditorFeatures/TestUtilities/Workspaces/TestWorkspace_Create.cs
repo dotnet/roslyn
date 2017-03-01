@@ -233,17 +233,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         #region VB
 
-        public static Task<TestWorkspace> CreateVisualBasicAsync(
+        public static TestWorkspace CreateVisualBasic(
             string file,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null)
         {
-            return CreateVisualBasicAsync(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
+            return CreateVisualBasic(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
         }
 
-        public static async Task<TestWorkspace> CreateVisualBasicAsync(
+        public static TestWorkspace CreateVisualBasic(
             string[] files,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,

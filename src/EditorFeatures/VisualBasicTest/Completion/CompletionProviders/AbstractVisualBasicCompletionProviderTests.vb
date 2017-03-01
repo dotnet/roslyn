@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Sub
 
         Protected Overrides Function CreateWorkspaceAsync(fileContents As String) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(fileContents)
+            Return TestWorkspace.CreateVisualBasic(fileContents)
         End Function
 
         Friend Overrides Function CreateCompletionService(workspace As Workspace, exclusiveProviders As ImmutableArray(Of CompletionProvider)) As CompletionServiceWithProviders
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Protected Async Function VerifySendEnterThroughToEditorAsync(
                 initialMarkup As String, textTypedSoFar As String, expected As Boolean) As Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initialMarkup)
+            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim documentId = workspace.GetDocumentId(hostDocument)
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)

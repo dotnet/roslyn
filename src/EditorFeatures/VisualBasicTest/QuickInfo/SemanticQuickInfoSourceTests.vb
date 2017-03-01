@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Dim position As Integer = Nothing
             MarkupTestFile.GetPosition(markup, code, position)
 
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code, Nothing, metadataReferences:=metadataReferences)
+            Using workspace = TestWorkspace.CreateVisualBasic(code, Nothing, metadataReferences:=metadataReferences)
                 Await TestSharedAsync(workspace, position, expectedResults)
             End Using
         End Function

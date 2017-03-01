@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         {
             var workspace = languageName == LanguageNames.CSharp
                 ? TestWorkspace.CreateCSharp(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
-                : await TestWorkspace.CreateVisualBasicAsync(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions);
+                : TestWorkspace.CreateVisualBasic(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions);
             return new ExtractInterfaceTestState(workspace);
         }
 

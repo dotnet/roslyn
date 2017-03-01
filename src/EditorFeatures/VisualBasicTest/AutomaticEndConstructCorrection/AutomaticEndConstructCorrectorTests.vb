@@ -346,7 +346,7 @@ End Class</code>.Value
             ' do this since xml value put only vbLf
             codeWithMarker = codeWithMarker.Replace(vbLf, vbCrLf)
 
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(codeWithMarker)
+            Using workspace = TestWorkspace.CreateVisualBasic(codeWithMarker)
                 Dim document = workspace.Documents.Single()
 
                 Dim buffer = document.TextBuffer
@@ -397,7 +397,7 @@ End Class</code>.Value
         End Function
 
         Private Async Function VerifyBeginAsync(code As String, keyword As String, Optional expected As String = Nothing) As Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
+            Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.Documents.Single()
 
                 Dim selectedSpans = document.SelectedSpans
@@ -410,7 +410,7 @@ End Class</code>.Value
         End Function
 
         Private Async Function VerifyEndAsync(code As String, keyword As String, Optional expected As String = Nothing) As Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
+            Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.Documents.Single()
 
                 Dim selectedSpans = document.SelectedSpans
