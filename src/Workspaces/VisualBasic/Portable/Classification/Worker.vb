@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                triviaList(index - 1).Kind() = SyntaxKind.EndOfLineTrivia AndAlso
                triviaList(index - 2).Kind() = SyntaxKind.ConflictMarkerTrivia Then
 
-                For Each token In SyntaxFactory.ParseTokens(trivia.ToString(), 0, initialTokenPosition:=trivia.SpanStart)
+                For Each token In SyntaxFactory.ParseTokens(trivia.ToFullString(), initialTokenPosition:=trivia.SpanStart)
                     ClassifyToken(token)
                 Next
             Else

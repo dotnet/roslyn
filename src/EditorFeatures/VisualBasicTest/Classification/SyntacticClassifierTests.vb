@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         Inherits AbstractVisualBasicClassifierTests
 
         Friend Overrides Async Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Tasks.Task(Of IEnumerable(Of ClassifiedSpan))
-            Using Workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
+            Using Workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = Workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim tree = Await document.GetSyntaxTreeAsync()
 

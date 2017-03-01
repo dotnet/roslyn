@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     }
 }";
 
-            using (var workspace = await CreateWorkspaceAsync(LanguageNames.CSharp, code))
+            using (var workspace = CreateWorkspace(LanguageNames.CSharp, code))
             {
                 var analyzerType = typeof(CSharpUseExplicitTypeDiagnosticAnalyzer);
                 var analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType);
@@ -66,7 +66,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     End Sub
 End Class";
 
-            using (var workspace = await CreateWorkspaceAsync(LanguageNames.VisualBasic, code))
+            using (var workspace = CreateWorkspace(LanguageNames.VisualBasic, code))
             {
                 // set option
                 workspace.Options = workspace.Options.WithChangedOption(CodeStyleOptions.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption<bool>(false, NotificationOption.None));
@@ -90,7 +90,7 @@ End Class";
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await CreateWorkspaceAsync(LanguageNames.CSharp, code))
+            using (var workspace = CreateWorkspace(LanguageNames.CSharp, code))
             {
                 var analyzerType = typeof(MyAnalyzer);
 
@@ -132,7 +132,7 @@ End Class";
     }
 }";
 
-            using (var workspace = await CreateWorkspaceAsync(LanguageNames.CSharp, code))
+            using (var workspace = CreateWorkspace(LanguageNames.CSharp, code))
             {
                 var analyzerType = typeof(CSharpUseExplicitTypeDiagnosticAnalyzer);
                 var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
@@ -180,11 +180,11 @@ End Class";
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];
         }
 
-        private async Task<TestWorkspace> CreateWorkspaceAsync(string language, string code, ParseOptions options = null)
+        private TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
         {
             var workspace = (language == LanguageNames.CSharp) ?
-                await TestWorkspace.CreateCSharpAsync(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider) :
-                await TestWorkspace.CreateVisualBasicAsync(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider);
+                TestWorkspace.CreateCSharp(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider) :
+                TestWorkspace.CreateVisualBasic(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider);
 
             workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
                                      .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, true)

@@ -121,12 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
                 if (preferExpressionBody)
                 {
-                    var expressionBody = methodDeclaration.Body.TryConvertToExpressionBody(options);
-                    if (expressionBody != null)
+                    if (methodDeclaration.Body.TryConvertToExpressionBody(
+                            options, out var expressionBody, out var semicolonToken))
                     {
                         return methodDeclaration.WithBody(null)
                                                 .WithExpressionBody(expressionBody)
-                                                .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                                                .WithSemicolonToken(semicolonToken);
                     }
                 }
             }

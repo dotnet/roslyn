@@ -1323,6 +1323,14 @@ d.cs
         }
 
         [Fact]
+        public void RememberToUpdateDiagnosticsWhenUpdatingLangVersion()
+        {
+            // When new language versions are added, this test will fail. Remember to update the diagnostics message (ERR_BadCompatMode).
+            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
+        }
+
+        [Fact]
         [WorkItem(546961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546961")]
         public void Define()
         {

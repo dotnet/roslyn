@@ -166,6 +166,7 @@
     <Compile Include="BraceMatching\BraceHighlightingTests.vb" />
     <Compile Include="BraceMatching\VisualBasicBraceMatcherTests.vb" />
     <Compile Include="CaseCorrecting\CaseCorrectionServiceTests.vb" />
+    <Compile Include="ChangeSignature\ChangeSignatureTests.vb" />
     <Compile Include="ChangeSignature\ChangeSignature_CheckAllSignatureChanges.vb" />
     <Compile Include="ChangeSignature\ChangeSignature_Delegates.vb" />
     <Compile Include="ChangeSignature\ChangeSignature_Formatting.vb" />

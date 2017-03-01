@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Execution;
 using Roslyn.Utilities;
@@ -488,6 +489,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task TestMetadataXmlDocComment()
+        {
+            // portable layer doesn't support xml doc comments
+            // this depends on which layer supports IDocumentationProviderService
+            var xmlDocComment = await GetXmlDocumentAsync(MefHostServices.Create(MefHostServices.DefaultAssemblies));
+            Assert.True(string.IsNullOrEmpty(xmlDocComment));
+        }
+
+        [Fact]
+        public async Task TestMetadataXmlDocComment_Desktop()
+        {
+            // desktop layer supports xml doc comments
+            // this depends on which layer supports IDocumentationProviderService
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var xmlDocComment = await GetXmlDocumentAsync(hostServices);
+            Assert.False(string.IsNullOrEmpty(xmlDocComment));
+        }
+
+        [Fact]
         public void TestEncodingSerialization()
         {
             var hostServices = MefHostServices.Create(
@@ -529,6 +551,50 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
                     Assert.Equal(sourceText.ToString(), newText.ToString());
+                }
+            }
+        }
+
+        private async Task<string> GetXmlDocumentAsync(HostServices services)
+        {
+            using (var tempRoot = new TempRoot())
+            {
+                // get original assembly location
+                var mscorlibLocation = typeof(object).Assembly.Location;
+
+                // set up dll and xml doc content
+                var tempDir = tempRoot.CreateDirectory();
+                var tempCorlib = tempDir.CopyFile(mscorlibLocation);
+                var tempCorlibXml = tempDir.CreateFile(Path.ChangeExtension(tempCorlib.Path, "xml"));
+                tempCorlibXml.WriteAllText(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<doc>
+  <assembly>
+    <name>mscorlib</name>
+  </assembly>
+  <members>
+    <member name=""T:System.Object"">
+      <summary>Supports all classes in the .NET Framework class hierarchy and provides low-level services to derived classes. This is the ultimate base class of all classes in the .NET Framework; it is the root of the type hierarchy.To browse the .NET Framework source code for this type, see the Reference Source.</summary>
+    </member>
+  </members>
+</doc>");
+
+                // currently portable layer doesn't support xml documment
+                var solution = new AdhocWorkspace(services).CurrentSolution
+                                                   .AddProject("Project", "Project.dll", LanguageNames.CSharp)
+                                                   .AddMetadataReference(MetadataReference.CreateFromFile(tempCorlib.Path))
+                                                   .Solution;
+
+                var snapshotService = (new SolutionSynchronizationServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSynchronizationService;
+                using (var scope = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None))
+                {
+                    // recover solution from given snapshot
+                    var recovered = await GetSolutionAsync(snapshotService, scope);
+
+                    var compilation = await recovered.Projects.First().GetCompilationAsync(CancellationToken.None);
+                    var objectType = compilation.GetTypeByMetadataName("System.Object");
+                    var xmlDocComment = objectType.GetDocumentationCommentXml();
+
+                    return xmlDocComment;
                 }
             }
         }

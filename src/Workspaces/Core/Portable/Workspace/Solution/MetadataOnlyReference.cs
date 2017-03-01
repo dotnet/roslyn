@@ -163,13 +163,7 @@ namespace Microsoft.CodeAnalysis
                 _image = image;
             }
 
-            public VersionStamp Version
-            {
-                get
-                {
-                    return _version;
-                }
-            }
+            public VersionStamp Version => _version;
 
             public MetadataReference GetMetadataReference(Compilation compilation, ImmutableArray<string> aliases, bool embedInteropTypes)
             {

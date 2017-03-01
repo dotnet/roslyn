@@ -107,36 +107,24 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Services provider by the host for implementing workspace features.
         /// </summary>
-        public HostWorkspaceServices Services
-        {
-            get { return _services; }
-        }
+        public HostWorkspaceServices Services => _services;
 
         /// <summary>
         /// primary branch id that current solution has
         /// </summary>
-        internal BranchId PrimaryBranchId
-        {
-            get { return _primaryBranchId; }
-        }
+        internal BranchId PrimaryBranchId => _primaryBranchId;
 
         /// <summary>
         /// Override this property if the workspace supports partial semantics for documents.
         /// </summary>
-        protected internal virtual bool PartialSemanticsEnabled
-        {
-            get { return false; }
-        }
+        protected internal virtual bool PartialSemanticsEnabled => false;
 
         /// <summary>
         /// The kind of the workspace. 
         /// This is generally <see cref="WorkspaceKind.Host"/> if originating from the host environment, but may be 
         /// any other name used for a specific kind of workspace.
         /// </summary>
-        public string Kind
-        {
-            get { return _workspaceKind; }
-        }
+        public string Kind => _workspaceKind;
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace.
@@ -795,6 +783,49 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Call this method when the document info changes, such as the name, folders or file path.
+        /// </summary>
+        protected internal void OnDocumentInfoChanged(DocumentId documentId, DocumentInfo newInfo)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                CheckDocumentIsInCurrentSolution(documentId);
+
+                var oldSolution = this.CurrentSolution;
+
+                var newSolution = oldSolution;
+                var oldInfo = oldSolution.GetDocument(documentId).GetDocumentInfoWithoutContent();
+
+                if (oldInfo.Name != newInfo.Name)
+                {
+                    newSolution = newSolution.WithDocumentName(documentId, newInfo.Name);
+                }
+
+                if (oldInfo.Folders != newInfo.Folders)
+                {
+                    newSolution = newSolution.WithDocumentFolders(documentId, newInfo.Folders);
+                }
+
+                if (oldInfo.FilePath != newInfo.FilePath)
+                {
+                    newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath);
+                }
+
+                if (oldInfo.SourceCodeKind != newInfo.SourceCodeKind)
+                {
+                    newSolution = newSolution.WithDocumentSourceCodeKind(documentId, newInfo.SourceCodeKind);
+                }
+
+                if (newSolution != oldSolution)
+                {
+                    SetCurrentSolution(newSolution);
+
+                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentInfoChanged, oldSolution, newSolution, documentId: documentId);
+                }
+            }
+        }
+
+        /// <summary>
         /// Call this method when the text of a document is updated in the host environment.
         /// </summary>
         protected internal void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
@@ -1097,7 +1128,14 @@ namespace Microsoft.CodeAnalysis
                 throw new NotSupportedException(WorkspacesResources.Removing_documents_is_not_supported);
             }
 
-            if (projectChanges.GetChangedDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.ChangeDocument))
+            if (!this.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo)
+                && projectChanges.GetChangedDocuments().Any(id => projectChanges.NewProject.GetDocument(id).HasInfoChanged(projectChanges.OldProject.GetDocument(id))))
+            {
+                throw new NotSupportedException(WorkspacesResources.Changing_document_property_is_not_supported);
+            }
+
+            if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument)
+                && projectChanges.GetChangedDocuments().Any(id => projectChanges.NewProject.GetDocument(id).HasContentChanged(projectChanges.OldProject.GetDocument(id))))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_documents_is_not_supported);
             }
@@ -1257,25 +1295,41 @@ namespace Microsoft.CodeAnalysis
         {
             var oldDoc = projectChanges.OldProject.GetDocument(documentId);
             var newDoc = projectChanges.NewProject.GetDocument(documentId);
-            // see whether we can get oldText
-            if (!oldDoc.TryGetText(out var oldText))
+
+            // update info if changed
+            if (newDoc.HasInfoChanged(oldDoc))
             {
-                // we can't get old text, there is not much we can do except replacing whole text.
-                var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
-                this.ApplyDocumentTextChanged(documentId, currentText);
-                return;
-            }
-            // see whether we can get new text
-            if (!newDoc.TryGetText(out var newText))
-            {
-                // okay, we have old text, but no new text. let document determine text changes
-                var textChanges = newDoc.GetTextChangesAsync(oldDoc, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
-                this.ApplyDocumentTextChanged(documentId, oldText.WithChanges(textChanges));
-                return;
+                ApplyDocumentInfoChanged(documentId, newDoc.GetDocumentInfoWithoutContent());
             }
 
-            // we have both old and new text, just update using the new text.
-            this.ApplyDocumentTextChanged(documentId, newText);
+            // update text if changed
+            if (newDoc.HasContentChanged(oldDoc))
+            {
+                // What we'd like to do here is figure out what actual text changes occurred and pass them on to the host.
+                // However, since it is likely that the change was done by replacing the syntax tree, getting the actual text changes is non trivial.
+
+                if (!oldDoc.TryGetText(out var oldText))
+                {
+                    // If we don't have easy access to the old text, then either it was never observed or it was kicked out of memory.
+                    // Either way, the new text cannot possibly hold knowledge of the changes, and any new syntax tree will not likely be able to derive them.
+                    // So just use whatever new text we have without preserving text changes.
+                    var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
+                    this.ApplyDocumentTextChanged(documentId, currentText);
+                }
+                else if (!newDoc.TryGetText(out var newText))
+                {
+                    // We have the old text, but no new text is easily available. This typically happens when the content is modified via changes to the syntax tree.
+                    // Ask document to compute equivalent text changes by comparing the syntax trees, and use them to 
+                    var textChanges = newDoc.GetTextChangesAsync(oldDoc, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
+                    this.ApplyDocumentTextChanged(documentId, oldText.WithChanges(textChanges));
+                }
+                else
+                {
+                    // We have both old and new text, so assume the text was changed manually. 
+                    // So either the new text already knows the individual changes or we do not have a way to compute them.
+                    this.ApplyDocumentTextChanged(documentId, newText);
+                }
+            }
         }
 
         [Conditional("DEBUG")]
@@ -1468,6 +1522,17 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeDocument));
             this.OnDocumentTextChanged(id, text, PreservationMode.PreserveValue);
+        }
+
+        /// <summary>
+        /// This method is called to change the info of a document.
+        /// 
+        /// Override this method to implement the capability of changing a document's info.
+        /// </summary>
+        protected virtual void ApplyDocumentInfoChanged(DocumentId id, DocumentInfo info)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeDocumentInfo));
+            this.OnDocumentInfoChanged(id, info);
         }
 
         /// <summary>

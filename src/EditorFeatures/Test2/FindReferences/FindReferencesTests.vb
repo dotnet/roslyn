@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestStreamingFeature(definition, searchSingleFileOnly, uiVisibleOnly)
         End Function
 
-        Private Async Function TestStreamingFeature(element As XElement, searchSingleFileOnly As Boolean, uiVisibleOnly As Boolean) As Task
+        Private Async Function TestStreamingFeature(element As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
             Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
             Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=True)
         End Function
@@ -40,9 +40,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return
             End If
 
-            Using workspace = Await TestWorkspace.CreateAsync(element)
+            Using workspace = TestWorkspace.Create(element)
                 workspace.Options = workspace.Options.WithChangedOption(
                     SymbolFinderOptions.OutOfProcessAllowed, outOfProcess)
+
+                Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
                     Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -162,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                        searchSingleFileOnly As Boolean,
                                        uiVisibleOnly As Boolean,
                                        outOfProcess As Boolean) As Task
-            Using workspace = Await TestWorkspace.CreateAsync(definition)
+            Using workspace = TestWorkspace.Create(definition)
                 workspace.Options = workspace.Options.WithChangedOption(
                     SymbolFinderOptions.OutOfProcessAllowed, outOfProcess)
 

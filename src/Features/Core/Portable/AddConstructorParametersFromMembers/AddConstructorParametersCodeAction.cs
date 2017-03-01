@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 State state)
             {
                 var factory = _document.GetLanguageService<SyntaxGenerator>();
-                for (int i = state.DelegatedConstructor.Parameters.Length; i < state.Parameters.Count; i++)
+                for (int i = state.DelegatedConstructor.Parameters.Length; i < state.Parameters.Length; i++)
                 {
                     var symbolName = state.SelectedMembers[i].Name;
                     var parameterName = state.Parameters[i].Name;

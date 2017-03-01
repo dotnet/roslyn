@@ -32,8 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var local = (BoundLocal)argument;
                                 if (local.Syntax.Kind() == SyntaxKind.DeclarationExpression)
                                 {
-                                    CheckOutDeclaration(local, method);
+                                    CheckOutDeclaration(local);
                                 }
+                                break;
+                            case BoundKind.DiscardExpression:
+                                CheckDiscard((BoundDiscardExpression)argument);
                                 break;
                         }
                     }

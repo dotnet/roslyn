@@ -2294,7 +2294,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             return;
                         }
 
-                    case '>':
+                    // Note: we specifically do not look for the >>>>>>> pattern as the start of
+                    // a conflict marker trivia.  That's because *technically* (albeit unlikely)
+                    // >>>>>>> could be the end of a very generic construct.  So, instead, we only
+                    // recognize >>>>>>> as we are scanning the trivia after a ======= marker 
+                    // (which can never be part of legal code).
+                    // case '>':
                     case '=':
                     case '<':
                         if (!isTrailing)
@@ -2352,6 +2357,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void LexConflictMarkerTrivia(ref SyntaxListBuilder triviaList)
         {
+            this.Start();
+
             this.AddError(TextWindow.Position, s_conflictMarkerLength,
                 ErrorCode.ERR_Merge_conflict_marker_encountered);
 
@@ -2378,6 +2385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // end-conflict marker.
             this.Start();
 
+            var hitEndConflictMarker = false;
             while (true)
             {
                 var ch = this.TextWindow.PeekChar();
@@ -2386,8 +2394,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
                 }
 
+                // If we hit the end-conflict marker, then lex it out at this point.
                 if (ch == '>' && IsConflictMarkerTrivia())
                 {
+                    hitEndConflictMarker = true;
                     break;
                 }
 
@@ -2397,6 +2407,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.TextWindow.Width > 0)
             {
                 this.AddTrivia(SyntaxFactory.DisabledText(TextWindow.GetText(false)), ref triviaList);
+            }
+
+            if (hitEndConflictMarker)
+            {
+                LexConflictMarkerTrivia(ref triviaList);
             }
 
             return triviaList;

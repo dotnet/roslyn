@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _options,
                 this.ExternalReferences,
                 info?.PreviousScriptCompilation,
-                info?.ReturnType,
+                info?.ReturnTypeOpt,
                 info?.GlobalsType,
                 info != null,
                 _referenceManager,

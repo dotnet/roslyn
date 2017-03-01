@@ -516,16 +516,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
-            this SyntaxTree syntaxTree,
-            TextSpan textSpan,
-            CancellationToken cancellationToken)
+            this SyntaxNode root, TextSpan textSpan)
         {
-            var token = syntaxTree.GetRoot(cancellationToken).FindToken(textSpan.Start);
+            var token = root.FindToken(textSpan.Start);
             var firstMember = token.GetAncestors<MemberDeclarationSyntax>().FirstOrDefault();
             if (firstMember != null)
             {
-                var containingType = firstMember.Parent as TypeDeclarationSyntax;
-                if (containingType != null)
+                if (firstMember.Parent is TypeDeclarationSyntax containingType)
                 {
                     return GetMembersInSpan(textSpan, containingType, firstMember);
                 }

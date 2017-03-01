@@ -392,29 +392,8 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
-    <Field Name="Left" Type="BoundTupleExpression"/>
-    <Field Name="Right" Type="BoundExpression"/>
-
-    <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionDeconstructStep&gt;" Null="disallow" SkipInVisitor="true" />
-    <Field Name="ConversionSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="disallow" SkipInVisitor="true"/>
-    <Field Name="AssignmentSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="disallow" SkipInVisitor="true"/>
-    <Field Name="ConstructionStepsOpt" Type="ImmutableArray&lt;BoundDeconstructionConstructionStep&gt;" Null="allow" SkipInVisitor="true"/>
-  </Node>
-
-  <Node Name="BoundDeconstructionDeconstructStep" Base="BoundNode">
-    <Field Name="DeconstructInvocationOpt" Type="BoundExpression" Null="allow"/>
-    <Field Name="InputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
-    <Field Name="OutputPlaceholders" Type="ImmutableArray&lt;BoundDeconstructValuePlaceholder&gt;" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundDeconstructionAssignmentStep" Base="BoundNode">
-    <Field Name="Assignment" Type="BoundAssignmentOperator" Null="disallow"/>
-    <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundDeconstructionConstructionStep" Base="BoundNode">
-    <Field Name="Construct" Type="BoundExpression" Null="disallow"/>
-    <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
+    <Field Name="Left" Type="BoundTupleExpression" Null="disallow"/>
+    <Field Name="Right" Type="BoundConversion" Null="disallow"/>
   </Node>
 
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">
@@ -1410,11 +1389,22 @@
   
     <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
   </Node>
-  
+
   <Node Name="BoundDelegateCreationExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
+    <!-- Argument is one of the following:
+         1. A method group (before local lowering only). If the method is nonstatic or
+            converted as an extension method, the method group contains a receiver
+            expression (mg.ReceiverOpt) for the created delegate; or
+         2. A value of type dynamic (before local lowering only); or
+         3. A bound lambda (before lambda lowering only); or
+         4. A value of a delegate type with MethodOpt == null; or
+         5. The receiver of the method being converted to a delegate (after local lowering).
+            It may be a BoundTypeExpression if the method is static and not converted as an
+            extension method.
+         -->
     <Field Name="Argument" Type="BoundExpression"/>
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
     <Field Name="IsExtensionMethod" Type="bool"/>

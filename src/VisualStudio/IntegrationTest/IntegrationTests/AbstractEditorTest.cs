@@ -3,11 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Automation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
@@ -38,7 +40,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected abstract string LanguageName { get; }
 
-        private void WaitForAsyncOperations(string featuresToWaitFor)
+        protected void WaitForAsyncOperations(string featuresToWaitFor)
             => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(featuresToWaitFor);
 
         protected void ClearEditor()
@@ -87,6 +89,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
             WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+        }
+
+        protected void InvokeSignatureHelp()
+        {
+            ExecuteCommand(WellKnownCommandNames.Edit_ParameterInfo);
+            WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
         }
 
         protected void InvokeCodeActionList()
@@ -223,6 +231,30 @@ namespace Roslyn.VisualStudio.IntegrationTests
             Assert.Equal(expectedSignature, currentSignature);
         }
 
+        protected void VerifyCurrentSignature(string content)
+        {
+            var currentSignature = Editor.GetCurrentSignature();
+            Assert.Equal(content, currentSignature.Content);
+        }
+
+        protected void VerifyCurrentParameter(string name, string documentation)
+        {
+            var currentParameter = Editor.GetCurrentSignature().CurrentParameter;
+            Assert.Equal(name, currentParameter.Name);
+            Assert.Equal(documentation, currentParameter.Documentation);
+        }
+
+        protected void VerifyParameters(params (string name, string documentation)[] parameters)
+        {
+            var currentParameters = Editor.GetCurrentSignature().Parameters;
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                var (expectedName, expectedDocumentation) = parameters[i];
+                Assert.Equal(expectedName, currentParameters[i].Name);
+                Assert.Equal(expectedDocumentation, currentParameters[i].Documentation);
+            }
+        }
+
         protected void VerifyCaretIsOnScreen()
             => Assert.True(Editor.IsCaretOnScreen());
 
@@ -238,28 +270,32 @@ namespace Roslyn.VisualStudio.IntegrationTests
         public void VerifyCodeActionsNotShowing()
         {
             if (Editor.IsLightBulbSessionExpanded())
-            { 
+            {
                 throw new InvalidOperationException("Expected no light bulb session, but one was found.");
             }
         }
 
         public void VerifyCodeAction(
             string expectedItem,
-            bool applyFix = false, 
-            bool verifyNotShowing = false, 
-            bool ensureExpectedItemsAreOrdered = false, 
-            FixAllScope? fixAllScope = null)
+            bool applyFix = false,
+            bool verifyNotShowing = false,
+            bool ensureExpectedItemsAreOrdered = false,
+            FixAllScope? fixAllScope = null,
+            bool blockUntilComplete = true)
         {
             var expectedItems = new[] { expectedItem };
-            VerifyCodeActions(expectedItems, expectedItem, verifyNotShowing, ensureExpectedItemsAreOrdered, fixAllScope);
+            VerifyCodeActions(
+                expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
+                ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete);
         }
 
         public void VerifyCodeActions(
-            IEnumerable<string> expectedItems, 
-            string applyFix = null, 
-            bool verifyNotShowing = false, 
-            bool ensureExpectedItemsAreOrdered = false, 
-            FixAllScope? fixAllScope = null)
+            IEnumerable<string> expectedItems,
+            string applyFix = null,
+            bool verifyNotShowing = false,
+            bool ensureExpectedItemsAreOrdered = false,
+            FixAllScope? fixAllScope = null,
+            bool blockUntilComplete = true)
         {
             Editor.ShowLightBulb();
             Editor.WaitForLightBulbSession();
@@ -290,11 +326,31 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
             if (!string.IsNullOrEmpty(applyFix) || fixAllScope.HasValue)
             {
-                Editor.ApplyLightBulbAction(applyFix, fixAllScope);
+                Editor.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
 
-                // wait for action to complete
-                WaitForAsyncOperations(FeatureAttribute.LightBulb);
+                if (blockUntilComplete)
+                {
+                    // wait for action to complete
+                    WaitForAsyncOperations(FeatureAttribute.LightBulb);
+                }
             }
+        }
+
+        public void VerifyDialog(string dialogName, bool isOpen)
+        {
+            Editor.VerifyDialog(dialogName, isOpen);
+        }
+
+        public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
+        {
+            Editor.PressDialogButton(dialogAutomationName, buttonAutomationName);
+        }
+
+        public AutomationElement GetDialog(string dialogAutomationId)
+        {
+            var dialog = DialogHelpers.FindDialog(VisualStudio.Instance.Shell.GetHWnd(), dialogAutomationId, isOpen: true);
+            Assert.NotNull(dialog);
+            return dialog;
         }
     }
 }

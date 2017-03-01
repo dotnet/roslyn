@@ -34,9 +34,9 @@ namespace ResetInteractiveTestsDocument
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public async void TestResetREPLWithProjectContext()
+        public void TestResetREPLWithProjectContext()
         {
-            using (var workspace = await TestWorkspace.CreateAsync(WorkspaceXmlStr))
+            using (var workspace = TestWorkspace.Create(WorkspaceXmlStr))
             {
                 var project = workspace.CurrentSolution.Projects.FirstOrDefault(p => p.AssemblyName == "ResetInteractiveTestsAssembly");
                 var document = project.Documents.FirstOrDefault(d => d.FilePath == "ResetInteractiveTestsDocument");

@@ -100,7 +100,6 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "mac_debug", isPr)
   def myJob = job(jobName) {
     description("Mac tests")
-    label('mac-roslyn')
     steps {
       shell("./cibuild.sh --nocache --debug")
     }
@@ -108,6 +107,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = true
   def triggerPhraseExtra = "mac"
+  Utilities.setMachineAffinity(myJob, 'OSX10.11', 'latest-or-auto')
   Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
@@ -197,7 +197,7 @@ set TMP=%TEMP%
         }
       }
 
-      def triggerPhraseOnly = true
+      def triggerPhraseOnly = false
       def triggerPhraseExtra = ""
       Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-rc')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')

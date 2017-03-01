@@ -416,7 +416,7 @@ Class C
     End Sub
 End Class]]></a>.Value.NormalizeLineEndings()
 
-            Using workspace = Await TestWorkspace.CreateAsync(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text})
+            Using workspace = TestWorkspace.Create(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text})
                 Dim called = False
 
                 Dim completionProvider = New CrefCompletionProvider(
