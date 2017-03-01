@@ -1712,6 +1712,12 @@ public class C
     {
         ref int[] a = ref {1,2,3};
         Console.WriteLine(a[0]);
+
+        ref var b = ref {4, 5, 6};
+        Console.WriteLine(b[0]);
+
+        ref object c = ref {1,2,3};
+        Console.WriteLine(c);
     }        
 }
 ";
@@ -1721,7 +1727,13 @@ public class C
             c.VerifyDiagnostics(
                 // (8,27): error CS1510: A ref or out value must be an assignable variable
                 //         ref int[] a = ref {1,2,3};
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "{1,2,3}").WithLocation(8, 27)
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "{1,2,3}"),
+                // (11,17): error CS0820: Cannot initialize an implicitly-typed variable with an array initializer
+                //         ref var b = ref {4, 5, 6};
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedArrayInitializer, "b = ref {4, 5, 6}").WithLocation(11, 17),
+                // (14,28): error CS0622: Can only use array initializer expressions to assign to array types. Try using a new expression instead.
+                //         ref object c = ref {1,2,3};
+                Diagnostic(ErrorCode.ERR_ArrayInitToNonArrayType, "{1,2,3}").WithLocation(14, 28)
             );
         }
     }
