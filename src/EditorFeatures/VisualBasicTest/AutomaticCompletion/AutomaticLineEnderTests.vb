@@ -237,7 +237,7 @@ End Module
         End Function
 
         Private Overloads Async Function TestAsync(expected As XElement, code As XElement) As Task
-            Await TestAsync(expected.NormalizedValue(), code.NormalizedValue())
+            Test(expected.NormalizedValue(), code.NormalizedValue())
         End Function
 
         Friend Overrides Function CreateCommandHandler(
