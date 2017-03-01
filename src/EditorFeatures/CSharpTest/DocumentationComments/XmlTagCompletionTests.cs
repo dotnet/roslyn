@@ -25,7 +25,7 @@ class c { }";
 /// <foo>$$</foo>
 class c { }";
 
-            await VerifyAsync(text, expected, '>');
+            Verify(text, expected, '>');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
@@ -43,7 +43,7 @@ class c { }";
 /// </summary>
 class c { }";
 
-            await VerifyAsync(text, expected, '>');
+            Verify(text, expected, '>');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
@@ -59,7 +59,7 @@ class c { }";
 /// </summary>
 class c { }";
 
-            await VerifyAsync(text, expected, '>');
+            Verify(text, expected, '>');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
@@ -73,7 +73,7 @@ class c { }";
 /// <>$$
 class c { }";
 
-            await VerifyAsync(text, expected, '>');
+            Verify(text, expected, '>');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
@@ -87,7 +87,7 @@ class c { }";
 /// <foo>$$</foo>
 class c { }";
 
-            await VerifyAsync(text, expected, '>');
+            Verify(text, expected, '>');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
@@ -105,7 +105,7 @@ class c { }";
 /// </foo>
 class c { }";
 
-            await VerifyAsync(text, expected, '>');
+            Verify(text, expected, '>');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
@@ -119,7 +119,7 @@ class c { }";
 /// <foo></foo>$$
 class c { }";
 
-            await VerifyAsync(text, expected, '/');
+            Verify(text, expected, '/');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
@@ -137,7 +137,7 @@ class c { }";
 /// </summary>
 class c { }";
 
-            await VerifyAsync(text, expected, '/');
+            Verify(text, expected, '/');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
@@ -153,7 +153,7 @@ class c { }";
 /// </summary>
 class c { }";
 
-            await VerifyAsync(text, expected, '/');
+            Verify(text, expected, '/');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
@@ -167,7 +167,7 @@ class c { }";
 /// <></$$
 class c { }";
 
-            await VerifyAsync(text, expected, '/');
+            Verify(text, expected, '/');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
@@ -181,7 +181,7 @@ class c { }";
 /// <foo></$$foo>
 class c { }";
 
-            await VerifyAsync(text, expected, '/');
+            Verify(text, expected, '/');
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
@@ -199,7 +199,7 @@ class c { }";
 /// </$$foo>
 class c { }";
 
-            await VerifyAsync(text, expected, '/');
+            Verify(text, expected, '/');
         }
 
         [WorkItem(638800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
@@ -214,7 +214,7 @@ class c { }";
 /// <foo><foo>$$</foo></foo>
 class c { }";
 
-            await VerifyAsync(text, expected, '>');
+            Verify(text, expected, '>');
         }
 
         [WorkItem(638800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
@@ -229,7 +229,7 @@ class c { }";
 /// <foo><foo><foo>$$</foo></foo></foo>
 class c { }";
 
-            await VerifyAsync(text, expected, '>');
+            Verify(text, expected, '>');
         }
 
         [WorkItem(638235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")]
@@ -248,7 +248,7 @@ class c { }";
 /// </summary>
 class c { }";
 
-            await VerifyAsync(text, expected, '/');
+            Verify(text, expected, '/');
         }
 
         internal override ICommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory)

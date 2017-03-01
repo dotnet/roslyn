@@ -30,7 +30,7 @@ class C
 {
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -48,7 +48,7 @@ class C
 {
 }";
 
-            await VerifyTypingCharacterAsync(code, expected, autoGenerateXmlDocComments: false);
+            VerifyTypingCharacter(code, expected, autoGenerateXmlDocComments: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -73,7 +73,7 @@ class C
     int M<T>(int foo) { return 0; }
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -98,7 +98,7 @@ class C
     int M<@int>(int @foo) { return 0; }
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -120,7 +120,7 @@ class C
     int P { get; set; }
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -150,7 +150,7 @@ class C
     }
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -182,7 +182,7 @@ class C
     }
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -206,7 +206,7 @@ class C
     void M<T>(int foo) {  }
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -230,7 +230,7 @@ class C
     void M<@T>(int @int) {  }
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WorkItem(538699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538699")]
@@ -251,7 +251,7 @@ class C
     /// </summary>
     void Method() { }
 }";
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -271,7 +271,7 @@ class C
 {
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -293,7 +293,7 @@ class C
 {
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -315,7 +315,7 @@ class C
 {
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -335,7 +335,7 @@ class C
 {
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -357,7 +357,7 @@ class C
     int M<T>(int foo) { return 0; }
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -381,7 +381,7 @@ class C
     }
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -407,7 +407,7 @@ class C
     }
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -423,7 +423,7 @@ class C
 {
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -439,7 +439,7 @@ class C
 {///$$
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -457,7 +457,7 @@ C() //$$
 C() ///$$
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -481,7 +481,7 @@ C()
 }
 }";
 
-            await VerifyTypingCharacterAsync(code, expected);
+            VerifyTypingCharacter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -1643,7 +1643,7 @@ public class Class1
 	}
 }";
 
-            await VerifyTypingCharacterAsync(code, expected, useTabs: true);
+            VerifyTypingCharacter(code, expected, useTabs: true);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
@@ -1673,7 +1673,7 @@ public class Class1
     }
 }";
 
-            await VerifyOpenLineAboveAsync(code, expected);
+            VerifyOpenLineAbove(code, expected);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
@@ -1703,7 +1703,7 @@ public class Class1
     }
 }";
 
-            await VerifyOpenLineAboveAsync(code, expected);
+            VerifyOpenLineAbove(code, expected);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
@@ -1735,7 +1735,7 @@ $$
     }
 }";
 
-            await VerifyOpenLineAboveAsync(code, expected);
+            VerifyOpenLineAbove(code, expected);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
@@ -1765,7 +1765,7 @@ $$
     }
 }";
 
-            await VerifyOpenLineAboveAsync(code, expected, useTabs: true);
+            VerifyOpenLineAbove(code, expected, useTabs: true);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
@@ -1795,7 +1795,7 @@ $$
     }
 }";
 
-            await VerifyOpenLineBelowAsync(code, expected);
+            VerifyOpenLineBelow(code, expected);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
@@ -1825,7 +1825,7 @@ $$
     }
 }";
 
-            await VerifyOpenLineBelowAsync(code, expected);
+            VerifyOpenLineBelow(code, expected);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
@@ -1845,7 +1845,7 @@ $$
 /// $$
 ";
 
-            await VerifyOpenLineBelowAsync(code, expected);
+            VerifyOpenLineBelow(code, expected);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
@@ -1875,7 +1875,7 @@ $$
     }
 }";
 
-            await VerifyOpenLineBelowAsync(code, expected, useTabs: true);
+            VerifyOpenLineBelow(code, expected, useTabs: true);
         }
 
         protected override char DocumentationCommentCharacter

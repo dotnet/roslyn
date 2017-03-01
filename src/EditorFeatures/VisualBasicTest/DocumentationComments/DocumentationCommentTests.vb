@@ -22,7 +22,7 @@ End Class
 Class C
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected, autoGenerateXmlDocComments:=False)
+            VerifyTypingCharacter(code, expected, autoGenerateXmlDocComments:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -39,7 +39,7 @@ End Class
 Class C
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
+            VerifyTypingCharacter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -66,7 +66,7 @@ Class C
     End Function
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
+            VerifyTypingCharacter(code, expected)
         End Function
 
         <WorkItem(538715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
@@ -89,7 +89,7 @@ Class C
    End Function
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
+            VerifyTypingCharacter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -106,7 +106,7 @@ End Class
 Class C
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
+            VerifyTypingCharacter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -129,7 +129,7 @@ Class C
     End Function
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
+            VerifyTypingCharacter(code, expected)
         End Function
 
         <WorkItem(537506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537506")>
@@ -143,7 +143,7 @@ End Class
 Class C'''$$
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
+            VerifyTypingCharacter(code, expected)
         End Function
 
         <WorkItem(537508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537508")>
@@ -159,7 +159,7 @@ Class C
     '''$$
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
+            VerifyTypingCharacter(code, expected)
         End Function
 
         <WorkItem(537510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537510")>
@@ -175,7 +175,7 @@ Class C
     Sub New() '''$$
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
+            VerifyTypingCharacter(code, expected)
         End Function
 
         <WorkItem(537511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537511")>
@@ -195,7 +195,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
+            VerifyTypingCharacter(code, expected)
         End Function
 
         <WorkItem(537512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537512")>
@@ -215,7 +215,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
+            VerifyTypingCharacter(code, expected)
         End Function
 
         <WorkItem(540004, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540004")>
@@ -241,7 +241,7 @@ Class C
     End Property
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
+            VerifyTypingCharacter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -258,7 +258,7 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -274,7 +274,7 @@ $$
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected, autoGenerateXmlDocComments:=False)
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -290,7 +290,7 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -306,7 +306,7 @@ End Class
 <Foo()> Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WorkItem(538717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538717")>
@@ -325,7 +325,7 @@ Module M
     Dim x As Integer
 End Module
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -351,7 +351,7 @@ Class C
     End Function
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -376,7 +376,7 @@ Class C
     End Function
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -394,7 +394,7 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -414,7 +414,7 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -430,7 +430,7 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -448,7 +448,7 @@ End Class
     Class C
     End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -468,7 +468,7 @@ End Class
     Class C
     End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -484,7 +484,7 @@ End Class
     Class C
     End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -508,7 +508,7 @@ Class C
     End Function
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WorkItem(540017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
@@ -525,7 +525,7 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")>
@@ -542,7 +542,7 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected, autoGenerateXmlDocComments:=False)
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments:=False)
         End Function
 
         <WorkItem(540017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
@@ -561,7 +561,7 @@ $$
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -581,7 +581,7 @@ $$
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WorkItem(537534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537534")>
@@ -602,7 +602,7 @@ $$
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WorkItem(537550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537550")>
@@ -631,7 +631,7 @@ Public Async Function TestFoo() As Task
         End Sub
     End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WorkItem(2091, "https://github.com/dotnet/roslyn/issues/2091")>
@@ -656,7 +656,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
@@ -681,7 +681,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
@@ -706,7 +706,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
@@ -731,7 +731,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
@@ -756,7 +756,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
@@ -781,7 +781,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected, useTabs:=True)
+            VerifyPressingEnter(code, expected, useTabs:=True)
         End Function
 
         <WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")>
@@ -802,7 +802,7 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")>
@@ -823,7 +823,7 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
+            VerifyPressingEnter(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -841,7 +841,7 @@ Class C
 
 End Class
 "
-            Await VerifyInsertCommentCommandAsync(code, expected)
+            VerifyInsertCommentCommand(code, expected)
         End Function
 
         <WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")>
@@ -860,7 +860,7 @@ Class C
 
 End Class
 "
-            Await VerifyInsertCommentCommandAsync(code, expected, autoGenerateXmlDocComments:=False)
+            VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -877,7 +877,7 @@ Class C
     $$
 End Class
 "
-            Await VerifyInsertCommentCommandAsync(code, expected)
+            VerifyInsertCommentCommand(code, expected)
         End Function
 
         <WorkItem(538715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
@@ -899,7 +899,7 @@ Class C
     End Function
 End Class
 "
-            Await VerifyInsertCommentCommandAsync(code, expected)
+            VerifyInsertCommentCommand(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -924,7 +924,7 @@ Class C
     End Function
 End Class
 "
-            Await VerifyInsertCommentCommandAsync(code, expected)
+            VerifyInsertCommentCommand(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -945,7 +945,7 @@ Class C
     End Function
 End Class
 "
-            Await VerifyInsertCommentCommandAsync(code, expected)
+            VerifyInsertCommentCommand(code, expected)
         End Function
 
         <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
@@ -961,7 +961,7 @@ $$Module M : End Module : Module N : End Module
 ''' </summary>
 Module M : End Module : Module N : End Module
 "
-            Await VerifyInsertCommentCommandAsync(code, expected)
+            VerifyInsertCommentCommand(code, expected)
         End Function
 
         <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
@@ -970,7 +970,7 @@ Module M : End Module : Module N : End Module
             Const code = "Module M : End Module : $$Module N : End Module"
             Const expected = "Module M : End Module : $$Module N : End Module"
 
-            Await VerifyInsertCommentCommandAsync(code, expected)
+            VerifyInsertCommentCommand(code, expected)
         End Function
 
         <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
@@ -990,7 +990,7 @@ Module M
     Property i As Integer : Property j As Integer
 End Module
 "
-            Await VerifyInsertCommentCommandAsync(code, expected)
+            VerifyInsertCommentCommand(code, expected)
         End Function
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
@@ -1015,7 +1015,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyOpenLineAboveAsync(code, expected)
+            VerifyOpenLineAbove(code, expected)
         End Function
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
@@ -1040,7 +1040,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyOpenLineAboveAsync(code, expected)
+            VerifyOpenLineAbove(code, expected)
         End Function
 
         <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
@@ -1076,7 +1076,7 @@ $$
     End Sub
 End Class
 "
-            Await VerifyOpenLineAboveAsync(code, expected)
+            VerifyOpenLineAbove(code, expected)
         End Function
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
@@ -1101,7 +1101,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyOpenLineAboveAsync(code, expected, useTabs:=True)
+            VerifyOpenLineAbove(code, expected, useTabs:=True)
         End Function
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
@@ -1126,7 +1126,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyOpenLineBelowAsync(code, expected)
+            VerifyOpenLineBelow(code, expected)
         End Function
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
@@ -1151,7 +1151,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyOpenLineBelowAsync(code, expected)
+            VerifyOpenLineBelow(code, expected)
         End Function
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
@@ -1166,7 +1166,7 @@ End Class
 ''' stuff
 ''' </summary>
 ''' $$"
-            Await VerifyOpenLineBelowAsync(code, expected)
+            VerifyOpenLineBelow(code, expected)
         End Function
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
@@ -1191,7 +1191,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyOpenLineBelowAsync(code, expected, useTabs:=True)
+            VerifyOpenLineBelow(code, expected, useTabs:=True)
         End Function
 
         Friend Overrides Function CreateCommandHandler(

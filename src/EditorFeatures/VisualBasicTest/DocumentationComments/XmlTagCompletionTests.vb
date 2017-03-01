@@ -32,7 +32,7 @@ End Class]]></File>
 Class C 
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
@@ -52,7 +52,7 @@ End Class]]></File>
 Class C 
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
@@ -70,7 +70,7 @@ End Class]]></File>
 Class C 
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
@@ -86,7 +86,7 @@ End Class]]></File>
 Class C 
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
@@ -102,7 +102,7 @@ End Class]]></File>
 Class C 
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
@@ -122,7 +122,7 @@ End Class]]></File>
 Class C 
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
@@ -138,7 +138,7 @@ Class C
     DIm z = <foo>$$
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Function
 
         <WorkItem(638235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")>
@@ -158,7 +158,7 @@ End Class]]></File>
 Class C 
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), "/"c)
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), "/"c)
         End Function
     End Class
 End Namespace

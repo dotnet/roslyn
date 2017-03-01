@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
 {
     public class CSharpBraceMatcherTests : AbstractBraceMatcherTests
     {
-        protected override async Task<TestWorkspace> CreateWorkspaceFromCode(string code, ParseOptions options)
+        protected override TestWorkspace CreateWorkspaceFromCode(string code, ParseOptions options)
             => TestWorkspace.CreateCSharp(code, options);
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]

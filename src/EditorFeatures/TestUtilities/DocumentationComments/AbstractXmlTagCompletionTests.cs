@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
     public abstract class AbstractXmlTagCompletionTests
     {
         internal abstract ICommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory);
-        protected abstract Task<TestWorkspace> CreateTestWorkspace(string initialMarkup);
+        protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
 
-        public async Task VerifyAsync(string initialMarkup, string expectedMarkup, char typeChar)
+        public void Verify(string initialMarkup, string expectedMarkup, char typeChar)
         {
-            using (var workspace = await CreateTestWorkspace(initialMarkup))
+            using (var workspace = CreateTestWorkspace(initialMarkup))
             {
                 var testDocument = workspace.Documents.Single();
                 var view = testDocument.GetTextView();
