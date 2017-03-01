@@ -64,7 +64,7 @@ public class DSSS
     </Project>
 </Workspace>
 
-            Dim testState = Await CallHierarchyTestState.CreateAsync(input)
+            Dim testState = CallHierarchyTestState.Create(input)
             Dim root = testState.GetRoot()
             testState.VerifyResult(root, String.Format(EditorFeaturesResources.Calls_To_0, "GetFive"), {"DSSS.bar()", "D.bar()", "G.G.G()"}, CallHierarchySearchScope.EntireSolution)
             Dim documents = testState.GetDocuments({"Test3.cs", "Test4.cs"})
@@ -88,7 +88,7 @@ End Class
     </Project>
 </Workspace>
 
-            Dim testState = Await CallHierarchyTestState.CreateAsync(input)
+            Dim testState = CallHierarchyTestState.Create(input)
             Dim root = testState.GetRoot()
             testState.VerifyResult(root, String.Format(EditorFeaturesResources.Calls_To_0, "Foo"), {"C.Foo()"})
         End Function
@@ -113,7 +113,7 @@ End Interface
     </Project>
 </Workspace>
 
-            Dim testState = Await CallHierarchyTestState.CreateAsync(input)
+            Dim testState = CallHierarchyTestState.Create(input)
             Dim root = testState.GetRoot()
             testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "Foo"), {"C.Foo()"})
         End Function
@@ -165,7 +165,7 @@ public class D : I
     </Project>
 </Workspace>
 
-            Dim testState = Await CallHierarchyTestState.CreateAsync(input)
+            Dim testState = CallHierarchyTestState.Create(input)
             Dim root = testState.GetRoot()
             testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "foo"), {"D.foo()", "G.G.foo()", "C.C.foo()"}, CallHierarchySearchScope.EntireSolution)
             Dim documents = testState.GetDocuments({"Test1.cs", "Test2.cs"})
@@ -203,7 +203,7 @@ class CSharpIt : IChangeSignatureOptionsService
     </Project>
 </Workspace>
 
-            Dim testState = Await CallHierarchyTestState.CreateAsync(input)
+            Dim testState = CallHierarchyTestState.Create(input)
             Dim root = testState.GetRoot()
             testState.SearchRoot(root,
                                  String.Format(EditorFeaturesResources.Implements_0, "GetChangeSignatureOptions"),
@@ -235,7 +235,7 @@ End Class
     </Project>
 </Workspace>
 
-            Dim testState = Await CallHierarchyTestState.CreateAsync(input)
+            Dim testState = CallHierarchyTestState.Create(input)
             Dim root = testState.GetRoot()
             testState.VerifyResult(root, EditorFeaturesResources.Overrides_, {"Derived.M()"})
         End Function
@@ -264,7 +264,7 @@ class D : C
         </Project>
     </Workspace>
 
-            Dim testState = Await CallHierarchyTestState.CreateAsync(input, GetType(MockSymbolNavigationServiceProvider))
+            Dim testState = CallHierarchyTestState.Create(input, GetType(MockSymbolNavigationServiceProvider))
             Dim root = testState.GetRoot()
             testState.Navigate(root, EditorFeaturesResources.Overrides_, "D.foo()")
 
@@ -302,7 +302,7 @@ namespace N
         </Project>
     </Workspace>
 
-            Dim testState = Await CallHierarchyTestState.CreateAsync(input, GetType(MockDocumentNavigationServiceProvider))
+            Dim testState = CallHierarchyTestState.Create(input, GetType(MockDocumentNavigationServiceProvider))
             Dim root = testState.GetRoot()
             testState.VerifyRoot(root, "N.C.Foo()", {String.Format(EditorFeaturesResources.Calls_To_0, "Foo")})
             testState.Navigate(root, String.Format(EditorFeaturesResources.Calls_To_0, "Foo"), "N.G.Main()")
@@ -328,7 +328,7 @@ cla$$ss C
         </Document>
         </Project>
     </Workspace>
-            Dim testState = Await CallHierarchyTestState.CreateAsync(input)
+            Dim testState = CallHierarchyTestState.Create(input)
             Dim root = testState.GetRoot()
             Assert.Null(root)
             Assert.NotNull(testState.NotificationMessage)
@@ -348,7 +348,7 @@ End Cla$$ss
         </Document>
         </Project>
     </Workspace>
-            Dim testState = Await CallHierarchyTestState.CreateAsync(input)
+            Dim testState = CallHierarchyTestState.Create(input)
             Dim root = testState.GetRoot()
             Assert.Null(root)
             Assert.NotNull(testState.NotificationMessage)
