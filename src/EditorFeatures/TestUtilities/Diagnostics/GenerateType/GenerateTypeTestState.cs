@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
         public Project TriggeredProject { get; }
         public string TypeName { get; }
 
-        public static async Task<GenerateTypeTestState> CreateAsync(
+        public static GenerateTypeTestState Create(
             string initial,
             string projectToBeModified,
             string typeName,
