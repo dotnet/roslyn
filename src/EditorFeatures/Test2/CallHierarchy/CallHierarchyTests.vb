@@ -74,7 +74,7 @@ public class DSSS
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
-        Public Async Function TestVBMethod() As Task
+        Public Sub TestVBMethod()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -91,7 +91,7 @@ End Class
             Dim testState = CallHierarchyTestState.Create(input)
             Dim root = testState.GetRoot()
             testState.VerifyResult(root, String.Format(EditorFeaturesResources.Calls_To_0, "Foo"), {"C.Foo()"})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Sub TestVBInterface()
@@ -176,7 +176,7 @@ public class D : I
 
         <WorkItem(981869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
-        Public Async Function TestCallHierarchyCrossProjectNavigation() As Task
+        Public Sub TestCallHierarchyCrossProjectNavigation()
             Dim input =
 <Workspace>
     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -211,7 +211,7 @@ class CSharpIt : IChangeSignatureOptionsService
                                      Assert.Equal("Assembly2", c.Project.Name)
                                  End Sub,
                                  CallHierarchySearchScope.EntireSolution)
-        End Function
+        End Sub
 
         <WorkItem(844613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844613")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
@@ -275,7 +275,7 @@ class D : C
 
         <WorkItem(1022864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022864")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
-        Public Async Function TestUseDocumentIdWhenNavigating() As Task
+        Public Sub TestUseDocumentIdWhenNavigating()
             Dim input =
     <Workspace>
         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -310,7 +310,7 @@ namespace N
             Dim navigationService = DirectCast(testState.Workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationServiceProvider.MockDocumentNavigationService)
             Assert.NotEqual(navigationService.ProvidedDocumentId, Nothing)
             Assert.NotEqual(navigationService.ProvidedTextSpan, Nothing)
-        End Function
+        End Sub
 
         <WorkItem(1098507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098507")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionCancellationTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Async Function TestCancellation() As Tasks.Task
+        Public Sub TestCancellation()
             ' Run without cancelling.
             Dim updates As Integer = Me.Cancel(Integer.MaxValue, False)
             Assert.InRange(updates, 0, Integer.MaxValue)
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 Assert.Equal(n, i + 1)
                 i = i + 1
             End While
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub TestInLinkedFiles()

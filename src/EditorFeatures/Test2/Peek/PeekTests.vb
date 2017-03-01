@@ -15,15 +15,15 @@ Imports Moq
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
     Public Class PeekTests
         <WpfFact, WorkItem(820706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820706"), Trait(Traits.Feature, Traits.Features.Peek)>
-        Public Async Function TestInvokeInEmptyFile() As Task
+        Public Sub TestInvokeInEmptyFile()
             Dim result = GetPeekResultCollection(<Workspace>
-                                                                <Project Language="C#" CommonReferences="true">
-                                                                    <Document>$$}</Document>
-                                                                </Project>
-                                                            </Workspace>)
+                                                     <Project Language="C#" CommonReferences="true">
+                                                         <Document>$$}</Document>
+                                                     </Project>
+                                                 </Workspace>)
 
             Assert.Null(result)
-        End Function
+        End Sub
 
         <WpfFact, WorkItem(827025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827025"), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Sub TestWorksAcrossLanguages()
