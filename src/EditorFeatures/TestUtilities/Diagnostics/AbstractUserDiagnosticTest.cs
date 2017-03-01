@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string initialMarkup, string equivalenceKey)
         {
             var options = new TestParameters();
-            using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, options))
+            using (var workspace = CreateWorkspaceFromFile(initialMarkup, options))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace, options);
                 Assert.Equal(equivalenceKey, diagnosticAndFix.Item2.Fixes.ElementAt(index: 0).Action.EquivalenceKey);
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestParameters parameters,
             int count)
         {
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixesAsync(workspace, parameters);
                 var diagnosticCount = diagnosticAndFix.Select(x => x.Item2.Fixes.Count()).Sum();
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             MarkupTestFile.GetSpans(initialMarkup, out var unused, out IList<TextSpan> spansList);
 
             var expectedTextSpans = spansList.ToSet();
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 ISet<TextSpan> actualTextSpans;
                 if (diagnosticId == null)

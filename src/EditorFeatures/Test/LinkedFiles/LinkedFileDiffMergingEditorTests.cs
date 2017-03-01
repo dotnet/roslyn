@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             }
         }
 
-        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters)
+        protected override Task<TestWorkspace> CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
         {
             throw new NotSupportedException();
         }

@@ -2313,7 +2313,7 @@ End Module
 </Code>
 
             Dim parameters As New TestParameters()
-            Using workspace = Await CreateWorkspaceFromFileAsync(source, parameters)
+            Using workspace = Await CreateWorkspaceFromFile(source, parameters)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
@@ -2329,7 +2329,7 @@ End Module
 </Code>
 
             Dim parameters2 As New TestParameters()
-            Using workspace = Await CreateWorkspaceFromFileAsync(source, parameters2)
+            Using workspace = Await CreateWorkspaceFromFile(source, parameters2)
                 workspace.ApplyOptions(PreferIntrinsicPredefinedTypeEverywhere())
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters2)).Where(Function(d) d.Id = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
@@ -2347,7 +2347,7 @@ End Module
 </Code>
 
             Dim parameters3 As New TestParameters()
-            Using workspace = Await CreateWorkspaceFromFileAsync(source, parameters3)
+            Using workspace = Await CreateWorkspaceFromFile(source, parameters3)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters3)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveQualificationDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
