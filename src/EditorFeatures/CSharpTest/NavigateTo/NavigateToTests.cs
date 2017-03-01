@@ -1033,7 +1033,7 @@ class D
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task NavigateToGeneratedFiles()
         {
-            using (var workspace = await TestWorkspace.CreateAsync(@"
+            using (var workspace = TestWorkspace.Create(@"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""true"">
         <Document FilePath=""File1.cs"">

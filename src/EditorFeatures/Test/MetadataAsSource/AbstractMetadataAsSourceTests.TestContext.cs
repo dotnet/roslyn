@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
     </Project>
 </Workspace>");
 
-                return TestWorkspace.CreateAsync(xmlString);
+                return TestWorkspace.Create(xmlString);
             }
 
             internal Document GetDocument(MetadataAsSourceFile file)

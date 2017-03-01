@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
+            using (var workspace = TestWorkspace.Create(workspaceXml))
             {
                 var spans = (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
@@ -100,7 +100,7 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
+            using (var workspace = TestWorkspace.Create(workspaceXml))
             {
                 var options = new Dictionary<OptionKey, object>();
                 var language = workspace.Projects.Single().Language;
@@ -241,7 +241,7 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
+            using (var workspace = TestWorkspace.Create(workspaceXml))
             {
                 var document = workspace.Documents.First();
 
@@ -274,7 +274,7 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
+            using (var workspace = TestWorkspace.Create(workspaceXml))
             {
                 var document = workspace.Documents.First();
 

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup, TestParameters parameters)
         {
             var workspace = TestWorkspace.IsWorkspaceElement(initialMarkup)
-                 ? await TestWorkspace.CreateAsync(initialMarkup)
+                 ? TestWorkspace.Create(initialMarkup)
                  : await CreateWorkspaceFromFileAsync(initialMarkup, parameters);
 
             workspace.ApplyOptions(parameters.options);
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution)
         {
-            using (var expectedWorkspace = await TestWorkspace.CreateAsync(expectedText))
+            using (var expectedWorkspace = TestWorkspace.Create(expectedText))
             {
                 var expectedSolution = expectedWorkspace.CurrentSolution;
                 Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());

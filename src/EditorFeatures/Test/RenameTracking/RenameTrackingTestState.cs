@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
         {
-            var workspace = await TestWorkspace.CreateAsync(
+            var workspace = TestWorkspace.Create(
                 workspaceXml,
                 exportProvider: EditorServicesUtil.CreateExportProvider());
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
     </Project>
 </Workspace>", languageName, code);
 
-            return TestWorkspace.CreateAsync(xml, exportProvider: exportProvider);
+            return TestWorkspace.Create(xml, exportProvider: exportProvider);
         }
 
         public void SendEscape()

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             string languageName)
         {
             var workspace = TestWorkspace.IsWorkspaceElement(initial)
-                ? await TestWorkspace.CreateAsync(initial, exportProvider: s_exportProvider)
+                ? TestWorkspace.Create(initial, exportProvider: s_exportProvider)
                 : languageName == LanguageNames.CSharp
                   ? await TestWorkspace.CreateCSharpAsync(initial, exportProvider: s_exportProvider)
                   : await TestWorkspace.CreateVisualBasicAsync(initial, exportProvider: s_exportProvider);

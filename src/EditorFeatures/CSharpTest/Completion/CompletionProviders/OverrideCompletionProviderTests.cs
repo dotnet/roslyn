@@ -2125,7 +2125,7 @@ End Class
     
 </Workspace>", LanguageNames.CSharp, csharpFile, LanguageNames.VisualBasic, vbFile);
 
-            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
+            using (var testWorkspace = TestWorkspace.Create(xmlString))
             {
                 var position = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
@@ -2382,7 +2382,7 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file1, file2);
 
-            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
+            using (var testWorkspace = TestWorkspace.Create(xmlString))
             {
                 var position = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
@@ -2438,7 +2438,7 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file2, file1);
 
-            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
+            using (var testWorkspace = TestWorkspace.Create(xmlString))
             {
                 var cursorPosition = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;

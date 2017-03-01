@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public static async Task<TestWorkspace> CreateAsync(string xmlDefinition, bool completed = true, bool openDocuments = true, ExportProvider exportProvider = null)
+        public static TestWorkspace Create(string xmlDefinition, bool completed = true, bool openDocuments = true, ExportProvider exportProvider = null)
         {
             return Create(XElement.Parse(xmlDefinition), completed, openDocuments, exportProvider);
         }

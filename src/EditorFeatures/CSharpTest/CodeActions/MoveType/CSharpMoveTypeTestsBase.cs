@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters)
         {
             return TestWorkspace.IsWorkspaceElement(initialMarkup)
-                ? TestWorkspace.CreateAsync(initialMarkup)
+                ? TestWorkspace.Create(initialMarkup)
                 : TestWorkspace.CreateCSharpAsync(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
         }
     }
