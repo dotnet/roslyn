@@ -49,10 +49,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                 {
                     if (designerAttribute == null)
                     {
-                        if (compilation == null)
-                        {
-                            compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                        }
+                        compilation = compilation ?? await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                         designerAttribute = compilation.DesignerCategoryAttributeType();
                         if (designerAttribute == null)

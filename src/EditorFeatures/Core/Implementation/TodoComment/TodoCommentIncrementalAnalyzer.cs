@@ -90,9 +90,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         private async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
         {
             var client = await _workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            if (client != null && !document.IsOpen())
+            if (client != null &&
+                RemoteSupportedLanguages.IsSupported(document.Project.Language) &&
+                !document.IsOpen())
             {
-                // run todo scanner on remote host
+                // run todo scanner on remote host. 
+                // we only run document that remote host is supported and closed files to make open document to have
+                // better responsiveness. also we cache everything related to open files anyway, no saving by running
+                // them in remote host
                 return await client.RunCodeAnalysisServiceOnRemoteHostAsync<IList<TodoComment>>(
                     document.Project.Solution, nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
                     new object[] { document.Id, tokens }, cancellationToken).ConfigureAwait(false);

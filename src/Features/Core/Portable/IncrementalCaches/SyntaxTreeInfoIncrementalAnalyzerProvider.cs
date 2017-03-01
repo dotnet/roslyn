@@ -21,8 +21,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         {
             public override Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                if (document.Project.Solution.Workspace.Options.GetOption(SymbolFinderOptions.OutOfProcessAllowed))
+                if (document.Project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
+                    document.Project.Solution.Workspace.Options.GetOption(SymbolFinderOptions.OutOfProcessAllowed))
                 {
+                    // if FAR feature is set to run on remote host, then we don't need to build inproc cache.
+                    // remote host will build this cache in remote host.
                     return SpecializedTasks.EmptyTask;
                 }
 
