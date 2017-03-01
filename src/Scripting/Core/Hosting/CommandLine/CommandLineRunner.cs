@@ -108,7 +108,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
             }
 
+
+            // only emit symbols for non-interactive mode,
+            var emitDebugInformation = !_compiler.Arguments.InteractiveMode;
+
             var scriptPathOpt = sourceFiles.IsEmpty ? null : sourceFiles[0].Path;
+            var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos, emitDebugInformation);
 
             var errors = _compiler.Arguments.Errors.Concat(diagnosticsInfos.Select(Diagnostic.Create));
             if (_compiler.ReportErrors(errors, _console.Error, errorLogger))
@@ -116,9 +121,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return CommonCompiler.Failed;
             }
 
-            // only emit symbols for non-interactive mode, and when encoding is known
-            var emitDebugInformation = !_compiler.Arguments.InteractiveMode && code.Encoding != null;
-            var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos, emitDebugInformation);
 
             var cancellationToken = new CancellationToken();
 
