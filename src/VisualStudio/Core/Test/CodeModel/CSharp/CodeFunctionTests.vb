@@ -767,7 +767,7 @@ public class ComplexType
 #Region "OverrideKind tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_Abstract() As Task
+        Public Sub TestOverrideKind_Abstract()
             Dim code =
 <Code>
 abstract class C
@@ -777,10 +777,10 @@ abstract class C
 </Code>
 
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_Virtual() As Task
+        Public Sub TestOverrideKind_Virtual()
             Dim code =
 <Code>
 class C
@@ -790,10 +790,10 @@ class C
 </Code>
 
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_Sealed() As Task
+        Public Sub TestOverrideKind_Sealed()
             Dim code =
 <Code>
 class C
@@ -803,10 +803,10 @@ class C
 </Code>
 
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_Override() As Task
+        Public Sub TestOverrideKind_Override()
             Dim code =
 <Code>
 abstract class B
@@ -821,10 +821,10 @@ class C : B
 </Code>
 
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_New() As Task
+        Public Sub TestOverrideKind_New()
             Dim code =
 <Code>
 abstract class B
@@ -839,14 +839,14 @@ class C : B
 </Code>
 
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNew)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Prototype tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_FullNameOnly() As Task
+        Public Sub TestPrototype_FullNameOnly()
             Dim code =
 <Code>
 class A
@@ -859,10 +859,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "A.MethodC")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_UniqueSignature() As Task
+        Public Sub TestPrototype_UniqueSignature()
             Dim code =
 <Code>
 class A
@@ -875,10 +875,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "A.MethodC(int,bool)")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_ParamTypesOnly() As Task
+        Public Sub TestPrototype_ParamTypesOnly()
             Dim code =
 <Code>
 class A
@@ -891,10 +891,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeParamTypes, "MethodC (int, bool)")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_ParamNamesOnly() As Task
+        Public Sub TestPrototype_ParamNamesOnly()
             Dim code =
 <Code>
 class A
@@ -907,10 +907,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeParamNames, "MethodC (intA, boolB)")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_ReturnType() As Task
+        Public Sub TestPrototype_ReturnType()
             Dim code =
 <Code>
 class A
@@ -923,10 +923,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "bool MethodC")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_ClassName1() As Task
+        Public Sub TestPrototype_ClassName1()
             Dim code =
 <Code>
 class A
@@ -939,10 +939,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.MethodC")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_ClassName2() As Task
+        Public Sub TestPrototype_ClassName2()
             Dim code =
 <Code>
 class A&lt;T&gt;
@@ -955,10 +955,10 @@ class A&lt;T&gt;
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A<>.MethodC")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_ClassName3() As Task
+        Public Sub TestPrototype_ClassName3()
             Dim code =
 <Code>
 class C&lt;T&gt;
@@ -974,10 +974,10 @@ class C&lt;T&gt;
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C<>.A.MethodC")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_ClassName4() As Task
+        Public Sub TestPrototype_ClassName4()
             Dim code =
 <Code>
 class C
@@ -993,10 +993,10 @@ class C
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.A<>.MethodC")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_ClassName5() As Task
+        Public Sub TestPrototype_ClassName5()
             Dim code =
 <Code>
 class C
@@ -1012,10 +1012,10 @@ class C
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.A.MethodC")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_ClassName6() As Task
+        Public Sub TestPrototype_ClassName6()
             Dim code =
 <Code>
 namespace N
@@ -1031,10 +1031,10 @@ namespace N
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.MethodC")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Constructor_Unique() As Task
+        Public Sub TestPrototype_Constructor_Unique()
             Dim code =
 <Code>
 class A
@@ -1046,10 +1046,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "A.#ctor()")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Finalizer_Unique() As Task
+        Public Sub TestPrototype_Finalizer_Unique()
             Dim code =
 <Code>
 class A
@@ -1061,10 +1061,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "A.#dtor()")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Unique_InvalidCombination() As Task
+        Public Sub TestPrototype_Unique_InvalidCombination()
             Dim code =
 <Code>
 class A
@@ -1077,10 +1077,10 @@ class A
 </Code>
 
             TestPrototypeThrows(Of ArgumentException)(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature Or EnvDTE.vsCMPrototype.vsCMPrototypeClassName)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Constructor_FullName() As Task
+        Public Sub TestPrototype_Constructor_FullName()
             Dim code =
 <Code>
 class A
@@ -1092,10 +1092,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "A.A")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Finalizer_FullName() As Task
+        Public Sub TestPrototype_Finalizer_FullName()
             Dim code =
 <Code>
 class A
@@ -1107,10 +1107,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "A.~A")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Operator_FullName() As Task
+        Public Sub TestPrototype_Operator_FullName()
             Dim code =
 <Code>
 class A
@@ -1123,10 +1123,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "A.operator +")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Constructor_ReturnType() As Task
+        Public Sub TestPrototype_Constructor_ReturnType()
             Dim code =
 <Code>
 class A
@@ -1138,10 +1138,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "void A")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Finalizer_ReturnType() As Task
+        Public Sub TestPrototype_Finalizer_ReturnType()
             Dim code =
 <Code>
 class A
@@ -1153,10 +1153,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "void ~A")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Operator_ReturnType() As Task
+        Public Sub TestPrototype_Operator_ReturnType()
             Dim code =
 <Code>
 class A
@@ -1169,10 +1169,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "A operator +")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Constructor_ClassName() As Task
+        Public Sub TestPrototype_Constructor_ClassName()
             Dim code =
 <Code>
 class A
@@ -1184,10 +1184,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.A")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Finalizer_ClassName() As Task
+        Public Sub TestPrototype_Finalizer_ClassName()
             Dim code =
 <Code>
 class A
@@ -1199,10 +1199,10 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.~A")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Operator_ClassName() As Task
+        Public Sub TestPrototype_Operator_ClassName()
             Dim code =
 <Code>
 class A
@@ -1215,14 +1215,14 @@ class A
 </Code>
 
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.operator +")
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Type tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestType_Constructor() As Task
+        Public Sub TestType_Constructor()
             Dim code =
 <Code>
 class A
@@ -1241,10 +1241,10 @@ class A
                     .CodeTypeFullName = "System.Void",
                     .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefVoid
                 })
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestType_Finalizer() As Task
+        Public Sub TestType_Finalizer()
             Dim code =
 <Code>
 class A
@@ -1263,10 +1263,10 @@ class A
                     .CodeTypeFullName = "System.Void",
                     .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefVoid
                 })
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestType_Operator() As Task
+        Public Sub TestType_Operator()
             Dim code =
 <Code>
 class A
@@ -1286,7 +1286,7 @@ class A
                     .CodeTypeFullName = "A",
                     .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType
                 })
-        End Function
+        End Sub
 
 #End Region
 
@@ -2256,7 +2256,7 @@ class C
 #Region "ExtensionMethodExtender"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestExtensionMethodExtender_IsExtension1() As Task
+        Public Sub TestExtensionMethodExtender_IsExtension1()
             Dim code =
 <Code>
 public static class C
@@ -2268,10 +2268,10 @@ public static class C
 </Code>
 
             TestExtensionMethodExtender_IsExtension(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestExtensionMethodExtender_IsExtension2() As Task
+        Public Sub TestExtensionMethodExtender_IsExtension2()
             Dim code =
 <Code>
 public static class C
@@ -2283,14 +2283,14 @@ public static class C
 </Code>
 
             TestExtensionMethodExtender_IsExtension(code, False)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "PartialMethodExtender"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_IsPartial1() As Task
+        Public Sub TestPartialMethodExtender_IsPartial1()
             Dim code =
 <Code>
 public partial class C
@@ -2308,10 +2308,10 @@ public partial class C
 </Code>
 
             TestPartialMethodExtender_IsPartial(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_IsPartial2() As Task
+        Public Sub TestPartialMethodExtender_IsPartial2()
             Dim code =
 <Code>
 public partial class C
@@ -2329,10 +2329,10 @@ public partial class C
 </Code>
 
             TestPartialMethodExtender_IsPartial(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_IsPartial3() As Task
+        Public Sub TestPartialMethodExtender_IsPartial3()
             Dim code =
 <Code>
 public partial class C
@@ -2350,10 +2350,10 @@ public partial class C
 </Code>
 
             TestPartialMethodExtender_IsPartial(code, False)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_IsDeclaration1() As Task
+        Public Sub TestPartialMethodExtender_IsDeclaration1()
             Dim code =
 <Code>
 public partial class C
@@ -2371,10 +2371,10 @@ public partial class C
 </Code>
 
             TestPartialMethodExtender_IsDeclaration(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_IsDeclaration2() As Task
+        Public Sub TestPartialMethodExtender_IsDeclaration2()
             Dim code =
 <Code>
 public partial class C
@@ -2392,10 +2392,10 @@ public partial class C
 </Code>
 
             TestPartialMethodExtender_IsDeclaration(code, False)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_IsDeclaration3() As Task
+        Public Sub TestPartialMethodExtender_IsDeclaration3()
             Dim code =
 <Code>
 public partial class C
@@ -2413,10 +2413,10 @@ public partial class C
 </Code>
 
             TestPartialMethodExtender_IsDeclaration(code, False)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_HasOtherPart1() As Task
+        Public Sub TestPartialMethodExtender_HasOtherPart1()
             Dim code =
 <Code>
 public partial class C
@@ -2434,10 +2434,10 @@ public partial class C
 </Code>
 
             TestPartialMethodExtender_HasOtherPart(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_HasOtherPart2() As Task
+        Public Sub TestPartialMethodExtender_HasOtherPart2()
             Dim code =
 <Code>
 public partial class C
@@ -2455,10 +2455,10 @@ public partial class C
 </Code>
 
             TestPartialMethodExtender_HasOtherPart(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_HasOtherPart3() As Task
+        Public Sub TestPartialMethodExtender_HasOtherPart3()
             Dim code =
 <Code>
 public partial class C
@@ -2476,10 +2476,10 @@ public partial class C
 </Code>
 
             TestPartialMethodExtender_HasOtherPart(code, False)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_HasOtherPart4() As Task
+        Public Sub TestPartialMethodExtender_HasOtherPart4()
             Dim code =
 <Code>
 public partial class C
@@ -2489,14 +2489,14 @@ public partial class C
 </Code>
 
             TestPartialMethodExtender_HasOtherPart(code, False)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Overloads Tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverloads1() As Task
+        Public Sub TestOverloads1()
             Dim code =
 <Code>
 public static class C
@@ -2511,10 +2511,10 @@ public static class C
 }
 </Code>
             TestOverloadsUniqueSignatures(code, "C.Foo()", "C.Foo(C)")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverloads2() As Task
+        Public Sub TestOverloads2()
             Dim code =
 <Code>
 public static class C
@@ -2525,10 +2525,10 @@ public static class C
 }
 </Code>
             TestOverloadsUniqueSignatures(code, "C.Foo()")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverloads3() As Task
+        Public Sub TestOverloads3()
             Dim code =
 <Code>
 class A
@@ -2540,7 +2540,7 @@ class A
 }
 </Code>
             TestOverloadsUniqueSignatures(code, "A.#op_Plus(A,A)")
-        End Function
+        End Sub
 
 #End Region
 
@@ -2548,7 +2548,7 @@ class A
 
         <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestParameterNameWithEscapeCharacters() As Task
+        Public Sub TestParameterNameWithEscapeCharacters()
             Dim code =
 <Code>
 public class C
@@ -2559,11 +2559,11 @@ public class C
 }
 </Code>
             TestAllParameterNames(code, "@int")
-        End Function
+        End Sub
 
         <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestParameterNameWithEscapeCharacters_2() As Task
+        Public Sub TestParameterNameWithEscapeCharacters_2()
             Dim code =
 <Code>
 public class C
@@ -2574,7 +2574,7 @@ public class C
 }
 </Code>
             TestAllParameterNames(code, "@int", "@string")
-        End Function
+        End Sub
 
 #End Region
 
@@ -2662,7 +2662,7 @@ class C
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestTypeDescriptor_GetProperties() As Task
+        Public Sub TestTypeDescriptor_GetProperties()
             Dim code =
 <Code>
 class C
@@ -2679,7 +2679,7 @@ class C
                  "CanOverride", "OverrideKind", "IsGeneric"}
 
             TestPropertyDescriptors(code, expectedPropertyNames)
-        End Function
+        End Sub
 
         Private Function GetExtensionMethodExtender(codeElement As EnvDTE80.CodeFunction2) As ICSExtensionMethodExtender
             Return CType(codeElement.Extender(ExtenderNames.ExtensionMethod), ICSExtensionMethodExtender)

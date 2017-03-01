@@ -284,7 +284,7 @@ End Class
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_WithBinaryPlusOperation() As Task
+        Public Sub TestVBAssignments_WithBinaryPlusOperation()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -322,10 +322,10 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_HexNumber() As Task
+        Public Sub TestVBAssignments_HexNumber()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -354,11 +354,11 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(462922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/462922")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_Bug462922() As Task
+        Public Sub TestVBAssignments_Bug462922()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -416,7 +416,7 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBAssignments_EnumsAndCasts() As Task

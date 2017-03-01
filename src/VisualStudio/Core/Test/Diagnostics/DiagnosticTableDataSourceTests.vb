@@ -188,7 +188,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <Fact>
-        Public Async Function TestInvalidEntry() As Task
+        Public Sub TestInvalidEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -215,10 +215,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.False(snapshot.TryGetValue(1, StandardTableKeyNames.DocumentName, temp))
                 Assert.False(snapshot.TryGetValue(0, "Test", temp))
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestNoHiddenEntry() As Task
+        Public Sub TestNoHiddenEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -242,10 +242,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Assert.Equal(1, snapshot.Count)
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestProjectEntry() As Task
+        Public Sub TestProjectEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim projectId = workspace.CurrentSolution.Projects.First().Id
 
@@ -268,10 +268,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Assert.Equal(1, snapshot.Count)
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestMultipleWorkspace() As Task
+        Public Sub TestMultipleWorkspace()
             Using workspace1 = TestWorkspace.CreateCSharp(String.Empty)
                 Using workspace2 = TestWorkspace.CreateCSharp(String.Empty)
                     Dim documentId = workspace1.CurrentSolution.Projects.First().DocumentIds.First()
@@ -303,10 +303,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Assert.Equal(2, sink.Entries.Count)
                 End Using
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
-        Public Async Function TestDetailExpander() As Task
+        Public Sub TestDetailExpander()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
@@ -340,7 +340,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.Equal(New Thickness(10, 6, 10, 8), textBlock.Padding)
                 Assert.Equal(Nothing, textBlock.Background)
             End Using
-        End Function
+        End Sub
 
         <Fact>
         Public Sub TestHyperLink()

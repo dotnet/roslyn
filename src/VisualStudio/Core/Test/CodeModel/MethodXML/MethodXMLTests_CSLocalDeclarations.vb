@@ -339,7 +339,7 @@ public class C
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_WithObjectCreationInitializer() As Task
+        Public Sub TestCSLocalDeclarations_WithObjectCreationInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -377,10 +377,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_WithParenthesizedInitializer() As Task
+        Public Sub TestCSLocalDeclarations_WithParenthesizedInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -423,10 +423,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_WithNullInitializer() As Task
+        Public Sub TestCSLocalDeclarations_WithNullInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -456,10 +456,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_WithNegativeInitializer() As Task
+        Public Sub TestCSLocalDeclarations_WithNegativeInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -489,10 +489,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_WithBooleanInitializer() As Task
+        Public Sub TestCSLocalDeclarations_WithBooleanInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -532,10 +532,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_WithStringInitializer() As Task
+        Public Sub TestCSLocalDeclarations_WithStringInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -565,10 +565,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_WithCharInitializer() As Task
+        Public Sub TestCSLocalDeclarations_WithCharInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -598,10 +598,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_WithArrayInitializer() As Task
+        Public Sub TestCSLocalDeclarations_WithArrayInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -642,10 +642,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_DifferentBlocks() As Task
+        Public Sub TestCSLocalDeclarations_DifferentBlocks()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -694,10 +694,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_TypeOfInitializer() As Task
+        Public Sub TestCSLocalDeclarations_TypeOfInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -725,7 +725,7 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
     End Class
 End Namespace

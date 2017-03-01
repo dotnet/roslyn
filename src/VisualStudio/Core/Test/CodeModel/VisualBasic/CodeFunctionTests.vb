@@ -1046,7 +1046,7 @@ End Class
 
         <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDeclareFunctionKind() As Task
+        Public Sub TestDeclareFunctionKind()
             Dim code =
 <Code>
 Public Class Class1 
@@ -1055,11 +1055,11 @@ End Class
 </Code>
 
             TestKind(code, EnvDTE.vsCMElement.vsCMElementDeclareDecl)
-        End Function
+        End Sub
 
         <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestSubKind() As Task
+        Public Sub TestSubKind()
             Dim code =
 <Code>
 Public Class Class1 
@@ -1069,7 +1069,7 @@ End Class
 </Code>
 
             TestKind(code, EnvDTE.vsCMElement.vsCMElementFunction)
-        End Function
+        End Sub
 #End Region
 
 #Region "OverrideKind tests"
