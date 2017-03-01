@@ -952,13 +952,17 @@ class C
         {
             System.Console.Write(""0"");
         }
+        if (default == x)
+        {
+            System.Console.Write(""1"");
+        }
     }
 }
 ";
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0");
+            CompileAndVerify(comp, expectedOutput: "01");
         }
 
         [Fact]
