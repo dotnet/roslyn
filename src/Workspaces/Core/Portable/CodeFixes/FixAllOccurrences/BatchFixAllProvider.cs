@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 foreach  (var change in currentChanges)
                 {
                     // Don't bother adding the change if we already have it.
-                    if (!cumulativeChanges.HasIntervalThatOverlapsWith(change.Span.Start, change.Span.End))
+                    if (!cumulativeChanges.HasIntervalThatOverlapsWith(change.Span.Start, change.Span.Length))
                     {
                         cumulativeChanges.AddIntervalInPlace(change);
                     }
@@ -407,25 +407,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static bool AllChangesCanBeApplied(
             SimpleIntervalTree<TextChange> cumulativeChanges, IList<TextChange> currentChanges)
         {
-            var tempStorage = ArrayBuilder<TextChange>.GetInstance();
+            var overlappingSpans = ArrayBuilder<TextChange>.GetInstance();
 
             foreach (var change in currentChanges)
             {
-                tempStorage.Clear();
+                overlappingSpans.Clear();
 
                 cumulativeChanges.FillWithIntervalsThatOverlapWith(
-                    change.Span.Start, change.Span.Length, tempStorage);
+                    change.Span.Start, change.Span.Length, overlappingSpans);
 
-                if (tempStorage.Count == 0)
+                if (overlappingSpans.Count == 0)
                 {
                     // No conflicts
                     continue;
                 }
-                else if (tempStorage.Count == 1)
+                else if (overlappingSpans.Count == 1)
                 {
                     // The change we want to make overlapped an existing change we're making.
                     // Allow this if the two changes are the same.
-                    if (tempStorage[0] == change)
+                    if (overlappingSpans[0] == change)
                     {
                         continue;
                     }
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
             }
 
-            tempStorage.Free();
+            overlappingSpans.Free();
 
             // All the changes would merge in fine.  We can absorb this.
             return true;
