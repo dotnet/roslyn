@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1696,6 +1697,32 @@ class Program
 
             Assert.Null(model.GetSymbolInfo(refInt).Symbol);
             Assert.Null(model.GetTypeInfo(refInt).Type);
+        }
+
+        [WorkItem(17395, "https://github.com/dotnet/roslyn/issues/17453")]
+        [Fact]
+        public void Regression17395()
+        {
+            var source = @"
+using System;
+
+public class C 
+{            
+    public void F()
+    {
+        ref int[] a = ref {1,2,3};
+        Console.WriteLine(a[0]);
+    }        
+}
+";
+
+            var c = CreateCompilationWithMscorlib45AndCSruntime(source);
+
+            c.VerifyEmitDiagnostics(
+                // (8,27): error CS1510: A ref or out value must be an assignable variable
+                //         ref int[] a = ref {1,2,3};
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "{1,2,3}").WithLocation(8, 27)
+            );
         }
     }
 }
