@@ -12,12 +12,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         Protected MustOverride ReadOnly Property Language As String
         Protected MustOverride ReadOnly Property DefaultCode As String
 
-        Protected Function AssertValidIdAsync(id As String) As Task
-            Return AssertValidId(id, Sub(value) Assert.True(value))
+        Protected Async Function AssertValidIdAsync(id As String) As Task
+            AssertValidId(id, Sub(value) Assert.True(value))
         End Function
 
-        Protected Function AssertNotValidIdAsync(id As String) As Task
-            Return AssertValidId(id, Sub(value) Assert.False(value))
+        Protected Async Function AssertNotValidIdAsync(id As String) As Task
+            AssertValidId(id, Sub(value) Assert.False(value))
         End Function
 
         Private Sub AssertValidId(id As String, assertion As Action(Of Boolean))

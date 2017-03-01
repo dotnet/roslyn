@@ -241,7 +241,7 @@ class C{i}
 
             var updatedSignature = new[] { 0, 2 };
 
-            using (var testState = await ChangeSignatureTestState.CreateAsync(XElement.Parse(workspaceXml)))
+            using (var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml)))
             {
                 testState.TestChangeSignatureOptionsService.IsCancelled = false;
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;

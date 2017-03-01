@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             }
         }
 
-        private static Task<TestWorkspace> CreateTestWorkspaceAsync(string code, string languageName, ExportProvider exportProvider = null)
+        private static async Task<TestWorkspace> CreateTestWorkspaceAsync(string code, string languageName, ExportProvider exportProvider = null)
         {
             var xml = string.Format(@"
 <Workspace>

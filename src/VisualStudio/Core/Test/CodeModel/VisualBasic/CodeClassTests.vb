@@ -3151,7 +3151,7 @@ Class C$$
 End Class
 </Code>
 
-            Await TestElement(code,
+            TestElement(code,
                 Sub(state, codeClass)
                     For i = 1 To 100
                         Dim variable = codeClass.AddVariable("x", "System.Int32")

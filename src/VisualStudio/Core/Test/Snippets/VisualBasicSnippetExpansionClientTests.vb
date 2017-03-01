@@ -221,7 +221,7 @@ End Class</Document>
 Next 
 &lt;/div&gt;</SurfaceBuffer>
 
-            Await TestFormattingAsync(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+            TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
@@ -253,7 +253,7 @@ For index2 = 1 to length
         Next 
 &lt;/div&gt;</SurfaceBuffer>
 
-            Await TestFormattingAsync(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+            TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
@@ -281,7 +281,7 @@ Next|]
 Next
 &lt;/div&gt;</SurfaceBuffer>
 
-            Await TestFormattingAsync(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+            TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
@@ -309,7 +309,7 @@ Next|]
 Next
 &lt;/div&gt;</SurfaceBuffer>
 
-            Await TestFormattingAsync(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+            TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Function
 
         <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>

@@ -37,7 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Overloads Async Function TestChildren(code As XElement, ParamArray names() As String) As Task
-            Await TestRootCodeModelWithCodeFile(code,
+            TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Assert.Equal(names.Length, rootCodeModel.CodeElements.Count)
 
@@ -54,7 +54,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestCreateCodeTypeRef(code As XElement, type As Object, data As CodeTypeRefData) As Task
-            Await TestRootCodeModelWithCodeFile(code,
+            TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Dim codeTypeRef = rootCodeModel.CreateCodeTypeRef(type)
 
@@ -67,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestCreateCodeTypeRef(Of TException As Exception)(code As XElement, type As Object) As Task
-            Await TestRootCodeModelWithCodeFile(code,
+            TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Assert.Throws(Of TException)(
                         Sub()

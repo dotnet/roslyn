@@ -198,7 +198,7 @@ using G=   H.I;
         } 
 &lt;/div&gt;</SurfaceBuffer>
 
-            Await TestProjectionFormattingAsync(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+            TestProjectionFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
@@ -228,7 +228,7 @@ using G=   H.I;
 }
 &lt;/div&gt;</SurfaceBuffer>
 
-            Await TestProjectionFormattingAsync(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+            TestProjectionFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
@@ -258,7 +258,7 @@ using G=   H.I;
 }
 &lt;/div&gt;</SurfaceBuffer>
 
-            Await TestProjectionFormattingAsync(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+            TestProjectionFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Function
 
         <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>

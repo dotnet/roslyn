@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             return new ChangeSignatureTestState(workspace);
         }
 
-        public static async Task<ChangeSignatureTestState> CreateAsync(XElement workspaceXml)
+        public static ChangeSignatureTestState Create(XElement workspaceXml)
         {
             var workspace = TestWorkspace.Create(workspaceXml);
             return new ChangeSignatureTestState(workspace);
