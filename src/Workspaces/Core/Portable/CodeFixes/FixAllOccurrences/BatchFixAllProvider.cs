@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newText = oldText.WithChanges(totalChangesIntervalTree);
+            var newText = oldText.WithChanges(totalChangesIntervalTree.OrderBy(tc => tc.Span.Start));
 
             documentIdToFinalText.TryAdd(oldDocument.Id, newText);
         }
@@ -395,7 +395,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 foreach  (var change in currentChanges)
                 {
-                    cumulativeChanges.AddIntervalInPlace(change);
+                    // Don't bother adding the change if we already have it.
+                    if (!cumulativeChanges.HasIntervalThatOverlapsWith(change.Span.Start, change.Span.End))
+                    {
+                        cumulativeChanges.AddIntervalInPlace(change);
+                    }
                 }
             }
         }
