@@ -1716,9 +1716,9 @@ public class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib45AndCSruntime(source);
+            var c = CreateCompilationWithMscorlib(source);
 
-            c.VerifyEmitDiagnostics(
+            c.VerifyDiagnostics(
                 // (8,27): error CS1510: A ref or out value must be an assignable variable
                 //         ref int[] a = ref {1,2,3};
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "{1,2,3}").WithLocation(8, 27)
