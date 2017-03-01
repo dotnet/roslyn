@@ -113,24 +113,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type = BindType(typeSyntax, diagnostics);
                         foreach (var modifier in p.Modifiers)
                         {
-                            if (modifier.Kind() == SyntaxKind.RefKeyword)
+                            var modKind = modifier.Kind();
+
+                            switch(modifier.Kind())
                             {
-                                refKind = RefKind.Ref;
-                                allValue = false;
-                                break;
-                            }
-                            else if (modifier.Kind() == SyntaxKind.OutKeyword)
-                            {
-                                refKind = RefKind.Out;
-                                allValue = false;
-                                break;
-                            }
-                            else if (modifier.Kind() == SyntaxKind.ParamsKeyword)
-                            {
-                                // This was a parse error in the native compiler; 
-                                // it is a semantic analysis error in Roslyn. See comments to
-                                // changeset 1674 for details.
-                                Error(diagnostics, ErrorCode.ERR_IllegalParams, p);
+                                case SyntaxKind.RefKeyword:
+                                    refKind = RefKind.Ref;
+                                    allValue = false;
+                                    break;
+
+                                case SyntaxKind.OutKeyword:
+                                    refKind = RefKind.Out;
+                                    allValue = false;
+                                    break;
+
+                                case SyntaxKind.InKeyword:
+                                    refKind = RefKind.RefReadOnly;
+                                    allValue = false;
+                                    break;
+
+                                case SyntaxKind.ParamsKeyword:
+                                    // This was a parse error in the native compiler; 
+                                    // it is a semantic analysis error in Roslyn. See comments to
+                                    // changeset 1674 for details.
+                                    Error(diagnostics, ErrorCode.ERR_IllegalParams, p);
+                                    break;
                             }
                         }
                     }

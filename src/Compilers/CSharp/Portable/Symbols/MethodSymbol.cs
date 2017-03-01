@@ -175,7 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(this.RefKind != RefKind.Out);
                 return this.RefKind == RefKind.Ref;
             }
         }

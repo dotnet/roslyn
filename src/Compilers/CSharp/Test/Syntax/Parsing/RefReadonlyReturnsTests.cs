@@ -135,10 +135,11 @@ class Program
     }
 }
 ";
-            //PROTOTYPE(readonlyRefs): binding now falls back on regular "Ref", otherwise there should be one more error on the local declaration
-
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
+                // (7,9): error CS1073: Unexpected token 'ref'
+                //         ref readonly int local = ref (new int[1])[0];
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(7, 9),
                 // (9,10): error CS1073: Unexpected token 'ref'
                 //         (ref readonly int, ref readonly int Alice)? t = null;
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 10),
@@ -147,7 +148,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 28),
                 // (11,41): error CS1073: Unexpected token 'ref'
                 //         System.Collections.Generic.List<ref readonly int> x = null;
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(11, 41));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(11, 41)
+            );
         }
     }
 }

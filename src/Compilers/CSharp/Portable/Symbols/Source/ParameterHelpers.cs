@@ -31,19 +31,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var parameterSyntax in syntax.Parameters)
             {
-                SyntaxToken outKeyword;
-                SyntaxToken refKeyword;
+                SyntaxToken argPassingKeyword;
                 SyntaxToken paramsKeyword;
                 SyntaxToken thisKeyword;
-                var refKind = GetModifiers(parameterSyntax.Modifiers, out outKeyword, out refKeyword, out paramsKeyword, out thisKeyword);
+                var refKind = GetModifiers(parameterSyntax.Modifiers, out argPassingKeyword, out paramsKeyword, out thisKeyword);
 
                 if (parameterSyntax.IsArgList)
                 {
                     arglistToken = parameterSyntax.Identifier;
                     // The native compiler produces "Expected type" here, in the parser. Roslyn produces
                     // the somewhat more informative "arglist not valid" error.
-                    if (paramsKeyword.Kind() != SyntaxKind.None || outKeyword.Kind() != SyntaxKind.None ||
-                        refKeyword.Kind() != SyntaxKind.None || thisKeyword.Kind() != SyntaxKind.None)
+                    if (paramsKeyword.Kind() != SyntaxKind.None || 
+                        argPassingKeyword.Kind() != SyntaxKind.None || 
+                        thisKeyword.Kind() != SyntaxKind.None)
                     {
                         // CS1669: __arglist is not valid in this context
                         diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
@@ -59,13 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(parameterSyntax.Type != null);
                 var parameterType = binder.BindType(parameterSyntax.Type, diagnostics);
 
-                if (!allowRefOrOut && (refKind != RefKind.None))
+                if (!allowRefOrOut && (refKind == RefKind.Ref || refKind == RefKind.Out))
                 {
-                    var outOrRefKeyword = (outKeyword.Kind() != SyntaxKind.None) ? outKeyword : refKeyword;
-                    Debug.Assert(outOrRefKeyword.Kind() != SyntaxKind.None);
+                    Debug.Assert(argPassingKeyword.Kind() != SyntaxKind.None);
 
                     // error CS0631: ref and out are not valid in this context
-                    diagnostics.Add(ErrorCode.ERR_IllegalRefParam, outOrRefKeyword.GetLocation());
+                    diagnostics.Add(ErrorCode.ERR_IllegalRefParam, argPassingKeyword.GetLocation());
                 }
 
                 var parameter = SourceParameterSymbol.Create(
@@ -178,26 +177,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Conversion conversion = binder.Conversions.ClassifyImplicitConversionFromExpression(defaultExpression, parameterType, ref useSiteDiagnostics);
             diagnostics.Add(defaultExpression.Syntax, useSiteDiagnostics);
 
-            SyntaxToken outKeyword;
-            SyntaxToken refKeyword;
+            SyntaxToken argPassingKeyword;
             SyntaxToken paramsKeyword;
             SyntaxToken thisKeyword;
-            GetModifiers(parameterSyntax.Modifiers, out outKeyword, out refKeyword, out paramsKeyword, out thisKeyword);
+            var refKind = GetModifiers(parameterSyntax.Modifiers, out argPassingKeyword, out paramsKeyword, out thisKeyword);
 
             // CONSIDER: We are inconsistent here regarding where the error is reported; is it
             // CONSIDER: reported on the parameter name, or on the value of the initializer?
             // CONSIDER: Consider making this consistent.
 
-            if (outKeyword.Kind() == SyntaxKind.OutKeyword)
+            //PROTOTYPE(refReadonly): do we allow optional values for "In" parameters?
+            if (refKind != RefKind.None)
             {
                 // error CS1741: A ref or out parameter cannot have a default value
-                diagnostics.Add(ErrorCode.ERR_RefOutDefaultValue, outKeyword.GetLocation());
-                hasErrors = true;
-            }
-            else if (refKeyword.Kind() == SyntaxKind.RefKeyword)
-            {
-                // error CS1741: A ref or out parameter cannot have a default value
-                diagnostics.Add(ErrorCode.ERR_RefOutDefaultValue, refKeyword.GetLocation());
+                diagnostics.Add(ErrorCode.ERR_RefOutDefaultValue, argPassingKeyword.GetLocation());
                 hasErrors = true;
             }
             else if (paramsKeyword.Kind() == SyntaxKind.ParamsKeyword)
@@ -344,12 +337,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        private static RefKind GetModifiers(SyntaxTokenList modifiers, out SyntaxToken outKeyword, out SyntaxToken refKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword)
+        private static RefKind GetModifiers(SyntaxTokenList modifiers, out SyntaxToken argPassingKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword)
         {
             var refKind = RefKind.None;
 
-            outKeyword = default(SyntaxToken);
-            refKeyword = default(SyntaxToken);
+            argPassingKeyword = default(SyntaxToken);
             paramsKeyword = default(SyntaxToken);
             thisKeyword = default(SyntaxToken);
 
@@ -358,17 +350,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (modifier.Kind())
                 {
                     case SyntaxKind.OutKeyword:
-                        outKeyword = modifier;
+                        argPassingKeyword = modifier;
                         if (refKind == RefKind.None)
                         {
                             refKind = RefKind.Out;
                         }
                         break;
                     case SyntaxKind.RefKeyword:
-                        refKeyword = modifier;
+                        argPassingKeyword = modifier;
                         if (refKind == RefKind.None)
                         {
                             refKind = RefKind.Ref;
+                        }
+                        break;
+                    case SyntaxKind.InKeyword:
+                        argPassingKeyword = modifier;
+                        if (refKind == RefKind.None)
+                        {
+                            refKind = RefKind.RefReadOnly;
                         }
                         break;
                     case SyntaxKind.ParamsKeyword:
