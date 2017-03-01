@@ -5,7 +5,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class WhileLoopTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function ApplyAfterWithStatement() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
 Sub foo()
 While variable
@@ -36,7 +36,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyNestedWhileBlock() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
         While True

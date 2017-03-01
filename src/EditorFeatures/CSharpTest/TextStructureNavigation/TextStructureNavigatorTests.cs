@@ -347,11 +347,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
 
         private static async Task AssertExtentAsync(string code, int pos, bool isSignificant, int start, int length)
         {
-            await AssertExtentAsync(code, pos, isSignificant, start, length, null);
-            await AssertExtentAsync(code, pos, isSignificant, start, length, Options.Script);
+            AssertExtent(code, pos, isSignificant, start, length, null);
+            AssertExtent(code, pos, isSignificant, start, length, Options.Script);
         }
 
-        private static async Task AssertExtentAsync(string code, int pos, bool isSignificant, int start, int length, CSharpParseOptions options)
+        private static void AssertExtent(string code, int pos, bool isSignificant, int start, int length, CSharpParseOptions options)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code, options))
             {
@@ -380,11 +380,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             int endPosition,
             int endLength)
         {
-            await TestNavigatorAsync(code, func, startPosition, startLength, endPosition, endLength, null);
-            await TestNavigatorAsync(code, func, startPosition, startLength, endPosition, endLength, Options.Script);
+            TestNavigator(code, func, startPosition, startLength, endPosition, endLength, null);
+            TestNavigator(code, func, startPosition, startLength, endPosition, endLength, Options.Script);
         }
 
-        private static async Task TestNavigatorAsync(
+        private static void TestNavigator(
             string code,
             Func<ITextStructureNavigator, SnapshotSpan, SnapshotSpan> func,
             int startPosition,

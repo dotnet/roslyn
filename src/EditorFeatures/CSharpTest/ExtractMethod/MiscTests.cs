@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public async Task TestExtractMethodCommandHandlerErrorMessage()
+        public void TestExtractMethodCommandHandlerErrorMessage()
         {
             var markupCode = @"class A
 {

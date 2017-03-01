@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task EmptyFile()
         {
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code: string.Empty,
                 indentationLine: 0,
                 expectedIndentation: 0);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 #endregion
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 13,
                 expectedIndentation: 0);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 #endif
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 4,
                 expectedIndentation: 4);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 // Line 2
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 0);
@@ -93,7 +93,7 @@ class Class
     /// Xml Comments
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 6,
                 expectedIndentation: 4);
@@ -106,7 +106,7 @@ class Class
             var code = @"using System;
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 1,
                 expectedIndentation: 0);
@@ -119,7 +119,7 @@ class Class
             var code = @"using System.
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 1,
                 expectedIndentation: 4);
@@ -134,7 +134,7 @@ class Class
 namespace NS
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 3,
                 expectedIndentation: 4);
@@ -149,7 +149,7 @@ namespace NS
 namespace NS.
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 3,
                 expectedIndentation: 4);
@@ -165,7 +165,7 @@ namespace NS
 {
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 4,
                 expectedIndentation: 4);
@@ -182,7 +182,7 @@ namespace NS
     class Class
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 8);
@@ -200,7 +200,7 @@ namespace NS
     {
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 6,
                 expectedIndentation: 8);
@@ -220,7 +220,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 7,
                 expectedIndentation: 12);
@@ -241,7 +241,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 12);
@@ -261,7 +261,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 7,
                 expectedIndentation: 12);
@@ -283,7 +283,7 @@ namespace NS
             get
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 10,
                 expectedIndentation: 16);
@@ -306,7 +306,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 10,
                 expectedIndentation: 16);
@@ -328,7 +328,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 9,
                 expectedIndentation: 12);
@@ -343,7 +343,7 @@ namespace NS
     int i = 2;
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 3,
                 expectedIndentation: 4);
@@ -361,7 +361,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 8);
@@ -381,15 +381,15 @@ namespace NS
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 12);
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 6,
                 expectedIndentation: 12);
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 7,
                 expectedIndentation: null);
@@ -411,7 +411,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 9,
                 expectedIndentation: 16);
@@ -434,7 +434,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 10,
                 expectedIndentation: 16);
@@ -458,7 +458,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 11,
                 expectedIndentation: 20);
@@ -483,7 +483,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 12,
                 expectedIndentation: 24);
@@ -505,7 +505,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 9,
                 expectedIndentation: 16);
@@ -528,7 +528,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 10,
                 expectedIndentation: 20);
@@ -548,7 +548,7 @@ namespace NS
     }
 }
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 12);
@@ -568,7 +568,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 8);
@@ -589,7 +589,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 12);
@@ -606,7 +606,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 3,
                 expectedIndentation: 4);
@@ -628,7 +628,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 6,
                 expectedIndentation: 8);
@@ -649,7 +649,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 8);
@@ -670,7 +670,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 12);
@@ -692,7 +692,7 @@ namespace NS
     }
 }
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 8);
@@ -715,7 +715,7 @@ namespace NS
 }
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 8);
@@ -738,7 +738,7 @@ namespace NS
 }
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 8);
@@ -759,7 +759,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 8);
@@ -780,7 +780,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 8);
@@ -801,7 +801,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 8);
@@ -824,7 +824,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 10,
                 expectedIndentation: 8);
@@ -848,7 +848,7 @@ namespace NS
     }
 }";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 10,
                 expectedIndentation: 8);
@@ -870,7 +870,7 @@ namespace NS
 
 ";
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 6,
                 expectedIndentation: 8);
@@ -890,7 +890,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 8);
@@ -913,7 +913,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 8,
                 expectedIndentation: 16);
@@ -935,7 +935,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 7,
                 expectedIndentation: 16);
@@ -957,7 +957,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 7,
                 expectedIndentation: 16);
@@ -977,7 +977,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 8);
@@ -997,7 +997,7 @@ namespace NS
 }
 
 ";
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine: 5,
                 expectedIndentation: 20);
@@ -1880,7 +1880,7 @@ $$Console.WriteLine();|]|}
 #line hidden
     }
 }";
-            await AssertSmartIndentInProjectionAsync(
+            AssertSmartIndentInProjection(
                 markup, BaseIndentationOfNugget + 4);
         }
 
@@ -1898,7 +1898,7 @@ $$|]|}
 #line hidden
     }
 }";
-            await AssertSmartIndentInProjectionAsync(
+            AssertSmartIndentInProjection(
                 markup, BaseIndentationOfNugget + 4);
         }
 
@@ -1921,7 +1921,7 @@ $$teLine();|]|}
             // where we think it _should_ be.  So the position is one indent level past the base
             // for the nugget (where we think the statement should be), plus one more since it is
             // a continuation
-            await AssertSmartIndentInProjectionAsync(
+            AssertSmartIndentInProjection(
                 markup, BaseIndentationOfNugget + 8);
         }
 
@@ -1945,7 +1945,7 @@ $$teLine();|]|}
             // where we think it _should_ be.  So the position is one indent level past the base
             // for the nugget (where we think the statement should be), plus one more since it is
             // a continuation
-            await AssertSmartIndentInProjectionAsync(
+            AssertSmartIndentInProjection(
                 markup, BaseIndentationOfNugget + 8);
         }
 
@@ -1965,7 +1965,7 @@ $$
 #line hidden
     }
 }";
-            await AssertSmartIndentInProjectionAsync(
+            AssertSmartIndentInProjection(
                 markup, BaseIndentationOfNugget + 4);
         }
 
@@ -1995,7 +1995,7 @@ $$
             // C# had the desired behavior in Dev12, where VB had the same behavior
             // as Roslyn has.  The Roslyn formatting engine currently always formats
             // each statement independently, so let's not change that just for Venus
-            await AssertSmartIndentInProjectionAsync(
+            AssertSmartIndentInProjection(
                 markup, BaseIndentationOfNugget + 4);
         }
 
@@ -2014,7 +2014,7 @@ $$
 #line hidden
     }
 }";
-            await AssertSmartIndentInProjectionAsync(
+            AssertSmartIndentInProjection(
                 markup, BaseIndentationOfNugget + 8);
         }
 
@@ -2034,7 +2034,7 @@ $$
 #line hidden
     }
 }";
-            await AssertSmartIndentInProjectionAsync(
+            AssertSmartIndentInProjection(
                 markup, BaseIndentationOfNugget + 8);
         }
 
@@ -2055,7 +2055,7 @@ $$
 #line hidden
     }
 }";
-            await AssertSmartIndentInProjectionAsync(markup, BaseIndentationOfNugget + 8);
+            AssertSmartIndentInProjection(markup, BaseIndentationOfNugget + 8);
         }
 
         [WorkItem(9216, "DevDiv_Projects/Roslyn")]
@@ -2079,7 +2079,7 @@ $$
 
             // In this case, we align the next statement with the "if" (though we _don't_
             // align the braces with it :S)
-            await AssertSmartIndentInProjectionAsync(markup,
+            AssertSmartIndentInProjection(markup,
                 expectedIndentation: BaseIndentationOfNugget + 2);
         }
 
@@ -2104,7 +2104,7 @@ $$
         }";
 
             // In this case we align with the "if", - the base indentation we pass in doesn't matter.
-            await AssertSmartIndentInProjectionAsync(markup,
+            AssertSmartIndentInProjection(markup,
                 expectedIndentation: BaseIndentationOfNugget + 4);
         }
 
@@ -2131,7 +2131,7 @@ $$
 
             // It's yuck that I saw differences depending on where the end of the nugget is
             // but I did, so lets add a test.
-            await AssertSmartIndentInProjectionAsync(markup,
+            AssertSmartIndentInProjection(markup,
                 expectedIndentation: BaseIndentationOfNugget + 12);
         }
 
@@ -2157,7 +2157,7 @@ $$
     }
 }";
 
-            await AssertSmartIndentInProjectionAsync(markup,
+            AssertSmartIndentInProjection(markup,
                 expectedIndentation: BaseIndentationOfNugget + 12);
         }
 
@@ -2176,7 +2176,7 @@ $$|]|}
             }
         }";
 
-            await AssertSmartIndentInProjectionAsync(markup,
+            AssertSmartIndentInProjection(markup,
                 expectedIndentation: BaseIndentationOfNugget + 4);
         }
 
@@ -2250,7 +2250,7 @@ if(languages == null || languages.Length == 0)
 }
 }";
 
-            await AssertSmartIndentInProjectionAsync(markup,
+            AssertSmartIndentInProjection(markup,
                 expectedIndentation: 16);
         }
 
@@ -2684,7 +2684,7 @@ class C
                 expectedIndentation: 16);
         }
 
-        private static async Task AssertSmartIndentInProjectionAsync(string markup, int expectedIndentation, CSharpParseOptions options = null)
+        private static void AssertSmartIndentInProjection(string markup, int expectedIndentation, CSharpParseOptions options = null)
         {
             var optionsSet = options != null
                     ? new[] { options }
@@ -2715,7 +2715,7 @@ class C
             }
         }
 
-        private static async Task AssertSmartIndentAsync(
+        private static void AssertSmartIndent(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -2734,7 +2734,7 @@ class C
             }
         }
 
-        private static async Task AssertSmartIndentAsync(
+        private static void AssertSmartIndent(
             string code,
             int? expectedIndentation,
             CSharpParseOptions options = null)

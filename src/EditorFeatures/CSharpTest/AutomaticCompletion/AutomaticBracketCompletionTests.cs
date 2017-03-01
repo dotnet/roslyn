@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Creation()
         {
-            using (var session = await CreateSessionAsync("$$"))
+            using (var session = CreateSession("$$"))
             {
                 Assert.NotNull(session);
             }
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Attribute_TopLevel()
         {
-            using (var session = await CreateSessionAsync("$$"))
+            using (var session = CreateSession("$$"))
             {
                 Assert.NotNull(session);
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Attribute_TopLevel2()
         {
-            using (var session = await CreateSessionAsync("using System;$$"))
+            using (var session = CreateSession("using System;$$"))
             {
                 Assert.NotNull(session);
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     string s = ""$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.Null(session);
             }
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     string s = @""
 $$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.Null(session);
             }
@@ -76,7 +76,7 @@ $$
 {
     //$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.Null(session);
             }
@@ -89,7 +89,7 @@ $$
 {
     /* $$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.Null(session);
             }
@@ -102,7 +102,7 @@ $$
 {
     /// $$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.Null(session);
             }
@@ -115,7 +115,7 @@ $$
 {
     /** $$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.Null(session);
             }
@@ -131,7 +131,7 @@ $$
         /* */$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -149,7 +149,7 @@ $$
         /** */$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -167,7 +167,7 @@ $$
         var s = """"$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -185,7 +185,7 @@ $$
         var s = @""""$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -199,7 +199,7 @@ $$
             var code = @"$$
 class C { }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -213,7 +213,7 @@ class C { }";
             var code = @"$$
 class C { }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -228,7 +228,7 @@ class C { }";
             var code = @"$$
 class C { }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -243,7 +243,7 @@ class C { }";
             var code = @"$$
 class C { }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -260,7 +260,7 @@ class C { }";
     int [$$]
 }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -275,7 +275,7 @@ class C { }";
 {
     int [] i = new int [arr$$]
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -283,7 +283,7 @@ class C { }";
             }
         }
 
-        internal async Task<Holder> CreateSessionAsync(string code)
+        internal Holder CreateSession(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),

@@ -707,7 +707,7 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function IsTextualTriggerCharacterTest() As Task
-            Await TestCommonIsTextualTriggerCharacterAsync()
+            TestCommonIsTextualTriggerCharacter()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

@@ -5,7 +5,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class SelectBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyAfterSelectKeyword() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
 Sub foo()
 Select foo
@@ -24,7 +24,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyAfterSelectCaseKeyword() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
 Sub foo()
 Select Case foo
@@ -43,7 +43,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyNestedDo() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
         Select Case 1

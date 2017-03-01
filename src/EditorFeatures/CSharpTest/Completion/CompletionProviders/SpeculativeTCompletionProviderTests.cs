@@ -35,7 +35,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IsTextualTriggerCharacterTest()
         {
-            await TestCommonIsTextualTriggerCharacterAsync();
+            TestCommonIsTextualTriggerCharacter();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

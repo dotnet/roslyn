@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             Assert.Equal(expected, actual);
         }
 
-        protected static async Task AssertFormatWithViewAsync(string expectedWithMarker, string codeWithMarker, bool debugMode = false)
+        protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, bool debugMode = false)
         {
             var editorOperations = new Mock<IEditorOperations>(MockBehavior.Strict);
             var editorOperationsFactoryService = new Mock<IEditorOperationsFactoryService>(MockBehavior.Strict);
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             }
         }
 
-        protected static async Task AssertFormatWithPasteOrReturnAsync(string expectedWithMarker, string codeWithMarker, bool allowDocumentChanges, bool isPaste = true)
+        protected static void AssertFormatWithPasteOrReturn(string expectedWithMarker, string codeWithMarker, bool allowDocumentChanges, bool isPaste = true)
         {
             using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker))
             {

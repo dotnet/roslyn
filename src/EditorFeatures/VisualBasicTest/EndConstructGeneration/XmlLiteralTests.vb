@@ -5,7 +5,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class XmlLiteralTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyAfterXmlStartElement() As Task
-            Await VerifyXmlElementEndConstructAppliedAsync(
+            VerifyXmlElementEndConstructApplied(
                 before:="Class C1
     Sub M1()
         Dim x = <xml>
@@ -22,7 +22,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyAfterXmlStartElementSplitAcrossLines() As Task
-            Await VerifyXmlElementEndConstructAppliedAsync(
+            VerifyXmlElementEndConstructApplied(
                 before:="Class C1
     Sub M1()
         Dim x = <xml
@@ -41,7 +41,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyAfterXmlStartElementWithNamespace() As Task
-            Await VerifyXmlElementEndConstructAppliedAsync(
+            VerifyXmlElementEndConstructApplied(
                 before:="Class C1
     Sub M1()
         Dim x = <a:b>
@@ -123,7 +123,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyAfterXmlStartElementWhenPassedAsParameter1() As Task
-            Await VerifyXmlElementEndConstructAppliedAsync(
+            VerifyXmlElementEndConstructApplied(
                 before:="Class C1
     Sub M1()
         M2(<xml>
@@ -140,7 +140,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyAfterXmlStartElementWhenPassedAsParameter2() As Task
-            Await VerifyXmlElementEndConstructAppliedAsync(
+            VerifyXmlElementEndConstructApplied(
                 before:="Class C1
     Sub M1()
         M2(<xml>)
@@ -157,7 +157,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyAfterXmlComment() As Task
-            Await VerifyXmlCommentEndConstructAppliedAsync(
+            VerifyXmlCommentEndConstructApplied(
                 before:="Class C1
     Sub M1()
         Dim x = <!--
@@ -344,7 +344,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestInsertBlankLineWhenPressingEnterInEmptyXmlTag() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class C1
     Sub M1()
         Dim x = <foo></foo>

@@ -5,7 +5,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class DoLoopTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyAfterUnmatchedDo() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
   Sub foo()
     Do
@@ -24,7 +24,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestVerifyNestedDo() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
   Sub foo()
     Do
@@ -75,7 +75,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestVerifyDoWhile() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class C
 Sub s
 Do While True
@@ -95,7 +95,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestVerifyNestedDoWhile() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s
         do While True
@@ -118,7 +118,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestVerifyDoUntil() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s
         do Until true
@@ -137,7 +137,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestVerifyNestedDoUntil() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s
         do Until True
@@ -160,7 +160,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestVerifyDoWhileInBrokenSub() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s
         Do While True

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Creation()
         {
-            using (var session = await CreateSessionSingleQuoteAsync("$$"))
+            using (var session = CreateSessionSingleQuote("$$"))
             {
                 Assert.NotNull(session);
             }
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Char_TopLevel()
         {
-            using (var session = await CreateSessionSingleQuoteAsync("$$"))
+            using (var session = CreateSessionSingleQuote("$$"))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = @""""$$
     }
 }";
-            using (var session = await CreateSessionSingleQuoteAsync(code))
+            using (var session = CreateSessionSingleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = @$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = @$$
     }
 }";
-            using (var session = await CreateSessionDoubleQuoteAsync(code))
+            using (var session = CreateSessionDoubleQuote(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -475,14 +475,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        internal async Task<Holder> CreateSessionSingleQuoteAsync(string code)
+        internal Holder CreateSessionSingleQuote(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
                 BraceCompletionSessionProvider.SingleQuote.OpenCharacter, BraceCompletionSessionProvider.SingleQuote.CloseCharacter);
         }
 
-        internal async Task<Holder> CreateSessionDoubleQuoteAsync(string code)
+        internal Holder CreateSessionDoubleQuote(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),

@@ -837,7 +837,7 @@ $$
 }");
         }
 
-        protected override async Task<TestWorkspace> CreateWorkspace(string code)
+        protected override TestWorkspace CreateWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
 
         protected override Action CreateNextHandler(TestWorkspace workspace)

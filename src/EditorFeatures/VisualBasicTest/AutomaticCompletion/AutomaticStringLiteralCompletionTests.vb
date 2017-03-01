@@ -11,11 +11,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
         Inherits AbstractAutomaticBraceCompletionTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestCreation() As Task
+        Public Sub TestCreation()
             Using session = CreateSession("$$")
                 Assert.NotNull(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestString_TopLevel() As Task

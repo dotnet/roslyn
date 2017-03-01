@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IsTextualTriggerCharacterTest()
         {
-            await TestCommonIsTextualTriggerCharacterAsync();
+            TestCommonIsTextualTriggerCharacter();
 
             VerifyTextualTriggerCharacter("Abc $$X", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
             VerifyTextualTriggerCharacter("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);

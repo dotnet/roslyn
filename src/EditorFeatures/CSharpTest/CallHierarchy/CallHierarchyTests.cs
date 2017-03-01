@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CallHierarchy
     public class CallHierarchyTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task InvokeOnMethod()
+        public void InvokeOnMethod()
         {
             var text = @"
 namespace N
@@ -29,7 +29,7 @@ namespace N
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task InvokeOnProperty()
+        public void InvokeOnProperty()
         {
             var text = @"
 namespace N
@@ -45,7 +45,7 @@ namespace N
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task InvokeOnEvent()
+        public void InvokeOnEvent()
         {
             var text = @"
 using System;
@@ -62,7 +62,7 @@ namespace N
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task Method_FindCalls()
+        public void Method_FindCalls()
         {
             var text = @"
 namespace N
@@ -96,7 +96,7 @@ namespace N
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task Method_InterfaceImplementation()
+        public void Method_InterfaceImplementation()
         {
             var text = @"
 namespace N
@@ -136,7 +136,7 @@ namespace N
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task Method_CallToOverride()
+        public void Method_CallToOverride()
         {
             var text = @"
 namespace N
@@ -171,7 +171,7 @@ namespace N
         }
 
         [WpfFact, WorkItem(829705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829705"), Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task Method_CallToBase()
+        public void Method_CallToBase()
         {
             var text = @"
 namespace N
@@ -206,7 +206,7 @@ namespace N
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task FieldInitializers()
+        public void FieldInitializers()
         {
             var text = @"
 namespace N
@@ -225,7 +225,7 @@ namespace N
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task FieldReferences()
+        public void FieldReferences()
         {
             var text = @"
 namespace N
@@ -244,7 +244,7 @@ namespace N
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task PropertyGet()
+        public void PropertyGet()
         {
             var text = @"
 namespace N
@@ -272,7 +272,7 @@ namespace N
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task Generic()
+        public void Generic()
         {
             var text = @"
 namespace N
@@ -298,7 +298,7 @@ namespace N
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task ExtensionMethods()
+        public void ExtensionMethods()
         {
             var text = @"
 namespace ConsoleApplication10
@@ -327,7 +327,7 @@ namespace ConsoleApplication10
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task GenericExtensionMethods()
+        public void GenericExtensionMethods()
         {
             var text = @"
 using System.Collections.Generic;
@@ -350,7 +350,7 @@ namespace N
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task InterfaceImplementors()
+        public void InterfaceImplementors()
         {
             var text = @"
 namespace N
@@ -390,7 +390,7 @@ namespace N
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task NoFindOverridesOnSealedMethod()
+        public void NoFindOverridesOnSealedMethod()
         {
             var text = @"
 namespace N
@@ -408,7 +408,7 @@ namespace N
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task FindOverrides()
+        public void FindOverrides()
         {
             var text = @"
 namespace N
@@ -435,7 +435,7 @@ namespace N
 
         [WorkItem(844613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844613")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
-        public async Task AbstractMethodInclusionToOverrides()
+        public void AbstractMethodInclusionToOverrides()
         {
             var text = @"
 using System;

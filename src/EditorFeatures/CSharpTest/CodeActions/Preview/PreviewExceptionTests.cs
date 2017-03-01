@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         }
 
         [Fact]
-        public async Task TestExceptionInDisplayText()
+        public void TestExceptionInDisplayText()
         {
             using (var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters()))
             {

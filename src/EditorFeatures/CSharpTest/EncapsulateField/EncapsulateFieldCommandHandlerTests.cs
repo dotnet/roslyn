@@ -53,7 +53,7 @@ class C
     }
 }";
 
-            using (var state = await EncapsulateFieldTestState.CreateAsync(text))
+            using (var state = EncapsulateFieldTestState.Create(text))
             {
                 state.AssertEncapsulateAs(expected);
             }
@@ -96,7 +96,7 @@ class C
     }
 }";
 
-            using (var state = await EncapsulateFieldTestState.CreateAsync(text))
+            using (var state = EncapsulateFieldTestState.Create(text))
             {
                 state.AssertEncapsulateAs(expected);
             }
@@ -116,7 +116,7 @@ class$$ C
     }
 }";
 
-            using (var state = await EncapsulateFieldTestState.CreateAsync(text))
+            using (var state = EncapsulateFieldTestState.Create(text))
             {
                 state.AssertError();
             }
@@ -179,7 +179,7 @@ class Program
 }
 ";
 
-            using (var state = await EncapsulateFieldTestState.CreateAsync(text))
+            using (var state = EncapsulateFieldTestState.Create(text))
             {
                 state.AssertEncapsulateAs(expected);
             }

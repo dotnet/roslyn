@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class CharacterTypingTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestXmlEndConstructApplied() As Task
-            Await VerifyEndConstructAppliedAfterCharAsync(
+            VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -52,7 +52,7 @@ End Class]]>
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestXmlCommentEndConstructApplied() As Task
-            Await VerifyEndConstructAppliedAfterCharAsync(
+            VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -98,7 +98,7 @@ End Class]]>
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestXmlEmbeddedExpressionEndConstructApplied() As Task
-            Await VerifyEndConstructAppliedAfterCharAsync(
+            VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -144,7 +144,7 @@ End Class]]>
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestXmlCDataEndConstructApplied() As Task
-            Await VerifyEndConstructAppliedAfterCharAsync(
+            VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -190,7 +190,7 @@ End Class]]>
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestXmlProcessingInstructionEndConstructApplied() As Task
-            Await VerifyEndConstructAppliedAfterCharAsync(
+            VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -213,7 +213,7 @@ End Class]]>
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestXmlProcessingInstructionEndConstructNotApplied() As Task
-            Await VerifyEndConstructNotAppliedAfterCharAsync(
+            VerifyEndConstructNotAppliedAfterChar(
                 before:=<Code>
                             <![CDATA[
 Class C1

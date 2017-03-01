@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Creation()
         {
-            using (var session = await CreateSessionAsync("$$"))
+            using (var session = CreateSession("$$"))
             {
                 Assert.NotNull(session);
             }
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     string s = ""$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.Null(session);
             }
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     string s = @""
 $$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.Null(session);
             }
@@ -59,7 +59,7 @@ $$
 {
     string s = $""$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -73,7 +73,7 @@ $$
 {
     string s = $@""$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -88,7 +88,7 @@ $$
     string x = ""foo""
     string s = $""{x} $$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -103,7 +103,7 @@ $$
     string x = ""foo""
     string s = $@""{x} $$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -117,7 +117,7 @@ $$
 {
     string s = $""{{$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -131,7 +131,7 @@ $$
 {
     string s = $""{}$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -145,7 +145,7 @@ $$
 {
     string s = @""$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.Null(session);
             }
@@ -158,7 +158,7 @@ $$
 {
     string s = ""$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.Null(session);
             }
@@ -171,7 +171,7 @@ $$
 {
     //$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.Null(session);
             }
@@ -184,7 +184,7 @@ $$
 {
     /* $$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.Null(session);
             }
@@ -197,7 +197,7 @@ $$
 {
     /// $$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.Null(session);
             }
@@ -210,7 +210,7 @@ $$
 {
     /** $$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.Null(session);
             }
@@ -226,7 +226,7 @@ $$
         /* */$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -243,7 +243,7 @@ $$
         /** */$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -261,7 +261,7 @@ $$
         var s = """"$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -279,7 +279,7 @@ $$
         var s = @""""$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -292,7 +292,7 @@ $$
         {
             var code = @"class C $$";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -305,7 +305,7 @@ $$
         {
             var code = @"class C $$";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -319,7 +319,7 @@ $$
         {
             var code = @"class C $$";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -333,7 +333,7 @@ $$
         {
             var code = @"class C $$";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -349,7 +349,7 @@ $$
 {
     void Method() { $$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -362,7 +362,7 @@ $$
         {
             var code = @"class C $$";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -396,7 +396,7 @@ class C
         }
     };
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -434,7 +434,7 @@ class C
                             {
                                 { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
                             };
-            using (var session = await CreateSessionAsync(code, optionSet))
+            using (var session = CreateSession(code, optionSet))
             {
                 Assert.NotNull(session);
 
@@ -469,7 +469,7 @@ class C
         }
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -513,7 +513,7 @@ class Foo
                             {
                                 { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
                             };
-            using (var session = await CreateSessionAsync(code, optionSet))
+            using (var session = CreateSession(code, optionSet))
             {
                 Assert.NotNull(session);
 
@@ -554,7 +554,7 @@ class Foo
 {
     public int bar;
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -588,7 +588,7 @@ class Foo
                             {
                                 { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
                             };
-            using (var session = await CreateSessionAsync(code, optionSet))
+            using (var session = CreateSession(code, optionSet))
             {
                 Assert.NotNull(session);
 
@@ -619,7 +619,7 @@ class Foo
         }
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -653,7 +653,7 @@ class Foo
                             {
                                 { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
                             };
-            using (var session = await CreateSessionAsync(code, optionSet))
+            using (var session = CreateSession(code, optionSet))
             {
                 Assert.NotNull(session);
 
@@ -684,7 +684,7 @@ class Foo
         }
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -718,7 +718,7 @@ class Foo
                             {
                                 { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
                             };
-            using (var session = await CreateSessionAsync(code, optionSet))
+            using (var session = CreateSession(code, optionSet))
             {
                 Assert.NotNull(session);
 
@@ -749,7 +749,7 @@ class Foo
         }
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
 
@@ -788,7 +788,7 @@ class Foo
                                 { new OptionKey(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false },
                                 { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
                             };
-            using (var session = await CreateSessionAsync(code, optionSet))
+            using (var session = CreateSession(code, optionSet))
             {
                 Assert.NotNull(session);
 
@@ -819,7 +819,7 @@ $$
                             {
                                 { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
                             };
-            using (var session = await CreateSessionAsync(code, optionSet))
+            using (var session = CreateSession(code, optionSet))
             {
                 Assert.NotNull(session);
 
@@ -856,7 +856,7 @@ $$
                             {
                                 { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
                             };
-            using (var session = await CreateSessionAsync(code, optionSet))
+            using (var session = CreateSession(code, optionSet))
             {
                 Assert.NotNull(session);
 
@@ -901,7 +901,7 @@ $$
                             {
                                 { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
                             };
-            using (var session = await CreateSessionAsync(code, optionSet))
+            using (var session = CreateSession(code, optionSet))
             {
                 Assert.NotNull(session);
 
@@ -912,7 +912,7 @@ $$
             }
         }
 
-        internal async Task<Holder> CreateSessionAsync(string code, Dictionary<OptionKey, object> optionSet = null)
+        internal Holder CreateSession(string code, Dictionary<OptionKey, object> optionSet = null)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task IsTextualTriggerCharacterTest()
+        public void IsTextualTriggerCharacterTest()
         {
             var validMarkupList = new[]
             {

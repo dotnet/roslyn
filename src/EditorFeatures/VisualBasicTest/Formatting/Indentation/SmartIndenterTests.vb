@@ -30,18 +30,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Function TestEmptyFile() As Task
+        Public Sub TestEmptyFile()
             AssertSmartIndent(
                 code:="",
                 indentationLine:=0,
                 expectedIndentation:=0)
-        End Function
+        End Sub
 
         <WpfFact(Skip:="674611")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529886")>
         <WorkItem(674611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674611")>
-        Public Async Function TestAtBeginningOfSpanInNugget() As Task
+        Public Sub TestAtBeginningOfSpanInNugget()
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -55,7 +55,7 @@ End Module
             AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>

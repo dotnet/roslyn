@@ -46,7 +46,7 @@ int y;
 }
 ";
 
-            await AssertFormatWithViewAsync(expected, code);
+            AssertFormatWithView(expected, code);
         }
 
         [WpfFact]
@@ -74,7 +74,7 @@ int y;
 }
 ";
 
-            await AssertFormatWithPasteOrReturnAsync(expected, code, allowDocumentChanges: true);
+            AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true);
         }
 
         [WpfFact]
@@ -102,7 +102,7 @@ int y;
 }
 ";
 
-            await AssertFormatWithPasteOrReturnAsync(expected, code, allowDocumentChanges: false);
+            AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: false);
         }
 
         [WpfFact]
@@ -130,7 +130,7 @@ int y;
 }
 ";
 
-            await AssertFormatWithPasteOrReturnAsync(expected, code, allowDocumentChanges: true, isPaste: false);
+            AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true, isPaste: false);
         }
 
         [WpfFact]
@@ -158,7 +158,7 @@ int y;
 }
 ";
 
-            await AssertFormatWithPasteOrReturnAsync(expected, code, allowDocumentChanges: true, isPaste: false);
+            AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true, isPaste: false);
         }
 
         [WorkItem(977133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977133")]
@@ -179,7 +179,7 @@ int y;
         if (true)        {
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(14491, "https://github.com/dotnet/roslyn/pull/14491")]
@@ -202,7 +202,7 @@ int y;
         {
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(1007071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007071")]
@@ -235,7 +235,7 @@ class Program
         };
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")]
@@ -260,7 +260,7 @@ class Program
         #region
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")]
@@ -287,7 +287,7 @@ class Program
         #endregion
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(987373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/987373")]
@@ -504,7 +504,7 @@ class Program
         }
 }
 // ;";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
@@ -529,7 +529,7 @@ class Program
 
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
@@ -554,7 +554,7 @@ class Program
 
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
@@ -577,7 +577,7 @@ class Program
 
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
@@ -602,7 +602,7 @@ class Program
 
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
@@ -627,7 +627,7 @@ class Program
 
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
@@ -652,7 +652,7 @@ class Program
 
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
@@ -677,7 +677,7 @@ class Program
 
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
@@ -702,7 +702,7 @@ class Program
 
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
@@ -729,7 +729,7 @@ class Program
 
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
@@ -756,7 +756,7 @@ class Program
 
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
@@ -787,7 +787,7 @@ class Program
 
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
@@ -810,7 +810,7 @@ class Program
         var asdas =     ""{""        ;
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
@@ -833,7 +833,7 @@ class Program
         var asdas =     '{'        ;
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
@@ -860,7 +860,7 @@ class Program
         
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
@@ -891,7 +891,7 @@ class Program
         }
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
@@ -924,7 +924,7 @@ class Program
         }
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(9097, "https://github.com/dotnet/roslyn/issues/9097")]
@@ -952,7 +952,7 @@ class Program
         }
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
@@ -975,7 +975,7 @@ class Program
             label1:   int s = 0;
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
@@ -994,7 +994,7 @@ class C : Attribute
 class C : Attribute
 {
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
@@ -1009,7 +1009,7 @@ class C : Attribute
             var expected = @"class C   :   Attribute
 {
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
@@ -1038,7 +1038,7 @@ class C : Attribute
     {
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
@@ -1061,7 +1061,7 @@ class C : Attribute
         var vari = foo()     ?    true  :  false;
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
@@ -1084,7 +1084,7 @@ class C : Attribute
         Main(args  :  args);
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
@@ -1109,7 +1109,7 @@ class C : Attribute
 
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(2224, "https://github.com/dotnet/roslyn/issues/2224")]
@@ -1131,7 +1131,7 @@ class C : Attribute
                             {
                                 { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
                             };
-            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, optionSet);
         }
 
         [WpfFact]
@@ -1163,7 +1163,7 @@ class C : Attribute
                     { new OptionKey(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false }
             };
 
-            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, optionSet);
         }
 
         [WpfFact]
@@ -1195,7 +1195,7 @@ class C : Attribute
                 { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
-            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, optionSet);
         }
 
         [WorkItem(5873, "https://github.com/dotnet/roslyn/issues/5873")]
@@ -1227,7 +1227,7 @@ class C : Attribute
                 { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
-            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, optionSet);
         }
 
         [WorkItem(5873, "https://github.com/dotnet/roslyn/issues/5873")]
@@ -1253,7 +1253,7 @@ class C : Attribute
     }
 }";
 
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WpfFact]
@@ -1285,7 +1285,7 @@ class C : Attribute
                     { new OptionKey(FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
             };
 
-            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, optionSet);
         }
 
         [WpfFact]
@@ -1317,7 +1317,7 @@ class C : Attribute
                     { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
-            await AssertFormatAfterTypeCharAsync(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, optionSet);
         }
 
         [WpfFact, WorkItem(4435, "https://github.com/dotnet/roslyn/issues/4435")]
@@ -1345,7 +1345,7 @@ class C
                 { new OptionKey(BraceCompletionOptions.EnableBraceCompletion, LanguageNames.CSharp), false }
             };
 
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WpfFact, WorkItem(4435, "https://github.com/dotnet/roslyn/issues/4435")]
@@ -1375,7 +1375,7 @@ class C
                 { new OptionKey(BraceCompletionOptions.EnableBraceCompletion, LanguageNames.CSharp), false }
             };
 
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1399,7 +1399,7 @@ class C
             get { return true;
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1419,7 +1419,7 @@ class C
         static bool Property { get { return true;
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1439,7 +1439,7 @@ class C
         static bool Property { get;
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1461,7 +1461,7 @@ class C
         {
             get { return true; }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1479,7 +1479,7 @@ class C
     {
         static bool Property { get { return true; }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1505,7 +1505,7 @@ class C
                 return true;
             }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1531,7 +1531,7 @@ class C
                 return true;
             }
         }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1557,7 +1557,7 @@ class C
         x.ToString();
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1587,7 +1587,7 @@ class C
         }
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
@@ -1612,7 +1612,7 @@ class C
             Console.WriteLine(""d"");
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
@@ -1635,7 +1635,7 @@ class C
         lock (_l) Console.WriteLine(""d"");
     }
 }";
-            await AssertFormatAfterTypeCharAsync(code, expected);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(11642, "https://github.com/dotnet/roslyn/issues/11642")]
@@ -1650,7 +1650,7 @@ class C
             await AssertFormatOnArbitraryNodeAsync(node, expected);
         }
 
-        private static async Task AssertFormatAfterTypeCharAsync(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
+        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {

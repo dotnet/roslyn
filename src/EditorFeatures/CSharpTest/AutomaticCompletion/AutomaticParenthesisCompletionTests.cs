@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Creation()
         {
-            using (var session = await CreateSessionAsync("$$"))
+            using (var session = CreateSession("$$"))
             {
                 Assert.NotNull(session);
             }
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = """"$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = @""""$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     void Method$$
 }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     void Method$$
 }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     void Method$$
 }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     void Method$$
 }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     }
 }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     }
 }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         Method(Method$$)
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -186,14 +186,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 }
 ";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
             }
         }
 
-        internal async Task<Holder> CreateSessionAsync(string code)
+        internal Holder CreateSession(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),

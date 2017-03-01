@@ -2736,7 +2736,7 @@ class Program{
 
             var expected = @";*";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -2754,7 +2754,7 @@ class Program{
     int Prop {          get;
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -2772,7 +2772,7 @@ class Program{
     int Prop {          get;                set;
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -2790,7 +2790,7 @@ class Program{
     int Prop { get; set; }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -2808,7 +2808,7 @@ class Program{
     int Prop { get; }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -2825,7 +2825,7 @@ class Program{
 {
     int Prop { get; set; }
 }";
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -2843,7 +2843,7 @@ class Program{
     int Prop { get; set; }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -2861,7 +2861,7 @@ class Program{
     int Prop     { get; set; }    
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -2887,7 +2887,7 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -2913,7 +2913,7 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -2942,7 +2942,7 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -2967,7 +2967,7 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -2996,7 +2996,7 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -3025,7 +3025,7 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -3054,7 +3054,7 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -3077,7 +3077,7 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -3100,7 +3100,7 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -3117,7 +3117,7 @@ class Program{
     void s();
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
@@ -3134,7 +3134,7 @@ class Program{
     delegate void s();
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WorkItem(981821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
@@ -3162,7 +3162,7 @@ class Program{
 }
 ";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WorkItem(981821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
@@ -3192,7 +3192,7 @@ class Program{
 }
 ";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WorkItem(981821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
@@ -3220,10 +3220,10 @@ class Program{
 }
 ";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
-        internal static async Task AutoFormatTokenAsync(string markup, string expected)
+        internal static void AutoFormatToken(string markup, string expected)
         {
             using (var workspace = TestWorkspace.CreateCSharp(markup))
             {

@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentEditing
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService);
 
-        protected abstract Task<TestWorkspace> CreateTestWorkspaceAsync(string initialMarkup);
+        protected abstract Task<TestWorkspace> CreateTestWorkspace(string initialMarkup);
 
         protected async Task VerifyAsync(string initialMarkup, string expectedMarkup)
         {
-            using (var workspace = await CreateTestWorkspaceAsync(initialMarkup))
+            using (var workspace = await CreateTestWorkspace(initialMarkup))
             {
                 var testDocument = workspace.Documents.Single();
                 var view = testDocument.GetTextView();

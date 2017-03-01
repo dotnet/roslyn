@@ -46,7 +46,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Access_Public()
+        public void Access_Public()
         {
             CodeVariable testObject = GetCodeVariable("A", "intA");
 
@@ -55,7 +55,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Access_Protected()
+        public void Access_Protected()
         {
             CodeVariable testObject = GetCodeVariable("A", "intB");
 
@@ -64,7 +64,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Access_Private()
+        public void Access_Private()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -73,7 +73,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Attributes_Count()
+        public void Attributes_Count()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -82,7 +82,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Children_Count()
+        public void Children_Count()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -91,7 +91,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Comment()
+        public void Comment()
         {
             CodeVariable testObject = GetCodeVariable("A", "intA");
 
@@ -100,7 +100,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task DocComment()
+        public void DocComment()
         {
             CodeVariable testObject = GetCodeVariable("A", "intB");
 
@@ -111,7 +111,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task InitExpressions_NoExpression()
+        public void InitExpressions_NoExpression()
         {
             CodeVariable testObject = GetCodeVariable("A", "intB");
 
@@ -120,7 +120,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task InitExpression()
+        public void InitExpression()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -129,7 +129,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task InitExpression_FixedBuffer()
+        public void InitExpression_FixedBuffer()
         {
             CodeVariable testObject = GetCodeVariable("DevDivBugs70194", "buffer");
 
@@ -138,7 +138,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task IsConstant_True()
+        public void IsConstant_True()
         {
             CodeVariable testObject = GetCodeVariable("A", "FORTYTWO");
 
@@ -147,7 +147,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task IsConstant_False()
+        public void IsConstant_False()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -156,7 +156,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task IsShared_True()
+        public void IsShared_True()
         {
             CodeVariable testObject = GetCodeVariable("A", "FORTYTWO");
 
@@ -165,7 +165,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task IsShared_False()
+        public void IsShared_False()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -174,7 +174,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Kind()
+        public void Kind()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -183,7 +183,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Parent()
+        public void Parent()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -194,7 +194,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Type()
+        public void Type()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -203,7 +203,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_Attributes()
+        public void GetStartPoint_Attributes()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
@@ -211,7 +211,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_AttributesWithDelimiter()
+        public void GetStartPoint_AttributesWithDelimiter()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -223,7 +223,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_Body()
+        public void GetStartPoint_Body()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBody));
@@ -231,7 +231,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_BodyWithDelimiter()
+        public void GetStartPoint_BodyWithDelimiter()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
@@ -239,7 +239,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_Header()
+        public void GetStartPoint_Header()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeader));
@@ -247,7 +247,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_HeaderWithAttributes()
+        public void GetStartPoint_HeaderWithAttributes()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
@@ -255,7 +255,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_Name()
+        public void GetStartPoint_Name()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
@@ -263,7 +263,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_Navigate()
+        public void GetStartPoint_Navigate()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -275,7 +275,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_Whole()
+        public void GetStartPoint_Whole()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
@@ -283,7 +283,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_WholeWithAttributes()
+        public void GetStartPoint_WholeWithAttributes()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -295,7 +295,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Attributes()
+        public void GetEndPoint_Attributes()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
@@ -303,7 +303,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_AttributesWithDelimiter()
+        public void GetEndPoint_AttributesWithDelimiter()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -315,7 +315,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Body()
+        public void GetEndPoint_Body()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBody));
@@ -323,7 +323,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_BodyWithDelimiter()
+        public void GetEndPoint_BodyWithDelimiter()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
@@ -331,7 +331,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Header()
+        public void GetEndPoint_Header()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
@@ -339,7 +339,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_HeaderWithAttributes()
+        public void GetEndPoint_HeaderWithAttributes()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
@@ -347,7 +347,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Name()
+        public void GetEndPoint_Name()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
@@ -355,7 +355,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Navigate()
+        public void GetEndPoint_Navigate()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -367,7 +367,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Whole()
+        public void GetEndPoint_Whole()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
@@ -375,7 +375,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_WholeWithAttributes()
+        public void GetEndPoint_WholeWithAttributes()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -387,7 +387,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task StartPoint()
+        public void StartPoint()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 
@@ -399,7 +399,7 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task EndPoint()
+        public void EndPoint()
         {
             CodeVariable testObject = GetCodeVariable("A", "intC");
 

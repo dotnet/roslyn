@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Creation()
         {
-            using (var session = await CreateSessionAsync("$$"))
+            using (var session = CreateSession("$$"))
             {
                 Assert.NotNull(session);
             }
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task InvalidLocation_TopLevel()
         {
-            using (var session = await CreateSessionAsync("$$"))
+            using (var session = CreateSession("$$"))
             {
                 Assert.NotNull(session);
             }
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task InvalidLocation_TopLevel2()
         {
-            using (var session = await CreateSessionAsync("using System;$$"))
+            using (var session = CreateSession("using System;$$"))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         {
             var code = @"class C$$";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     void Method$$
 }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         {
             var code = @"class C$$";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         {
             var code = @"class C$$";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         {
             var code = @"class C$$";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         {
             var code = @"class C<$$>";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     C<C$$>
 }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var b = i $$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var a = new List$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var a = typeof(List$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     List$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     void List$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     async Task$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -248,7 +248,7 @@ class C
         List$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -268,7 +268,7 @@ class C
         List$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -287,7 +287,7 @@ class C
         var a = args[0]$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -306,7 +306,7 @@ class C
         var a = args?.First()$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -325,7 +325,7 @@ class C
         args?.OfType$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -355,7 +355,7 @@ class Inner<V>
 {
     public void Method<X>() { }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -395,7 +395,7 @@ internal class Inner
     public Inner() { }
     public void DoSomething<V>() { }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -431,14 +431,14 @@ public class Inner
 {
     public void Method<U>() { }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
             }
         }
 
-        internal async Task<Holder> CreateSessionAsync(string code)
+        internal Holder CreateSession(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),

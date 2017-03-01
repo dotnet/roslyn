@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
     public class DocumentationCommentTests : AbstractDocumentationCommentTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_Class()
+        public void TypingCharacter_Class()
         {
             var code =
 @"//$$
@@ -34,7 +34,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
+        public void TypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
         {
             var code =
 @"//$$
@@ -52,7 +52,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_Method()
+        public void TypingCharacter_Method()
         {
             var code =
 @"class C
@@ -77,7 +77,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_Method_WithVerbatimParams()
+        public void TypingCharacter_Method_WithVerbatimParams()
         {
             var code =
 @"class C
@@ -102,7 +102,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_AutoProperty()
+        public void TypingCharacter_AutoProperty()
         {
             var code =
 @"class C
@@ -124,7 +124,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_Property()
+        public void TypingCharacter_Property()
         {
             var code =
 @"class C
@@ -154,7 +154,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_Indexer()
+        public void TypingCharacter_Indexer()
         {
             var code =
 @"class C
@@ -186,7 +186,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_VoidMethod1()
+        public void TypingCharacter_VoidMethod1()
         {
             var code =
 @"class C
@@ -210,7 +210,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_VoidMethod_WithVerbatimParams()
+        public void TypingCharacter_VoidMethod_WithVerbatimParams()
         {
             var code =
 @"class C
@@ -235,7 +235,7 @@ class C
 
         [WorkItem(538699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538699")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_VoidMethod2()
+        public void TypingCharacter_VoidMethod2()
         {
             var code =
 @"class C
@@ -255,7 +255,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_NotWhenDocCommentExists1()
+        public void TypingCharacter_NotWhenDocCommentExists1()
         {
             var code = @"
 ///
@@ -275,7 +275,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_NotWhenDocCommentExists2()
+        public void TypingCharacter_NotWhenDocCommentExists2()
         {
             var code = @"
 ///
@@ -297,7 +297,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_NotWhenDocCommentExists3()
+        public void TypingCharacter_NotWhenDocCommentExists3()
         {
             var code = @"
 class B { } ///
@@ -319,7 +319,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_NotWhenDocCommentExists4()
+        public void TypingCharacter_NotWhenDocCommentExists4()
         {
             var code =
 @"//$$
@@ -339,7 +339,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_NotWhenDocCommentExists5()
+        public void TypingCharacter_NotWhenDocCommentExists5()
         {
             var code =
 @"class C
@@ -361,7 +361,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_NotInsideMethodBody1()
+        public void TypingCharacter_NotInsideMethodBody1()
         {
             var code =
 @"class C
@@ -385,7 +385,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_NotInsideMethodBody2()
+        public void TypingCharacter_NotInsideMethodBody2()
         {
             var code =
 @"class C
@@ -411,7 +411,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_NotAfterClassName()
+        public void TypingCharacter_NotAfterClassName()
         {
             var code =
 @"class C//$$
@@ -427,7 +427,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_NotAfterOpenBrace()
+        public void TypingCharacter_NotAfterOpenBrace()
         {
             var code =
 @"class C
@@ -443,7 +443,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_NotAfterCtorName()
+        public void TypingCharacter_NotAfterCtorName()
         {
             var code =
 @"class C
@@ -461,7 +461,7 @@ C() ///$$
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TypingCharacter_NotInsideCtor()
+        public void TypingCharacter_NotInsideCtor()
         {
             var code =
 @"class C
@@ -485,7 +485,7 @@ C()
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertComment_Class1()
+        public void PressingEnter_InsertComment_Class1()
         {
             var code =
 @"///$$
@@ -506,7 +506,7 @@ class C
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertComment_Class1_AutoGenerateXmlDocCommentsOff()
+        public void PressingEnter_InsertComment_Class1_AutoGenerateXmlDocCommentsOff()
         {
             var code =
 @"///$$
@@ -525,7 +525,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertComment_Class2()
+        public void PressingEnter_InsertComment_Class2()
         {
             var code =
 @"///$$class C
@@ -544,7 +544,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertComment_Class3()
+        public void PressingEnter_InsertComment_Class3()
         {
             var code =
 @"///$$[Foo] class C
@@ -563,7 +563,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertComment_NotAfterWhitespace()
+        public void PressingEnter_InsertComment_NotAfterWhitespace()
         {
             var code =
             @"///    $$class C
@@ -580,7 +580,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertComment_Method1()
+        public void PressingEnter_InsertComment_Method1()
         {
             var code =
 @"class C
@@ -605,7 +605,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertComment_Method2()
+        public void PressingEnter_InsertComment_Method2()
         {
             var code =
 @"class C
@@ -629,7 +629,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_NotInMethodBody1()
+        public void PressingEnter_NotInMethodBody1()
         {
             var code =
 @"class C
@@ -655,7 +655,7 @@ $$
 
         [WorkItem(537513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_NotInterleavedInClassName1()
+        public void PressingEnter_NotInterleavedInClassName1()
         {
             var code =
 @"class///$$ C
@@ -673,7 +673,7 @@ $$ C
 
         [WorkItem(537513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_NotInterleavedInClassName2()
+        public void PressingEnter_NotInterleavedInClassName2()
         {
             var code =
 @"class ///$$C
@@ -691,7 +691,7 @@ $$C
 
         [WorkItem(537513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_NotInterleavedInClassName3()
+        public void PressingEnter_NotInterleavedInClassName3()
         {
             var code =
 @"class /// $$C
@@ -710,7 +710,7 @@ $$C
         [WorkItem(537514, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537514")]
         [WorkItem(537532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537532")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_NotAfterClassName1()
+        public void PressingEnter_NotAfterClassName1()
         {
             var code =
 @"class C ///$$
@@ -728,7 +728,7 @@ $$
 
         [WorkItem(537552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537552")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_NotAfterClassName2()
+        public void PressingEnter_NotAfterClassName2()
         {
             var code =
 @"class C /** $$
@@ -746,7 +746,7 @@ $$
 
         [WorkItem(537535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537535")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_NotAfterCtorName()
+        public void PressingEnter_NotAfterCtorName()
         {
             var code =
 @"class C
@@ -766,7 +766,7 @@ $$
 
         [WorkItem(537511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537511")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_NotInsideCtor()
+        public void PressingEnter_NotInsideCtor()
         {
             var code =
 @"class C
@@ -792,7 +792,7 @@ $$
 
         [WorkItem(537550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537550")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_NotBeforeDocComment()
+        public void PressingEnter_NotBeforeDocComment()
         {
             var code =
 @"    class c1
@@ -825,7 +825,7 @@ $$/// <summary>
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertSlashes1()
+        public void PressingEnter_InsertSlashes1()
         {
             var code =
 @"///$$
@@ -846,7 +846,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertSlashes2()
+        public void PressingEnter_InsertSlashes2()
         {
             var code =
 @"/// <summary>
@@ -869,7 +869,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertSlashes3()
+        public void PressingEnter_InsertSlashes3()
         {
             var code =
 @"    /// <summary>
@@ -892,7 +892,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertSlashes4()
+        public void PressingEnter_InsertSlashes4()
         {
             var code =
 @"/// <summary>$$</summary>
@@ -911,7 +911,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertSlashes5()
+        public void PressingEnter_InsertSlashes5()
         {
             var code =
 @"    /// <summary>
@@ -934,7 +934,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertSlashes6()
+        public void PressingEnter_InsertSlashes6()
         {
             var code =
 @"/// <summary></summary>$$
@@ -953,7 +953,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertSlashes7()
+        public void PressingEnter_InsertSlashes7()
         {
             var code =
 @"    /// <summary>$$</summary>
@@ -973,7 +973,7 @@ class C
 
         [WorkItem(538702, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538702")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertSlashes8()
+        public void PressingEnter_InsertSlashes8()
         {
             var code =
 @"/// <summary>
@@ -990,7 +990,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertSlashes9()
+        public void PressingEnter_InsertSlashes9()
         {
             var code =
 @"class C
@@ -1013,7 +1013,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertSlashes10()
+        public void PressingEnter_InsertSlashes10()
         {
             var code =
 @"/// <summary>
@@ -1031,7 +1031,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertSlashes11()
+        public void PressingEnter_InsertSlashes11()
         {
             var code =
 @"class C
@@ -1063,7 +1063,7 @@ class C
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InsertSlashes12_AutoGenerateXmlDocCommentsOff()
+        public void PressingEnter_InsertSlashes12_AutoGenerateXmlDocCommentsOff()
         {
             var code =
 @"///$$
@@ -1085,7 +1085,7 @@ class C
 
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_DontInsertSlashes1()
+        public void PressingEnter_DontInsertSlashes1()
         {
             var code =
 @"/// <summary></summary>
@@ -1107,7 +1107,7 @@ class C
 
         [WorkItem(538701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538701")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_DontInsertSlashes2()
+        public void PressingEnter_DontInsertSlashes2()
         {
             var code =
 @"///<summary></summary>
@@ -1125,7 +1125,7 @@ class C{}";
 
         [WorkItem(542426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542426")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_PreserveParams()
+        public void PressingEnter_PreserveParams()
         {
             var code =
 @"/// <summary>
@@ -1148,7 +1148,7 @@ static void Main(string[] args)
 
         [WorkItem(2091, "https://github.com/dotnet/roslyn/issues/2091")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_InTextBeforeSpace()
+        public void PressingEnter_InTextBeforeSpace()
         {
             const string code =
 @"class C
@@ -1178,7 +1178,7 @@ static void Main(string[] args)
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_Indentation1()
+        public void PressingEnter_Indentation1()
         {
             const string code =
 @"class C
@@ -1208,7 +1208,7 @@ static void Main(string[] args)
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_Indentation2()
+        public void PressingEnter_Indentation2()
         {
             const string code =
 @"class C
@@ -1238,7 +1238,7 @@ static void Main(string[] args)
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_Indentation3()
+        public void PressingEnter_Indentation3()
         {
             const string code =
 @"class C
@@ -1268,7 +1268,7 @@ static void Main(string[] args)
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_Indentation4()
+        public void PressingEnter_Indentation4()
         {
             const string code =
 @"class C
@@ -1298,7 +1298,7 @@ static void Main(string[] args)
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_Indentation5_UseTabs()
+        public void PressingEnter_Indentation5_UseTabs()
         {
             const string code =
 @"class C
@@ -1328,7 +1328,7 @@ static void Main(string[] args)
 
         [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_Selection1()
+        public void PressingEnter_Selection1()
         {
             var code =
 @"/// <summary>
@@ -1351,7 +1351,7 @@ class C
 
         [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task PressingEnter_Selection2()
+        public void PressingEnter_Selection2()
         {
             var code =
 @"/// <summary>
@@ -1373,7 +1373,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task Command_Class()
+        public void Command_Class()
         {
             var code =
 @"class C
@@ -1393,7 +1393,7 @@ class C
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task Command_Class_AutoGenerateXmlDocCommentsOff()
+        public void Command_Class_AutoGenerateXmlDocCommentsOff()
         {
             var code =
 @"class C
@@ -1413,7 +1413,7 @@ class C
 
         [WorkItem(538714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task Command_BeforeClass1()
+        public void Command_BeforeClass1()
         {
             var code =
 @"$$
@@ -1430,7 +1430,7 @@ class C { }";
 
         [WorkItem(538714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task Command_BeforeClass2()
+        public void Command_BeforeClass2()
         {
             var code =
 @"class B { }
@@ -1449,7 +1449,7 @@ class C { }";
 
         [WorkItem(538714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task Command_BeforeClass3()
+        public void Command_BeforeClass3()
         {
             var code =
 @"class B
@@ -1472,7 +1472,7 @@ class C { }";
 
         [WorkItem(527604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527604")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task Command_Class_NotIfMultilineDocCommentExists()
+        public void Command_Class_NotIfMultilineDocCommentExists()
         {
             var code =
 @"/**
@@ -1487,7 +1487,7 @@ class C { $$ }";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task Command_Method()
+        public void Command_Method()
         {
             var code =
 @"class C
@@ -1511,7 +1511,7 @@ class C { $$ }";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task Command_Class_NotIfCommentExists()
+        public void Command_Class_NotIfCommentExists()
         {
             var code =
 @"/// <summary></summary>
@@ -1529,7 +1529,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task Command_Method_NotIfCommentExists()
+        public void Command_Method_NotIfCommentExists()
         {
             var code =
 @"class C
@@ -1550,7 +1550,7 @@ class C
 
         [WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task Command_FirstClassOnLine()
+        public void Command_FirstClassOnLine()
         {
             var code = @"$$class C { } class D { }";
 
@@ -1565,7 +1565,7 @@ class C { } class D { }";
 
         [WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task Command_NotOnSecondClassOnLine()
+        public void Command_NotOnSecondClassOnLine()
         {
             var code = @"class C { } $$class D { }";
 
@@ -1576,7 +1576,7 @@ class C { } class D { }";
 
         [WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task Command_FirstMethodOnLine()
+        public void Command_FirstMethodOnLine()
         {
             var code =
 @"class C
@@ -1598,7 +1598,7 @@ class C { } class D { }";
 
         [WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task Command_NotOnSecondMethodOnLine()
+        public void Command_NotOnSecondMethodOnLine()
         {
             var code =
 @"class C
@@ -1617,7 +1617,7 @@ class C { } class D { }";
 
         [WorkItem(917904, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917904")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TestUseTab()
+        public void TestUseTab()
         {
             var code =
 @"using System;
@@ -1648,7 +1648,7 @@ public class Class1
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TestOpenLineAbove1()
+        public void TestOpenLineAbove1()
         {
             const string code =
 @"class C
@@ -1678,7 +1678,7 @@ public class Class1
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TestOpenLineAbove2()
+        public void TestOpenLineAbove2()
         {
             const string code =
 @"class C
@@ -1708,7 +1708,7 @@ public class Class1
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TestOpenLineAbove3()
+        public void TestOpenLineAbove3()
         {
             const string code =
 @"class C
@@ -1740,7 +1740,7 @@ $$
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TestOpenLineAbove4_Tabs()
+        public void TestOpenLineAbove4_Tabs()
         {
             const string code =
 @"class C
@@ -1770,7 +1770,7 @@ $$
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TestOpenLineBelow1()
+        public void TestOpenLineBelow1()
         {
             const string code =
 @"class C
@@ -1800,7 +1800,7 @@ $$
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TestOpenLineBelow2()
+        public void TestOpenLineBelow2()
         {
             const string code =
 @"class C
@@ -1830,7 +1830,7 @@ $$
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TestOpenLineBelow3()
+        public void TestOpenLineBelow3()
         {
             const string code =
 @"/// <summary>
@@ -1850,7 +1850,7 @@ $$
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public async Task TestOpenLineBelow4_Tabs()
+        public void TestOpenLineBelow4_Tabs()
         {
             const string code =
 @"class C

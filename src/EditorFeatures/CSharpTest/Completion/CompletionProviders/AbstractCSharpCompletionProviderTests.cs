@@ -144,7 +144,7 @@ text;
             }
         }
 
-        protected async Task TestCommonIsTextualTriggerCharacterAsync()
+        protected void TestCommonIsTextualTriggerCharacter()
         {
             var alwaysTriggerList = new[]
             {

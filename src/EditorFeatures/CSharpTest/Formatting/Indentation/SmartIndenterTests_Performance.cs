@@ -2207,7 +2207,7 @@ class Program
 ";
             #endregion
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 expectedIndentation: 4);
         }

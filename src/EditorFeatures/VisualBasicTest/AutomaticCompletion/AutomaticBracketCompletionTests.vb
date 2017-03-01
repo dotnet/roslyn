@@ -11,27 +11,27 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
         Inherits AbstractAutomaticBraceCompletionTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestCreation() As Task
+        Public Sub TestCreation()
             Using session = CreateSession("$$")
                 Assert.NotNull(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestBracket() As Task
+        Public Sub TestBracket()
             Using session = CreateSession("$$")
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestBracket2() As Task
+        Public Sub TestBracket2()
             Using session = CreateSession("Imports System$$")
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestInvalidLocation_Bracket() As Task
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
     Dim s As String = "$$
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
         End Function
@@ -50,7 +50,7 @@ End Class</code>
     ' $$
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
         End Function
@@ -61,7 +61,7 @@ End Class</code>
     ''' $$
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
         End Function
@@ -74,7 +74,7 @@ End Class</code>
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 Type(session.Session, "'")
@@ -90,7 +90,7 @@ End Class</code>
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 Type(session.Session, "'")
@@ -98,7 +98,7 @@ End Class</code>
             End Using
         End Function
 
-        Friend Overloads Async Function CreateSessionAsync(code As XElement) As Threading.Tasks.Task(Of Holder)
+        Friend Overloads Function CreateSession(code As XElement) As Holder
             Return CreateSession(code.NormalizedValue())
         End Function
 

@@ -587,7 +587,7 @@ class d
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestTrigger()
         {
-            await TestCommonIsTextualTriggerCharacterAsync();
+            TestCommonIsTextualTriggerCharacter();
         }
 
         [WorkItem(530828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530828")]

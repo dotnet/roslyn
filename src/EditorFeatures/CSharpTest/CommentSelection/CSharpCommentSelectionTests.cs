@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
 
     }
 }";
-            await UncommentSelectionAsync(code, expected);
+            UncommentSelection(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
 
     }
 }";
-            await UncommentSelectionAsync(code, expected);
+            UncommentSelection(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
@@ -82,7 +82,7 @@ class C
     /* Hello world */
 }";
 
-            await UncommentSelectionAsync(code, expected);
+            UncommentSelection(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
@@ -102,10 +102,10 @@ class C
 
     }
 }";
-            await UncommentSelectionAsync(code, expected);
+            UncommentSelection(code, expected);
         }
 
-        private static async Task UncommentSelectionAsync(string markup, string expected)
+        private static void UncommentSelection(string markup, string expected)
         {
             using (var workspace = TestWorkspace.CreateCSharp(markup))
             {

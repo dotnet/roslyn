@@ -51,7 +51,7 @@ class Baz
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Body_BeforeNamespace()
+        public void GetEndPoint_Body_BeforeNamespace()
         {
             CodeClass testObject = GetCodeClass("Foo");
 
@@ -63,7 +63,7 @@ class Baz
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Body_BeforeOtherClass()
+        public void GetEndPoint_Body_BeforeOtherClass()
         {
             CodeClass testObject = GetCodeClass("Foo", "Bar");
 
@@ -75,7 +75,7 @@ class Baz
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Body_Eof()
+        public void GetEndPoint_Body_Eof()
         {
             CodeClass testObject = GetCodeClass("Baz");
 

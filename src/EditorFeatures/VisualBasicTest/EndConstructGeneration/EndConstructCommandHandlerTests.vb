@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(544556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544556")>
-        Public Async Function EndConstruct_AfterCodeCleanup() As Threading.Tasks.Task
+        Public Sub EndConstruct_AfterCodeCleanup()
             Dim code = <code>Class C
     Sub Main(args As String())
         Dim z = 1
@@ -62,11 +62,11 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
 End Class</code>.Value.Replace(vbLf, vbCrLf)
 
             VerifyAppliedAfterReturnUsingCommandHandler(code, {4, -1}, expected, {5, 12})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(546798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546798")>
-        Public Async Function EndConstruct_AfterCodeCleanup_FormatOnlyTouched() As Threading.Tasks.Task
+        Public Sub EndConstruct_AfterCodeCleanup_FormatOnlyTouched()
             Dim code = <code>Class C1
     Sub M1()
         System.Diagnostics. _Debug.Assert(True)
@@ -81,11 +81,11 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
 End Class</code>.Value.Replace(vbLf, vbCrLf)
 
             VerifyAppliedAfterReturnUsingCommandHandler(code, {2, 29}, expected, {3, 12})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(531347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531347")>
-        Public Async Function EndConstruct_AfterCodeCleanup_FormatOnly_WhenContainsDiagnostics() As Threading.Tasks.Task
+        Public Sub EndConstruct_AfterCodeCleanup_FormatOnly_WhenContainsDiagnostics()
             Dim code = <code>Module Program
     Sub Main(args As String())
         Dim a
@@ -106,7 +106,7 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
 End Module</code>.Value.Replace(vbLf, vbCrLf)
 
             VerifyAppliedAfterReturnUsingCommandHandler(code, {4, -1}, expected, {5, 8})
-        End Function
+        End Sub
 
         <WorkItem(628656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628656")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>

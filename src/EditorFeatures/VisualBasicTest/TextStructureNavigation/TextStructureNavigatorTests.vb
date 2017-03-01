@@ -12,13 +12,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
     Public Class TextStructureNavigatorTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
-        Public Async Function TestEmpty() As Task
+        Public Sub TestEmpty()
             AssertExtent(
                 String.Empty,
                 pos:=0,
                 isSignificant:=False,
                 start:=0, length:=0)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Async Function TestWhitespace() As Task

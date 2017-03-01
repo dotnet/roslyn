@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             End Using
         End Function
 
-        Protected Async Function TestCommonIsTextualTriggerCharacterAsync() As Task
+        Protected Sub TestCommonIsTextualTriggerCharacter()
             Dim alwaysTriggerList =
             {
                 "foo$$.",
@@ -139,6 +139,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             For Each markup In neverTriggerList
                 VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled:=False, shouldTriggerWithTriggerOnLettersDisabled:=False)
             Next
-        End Function
+        End Sub
     End Class
 End Namespace

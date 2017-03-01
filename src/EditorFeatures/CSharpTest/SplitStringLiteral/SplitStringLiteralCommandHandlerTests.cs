@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     public class SplitStringLiteralCommandHandlerTests
     {
-        private async Task TestWorkerAsync(
+        private void TestWorker(
             string inputMarkup, string expectedOutputMarkup, Action callback)
         {
             using (var workspace = TestWorkspace.CreateCSharp(inputMarkup))
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 
         private Task TestHandledAsync(string inputMarkup, string expectedOutputMarkup)
         {
-            return TestWorkerAsync(
+            return TestWorker(
                 inputMarkup, expectedOutputMarkup,
                 callback: () =>
                 {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         private async Task TestNotHandledAsync(string inputMarkup)
         {
             var notHandled = false;
-            await TestWorkerAsync(
+            TestWorker(
                 inputMarkup, null,
                 callback: () =>
                 {

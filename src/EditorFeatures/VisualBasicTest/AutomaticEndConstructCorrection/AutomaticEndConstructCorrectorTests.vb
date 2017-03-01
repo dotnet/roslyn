@@ -120,7 +120,7 @@ End Class</code>.Value
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Async Function TestErrorCaseMissingEndFunction() As Task
+        Public Sub TestErrorCaseMissingEndFunction()
             Dim code = <code>Class A
     [|Function|] Test() As Integer
     End [|Sub|]
@@ -128,7 +128,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
 
             VerifyBegin(code, "Interface", "Sub")
             VerifyEnd(code, "Interface", "Function")
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>

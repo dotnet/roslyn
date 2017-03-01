@@ -33,7 +33,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyForPropertyWithParameters() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
     Property foo(i As Integer) As Integer
 End Class",
@@ -99,7 +99,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyOnGetForRegularProperty() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
     Property foo As Integer
         Get
@@ -120,7 +120,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyOnSetForRegularProperty() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
     Property foo As Integer
         Set
@@ -151,7 +151,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyOnGetForRegularPropertyWithSetPresent() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
     Property foo As Integer
         Get
@@ -188,7 +188,7 @@ End Class",
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(536376, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536376")>
         Public Async Function TestApplyForPropertyWithIndexer() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
     Property foo(arg as Integer) As Integer
 End Class",
@@ -282,7 +282,7 @@ End Interface",
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(2096, "https://github.com/dotnet/roslyn/issues/2096")>
         Public Async Function TestDontGenerateSetForReadonlyProperty() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
     Readonly Property foo(arg as Integer) As Integer
 End Class",
@@ -300,7 +300,7 @@ End Class",
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(2096, "https://github.com/dotnet/roslyn/issues/2096")>
         Public Async Function TestDontGenerateGetForWriteonlyProperty() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
     Writeonly Property foo(arg as Integer) As Integer
 End Class",

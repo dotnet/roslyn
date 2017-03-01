@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IsTextualTriggerCharacterTest() As Task
-            Await TestCommonIsTextualTriggerCharacterAsync()
+            TestCommonIsTextualTriggerCharacter()
 
             VerifyTextualTriggerCharacter("foo$$(", shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
         End Function

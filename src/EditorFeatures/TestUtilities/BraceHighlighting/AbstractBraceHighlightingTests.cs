@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
     {
         protected async Task TestBraceHighlightingAsync(string markup, ParseOptions options = null)
         {
-            using (var workspace = await CreateWorkspaceAsync(markup, options))
+            using (var workspace = await CreateWorkspace(markup, options))
             {
                 WpfTestCase.RequireWpfFact($"{nameof(AbstractBraceHighlightingTests)}.{nameof(TestBraceHighlightingAsync)} creates asynchronous taggers");
 
@@ -43,6 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
             }
         }
 
-        protected abstract Task<TestWorkspace> CreateWorkspaceAsync(string markup, ParseOptions options);
+        protected abstract Task<TestWorkspace> CreateWorkspace(string markup, ParseOptions options);
     }
 }

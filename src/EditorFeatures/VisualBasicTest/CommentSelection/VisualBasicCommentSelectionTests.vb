@@ -12,7 +12,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CommentSelection
     Public Class VisualBasicCommentSelectionTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
-        Public Async Function Comment1() As Threading.Tasks.Task
+        Public Sub Comment1()
             Dim code = <code>Module Program
     [|Sub Main(args As String())
         'already commented
@@ -28,11 +28,11 @@ End Module</code>
 End Module</code>
 
             InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Comment)
-        End Function
+        End Sub
 
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
-        Public Async Function UncommentAndFormat1() As Threading.Tasks.Task
+        Public Sub UncommentAndFormat1()
             Dim code = <code>Module Program
     [|            '       Sub         Main        (       args    As String           ())
         '
@@ -46,10 +46,10 @@ End Module</code>
 End Module</code>
 
             InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Uncomment)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
-        Public Async Function UncommentAndFormat2() As Threading.Tasks.Task
+        Public Sub UncommentAndFormat2()
             Dim code = <code>Module Program
     [|            '       Sub         Main        (       args    As String           ())           |]
     [|        '                                                                                     |]
@@ -63,7 +63,7 @@ End Module</code>
 End Module</code>
 
             InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Uncomment)
-        End Function
+        End Sub
 
         Private Shared Sub InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code As String, expected As String, operation As CommentUncommentSelectionCommandHandler.Operation)
             ' do this since xml value put only vbLf

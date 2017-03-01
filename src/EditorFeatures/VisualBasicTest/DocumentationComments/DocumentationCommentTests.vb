@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
         Inherits AbstractDocumentationCommentTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_Class_AutoGenerateXmlDocCommentsOff() As Task
+        Public Sub TestTypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
             Const code = "
 ''$$
 Class C
@@ -23,7 +23,7 @@ Class C
 End Class
 "
             VerifyTypingCharacter(code, expected, autoGenerateXmlDocComments:=False)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestTypingCharacter_Class() As Task
