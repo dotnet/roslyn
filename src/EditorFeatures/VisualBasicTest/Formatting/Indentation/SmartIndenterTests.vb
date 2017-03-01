@@ -52,7 +52,7 @@ $$Console.WriteLine()|]|}
 End Module
 </code>.NormalizedValue
 
-            Await AssertSmartIndentIndentationInProjectionAsync(
+            AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Function
@@ -71,7 +71,7 @@ $$|]|}
 End Module
 </code>.NormalizedValue
 
-            Await AssertSmartIndentIndentationInProjectionAsync(
+            AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Function
@@ -90,7 +90,7 @@ $$teLine()|]|}
 End Module
 </code>.NormalizedValue
 
-            Await AssertSmartIndentIndentationInProjectionAsync(
+            AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Function
@@ -113,7 +113,7 @@ End Module
             ' where we think it _should_ be.  So the position is one indent level past the base
             ' for the nugget (where we think the statement should be), plus one more since it is
             ' a continuation
-            Await AssertSmartIndentIndentationInProjectionAsync(
+            AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 8)
         End Function
@@ -135,7 +135,7 @@ End Module
 
             ' "Console" starts gets indented once from the base indent, and we indent once from it.
             Dim extra = 8
-            Await AssertSmartIndentIndentationInProjectionAsync(
+            AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + extra)
         End Function
@@ -145,7 +145,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Async Function TestBadLineNumberLabelInFile() As Task
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code:="10:",
                 indentationLine:=0,
                 expectedIndentation:=0)
@@ -157,7 +157,7 @@ End Module
             Dim code = <Code>Import System
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=1,
                 expectedIndentation:=0)
@@ -169,7 +169,7 @@ End Module
             Dim code = <Code>        ' comments
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=1,
                 expectedIndentation:=12)
@@ -181,7 +181,7 @@ End Module
             Dim code = <Code>        ''' Xml comments
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=1,
                 expectedIndentation:=8)
@@ -194,7 +194,7 @@ End Module
     Class CL
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
@@ -208,7 +208,7 @@ End Module
         Inherits BC
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
@@ -223,7 +223,7 @@ End Module
     End Class
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=4)
@@ -237,7 +237,7 @@ End Module
         Inherits IFoo : Implements Foo
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
@@ -250,7 +250,7 @@ End Module
     Class CL : Inherits IFoo : Implements Foo
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
@@ -263,7 +263,7 @@ End Module
     Interface IF
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
@@ -278,7 +278,7 @@ End Module
     End Interface
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=4)
@@ -292,7 +292,7 @@ End Module
         Inherits IFoo
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
@@ -305,7 +305,7 @@ End Module
     Interface IF : Inherits IFoo
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
@@ -318,7 +318,7 @@ End Module
     Enum Foo
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
@@ -333,7 +333,7 @@ End Module
     End Enum
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=4)
@@ -347,7 +347,7 @@ End Module
         Member1
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
@@ -360,7 +360,7 @@ End Module
     Structure SomeStructure
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
@@ -375,7 +375,7 @@ End Module
     End Structure
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=4)
@@ -387,7 +387,7 @@ End Module
             Dim code = <Code>Namespace NS
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=1,
                 expectedIndentation:=4)
@@ -403,7 +403,7 @@ End Module
 End Namespace
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=0)
@@ -416,7 +416,7 @@ End Namespace
     Module Module1
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
@@ -432,7 +432,7 @@ End Namespace
     End Module
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=4)
@@ -446,7 +446,7 @@ End Namespace
         Sub Method
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
@@ -463,7 +463,7 @@ End Namespace
     End Sub
 End Class</Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
@@ -478,7 +478,7 @@ End Class</Code>.Value
             If True Then Return
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
@@ -493,7 +493,7 @@ End Class</Code>.Value
             If True Then
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
@@ -510,7 +510,7 @@ End Class</Code>.Value
             Else
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=16)
@@ -529,7 +529,7 @@ End Class</Code>.Value
             End If
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=8,
                 expectedIndentation:=12)
@@ -544,7 +544,7 @@ End Class</Code>.Value
            False Then
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
@@ -559,7 +559,7 @@ End Class</Code>.Value
             Do
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
@@ -576,7 +576,7 @@ End Class</Code>.Value
             Loop
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=12)
@@ -591,7 +591,7 @@ End Class</Code>.Value
             For a = 1 To 10
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
@@ -606,7 +606,7 @@ End Class</Code>.Value
             For Each a In Group
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
@@ -623,7 +623,7 @@ End Class</Code>.Value
             Next
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=12)
@@ -637,7 +637,7 @@ End Class</Code>.Value
         Public Shared Operator =(ByVal objVehicle1 as Vehicle, ByVal objVehicle2 as Vehicle) As Boolean
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
@@ -652,7 +652,7 @@ End Class</Code>.Value
             Select A
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
@@ -667,7 +667,7 @@ End Class</Code>.Value
             Select Case A
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
@@ -683,7 +683,7 @@ End Class</Code>.Value
                 Case 1
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=20)
@@ -700,7 +700,7 @@ End Class</Code>.Value
                     foo()
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=20)
@@ -718,7 +718,7 @@ End Class</Code>.Value
                 Case Else
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=7,
                 expectedIndentation:=20)
@@ -736,7 +736,7 @@ End Class</Code>.Value
             End Select
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=7,
                 expectedIndentation:=12)
@@ -751,7 +751,7 @@ End Class</Code>.Value
             SyncLock New Object()
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
@@ -768,7 +768,7 @@ End Class</Code>.Value
             End SyncLock
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=12)
@@ -783,7 +783,7 @@ End Class</Code>.Value
             Try
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
@@ -799,7 +799,7 @@ End Class</Code>.Value
             Catch ex as Exception
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=16)
@@ -816,7 +816,7 @@ End Class</Code>.Value
             Finally
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=16)
@@ -835,7 +835,7 @@ End Class</Code>.Value
             End Try
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=8,
                 expectedIndentation:=12)
@@ -850,7 +850,7 @@ End Class</Code>.Value
             Using resource As new Resource()
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
@@ -865,7 +865,7 @@ End Class</Code>.Value
             While True
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
@@ -882,7 +882,7 @@ End Class</Code>.Value
             End While
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=12)
@@ -898,7 +898,7 @@ End Class</Code>.Value
             With DataStructure
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
@@ -915,7 +915,7 @@ End Class</Code>.Value
             End With
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=12)
@@ -929,7 +929,7 @@ End Class</Code>.Value
         Property Prop(ByVal index as Integer) As String
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
@@ -943,7 +943,7 @@ End Class</Code>.Value
         Property Prop As String
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
@@ -957,7 +957,7 @@ End Class</Code>.Value
         Property Prop() As String
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
@@ -972,7 +972,7 @@ End Class</Code>.Value
             Get
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
@@ -989,7 +989,7 @@ End Class</Code>.Value
             Set
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=16)
@@ -1004,7 +1004,7 @@ End Class</Code>.Value
     '''a
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=4)
@@ -1019,7 +1019,7 @@ End Class</Code>.Value
         If True Then 'c
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
@@ -1037,7 +1037,7 @@ End Class</Code>.Value
             Dim foo = Function(x) 42
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
@@ -1052,7 +1052,7 @@ End Class</Code>.Value
             Dim foo = Function(x)
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=22)
@@ -1067,7 +1067,7 @@ End Class</Code>.Value
             Dim foo = Function(x) 'Comment
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=22)
@@ -1082,7 +1082,7 @@ End Class</Code>.Value
             Dim foo = Sub(x) Console.WriteLine("Foo")
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
@@ -1097,7 +1097,7 @@ End Class</Code>.Value
             Dim foo = Sub(x) Console.WriteLine("Foo") _
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=26)
@@ -1112,7 +1112,7 @@ End Class</Code>.Value
             Dim foo = Sub(x)
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=22)
@@ -1127,7 +1127,7 @@ End Class</Code>.Value
             Dim foo = Sub(x) 'Comment
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=22)
@@ -2205,7 +2205,7 @@ $$
 End Module
 </code>.Value
 
-            Await AssertSmartIndentIndentationInProjectionAsync(
+            AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Function
@@ -2234,7 +2234,7 @@ End Module
             ' C# had the desired behavior in Dev12, where VB had the same behavior
             ' as Roslyn has.  The Roslyn formatting engine currently always formats
             ' each statement independently, so let's not change that just for Venus
-            Await AssertSmartIndentIndentationInProjectionAsync(
+            AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Function
@@ -2255,7 +2255,7 @@ End Module
 </code>.Value
 
             ' In this case, we don't look at the base indentation at all - we just line up directly with "From"
-            Await AssertSmartIndentIndentationInProjectionAsync(
+            AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=26)
         End Function
@@ -2274,7 +2274,7 @@ $$
 End Module
 </code>.Value
 
-            Await AssertSmartIndentIndentationInProjectionAsync(
+            AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 2 + "Dim query = ".Length)
         End Function
@@ -2294,7 +2294,7 @@ $$
 End Module
 </code>.Value
 
-            Await AssertSmartIndentIndentationInProjectionAsync(
+            AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 8)
         End Function
@@ -2313,7 +2313,7 @@ End Module
 End Module
 </code>.Value
 
-            Await AssertSmartIndentIndentationInProjectionAsync(
+            AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 8)
         End Function
@@ -2331,7 +2331,7 @@ $$|]|}
 End Module
 </code>.Value
 
-            Await AssertSmartIndentIndentationInProjectionAsync(
+            AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Function
@@ -2444,7 +2444,7 @@ End Class
 End Namespace
 </code>.Value
 
-            Await AssertSmartIndentIndentationInProjectionAsync(
+            AssertSmartIndentIndentationInProjection(
                 markup,
                 expectedIndentation:=15)
         End Function
@@ -2823,8 +2823,8 @@ End Class
                 expectedIndentation:=12)
         End Function
 
-        Private Shared Async Function AssertSmartIndentIndentationInProjectionAsync(markup As String,
-                                                                    expectedIndentation As Integer) As Tasks.Task
+        Private Shared Sub AssertSmartIndentIndentationInProjection(markup As String,
+                                                                    expectedIndentation As Integer)
             Using workspace = TestWorkspace.CreateVisualBasic(markup)
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents, LanguageNames.CSharp)
@@ -2841,7 +2841,7 @@ End Class
 
                 TestIndentation(point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)
             End Using
-        End Function
+        End Sub
 
         Friend Shared Sub TestIndentation(point As Integer, expectedIndentation As Integer?, textView As ITextView, subjectDocument As TestHostDocument)
             Dim snapshot = subjectDocument.TextBuffer.CurrentSnapshot
@@ -2873,7 +2873,7 @@ End Class
         End Sub
 
         ''' <param name="indentationLine">0-based. The line number in code to get indentation for.</param>
-        Private Shared Async Function AssertSmartIndentAsync(code As String, indentationLine As Integer, expectedIndentation As Integer?, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart) As Task
+        Private Shared Sub AssertSmartIndent(code As String, indentationLine As Integer, expectedIndentation As Integer?, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
@@ -2916,7 +2916,7 @@ End Class
                     End If
                 End Using
             End Using
-        End Function
+        End Sub
 
         Friend Shared Sub SetIndentStyle(buffer As ITextBuffer, indentStyle As FormattingOptions.IndentStyle)
             Dim workspace = buffer.GetWorkspace()

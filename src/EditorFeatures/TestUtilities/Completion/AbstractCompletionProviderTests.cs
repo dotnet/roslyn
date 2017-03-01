@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         protected abstract string ItemPartiallyWritten(string expectedItemOrNull);
 
-        protected abstract Task<TestWorkspace> CreateWorkspaceAsync(string fileContents);
+        protected abstract Task<TestWorkspace> CreateWorkspace(string fileContents);
 
         protected abstract Task BaseVerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private async Task VerifyTextualTriggerCharacterWorkerAsync(
             string markup, bool expectedTriggerCharacter, bool triggerOnLetter)
         {
-            using (var workspace = await CreateWorkspaceAsync(markup))
+            using (var workspace = await CreateWorkspace(markup))
             {
                 var document = workspace.Documents.Single();
                 var position = document.CursorPosition.Value;
@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             Assert.NotNull(validChars);
             invalidChars = invalidChars ?? new[] { 'x' };
 
-            using (var workspace = await CreateWorkspaceAsync(initialMarkup))
+            using (var workspace = await CreateWorkspace(initialMarkup))
             {
                 var hostDocument = workspace.DocumentWithCursor;
                 var documentId = workspace.GetDocumentId(hostDocument);

@@ -124,7 +124,7 @@ End Class",
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(539727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539727")>
-        Public Async Function DeletesSelectedText() As Tasks.Task
+        Public Sub DeletesSelectedText()
             Using workspace = TestWorkspace.CreateVisualBasic("Interface IFoo ~~")
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim subjectBuffer = workspace.Documents.First().GetTextBuffer()
@@ -144,6 +144,6 @@ End Class",
 
                 Assert.Equal("End Interface", textView.TextSnapshot.Lines.Last().GetText())
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace

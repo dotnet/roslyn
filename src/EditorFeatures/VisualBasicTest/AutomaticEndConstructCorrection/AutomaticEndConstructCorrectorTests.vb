@@ -138,7 +138,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
     End [|Function|]
 End Class</code>.Value
 
-            Await VerifyContinuousEditsAsync(code, "Interface", Function(s) If(s.Trim() = "Interface", "Interface", "Function"), removeOriginalContent:=True)
+            VerifyContinuousEdits(code, "Interface", Function(s) If(s.Trim() = "Interface", "Interface", "Function"), removeOriginalContent:=True)
         End Function
 
         <WpfFact>
@@ -149,7 +149,7 @@ End Class</code>.Value
     End [|Function|]
 End Class</code>.Value
 
-            Await VerifyContinuousEditsAsync(code, "     Interface", Function(s) If(s.Trim() = "Interface", "Interface", "Function"), removeOriginalContent:=True)
+            VerifyContinuousEdits(code, "     Interface", Function(s) If(s.Trim() = "Interface", "Interface", "Function"), removeOriginalContent:=True)
         End Function
 
         <WpfFact>
@@ -160,7 +160,7 @@ End Class</code>.Value
     End [|Function|]
 End Class</code>.Value
 
-            Await VerifyContinuousEditsAsync(code, "Interface              ", Function(s) If(s.Trim() = "Interface", "Interface", "Function"), removeOriginalContent:=True)
+            VerifyContinuousEdits(code, "Interface              ", Function(s) If(s.Trim() = "Interface", "Interface", "Function"), removeOriginalContent:=True)
         End Function
 
         <WpfFact>
@@ -171,7 +171,7 @@ End Class</code>.Value
     End [|Function|]
 End Class</code>.Value
 
-            Await VerifyContinuousEditsAsync(code, "             Interface              ", Function(s) If(s.Trim() = "Interface", "Interface", "Function"), removeOriginalContent:=True)
+            VerifyContinuousEdits(code, "             Interface              ", Function(s) If(s.Trim() = "Interface", "Interface", "Function"), removeOriginalContent:=True)
         End Function
 
         <WpfFact>
@@ -182,7 +182,7 @@ End Class</code>.Value
     End [|Function|]
 End Class</code>.Value
 
-            Await VerifyContinuousEditsAsync(code, " Shared ", Function(s) "Function", removeOriginalContent:=False)
+            VerifyContinuousEdits(code, " Shared ", Function(s) "Function", removeOriginalContent:=False)
         End Function
 
         <WpfFact>
@@ -193,7 +193,7 @@ End Class</code>.Value
     End [|Function|]
 End Class</code>.Value
 
-            Await VerifyContinuousEditsAsync(code, "Shared   ", Function(s) "Function", removeOriginalContent:=False)
+            VerifyContinuousEdits(code, "Shared   ", Function(s) "Function", removeOriginalContent:=False)
         End Function
 
         <WpfFact>
@@ -204,7 +204,7 @@ End Class</code>.Value
     End [|Function|]
 End Class</code>.Value
 
-            Await VerifyContinuousEditsAsync(code, "           ", Function(s) "Function", removeOriginalContent:=False)
+            VerifyContinuousEdits(code, "           ", Function(s) "Function", removeOriginalContent:=False)
         End Function
 
         <WpfFact>
@@ -215,7 +215,7 @@ End Class</code>.Value
     End [|Function|]
 End Class</code>.Value
 
-            Await VerifyContinuousEditsAsync(code, "           ", Function(s) "Function", removeOriginalContent:=False)
+            VerifyContinuousEdits(code, "           ", Function(s) "Function", removeOriginalContent:=False)
         End Function
 
         <WpfFact>
@@ -226,7 +226,7 @@ End Class</code>.Value
     End [|Function|]
 End Class</code>.Value
 
-            Await VerifyContinuousEditsAsync(code, "Shared", Function(s) "Function", removeOriginalContent:=False, split:="Function")
+            VerifyContinuousEdits(code, "Shared", Function(s) "Function", removeOriginalContent:=False, split:="Function")
         End Function
 
         <WorkItem(539362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
@@ -282,7 +282,7 @@ End [|Class|]</code>.Value
     End [|Function|]
 End Class</code>.Value
 
-            Await VerifyContinuousEditsAsync(code, "  ", Function(s) "Function", removeOriginalContent:=False)
+            VerifyContinuousEdits(code, "  ", Function(s) "Function", removeOriginalContent:=False)
         End Function
 
         <WorkItem(539360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539360")>
@@ -294,7 +294,7 @@ End Class</code>.Value
     End [|Function|]
 End Class</code>.Value
 
-            Await VerifyContinuousEditsAsync(code, "Shared Sub", Function(s) If(s.Trim() = "Shared Sub", "Sub", "Function"), removeOriginalContent:=True)
+            VerifyContinuousEdits(code, "Shared Sub", Function(s) If(s.Trim() = "Shared Sub", "Sub", "Function"), removeOriginalContent:=True)
         End Function
 
         <WpfFact>
@@ -305,7 +305,7 @@ End Class</code>.Value
     [|$$Sub M() : End Sub|]
 End Class</code>.Value
 
-            Await VerifyContinuousEditsAsync(code, "", Function() "", removeOriginalContent:=True)
+            VerifyContinuousEdits(code, "", Function() "", removeOriginalContent:=True)
         End Function
 
         <WpfFact>
@@ -338,11 +338,11 @@ End Class</code>.Value
             Await VerifyAsync(code, "Get")
         End Function
 
-        Private Async Function VerifyContinuousEditsAsync(codeWithMarker As String,
+        Private Sub VerifyContinuousEdits(codeWithMarker As String,
                                           type As String,
                                           expectedStringGetter As Func(Of String, String),
                                           removeOriginalContent As Boolean,
-                                          Optional split As String = Nothing) As Task
+                                          Optional split As String = Nothing)
             ' do this since xml value put only vbLf
             codeWithMarker = codeWithMarker.Replace(vbLf, vbCrLf)
 
@@ -386,17 +386,17 @@ End Class</code>.Value
 
                 corrector.Disconnect()
             End Using
-        End Function
+        End Sub
 
         Private Async Function VerifyAsync(codeWithMarker As String, keyword As String) As Task
             ' do this since xml value put only vbLf
             codeWithMarker = codeWithMarker.Replace(vbLf, vbCrLf)
 
-            Await VerifyBeginAsync(codeWithMarker, keyword)
+            VerifyBegin(codeWithMarker, keyword)
             Await VerifyEndAsync(codeWithMarker, keyword)
         End Function
 
-        Private Async Function VerifyBeginAsync(code As String, keyword As String, Optional expected As String = Nothing) As Task
+        Private Sub VerifyBegin(code As String, keyword As String, Optional expected As String = Nothing)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.Documents.Single()
 
@@ -407,9 +407,9 @@ End Class</code>.Value
 
                 Verify(workspace, document, keyword, expected, spanToReplace, spanToVerify)
             End Using
-        End Function
+        End Sub
 
-        Private Async Function VerifyEndAsync(code As String, keyword As String, Optional expected As String = Nothing) As Task
+        Private Sub VerifyEnd(code As String, keyword As String, Optional expected As String = Nothing)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.Documents.Single()
 
@@ -420,7 +420,7 @@ End Class</code>.Value
 
                 Verify(workspace, document, keyword, expected, spanToReplace, spanToVerify)
             End Using
-        End Function
+        End Sub
 
         Private Sub Verify(workspace As TestWorkspace, document As TestHostDocument, keyword As String, expected As String, spanToReplace As TextSpan, spanToVerify As TextSpan)
             Dim buffer = document.TextBuffer

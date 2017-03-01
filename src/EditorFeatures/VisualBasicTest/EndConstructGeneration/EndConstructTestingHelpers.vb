@@ -40,11 +40,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
         End Sub
 
-        Private Async Function VerifyTypedCharAppliedAsync(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
+        Private Sub VerifyTypedCharApplied(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
                                            before As String,
                                            after As String,
                                            typedChar As Char,
-                                           endCaretPos As Integer()) As Tasks.Task
+                                           endCaretPos As Integer())
             Dim caretPos = before.IndexOf("$$", StringComparison.Ordinal)
             Dim beforeText = before.Replace("$$", "")
             Using workspace = TestWorkspace.CreateVisualBasic(beforeText, exportProvider:=DisabledLineCommitExportProvider)
@@ -69,13 +69,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 Assert.Equal(endCaretPos(0), actualLine)
                 Assert.Equal(endCaretPos(1), actualCol)
             End Using
-        End Function
+        End Sub
 
-        Private Async Function VerifyAppliedAsync(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
+        Private Sub VerifyApplied(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
                                   before As String,
                                   beforeCaret As Integer(),
                                   after As String,
-                                  afterCaret As Integer()) As Tasks.Task
+                                  afterCaret As Integer())
             Using workspace = TestWorkspace.CreateVisualBasic(before, exportProvider:=DisabledLineCommitExportProvider)
                 DisableLineCommit(workspace)
 
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
                 Assert.Equal(Of Integer)(afterCaretPoint, textView.GetCaretPoint(subjectBuffer).Value.Position)
             End Using
-        End Function
+        End Sub
 
         Private Function GetSnapshotPointFromArray(view As ITextView, caret As Integer(), startIndex As Integer) As SnapshotPoint
             Dim line = view.TextSnapshot.GetLineFromLineNumber(caret(startIndex))
@@ -205,18 +205,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Function
 
         Public Async Function VerifyEndConstructAppliedAfterCharAsync(before As String, after As String, typedChar As Char, endCaretPos As Integer()) As Tasks.Task
-            Await VerifyTypedCharAppliedAsync(Function(s, v, b) s.TryDo(v, b, typedChar, Nothing), before, after, typedChar, endCaretPos)
+            VerifyTypedCharApplied(Function(s, v, b) s.TryDo(v, b, typedChar, Nothing), before, after, typedChar, endCaretPos)
         End Function
 
         Public Async Function VerifyEndConstructNotAppliedAfterCharAsync(before As String, after As String, typedChar As Char, endCaretPos As Integer()) As Tasks.Task
-            Await VerifyTypedCharAppliedAsync(Function(s, v, b) Not s.TryDo(v, b, typedChar, Nothing), before, after, typedChar, endCaretPos)
+            VerifyTypedCharApplied(Function(s, v, b) Not s.TryDo(v, b, typedChar, Nothing), before, after, typedChar, endCaretPos)
         End Function
 
-        Public Async Function VerifyAppliedAfterReturnUsingCommandHandlerAsync(
+        Public Sub VerifyAppliedAfterReturnUsingCommandHandler(
             before As String,
             beforeCaret As Integer(),
             after As String,
-            afterCaret As Integer()) As Tasks.Task
+            afterCaret As Integer())
 
             ' create separate composition
             Using workspace = TestWorkspace.CreateVisualBasic(before, exportProvider:=DisabledLineCommitExportProvider)
@@ -251,6 +251,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 Dim caretPosition = view.Caret.Position.VirtualBufferPosition
                 Assert.Equal(Of Integer)(afterCaretPoint, If(caretPosition.IsInVirtualSpace, caretPosition.Position + caretPosition.VirtualSpaces, caretPosition.Position))
             End Using
-        End Function
+        End Sub
     End Module
 End Namespace

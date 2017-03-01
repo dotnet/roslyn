@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Protected Overrides Async Function CreateWorkspaceAsync(fileContents As String) As Task(Of TestWorkspace)
+        Protected Overrides Function CreateWorkspace(fileContents As String) As TestWorkspace
             Return TestWorkspace.CreateVisualBasic(fileContents)
         End Function
 

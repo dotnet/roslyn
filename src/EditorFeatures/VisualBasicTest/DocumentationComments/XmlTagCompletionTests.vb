@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
             Return New XmlTagCompletionCommandHandler(undoHistory, TestWaitIndicator.Default)
         End Function
 
-        Protected Overrides Async Function CreateTestWorkspaceAsync(initialMarkup As String) As Task(Of TestWorkspace)
+        Protected Overrides Function CreateTestWorkspace(initialMarkup As String) As TestWorkspace
             Return TestWorkspace.CreateVisualBasic(initialMarkup)
         End Function
 

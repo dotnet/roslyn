@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
         protected abstract char DocumentationCommentCharacter { get; }
 
         internal abstract ICommandHandler CreateCommandHandler(IWaitIndicator waitIndicator, ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService);
-        protected abstract Task<TestWorkspace> CreateTestWorkspaceAsync(string code);
+        protected abstract Task<TestWorkspace> CreateTestWorkspace(string code);
 
         protected async Task VerifyTypingCharacterAsync(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true)
         {
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
         private async Task VerifyAsync(string initialMarkup, string expectedMarkup, bool useTabs, bool autoGenerateXmlDocComments,
             Action<IWpfTextView, ITextUndoHistoryRegistry, IEditorOperationsFactoryService, IAsyncCompletionService> execute)
         {
-            using (var workspace = await CreateTestWorkspaceAsync(initialMarkup))
+            using (var workspace = await CreateTestWorkspace(initialMarkup))
             {
                 var testDocument = workspace.Documents.Single();
 

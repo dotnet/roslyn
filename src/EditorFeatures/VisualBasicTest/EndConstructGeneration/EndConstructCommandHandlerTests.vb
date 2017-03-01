@@ -61,7 +61,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
     End Sub
 End Class</code>.Value.Replace(vbLf, vbCrLf)
 
-            Await VerifyAppliedAfterReturnUsingCommandHandlerAsync(code, {4, -1}, expected, {5, 12})
+            VerifyAppliedAfterReturnUsingCommandHandler(code, {4, -1}, expected, {5, 12})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
@@ -80,7 +80,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
     End Sub
 End Class</code>.Value.Replace(vbLf, vbCrLf)
 
-            Await VerifyAppliedAfterReturnUsingCommandHandlerAsync(code, {2, 29}, expected, {3, 12})
+            VerifyAppliedAfterReturnUsingCommandHandler(code, {2, 29}, expected, {3, 12})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
@@ -105,7 +105,7 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
     End Sub
 End Module</code>.Value.Replace(vbLf, vbCrLf)
 
-            Await VerifyAppliedAfterReturnUsingCommandHandlerAsync(code, {4, -1}, expected, {5, 8})
+            VerifyAppliedAfterReturnUsingCommandHandler(code, {4, -1}, expected, {5, 8})
         End Function
 
         <WorkItem(628656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628656")>

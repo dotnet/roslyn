@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        protected override async Task<TestWorkspace> CreateWorkspaceAsync(string fileContents)
+        protected override async Task<TestWorkspace> CreateWorkspace(string fileContents)
             => TestWorkspace.CreateCSharp(fileContents);
 
         internal override CompletionServiceWithProviders CreateCompletionService(

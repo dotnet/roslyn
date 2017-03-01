@@ -38,7 +38,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Using state = Await EncapsulateFieldTestState.CreateAsync(text)
+            Using state = EncapsulateFieldTestState.Create(text)
                 state.AssertEncapsulateAs(expected)
             End Using
         End Function
@@ -72,7 +72,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Using state = Await EncapsulateFieldTestState.CreateAsync(text)
+            Using state = EncapsulateFieldTestState.Create(text)
                 state.AssertEncapsulateAs(expected)
             End Using
         End Function
@@ -121,7 +121,7 @@ Class Program
 End Class
 "
 
-            Using state = Await EncapsulateFieldTestState.CreateAsync(text)
+            Using state = EncapsulateFieldTestState.Create(text)
                 state.AssertEncapsulateAs(expected)
             End Using
         End Function

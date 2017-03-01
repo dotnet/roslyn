@@ -12,14 +12,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestCreation() As Task
-            Using session = Await CreateSessionAsync("$$")
+            Using session = CreateSession("$$")
                 Assert.NotNull(session)
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestAttribute_LessThan() As Task
-            Using session = Await CreateSessionAsync("$$")
+            Using session = CreateSession("$$")
                 Assert.NotNull(session)
                 CheckStart(session.Session)
             End Using
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestInvalidLocation_LessThan() As Task
-            Using session = Await CreateSessionAsync("Imports System$$")
+            Using session = CreateSession("Imports System$$")
                 Assert.NotNull(session)
                 CheckStart(session.Session, expectValidSession:=False)
             End Using
@@ -106,13 +106,13 @@ End Class</code>
         End Function
 
         Friend Overloads Function CreateSessionAsync(code As XElement) As Threading.Tasks.Task(Of Holder)
-            Return CreateSessionAsync(code.NormalizedValue())
+            Return CreateSession(code.NormalizedValue())
         End Function
 
-        Friend Overloads Async Function CreateSessionAsync(code As String) As Threading.Tasks.Task(Of Holder)
+        Friend Overloads Function CreateSession(code As String) As Holder
             Return CreateSession(
-                TestWorkspace.CreateVisualBasic(code),
-                BraceCompletionSessionProvider.LessAndGreaterThan.OpenCharacter, BraceCompletionSessionProvider.LessAndGreaterThan.CloseCharacter)
+TestWorkspace.CreateVisualBasic(code),
+BraceCompletionSessionProvider.LessAndGreaterThan.OpenCharacter, BraceCompletionSessionProvider.LessAndGreaterThan.CloseCharacter)
         End Function
     End Class
 End Namespace

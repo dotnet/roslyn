@@ -1891,7 +1891,7 @@ $$
             return new DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService);
         }
 
-        protected override async Task<TestWorkspace> CreateTestWorkspaceAsync(string code)
+        protected override async Task<TestWorkspace> CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
     }
 }

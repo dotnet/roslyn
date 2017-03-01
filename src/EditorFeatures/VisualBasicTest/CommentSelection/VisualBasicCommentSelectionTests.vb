@@ -27,7 +27,7 @@ End Module</code>
     'End Sub
 End Module</code>
 
-            Await InvokeCommentOperationOnSelectionAfterReplacingLfToCrLfAsync(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Comment)
+            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Comment)
         End Function
 
 
@@ -45,7 +45,7 @@ End Module</code>
     End Sub
 End Module</code>
 
-            Await InvokeCommentOperationOnSelectionAfterReplacingLfToCrLfAsync(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Uncomment)
+            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Uncomment)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
@@ -62,10 +62,10 @@ End Module</code>
     End Sub
 End Module</code>
 
-            Await InvokeCommentOperationOnSelectionAfterReplacingLfToCrLfAsync(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Uncomment)
+            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Uncomment)
         End Function
 
-        Private Shared Async Function InvokeCommentOperationOnSelectionAfterReplacingLfToCrLfAsync(code As String, expected As String, operation As CommentUncommentSelectionCommandHandler.Operation) As Threading.Tasks.Task
+        Private Shared Sub InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code As String, expected As String, operation As CommentUncommentSelectionCommandHandler.Operation)
             ' do this since xml value put only vbLf
             code = code.Replace(vbLf, vbCrLf)
             expected = expected.Replace(vbLf, vbCrLf)
@@ -89,7 +89,7 @@ End Module</code>
 
                 Assert.Equal(expected, doc.TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
 
         Private Shared Sub SetupSelection(textView As IWpfTextView, spans As IEnumerable(Of Span))
             Dim snapshot = textView.TextSnapshot

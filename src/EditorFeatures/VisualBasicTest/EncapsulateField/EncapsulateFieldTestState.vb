@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
             TargetDocument = workspace.CurrentSolution.GetDocument(_testDocument.Id)
         End Sub
 
-        Public Shared Async Function CreateAsync(markup As String) As System.Threading.Tasks.Task(Of EncapsulateFieldTestState)
+        Public Shared Function Create(markup As String) As EncapsulateFieldTestState
             Dim workspace = TestWorkspace.CreateVisualBasic(markup, exportProvider:=s_exportProvider)
             Return New EncapsulateFieldTestState(workspace)
         End Function

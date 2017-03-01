@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
 
         Protected Overrides ReadOnly Property Language As String = "vb"
 
-        Protected Overrides Async Function CreateWorkspace(content As String, exportProvider As ExportProvider) As Task(Of TestWorkspace)
+        Protected Overrides Function CreateWorkspace(content As String, exportProvider As ExportProvider) As TestWorkspace
             Return TestWorkspace.CreateVisualBasic(content, exportProvider:=exportProvider)
         End Function
 

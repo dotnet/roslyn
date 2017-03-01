@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Async Function TestCreation() As Task
-            Using session = Await CreateSessionASync("$$")
+            Using session = CreateSessionASync("$$")
                 Assert.NotNull(session)
             End Using
         End Function
@@ -94,10 +94,10 @@ End Class</code>
             Return CreateSessionASync(code.NormalizedValue())
         End Function
 
-        Friend Overloads Async Function CreateSessionASync(code As String) As Threading.Tasks.Task(Of Holder)
+        Friend Overloads Function CreateSessionASync(code As String) As Holder
             Return CreateSession(
-                TestWorkspace.CreateVisualBasic(code),
-                BraceCompletionSessionProvider.CurlyBrace.OpenCharacter, BraceCompletionSessionProvider.CurlyBrace.CloseCharacter)
+TestWorkspace.CreateVisualBasic(code),
+BraceCompletionSessionProvider.CurlyBrace.OpenCharacter, BraceCompletionSessionProvider.CurlyBrace.CloseCharacter)
         End Function
     End Class
 End Namespace
