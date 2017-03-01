@@ -5,8 +5,8 @@ Here are the main branches you should know about:
 
 | Branch |       |
 | ------ | ----- | 
-| [**master**](//github.com/dotnet/roslyn/tree/master) | Our primary branch. Changes here currently target Visual Studio "15". If in doubt, this is where you should work, and submit pull requests. <br/>[Instructions for Building on Windows](//github.com/dotnet/roslyn/blob/master/docs/contributing/Building, Debugging, and Testing on Windows.md) <br/>[Instructions for Building on Linux and Mac](//github.com/dotnet/roslyn/blob/master/docs/infrastructure/cross-platform.md) |
-| [**microupdate**](//github.com/dotnet/roslyn/tree/microupdate) | Changes here target updates of Visual Studio 2015, and is only taking critical bug fixes at this point. <br/>[Instructions for Building on Windows](//github.com/dotnet/roslyn/blob/future/docs/contributing/Building, Debugging, and Testing on Windows.md) <br/>[Instructions for Building on Linux and Mac](//github.com/dotnet/roslyn/blob/future/docs/infrastructure/cross-platform.md)
+| [**master**](//github.com/dotnet/roslyn/tree/master) | Our primary branch. Changes here currently target a future update of Visual Studio 2017. If in doubt, this is where you should work, and submit pull requests. <br/>[Instructions for Building on Windows](//github.com/dotnet/roslyn/blob/master/docs/contributing/Building, Debugging, and Testing on Windows.md) <br/>[Instructions for Building on Linux and Mac](//github.com/dotnet/roslyn/blob/master/docs/infrastructure/cross-platform.md) |
+| [**dev16**](//github.com/dotnet/roslyn/tree/dev16) | Changes here target whatever version of Visual Studio comes after Visual Studio 2017. <br/>[Instructions for Building on Windows](//github.com/dotnet/roslyn/blob/dev16/docs/contributing/Building, Debugging, and Testing on Windows.md) <br/>[Instructions for Building on Linux and Mac](//github.com/dotnet/roslyn/blob/dev16/docs/infrastructure/cross-platform.md)
 
 ## Known Issues
 Please see the [known contributor issues](https://github.com/dotnet/roslyn/labels/Contributor%20Pain) that you might encounter contributing to Roslyn. If you issue isn't listed, please file it.
