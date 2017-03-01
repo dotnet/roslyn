@@ -167,6 +167,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return text.Substring(bufferPosition.Position - line.Start);
             });
 
+        public string GetSelectedText()
+            => ExecuteOnActiveView(view =>
+            {
+                var subjectBuffer = view.GetBufferContainingCaret();
+                var selectedSpan = view.Selection.SelectedSpans[0];
+                return subjectBuffer.CurrentSnapshot.GetText(selectedSpan);
+            });
+
         public void MoveCaret(int position)
             => ExecuteOnActiveView(view =>
             {
@@ -570,6 +578,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             SendKeys.SendWait(keys);
         }
 
+        public void NavigateToSendKeys(string keys)
+        {
+            var dialogAutomationElement = FindNavigateTo();
+            if (dialogAutomationElement == null)
+            {
+                throw new InvalidOperationException($"Expected the NavigateTo dialog to be open, but it is not.");
+            }
+
+            dialogAutomationElement.SetFocus();
+            SendKeys.SendWait(keys);
+        }
+
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
             DialogHelpers.PressButton(GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
@@ -591,6 +611,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 new PropertyCondition(AutomationElement.AutomationIdProperty, dialogAutomationName),
                 new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
 
+            return vsAutomationElement.FindFirst(TreeScope.Descendants, elementCondition);
+        }
+
+        private static AutomationElement FindNavigateTo()
+        {
+            var vsAutomationElement = AutomationElement.FromHandle(new IntPtr(GetDTE().MainWindow.HWnd));
+            Condition elementCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, "PART_SearchBox");
             return vsAutomationElement.FindFirst(TreeScope.Descendants, elementCondition);
         }
 

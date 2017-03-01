@@ -446,6 +446,15 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
             Assert.Contains(referencedProjectName, projectReferences);
+
+        }
+        protected void InvokeNavigateTo(string text)
+        {
+            ExecuteCommand(WellKnownCommandNames.Edit_GoToAll);
+            Editor.NavigateToSendKeys(text);
+            WaitForAsyncOperations(FeatureAttribute.NavigateTo);
+            Editor.NavigateToSendKeys("{ENTER}");
+            WaitForAsyncOperations(FeatureAttribute.NavigateTo);
         }
 
         public void VerifyCurrentTokenType(string tokenType)
