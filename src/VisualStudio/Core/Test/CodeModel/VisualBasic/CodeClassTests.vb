@@ -3133,7 +3133,7 @@ Class C$$
 End Class
 </Code>
 
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeClass)
                     For i = 1 To 100
                         Dim variable = codeClass.AddVariable("x", "System.Int32")
@@ -3179,7 +3179,7 @@ Class $$Foo
 End Class
 </Code>
 
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeClass)
                     Dim listType = TryCast(codeClass.Bases.Item(1), EnvDTE80.CodeClass2)
                     Assert.NotNull(listType)
@@ -3206,7 +3206,7 @@ Class D$$
 End Class
 </Code>
 
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim members = codeElement.Members
                     Assert.Equal(2, members.Count)
@@ -3235,7 +3235,7 @@ Public Class $$C1
 End Class
 </Code>
 
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeClass)
                     Dim members = codeClass.Members
                     Assert.Equal(4, members.Count)

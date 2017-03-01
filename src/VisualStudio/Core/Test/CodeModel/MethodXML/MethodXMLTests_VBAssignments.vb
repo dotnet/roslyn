@@ -49,7 +49,7 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -93,7 +93,7 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -137,7 +137,7 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -188,7 +188,7 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -239,7 +239,7 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -280,7 +280,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -321,7 +321,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -353,7 +353,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(462922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/462922")>
@@ -415,7 +415,7 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -516,7 +516,7 @@ End Enum
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(743120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743120")>
@@ -560,7 +560,7 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -602,7 +602,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -635,7 +635,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -668,7 +668,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -701,7 +701,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -734,7 +734,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -767,7 +767,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(887584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/887584")>
@@ -820,7 +820,7 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -868,7 +868,7 @@ End Class
             Dim oldCulture = currentThread.CurrentCulture
             Try
                 currentThread.CurrentCulture = CultureInfo.GetCultureInfo("de-DE")
-                Await TestAsync(definition, expected)
+                Test(definition, expected)
             Finally
                 currentThread.CurrentCulture = oldCulture
             End Try
@@ -933,7 +933,7 @@ End Class
             Dim oldCulture = currentThread.CurrentCulture
             Try
                 currentThread.CurrentCulture = CultureInfo.GetCultureInfo("de-DE")
-                Await TestAsync(definition, expected)
+                Test(definition, expected)
             Finally
                 currentThread.CurrentCulture = oldCulture
             End Try
@@ -988,7 +988,7 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
@@ -1020,7 +1020,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
@@ -1052,7 +1052,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
     End Class

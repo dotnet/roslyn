@@ -768,7 +768,7 @@ End Class", Async Function(w)
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestDescriptionItemsFilePath() As Task
-            Using workspace = Await SetupWorkspaceAsync(
+            Using workspace = SetupWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document FilePath="foo\Test1.vb">

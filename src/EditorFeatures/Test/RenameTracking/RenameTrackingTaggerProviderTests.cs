@@ -1437,7 +1437,7 @@ namespace System
         </Document>
     </Project>
 </Workspace>";
-            using (var state = await RenameTrackingTestState.CreateFromWorkspaceXmlAsync(workspaceXml, LanguageNames.CSharp))
+            using (var state = RenameTrackingTestState.CreateFromWorkspaceXml(workspaceXml, LanguageNames.CSharp))
             {
                 state.EditorOperations.InsertText("2");
                 await state.AssertNoTag();
@@ -1468,7 +1468,7 @@ public struct ValueTuple&lt;T1&gt;
         </Document>
     </Project>
 </Workspace>";
-            using (var state = await RenameTrackingTestState.CreateFromWorkspaceXmlAsync(workspaceXml, LanguageNames.CSharp))
+            using (var state = RenameTrackingTestState.CreateFromWorkspaceXml(workspaceXml, LanguageNames.CSharp))
             {
                 state.EditorOperations.InsertText("2");
                 await state.AssertTag("ValueTuple", "ValueTuple2");

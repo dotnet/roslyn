@@ -63,7 +63,7 @@ Class C$$
 End Class
 </Code>
 
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim members = codeElement.Members
                     Assert.Equal(9, members.Count)
@@ -124,7 +124,7 @@ Class D$$
 End Class
 </Code>
 
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim members = codeElement.Members
                     Assert.Equal(2, members.Count)
@@ -159,7 +159,7 @@ Class D$$
 End Class
 </Code>
 
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim members = codeElement.Members
                     Assert.Equal(3, members.Count)

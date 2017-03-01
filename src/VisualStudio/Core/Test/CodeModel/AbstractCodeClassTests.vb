@@ -168,7 +168,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Sub
 
         Protected Async Function TestGetBaseName(code As XElement, expectedBaseName As String) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeClass)
                     Dim codeClassBase = TryCast(codeClass, ICodeClassBase)
                     Assert.NotNull(codeClassBase)

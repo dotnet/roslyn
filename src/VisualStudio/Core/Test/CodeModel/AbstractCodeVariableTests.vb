@@ -96,7 +96,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestIsConstant(code As XElement, expected As Boolean) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, codeElement.IsConstant)
                 End Sub)
@@ -114,7 +114,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestInitExpression(code As XElement, expected As Object) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, codeElement.InitExpression)
                 End Sub)

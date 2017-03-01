@@ -9,7 +9,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     Public Class AnalyzersFolderItemTests
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Async Function Name() As Task
+        Public Sub Name()
             Dim workspaceXml =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -24,10 +24,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Assert.Equal(expected:=SolutionExplorerShim.Analyzers, actual:=analyzerFolder.Text)
             End Using
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Async Function BrowseObject1() As Task
+        Public Sub BrowseObject1()
             Dim workspaceXml =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -44,6 +44,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Assert.Equal(expected:=SolutionExplorerShim.Analyzers, actual:=browseObject.GetComponentName())
                 Assert.Equal(expected:=SolutionExplorerShim.Folder_Properties, actual:=browseObject.GetClassName())
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace

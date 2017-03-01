@@ -79,7 +79,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Sub
 
         Protected Async Function TestBaseClass(code As XElement, expectedFullName As String) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.NotNull(codeElement.BaseClass)
                     Assert.Equal(expectedFullName, codeElement.BaseClass.FullName)

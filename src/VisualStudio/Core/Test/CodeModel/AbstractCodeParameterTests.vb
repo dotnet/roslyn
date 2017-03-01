@@ -66,14 +66,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestParameterKind(code As XElement, kind As EnvDTE80.vsCMParameterKind) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(kind, codeElement.ParameterKind)
                 End Sub)
         End Function
 
         Protected Async Function TestDefaultValue(code As XElement, expectedValue As String) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expectedValue, codeElement.DefaultValue)
                 End Sub)
@@ -104,7 +104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Friend Async Function TestGetParameterPassingMode(code As XElement, expected As PARAMETER_PASSING_MODE) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim parameterKind = TryCast(codeElement, IParameterKind)
                     Assert.NotNull(parameterKind)
@@ -133,7 +133,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Friend Async Function TestGetParameterArrayCount(code As XElement, expected As Integer) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim parameterKind = TryCast(codeElement, IParameterKind)
                     Assert.NotNull(parameterKind)
@@ -144,7 +144,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Friend Async Function TestGetParameterArrayDimensions(code As XElement, index As Integer, expected As Integer) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim parameterKind = TryCast(codeElement, IParameterKind)
                     Assert.NotNull(parameterKind)

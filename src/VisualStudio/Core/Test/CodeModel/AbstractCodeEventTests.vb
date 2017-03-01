@@ -80,7 +80,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestIsPropertyStyleEvent(code As XElement, expected As Boolean) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, codeElement.IsPropertyStyleEvent)
                 End Sub)

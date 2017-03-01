@@ -46,7 +46,7 @@ End Class</Document>
         </Project>
     </Workspace>
 
-            Await TestAsync(definition, s_initializeComponentXML1)
+            Test(definition, s_initializeComponentXML1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -110,7 +110,7 @@ End Class</Document>
         </Project>
     </Workspace>
 
-            Await TestAsync(definition, s_initializeComponentXML2)
+            Test(definition, s_initializeComponentXML2)
         End Function
 
     End Class

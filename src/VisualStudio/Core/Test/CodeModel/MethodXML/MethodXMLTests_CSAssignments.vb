@@ -48,7 +48,7 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -93,7 +93,7 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -138,7 +138,7 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -188,7 +188,7 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -233,7 +233,7 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -278,7 +278,7 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -329,7 +329,7 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -380,7 +380,7 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -435,7 +435,7 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -485,7 +485,7 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -520,7 +520,7 @@ public class C
     <Quote line="6">x -= 41;</Quote>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -609,7 +609,7 @@ public class C
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(743120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743120")>
@@ -655,7 +655,7 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -699,7 +699,7 @@ public class C
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -735,7 +735,7 @@ public class C
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -771,7 +771,7 @@ public class C
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -807,7 +807,7 @@ public class C
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -843,7 +843,7 @@ public class C
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -869,7 +869,7 @@ public class C
     <Quote line="5">int* i = &amp;x;</Quote>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -903,7 +903,7 @@ public class C
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -937,7 +937,7 @@ public class C
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
@@ -973,7 +973,7 @@ class C
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(887584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/887584")>
@@ -1029,7 +1029,7 @@ class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(1126037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1126037")>
@@ -1080,7 +1080,7 @@ class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(4312, "https://github.com/dotnet/roslyn/issues/4312")>
@@ -1140,7 +1140,7 @@ class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
@@ -1174,7 +1174,7 @@ class C
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
@@ -1208,7 +1208,7 @@ class C
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
     End Class

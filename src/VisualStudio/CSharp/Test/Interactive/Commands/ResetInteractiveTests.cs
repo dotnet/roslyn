@@ -34,7 +34,7 @@ namespace ResetInteractiveTestsDocument
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public async void TestResetREPLWithProjectContext()
+        public void TestResetREPLWithProjectContext()
         {
             using (var workspace = TestWorkspace.Create(WorkspaceXmlStr))
             {

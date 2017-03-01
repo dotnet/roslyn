@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"))
@@ -51,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"))
@@ -73,7 +73,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"))
@@ -95,7 +95,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"))
@@ -120,7 +120,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"))
@@ -145,7 +145,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("X.Y"),
                 [Class]("C"))
@@ -173,7 +173,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("X.Y"),
                 [Class]("C"))
@@ -198,7 +198,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -224,7 +224,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -250,7 +250,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -276,7 +276,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -302,7 +302,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -326,7 +326,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -350,7 +350,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -374,7 +374,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -398,7 +398,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -422,7 +422,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -446,7 +446,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("CSharpTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -472,7 +472,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"))
@@ -492,7 +492,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"))
@@ -512,7 +512,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"))
@@ -532,7 +532,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"))
@@ -554,7 +554,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"))
@@ -576,7 +576,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("X.Y"),
                 [Class]("C"))
@@ -600,7 +600,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("X.Y"),
                 [Class]("C"))
@@ -623,7 +623,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -646,7 +646,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -669,7 +669,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -692,7 +692,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -715,7 +715,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -737,7 +737,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -759,7 +759,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -781,7 +781,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -803,7 +803,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -825,7 +825,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -847,7 +847,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace,
+            Test(workspace,
                 Package("VBTestAssembly"),
                 [Namespace]("N"),
                 [Class]("C"),
@@ -856,10 +856,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 
 #End Region
 
-        Private Async Function TestAsync(
+        Private Sub Test(
             workspaceDefinition As XElement,
             ParamArray presentationNodes As NodeVerifier()
-        ) As Task
+        )
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
                 Dim hostDocument = workspace.DocumentWithCursor
@@ -879,7 +879,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 navigationTool.VerifyNavInfo()
             End Using
 
-        End Function
+        End Sub
 
     End Class
 End Namespace

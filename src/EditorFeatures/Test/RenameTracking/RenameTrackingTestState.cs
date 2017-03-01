@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
 
-        public static async Task<RenameTrackingTestState> CreateFromWorkspaceXmlAsync(
+        public static RenameTrackingTestState CreateFromWorkspaceXml(
             string workspaceXml,
             string languageName,
             bool onBeforeGlobalSymbolRenamedReturnValue = true,

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             }
         }
 
-        protected async Task<TestWorkspace> SetupWorkspaceAsync(XElement workspaceElement)
+        protected TestWorkspace SetupWorkspace(XElement workspaceElement)
         {
             var workspace = TestWorkspace.Create(workspaceElement, exportProvider: s_exportProvider);
             InitializeWorkspace(workspace);

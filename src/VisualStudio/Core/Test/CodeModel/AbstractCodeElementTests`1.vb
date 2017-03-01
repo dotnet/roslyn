@@ -23,28 +23,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                       codeElement)
         End Function
 
-        Protected Overloads Async Function TestElement(code As XElement, expected As Action(Of TCodeElement)) As Task
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+        Protected Overloads Sub TestElement(code As XElement, expected As Action(Of TCodeElement))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElement = GetCodeElement(state)
                 Assert.NotNull(codeElement)
 
                 expected(codeElement)
             End Using
-        End Function
+        End Sub
 
-        Friend Overloads Async Function TestElement(code As XElement, expected As Action(Of CodeModelTestState, TCodeElement)) As Task
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+        Friend Overloads Sub TestElement(code As XElement, expected As Action(Of CodeModelTestState, TCodeElement))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElement = GetCodeElement(state)
                 Assert.NotNull(codeElement)
 
                 expected(state, codeElement)
             End Using
-        End Function
+        End Sub
 
         Protected Overloads Async Function TestElementUpdate(
                 code As XElement, expectedCode As XElement, updater As Action(Of TCodeElement),
                 Optional options As IDictionary(Of OptionKey, Object) = Nothing) As Task
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 If options IsNot Nothing Then
                     For Each kvp In options
                         state.Workspace.Options = state.Workspace.Options.WithChangedOption(kvp.Key, kvp.Value)
@@ -62,7 +62,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Friend Overloads Async Function TestElementUpdate(code As XElement, expectedCode As XElement, updater As Action(Of CodeModelTestState, TCodeElement)) As Task
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElement = GetCodeElement(state)
                 Assert.NotNull(codeElement)
 
@@ -429,7 +429,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Sub
 
         Protected Async Function TestPropertyDescriptors(code As XElement, ParamArray expectedPropertyNames As String()) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim propertyDescriptors = ComponentModel.TypeDescriptor.GetProperties(codeElement)
                     Dim propertyNames = propertyDescriptors _
@@ -442,7 +442,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestGetStartPoint(code As XElement, ParamArray expectedParts() As Action(Of Func(Of EnvDTE.vsCMPart, EnvDTE.TextPoint))) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim textPointGetter = GetStartPointFunc(codeElement)
 
@@ -453,7 +453,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestGetEndPoint(code As XElement, ParamArray expectedParts() As Action(Of Func(Of EnvDTE.vsCMPart, EnvDTE.TextPoint))) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim textPointGetter = GetEndPointFunc(codeElement)
 
@@ -464,7 +464,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestAccess(code As XElement, expectedAccess As EnvDTE.vsCMAccess) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim access = GetAccess(codeElement)
                     Assert.Equal(expectedAccess, access)
@@ -472,7 +472,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestAttributes(code As XElement, ParamArray expectedAttributes() As Action(Of Object)) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim attributes = GetAttributes(codeElement)
                     Assert.Equal(expectedAttributes.Length, attributes.Count)
@@ -484,7 +484,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestBases(code As XElement, ParamArray expectedBases() As Action(Of Object)) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim bases = GetBases(codeElement)
                     Assert.Equal(expectedBases.Length, bases.Count)
@@ -496,7 +496,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Overrides Async Function TestChildren(code As XElement, ParamArray expectedChildren() As Action(Of Object)) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim element = CType(codeElement, EnvDTE.CodeElement)
                     Assert.True(element IsNot Nothing, $"Could not cast {GetType(TCodeElement).FullName} to {GetType(EnvDTE.CodeElement).FullName}.")
@@ -511,7 +511,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestClassKind(code As XElement, expectedClassKind As EnvDTE80.vsCMClassKind) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim classKind = GetClassKind(codeElement)
                     Assert.Equal(expectedClassKind, classKind)
@@ -519,7 +519,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestComment(code As XElement, expectedComment As String) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim comment = GetComment(codeElement)
                     Assert.Equal(expectedComment, comment)
@@ -527,7 +527,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestConstKind(code As XElement, expectedConstKind As EnvDTE80.vsCMConstKind) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim constKind = GetConstKind(codeElement)
                     Assert.Equal(expectedConstKind, constKind)
@@ -535,7 +535,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestDataTypeKind(code As XElement, expectedDataTypeKind As EnvDTE80.vsCMDataTypeKind) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim dataTypeKind = GetDataTypeKind(codeElement)
                     Assert.Equal(expectedDataTypeKind, dataTypeKind)
@@ -543,7 +543,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestDocComment(code As XElement, expectedDocComment As String) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim docComment = GetDocComment(codeElement)
                     Assert.Equal(expectedDocComment, docComment)
@@ -551,7 +551,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestFullName(code As XElement, expectedFullName As String) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim fullName = GetFullName(codeElement)
                     Assert.Equal(expectedFullName, fullName)
@@ -559,7 +559,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestImplementedInterfaces(code As XElement, ParamArray expectedBases() As Action(Of Object)) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim implementedInterfaces = GetImplementedInterfaces(codeElement)
                     Assert.Equal(expectedBases.Length, implementedInterfaces.Count)
@@ -571,7 +571,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestInheritanceKind(code As XElement, expectedInheritanceKind As EnvDTE80.vsCMInheritanceKind) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim inheritanceKind = GetInheritanceKind(codeElement)
                     Assert.Equal(expectedInheritanceKind, inheritanceKind)
@@ -579,7 +579,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestIsAbstract(code As XElement, expectedValue As Boolean) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim value = GetIsAbstract(codeElement)
                     Assert.Equal(expectedValue, value)
@@ -587,7 +587,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestIsDefault(code As XElement, expectedValue As Boolean) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim value = GetIsDefault(codeElement)
                     Assert.Equal(expectedValue, value)
@@ -595,7 +595,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestIsGeneric(code As XElement, expectedValue As Boolean) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim value = GetIsGeneric(codeElement)
                     Assert.Equal(expectedValue, value)
@@ -603,7 +603,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestIsShared(code As XElement, expectedValue As Boolean) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim value = GetIsShared(codeElement)
                     Assert.Equal(expectedValue, value)
@@ -611,7 +611,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestKind(code As XElement, expectedKind As EnvDTE.vsCMElement) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim kind = GetKind(codeElement)
                     Assert.Equal(expectedKind, kind)
@@ -619,7 +619,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestMustImplement(code As XElement, expectedValue As Boolean) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim value = GetMustImplement(codeElement)
                     Assert.Equal(expectedValue, value)
@@ -627,7 +627,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestName(code As XElement, expectedName As String) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim name = GetName(codeElement)
                     Assert.Equal(expectedName, name)
@@ -635,7 +635,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestOverrideKind(code As XElement, expectedOverrideKind As EnvDTE80.vsCMOverrideKind) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim overrideKind = GetOverrideKind(codeElement)
                     Assert.Equal(expectedOverrideKind, overrideKind)
@@ -643,7 +643,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestParts(code As XElement, expectedPartCount As Integer) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim parts = GetParts(codeElement)
 
@@ -653,7 +653,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestParent(code As XElement, expectedParent As Action(Of Object)) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim parent = GetParent(codeElement)
                     expectedParent(parent)
@@ -661,7 +661,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestPrototype(code As XElement, flags As EnvDTE.vsCMPrototype, expectedPrototype As String) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim prototype = GetPrototype(codeElement, flags)
                     Assert.Equal(expectedPrototype, prototype)
@@ -669,14 +669,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestPrototypeThrows(Of TException As Exception)(code As XElement, flags As EnvDTE.vsCMPrototype) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Throws(Of TException)(Sub() GetPrototype(codeElement, flags))
                 End Sub)
         End Function
 
         Protected Async Function TestReadWrite(code As XElement, expectedOverrideKind As EnvDTE80.vsCMPropertyKind) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim readWrite = GetReadWrite(codeElement)
                     Assert.Equal(expectedOverrideKind, readWrite)
@@ -684,7 +684,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestIsDerivedFrom(code As XElement, baseFullName As String, expectedIsDerivedFrom As Boolean) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim actualIsDerivedFrom = IsDerivedFrom(codeElement, baseFullName)
                     Assert.Equal(expectedIsDerivedFrom, actualIsDerivedFrom)
@@ -692,7 +692,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestTypeProp(code As XElement, data As CodeTypeRefData) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim codeTypeRef = GetTypeProp(codeElement)
                     TestCodeTypeRef(codeTypeRef, data)
@@ -940,7 +940,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestNamespaceName(code As XElement, name As String) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim codeNamespaceElement = GetNamespace(codeElement)
                     Assert.NotNull(codeNamespaceElement)
@@ -975,42 +975,42 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestGenericNameExtender_GetBaseTypesCount(code As XElement, expected As Integer) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, GenericNameExtender_GetBaseTypesCount(codeElement))
                 End Sub)
         End Function
 
         Protected Async Function TestGenericNameExtender_GetImplementedTypesCount(code As XElement, expected As Integer) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, GenericNameExtender_GetImplementedTypesCount(codeElement))
                 End Sub)
         End Function
 
         Protected Async Function TestGenericNameExtender_GetImplementedTypesCountThrows(Of TException As Exception)(code As XElement) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Throws(Of TException)(Sub() GenericNameExtender_GetImplementedTypesCount(codeElement))
                 End Sub)
         End Function
 
         Protected Async Function TestGenericNameExtender_GetBaseGenericName(code As XElement, index As Integer, expected As String) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, GenericNameExtender_GetBaseGenericName(codeElement, index))
                 End Sub)
         End Function
 
         Protected Async Function TestGenericNameExtender_GetImplTypeGenericName(code As XElement, index As Integer, expected As String) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, GenericNameExtender_GetImplTypeGenericName(codeElement, index))
                 End Sub)
         End Function
 
         Protected Async Function TestGenericNameExtender_GetImplTypeGenericNameThrows(Of TException As Exception)(code As XElement, index As Integer) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Throws(Of TException)(Sub() GenericNameExtender_GetImplTypeGenericName(codeElement, index))
                 End Sub)
@@ -1024,7 +1024,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestAddBaseThrows(Of TException As Exception)(code As XElement, base As Object, position As Object) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Throws(Of TException)(Sub() AddBase(codeElement, base, position))
                 End Sub)
@@ -1038,7 +1038,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestRemoveBaseThrows(Of TException As Exception)(code As XElement, element As Object) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Throws(Of TException)(Sub() RemoveBase(codeElement, element))
                 End Sub)
@@ -1052,7 +1052,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestAddImplementedInterfaceThrows(Of TException As Exception)(code As XElement, base As Object, position As Object) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Throws(Of TException)(Sub() AddImplementedInterface(codeElement, base, position))
                 End Sub)
@@ -1066,14 +1066,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestRemoveImplementedInterfaceThrows(Of TException As Exception)(code As XElement, element As Object) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Throws(Of TException)(Sub() RemoveImplementedInterface(codeElement, element))
                 End Sub)
         End Function
 
         Protected Async Function TestAllParameterNames(code As XElement, ParamArray expectedParameterNames() As String) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim parameters = GetParameters(codeElement)
                     Assert.NotNull(parameters)

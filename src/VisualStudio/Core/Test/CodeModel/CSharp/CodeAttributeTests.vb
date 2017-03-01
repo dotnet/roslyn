@@ -651,7 +651,7 @@ class C
 }
 </Code>
 
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeAttribute)
                     For i = 1 To 100
                         Dim value = i.ToString()

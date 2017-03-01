@@ -6,26 +6,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Public MustInherit Class AbstractRootCodeModelTests
         Inherits AbstractCodeModelObjectTests(Of EnvDTE80.CodeModel2)
 
-        Protected Async Function TestRootCodeModel(workspaceDefinition As XElement, action As Action(Of EnvDTE80.CodeModel2)) As Task
-            Using state = Await CreateCodeModelTestStateAsync(workspaceDefinition)
+        Protected Sub TestRootCodeModel(workspaceDefinition As XElement, action As Action(Of EnvDTE80.CodeModel2))
+            Using state = CreateCodeModelTestState(workspaceDefinition)
                 Dim rootCodeModel = TryCast(state.RootCodeModel, EnvDTE80.CodeModel2)
                 Assert.NotNull(rootCodeModel)
 
                 action(rootCodeModel)
             End Using
-        End Function
+        End Sub
 
-        Protected Async Function TestRootCodeModelWithCodeFile(code As XElement, action As Action(Of EnvDTE80.CodeModel2)) As Task
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+        Protected Sub TestRootCodeModelWithCodeFile(code As XElement, action As Action(Of EnvDTE80.CodeModel2))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim rootCodeModel = TryCast(state.RootCodeModel, EnvDTE80.CodeModel2)
                 Assert.NotNull(rootCodeModel)
 
                 action(rootCodeModel)
             End Using
-        End Function
+        End Sub
 
         Protected Overrides Async Function TestChildren(code As XElement, ParamArray expectedChildren() As Action(Of Object)) As Task
-            Await TestRootCodeModelWithCodeFile(code,
+            TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Dim codeElements = rootCodeModel.CodeElements
                     Assert.Equal(expectedChildren.Length, rootCodeModel.CodeElements.Count)
@@ -77,7 +77,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestCodeTypeFromFullName(workspaceDefinition As XElement, fullName As String, action As Action(Of EnvDTE.CodeType)) As Task
-            Await TestRootCodeModel(workspaceDefinition,
+            TestRootCodeModel(workspaceDefinition,
                 Sub(rootCodeModel)
                     action(rootCodeModel.CodeTypeFromFullName(fullName))
                 End Sub)

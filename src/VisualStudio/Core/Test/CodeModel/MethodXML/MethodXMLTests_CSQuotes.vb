@@ -48,7 +48,7 @@ public class C
     <Comment> Foo3</Comment>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
     End Class

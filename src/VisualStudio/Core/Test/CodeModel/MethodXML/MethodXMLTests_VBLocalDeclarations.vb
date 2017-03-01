@@ -30,7 +30,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -62,7 +62,7 @@ End Class
         </Local>
     </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -105,7 +105,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -155,7 +155,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -190,7 +190,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -231,7 +231,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -263,7 +263,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -299,7 +299,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -337,7 +337,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -366,7 +366,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -395,7 +395,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -438,7 +438,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -481,7 +481,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -531,7 +531,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -555,7 +555,7 @@ End Class
     <Quote line="3">Dim i("Foo") As Integer</Quote>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -579,7 +579,7 @@ End Class
     <Quote line="3">Dim i(CInt("Foo")) As Integer</Quote>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -603,7 +603,7 @@ End Class
         <Quote line="3">Dim i("Foo".Length) As Integer</Quote>
     </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -661,7 +661,7 @@ End Class
         </Local>
     </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -719,7 +719,7 @@ End Class
         </Local>
     </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -759,7 +759,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -795,7 +795,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
@@ -831,7 +831,7 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
+            Test(definition, expected)
         End Function
 
     End Class

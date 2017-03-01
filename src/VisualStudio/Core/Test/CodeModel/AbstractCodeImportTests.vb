@@ -39,7 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Async Function TestNamespace(code As XElement, expectedNamespace As String) As Task
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expectedNamespace, codeElement.Namespace)
                 End Sub)

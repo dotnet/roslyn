@@ -42,7 +42,7 @@ namespace N
 }
 </code>
 
-            Await TestRootCodeModelWithCodeFile(code,
+            TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Dim dotNetName = rootCodeModel.DotNetNameFromLanguageSpecific("N.M.Generic<string>")
                     Assert.Equal("N.M.Generic`1[System.String]", dotNetName)
@@ -51,7 +51,7 @@ namespace N
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDotNetNameFromLanguageSpecific2() As Task
-            Await TestRootCodeModelWithCodeFile(<code></code>,
+            TestRootCodeModelWithCodeFile(<code></code>,
                 Sub(rootCodeModel)
                     Dim dotNetName = rootCodeModel.DotNetNameFromLanguageSpecific("System.Collections.Generic.Dictionary<int, string>")
                     Assert.Equal("System.Collections.Generic.Dictionary`2[System.Int32,System.String]", dotNetName)
@@ -60,7 +60,7 @@ namespace N
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDotNetNameFromLanguageSpecificWithAssemblyQualifiedName() As Task
-            Await TestRootCodeModelWithCodeFile(<code></code>,
+            TestRootCodeModelWithCodeFile(<code></code>,
                 Sub(rootCodeModel)
                     Assert.Throws(Of ArgumentException)(Sub() rootCodeModel.DotNetNameFromLanguageSpecific("System.Collections.Generic.Dictionary<int, string>, mscorlib"))
                 End Sub)
@@ -73,7 +73,7 @@ namespace N
 class Foo { }
 </code>
 
-            Await TestRootCodeModelWithCodeFile(code,
+            TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Dim systemNamespace = rootCodeModel.CodeElements.Find(Of EnvDTE.CodeNamespace)("System")
                     Assert.NotNull(systemNamespace)

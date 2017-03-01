@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
         Inherits AbstractFileCodeModelTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestEnumerationWithCountAndItem() As Task
+        Public Sub TestEnumerationWithCountAndItem()
             Dim code =
 <Code>
 namespace N { }
@@ -23,7 +23,7 @@ struct S { }
 enum E { }
 delegate void D();
 </Code>
-            Using workspaceAndFileCodeModel = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using workspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElements = workspaceAndFileCodeModel.FileCodeModel.CodeElements
                 Dim count = codeElements.Count
                 Assert.Equal(6, count)
@@ -50,10 +50,10 @@ delegate void D();
                     j += 1
                 Next
             End Using
-        End Function
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAssemblyLevelAttribute() As Task
+        Public Sub TestAssemblyLevelAttribute()
             Dim code =
 <Code>
 [assembly: Foo(0, true, S = "x")]
@@ -66,7 +66,7 @@ class FooAttribute : System.Attribute
 }
 </Code>
 
-            Using workspaceAndFileCodeModel = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using workspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElements = workspaceAndFileCodeModel.FileCodeModel.CodeElements
                 Dim count = codeElements.Count
                 Assert.Equal(2, count)
@@ -98,7 +98,7 @@ class FooAttribute : System.Attribute
                 Assert.Equal("S", arg3.Name)
                 Assert.Equal("""x""", arg3.Value)
             End Using
-        End Function
+        End Sub
 
         <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -468,7 +468,7 @@ interface $$IFoo { }
 interface IBar { }
 </Code>
 
-            Await TestOperation(code,
+            TestOperation(code,
                 Sub(fileCodeModel)
                     For i = 1 To 100
                         Dim name = $"C{i}"
@@ -965,7 +965,7 @@ class $$C
     void M() { }
 }
 </Code>
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeClass = state.GetCodeElementAtCursor(Of EnvDTE80.CodeClass2)
                 Assert.Equal(1, codeClass.Members.OfType(Of EnvDTE80.CodeFunction2)().Count())
                 Dim project = state.VisualStudioWorkspace.CurrentSolution.Projects.First()
@@ -1008,7 +1008,7 @@ class D
     </Project>
 </Workspace>
 
-            Using originalWorkspaceAndFileCodeModel = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(oldCode))
+            Using originalWorkspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(oldCode))
                 Using changedworkspace = TestWorkspace.Create(changedDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
 
                     Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
@@ -1043,7 +1043,7 @@ class C
 }
 </Code>
 
-            Await TestOperation(code,
+            TestOperation(code,
                 Sub(fileCodeModel)
                     Dim codeClass = TryCast(fileCodeModel.CodeElements.Item(1), EnvDTE.CodeClass)
                     Assert.NotNull(codeClass)
@@ -1073,7 +1073,7 @@ class C
 }
 </code>
 
-            Await TestOperation(code,
+            TestOperation(code,
                 Sub(fileCodeModel)
                     Dim classC = TryCast(fileCodeModel.CodeElements.Item(1), EnvDTE.CodeClass)
                     Assert.NotNull(classC)
@@ -1127,7 +1127,7 @@ class C
 }
 </code>
 
-            Await TestOperation(code,
+            TestOperation(code,
                 Sub(fileCodeModel)
                     Dim classC = TryCast(fileCodeModel.CodeElements.Item(1), EnvDTE.CodeClass)
                     Assert.NotNull(classC)

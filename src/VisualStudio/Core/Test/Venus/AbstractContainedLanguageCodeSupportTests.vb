@@ -13,14 +13,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         Protected MustOverride ReadOnly Property DefaultCode As String
 
         Protected Function AssertValidIdAsync(id As String) As Task
-            Return AssertValidIdAsync(id, Sub(value) Assert.True(value))
+            Return AssertValidId(id, Sub(value) Assert.True(value))
         End Function
 
         Protected Function AssertNotValidIdAsync(id As String) As Task
-            Return AssertValidIdAsync(id, Sub(value) Assert.False(value))
+            Return AssertValidId(id, Sub(value) Assert.False(value))
         End Function
 
-        Private Async Function AssertValidIdAsync(id As String, assertion As Action(Of Boolean)) As Task
+        Private Sub AssertValidId(id As String, assertion As Action(Of Boolean))
             Using workspace = TestWorkspace.Create(
 <Workspace>
     <Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">
@@ -33,16 +33,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 assertion(ContainedLanguageCodeSupport.IsValidId(document, id))
             End Using
 
-        End Function
+        End Sub
 
-        Protected Async Function GetWorkspaceAsync(code As String) As Task(Of TestWorkspace)
+        Protected Function GetWorkspace(code As String) As TestWorkspace
             Return TestWorkspace.Create(
 <Workspace>
-    <Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">
-        <Document FilePath="file">
-            <%= code.Replace(vbCrLf, vbLf) %>
-        </Document>
-    </Project>
+<Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">
+<Document FilePath="file">
+<%= code.Replace(vbCrLf, vbLf) %>
+</Document>
+</Project>
 </Workspace>, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
         End Function
 

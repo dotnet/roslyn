@@ -264,22 +264,22 @@ using G=   H.I;
         <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
         <Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function TestSnippetFormatting_TabSize_3() As Task
-            Await TestFormattingWithTabSizeAsync(3)
+            TestFormattingWithTabSize(3)
         End Function
 
         <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
         <Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function TestSnippetFormatting_TabSize_4() As Task
-            Await TestFormattingWithTabSizeAsync(4)
+            TestFormattingWithTabSize(4)
         End Function
 
         <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
         <Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function TestSnippetFormatting_TabSize_5() As Task
-            Await TestFormattingWithTabSizeAsync(5)
+            TestFormattingWithTabSize(5)
         End Function
 
-        Public Async Function TestFormattingWithTabSizeAsync(tabSize As Integer) As Tasks.Task
+        Public Sub TestFormattingWithTabSize(tabSize As Integer)
             Dim workspaceXml =
 <Workspace>
     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -321,9 +321,9 @@ using G=   H.I;
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
             End Using
-        End Function
+        End Sub
 
-        Public Async Function TestProjectionFormattingAsync(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement) As Tasks.Task
+        Public Sub TestProjectionFormatting(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement)
             Using workspace = TestWorkspace.Create(workspaceXmlWithSubjectBufferDocument)
                 Dim subjectBufferDocument = workspace.Documents.Single()
 
@@ -341,7 +341,7 @@ using G=   H.I;
 
                 SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, subjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using
-        End Function
+        End Sub
 
         Private Async Function TestSnippetAddImportsAsync(
                 markupCode As String,

@@ -83,7 +83,7 @@ class C : System.Console
     void M(string $$s = "Foo") { }
 }
 </Code>
-            Await TestElement(code,
+            TestElement(code,
                         Sub(codeParameter)
                             Dim method = TryCast(codeParameter.Parent, EnvDTE80.CodeFunction2)
                             Assert.NotNull(method)

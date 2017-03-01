@@ -69,7 +69,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         Public Async Function TestGetBaseClassName_NonexistingClass() As Task
             Dim code As String = <text>Class c
 End Class</text>.Value
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim baseClassName As String = Nothing
                 Assert.False(ContainedLanguageCodeSupport.TryGetBaseClassName(document, "A",
@@ -82,7 +82,7 @@ End Class</text>.Value
         Public Async Function TestGetBaseClassName_DerivedFromObject() As Task
             Dim code As String = <text>Class C
 End Class</text>.Value
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim baseClassName As String = Nothing
                 Assert.True(ContainedLanguageCodeSupport.TryGetBaseClassName(document, "C",
@@ -98,7 +98,7 @@ Imports System
 Class C
     Inherits Exception
 End Class</text>.Value
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim baseClassName As String = Nothing
                 Assert.True(ContainedLanguageCodeSupport.TryGetBaseClassName(document, "C",
@@ -115,7 +115,7 @@ End Class
 Class C
     Inherits B
 End Class</text>.Value
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim baseClassName As String = Nothing
                 Assert.True(ContainedLanguageCodeSupport.TryGetBaseClassName(document, "C",
@@ -134,7 +134,7 @@ Class C
     Inherits B
 End Class
 End Namespace</text>.Value
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim baseClassName As String = Nothing
                 Assert.True(ContainedLanguageCodeSupport.TryGetBaseClassName(document, "N.C",
@@ -153,7 +153,7 @@ Class C
     Inherits B
 End Class
 End Namespace</text>.Value
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim baseClassName As String = Nothing
                 Assert.True(ContainedLanguageCodeSupport.TryGetBaseClassName(document, "N.C",
@@ -171,7 +171,7 @@ Class Derived
     Inherits [Class]
 End Class
 </text>.Value
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim baseClassName As String = Nothing
                 Assert.True(ContainedLanguageCodeSupport.TryGetBaseClassName(document, "Derived",
@@ -194,7 +194,7 @@ Public Partial Class _Default
 End Class
 </text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
@@ -222,7 +222,7 @@ Public Partial Class _Default
 End Class
 </text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
@@ -248,7 +248,7 @@ Public Partial Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
@@ -275,7 +275,7 @@ Public Partial Class _Default
 	Public Property Button1_Click As String
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
@@ -304,7 +304,7 @@ Public Class MyBaseClass
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
@@ -336,7 +336,7 @@ Public Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Assert.Throws(Of InvalidOperationException)(
                     Sub()
@@ -366,7 +366,7 @@ Public Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Assert.Throws(Of InvalidOperationException)(
                     Sub()
@@ -397,7 +397,7 @@ Public Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim eventHandlers = ContainedLanguageCodeSupport.GetCompatibleEventHandlers(
                     document:=document,
@@ -432,7 +432,7 @@ Public Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim eventHandlers = ContainedLanguageCodeSupport.GetCompatibleEventHandlers(
                     document:=document,
@@ -471,7 +471,7 @@ Public Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim eventHandlerId = ContainedLanguageCodeSupport.GetEventHandlerMemberId(
                     document:=document,
@@ -501,7 +501,7 @@ Public Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim eventHandlerId = ContainedLanguageCodeSupport.GetEventHandlerMemberId(
                     document:=document,
@@ -539,7 +539,7 @@ Public Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
 
                 Dim eventHandlerIdTextPosition = ContainedLanguageCodeSupport.EnsureEventHandler(
@@ -584,7 +584,7 @@ Protected Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Cl
 End Sub</text>.NormalizedValue
 
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
 
                 Dim eventHandlerIdTextPosition = ContainedLanguageCodeSupport.EnsureEventHandler(
@@ -628,7 +628,7 @@ Protected Sub Page_Load(sender As Object, e As EventArgs) Handles Me.Load
 
 End Sub"
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
 
                 Dim eventHandlerIdTextPosition = ContainedLanguageCodeSupport.EnsureEventHandler(
@@ -681,7 +681,7 @@ End Class</text>.Value
                 .iEndIndex = 8
             }
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim targetDocument As Document = Nothing
 
@@ -713,7 +713,7 @@ Public Partial Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim members = ContainedLanguageCodeSupport.GetMembers(
                     document:=document,
@@ -735,7 +735,7 @@ Public Partial Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim members = ContainedLanguageCodeSupport.GetMembers(
                     document:=document,
@@ -757,7 +757,7 @@ Public Partial Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim members = ContainedLanguageCodeSupport.GetMembers(
                     document:=document,
@@ -780,7 +780,7 @@ Public Partial Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim members = ContainedLanguageCodeSupport.GetMembers(
                     document:=document,
@@ -807,7 +807,7 @@ Public Partial Class _Default
 End Class
 </text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim members = ContainedLanguageCodeSupport.GetMembers(
                     document:=document,
@@ -831,7 +831,7 @@ Public Class Button
 	Public Event Click As EventHandler
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim members = ContainedLanguageCodeSupport.GetMembers(
                     document:=document,
@@ -860,7 +860,7 @@ Public Partial Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
@@ -885,7 +885,7 @@ Public Partial Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
@@ -905,7 +905,7 @@ End Class</text>.Value
 
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
@@ -924,7 +924,7 @@ End Class</text>.Value
             Dim code As String = <text>Namespace Foo
 End Namespace</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
@@ -954,7 +954,7 @@ Public Class _Default
 	End Sub
 End Class</text>.Value
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,

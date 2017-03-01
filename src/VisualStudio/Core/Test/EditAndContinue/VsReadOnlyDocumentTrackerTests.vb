@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
         Public Async Function StandardTextDocumentTest() As Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
-            Dim workspace = Await EditAndContinueTestHelper.CreateTestWorkspaceAsync()
+            Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
             Dim currentSolution = workspace.CurrentSolution
             Dim project = currentSolution.Projects(0)
 
@@ -74,7 +74,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
         Public Async Function ContainedDocumentTest() As Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
-            Dim workspace = Await EditAndContinueTestHelper.CreateTestWorkspaceAsync()
+            Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
             Dim currentSolution = workspace.CurrentSolution
             Dim project = currentSolution.Projects(0)
 
@@ -123,7 +123,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
         Public Async Function InvalidDocumentTest1() As Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
-            Dim workspace = Await EditAndContinueTestHelper.CreateTestWorkspaceAsync()
+            Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
             Dim currentSolution = workspace.CurrentSolution
             Dim project = currentSolution.Projects(0)
 
@@ -150,7 +150,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
         Public Async Function InvalidDocumentTest2() As Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
-            Dim workspace = Await EditAndContinueTestHelper.CreateTestWorkspaceAsync()
+            Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
             Dim currentSolution = workspace.CurrentSolution
             Dim project = currentSolution.Projects(0)
 

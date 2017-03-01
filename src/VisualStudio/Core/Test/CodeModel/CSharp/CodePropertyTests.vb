@@ -64,7 +64,7 @@ class C
 }
 </Code>
 
-            Await TestElement(
+            TestElement(
                 code,
                 Sub(prop)
                     Dim getter = prop.Getter
@@ -95,7 +95,7 @@ class C
 }
 </Code>
 
-            Await TestElement(
+            TestElement(
                 code,
                 Sub(prop)
                     Dim getter = prop.Getter

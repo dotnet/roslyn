@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
         Public Async Function ReadOnlyDocumentTest() As Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
-            Dim workspace = Await EditAndContinueTestHelper.CreateTestWorkspaceAsync()
+            Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
             Dim currentSolution = workspace.CurrentSolution
             Dim project = currentSolution.Projects(0)
 
@@ -71,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
         Public Async Function NotLoadedTest() As Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
-            Dim workspace = Await EditAndContinueTestHelper.CreateTestWorkspaceAsync()
+            Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
             Dim currentSolution = workspace.CurrentSolution
             Dim project = currentSolution.Projects(0)
 
@@ -97,7 +97,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
         Public Async Function MetaDataNotAvailableTest() As Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
-            Dim workspace = Await EditAndContinueTestHelper.CreateTestWorkspaceAsync()
+            Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
             Dim currentSolution = workspace.CurrentSolution
             Dim project = currentSolution.Projects(0)
 

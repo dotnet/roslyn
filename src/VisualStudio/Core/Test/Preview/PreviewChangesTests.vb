@@ -57,7 +57,7 @@ Class C
         End Function
 
         <WpfFact, WorkItem(1036455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
-        Public Async Function TestListStructure_AddedDeletedDocuments() As Task
+        Public Sub TestListStructure_AddedDeletedDocuments()
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -114,7 +114,7 @@ Class C
 
                 AssertTreeStructure(expectedItems, topLevelList)
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         Public Async Function TestCheckedItems() As Task
@@ -163,7 +163,7 @@ Class C
         End Function
 
         <WpfFact, WorkItem(1036455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
-        Public Async Function TestCheckedItems_AddedDeletedDocuments() As Task
+        Public Sub TestCheckedItems_AddedDeletedDocuments()
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -241,10 +241,10 @@ Class C
                     Assert.Equal("// This file will just escape deletion!", finalNotRemovedDocText)
                 End Using
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
-        Public Async Function TestLinkedFileChangesMergedAndDeduplicated() As Task
+        Public Sub TestLinkedFileChangesMergedAndDeduplicated()
 
             Dim workspaceXml = <Workspace>
                                    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj1">
@@ -303,7 +303,7 @@ End Class
 
                 AssertTreeStructure(expectedItems, topLevelList)
             End Using
-        End Function
+        End Sub
 
         Private Sub AssertTreeStructure(expectedItems As List(Of Tuple(Of String, Integer)), topLevelList As ChangeList)
             Dim outChangeList As Object = Nothing

@@ -36,7 +36,7 @@ namespace N
 </Code>
 
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
 
                 Dim list = library.GetProjectList()
@@ -63,7 +63,7 @@ namespace N
 </Code>
 
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetNamespaceList(0)
@@ -108,7 +108,7 @@ class C : B
 </Code>
 
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -162,7 +162,7 @@ class C : B
 </Code>
 
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -217,7 +217,7 @@ class C : B
 </Code>
 
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -251,7 +251,7 @@ namespace N
 </Code>
 
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetNamespaceList(0)
@@ -269,7 +269,7 @@ namespace N
 namespace N { }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
 
@@ -287,7 +287,7 @@ namespace N
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetNamespaceList(0)
@@ -306,7 +306,7 @@ abstract class B { }
 sealed class C : B { }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -326,7 +326,7 @@ $"    {String.Format(ServicesVSResources.Member_of_0, "CSharpAssembly1")}")
 static class C { }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -350,7 +350,7 @@ class Z&lt;T,U,V&gt; : Dictionary&lt;U,V&gt;
 </Code>
 
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
 
                 Dim list = library.GetProjectList()
@@ -374,7 +374,7 @@ interface I2 : I1 { }
 interface I3 : I2, I1 { }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -396,7 +396,7 @@ $"    {String.Format(ServicesVSResources.Member_of_0, "CSharpAssembly1")}")
 struct S { }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -419,7 +419,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -444,7 +444,7 @@ interface I
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -468,7 +468,7 @@ static class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -495,7 +495,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -519,7 +519,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -544,7 +544,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code)),
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code)),
                     testCulture As New CultureContext("en-US")
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
@@ -569,7 +569,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -593,7 +593,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -617,7 +617,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -642,7 +642,7 @@ unsafe class UnsafeC
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -671,7 +671,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -696,7 +696,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -718,7 +718,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -744,7 +744,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -769,7 +769,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -794,7 +794,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -816,7 +816,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -838,7 +838,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -860,7 +860,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -886,7 +886,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -911,7 +911,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -936,7 +936,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -958,7 +958,7 @@ enum E
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -979,7 +979,7 @@ enum E : int
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -1000,7 +1000,7 @@ enum E : byte
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -1021,7 +1021,7 @@ enum E
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -1044,7 +1044,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -1071,7 +1071,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -1102,7 +1102,7 @@ class C
 ]]>
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -1134,7 +1134,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -1159,7 +1159,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -1184,7 +1184,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -1209,7 +1209,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -1234,7 +1234,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -1259,7 +1259,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -1283,7 +1283,7 @@ class C
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)
@@ -1308,7 +1308,7 @@ namespace EditorFunctionalityHelper
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetNamespaceList(0)
@@ -1340,7 +1340,7 @@ namespace EditorFunctionalityHelper
 }
 </Code>
 
-            Using state = Await CreateLibraryManagerAsync(GetWorkspaceDefinition(code))
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetNamespaceList(0)

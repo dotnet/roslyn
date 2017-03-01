@@ -304,7 +304,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         <Fact>
-        Public Async Function TestAggregatedEntries() As Task
+        Public Sub TestAggregatedEntries()
             Dim markup = <Workspace>
                              <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                                  <Document FilePath="test1"><![CDATA[// TODO hello]]></Document>
@@ -351,7 +351,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim projectguid As Object = Nothing
                 Assert.False(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectGuid, projectguid))
             End Using
-        End Function
+        End Sub
 
         Private Function CreateItem(workspace As Workspace, documentId As DocumentId) As TodoItem
             Return New TodoItem(0, "test", workspace, documentId, 10, 10, 20, 20, Nothing, "test1")

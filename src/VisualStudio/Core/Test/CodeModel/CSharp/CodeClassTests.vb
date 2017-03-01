@@ -3883,7 +3883,7 @@ class C$$
 }
 </Code>
 
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeClass)
                     For i = 1 To 100
                         Dim variable = codeClass.AddVariable("x", "System.Int32")
@@ -3950,7 +3950,7 @@ class $$Foo : System.Collections.Generic.List&lt;int&gt;
 }
 </Code>
 
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeClass)
                     Dim listType = TryCast(codeClass.Bases.Item(1), EnvDTE80.CodeClass2)
                     Assert.NotNull(listType)
@@ -3967,7 +3967,7 @@ class $$Derived : System.Console
 {
 }
 </Code>
-            Await TestElement(
+            TestElement(
                 code,
                 Sub(codeClass)
                     Dim baseType = TryCast(codeClass.Bases.Item(1), EnvDTE80.CodeClass2)
@@ -3990,7 +3990,7 @@ class $$Derived : System.Console
 {
 }
 </Code>
-            Await TestElement(
+            TestElement(
                 code,
                 Sub(codeClass)
                     Dim baseType = TryCast(codeClass.Bases.Item(1), EnvDTE80.CodeClass2)

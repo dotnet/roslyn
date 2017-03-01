@@ -61,7 +61,7 @@ class C$$
 }
 </Code>
 
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim members = codeElement.Members
                     Assert.Equal(7, members.Count)

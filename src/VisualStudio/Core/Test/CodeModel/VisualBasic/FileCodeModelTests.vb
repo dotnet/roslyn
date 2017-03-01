@@ -14,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         Inherits AbstractFileCodeModelTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestEnumerationWithCountAndItem() As Task
+        Public Sub TestEnumerationWithCountAndItem()
             Dim code =
 <Code>
 Namespace N
@@ -30,7 +30,7 @@ Enum E
 End Enum
 Delegate Sub D()
 </Code>
-            Using workspaceAndFileCodeModel = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using workspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElements = workspaceAndFileCodeModel.FileCodeModel.CodeElements
                 Dim count = codeElements.Count
                 Assert.Equal(6, count)
@@ -57,10 +57,10 @@ Delegate Sub D()
                     j += 1
                 Next
             End Using
-        End Function
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAssemblyLevelAttribute() As Task
+        Public Sub TestAssemblyLevelAttribute()
             Dim code =
 <Code>
 &lt;Assembly: Foo(0, True, S:="x")&gt;
@@ -82,7 +82,7 @@ Class FooAttribute
 End Class
 </Code>
 
-            Using workspaceAndFileCodeModel = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using workspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElements = workspaceAndFileCodeModel.FileCodeModel.CodeElements
                 Dim count = codeElements.Count
                 Assert.Equal(2, count)
@@ -114,7 +114,7 @@ End Class
                 Assert.Equal("S", arg3.Name)
                 Assert.Equal("""x""", arg3.Value)
             End Using
-        End Function
+        End Sub
 
         <WorkItem(1111417, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111417")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -139,7 +139,7 @@ Namespace Outer
 End Namespace</Document>
                     </Project>
                 </Workspace>
-            Using workspaceAndFileCodeModel = Await CreateCodeModelTestStateAsync(code)
+            Using workspaceAndFileCodeModel = CreateCodeModelTestState(code)
                 Dim codeElements = workspaceAndFileCodeModel.FileCodeModel.CodeElements
 
                 Dim namespaceElement = TryCast(codeElements.Item(1), EnvDTE.CodeNamespace)
@@ -220,7 +220,7 @@ End Class
             ' NOTE: this method is the same as MyBase.TestOperation, but tells the lambda whether we are batching or not.
             ' This is because the tests have different behavior up until EndBatch is called.
 
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
 
@@ -790,7 +790,7 @@ Class C
 End Class
 </Code>
 
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElements = state.FileCodeModel.CodeElements
 
                 Assert.Equal(1, codeElements.Count)
@@ -815,7 +815,7 @@ End Class
 A
 </Code>
 
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElements = state.FileCodeModel.CodeElements
 
                 Assert.Equal(1, codeElements.Count)
@@ -844,7 +844,7 @@ Class C
 End Class
 </Code>
 
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElements = state.FileCodeModel.CodeElements
 
                 Assert.Equal(2, codeElements.Count)
@@ -878,7 +878,7 @@ Class C
 End Class
 </Code>
 
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElements = state.FileCodeModel.CodeElements
 
                 Assert.Equal(2, codeElements.Count)
@@ -932,7 +932,7 @@ End Class
 
         <ConditionalWpfFact(GetType(x86))>
         Public Async Function TestOutsideEditsFormattedAfterEndBatch() As Task
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(<File>Class C : End Class</File>))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(<File>Class C : End Class</File>))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
 
@@ -961,7 +961,7 @@ Class C
 End Class
 </Code>
 
-            Await TestOperation(code,
+            TestOperation(code,
                 Sub(fileCodeModel)
                     Dim codeClass = TryCast(fileCodeModel.CodeElements.Item(1), EnvDTE.CodeClass)
                     Assert.NotNull(codeClass)
@@ -1008,7 +1008,7 @@ End Class
         </Project>
     </Workspace>
 
-            Using originalWorkspaceAndFileCodeModel = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(oldCode))
+            Using originalWorkspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(oldCode))
                 Using changedworkspace = TestWorkspace.Create(changedDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
 
                     Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
@@ -1062,7 +1062,7 @@ Class C
 End Class
 </code>
 
-            Await TestOperation(code,
+            TestOperation(code,
                     Sub(fileCodeModel)
                         Dim classC = TryCast(fileCodeModel.CodeElements.Item(2), EnvDTE.CodeClass)
                         Assert.NotNull(classC)
@@ -1108,7 +1108,7 @@ Class C
 End Class
 </code>
 
-            Await TestOperation(code,
+            TestOperation(code,
                     Sub(fileCodeModel)
                         Dim classC = TryCast(fileCodeModel.CodeElements.Item(2), EnvDTE.CodeClass)
                         Assert.NotNull(classC)
@@ -1154,7 +1154,7 @@ Class C
 End Class
 </code>
 
-            Await TestOperation(code,
+            TestOperation(code,
                     Sub(fileCodeModel)
                         Dim classC = TryCast(fileCodeModel.CodeElements.Item(1), EnvDTE.CodeClass)
                         Assert.NotNull(classC)
@@ -1213,7 +1213,7 @@ Class C
 End Class
 </code>
 
-            Await TestOperation(code,
+            TestOperation(code,
                 Sub(fileCodeModel)
                     Dim classC = TryCast(fileCodeModel.CodeElements.Item(1), EnvDTE.CodeClass)
                     Assert.NotNull(classC)
