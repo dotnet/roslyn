@@ -201,17 +201,17 @@ Imports System, $$S = System.Linq
 #Region "FullName tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName1() As Task
+        Public Sub TestFullName1()
             Dim code =
 <Code>
 Imports $$System
 </Code>
 
-            Await Assert.ThrowsAsync(Of NotImplementedException)(
-                Function()
+            Assert.Throws(Of NotImplementedException)(
+                Sub()
                     TestFullName(code, "System")
-                End Function)
-        End Function
+                End Sub)
+        End Sub
 
 #End Region
 

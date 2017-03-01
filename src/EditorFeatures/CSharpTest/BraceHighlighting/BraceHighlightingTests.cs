@@ -11,10 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
 {
     public class BraceHighlightingTests : AbstractBraceHighlightingTests
     {
-        protected override Task<TestWorkspace> CreateWorkspaceAsync(string markup, ParseOptions options)
-        {
-            return TestWorkspace.CreateCSharp(markup, parseOptions: options);
-        }
+        protected override async Task<TestWorkspace> CreateWorkspaceAsync(string markup, ParseOptions options)
+            => TestWorkspace.CreateCSharp(markup, parseOptions: options);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestCurlies()

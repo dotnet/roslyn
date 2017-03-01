@@ -1202,7 +1202,7 @@ End Class
             Return New DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
         End Function
 
-        Protected Overrides Function CreateTestWorkspaceAsync(code As String) As Task(Of TestWorkspace)
+        Protected Overrides Async Function CreateTestWorkspaceAsync(code As String) As Task(Of TestWorkspace)
             Return TestWorkspace.CreateVisualBasic(code)
         End Function
 

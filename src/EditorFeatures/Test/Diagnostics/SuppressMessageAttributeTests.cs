@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
         }
 
-        private static Task<TestWorkspace> CreateWorkspaceFromFileAsync(string source, string language, string rootNamespace)
+        private static async Task<TestWorkspace> CreateWorkspaceFromFileAsync(string source, string language, string rootNamespace)
         {
             if (language == LanguageNames.CSharp)
             {

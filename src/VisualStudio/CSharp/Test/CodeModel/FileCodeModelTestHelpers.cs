@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         // finalizer complaining we didn't clean it up. Catching AVs is of course not safe, but this is balancing
         // "probably not crash" as an improvement over "will crash when the finalizer throws."
         [HandleProcessCorruptedStateExceptions]
-        public static async Task<Tuple<TestWorkspace, EnvDTE.FileCodeModel>> CreateWorkspaceAndFileCodeModelAsync(string file)
+        public static Tuple<TestWorkspace, EnvDTE.FileCodeModel> CreateWorkspaceAndFileCodeModel(string file)
         {
             var workspace = TestWorkspace.CreateCSharp(file, exportProvider: VisualStudioTestExportProvider.ExportProvider);
 

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
             Return New ChangeSignatureCodeRefactoringProvider()
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As Task(Of TestWorkspace)
+        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
             Return TestWorkspace.CreateVisualBasic(initialMarkup, parameters.parseOptions, parameters.compilationOptions)
         End Function
 

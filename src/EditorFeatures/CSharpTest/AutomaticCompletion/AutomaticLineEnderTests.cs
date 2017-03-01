@@ -837,10 +837,8 @@ $$
 }");
         }
 
-        protected override Task<TestWorkspace> CreateWorkspaceAsync(string code)
-        {
-            return TestWorkspace.CreateCSharp(code);
-        }
+        protected override async Task<TestWorkspace> CreateWorkspaceAsync(string code)
+            => TestWorkspace.CreateCSharp(code);
 
         protected override Action CreateNextHandler(TestWorkspace workspace)
         {

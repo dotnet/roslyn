@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
     Public Class BasicMoveTypeTestsBase
         Inherits AbstractMoveTypeTest
 
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As Task(Of TestWorkspace)
+        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
             Return TestWorkspace.CreateVisualBasic(
                 initialMarkup,
                 parameters.parseOptions,

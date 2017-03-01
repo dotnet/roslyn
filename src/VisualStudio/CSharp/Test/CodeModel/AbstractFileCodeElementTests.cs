@@ -15,18 +15,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     /// </summary>
     public abstract class AbstractFileCodeElementTests : IDisposable
     {
-        private readonly Task<Tuple<TestWorkspace, FileCodeModel>> _task;
+        private readonly Tuple<TestWorkspace, FileCodeModel> _workspaceAndCodeModel;
 
         protected async Task<TestWorkspace> GetWorkspaceAsync()
         {
-            var tuple = await _task;
-            return tuple.Item1;
+            return _workspaceAndCodeModel.Item1;
         }
 
         protected async Task<FileCodeModel> GetCodeModelAsync()
         {
-            var tuple = await _task;
-            return tuple.Item2;
+            return _workspaceAndCodeModel.Item2;
         }
 
         protected async Task<Microsoft.CodeAnalysis.Solution> GetCurrentSolutionAsync()
@@ -46,13 +44,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 
         public AbstractFileCodeElementTests(string contents)
         {
-            _task = CreateWorkspaceAndFileCodeModelAsync(contents);
+            _workspaceAndCodeModel = CreateWorkspaceAndFileCodeModelAsync(contents);
         }
 
-        protected static Task<Tuple<TestWorkspace, EnvDTE.FileCodeModel>> CreateWorkspaceAndFileCodeModelAsync(string file)
-        {
-            return FileCodeModelTestHelpers.CreateWorkspaceAndFileCodeModelAsync(file);
-        }
+        protected static Tuple<TestWorkspace, EnvDTE.FileCodeModel> CreateWorkspaceAndFileCodeModelAsync(string file)
+            => FileCodeModelTestHelpers.CreateWorkspaceAndFileCodeModel(file);
 
         protected async Task<CodeElement> GetCodeElementAsync(params object[] path)
         {

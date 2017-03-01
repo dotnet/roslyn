@@ -942,7 +942,7 @@ public class C
 
         <WorkItem(831374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831374")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_TypeConfluence() As Task
+        Public Sub TestCSAssignments_TypeConfluence()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -974,11 +974,11 @@ class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(887584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/887584")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_EscapedNames() As Task
+        Public Sub TestCSAssignments_EscapedNames()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -1030,11 +1030,11 @@ class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(1126037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1126037")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_ControlChar() As Task
+        Public Sub TestCSAssignments_ControlChar()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -1081,11 +1081,11 @@ class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(4312, "https://github.com/dotnet/roslyn/issues/4312")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_PropertyAssignedWithEmptyArray() As Task
+        Public Sub TestCSAssignments_PropertyAssignedWithEmptyArray()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -1141,11 +1141,11 @@ class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_RoundTrippedDoubles() As Task
+        Public Sub TestCSAssignments_RoundTrippedDoubles()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -1175,7 +1175,7 @@ class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>

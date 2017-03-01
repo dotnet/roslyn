@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
         protected override string GetLanguage()
             => LanguageNames.CSharp;
 
-        protected override Task<TestWorkspace> CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
+        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
             => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
