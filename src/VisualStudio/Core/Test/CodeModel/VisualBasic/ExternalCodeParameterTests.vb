@@ -11,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "FullName tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName1() As Task
+        Public Sub TestFullName1()
             Dim code =
 <Code>
 Class C
@@ -21,13 +21,13 @@ End Class
 </Code>
 
             TestFullName(code, "s")
-        End Function
+        End Sub
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_NoModifiers() As Task
+        Public Sub TestName_NoModifiers()
             Dim code =
 <Code>
 Public Class C1
@@ -39,10 +39,10 @@ End Class
 </Code>
 
             TestName(code, "p1")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_ByValModifier() As Task
+        Public Sub TestName_ByValModifier()
             Dim code =
 <Code>
 Public Class C1
@@ -54,10 +54,10 @@ End Class
 </Code>
 
             TestName(code, "p2")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_ByRefModifier() As Task
+        Public Sub TestName_ByRefModifier()
             Dim code =
 <Code>
 Public Class C1
@@ -69,10 +69,10 @@ End Class
 </Code>
 
             TestName(code, "p3")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_OptionalByValModifiers() As Task
+        Public Sub TestName_OptionalByValModifiers()
             Dim code =
 <Code>
 Public Class C1
@@ -84,10 +84,10 @@ End Class
 </Code>
 
             TestName(code, "p4")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_ByValParamArrayModifiers() As Task
+        Public Sub TestName_ByValParamArrayModifiers()
             Dim code =
 <Code>
 Public Class C1
@@ -99,10 +99,10 @@ End Class
 </Code>
 
             TestName(code, "p5")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_TypeCharacter() As Task
+        Public Sub TestName_TypeCharacter()
             Dim code =
 <Code>
 Public Class C1
@@ -114,7 +114,7 @@ End Class
 </Code>
 
             TestName(code, "p6")
-        End Function
+        End Sub
 
 #End Region
 

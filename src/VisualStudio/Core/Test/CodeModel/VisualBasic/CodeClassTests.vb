@@ -15,37 +15,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "Access tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess1() As Task
+        Public Sub TestAccess1()
             Dim code =
 <Code>
 Class $$C : End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess2() As Task
+        Public Sub TestAccess2()
             Dim code =
 <Code>
 Friend Class $$C : End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess3() As Task
+        Public Sub TestAccess3()
             Dim code =
 <Code>
 Public Class $$C : End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess4() As Task
+        Public Sub TestAccess4()
             Dim code =
 <Code>
 Class C
@@ -55,10 +55,10 @@ End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess5() As Task
+        Public Sub TestAccess5()
             Dim code =
 <Code>
 Class C
@@ -67,10 +67,10 @@ End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess6() As Task
+        Public Sub TestAccess6()
             Dim code =
 <Code>
 Class C
@@ -79,10 +79,10 @@ End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess7() As Task
+        Public Sub TestAccess7()
             Dim code =
 <Code>
 Class C
@@ -91,10 +91,10 @@ End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess8() As Task
+        Public Sub TestAccess8()
             Dim code =
 <Code>
 Class C
@@ -103,10 +103,10 @@ End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess9() As Task
+        Public Sub TestAccess9()
             Dim code =
 <Code>
 Class C
@@ -115,7 +115,7 @@ End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+        End Sub
 
 #End Region
 
@@ -145,7 +145,7 @@ End Class
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAddBase2() As Task
+        Public Sub TestAddBase2()
             Dim code =
 <Code>
 Class C$$
@@ -154,7 +154,7 @@ Class C$$
 End Class
 </Code>
             TestAddBaseThrows(Of COMException)(code, "A", Nothing)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddBase3() As Task
@@ -176,7 +176,7 @@ Class C
 #Region "ClassKind tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestClassKind_MainClass() As Task
+        Public Sub TestClassKind_MainClass()
             Dim code =
 <Code>
 Class $$C
@@ -184,10 +184,10 @@ End Class
 </Code>
 
             TestClassKind(code, EnvDTE80.vsCMClassKind.vsCMClassKindMainClass)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestClassKind_Module() As Task
+        Public Sub TestClassKind_Module()
             Dim code =
 <Code>
 Module $$M
@@ -195,10 +195,10 @@ End Module
 </Code>
 
             TestClassKind(code, EnvDTE80.vsCMClassKind.vsCMClassKindModule)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestClassKind_PartialClass1() As Task
+        Public Sub TestClassKind_PartialClass1()
             Dim code =
 <Code>
 Partial Class $$C
@@ -206,10 +206,10 @@ End Class
 </Code>
 
             TestClassKind(code, EnvDTE80.vsCMClassKind.vsCMClassKindPartialClass)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestClassKind_PartialClass2() As Task
+        Public Sub TestClassKind_PartialClass2()
             Dim code =
 <Code>
 Class $$C
@@ -220,14 +220,14 @@ End Class
 </Code>
 
             TestClassKind(code, EnvDTE80.vsCMClassKind.vsCMClassKindPartialClass)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Comment tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment1() As Task
+        Public Sub TestComment1()
             Dim code =
 <Code>
 ' Foo
@@ -238,10 +238,10 @@ End Class
             Dim result = " Foo"
 
             TestComment(code, result)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment2() As Task
+        Public Sub TestComment2()
             Dim code =
 <Code>
 ' Foo
@@ -254,10 +254,10 @@ End Class
                          " Bar"
 
             TestComment(code, result)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment3() As Task
+        Public Sub TestComment3()
             Dim code =
 <Code>
 ' Foo
@@ -270,10 +270,10 @@ End Class
             Dim result = " Bar"
 
             TestComment(code, result)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment4() As Task
+        Public Sub TestComment4()
             Dim code =
 <Code>
 Class B
@@ -287,10 +287,10 @@ End Class
             Dim result = " Bar"
 
             TestComment(code, result)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment5() As Task
+        Public Sub TestComment5()
             Dim code =
 <Code>
 ' Foo
@@ -302,14 +302,14 @@ End Class
             Dim result = ""
 
             TestComment(code, result)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "DocComment tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment1() As Task
+        Public Sub TestDocComment1()
             Dim code =
 <Code>
 ''' &lt;summary&gt;
@@ -327,10 +327,10 @@ End Class
 " <remarks></remarks>"
 
             TestDocComment(code, result)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment2() As Task
+        Public Sub TestDocComment2()
             Dim code =
 <Code>
 '''     &lt;summary&gt;
@@ -346,10 +346,10 @@ End Class
 " </summary>"
 
             TestDocComment(code, result)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment3() As Task
+        Public Sub TestDocComment3()
             Dim code =
 <Code>
 ''' &lt;summary&gt;
@@ -365,7 +365,7 @@ End Class
 " <remarks></remarks>"
 
             TestDocComment(code, result)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDocComment4() As Task

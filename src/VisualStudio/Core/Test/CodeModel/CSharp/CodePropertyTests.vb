@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "GetStartPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint1() As Task
+        Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
 class C
@@ -52,7 +52,7 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=16)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAutoPropGetStartPoint1()
@@ -117,7 +117,7 @@ class C
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_Attribute() As Task
+        Public Sub TestGetStartPoint_Attribute()
             Dim code =
 <Code>
 class C
@@ -157,10 +157,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=31)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_AutoProperty() As Task
+        Public Sub TestGetStartPoint_AutoProperty()
             Dim code =
 <Code>
 class C
@@ -190,10 +190,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=30)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_AutoProperty_Attribute() As Task
+        Public Sub TestGetStartPoint_AutoProperty_Attribute()
             Dim code =
 <Code>
 class C
@@ -224,10 +224,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=31)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_Indexer() As Task
+        Public Sub TestGetStartPoint_Indexer()
             Dim code =
 <Code>
 class C
@@ -266,10 +266,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=30)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_Indexer_Attribute() As Task
+        Public Sub TestGetStartPoint_Indexer_Attribute()
             Dim code =
 <Code>
 class C
@@ -309,11 +309,11 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=31)))
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_ExplicitlyImplementedIndexer() As Task
+        Public Sub TestGetStartPoint_ExplicitlyImplementedIndexer()
             Dim code =
 <Code>
 interface I1
@@ -341,7 +341,7 @@ class C1 : I1
             TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=9, lineOffset:=5, absoluteOffset:=76, lineLength:=22)))
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1490,7 +1490,7 @@ class C
 #Region "AutoImplementedPropertyExtender"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAutoImplementedPropertyExtender_IsAutoImplemented1() As Task
+        Public Sub TestAutoImplementedPropertyExtender_IsAutoImplemented1()
             Dim code =
 <Code>
 public class C
@@ -1500,10 +1500,10 @@ public class C
 </Code>
 
             TestAutoImplementedPropertyExtender_IsAutoImplemented(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAutoImplementedPropertyExtender_IsAutoImplemented2() As Task
+        Public Sub TestAutoImplementedPropertyExtender_IsAutoImplemented2()
             Dim code =
 <Code>
 public class C
@@ -1517,10 +1517,10 @@ public class C
 </Code>
 
             TestAutoImplementedPropertyExtender_IsAutoImplemented(code, False)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAutoImplementedPropertyExtender_IsAutoImplemented3() As Task
+        Public Sub TestAutoImplementedPropertyExtender_IsAutoImplemented3()
             Dim code =
 <Code>
 public interface I
@@ -1530,7 +1530,7 @@ public interface I
 </Code>
 
             TestAutoImplementedPropertyExtender_IsAutoImplemented(code, False)
-        End Function
+        End Sub
 
 #End Region
 
@@ -1538,7 +1538,7 @@ public interface I
 
         <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestParameterNameWithEscapeCharacters() As Task
+        Public Sub TestParameterNameWithEscapeCharacters()
             Dim code =
 <Code>
 class Program
@@ -1552,7 +1552,7 @@ class Program
 </Code>
 
             TestAllParameterNames(code, "@int")
-        End Function
+        End Sub
 
 #End Region
 
@@ -1665,7 +1665,7 @@ class C
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestTypeDescriptor_GetProperties() As Task
+        Public Sub TestTypeDescriptor_GetProperties()
             Dim code =
 <Code>
 class C
@@ -1682,7 +1682,7 @@ class C
                  "IsDefault", "Parent2", "ReadWrite"}
 
             TestPropertyDescriptors(code, expectedPropertyNames)
-        End Function
+        End Sub
 
         Private Function GetAutoImplementedPropertyExtender(codeElement As EnvDTE80.CodeProperty2) As ICSAutoImplementedPropertyExtender
             Return CType(codeElement.Extender(ExtenderNames.AutoImplementedProperty), ICSAutoImplementedPropertyExtender)

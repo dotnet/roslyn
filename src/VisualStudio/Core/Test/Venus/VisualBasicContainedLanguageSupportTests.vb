@@ -18,24 +18,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
 #Region "IsValid Tests"
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestIsValidId_1() As Task
+        Public Sub TestIsValidId_1()
             AssertValidId("field")
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestIsValidId_Escaped() As Task
+        Public Sub TestIsValidId_Escaped()
             AssertValidId("[field]")
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestIsValidId_EscapedKeyword() As Task
+        Public Sub TestIsValidId_EscapedKeyword()
             AssertValidId("[Class]")
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestIsValidId_ContainsNumbers() As Task
+        Public Sub TestIsValidId_ContainsNumbers()
             AssertValidId("abc123")
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_Keyword() As Task

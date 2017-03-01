@@ -49,9 +49,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Protected Async Function TestCreateCodeTypeRef(type As Object, data As CodeTypeRefData) As Task
+        Protected Sub TestCreateCodeTypeRef(type As Object, data As CodeTypeRefData)
             TestCreateCodeTypeRef(<code></code>, type, data)
-        End Function
+        End Sub
 
         Protected Sub TestCreateCodeTypeRef(code As XElement, type As Object, data As CodeTypeRefData)
             TestRootCodeModelWithCodeFile(code,
@@ -62,9 +62,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Protected Async Function TestCreateCodeTypeRefThrows(Of TException As Exception)(type As Object) As Task
+        Protected Sub TestCreateCodeTypeRefThrows(Of TException As Exception)(type As Object)
             TestCreateCodeTypeRef(Of TException)(<code></code>, type)
-        End Function
+        End Sub
 
         Protected Sub TestCreateCodeTypeRef(Of TException As Exception)(code As XElement, type As Object)
             TestRootCodeModelWithCodeFile(code,

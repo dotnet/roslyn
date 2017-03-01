@@ -11,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "GetStartPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint1() As Task
+        Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
 Class C
@@ -40,10 +40,10 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=13, lineLength:=20)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=13, lineLength:=20)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_Attribute() As Task
+        Public Sub TestGetStartPoint_Attribute()
             Dim code =
 <Code>
 Class C
@@ -73,10 +73,10 @@ End Class
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=45, lineLength:=20)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=13, lineLength:=31)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_EnumMember() As Task
+        Public Sub TestGetStartPoint_EnumMember()
             Dim code =
 <Code>
 Enum E
@@ -105,10 +105,10 @@ End Enum
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=12, lineLength:=5)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=12, lineLength:=5)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_EnumMember_Attribute() As Task
+        Public Sub TestGetStartPoint_EnumMember_Attribute()
             Dim code =
 <Code>
 Enum E
@@ -138,14 +138,14 @@ End Enum
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=44, lineLength:=5)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=12, lineLength:=31)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "GetEndPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint1() As Task
+        Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
 Class C
@@ -174,10 +174,10 @@ End Class
                      TextPoint(line:=2, lineOffset:=21, absoluteOffset:=29, lineLength:=20)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=21, absoluteOffset:=29, lineLength:=20)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_Attribute() As Task
+        Public Sub TestGetEndPoint_Attribute()
             Dim code =
 <Code>
 Class C
@@ -207,10 +207,10 @@ End Class
                      TextPoint(line:=3, lineOffset:=21, absoluteOffset:=61, lineLength:=20)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=21, absoluteOffset:=61, lineLength:=20)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_EnumMember() As Task
+        Public Sub TestGetEndPoint_EnumMember()
             Dim code =
 <Code>
 Enum E
@@ -239,10 +239,10 @@ End Enum
                      TextPoint(line:=2, lineOffset:=6, absoluteOffset:=13, lineLength:=5)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=6, absoluteOffset:=13, lineLength:=5)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_EnumMember_Attribute() As Task
+        Public Sub TestGetEndPoint_EnumMember_Attribute()
             Dim code =
 <Code>
 Enum E
@@ -272,14 +272,14 @@ End Enum
                      TextPoint(line:=3, lineOffset:=6, absoluteOffset:=45, lineLength:=5)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=6, absoluteOffset:=45, lineLength:=5)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Access tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess1() As Task
+        Public Sub TestAccess1()
             Dim code =
     <Code>
 Class C
@@ -288,10 +288,10 @@ End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess2() As Task
+        Public Sub TestAccess2()
             Dim code =
     <Code>
 Class C
@@ -300,10 +300,10 @@ End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess3() As Task
+        Public Sub TestAccess3()
             Dim code =
     <Code>
 Class C
@@ -312,10 +312,10 @@ End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess4() As Task
+        Public Sub TestAccess4()
             Dim code =
     <Code>
 Class C
@@ -324,10 +324,10 @@ End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess5() As Task
+        Public Sub TestAccess5()
             Dim code =
     <Code>
 Class C
@@ -336,10 +336,10 @@ End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess6() As Task
+        Public Sub TestAccess6()
             Dim code =
     <Code>
 Class C
@@ -348,10 +348,10 @@ End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess7() As Task
+        Public Sub TestAccess7()
             Dim code =
     <Code>
 Enum E
@@ -360,7 +360,7 @@ End Enum
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+        End Sub
 
 #End Region
 
@@ -368,7 +368,7 @@ End Enum
 
         <WorkItem(638909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638909")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment1() As Task
+        Public Sub TestComment1()
             Dim code =
 <Code>
 Class C
@@ -380,14 +380,14 @@ End Class
             Dim result = " Foo"
 
             TestComment(code, result)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "ConstKind tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestConstKind1() As Task
+        Public Sub TestConstKind1()
             Dim code =
 <Code>
 Enum E
@@ -396,10 +396,10 @@ End Enum
 </Code>
 
             TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestConstKind2() As Task
+        Public Sub TestConstKind2()
             Dim code =
 <Code>
 Class C
@@ -408,10 +408,10 @@ End Class
 </Code>
 
             TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestConstKind3() As Task
+        Public Sub TestConstKind3()
             Dim code =
 <Code>
 Class C
@@ -420,10 +420,10 @@ End Class
 </Code>
 
             TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestConstKind4() As Task
+        Public Sub TestConstKind4()
             Dim code =
 <Code>
 Class C
@@ -432,10 +432,10 @@ End Class
 </Code>
 
             TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestConstKind5() As Task
+        Public Sub TestConstKind5()
             Dim code =
 <Code>
 Class C
@@ -444,14 +444,14 @@ End Class
 </Code>
 
             TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "InitExpression tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestInitExpression1() As Task
+        Public Sub TestInitExpression1()
             Dim code =
 <Code>
 Class C
@@ -460,10 +460,10 @@ End Class
 </Code>
 
             TestInitExpression(code, "42")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestInitExpression2() As Task
+        Public Sub TestInitExpression2()
             Dim code =
 <Code>
 Class C
@@ -472,10 +472,10 @@ End Class
 </Code>
 
             TestInitExpression(code, "19 + 23")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestInitExpression3() As Task
+        Public Sub TestInitExpression3()
             Dim code =
 <Code>
 Enum E
@@ -484,14 +484,14 @@ End Enum
 </Code>
 
             TestInitExpression(code, "19 + 23")
-        End Function
+        End Sub
 
 #End Region
 
 #Region "IsConstant tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsConstant1() As Task
+        Public Sub TestIsConstant1()
             Dim code =
     <Code>
 Enum E
@@ -499,10 +499,10 @@ Enum E
 End Enum
 </Code>
             TestIsConstant(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsConstant2() As Task
+        Public Sub TestIsConstant2()
             Dim code =
     <Code>
 Class C
@@ -510,10 +510,10 @@ Class C
 End Class
 </Code>
             TestIsConstant(code, False)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsConstant3() As Task
+        Public Sub TestIsConstant3()
             Dim code =
     <Code>
 Class C
@@ -521,10 +521,10 @@ Class C
 End Class
 </Code>
             TestIsConstant(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsConstant4() As Task
+        Public Sub TestIsConstant4()
             Dim code =
     <Code>
 Class C
@@ -532,10 +532,10 @@ Class C
 End Class
 </Code>
             TestIsConstant(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsConstant5() As Task
+        Public Sub TestIsConstant5()
             Dim code =
     <Code>
 Class C
@@ -543,14 +543,14 @@ Class C
 End Class
 </Code>
             TestIsConstant(code, False)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "IsShared tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsShared1() As Task
+        Public Sub TestIsShared1()
             Dim code =
 <Code>
 Class C
@@ -559,10 +559,10 @@ End Class
 </Code>
 
             TestIsShared(code, False)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsShared2() As Task
+        Public Sub TestIsShared2()
             Dim code =
 <Code>
 Class C
@@ -571,7 +571,7 @@ End Class
 </Code>
 
             TestIsShared(code, True)
-        End Function
+        End Sub
 
 #End Region
 
@@ -579,7 +579,7 @@ End Class
 
         <WorkItem(638224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638224")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_EnumMember() As Task
+        Public Sub TestName_EnumMember()
             Dim code =
 <Code>
 Enum SomeEnum
@@ -588,7 +588,7 @@ End Enum
 </Code>
 
             TestName(code, "A")
-        End Function
+        End Sub
 
 #End Region
 

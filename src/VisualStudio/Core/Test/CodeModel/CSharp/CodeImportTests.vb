@@ -19,7 +19,7 @@ using $$Foo;
 </Code>
 
             Dim ex = Await Assert.ThrowsAsync(Of COMException)(
-                Async Function()
+                Function()
                     TestName(code, "Foo")
                 End Function)
 
@@ -38,7 +38,7 @@ using $$Foo;
 </Code>
 
             Dim ex = Await Assert.ThrowsAsync(Of COMException)(
-                Async Function()
+                Function()
                     TestName(code, "Foo")
                 End Function)
 
@@ -50,17 +50,17 @@ using $$Foo;
 #Region "Namespace tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestNamespace1() As Task
+        Public Sub TestNamespace1()
             Dim code =
 <Code>
 using $$Foo;
 </Code>
 
             TestNamespace(code, "Foo")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestNamespace2() As Task
+        Public Sub TestNamespace2()
             Dim code =
 <Code>
 namespace Bar
@@ -70,12 +70,12 @@ namespace Bar
 </Code>
 
             TestNamespace(code, "Foo")
-        End Function
+        End Sub
 
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestTypeDescriptor_GetProperties() As Task
+        Public Sub TestTypeDescriptor_GetProperties()
             Dim code =
 <Code>
 using $$System;
@@ -87,7 +87,7 @@ using $$System;
                  "ExtenderCATID", "Namespace", "Alias", "Parent"}
 
             TestPropertyDescriptors(code, expectedPropertyNames)
-        End Function
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

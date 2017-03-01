@@ -11,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "FullName tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName1() As Task
+        Public Sub TestFullName1()
             Dim code =
 <Code>
 class C
@@ -23,14 +23,14 @@ class C
 </Code>
 
             TestFullName(code, "C.Foo")
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        Public Sub TestName1()
             Dim code =
 <Code>
 class C
@@ -42,7 +42,7 @@ class C
 </Code>
 
             TestName(code, "Foo")
-        End Function
+        End Sub
 
 #End Region
 

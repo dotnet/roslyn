@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(GetType(StubVsEditorAdaptersFactoryService)))
 
         <WpfFact>
-        Public Async Function TestListStructure() As Task
+        Public Sub TestListStructure()
             Using workspace = TestWorkspace.CreateCSharp(<text>
 Class C
 {
@@ -54,7 +54,7 @@ Class C
 
                 AssertTreeStructure(expectedItems, topLevelList)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, WorkItem(1036455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
         Public Sub TestListStructure_AddedDeletedDocuments()
@@ -117,7 +117,7 @@ Class C
         End Sub
 
         <WpfFact>
-        Public Async Function TestCheckedItems() As Task
+        Public Sub TestCheckedItems()
             Using workspace = TestWorkspace.CreateCSharp(<text>
 Class C
 {
@@ -160,7 +160,7 @@ Class C
 
 
             End Using
-        End Function
+        End Sub
 
         <WpfFact, WorkItem(1036455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
         Public Sub TestCheckedItems_AddedDeletedDocuments()

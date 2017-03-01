@@ -62,7 +62,7 @@ End Class
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBStatements_AddHandler2() As Task
+        Public Sub TestVBStatements_AddHandler2()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -122,10 +122,10 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBStatements_AddHandler3() As Task
+        Public Sub TestVBStatements_AddHandler3()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -189,10 +189,10 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBStatements_AddHandler4() As Task
+        Public Sub TestVBStatements_AddHandler4()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -264,10 +264,10 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBStatements_AddHandler5() As Task
+        Public Sub TestVBStatements_AddHandler5()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -339,10 +339,10 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBStatements_RemoveHandler1() As Task
+        Public Sub TestVBStatements_RemoveHandler1()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -394,10 +394,10 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBStatements_RemoveHandler2() As Task
+        Public Sub TestVBStatements_RemoveHandler2()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -457,10 +457,10 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBStatements_RemoveHandler3() As Task
+        Public Sub TestVBStatements_RemoveHandler3()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -524,10 +524,10 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBStatements_RemoveHandler4() As Task
+        Public Sub TestVBStatements_RemoveHandler4()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -599,10 +599,10 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBStatements_RemoveHandler5() As Task
+        Public Sub TestVBStatements_RemoveHandler5()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -674,7 +674,7 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
     End Class
 End Namespace

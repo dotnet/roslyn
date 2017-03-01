@@ -23,7 +23,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class DiagnosticTableDataSourceTests
         <Fact>
-        Public Async Function TestCreation() As Task
+        Public Sub TestCreation()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim provider = New TestDiagnosticService()
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -52,7 +52,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 subscription.Dispose()
                 Assert.Equal(0, source.NumberOfSubscription_TestOnly)
             End Using
-        End Function
+        End Sub
 
         <Fact>
         Public Async Function TestInitialEntries() As Task

@@ -11,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "GetStartPoint tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint1() As Task
+        Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
 class C
@@ -41,10 +41,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=42)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint2() As Task
+        Public Sub TestGetStartPoint2()
             Dim code =
 <Code>
 class C
@@ -74,10 +74,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=42)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint3() As Task
+        Public Sub TestGetStartPoint3()
             Dim code =
 <Code>
 class C
@@ -111,11 +111,11 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=38)))
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPointExplicitlyImplementedEvent() As Task
+        Public Sub TestGetStartPointExplicitlyImplementedEvent()
             Dim code =
 <Code>
 delegate void SampleEventHandler(object sender);
@@ -143,7 +143,7 @@ class C1 : I1
             TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=10, lineOffset:=5, absoluteOffset:=131, lineLength:=43)))
-        End Function
+        End Sub
 
 #End Region
 

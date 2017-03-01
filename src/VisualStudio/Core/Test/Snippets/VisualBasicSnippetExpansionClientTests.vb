@@ -257,7 +257,7 @@ For index2 = 1 to length
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Async Function TestSnippetFormatting_ProjectionBuffer_ExpandedIntoSurfaceBuffer() As Task
+        Public Sub TestSnippetFormatting_ProjectionBuffer_ExpandedIntoSurfaceBuffer()
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
     <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
@@ -282,10 +282,10 @@ Next
 &lt;/div&gt;</SurfaceBuffer>
 
             TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Async Function TestSnippetFormatting_ProjectionBuffer_FullyInSurfaceBuffer() As Task
+        Public Sub TestSnippetFormatting_ProjectionBuffer_FullyInSurfaceBuffer()
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
     <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
@@ -310,25 +310,25 @@ Next
 &lt;/div&gt;</SurfaceBuffer>
 
             TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
-        End Function
+        End Sub
 
         <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
         <Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Async Function TestSnippetFormatting_TabSize_3() As Task
+        Public Sub TestSnippetFormatting_TabSize_3()
             TestFormattingWithTabSize(3)
-        End Function
+        End Sub
 
         <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
         <Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Async Function TestSnippetFormatting_TabSize_4() As Task
+        Public Sub TestSnippetFormatting_TabSize_4()
             TestFormattingWithTabSize(4)
-        End Function
+        End Sub
 
         <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
         <Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Async Function TestSnippetFormatting_TabSize_5() As Task
+        Public Sub TestSnippetFormatting_TabSize_5()
             TestFormattingWithTabSize(5)
-        End Function
+        End Sub
 
         Public Sub TestFormattingWithTabSize(tabSize As Integer)
             Dim workspaceXml =

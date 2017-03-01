@@ -12,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "GetStartPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint1() As Task
+        Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
 Class B
@@ -44,14 +44,14 @@ End Class
                      TextPoint(line:=5, lineOffset:=5, absoluteOffset:=32, lineLength:=14)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=5, lineOffset:=5, absoluteOffset:=32, lineLength:=14)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "GetEndPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint1() As Task
+        Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
 Class B
@@ -83,14 +83,14 @@ End Class
                      TextPoint(line:=5, lineOffset:=15, absoluteOffset:=42, lineLength:=14)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=5, lineOffset:=15, absoluteOffset:=42, lineLength:=14)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Kind tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestKind1() As Task
+        Public Sub TestKind1()
             Dim code =
 <Code>
 Class B
@@ -102,14 +102,14 @@ End Class
 </Code>
 
             TestKind(code, EnvDTE.vsCMElement.vsCMElementInheritsStmt)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        Public Sub TestName1()
             Dim code =
 <Code>
 Class B
@@ -121,7 +121,7 @@ End Class
 </Code>
 
             TestName(code, "Inherits")
-        End Function
+        End Sub
 
 #End Region
 

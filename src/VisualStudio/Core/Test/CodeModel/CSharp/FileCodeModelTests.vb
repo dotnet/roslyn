@@ -102,7 +102,7 @@ class FooAttribute : System.Attribute
 
         <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function NoChildrenForInvalidMembers() As Task
+        Public Sub NoChildrenForInvalidMembers()
             Dim code =
 <Code>
 void M() { }
@@ -113,7 +113,7 @@ class C { }
 
             TestChildren(code,
                 IsElement("C"))
-        End Function
+        End Sub
 
 #Region "AddAttribute tests"
 

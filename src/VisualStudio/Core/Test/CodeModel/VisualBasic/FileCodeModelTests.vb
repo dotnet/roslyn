@@ -118,7 +118,7 @@ End Class
 
         <WorkItem(1111417, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111417")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCodeElementFullName() As Task
+        Public Sub TestCodeElementFullName()
             Dim code =
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -176,7 +176,7 @@ End Namespace</Document>
                 Assert.Equal("func1", func1.Name)
                 Assert.Equal("BarBaz.Outer.Class1.func1", func1.FullName)
             End Using
-        End Function
+        End Sub
 
         <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

@@ -71,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
         <WorkItem(1089964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089964")>
         <WpfFact>
-        Public Async Function ContainedDocumentTest() As Task
+        Public Sub ContainedDocumentTest()
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
             Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
@@ -116,7 +116,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
-        End Function
+        End Sub
 
         <WorkItem(1147868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147868")>
         <WpfFact>

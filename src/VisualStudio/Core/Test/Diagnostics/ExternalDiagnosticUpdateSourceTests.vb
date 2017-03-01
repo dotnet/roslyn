@@ -15,7 +15,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class ExternalDiagnosticUpdateSourceTests
         <Fact>
-        Public Async Function TestExternalDiagnostics_SupportGetDiagnostics() As Task
+        Public Sub TestExternalDiagnostics_SupportGetDiagnostics()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New Waiter()
                 Dim service = New TestDiagnosticAnalyzerService()
@@ -23,7 +23,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Assert.False(source.SupportGetDiagnostics)
             End Using
-        End Function
+        End Sub
 
         <Fact>
         Public Async Function TestExternalDiagnostics_RaiseEvents() As Task
@@ -54,7 +54,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         <Fact>
-        Public Async Function TestExternalDiagnostics_SupportedId() As Task
+        Public Sub TestExternalDiagnostics_SupportedId()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New Waiter()
                 Dim service = New TestDiagnosticAnalyzerService()
@@ -66,7 +66,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.True(source.SupportedDiagnosticId(project.Id, "CS1002"))
                 Assert.False(source.SupportedDiagnosticId(project.Id, "CA1002"))
             End Using
-        End Function
+        End Sub
 
         <Fact>
         Public Async Function TestExternalDiagnostics_DuplicatedError() As Task
@@ -128,7 +128,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <Fact>
-        Public Async Function TestExternalBuildErrorProperties() As Task
+        Public Sub TestExternalBuildErrorProperties()
             Assert.Equal(1, DiagnosticData.PropertiesForBuildDiagnostic.Count)
 
             Dim value As String = Nothing
@@ -144,7 +144,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 diagnostic = GetDiagnosticData(workspace, project.Id, isBuildDiagnostic:=False)
                 Assert.False(diagnostic.IsBuildDiagnostic())
             End Using
-        End Function
+        End Sub
 
         Private Function GetDiagnosticData(workspace As Workspace, projectId As ProjectId, Optional isBuildDiagnostic As Boolean = False) As DiagnosticData
             Dim properties = If(isBuildDiagnostic, DiagnosticData.PropertiesForBuildDiagnostic, ImmutableDictionary(Of String, String).Empty)

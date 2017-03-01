@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "GetStartPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint1() As Task
+        Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
 Imports $$System
@@ -40,10 +40,10 @@ Imports $$System
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=14)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=14)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint2() As Task
+        Public Sub TestGetStartPoint2()
             Dim code =
 <Code>
 Imports System, $$System.Linq
@@ -70,10 +70,10 @@ Imports System, $$System.Linq
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=27)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=27)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint3() As Task
+        Public Sub TestGetStartPoint3()
             Dim code =
 <Code>
 Imports System, $$S = System.Linq
@@ -100,14 +100,14 @@ Imports System, $$S = System.Linq
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=31)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "GetEndPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint1() As Task
+        Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
 Imports $$System
@@ -134,10 +134,10 @@ Imports $$System
                      TextPoint(line:=1, lineOffset:=15, absoluteOffset:=15, lineLength:=14)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=15, absoluteOffset:=15, lineLength:=14)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint2() As Task
+        Public Sub TestGetEndPoint2()
             Dim code =
 <Code>
 Imports System, $$System.Linq
@@ -164,10 +164,10 @@ Imports System, $$System.Linq
                      TextPoint(line:=1, lineOffset:=28, absoluteOffset:=28, lineLength:=27)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=28, absoluteOffset:=28, lineLength:=27)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint3() As Task
+        Public Sub TestGetEndPoint3()
             Dim code =
 <Code>
 Imports System, $$S = System.Linq
@@ -194,7 +194,7 @@ Imports System, $$S = System.Linq
                      TextPoint(line:=1, lineOffset:=32, absoluteOffset:=32, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=32, absoluteOffset:=32, lineLength:=31)))
-        End Function
+        End Sub
 
 #End Region
 
@@ -208,7 +208,7 @@ Imports $$System
 </Code>
 
             Await Assert.ThrowsAsync(Of NotImplementedException)(
-                Async Function()
+                Function()
                     TestFullName(code, "System")
                 End Function)
         End Function
@@ -218,37 +218,37 @@ Imports $$System
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        Public Sub TestName1()
             Dim code =
 <Code>
 Imports $$Foo
 </Code>
 
             TestName(code, "Foo")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName2() As Task
+        Public Sub TestName2()
             Dim code =
 <Code>
 Imports System$$, System.Linq
 </Code>
 
             TestName(code, "System")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName3() As Task
+        Public Sub TestName3()
             Dim code =
 <Code>
 Imports System, System.Linq$$
 </Code>
 
             TestName(code, "System.Linq")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName4() As Task
+        Public Sub TestName4()
             Dim code =
 <Code>
 Imports System _
@@ -257,34 +257,34 @@ Imports System _
 </Code>
 
             TestName(code, "System.Linq")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName5() As Task
+        Public Sub TestName5()
             Dim code =
 <Code>
 Imports System, S = System.Linq$$
 </Code>
 
             TestName(code, "System.Linq")
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Namespace tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestNamespace1() As Task
+        Public Sub TestNamespace1()
             Dim code =
 <Code>
 Imports $$Foo
 </Code>
 
             TestNamespace(code, "Foo")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestNamespace2() As Task
+        Public Sub TestNamespace2()
             Dim code =
 <Code>
 Imports System _
@@ -293,7 +293,7 @@ Imports System _
 </Code>
 
             TestNamespace(code, "System.Linq")
-        End Function
+        End Sub
 
 #End Region
 

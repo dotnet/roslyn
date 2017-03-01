@@ -11,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "Doc Comment"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment1() As Task
+        Public Sub TestDocComment1()
             Dim code =
 <Code>
 ''' &lt;summary&gt;This is my comment!&lt;/summary&gt;
@@ -20,10 +20,10 @@ End Class
 </Code>
 
             TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "</doc>")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment2() As Task
+        Public Sub TestDocComment2()
             Dim code =
 <Code>
 ''' &lt;summary&gt;This is my comment!&lt;/summary&gt;
@@ -33,7 +33,7 @@ End Class
 </Code>
 
             TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "  <remarks />" & vbCrLf & "</doc>")
-        End Function
+        End Sub
 
 #End Region
 

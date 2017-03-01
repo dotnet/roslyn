@@ -12,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "GetStartPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint1() As Task
+        Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
 Option $$Strict On
@@ -42,14 +42,14 @@ End Class
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=16)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=16)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "GetEndPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint1() As Task
+        Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
 Option $$Strict On
@@ -79,35 +79,35 @@ End Class
                      TextPoint(line:=1, lineOffset:=17, absoluteOffset:=17, lineLength:=16)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=17, absoluteOffset:=17, lineLength:=16)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Kind tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestKind1() As Task
+        Public Sub TestKind1()
             Dim code =
 <Code>
 $$Option Strict On
 </Code>
 
             TestKind(code, EnvDTE.vsCMElement.vsCMElementOptionStmt)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        Public Sub TestName1()
             Dim code =
 <Code>
 $$Option Strict On
 </Code>
 
             TestName(code, "Option Strict On")
-        End Function
+        End Sub
 
 #End Region
 

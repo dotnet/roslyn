@@ -15,7 +15,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class TodoListTableDataSourceTests
         <Fact>
-        Public Async Function TestCreation() As Task
+        Public Sub TestCreation()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim provider = New TestTodoListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -44,10 +44,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 subscription.Dispose()
                 Assert.Equal(0, source.NumberOfSubscription_TestOnly)
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestInitialEntries() As Task
+        Public Sub TestInitialEntries()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim provider = New TestTodoListProvider(CreateItem(workspace, documentId))
@@ -63,10 +63,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
                 Assert.Equal(1, sink.Entries.Count)
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestEntryChanged() As Task
+        Public Sub TestEntryChanged()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim provider = New TestTodoListProvider()
@@ -88,7 +88,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseClearTodoListUpdated(workspace, documentId)
                 Assert.Equal(0, sink.Entries.Count)
             End Using
-        End Function
+        End Sub
 
         <Fact>
         Public Async Function TestEntry() As Task

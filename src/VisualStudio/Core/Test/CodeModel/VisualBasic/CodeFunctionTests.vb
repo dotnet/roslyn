@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "GetStartPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_MustOverride1() As Task
+        Public Sub TestGetStartPoint_MustOverride1()
             Dim code =
 <Code>
 MustInherit Class C
@@ -42,10 +42,10 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=25, lineLength:=24)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=25, lineLength:=24)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_MustOverride2() As Task
+        Public Sub TestGetStartPoint_MustOverride2()
             Dim code =
 <Code>
 MustInherit Class C
@@ -75,11 +75,11 @@ End Class
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=57, lineLength:=24)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=25, lineLength:=31)))
-        End Function
+        End Sub
 
         <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_DeclareFunction_WithoutAttribute() As Task
+        Public Sub TestGetStartPoint_DeclareFunction_WithoutAttribute()
             Dim code =
 <Code>
 Public Class C1
@@ -108,7 +108,7 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)))
-        End Function
+        End Sub
 
         <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

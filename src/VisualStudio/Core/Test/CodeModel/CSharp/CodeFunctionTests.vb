@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "Get Start Point"
         <WorkItem(1980, "https://github.com/dotnet/roslyn/issues/1980")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPointConversionOperatorFunction() As Task
+        Public Sub TestGetStartPointConversionOperatorFunction()
             Dim code =
 <Code>
 class D
@@ -28,11 +28,11 @@ class D
             TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartBody,
                      TextPoint(line:=5, lineOffset:=1, absoluteOffset:=65, lineLength:=23)))
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPointExplicitlyImplementedMethod() As Task
+        Public Sub TestGetStartPointExplicitlyImplementedMethod()
             Dim code =
 <Code>
 public interface I1
@@ -52,13 +52,13 @@ public class C1 : I1
             TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=8, lineOffset:=5, absoluteOffset:=67, lineLength:=15)))
-        End Function
+        End Sub
 #End Region
 
 #Region "Get End Point"
         <WorkItem(1980, "https://github.com/dotnet/roslyn/issues/1980")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPointConversionOperatorFunction() As Task
+        Public Sub TestGetEndPointConversionOperatorFunction()
             Dim code =
 <Code>
 class D
@@ -73,11 +73,11 @@ class D
             TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartBody,
                      TextPoint(line:=6, lineOffset:=1, absoluteOffset:=89, lineLength:=5)))
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPointExplicitlyImplementedMethod() As Task
+        Public Sub TestGetEndPointExplicitlyImplementedMethod()
             Dim code =
 <Code>
 public interface I1
@@ -97,13 +97,13 @@ public class C1 : I1
             TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=11, lineOffset:=6, absoluteOffset:=108, lineLength:=5)))
-        End Function
+        End Sub
 #End Region
 
 #Region "Access tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess1() As Task
+        Public Sub TestAccess1()
             Dim code =
 <Code>
 class C
@@ -113,10 +113,10 @@ class C
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess2() As Task
+        Public Sub TestAccess2()
             Dim code =
 <Code>
 class C
@@ -126,10 +126,10 @@ class C
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess3() As Task
+        Public Sub TestAccess3()
             Dim code =
 <Code>
 class C
@@ -139,10 +139,10 @@ class C
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess4() As Task
+        Public Sub TestAccess4()
             Dim code =
 <Code>
 class C
@@ -152,10 +152,10 @@ class C
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess5() As Task
+        Public Sub TestAccess5()
             Dim code =
 <Code>
 class C
@@ -165,10 +165,10 @@ class C
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess6() As Task
+        Public Sub TestAccess6()
             Dim code =
 <Code>
 class C
@@ -178,10 +178,10 @@ class C
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess7() As Task
+        Public Sub TestAccess7()
             Dim code =
 <Code>
 interface I
@@ -191,14 +191,14 @@ interface I
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Attribute Tests"
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPropertyGetAttribute_WithNoSet() As Task
+        Public Sub TestPropertyGetAttribute_WithNoSet()
             Dim code =
 <Code>
 public class Class1
@@ -215,11 +215,11 @@ public class Class1
 </Code>
 
             TestAttributes(code, IsElement("Obsolete"))
-        End Function
+        End Sub
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPropertySetAttribute_WithNoGet() As Task
+        Public Sub TestPropertySetAttribute_WithNoGet()
             Dim code =
 <Code>
 public class Class1
@@ -235,11 +235,11 @@ public class Class1
 </Code>
 
             TestAttributes(code, IsElement("Obsolete"))
-        End Function
+        End Sub
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPropertyGetAttribute_WithSet() As Task
+        Public Sub TestPropertyGetAttribute_WithSet()
             Dim code =
 <Code>
 public class Class1
@@ -261,11 +261,11 @@ public class Class1
 </Code>
 
             TestAttributes(code, IsElement("Obsolete"))
-        End Function
+        End Sub
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPropertySetAttribute_WithGet() As Task
+        Public Sub TestPropertySetAttribute_WithGet()
             Dim code =
 <Code>
 public class Class1
@@ -287,11 +287,11 @@ public class Class1
 </Code>
 
             TestAttributes(code, IsElement("Obsolete"))
-        End Function
+        End Sub
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAttribute_1() As Task
+        Public Sub TestAttribute_1()
             Dim code =
 <Code>
 class Class2
@@ -305,13 +305,13 @@ class Class2
 </Code>
 
             TestAttributes(code, IsElement("Obsolete"))
-        End Function
+        End Sub
 #End Region
 
 #Region "CanOverride tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCanOverride1() As Task
+        Public Sub TestCanOverride1()
             Dim code =
 <Code>
 abstract class C
@@ -321,10 +321,10 @@ abstract class C
 </Code>
 
             TestCanOverride(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCanOverride2() As Task
+        Public Sub TestCanOverride2()
             Dim code =
 <Code>
 interface I
@@ -334,10 +334,10 @@ interface I
 </Code>
 
             TestCanOverride(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCanOverride3() As Task
+        Public Sub TestCanOverride3()
             Dim code =
 <Code>
 class C
@@ -347,10 +347,10 @@ class C
 </Code>
 
             TestCanOverride(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCanOverride4() As Task
+        Public Sub TestCanOverride4()
             Dim code =
 <Code>
 class C
@@ -360,10 +360,10 @@ class C
 </Code>
 
             TestCanOverride(code, False)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCanOverride5() As Task
+        Public Sub TestCanOverride5()
             Dim code =
 <Code>
 class B
@@ -383,14 +383,14 @@ class C : B
 </Code>
 
             TestCanOverride(code, False)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "FullName tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName_Destructor() As Task
+        Public Sub TestFullName_Destructor()
             Dim code =
 <Code>
 class C
@@ -400,11 +400,11 @@ class C
 </Code>
 
             TestFullName(code, "C.~C")
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName_ExplicitlyImplementedMethod() As Task
+        Public Sub TestFullName_ExplicitlyImplementedMethod()
             Dim code =
 <Code>
 public interface I1
@@ -422,7 +422,7 @@ public class C1 : I1
 </Code>
 
             TestFullName(code, "C1.I1.f1")
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

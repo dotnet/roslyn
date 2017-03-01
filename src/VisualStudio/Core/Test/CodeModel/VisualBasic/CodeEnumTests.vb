@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "GetStartPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint1() As Task
+        Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
 Enum E$$
@@ -42,14 +42,14 @@ End Enum
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=6)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=6)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "GetEndPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint1() As Task
+        Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
 Enum E$$
@@ -78,24 +78,24 @@ End Enum
                      TextPoint(line:=3, lineOffset:=9, absoluteOffset:=17, lineLength:=8)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=9, absoluteOffset:=17, lineLength:=8)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Access tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess1() As Task
+        Public Sub TestAccess1()
             Dim code =
 <Code>
 Enum $$E : End Enum
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess2() As Task
+        Public Sub TestAccess2()
             Dim code =
 <Code>
 Class C
@@ -104,57 +104,57 @@ End Class
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess3() As Task
+        Public Sub TestAccess3()
             Dim code =
 <Code>
 Private Enum $$E : End Enum
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess4() As Task
+        Public Sub TestAccess4()
             Dim code =
 <Code>
 Protected Enum $$E : End Enum
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess5() As Task
+        Public Sub TestAccess5()
             Dim code =
 <Code>
 Protected Friend Enum $$E : End Enum
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess6() As Task
+        Public Sub TestAccess6()
             Dim code =
 <Code>
 Friend Enum $$E : End Enum
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess7() As Task
+        Public Sub TestAccess7()
             Dim code =
 <Code>
 Public Enum $$E : End Enum
 </Code>
 
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+        End Sub
 
 #End Region
 
@@ -264,7 +264,7 @@ End Enum
 #Region "GenericExtender"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGenericExtender_GetBaseTypesCount() As Task
+        Public Sub TestGenericExtender_GetBaseTypesCount()
             Dim code =
 <Code>
 Enum E$$
@@ -272,10 +272,10 @@ End Enum
 </Code>
 
             TestGenericNameExtender_GetBaseTypesCount(code, 1)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGenericExtender_GetBaseGenericName() As Task
+        Public Sub TestGenericExtender_GetBaseGenericName()
             Dim code =
 <Code>
 Enum E$$
@@ -283,10 +283,10 @@ End Enum
 </Code>
 
             TestGenericNameExtender_GetBaseGenericName(code, 1, "System.Enum")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGenericExtender_GetImplementedTypesCount() As Task
+        Public Sub TestGenericExtender_GetImplementedTypesCount()
             Dim code =
 <Code>
 Enum E$$
@@ -294,10 +294,10 @@ End Enum
 </Code>
 
             TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGenericExtender_GetImplTypeGenericName() As Task
+        Public Sub TestGenericExtender_GetImplTypeGenericName()
             Dim code =
 <Code>
 Enum E$$
@@ -305,7 +305,7 @@ End Enum
 </Code>
 
             TestGenericNameExtender_GetImplTypeGenericName(code, 1, Nothing)
-        End Function
+        End Sub
 
 #End Region
 
