@@ -428,7 +428,7 @@ namespace N$$
 }
 </Code>
 
-            Await TestChildren(code,
+            TestChildren(code,
                 IsElement("C1", EnvDTE.vsCMElement.vsCMElementClass),
                 IsElement("C2", EnvDTE.vsCMElement.vsCMElementClass),
                 IsElement("C3", EnvDTE.vsCMElement.vsCMElementClass))
@@ -447,7 +447,7 @@ namespace N$$
 }
 </Code>
 
-            Await TestChildren(code, NoElements)
+            TestChildren(code, NoElements)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

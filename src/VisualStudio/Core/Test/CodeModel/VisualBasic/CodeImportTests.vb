@@ -143,7 +143,7 @@ Imports $$System
 Imports System, $$System.Linq
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -173,7 +173,7 @@ Imports System, $$System.Linq
 Imports System, $$S = System.Linq
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -209,7 +209,7 @@ Imports $$System
 
             Await Assert.ThrowsAsync(Of NotImplementedException)(
                 Async Function()
-                    Await TestFullName(code, "System")
+                    TestFullName(code, "System")
                 End Function)
         End Function
 
@@ -224,7 +224,7 @@ Imports $$System
 Imports $$Foo
 </Code>
 
-            Await TestName(code, "Foo")
+            TestName(code, "Foo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -234,7 +234,7 @@ Imports $$Foo
 Imports System$$, System.Linq
 </Code>
 
-            Await TestName(code, "System")
+            TestName(code, "System")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -244,7 +244,7 @@ Imports System$$, System.Linq
 Imports System, System.Linq$$
 </Code>
 
-            Await TestName(code, "System.Linq")
+            TestName(code, "System.Linq")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -256,7 +256,7 @@ Imports System _
         Linq$$
 </Code>
 
-            Await TestName(code, "System.Linq")
+            TestName(code, "System.Linq")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -266,7 +266,7 @@ Imports System _
 Imports System, S = System.Linq$$
 </Code>
 
-            Await TestName(code, "System.Linq")
+            TestName(code, "System.Linq")
         End Function
 
 #End Region

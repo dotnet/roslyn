@@ -218,7 +218,7 @@ Enum E
 End Enum
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -251,7 +251,7 @@ Enum E
 End Enum
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=2, lineOffset:=32, absoluteOffset:=39, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -287,7 +287,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -299,7 +299,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -311,7 +311,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -323,7 +323,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -335,7 +335,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -347,7 +347,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -359,7 +359,7 @@ Enum E
 End Enum
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
 #End Region
@@ -379,7 +379,7 @@ End Class
 
             Dim result = " Foo"
 
-            Await TestComment(code, result)
+            TestComment(code, result)
         End Function
 
 #End Region
@@ -395,7 +395,7 @@ Enum E
 End Enum
 </Code>
 
-            Await TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
+            TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -407,7 +407,7 @@ Class C
 End Class
 </Code>
 
-            Await TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
+            TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -419,7 +419,7 @@ Class C
 End Class
 </Code>
 
-            Await TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
+            TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -431,7 +431,7 @@ Class C
 End Class
 </Code>
 
-            Await TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
+            TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -443,7 +443,7 @@ Class C
 End Class
 </Code>
 
-            Await TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
+            TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Function
 
 #End Region
@@ -459,7 +459,7 @@ Class C
 End Class
 </Code>
 
-            Await TestInitExpression(code, "42")
+            TestInitExpression(code, "42")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -471,7 +471,7 @@ Class C
 End Class
 </Code>
 
-            Await TestInitExpression(code, "19 + 23")
+            TestInitExpression(code, "19 + 23")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -483,7 +483,7 @@ Enum E
 End Enum
 </Code>
 
-            Await TestInitExpression(code, "19 + 23")
+            TestInitExpression(code, "19 + 23")
         End Function
 
 #End Region

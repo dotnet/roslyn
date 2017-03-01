@@ -549,7 +549,7 @@ class C
 }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -592,7 +592,7 @@ class C
 }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -641,7 +641,7 @@ class C1 : I1
 }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=18, lineOffset:=6, absoluteOffset:=178, lineLength:=5)))
         End Function
@@ -673,7 +673,7 @@ class C1 : I1
 }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=19, lineOffset:=6, absoluteOffset:=193, lineLength:=5)))
         End Function
@@ -701,7 +701,7 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "C.P")
+            TestFullName(code, "C.P")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -714,7 +714,7 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "C.P")
+            TestFullName(code, "C.P")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -727,7 +727,7 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "C.this")
+            TestFullName(code, "C.this")
         End Function
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
@@ -756,7 +756,7 @@ class C1 : I1
 }
 </Code>
 
-            Await TestFullName(code, "C1.I1.Prop1")
+            TestFullName(code, "C1.I1.Prop1")
         End Function
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
@@ -786,7 +786,7 @@ class C1 : I1
 }
 </Code>
 
-            Await TestFullName(code, "C1.I1.this")
+            TestFullName(code, "C1.I1.this")
         End Function
 
 #End Region
@@ -812,7 +812,7 @@ class C
 }
 </Code>
 
-            Await TestIsDefault(code, True)
+            TestIsDefault(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -833,7 +833,7 @@ class C
 }
 </Code>
 
-            Await TestIsDefault(code, False)
+            TestIsDefault(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -846,7 +846,7 @@ class C
 }
 </Code>
 
-            Await TestIsDefault(code, False)
+            TestIsDefault(code, False)
         End Function
 
 #End Region
@@ -872,7 +872,7 @@ class C
 }
 </Code>
 
-            Await TestName(code, "P")
+            TestName(code, "P")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -885,7 +885,7 @@ class C
 }
 </Code>
 
-            Await TestName(code, "P")
+            TestName(code, "P")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -898,7 +898,7 @@ class C
 }
 </Code>
 
-            Await TestName(code, "this")
+            TestName(code, "this")
         End Function
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
@@ -927,7 +927,7 @@ class C1 : I1
 }
 </Code>
 
-            Await TestName(code, "I1.Prop1")
+            TestName(code, "I1.Prop1")
         End Function
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
@@ -957,7 +957,7 @@ class C1 : I1
 }
 </Code>
 
-            Await TestName(code, "I1.this")
+            TestName(code, "I1.this")
         End Function
 
 #End Region
@@ -977,7 +977,7 @@ namespace N
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.this[int index]")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.this[int index]")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -993,7 +993,7 @@ namespace N
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.P")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.P")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1009,7 +1009,7 @@ namespace N
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "N.C.this[int index]")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "N.C.this[int index]")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1025,7 +1025,7 @@ namespace N
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "N.C.P")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "N.C.P")
         End Function
 
 #End Region
@@ -1051,7 +1051,7 @@ class C
 }
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsFullName = "System.Int32",
                              .AsString = "int",
@@ -1083,7 +1083,7 @@ class C
 }
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1100,7 +1100,7 @@ abstract class C
 }
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1122,7 +1122,7 @@ class C
 }
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1144,7 +1144,7 @@ class C : B
 }
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1166,7 +1166,7 @@ class C : B
 }
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride Or EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed)
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride Or EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1184,7 +1184,7 @@ class C : B
 }
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNew)
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNew)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1202,7 +1202,7 @@ class C : A
 }
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
         End Function
 
 #End Region
@@ -1228,7 +1228,7 @@ class C
 }
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1247,7 +1247,7 @@ class C
 }
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1265,7 +1265,7 @@ class C
 }
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1278,7 +1278,7 @@ class C
 }
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1291,7 +1291,7 @@ class C
 }
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1304,7 +1304,7 @@ class C
 }
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
         End Function
 
 #End Region
@@ -1551,7 +1551,7 @@ class Program
 }
 </Code>
 
-            Await TestAllParameterNames(code, "@int")
+            TestAllParameterNames(code, "@int")
         End Function
 
 #End Region

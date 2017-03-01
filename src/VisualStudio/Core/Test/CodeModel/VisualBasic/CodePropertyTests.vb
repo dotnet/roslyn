@@ -170,7 +170,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -208,7 +208,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=2, lineOffset:=32, absoluteOffset:=40, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -240,7 +240,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -273,7 +273,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=2, lineOffset:=32, absoluteOffset:=40, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -312,7 +312,7 @@ Class C1
 End Class
 </Code>
 
-            Await TestAttributes(code, IsElement("CLSCompliant"))
+            TestAttributes(code, IsElement("CLSCompliant"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -332,7 +332,7 @@ Class C1
 End Class
 </Code>
 
-            Await TestAttributes(code, IsElement("CLSCompliant"))
+            TestAttributes(code, IsElement("CLSCompliant"))
         End Function
 
 #End Region
@@ -585,7 +585,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "N.C.P()")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "N.C.P()")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -599,7 +599,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.P()")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.P()")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -618,7 +618,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.P()")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.P()")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -637,7 +637,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.P()")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.P()")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -656,7 +656,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeParamNames, "C.P(index )")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeParamNames, "C.P(index )")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -675,7 +675,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeParamNames Or EnvDTE.vsCMPrototype.vsCMPrototypeParamTypes, "C.P(index As String)")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeParamNames Or EnvDTE.vsCMPrototype.vsCMPrototypeParamTypes, "C.P(index As String)")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -694,7 +694,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeParamNames Or EnvDTE.vsCMPrototype.vsCMPrototypeParamDefaultValues, "C.P(index  = """")")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeParamNames Or EnvDTE.vsCMPrototype.vsCMPrototypeParamDefaultValues, "C.P(index  = """")")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -713,7 +713,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeParamTypes, "C.P(String)")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeParamTypes, "C.P(String)")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -732,7 +732,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeParamTypes Or EnvDTE.vsCMPrototype.vsCMPrototypeParamDefaultValues, "C.P(String = """")")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeParamTypes Or EnvDTE.vsCMPrototype.vsCMPrototypeParamDefaultValues, "C.P(String = """")")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -751,7 +751,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeParamNames Or EnvDTE.vsCMPrototype.vsCMPrototypeParamTypes Or EnvDTE.vsCMPrototype.vsCMPrototypeParamDefaultValues, "C.P(index As String = """")")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName Or EnvDTE.vsCMPrototype.vsCMPrototypeParamNames Or EnvDTE.vsCMPrototype.vsCMPrototypeParamTypes Or EnvDTE.vsCMPrototype.vsCMPrototypeParamDefaultValues, "C.P(index As String = """")")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -770,7 +770,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "P()")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "P()")
         End Function
 
 #End Region
@@ -791,7 +791,7 @@ Class C
 End Class
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -806,7 +806,7 @@ Class C
 End Class
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -821,7 +821,7 @@ Class C
 End Class
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -833,7 +833,7 @@ Class C
 End Class
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -845,7 +845,7 @@ Class C
 End Class
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -857,7 +857,7 @@ Class C
 End Class
 </Code>
 
-            Await TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly)
+            TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly)
         End Function
 
 #End Region
@@ -873,7 +873,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetter(code,
+            TestSetter(code,
                        Sub(accessor)
                            Assert.Null(accessor)
                        End Sub)
@@ -892,7 +892,7 @@ Class C
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsFullName = "System.Int32",
                              .AsString = "Integer",
@@ -910,7 +910,7 @@ Class C
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsFullName = "System.Text.StringBuilder",
                              .AsString = "System.Text.StringBuilder",
@@ -935,7 +935,7 @@ Class C
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsFullName = "System.String",
                              .AsString = "String",

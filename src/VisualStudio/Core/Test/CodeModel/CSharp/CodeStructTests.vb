@@ -263,7 +263,7 @@ struct $$S
 }
 </Code>
 
-            Await TestParts(code, 1)
+            TestParts(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -275,7 +275,7 @@ partial struct $$S
 }
 </Code>
 
-            Await TestParts(code, 1)
+            TestParts(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -291,7 +291,7 @@ partial struct S
 }
 </Code>
 
-            Await TestParts(code, 2)
+            TestParts(code, 2)
         End Function
 #End Region
 
@@ -394,7 +394,7 @@ struct S
 struct $$S { }
 </Code>
 
-            Await TestAddImplementedInterfaceThrows(Of ArgumentException)(code, "I", Nothing)
+            TestAddImplementedInterfaceThrows(Of ArgumentException)(code, "I", Nothing)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

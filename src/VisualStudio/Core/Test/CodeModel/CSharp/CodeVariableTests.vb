@@ -212,7 +212,7 @@ class C
 }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -225,7 +225,7 @@ class C
 }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -238,7 +238,7 @@ enum E
 }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
 #End Region
@@ -255,7 +255,7 @@ class C
 }
 </Code>
 
-            Await TestAttributes(code, NoElements)
+            TestAttributes(code, NoElements)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -271,7 +271,7 @@ class C
 }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"))
+            TestAttributes(code, IsElement("Serializable"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -287,7 +287,7 @@ class C
 }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
+            TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -302,7 +302,7 @@ class C
 }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
+            TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
         End Function
 #End Region
 
@@ -331,7 +331,7 @@ class C
 }
 </Code>
 
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -403,7 +403,7 @@ enum E
 }
 </Code>
 
-            Await TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
+            TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -416,7 +416,7 @@ class C
 }
 </Code>
 
-            Await TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
+            TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -429,7 +429,7 @@ class C
 }
 </Code>
 
-            Await TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
+            TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -442,7 +442,7 @@ class C
 }
 </Code>
 
-            Await TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
+            TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -455,7 +455,7 @@ class C
 }
 </Code>
 
-            Await TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst Or EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
+            TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst Or EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
         End Function
 
 #End Region
@@ -473,7 +473,7 @@ enum E
 }
 </Code>
 
-            Await TestFullName(code, "E.Foo")
+            TestFullName(code, "E.Foo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -487,7 +487,7 @@ enum E
 }
 </Code>
 
-            Await TestFullName(code, "E.Bar")
+            TestFullName(code, "E.Bar")
         End Function
 
 #End Region
@@ -504,7 +504,7 @@ class C
 }
 </Code>
 
-            Await TestInitExpression(code, "42")
+            TestInitExpression(code, "42")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -517,7 +517,7 @@ class C
 }
 </Code>
 
-            Await TestInitExpression(code, "19 + 23")
+            TestInitExpression(code, "19 + 23")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -530,7 +530,7 @@ enum E
 }
 </Code>
 
-            Await TestInitExpression(code, "19 + 23")
+            TestInitExpression(code, "19 + 23")
         End Function
 
 #End Region

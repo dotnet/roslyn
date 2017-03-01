@@ -307,7 +307,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -342,7 +342,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -377,7 +377,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -412,7 +412,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -515,7 +515,7 @@ Class C
 End Class
 </Code>
 
-            Await TestFullName(code, "s")
+            TestFullName(code, "s")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -528,7 +528,7 @@ Class C
 End Class
 </Code>
 
-            Await TestFullName(code, "s()")
+            TestFullName(code, "s()")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -541,7 +541,7 @@ Class C
 End Class
 </Code>
 
-            Await TestFullName(code, "s%")
+            TestFullName(code, "s%")
         End Function
 
 #End Region
@@ -560,7 +560,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p1")
+            TestName(code, "p1")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -575,7 +575,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p2")
+            TestName(code, "p2")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -590,7 +590,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p3")
+            TestName(code, "p3")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -605,7 +605,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p4")
+            TestName(code, "p4")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -620,7 +620,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p5")
+            TestName(code, "p5")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -635,7 +635,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p6")
+            TestName(code, "p6")
         End Function
 
 #End Region
@@ -652,7 +652,7 @@ Class C
 End Class
 </Code>
 
-            Await TestKind(code, EnvDTE.vsCMElement.vsCMElementParameter)
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementParameter)
         End Function
 
 #End Region
@@ -739,7 +739,7 @@ Class C
 End Class
 </Code>
 
-            Await TestParent(code, IsElement("M", kind:=EnvDTE.vsCMElement.vsCMElementFunction))
+            TestParent(code, IsElement("M", kind:=EnvDTE.vsCMElement.vsCMElementFunction))
         End Function
 
 #End Region
@@ -755,7 +755,7 @@ Class C
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "Integer",
                              .AsFullName = "System.Int32",
@@ -773,7 +773,7 @@ Class C
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "String",
                              .AsFullName = "System.String",

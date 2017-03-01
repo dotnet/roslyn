@@ -97,7 +97,7 @@ enum $$E
     Bar
 }</Code>
 
-            Await TestBases(code, IsElement("Enum"))
+            TestBases(code, IsElement("Enum"))
         End Function
 
 #End Region

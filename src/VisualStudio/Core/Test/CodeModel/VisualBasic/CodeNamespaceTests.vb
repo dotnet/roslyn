@@ -418,7 +418,7 @@ End Namespace
 
             Dim result = " Foo"
 
-            Await TestComment(code, result)
+            TestComment(code, result)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -434,7 +434,7 @@ End Namespace
             Dim result = " Foo" & vbCrLf &
                          " Bar"
 
-            Await TestComment(code, result)
+            TestComment(code, result)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -450,7 +450,7 @@ End Namespace
 
             Dim result = " Bar"
 
-            Await TestComment(code, result)
+            TestComment(code, result)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -467,7 +467,7 @@ End Namespace
 
             Dim result = " Bar"
 
-            Await TestComment(code, result)
+            TestComment(code, result)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -482,7 +482,7 @@ End Namespace
 
             Dim result = ""
 
-            Await TestComment(code, result)
+            TestComment(code, result)
         End Function
 
 #End Region
@@ -507,7 +507,7 @@ End Namespace
 " </summary>" & vbCrLf &
 " <remarks></remarks>"
 
-            Await TestDocComment(code, result)
+            TestDocComment(code, result)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -526,7 +526,7 @@ End Namespace
 " Hello World" & vbCrLf &
 " </summary>"
 
-            Await TestDocComment(code, result)
+            TestDocComment(code, result)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -545,7 +545,7 @@ End Namespace
             Dim result =
 " <remarks></remarks>"
 
-            Await TestDocComment(code, result)
+            TestDocComment(code, result)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -568,7 +568,7 @@ End Namespace
 " </summary>" & vbCrLf &
 " <remarks></remarks>"
 
-            Await TestDocComment(code, result)
+            TestDocComment(code, result)
         End Function
 
 #End Region

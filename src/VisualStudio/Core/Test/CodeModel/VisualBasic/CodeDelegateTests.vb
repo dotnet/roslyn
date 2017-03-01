@@ -84,7 +84,7 @@ Delegate Sub $$Foo(i As Integer)
 Delegate Sub $$Foo(i As Integer)
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -115,7 +115,7 @@ Delegate Sub $$Foo(i As Integer)
 Delegate Sub $$Foo(i As Integer)
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=1, lineOffset:=28, absoluteOffset:=28, lineLength:=27)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -152,7 +152,7 @@ Imports System
 Delegate Sub $$D()
 </Code>
 
-            Await TestAttributes(code, IsElement("CLSCompliant"))
+            TestAttributes(code, IsElement("CLSCompliant"))
         End Function
 
 #End Region
@@ -471,7 +471,7 @@ Delegate Sub $$D()
 Delegate Sub $$D()
 </Code>
 
-            Await TestGenericNameExtender_GetBaseGenericName(code, 1, "System.MulticastDelegate")
+            TestGenericNameExtender_GetBaseGenericName(code, 1, "System.MulticastDelegate")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

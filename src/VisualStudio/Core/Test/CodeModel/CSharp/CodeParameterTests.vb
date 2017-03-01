@@ -71,7 +71,7 @@ class C
 }
 </Code>
 
-            Await TestDefaultValue(code, """Foo""")
+            TestDefaultValue(code, """Foo""")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -117,7 +117,7 @@ class C
 }
 </Code>
 
-            Await TestName(code, "s")
+            TestName(code, "s")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -132,7 +132,7 @@ class C
 }
 </Code>
 
-            Await TestName(code, "s")
+            TestName(code, "s")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -147,7 +147,7 @@ class C
 }
 </Code>
 
-            Await TestName(code, "s")
+            TestName(code, "s")
         End Function
 
 #End Region
@@ -166,7 +166,7 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "s")
+            TestFullName(code, "s")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -181,7 +181,7 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "s")
+            TestFullName(code, "s")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -196,7 +196,7 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "s")
+            TestFullName(code, "s")
         End Function
 
 #End Region
@@ -215,7 +215,7 @@ class C
 }
 </Code>
 
-            Await TestKind(code, EnvDTE.vsCMElement.vsCMElementParameter)
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementParameter)
         End Function
 
 #End Region
@@ -327,7 +327,7 @@ class C
 }
 </Code>
 
-            Await TestParent(code, IsElement("M", kind:=EnvDTE.vsCMElement.vsCMElementFunction))
+            TestParent(code, IsElement("M", kind:=EnvDTE.vsCMElement.vsCMElementFunction))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -337,7 +337,7 @@ class C
 delegate void Foo(int $$i);
 </Code>
 
-            Await TestParent(code, IsElement("Foo", kind:=EnvDTE.vsCMElement.vsCMElementDelegate))
+            TestParent(code, IsElement("Foo", kind:=EnvDTE.vsCMElement.vsCMElementDelegate))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -353,7 +353,7 @@ class C
 }
 </Code>
 
-            Await TestParent(code, IsElement("this", kind:=EnvDTE.vsCMElement.vsCMElementProperty))
+            TestParent(code, IsElement("this", kind:=EnvDTE.vsCMElement.vsCMElementProperty))
         End Function
 
 #End Region
@@ -370,7 +370,7 @@ class C
 }
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "int",
                              .AsFullName = "System.Int32",

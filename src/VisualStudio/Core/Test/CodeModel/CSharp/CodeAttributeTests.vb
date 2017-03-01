@@ -90,7 +90,7 @@ class C { }
 class C { }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -123,7 +123,7 @@ class C { }
 class C { }
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -245,7 +245,7 @@ class FooAttribute : Attribute
 }
 </Code>
 
-            Await TestAttributeArgumentStartPoint(code, 3,
+            TestAttributeArgumentStartPoint(code, 3,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -289,7 +289,7 @@ class FooAttribute : Attribute
 End Class
 </Code>
 
-            Await TestAttributeArgumentEndPoint(code, 1,
+            TestAttributeArgumentEndPoint(code, 1,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -329,7 +329,7 @@ class FooAttribute : Attribute
 End Class
 </Code>
 
-            Await TestAttributeArgumentEndPoint(code, 2,
+            TestAttributeArgumentEndPoint(code, 2,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -369,7 +369,7 @@ class FooAttribute : Attribute
 End Class
 </Code>
 
-            Await TestAttributeArgumentEndPoint(code, 3,
+            TestAttributeArgumentEndPoint(code, 3,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -405,7 +405,7 @@ using System;
 class C { }
 </Code>
 
-            Await TestFullName(code, "System.SerializableAttribute")
+            TestFullName(code, "System.SerializableAttribute")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -416,7 +416,7 @@ class C { }
 class C { }
 </Code>
 
-            Await TestFullName(code, "System.SerializableAttribute")
+            TestFullName(code, "System.SerializableAttribute")
         End Function
 
 #End Region
@@ -432,7 +432,7 @@ using System;
 class C { }
 </Code>
 
-            Await TestParent(code, IsElement("C", kind:=EnvDTE.vsCMElement.vsCMElementClass))
+            TestParent(code, IsElement("C", kind:=EnvDTE.vsCMElement.vsCMElementClass))
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -445,7 +445,7 @@ using System;
 class C { }
 </Code>
 
-            Await TestParent(code, IsElement("C", kind:=EnvDTE.vsCMElement.vsCMElementClass))
+            TestParent(code, IsElement("C", kind:=EnvDTE.vsCMElement.vsCMElementClass))
         End Function
 #End Region
 

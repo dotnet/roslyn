@@ -234,7 +234,7 @@ Interface $$I
 End Interface
 </Code>
 
-            Await TestRemoveBaseThrows(Of COMException)(code, "J")
+            TestRemoveBaseThrows(Of COMException)(code, "J")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -337,7 +337,7 @@ Interface I$$
 End Interface
 </Code>
 
-            Await TestGenericNameExtender_GetBaseGenericName(code, 1, Nothing)
+            TestGenericNameExtender_GetBaseGenericName(code, 1, Nothing)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -358,7 +358,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestGenericNameExtender_GetBaseGenericName(code, 1, "N.IFoo(Of Integer)")
+            TestGenericNameExtender_GetBaseGenericName(code, 1, "N.IFoo(Of Integer)")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

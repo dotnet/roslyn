@@ -189,7 +189,7 @@ Structure $$S
 End Structure
 </Code>
 
-            Await TestAddImplementedInterfaceThrows(Of ArgumentException)(code, "I", 1)
+            TestAddImplementedInterfaceThrows(Of ArgumentException)(code, "I", 1)
         End Function
 
 #End Region
@@ -221,7 +221,7 @@ Structure $$S
 End Structure
 </Code>
 
-            Await TestRemoveImplementedInterfaceThrows(Of COMException)(code, "I")
+            TestRemoveImplementedInterfaceThrows(Of COMException)(code, "I")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -320,7 +320,7 @@ Structure S$$
 End Structure
 </Code>
 
-            Await TestGenericNameExtender_GetBaseGenericName(code, 1, "System.ValueType")
+            TestGenericNameExtender_GetBaseGenericName(code, 1, "System.ValueType")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

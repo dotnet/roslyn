@@ -128,7 +128,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAllParameterNames(code, "x", "y")
+            TestAllParameterNames(code, "x", "y")
         End Function
 
 #End Region

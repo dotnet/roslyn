@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 class Foo { }
 </code>
 
-            Await TestChildren(code,
+            TestChildren(code,
                              "Foo",
                              "System",
                              "Microsoft")

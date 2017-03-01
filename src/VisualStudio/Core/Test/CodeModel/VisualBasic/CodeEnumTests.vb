@@ -282,7 +282,7 @@ Enum E$$
 End Enum
 </Code>
 
-            Await TestGenericNameExtender_GetBaseGenericName(code, 1, "System.Enum")
+            TestGenericNameExtender_GetBaseGenericName(code, 1, "System.Enum")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

@@ -39,7 +39,7 @@ using $$Foo;
 
             Dim ex = Await Assert.ThrowsAsync(Of COMException)(
                 Async Function()
-                    Await TestName(code, "Foo")
+                    TestName(code, "Foo")
                 End Function)
 
             Assert.Equal(E_FAIL, ex.ErrorCode)

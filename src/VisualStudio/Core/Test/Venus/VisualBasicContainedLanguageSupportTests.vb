@@ -39,17 +39,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_Keyword() As Task
-            Await AssertNotValidIdAsync("Class")
+            AssertNotValidId("Class")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_StartsWithNumber() As Task
-            Await AssertNotValidIdAsync("123abc")
+            AssertNotValidId("123abc")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_Punctuation() As Task
-            Await AssertNotValidIdAsync("abc.abc")
+            AssertNotValidId("abc.abc")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>

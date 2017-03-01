@@ -82,7 +82,7 @@ delegate void $$Foo(int i);
 delegate void $$Foo(int i);
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -113,7 +113,7 @@ delegate void $$Foo(int i);
 delegate void $$Foo(int i);
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -164,7 +164,7 @@ namespace N
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "N.D")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "N.D")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -177,7 +177,7 @@ namespace N
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "delegate N.D")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "delegate N.D")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -190,7 +190,7 @@ namespace N
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "delegate N.D")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "delegate N.D")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -203,7 +203,7 @@ namespace N
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "delegate void D")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "delegate void D")
         End Function
 
 #End Region
@@ -217,7 +217,7 @@ namespace N
 delegate void $$D();
 </Code>
 
-            Await TestTypeProp(code, New CodeTypeRefData With {.CodeTypeFullName = "System.Void", .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefVoid})
+            TestTypeProp(code, New CodeTypeRefData With {.CodeTypeFullName = "System.Void", .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefVoid})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -227,7 +227,7 @@ delegate void $$D();
 delegate int $$D();
 </Code>
 
-            Await TestTypeProp(code, New CodeTypeRefData With {.CodeTypeFullName = "System.Int32", .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefInt})
+            TestTypeProp(code, New CodeTypeRefData With {.CodeTypeFullName = "System.Int32", .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefInt})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -238,7 +238,7 @@ class C { }
 delegate C $$D();
 </Code>
 
-            Await TestTypeProp(code, New CodeTypeRefData With {.CodeTypeFullName = "C", .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType})
+            TestTypeProp(code, New CodeTypeRefData With {.CodeTypeFullName = "C", .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType})
         End Function
 
 #End Region
@@ -257,7 +257,7 @@ public delegate int $$D();
 public delegate void D();
 </Code>
 
-            Await TestSetTypeProp(code, expected, "void")
+            TestSetTypeProp(code, expected, "void")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -287,7 +287,7 @@ public delegate int? D();
 public delegate int $$M(int @int);
 </Code>
 
-            Await TestAllParameterNames(code, "@int")
+            TestAllParameterNames(code, "@int")
         End Function
 
         <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
@@ -298,7 +298,7 @@ public delegate int $$M(int @int);
 public delegate int $$M(int @int, string @string);
 </Code>
 
-            Await TestAllParameterNames(code, "@int", "@string")
+            TestAllParameterNames(code, "@int", "@string")
         End Function
 
 #End Region

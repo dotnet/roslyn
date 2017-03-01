@@ -151,7 +151,7 @@ class C
 }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -164,7 +164,7 @@ class C
 }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -177,7 +177,7 @@ class C
 }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -190,7 +190,7 @@ interface I
 }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
 #End Region
@@ -214,7 +214,7 @@ public class Class1
 }
 </Code>
 
-            Await TestAttributes(code, IsElement("Obsolete"))
+            TestAttributes(code, IsElement("Obsolete"))
         End Function
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
@@ -234,7 +234,7 @@ public class Class1
 }
 </Code>
 
-            Await TestAttributes(code, IsElement("Obsolete"))
+            TestAttributes(code, IsElement("Obsolete"))
         End Function
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
@@ -260,7 +260,7 @@ public class Class1
 }
 </Code>
 
-            Await TestAttributes(code, IsElement("Obsolete"))
+            TestAttributes(code, IsElement("Obsolete"))
         End Function
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
@@ -286,7 +286,7 @@ public class Class1
 }
 </Code>
 
-            Await TestAttributes(code, IsElement("Obsolete"))
+            TestAttributes(code, IsElement("Obsolete"))
         End Function
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
@@ -304,7 +304,7 @@ class Class2
 }
 </Code>
 
-            Await TestAttributes(code, IsElement("Obsolete"))
+            TestAttributes(code, IsElement("Obsolete"))
         End Function
 #End Region
 
@@ -399,7 +399,7 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "C.~C")
+            TestFullName(code, "C.~C")
         End Function
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
@@ -421,7 +421,7 @@ public class C1 : I1
 }
 </Code>
 
-            Await TestFullName(code, "C1.I1.f1")
+            TestFullName(code, "C1.I1.f1")
         End Function
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
@@ -444,7 +444,7 @@ public class ComplexType
 }
 </Code>
 
-            Await TestFullName(code, "ComplexType.implicit operator ComplexType")
+            TestFullName(code, "ComplexType.implicit operator ComplexType")
         End Function
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
@@ -467,7 +467,7 @@ public class ComplexType
 }
 </Code>
 
-            Await TestFullName(code, "ComplexType.explicit operator ComplexType")
+            TestFullName(code, "ComplexType.explicit operator ComplexType")
         End Function
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
@@ -490,7 +490,7 @@ public class ComplexType
 }
 </Code>
 
-            Await TestFullName(code, "ComplexType.operator +")
+            TestFullName(code, "ComplexType.operator +")
         End Function
 
 #End Region
@@ -1076,7 +1076,7 @@ class A
 }
 </Code>
 
-            Await TestPrototypeThrows(Of ArgumentException)(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature Or EnvDTE.vsCMPrototype.vsCMPrototypeClassName)
+            TestPrototypeThrows(Of ArgumentException)(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature Or EnvDTE.vsCMPrototype.vsCMPrototypeClassName)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1106,7 +1106,7 @@ class A
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "A.~A")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "A.~A")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1122,7 +1122,7 @@ class A
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "A.operator +")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "A.operator +")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1137,7 +1137,7 @@ class A
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "void A")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "void A")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1152,7 +1152,7 @@ class A
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "void ~A")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "void ~A")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1168,7 +1168,7 @@ class A
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "A operator +")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "A operator +")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1183,7 +1183,7 @@ class A
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.A")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.A")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1198,7 +1198,7 @@ class A
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.~A")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.~A")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1214,7 +1214,7 @@ class A
 }
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.operator +")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "A.operator +")
         End Function
 
 #End Region
@@ -1233,7 +1233,7 @@ class A
 }
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                 New CodeTypeRefData With
                 {
                     .AsFullName = "System.Void",
@@ -1255,7 +1255,7 @@ class A
 }
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                 New CodeTypeRefData With
                 {
                     .AsFullName = "System.Void",
@@ -1278,7 +1278,7 @@ class A
 }
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                 New CodeTypeRefData With
                 {
                     .AsFullName = "A",
@@ -2267,7 +2267,7 @@ public static class C
 }
 </Code>
 
-            Await TestExtensionMethodExtender_IsExtension(code, True)
+            TestExtensionMethodExtender_IsExtension(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2282,7 +2282,7 @@ public static class C
 }
 </Code>
 
-            Await TestExtensionMethodExtender_IsExtension(code, False)
+            TestExtensionMethodExtender_IsExtension(code, False)
         End Function
 
 #End Region
@@ -2307,7 +2307,7 @@ public partial class C
 }
 </Code>
 
-            Await TestPartialMethodExtender_IsPartial(code, True)
+            TestPartialMethodExtender_IsPartial(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2328,7 +2328,7 @@ public partial class C
 }
 </Code>
 
-            Await TestPartialMethodExtender_IsPartial(code, True)
+            TestPartialMethodExtender_IsPartial(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2349,7 +2349,7 @@ public partial class C
 }
 </Code>
 
-            Await TestPartialMethodExtender_IsPartial(code, False)
+            TestPartialMethodExtender_IsPartial(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2370,7 +2370,7 @@ public partial class C
 }
 </Code>
 
-            Await TestPartialMethodExtender_IsDeclaration(code, True)
+            TestPartialMethodExtender_IsDeclaration(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2391,7 +2391,7 @@ public partial class C
 }
 </Code>
 
-            Await TestPartialMethodExtender_IsDeclaration(code, False)
+            TestPartialMethodExtender_IsDeclaration(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2412,7 +2412,7 @@ public partial class C
 }
 </Code>
 
-            Await TestPartialMethodExtender_IsDeclaration(code, False)
+            TestPartialMethodExtender_IsDeclaration(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2433,7 +2433,7 @@ public partial class C
 }
 </Code>
 
-            Await TestPartialMethodExtender_HasOtherPart(code, True)
+            TestPartialMethodExtender_HasOtherPart(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2454,7 +2454,7 @@ public partial class C
 }
 </Code>
 
-            Await TestPartialMethodExtender_HasOtherPart(code, True)
+            TestPartialMethodExtender_HasOtherPart(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2475,7 +2475,7 @@ public partial class C
 }
 </Code>
 
-            Await TestPartialMethodExtender_HasOtherPart(code, False)
+            TestPartialMethodExtender_HasOtherPart(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2488,7 +2488,7 @@ public partial class C
 }
 </Code>
 
-            Await TestPartialMethodExtender_HasOtherPart(code, False)
+            TestPartialMethodExtender_HasOtherPart(code, False)
         End Function
 
 #End Region
@@ -2558,7 +2558,7 @@ public class C
     }
 }
 </Code>
-            Await TestAllParameterNames(code, "@int")
+            TestAllParameterNames(code, "@int")
         End Function
 
         <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
@@ -2573,7 +2573,7 @@ public class C
     }
 }
 </Code>
-            Await TestAllParameterNames(code, "@int", "@string")
+            TestAllParameterNames(code, "@int", "@string")
         End Function
 
 #End Region
