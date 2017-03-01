@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             return MinimalTestExportProvider.CreateExportProvider(catalog);
         }
 
-        public static async Task<CallHierarchyTestState> CreateAsync(string markup, params Type[] additionalTypes)
+        public static CallHierarchyTestState Create(string markup, params Type[] additionalTypes)
         {
             var exportProvider = CreateExportProvider(additionalTypes);
             var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
