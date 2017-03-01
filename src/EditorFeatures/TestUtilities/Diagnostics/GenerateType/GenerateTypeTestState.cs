@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
         public Project TriggeredProject { get; }
         public string TypeName { get; }
 
-        public static async Task<GenerateTypeTestState> CreateAsync(
+        public static GenerateTypeTestState Create(
             string initial,
             string projectToBeModified,
             string typeName,
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             string languageName)
         {
             var workspace = TestWorkspace.IsWorkspaceElement(initial)
-                ? await TestWorkspace.CreateAsync(initial, exportProvider: s_exportProvider)
+                ? TestWorkspace.Create(initial, exportProvider: s_exportProvider)
                 : languageName == LanguageNames.CSharp
-                  ? await TestWorkspace.CreateCSharpAsync(initial, exportProvider: s_exportProvider)
-                  : await TestWorkspace.CreateVisualBasicAsync(initial, exportProvider: s_exportProvider);
+                  ? TestWorkspace.CreateCSharp(initial, exportProvider: s_exportProvider)
+                  : TestWorkspace.CreateVisualBasic(initial, exportProvider: s_exportProvider);
 
             return new GenerateTypeTestState(projectToBeModified, typeName, existingFileName, workspace);
         }

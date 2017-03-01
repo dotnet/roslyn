@@ -2125,7 +2125,7 @@ End Class
     
 </Workspace>", LanguageNames.CSharp, csharpFile, LanguageNames.VisualBasic, vbFile);
 
-            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
+            using (var testWorkspace = TestWorkspace.Create(xmlString))
             {
                 var position = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
@@ -2382,7 +2382,7 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file1, file2);
 
-            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
+            using (var testWorkspace = TestWorkspace.Create(xmlString))
             {
                 var position = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
@@ -2438,7 +2438,7 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file2, file1);
 
-            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
+            using (var testWorkspace = TestWorkspace.Create(xmlString))
             {
                 var cursorPosition = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
@@ -2542,7 +2542,7 @@ namespace ConsoleApplication46
         override $$
     }
 }";
-            using (var workspace = await TestWorkspace.CreateAsync(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), text))
+            using (var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), text))
             {
                 var provider = new OverrideCompletionProvider();
                 var testDocument = workspace.Documents.Single();
