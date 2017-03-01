@@ -38,6 +38,7 @@
     <Compile Include="VisualBasic\BasicChangeSignatureDialog.cs" />
     <Compile Include="VisualBasic\BasicFindReferences.cs" />
     <Compile Include="VisualBasic\BasicIntelliSense.cs" />
+    <Compile Include="VisualBasic\BasicSignatureHelp.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
