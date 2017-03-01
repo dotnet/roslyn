@@ -1073,7 +1073,7 @@ interface I
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Organizing)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public async Task OrganizingCommandsDisabledInSubmission()
+        public void OrganizingCommandsDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));

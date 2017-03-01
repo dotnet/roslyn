@@ -267,7 +267,7 @@ class C{i}
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public async Task ChangeSignatureCommandDisabledInSubmission()
+        public void ChangeSignatureCommandDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));

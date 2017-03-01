@@ -188,7 +188,7 @@ class Program
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public async Task EncapsulateFieldCommandDisabledInSubmission()
+        public void EncapsulateFieldCommandDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));

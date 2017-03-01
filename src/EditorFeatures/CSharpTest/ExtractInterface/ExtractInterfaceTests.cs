@@ -1057,7 +1057,7 @@ class $$Test<T, U>
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public async Task ExtractInterfaceCommandDisabledInSubmission()
+        public void ExtractInterfaceCommandDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
