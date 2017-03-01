@@ -430,47 +430,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
-            var dialogAutomationElement = DialogHelpers.GetOpenDialog(GetDTE().MainWindow.HWnd, dialogAutomationName);
-
-            var buttonAutomationElement = dialogAutomationElement.FindDescendantByAutomationId(buttonAutomationName);
-            buttonAutomationElement.Invoke();
-        }
-
-        public void PressDialogButtonWithName(string dialogAutomationName, string buttonName)
-        {
-            var dialogAutomationElement = DialogHelpers.GetOpenDialog(GetDTE().MainWindow.HWnd, dialogAutomationName);
-
-            var buttonAutomationElement = dialogAutomationElement.FindDescendantByName(buttonName);
-            buttonAutomationElement.Invoke();
-        }
-
-        public void DialogSelectComboBoxItem(string dialogAutomationName, string comboBoxAutomationName, string itemText)
-        {
-            var dialogAutomationElement = DialogHelpers.GetOpenDialog(GetDTE().MainWindow.HWnd, dialogAutomationName);
-
-            var comboBoxAutomationElement = dialogAutomationElement.FindDescendantByAutomationId(comboBoxAutomationName);
-            comboBoxAutomationElement.Expand();
-
-            var comboBoxItemAutomationElement = comboBoxAutomationElement.FindDescendantByName(itemText);
-            comboBoxItemAutomationElement.Select();
-
-            comboBoxAutomationElement.Collapse();
-        }
-
-        public void DialogSelectRadioButton(string dialogAutomationName, string radioButtonAutomationName)
-        {
-            var dialogAutomationElement = DialogHelpers.GetOpenDialog(GetDTE().MainWindow.HWnd, dialogAutomationName);
-
-            var radioButton = dialogAutomationElement.FindDescendantByAutomationId(radioButtonAutomationName);
-            radioButton.Select();
-        }
-
-        public void DialogSetElementValue(string dialogAutomationName, string elementAutomationName, string value)
-        {
-            var dialogAutomationElement = DialogHelpers.GetOpenDialog(GetDTE().MainWindow.HWnd, dialogAutomationName);
-
-            var control = dialogAutomationElement.FindDescendantByAutomationId(elementAutomationName);
-            control.SetValue(value);
+            DialogHelpers.PressButton(GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
         }
     }
 }

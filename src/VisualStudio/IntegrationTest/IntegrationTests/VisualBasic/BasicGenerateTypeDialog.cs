@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -11,9 +12,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicGenerateTypeDialog : AbstractEditorTest
     {
-        private const string GenerateTypeDialogID = "GenerateTypeDialog";
-
         protected override string LanguageName => LanguageNames.VisualBasic;
+
+        private GenerateTypeDialog_OutOfProc GenerateTypeDialog => VisualStudio.Instance.GenerateTypeDialog;
 
         public BasicGenerateTypeDialog(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, nameof(BasicGenerateTypeDialog))
@@ -38,29 +39,16 @@ End Class
                 applyFix: true,
                 blockUntilComplete: false);
 
-            VerifyDialog(GenerateTypeDialogID, isOpen: true);
-
-            // Set access to Public
-            Editor.DialogSelectComboBoxItem(GenerateTypeDialogID, "AccessList", "Public");
-
-            // Set kind to structure
-            Editor.DialogSelectComboBoxItem(GenerateTypeDialogID, "KindList", "Structure");
-
-            // Set project to "CSProj"
-            Editor.DialogSelectComboBoxItem(GenerateTypeDialogID, "ProjectList", "CSProj");
-
-            // Choose new file
-            Editor.DialogSelectRadioButton(GenerateTypeDialogID, "CreateNewFileRadioButton");
-
-            // Set file name to "GenerateTypeTest"
-            Editor.DialogSetElementValue(GenerateTypeDialogID, "CreateNewFileComboBox", "GenerateTypeTest.cs");
-
-            // Click OK
-            Editor.PressDialogButtonWithName(GenerateTypeDialogID, "OK");
+            GenerateTypeDialog.VerifyOpen();
+            GenerateTypeDialog.SetAccessibility("Public");
+            GenerateTypeDialog.SetKind("Structure");
+            GenerateTypeDialog.SetTargetProject("CSProj");
+            GenerateTypeDialog.SetTargetFileToNewName("GenerateTypeTest.cs");
+            GenerateTypeDialog.ClickOK();
 
             WaitForAsyncOperations(FeatureAttribute.LightBulb);
 
-            VerifyDialog(GenerateTypeDialogID, isOpen: false);
+            GenerateTypeDialog.VerifyClosed();
 
             VerifyTextContains(@"Imports CSProj
 
