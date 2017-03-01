@@ -37,6 +37,7 @@
     <Compile Include="VisualBasic\BasicGenerateConstructorDialog.cs" />
     <Compile Include="VisualBasic\BasicChangeSignatureDialog.cs" />
     <Compile Include="VisualBasic\BasicFindReferences.cs" />
+    <Compile Include="VisualBasic\BasicGenerateTypeDialog.cs" />
     <Compile Include="VisualBasic\BasicIntelliSense.cs" />
   </ItemGroup>
   <ItemGroup>
