@@ -704,7 +704,7 @@ End Class</text>.Value
 
 #Region "GetMembers"
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetMembers_EventHandlersWrongParamType() As Task
+        Public Sub TestGetMembers_EventHandlersWrongParamType()
             Dim code As String = <text>
 Imports System
 Public Partial Class _Default
@@ -723,10 +723,10 @@ End Class</text>.Value
 
                 Assert.Equal(0, members.Count())
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetMembers_EventHandlersWrongParamCount() As Task
+        Public Sub TestGetMembers_EventHandlersWrongParamCount()
             Dim code As String = <text>
 Imports System
 Public Partial Class _Default
@@ -745,10 +745,10 @@ End Class</text>.Value
 
                 Assert.Equal(0, members.Count())
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetMembers_EventHandlersWrongReturnType() As Task
+        Public Sub TestGetMembers_EventHandlersWrongReturnType()
             Dim code As String = <text>
 Imports System
 Public Partial Class _Default
@@ -767,11 +767,11 @@ End Class</text>.Value
 
                 Assert.Equal(0, members.Count())
             End Using
-        End Function
+        End Sub
 
         ' To Do: Investigate, this returns the method even if handles is missing. that ok?
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetMembers_EventHandlers() As Task
+        Public Sub TestGetMembers_EventHandlers()
             Dim code As String = <text>
 Imports System
 Public Partial Class _Default
@@ -794,10 +794,10 @@ End Class</text>.Value
                 Assert.Equal("Page_Load", userFunction.Item1)
                 Assert.Equal("Page_Load(Object,System.EventArgs)", userFunction.Item2)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetMembers_UserFunctions() As Task
+        Public Sub TestGetMembers_UserFunctions()
             Dim code As String = <text>
 Imports System
 Public Partial Class _Default
@@ -821,10 +821,10 @@ End Class
                 Assert.Equal("Test", userFunction.Item1)
                 Assert.Equal("Test(String)", userFunction.Item2)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestGetMembers_Events() As Task
+        Public Sub TestGetMembers_Events()
             Dim code As String = <text>
 Imports System
 Public Class Button
@@ -845,13 +845,13 @@ End Class</text>.Value
                 Assert.Equal("Click", userFunction.Item1)
                 Assert.Equal("Click(EVENT)", userFunction.Item2)
             End Using
-        End Function
+        End Sub
 #End Region
 
 #Region "OnRenamed (TryRenameElement)"
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestTryRenameElement_ResolvableMembers() As Task
+        Public Sub TestTryRenameElement_ResolvableMembers()
             Dim code As String = <text>
 Imports System
 Public Partial Class _Default
@@ -872,11 +872,11 @@ End Class</text>.Value
 
                 Assert.True(renameSucceeded)
             End Using
-        End Function
+        End Sub
 
         ' To Do: Who tests the fully qualified names and their absence?
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestTryRenameElement_UnresolvableMembers() As Task
+        Public Sub TestTryRenameElement_UnresolvableMembers()
             Dim code As String = <text>
 Imports System
 Public Partial Class _Default
@@ -897,10 +897,10 @@ End Class</text>.Value
 
                 Assert.False(renameSucceeded)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestTryRenameElement_ResolvableClass() As Task
+        Public Sub TestTryRenameElement_ResolvableClass()
             Dim code As String = <text>Public Partial Class Foo
 
 End Class</text>.Value
@@ -917,10 +917,10 @@ End Class</text>.Value
 
                 Assert.True(renameSucceeded)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestTryRenameElement_ResolvableNamespace() As Task
+        Public Sub TestTryRenameElement_ResolvableNamespace()
             Dim code As String = <text>Namespace Foo
 End Namespace</text>.Value
 
@@ -936,10 +936,10 @@ End Namespace</text>.Value
 
                 Assert.True(renameSucceeded)
             End Using
-        End Function
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestTryRenameElement_Button() As Task
+        Public Sub TestTryRenameElement_Button()
             Dim code As String = <text>
 Imports System
 Public Class Button
@@ -966,7 +966,7 @@ End Class</text>.Value
 
                 Assert.True(renameSucceeded)
             End Using
-        End Function
+        End Sub
 #End Region
 
         ' TODO: Does Dev10 cover more here, like conflicts with existing members?

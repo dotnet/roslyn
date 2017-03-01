@@ -192,7 +192,7 @@ End Class
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_PropertyThroughFieldWithMe() As Task
+        Public Sub TestVBAssignments_PropertyThroughFieldWithMe()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -240,10 +240,10 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_InferredWithBinaryPlusOperation() As Task
+        Public Sub TestVBAssignments_InferredWithBinaryPlusOperation()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -281,7 +281,7 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBAssignments_WithBinaryPlusOperation() As Task

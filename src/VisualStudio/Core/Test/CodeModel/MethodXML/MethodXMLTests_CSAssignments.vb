@@ -192,7 +192,7 @@ public class C
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_PropertyWithThis() As Task
+        Public Sub TestCSAssignments_PropertyWithThis()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -234,10 +234,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSAssignments_PropertyWithoutThis() As Task
+        Public Sub TestCSAssignments_PropertyWithoutThis()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -279,7 +279,7 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestCSAssignments_FieldThroughPropertyWithThis() As Task

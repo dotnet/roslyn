@@ -718,7 +718,7 @@ public class ComplexType
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_ExplicitOperator() As Task
+        Public Sub TestName_ExplicitOperator()
             Dim code =
 <Code>
 public class ComplexType
@@ -737,11 +737,11 @@ public class ComplexType
 </Code>
 
             TestName(code, "explicit operator ComplexType")
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_OperatorOverload() As Task
+        Public Sub TestName_OperatorOverload()
             Dim code =
 <Code>
 public class ComplexType
@@ -760,7 +760,7 @@ public class ComplexType
 </Code>
 
             TestName(code, "operator +")
-        End Function
+        End Sub
 
 #End Region
 

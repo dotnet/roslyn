@@ -648,7 +648,7 @@ class C1 : I1
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_ExplicitlyImplementedIndexer() As Task
+        Public Sub TestGetEndPoint_ExplicitlyImplementedIndexer()
             Dim code =
 <Code>
 interface I1
@@ -676,14 +676,14 @@ class C1 : I1
             TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=19, lineOffset:=6, absoluteOffset:=193, lineLength:=5)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "FullName tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName1() As Task
+        Public Sub TestFullName1()
             Dim code =
 <Code>
 class C
@@ -702,10 +702,10 @@ class C
 </Code>
 
             TestFullName(code, "C.P")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName2() As Task
+        Public Sub TestFullName2()
             Dim code =
 <Code>
 class C
@@ -715,10 +715,10 @@ class C
 </Code>
 
             TestFullName(code, "C.P")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName3() As Task
+        Public Sub TestFullName3()
             Dim code =
 <Code>
 class C
@@ -728,11 +728,11 @@ class C
 </Code>
 
             TestFullName(code, "C.this")
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName_ExplicitlyImplementedProperty() As Task
+        Public Sub TestFullName_ExplicitlyImplementedProperty()
             Dim code =
 <Code>
 interface I1
@@ -757,11 +757,11 @@ class C1 : I1
 </Code>
 
             TestFullName(code, "C1.I1.Prop1")
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName_ExplicitlyImplementedIndexer() As Task
+        Public Sub TestFullName_ExplicitlyImplementedIndexer()
             Dim code =
 <Code>
 interface I1
@@ -787,14 +787,14 @@ class C1 : I1
 </Code>
 
             TestFullName(code, "C1.I1.this")
-        End Function
+        End Sub
 
 #End Region
 
 #Region "IsDefault tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsDefault1() As Task
+        Public Sub TestIsDefault1()
             Dim code =
 <Code>
 class C
@@ -813,10 +813,10 @@ class C
 </Code>
 
             TestIsDefault(code, True)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsDefault2() As Task
+        Public Sub TestIsDefault2()
             Dim code =
 <Code>
 class C
@@ -834,10 +834,10 @@ class C
 </Code>
 
             TestIsDefault(code, False)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsDefault3() As Task
+        Public Sub TestIsDefault3()
             Dim code =
 <Code>
 class C
@@ -847,14 +847,14 @@ class C
 </Code>
 
             TestIsDefault(code, False)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        Public Sub TestName1()
             Dim code =
 <Code>
 class C
@@ -873,10 +873,10 @@ class C
 </Code>
 
             TestName(code, "P")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName2() As Task
+        Public Sub TestName2()
             Dim code =
 <Code>
 class C
@@ -886,10 +886,10 @@ class C
 </Code>
 
             TestName(code, "P")
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName3() As Task
+        Public Sub TestName3()
             Dim code =
 <Code>
 class C
@@ -899,11 +899,11 @@ class C
 </Code>
 
             TestName(code, "this")
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_ExplicitlyImplementedProperty() As Task
+        Public Sub TestName_ExplicitlyImplementedProperty()
             Dim code =
 <Code>
 interface I1
@@ -928,7 +928,7 @@ class C1 : I1
 </Code>
 
             TestName(code, "I1.Prop1")
-        End Function
+        End Sub
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

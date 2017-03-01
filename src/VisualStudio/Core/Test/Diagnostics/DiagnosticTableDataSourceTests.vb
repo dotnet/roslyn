@@ -99,7 +99,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <Fact>
-        Public Async Function TestEntry() As Task
+        Public Sub TestEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -137,10 +137,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Column, column))
                 Assert.Equal(If(item.DataLocation?.MappedStartColumn, 0), column)
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestSnapshotEntry() As Task
+        Public Sub TestSnapshotEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
@@ -185,7 +185,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Column, column))
                 Assert.Equal(If(item.DataLocation?.MappedStartColumn, 0), column)
             End Using
-        End Function
+        End Sub
 
         <Fact>
         Public Async Function TestInvalidEntry() As Task
@@ -375,7 +375,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <Fact>
-        Public Async Function TestBingHyperLink() As Task
+        Public Sub TestBingHyperLink()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
@@ -404,10 +404,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Assert.Null(ui)
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestHelpLink() As Task
+        Public Sub TestHelpLink()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
@@ -433,10 +433,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Assert.Equal(item1.HelpLink, helpLink.ToString())
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestHelpKeyword() As Task
+        Public Sub TestHelpKeyword()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
@@ -462,10 +462,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Assert.Equal(item1.Id, keyword.ToString())
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestBingHelpLink() As Task
+        Public Sub TestBingHelpLink()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
@@ -491,7 +491,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Assert.True(helpLink.ToString().IndexOf("https://bingdev.cloudapp.net/BingUrl.svc/Get?selectedText=test%20format&mainLanguage=C%23&projectType=%7BFAE04EC0-301F-11D3-BF4B-00C04F79EFBC%7D") = 0)
             End Using
-        End Function
+        End Sub
 
         <Fact>
         Public Async Function TestBingHelpLink_NoCustomType() As Task
@@ -511,7 +511,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         <Fact>
-        Public Async Function TestErrorSource() As Task
+        Public Sub TestErrorSource()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
@@ -537,10 +537,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Assert.Equal("BuildTool", buildTool.ToString())
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestWorkspaceDiagnostic() As Task
+        Public Sub TestWorkspaceDiagnostic()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
@@ -567,10 +567,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim projectname As Object = Nothing
                 Assert.False(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectName, projectname))
             End Using
-        End Function
+        End Sub
 
         <Fact>
-        Public Async Function TestProjectDiagnostic() As Task
+        Public Sub TestProjectDiagnostic()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
@@ -599,7 +599,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Assert.Equal("Test", projectname)
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         Public Async Function TestAggregatedDiagnostic() As Task

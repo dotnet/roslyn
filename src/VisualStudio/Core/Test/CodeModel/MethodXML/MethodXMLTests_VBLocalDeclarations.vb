@@ -159,7 +159,7 @@ End Class
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBLocalDeclarations_WithEscapedNameAndAsNewClause() As Task
+        Public Sub TestVBLocalDeclarations_WithEscapedNameAndAsNewClause()
             ' Note: The behavior here is different than Dev10 where escaped keywords
             ' would not be escaped in the generated XML.
 
@@ -191,10 +191,10 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBLocalDeclarations_TwoInferredDeclarators() As Task
+        Public Sub TestVBLocalDeclarations_TwoInferredDeclarators()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -232,7 +232,7 @@ End Class
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestVBLocalDeclarations_StaticLocal() As Task

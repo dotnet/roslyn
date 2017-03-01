@@ -50,9 +50,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Async Function TestIsValidId_Punctuation() As Task
+        Public Sub TestIsValidId_Punctuation()
             AssertNotValidId("abc.abc")
-        End Function
+        End Sub
 
         ' TODO: Does Dev10 cover more here, like conflicts with existing members?
 #End Region

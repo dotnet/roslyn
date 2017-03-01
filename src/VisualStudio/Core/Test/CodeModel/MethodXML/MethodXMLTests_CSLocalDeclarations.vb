@@ -259,7 +259,7 @@ public class C
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_WithBitwiseAndInitializer() As Task
+        Public Sub TestCSLocalDeclarations_WithBitwiseAndInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -298,10 +298,10 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSLocalDeclarations_WithCastInitializer() As Task
+        Public Sub TestCSLocalDeclarations_WithCastInitializer()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -336,7 +336,7 @@ public class C
 </Block>
 
             Test(definition, expected)
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Async Function TestCSLocalDeclarations_WithObjectCreationInitializer() As Task
