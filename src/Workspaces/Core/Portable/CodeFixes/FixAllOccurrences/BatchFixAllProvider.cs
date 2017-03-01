@@ -390,14 +390,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var currentChanges = await differenceService.GetTextChangesAsync(
                 oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
 
+            var treeChanges = await oldDocument.GetTextChangesAsync(newDocument, cancellationToken).ConfigureAwait(false);
+
             if (AllChangesCanBeApplied(cumulativeChanges, currentChanges))
             {
                 foreach  (var change in currentChanges)
                 {
                     // Don't bother adding the change if we already have it.
-                    if (!cumulativeChanges.HasIntervalThatOverlapsWith(change.Span.Start, change.Span.Length))
+                    if (change.Span.IsEmpty)
                     {
-                        cumulativeChanges.AddIntervalInPlace(change);
+                        if (!cumulativeChanges.HasIntervalThatIntersectsWith(change.Span.Start, change.Span.Length))
+                        {
+                            cumulativeChanges.AddIntervalInPlace(change);
+                        }
+                    }
+                    else
+                    {
+                        if (!cumulativeChanges.HasIntervalThatOverlapsWith(change.Span.Start, change.Span.Length))
+                        {
+                            cumulativeChanges.AddIntervalInPlace(change);
+                        }
                     }
                 }
             }
@@ -412,8 +424,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 overlappingSpans.Clear();
 
-                cumulativeChanges.FillWithIntervalsThatOverlapWith(
-                    change.Span.Start, change.Span.Length, overlappingSpans);
+                if (change.Span.IsEmpty)
+                {
+                    cumulativeChanges.FillWithIntervalsThatOverlapWith(
+                        change.Span.Start, change.Span.Length, overlappingSpans);
+                }
+                else
+                {
+                    cumulativeChanges.FillWithIntervalsThatIntersectWith(
+                        change.Span.Start, change.Span.Length, overlappingSpans);
+                }
 
                 if (overlappingSpans.Count == 0)
                 {
