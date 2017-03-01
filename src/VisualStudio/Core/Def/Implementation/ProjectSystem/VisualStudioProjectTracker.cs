@@ -875,5 +875,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return componentModel.GetService<AnalyzerDependencyCheckingService>();
         }
+
+        internal void OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
+        {
+            AssertIsForeground();
+
+            _projectsLoadedThisBatch.Clear();
+        }
+
+        internal void OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
+        {
+            AssertIsForeground();
+
+            if (!fIsBackgroundIdleBatch)
+            {
+                // This batch was loaded eagerly. This might be because the user is force expanding the projects in the
+                // Solution Explorer, or they had some files open in an .suo we need to push.
+                StartPushingToWorkspaceAndNotifyOfOpenDocuments(_projectsLoadedThisBatch);
+            }
+
+            _projectsLoadedThisBatch.Clear();
+        }
+
+        internal void OnAfterBackgroundSolutionLoadComplete()
+        {
+            AssertIsForeground();
+
+            // In Non-DPL scenarios, this indicates that ASL is complete, and we should push any
+            // remaining information we have to the Workspace.  If DPL is enabled, this is never
+            // called.
+            FinishLoad();
+        }
     }
 }

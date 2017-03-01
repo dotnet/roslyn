@@ -13,12 +13,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class VisualStudioProjectTracker : IVsSolutionLoadEvents
+    internal partial class VisualStudioWorkspaceImpl : IVsSolutionLoadEvents
     {
         int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
         {
@@ -38,37 +39,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsSolutionLoadEvents.OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
         {
-            AssertIsForeground();
-
-            _projectsLoadedThisBatch.Clear();
+            _foregroundObject.Value.AssertIsForeground();
+            GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider).OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch);
             return VSConstants.S_OK;
         }
 
         int IVsSolutionLoadEvents.OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
         {
-            AssertIsForeground();
-
-            if (!fIsBackgroundIdleBatch)
-            {
-                // This batch was loaded eagerly. This might be because the user is force expanding the projects in the
-                // Solution Explorer, or they had some files open in an .suo we need to push.
-                StartPushingToWorkspaceAndNotifyOfOpenDocuments(_projectsLoadedThisBatch);
-            }
-
-            _projectsLoadedThisBatch.Clear();
-
+            _foregroundObject.Value.AssertIsForeground();
+            GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider).OnAfterLoadProjectBatch(fIsBackgroundIdleBatch);
             return VSConstants.S_OK;
         }
 
         int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
         {
-            AssertIsForeground();
-
-            // In Non-DPL scenarios, this indicates that ASL is complete, and we should push any
-            // remaining information we have to the Workspace.  If DPL is enabled, this is never
-            // called.
-            FinishLoad();
-
+            _foregroundObject.Value.AssertIsForeground();
+            GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider).OnAfterBackgroundSolutionLoadComplete();
             return VSConstants.S_OK;
         }
     }
