@@ -153,7 +153,7 @@ Class C$$
 
 End Class
 </Code>
-            Await TestAddBaseThrows(Of COMException)(code, "A", Nothing)
+            TestAddBaseThrows(Of COMException)(code, "A", Nothing)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1704,7 +1704,7 @@ Class $$C
 End Class
 </Code>
 
-            Await TestRemoveBaseThrows(Of COMException)(code, "B")
+            TestRemoveBaseThrows(Of COMException)(code, "B")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1790,7 +1790,7 @@ Class $$C
 End Class
 </Code>
 
-            Await TestRemoveImplementedInterfaceThrows(Of COMException)(code, "I")
+            TestRemoveImplementedInterfaceThrows(Of COMException)(code, "I")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2933,7 +2933,7 @@ Namespace NS1
 End NameSpace
 </Code>
 
-            Await TestNamespaceName(code, "NS1")
+            TestNamespaceName(code, "NS1")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2948,7 +2948,7 @@ Namespace NS1
 End NameSpace
 </Code>
 
-            Await TestNamespaceName(code, "NS1")
+            TestNamespaceName(code, "NS1")
         End Function
 #End Region
 
@@ -2962,7 +2962,7 @@ Class C$$
 End Class
 </Code>
 
-            Await TestGenericNameExtender_GetBaseTypesCount(code, 1)
+            TestGenericNameExtender_GetBaseTypesCount(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2977,7 +2977,7 @@ Class B
 End Class
 </Code>
 
-            Await TestGenericNameExtender_GetBaseTypesCount(code, 1)
+            TestGenericNameExtender_GetBaseTypesCount(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2988,7 +2988,7 @@ Class C$$
 End Class
 </Code>
 
-            Await TestGenericNameExtender_GetBaseGenericName(code, 1, "Object")
+            TestGenericNameExtender_GetBaseGenericName(code, 1, "Object")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3003,7 +3003,7 @@ Class B
 End Class
 </Code>
 
-            Await TestGenericNameExtender_GetBaseGenericName(code, 1, "B")
+            TestGenericNameExtender_GetBaseGenericName(code, 1, "B")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3014,7 +3014,7 @@ Class C$$
 End Class
 </Code>
 
-            Await TestGenericNameExtender_GetImplementedTypesCount(code, 0)
+            TestGenericNameExtender_GetImplementedTypesCount(code, 0)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3029,7 +3029,7 @@ Interface IFoo(Of T)
 End Interface
 </Code>
 
-            Await TestGenericNameExtender_GetImplementedTypesCount(code, 1)
+            TestGenericNameExtender_GetImplementedTypesCount(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3040,7 +3040,7 @@ Class C$$
 End Class
 </Code>
 
-            Await TestGenericNameExtender_GetImplTypeGenericName(code, 1, Nothing)
+            TestGenericNameExtender_GetImplTypeGenericName(code, 1, Nothing)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3055,7 +3055,7 @@ Interface IFoo(Of T)
 End Interface
 </Code>
 
-            Await TestGenericNameExtender_GetImplTypeGenericName(code, 1, "IFoo(Of String)")
+            TestGenericNameExtender_GetImplTypeGenericName(code, 1, "IFoo(Of String)")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3066,7 +3066,7 @@ Module M$$
 End Module
 </Code>
 
-            Await TestGenericNameExtender_GetBaseTypesCount(code, 1)
+            TestGenericNameExtender_GetBaseTypesCount(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3077,7 +3077,7 @@ Module M$$
 End Module
 </Code>
 
-            Await TestGenericNameExtender_GetBaseGenericName(code, 1, "Object")
+            TestGenericNameExtender_GetBaseGenericName(code, 1, "Object")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3088,7 +3088,7 @@ Module M$$
 End Module
 </Code>
 
-            Await TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
+            TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3099,7 +3099,7 @@ Module M$$
 End Module
 </Code>
 
-            Await TestGenericNameExtender_GetImplTypeGenericNameThrows(Of ArgumentException)(code, 1)
+            TestGenericNameExtender_GetImplTypeGenericNameThrows(Of ArgumentException)(code, 1)
         End Function
 
 #End Region

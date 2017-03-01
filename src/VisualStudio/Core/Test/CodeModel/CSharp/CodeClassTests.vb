@@ -1363,7 +1363,7 @@ abstract partial class C
 }
 </Code>
 
-            Await TestIsAbstract(code, False)
+            TestIsAbstract(code, False)
         End Function
 
 #End Region
@@ -1379,7 +1379,7 @@ class $$C
 }
 </Code>
 
-            Await TestIsShared(code, False)
+            TestIsShared(code, False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1391,7 +1391,7 @@ static class $$C
 }
 </Code>
 
-            Await TestIsShared(code, True)
+            TestIsShared(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1407,7 +1407,7 @@ partial class C
 }
 </Code>
 
-            Await TestIsShared(code, True)
+            TestIsShared(code, True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1423,7 +1423,7 @@ static partial class C
 }
 </Code>
 
-            Await TestIsShared(code, False)
+            TestIsShared(code, False)
         End Function
 
 #End Region
@@ -1437,7 +1437,7 @@ static partial class C
 class $$C : object { }
 </Code>
 
-            Await TestIsDerivedFrom(code, "System.Object", True)
+            TestIsDerivedFrom(code, "System.Object", True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1447,7 +1447,7 @@ class $$C : object { }
 class $$C { }
 </Code>
 
-            Await TestIsDerivedFrom(code, "System.Object", True)
+            TestIsDerivedFrom(code, "System.Object", True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1457,7 +1457,7 @@ class $$C { }
 class $$C { }
 </Code>
 
-            Await TestIsDerivedFrom(code, "System.String", False)
+            TestIsDerivedFrom(code, "System.String", False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1467,7 +1467,7 @@ class $$C { }
 class $$C { }
 </Code>
 
-            Await TestIsDerivedFrom(code, "System.ThisIsClearlyNotARealClassName", False)
+            TestIsDerivedFrom(code, "System.ThisIsClearlyNotARealClassName", False)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1478,7 +1478,7 @@ class B { }
 class $$C : B { }
 </Code>
 
-            Await TestIsDerivedFrom(code, "B", True)
+            TestIsDerivedFrom(code, "B", True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1492,7 +1492,7 @@ namespace NS
 }
 </Code>
 
-            Await TestIsDerivedFrom(code, "NS.B", True)
+            TestIsDerivedFrom(code, "NS.B", True)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1510,7 +1510,7 @@ namespace NS2
 }
 </Code>
 
-            Await TestIsDerivedFrom(code, "NS1.B", True)
+            TestIsDerivedFrom(code, "NS1.B", True)
         End Function
 
 #End Region
@@ -1525,7 +1525,7 @@ class $$C
 }
 </Code>
 
-            Await TestKind(code, EnvDTE.vsCMElement.vsCMElementClass)
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementClass)
         End Function
 #End Region
 
@@ -1539,7 +1539,7 @@ class $$C
 }
 </Code>
 
-            Await TestParts(code, 1)
+            TestParts(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1551,7 +1551,7 @@ partial class $$C
 }
 </Code>
 
-            Await TestParts(code, 1)
+            TestParts(code, 1)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1567,7 +1567,7 @@ partial class C
 }
 </Code>
 
-            Await TestParts(code, 2)
+            TestParts(code, 2)
         End Function
 #End Region
 
@@ -2062,7 +2062,7 @@ class C
 class $$C { }
 </Code>
 
-            Await TestAddImplementedInterfaceThrows(Of ArgumentException)(code, "I", Nothing)
+            TestAddImplementedInterfaceThrows(Of ArgumentException)(code, "I", Nothing)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
