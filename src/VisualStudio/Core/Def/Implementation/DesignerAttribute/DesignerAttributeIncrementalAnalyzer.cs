@@ -104,23 +104,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         private async Task<DesignerAttributeResult> ScanDesignerAttributesOnRemoteHostIfPossibleAsync(Document document, CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
-
-            var client = await workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            if (client != null &&
-                RemoteSupportedLanguages.IsSupported(document.Project.Language) &&
-                !document.IsOpen())
-            {
-                // run designer attributes scanner on remote host
-                // we only run document that remote host is supported and closed files to make open document to have
-                // better responsiveness. also we cache everything related to open files anyway, no saving by running
-                // them in remote host
-                return await client.RunCodeAnalysisServiceOnRemoteHostAsync<DesignerAttributeResult>(
-                    document.Project.Solution, nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
-                    document.Id, cancellationToken).ConfigureAwait(false);
-            }
-
-            // No remote host support, use inproc service
             var service = document.GetLanguageService<IDesignerAttributeService>();
             if (service == null)
             {

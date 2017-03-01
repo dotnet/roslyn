@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.DesignerAttributes
@@ -29,6 +30,32 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
         protected abstract bool HasAttributesOrBaseTypeOrIsPartial(SyntaxNode typeNode);
 
         public async Task<DesignerAttributeResult> ScanDesignerAttributesAsync(Document document, CancellationToken cancellationToken)
+        {
+            var workspace = document.Project.Solution.Workspace;
+
+            // same service run in both inproc and remote host, but remote host will not have RemoteHostClient service, 
+            // so inproc one will always run
+            var client = await workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (client != null && !document.IsOpen())
+            {
+                // run designer attributes scanner on remote host
+                // we only run closed files to make open document to have better responsiveness. 
+                // also we cache everything related to open files anyway, no saving by running
+                // them in remote host
+                return await ScanDesignerAttributesInRemoteHostAsync(client, document, cancellationToken).ConfigureAwait(false);
+            }
+
+            return await ScanDesignerAttributesInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<DesignerAttributeResult> ScanDesignerAttributesInRemoteHostAsync(RemoteHostClient client, Document document, CancellationToken cancellationToken)
+        {
+            return await client.RunCodeAnalysisServiceOnRemoteHostAsync<DesignerAttributeResult>(
+                    document.Project.Solution, nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
+                    document.Id, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<DesignerAttributeResult> ScanDesignerAttributesInCurrentProcessAsync(Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
 
