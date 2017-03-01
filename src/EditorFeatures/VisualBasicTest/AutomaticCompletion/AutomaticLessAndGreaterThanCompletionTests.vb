@@ -105,7 +105,7 @@ End Class</code>
             End Using
         End Function
 
-        Friend Overloads Function CreateSessionAsync(code As XElement) As Threading.Tasks.Task(Of Holder)
+        Friend Overloads Async Function CreateSessionAsync(code As XElement) As Threading.Tasks.Task(Of Holder)
             Return CreateSession(code.NormalizedValue())
         End Function
 

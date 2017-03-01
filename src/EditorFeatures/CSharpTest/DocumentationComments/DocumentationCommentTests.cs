@@ -501,7 +501,7 @@ class C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
@@ -521,7 +521,7 @@ class C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected, autoGenerateXmlDocComments: false);
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -540,7 +540,7 @@ class C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -559,7 +559,7 @@ class C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -576,7 +576,7 @@ class C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -601,7 +601,7 @@ class C
     int M<T>(int foo) { return 0; }
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -625,7 +625,7 @@ class C
     int M<T>(int foo) { return 0; }
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -650,7 +650,7 @@ $$
 }
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(537513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
@@ -668,7 +668,7 @@ $$ C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(537513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
@@ -686,7 +686,7 @@ $$C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(537513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
@@ -704,7 +704,7 @@ $$C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(537514, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537514")]
@@ -723,7 +723,7 @@ $$
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(537552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537552")]
@@ -741,7 +741,7 @@ $$
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(537535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537535")]
@@ -761,7 +761,7 @@ C() ///
 $$
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(537511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537511")]
@@ -787,7 +787,7 @@ $$
 }
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(537550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537550")]
@@ -821,7 +821,7 @@ $$/// <summary>
         }
     }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -842,7 +842,7 @@ class C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -865,7 +865,7 @@ class C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -888,7 +888,7 @@ class C
     {
     }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -907,7 +907,7 @@ class C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -930,7 +930,7 @@ class C
     {
     }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -949,7 +949,7 @@ class C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -968,7 +968,7 @@ class C
     {
     }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(538702, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538702")]
@@ -986,7 +986,7 @@ class C
 /// </summary>
 ///
 /// $$class C {}";
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -1009,7 +1009,7 @@ class C
     int M<T>(int foo) { return 0; }
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -1027,7 +1027,7 @@ class C
 ///
 /// $$Go ahead and add some slashes";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -1058,7 +1058,7 @@ class C
     }
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
@@ -1080,7 +1080,7 @@ class C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected, autoGenerateXmlDocComments: false);
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
         }
 
 
@@ -1102,7 +1102,7 @@ class C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(538701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538701")]
@@ -1120,7 +1120,7 @@ class C{}";
 ///
 $$
 class C{}";
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(542426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542426")]
@@ -1143,7 +1143,7 @@ static void Main(string[] args)
 static void Main(string[] args)
 { }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(2091, "https://github.com/dotnet/roslyn/issues/2091")]
@@ -1173,7 +1173,7 @@ static void Main(string[] args)
     }
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
@@ -1203,7 +1203,7 @@ static void Main(string[] args)
     }
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
@@ -1233,7 +1233,7 @@ static void Main(string[] args)
     }
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
@@ -1263,7 +1263,7 @@ static void Main(string[] args)
     }
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
@@ -1293,7 +1293,7 @@ static void Main(string[] args)
     }
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
@@ -1323,7 +1323,7 @@ static void Main(string[] args)
     }
 }";
 
-            await VerifyPressingEnterAsync(code, expected, useTabs: true);
+            VerifyPressingEnter(code, expected, useTabs: true);
         }
 
         [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
@@ -1346,7 +1346,7 @@ class C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
@@ -1369,7 +1369,7 @@ class C
 {
 }";
 
-            await VerifyPressingEnterAsync(code, expected);
+            VerifyPressingEnter(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -1388,7 +1388,7 @@ class C
 {
 }";
 
-            await VerifyInsertCommentCommandAsync(code, expected);
+            VerifyInsertCommentCommand(code, expected);
         }
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
@@ -1408,7 +1408,7 @@ class C
 {
 }";
 
-            await VerifyInsertCommentCommandAsync(code, expected, autoGenerateXmlDocComments: false);
+            VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments: false);
         }
 
         [WorkItem(538714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
@@ -1425,7 +1425,7 @@ class C { }";
 /// </summary>
 class C { }";
 
-            await VerifyInsertCommentCommandAsync(code, expected);
+            VerifyInsertCommentCommand(code, expected);
         }
 
         [WorkItem(538714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
@@ -1444,7 +1444,7 @@ class C { }";
 /// </summary>
 class C { }";
 
-            await VerifyInsertCommentCommandAsync(code, expected);
+            VerifyInsertCommentCommand(code, expected);
         }
 
         [WorkItem(538714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
@@ -1467,7 +1467,7 @@ class C { }";
     class C { }
 }";
 
-            await VerifyInsertCommentCommandAsync(code, expected);
+            VerifyInsertCommentCommand(code, expected);
         }
 
         [WorkItem(527604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527604")]
@@ -1483,7 +1483,7 @@ class C { $$ }";
 @"/**
 */
 class C { $$ }";
-            await VerifyInsertCommentCommandAsync(code, expected);
+            VerifyInsertCommentCommand(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -1507,7 +1507,7 @@ class C { $$ }";
     int M<T>(int foo) { return 0; }
 }";
 
-            await VerifyInsertCommentCommandAsync(code, expected);
+            VerifyInsertCommentCommand(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -1525,7 +1525,7 @@ class C
 {$$
 }";
 
-            await VerifyInsertCommentCommandAsync(code, expected);
+            VerifyInsertCommentCommand(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -1545,7 +1545,7 @@ class C
     int M<T>(int foo) { $$return 0; }
 }";
 
-            await VerifyInsertCommentCommandAsync(code, expected);
+            VerifyInsertCommentCommand(code, expected);
         }
 
         [WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
@@ -1560,7 +1560,7 @@ class C
 /// </summary>
 class C { } class D { }";
 
-            await VerifyInsertCommentCommandAsync(code, expected);
+            VerifyInsertCommentCommand(code, expected);
         }
 
         [WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
@@ -1571,7 +1571,7 @@ class C { } class D { }";
 
             var expected = @"class C { } $$class D { }";
 
-            await VerifyInsertCommentCommandAsync(code, expected);
+            VerifyInsertCommentCommand(code, expected);
         }
 
         [WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
@@ -1593,7 +1593,7 @@ class C { } class D { }";
     protected abstract void Foo(); protected abstract void Bar();
 }";
 
-            await VerifyInsertCommentCommandAsync(code, expected);
+            VerifyInsertCommentCommand(code, expected);
         }
 
         [WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
@@ -1612,7 +1612,7 @@ class C { } class D { }";
     protected abstract void Foo(); protected abstract void $$Bar();
 }";
 
-            await VerifyInsertCommentCommandAsync(code, expected);
+            VerifyInsertCommentCommand(code, expected);
         }
 
         [WorkItem(917904, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917904")]
@@ -1891,7 +1891,7 @@ $$
             return new DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService);
         }
 
-        protected override async Task<TestWorkspace> CreateTestWorkspace(string code)
+        protected override TestWorkspace CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
     }
 }

@@ -256,9 +256,7 @@ class c { }";
             return new XmlTagCompletionCommandHandler(undoHistory, TestWaitIndicator.Default);
         }
 
-        protected override async Task<TestWorkspace> CreateTestWorkspace(string initialMarkup)
-        {
-            return TestWorkspace.CreateCSharp(initialMarkup);
-        }
+        protected override TestWorkspace CreateTestWorkspace(string initialMarkup)
+            => TestWorkspace.CreateCSharp(initialMarkup);
     }
 }

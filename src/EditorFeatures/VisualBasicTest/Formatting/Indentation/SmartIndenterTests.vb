@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Async Function TestEmptyFile() As Task
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code:="",
                 indentationLine:=0,
                 expectedIndentation:=0)
@@ -1145,7 +1145,7 @@ End Class</Code>.Value
         Dim q = From c In B
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=16)
@@ -1160,7 +1160,7 @@ End Class</Code>.Value
                 Where c > 10
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
@@ -1176,7 +1176,7 @@ End Class</Code>.Value
                 Select c
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=16)
@@ -1196,7 +1196,7 @@ End Class</Code>.Value
 
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=8)
@@ -1211,7 +1211,7 @@ End Class</Code>.Value
                     From c2 in b
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=20)
@@ -1225,7 +1225,7 @@ End Class</Code>.Value
         Dim q = From c In From c2 in b
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=26)
@@ -1240,7 +1240,7 @@ End Class</Code>.Value
                           Where c2 > 10
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=26)
@@ -1254,7 +1254,7 @@ End Class</Code>.Value
     Dim foo = From x In y
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=14)
@@ -1268,7 +1268,7 @@ End Class</Code>.Value
         Dim q = From c In From c2 in b _
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=26)
@@ -1284,7 +1284,7 @@ End Class</Code>.Value
                        "    <SomeAttribute()>" & vbCrLf &
                        ""
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=4)
@@ -1298,7 +1298,7 @@ End Class</Code>.Value
                        "    <SomeAttribute2()>" & vbCrLf &
                        ""
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=4)
@@ -1312,7 +1312,7 @@ End Class</Code>.Value
                        "        <SomeAttribute()>" & vbCrLf &
                        ""
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
@@ -1327,7 +1327,7 @@ End Class</Code>.Value
     End Sub
 End Class</Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=15)
@@ -1343,7 +1343,7 @@ End Class</Code>.Value
     End Sub
 End Class</Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=15)
@@ -1357,7 +1357,7 @@ End Class</Code>.Value
         Dim a = 
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
@@ -1376,7 +1376,7 @@ End Class</Code>.Value
     End Function
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=12)
@@ -1395,7 +1395,7 @@ False Then
 End Module
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
@@ -1411,7 +1411,7 @@ End Module
         Dim q = 1 + _
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
@@ -1427,7 +1427,7 @@ End Module
                         3 + _
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=24)
@@ -1440,7 +1440,7 @@ End Module
     Dim q _
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
@@ -1453,7 +1453,7 @@ End Module
                        "    <SomeAttribute()> _" & vbCrLf &
                        ""
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=4)
@@ -1467,7 +1467,7 @@ End Module
                        "    <SomeAttribute2()> _" & vbCrLf &
                        ""
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=4)
@@ -1481,7 +1481,7 @@ End Module
                        "        <SomeAttribute()> _" & vbCrLf &
                        ""
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
@@ -1500,7 +1500,7 @@ End Module
             Dim r As Integer = 22 : Dim q = 15
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
@@ -1517,7 +1517,7 @@ End Module
                                             End Sub : Dim t = 42
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=12)
@@ -1537,7 +1537,7 @@ End Module
 #Const foo
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
@@ -1553,7 +1553,7 @@ End Module
 #Const foo = 42
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
@@ -1569,7 +1569,7 @@ End Module
 #If True Then
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
@@ -1586,7 +1586,7 @@ End Module
 #ElseIf a = False Then
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=12)
@@ -1603,7 +1603,7 @@ End Module
 #Else
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=12)
@@ -1620,7 +1620,7 @@ End Module
 #End If
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=12)
@@ -1637,7 +1637,7 @@ End Module
                        "        Dim q = <xml>" & vbCrLf &
                        ""
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=20)
@@ -1652,7 +1652,7 @@ End Module
                        "                    <inner>" & vbCrLf &
                        ""
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=24)
@@ -1668,7 +1668,7 @@ End Module
                        "" & vbCrLf &
                        "    End Sub"
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
@@ -1685,7 +1685,7 @@ End Module
                        "                    </inner>" & vbCrLf &
                        ""
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=20)
@@ -1703,7 +1703,7 @@ End Module
                        "" & vbCrLf &
                        "    End Sub"
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=24)
@@ -1718,7 +1718,7 @@ End Module
                        "                    <%= Sub()" & vbCrLf &
                        ""
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
@@ -1734,7 +1734,7 @@ End Module
                        "                    <%= 42 %>" & vbCrLf &
                        ""
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=20)
@@ -1749,7 +1749,7 @@ End Module
                        "                    <%= <xml2>" & vbCrLf &
                        ""
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=28)
@@ -1764,7 +1764,7 @@ End Module
                        "                    foo" & vbCrLf &
                        ""
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
@@ -1779,7 +1779,7 @@ End Module
                        "" & vbCrLf &
                        "                </xml>"
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=20)
@@ -1795,7 +1795,7 @@ End Module
                        "                    <%= Foo(2 _" & vbCrLf &
                        ""
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=28)
@@ -1811,7 +1811,7 @@ End Module
             Dim code = <Code>_
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=1,
                 expectedIndentation:=4)
@@ -1824,7 +1824,7 @@ End Module
             Dim code = <Code>  _
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=1,
                 expectedIndentation:=6)
@@ -1845,7 +1845,7 @@ End Module
     End Property
 End Class</Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=7,
                 expectedIndentation:=8)
@@ -1862,7 +1862,7 @@ End Class</Code>.Value
     End Sub
 End Module</Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=16)
@@ -1881,7 +1881,7 @@ End Module</Code>.Value
     End Sub
 End Module</Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=20)
@@ -1899,7 +1899,7 @@ End Module</Code>.Value
 End Module
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
@@ -1916,7 +1916,7 @@ End Module
     End Sub
 End Module</Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=20)
@@ -1936,7 +1936,7 @@ End Module</Code>.Value
 End Module
 </Code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
@@ -1948,7 +1948,7 @@ End Module
         Public Async Function TestBug5430_1() As Task
             Dim code = My.Resources.XmlLiterals.IndentationTest2
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=11,
                 expectedIndentation:=16)
@@ -1970,7 +1970,7 @@ Module Program
     End Sub
 End Module</text>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=8,
                 expectedIndentation:=8)
@@ -1989,7 +1989,7 @@ End Module</text>.Value
 
 End Module</text>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
@@ -2012,7 +2012,7 @@ Arg2 As Integer)
     End Sub
 End Class</code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=15)
@@ -2028,7 +2028,7 @@ End Class</code>.Value
     End Sub
 End Class</code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=15)
@@ -2043,7 +2043,7 @@ As Integer, Arg2 As Integer)
     End Sub
 End Class</code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=15)
@@ -2058,7 +2058,7 @@ Integer, Arg2 As Integer)
     End Sub
 End Class</code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=15)
@@ -2073,7 +2073,7 @@ As Integer)
     End Sub
 End Class</code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=15)
@@ -2088,7 +2088,7 @@ T, T2)()
     End Sub
 End Class</code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=19)
@@ -2103,7 +2103,7 @@ T2)()
     End Sub
 End Class</code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=19)
@@ -2119,7 +2119,7 @@ Integer, Integer)()
     End Sub
 End Class</code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
@@ -2135,7 +2135,7 @@ Integer)()
     End Sub
 End Class</code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
@@ -2151,7 +2151,7 @@ End Class</code>.Value
     End Sub
 End Class</code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
@@ -2167,7 +2167,7 @@ End Class</code>.Value
     End Sub
 End Class</code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=15)
@@ -2184,7 +2184,7 @@ x100:
 End Module
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
@@ -2456,7 +2456,7 @@ End Namespace
     Sub Main()
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=4,
@@ -2471,7 +2471,7 @@ End Namespace
         Dim x = 3
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8,
@@ -2486,7 +2486,7 @@ End Namespace
         Dim x = 3
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=Nothing,
@@ -2514,7 +2514,7 @@ Module Module1
 End Module
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=10,
                 expectedIndentation:=17)
@@ -2537,7 +2537,7 @@ Public Class Customer
 End Class
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
@@ -2561,7 +2561,7 @@ Public Class Customer
 End Class
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
@@ -2585,7 +2585,7 @@ Public Class Customer
 End Class
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
@@ -2604,7 +2604,7 @@ End Class
 End Module
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
@@ -2623,7 +2623,7 @@ End Module
 End Module
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
@@ -2640,7 +2640,7 @@ End Module
 End Module
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
@@ -2657,7 +2657,7 @@ End Module
 End Module
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
@@ -2674,7 +2674,7 @@ End Module
 End Module
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
@@ -2691,7 +2691,7 @@ End Module
 End Module
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
@@ -2708,7 +2708,7 @@ End Module
 End Module
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
@@ -2725,7 +2725,7 @@ End Module
 End Module
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
@@ -2747,7 +2747,7 @@ End Module
 End Class
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=16)
@@ -2770,7 +2770,7 @@ End Class
 End Class
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=7,
                 expectedIndentation:=16)
@@ -2794,7 +2794,7 @@ End Class
 End Class
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=7,
                 expectedIndentation:=16)
@@ -2817,7 +2817,7 @@ End Class
 End Class
 </code>.Value
 
-            Await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 indentationLine:=7,
                 expectedIndentation:=12)

@@ -104,16 +104,16 @@ public class Ref<T> where T : Entity
         {
         }
 
-        private async Task<CodeFunction> GetCodeFunctionAsync(params object[] path)
+        private CodeFunction GetCodeFunction(params object[] path)
         {
-            return (CodeFunction)await GetCodeElementAsync(path);
+            return (CodeFunction)GetCodeElement(path);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task CanOverride_False()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             Assert.False(testObject.CanOverride);
         }
@@ -122,7 +122,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task CanOverride_True()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodB");
+            CodeFunction testObject = GetCodeFunction("A", "MethodB");
 
             Assert.True(testObject.CanOverride);
         }
@@ -131,7 +131,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task FullName()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodD");
+            CodeFunction testObject = GetCodeFunction("A", "MethodD");
 
             Assert.Equal("A.MethodD", testObject.FullName);
         }
@@ -140,7 +140,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task FunctionKind_Function()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             Assert.Equal(vsCMFunction.vsCMFunctionFunction, testObject.FunctionKind);
         }
@@ -149,7 +149,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task FunctionKind_Constructor()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", 1);
+            CodeFunction testObject = GetCodeFunction("A", 1);
 
             Assert.Equal(vsCMFunction.vsCMFunctionConstructor, testObject.FunctionKind);
         }
@@ -158,7 +158,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task FunctionKind_Finalizer()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", 2);
+            CodeFunction testObject = GetCodeFunction("A", 2);
 
             Assert.Equal(vsCMFunction.vsCMFunctionDestructor, testObject.FunctionKind);
         }
@@ -167,7 +167,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task IsOverloaded_True()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodE");
+            CodeFunction testObject = GetCodeFunction("A", "MethodE");
 
             Assert.True(testObject.IsOverloaded);
         }
@@ -176,7 +176,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task IsOverloaded_False()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             Assert.False(testObject.IsOverloaded);
         }
@@ -185,7 +185,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task IsShared_False()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             Assert.False(testObject.IsShared);
         }
@@ -194,7 +194,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task IsShared_True()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodC");
+            CodeFunction testObject = GetCodeFunction("A", "MethodC");
 
             Assert.True(testObject.IsShared);
         }
@@ -203,7 +203,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Kind()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             Assert.Equal(vsCMElement.vsCMElementFunction, testObject.Kind);
         }
@@ -212,7 +212,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Name()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodC");
+            CodeFunction testObject = GetCodeFunction("A", "MethodC");
 
             Assert.Equal("MethodC", testObject.Name);
         }
@@ -221,7 +221,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Parameters_Count()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodD");
+            CodeFunction testObject = GetCodeFunction("A", "MethodD");
 
             Assert.Equal(3, testObject.Parameters.Count);
         }
@@ -230,7 +230,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Parent()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             Assert.NotNull(testObject.Parent);
             Assert.True(testObject.Parent is CodeClass, testObject.Parent.GetType().ToString());
@@ -241,7 +241,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Type()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             Assert.Equal("System.Int32", testObject.Type.AsFullName);
         }
@@ -250,7 +250,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Comment()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("C", "MethodB");
+            CodeFunction testObject = GetCodeFunction("C", "MethodB");
 
             string expected = "This is a short comment.\r\n";
 
@@ -261,7 +261,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task DocComment()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("C", "MethodA");
+            CodeFunction testObject = GetCodeFunction("C", "MethodA");
 
             string expected = "<doc>\r\n<summary>\r\nA short summary.\r\n</summary>\r\n<param name=\"intA\">A parameter.</param>\r\n<returns>An int.</returns>\r\n</doc>";
 
@@ -272,7 +272,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Overloads_Count()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodE");
+            CodeFunction testObject = GetCodeFunction("A", "MethodE");
 
             Assert.Equal(2, testObject.Overloads.Count);
         }
@@ -281,7 +281,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Attributes()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
@@ -289,7 +289,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_AttributesWithDelimiter()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
@@ -297,7 +297,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Body()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartBody);
 
@@ -309,7 +309,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_BodyWithDelimiter()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
@@ -317,7 +317,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Header()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartHeader);
 
@@ -329,7 +329,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_HeaderWithAttributes()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
@@ -337,7 +337,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Name()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
@@ -345,7 +345,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Navigate()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
@@ -357,7 +357,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_NavigateWithBlankLine()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodWithBlankLine");
+            CodeFunction testObject = GetCodeFunction("A", "MethodWithBlankLine");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
@@ -369,7 +369,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Whole()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
@@ -377,7 +377,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_WholeWithAttributes()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -389,7 +389,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Attributes()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
@@ -397,7 +397,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_AttributesWithDelimiter()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
@@ -405,7 +405,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Body()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -417,7 +417,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_BodyWithDelimiter()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
@@ -425,7 +425,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Header()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
@@ -433,7 +433,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_HeaderWithAttributes()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
@@ -441,7 +441,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Name()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
@@ -449,7 +449,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Navigate()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartNavigate);
 
@@ -461,7 +461,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Whole()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
@@ -469,7 +469,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_WholeWithAttributes()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -481,7 +481,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task StartPoint()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint startPoint = testObject.StartPoint;
 
@@ -493,7 +493,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task EndPoint()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint endPoint = testObject.EndPoint;
 
@@ -505,7 +505,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task DynamicReturnType()
         {
-            CodeVariable testObject = (CodeVariable)await GetCodeElementAsync("C", "DynamicField");
+            CodeVariable testObject = (CodeVariable)GetCodeElement("C", "DynamicField");
 
             CodeTypeRef returnType = testObject.Type;
             Assert.Equal(returnType.AsFullName, "dynamic");
@@ -518,7 +518,7 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task DynamicParameter()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("C", "DynamicMethod");
+            CodeFunction testObject = GetCodeFunction("C", "DynamicMethod");
 
             CodeTypeRef returnType = ((CodeParameter)testObject.Parameters.Item(1)).Type;
             Assert.Equal(returnType.AsFullName, "dynamic");
@@ -532,13 +532,13 @@ public class Ref<T> where T : Entity
         [WorkItem(530496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530496")]
         public async Task TestCodeElementFromPoint()
         {
-            var text = await (await GetCurrentDocumentAsync()).GetTextAsync();
-            var tree = await (await GetCurrentDocumentAsync()).GetSyntaxTreeAsync();
+            var text = await (GetCurrentDocument()).GetTextAsync();
+            var tree = await (GetCurrentDocument()).GetSyntaxTreeAsync();
             var position = text.ToString().IndexOf("DynamicMethod", StringComparison.Ordinal);
             var virtualTreePoint = new VirtualTreePoint(tree, text, position);
             var textPoint = new MockTextPoint(virtualTreePoint, 4);
             var scope = vsCMElement.vsCMElementFunction;
-            var element = (await GetCodeModelAsync()).CodeElementFromPoint(textPoint, scope);
+            var element = (GetCodeModel()).CodeElementFromPoint(textPoint, scope);
             Assert.Equal("DynamicMethod", element.Name);
         }
 
@@ -547,16 +547,16 @@ public class Ref<T> where T : Entity
         [WorkItem(726710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726710")]
         public async Task TestCodeElementFromPointBetweenMembers()
         {
-            var text = await (await GetCurrentDocumentAsync()).GetTextAsync();
-            var tree = await (await GetCurrentDocumentAsync()).GetSyntaxTreeAsync();
+            var text = await (GetCurrentDocument()).GetTextAsync();
+            var tree = await (GetCurrentDocument()).GetSyntaxTreeAsync();
             var position = text.ToString().IndexOf("protected virtual string MethodB", StringComparison.Ordinal) - 1;
             var virtualTreePoint = new VirtualTreePoint(tree, text, position);
             var textPoint = new MockTextPoint(virtualTreePoint, 4);
 
-            await Assert.ThrowsAsync<COMException>(async () =>
-                (await GetCodeModelAsync()).CodeElementFromPoint(textPoint, vsCMElement.vsCMElementFunction));
+            Assert.Throws<COMException>(() =>
+                (GetCodeModel()).CodeElementFromPoint(textPoint, vsCMElement.vsCMElementFunction));
 
-            var element = (await GetCodeModelAsync()).CodeElementFromPoint(textPoint, vsCMElement.vsCMElementClass);
+            var element = (GetCodeModel()).CodeElementFromPoint(textPoint, vsCMElement.vsCMElementClass);
             Assert.Equal("A", element.Name);
         }
 
@@ -564,16 +564,16 @@ public class Ref<T> where T : Entity
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Operator()
         {
-            CodeFunction functionObject = await GetCodeFunctionAsync("A", 3);
+            CodeFunction functionObject = GetCodeFunction("A", 3);
             Assert.Equal("operator +", functionObject.Name);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         [WorkItem(924179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924179")]
-        public async Task ConversionOperator()
+        public void ConversionOperator()
         {
-            CodeClass classObject = (CodeClass)await GetCodeElementAsync("Ref");
+            CodeClass classObject = (CodeClass)GetCodeElement("Ref");
             var element = classObject.Members.Item(1);
             Assert.Equal("implicit operator Ref<T>", element.Name);
         }

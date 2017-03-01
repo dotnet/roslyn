@@ -39,16 +39,16 @@ unsafe public struct DevDivBugs70194
         {
         }
 
-        private async Task<CodeVariable> GetCodeVariableAsync(params object[] path)
+        private CodeVariable GetCodeVariable(params object[] path)
         {
-            return (CodeVariable)await GetCodeElementAsync(path);
+            return (CodeVariable)GetCodeElement(path);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Access_Public()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intA");
+            CodeVariable testObject = GetCodeVariable("A", "intA");
 
             Assert.Equal(vsCMAccess.vsCMAccessPublic, testObject.Access);
         }
@@ -57,7 +57,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Access_Protected()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intB");
+            CodeVariable testObject = GetCodeVariable("A", "intB");
 
             Assert.Equal(vsCMAccess.vsCMAccessProtected, testObject.Access);
         }
@@ -66,7 +66,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Access_Private()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             Assert.Equal(vsCMAccess.vsCMAccessPrivate, testObject.Access);
         }
@@ -75,7 +75,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Attributes_Count()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             Assert.Equal(1, testObject.Attributes.Count);
         }
@@ -84,7 +84,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Children_Count()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             Assert.Equal(1, testObject.Children.Count);
         }
@@ -93,7 +93,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Comment()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intA");
+            CodeVariable testObject = GetCodeVariable("A", "intA");
 
             Assert.Equal("This is a comment.\r\n", testObject.Comment);
         }
@@ -102,7 +102,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task DocComment()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intB");
+            CodeVariable testObject = GetCodeVariable("A", "intB");
 
             string expected = "<doc>\r\n<summary>\r\nThis is a summary.\r\n</summary>\r\n</doc>";
 
@@ -113,7 +113,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task InitExpressions_NoExpression()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intB");
+            CodeVariable testObject = GetCodeVariable("A", "intB");
 
             Assert.Equal(null, testObject.InitExpression);
         }
@@ -122,7 +122,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task InitExpression()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             Assert.Equal("4", testObject.InitExpression);
         }
@@ -131,7 +131,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task InitExpression_FixedBuffer()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("DevDivBugs70194", "buffer");
+            CodeVariable testObject = GetCodeVariable("DevDivBugs70194", "buffer");
 
             Assert.Equal(null, testObject.InitExpression);
         }
@@ -140,7 +140,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task IsConstant_True()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "FORTYTWO");
+            CodeVariable testObject = GetCodeVariable("A", "FORTYTWO");
 
             Assert.True(testObject.IsConstant);
         }
@@ -149,7 +149,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task IsConstant_False()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             Assert.False(testObject.IsConstant);
         }
@@ -158,7 +158,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task IsShared_True()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "FORTYTWO");
+            CodeVariable testObject = GetCodeVariable("A", "FORTYTWO");
 
             Assert.True(testObject.IsShared);
         }
@@ -167,7 +167,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task IsShared_False()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             Assert.False(testObject.IsShared);
         }
@@ -176,7 +176,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Kind()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             Assert.Equal(vsCMElement.vsCMElementVariable, testObject.Kind);
         }
@@ -185,7 +185,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Parent()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             CodeClass testObjectParent = testObject.Parent as CodeClass;
 
@@ -196,7 +196,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Type()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             Assert.Equal("System.Int32", testObject.Type.AsFullName);
         }
@@ -205,7 +205,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Attributes()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
@@ -213,7 +213,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_AttributesWithDelimiter()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter);
 
@@ -225,7 +225,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Body()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBody));
         }
 
@@ -233,7 +233,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_BodyWithDelimiter()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
@@ -241,7 +241,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Header()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeader));
         }
 
@@ -249,7 +249,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_HeaderWithAttributes()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
@@ -257,7 +257,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Name()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
@@ -265,7 +265,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Navigate()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
@@ -277,7 +277,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Whole()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
@@ -285,7 +285,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_WholeWithAttributes()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -297,7 +297,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Attributes()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
@@ -305,7 +305,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_AttributesWithDelimiter()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter);
 
@@ -317,7 +317,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Body()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBody));
         }
 
@@ -325,7 +325,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_BodyWithDelimiter()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
@@ -333,7 +333,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Header()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
@@ -341,7 +341,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_HeaderWithAttributes()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
@@ -349,7 +349,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Name()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
@@ -357,7 +357,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Navigate()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartNavigate);
 
@@ -369,7 +369,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Whole()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
@@ -377,7 +377,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_WholeWithAttributes()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -389,7 +389,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task StartPoint()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             TextPoint startPoint = testObject.StartPoint;
 
@@ -401,7 +401,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task EndPoint()
         {
-            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            CodeVariable testObject = GetCodeVariable("A", "intC");
 
             TextPoint endPoint = testObject.EndPoint;
 

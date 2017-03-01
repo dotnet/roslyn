@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
@@ -17,30 +16,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     {
         private readonly Tuple<TestWorkspace, FileCodeModel> _workspaceAndCodeModel;
 
-        protected async Task<TestWorkspace> GetWorkspaceAsync()
+        protected TestWorkspace GetWorkspace()
         {
             return _workspaceAndCodeModel.Item1;
         }
 
-        protected async Task<FileCodeModel> GetCodeModelAsync()
+        protected FileCodeModel GetCodeModel()
         {
             return _workspaceAndCodeModel.Item2;
         }
 
-        protected async Task<Microsoft.CodeAnalysis.Solution> GetCurrentSolutionAsync()
-        {
-            return (await GetWorkspaceAsync()).CurrentSolution;
-        }
+        protected Microsoft.CodeAnalysis.Solution GetCurrentSolution()
+            => GetWorkspace().CurrentSolution;
 
-        protected async Task<Microsoft.CodeAnalysis.Project> GetCurrentProjectAsync()
-        {
-            return (await GetCurrentSolutionAsync()).Projects.Single();
-        }
+        protected Microsoft.CodeAnalysis.Project GetCurrentProject()
+            => GetCurrentSolution().Projects.Single();
 
-        protected async Task<Microsoft.CodeAnalysis.Document> GetCurrentDocumentAsync()
-        {
-            return (await GetCurrentProjectAsync()).Documents.Single();
-        }
+        protected Microsoft.CodeAnalysis.Document GetCurrentDocument()
+            => GetCurrentProject().Documents.Single();
 
         public AbstractFileCodeElementTests(string contents)
         {
@@ -50,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         protected static Tuple<TestWorkspace, EnvDTE.FileCodeModel> CreateWorkspaceAndFileCodeModelAsync(string file)
             => FileCodeModelTestHelpers.CreateWorkspaceAndFileCodeModel(file);
 
-        protected async Task<CodeElement> GetCodeElementAsync(params object[] path)
+        protected CodeElement GetCodeElement(params object[] path)
         {
             WpfTestCase.RequireWpfFact("Tests create CodeElements which use the affinitized CleanableWeakComHandleTable");
 
@@ -59,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                 throw new ArgumentException("path must be non-empty.", nameof(path));
             }
 
-            CodeElement codeElement = (await GetCodeModelAsync()).CodeElements.Item(path[0]);
+            CodeElement codeElement = (GetCodeModel()).CodeElements.Item(path[0]);
 
             foreach (var pathElement in path.Skip(1))
             {
@@ -71,15 +64,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 
         public void Dispose()
         {
-            GetWorkspaceAsync().Result.Dispose();
+            GetWorkspace().Dispose();
         }
 
         /// <summary>
         /// Returns the current text of the test buffer.
         /// </summary>
-        protected async Task<string> GetFileTextAsync()
+        protected string GetFileText()
         {
-            return (await GetWorkspaceAsync()).Documents.Single().GetTextBuffer().CurrentSnapshot.GetText();
+            return (GetWorkspace()).Documents.Single().GetTextBuffer().CurrentSnapshot.GetText();
         }
     }
 }

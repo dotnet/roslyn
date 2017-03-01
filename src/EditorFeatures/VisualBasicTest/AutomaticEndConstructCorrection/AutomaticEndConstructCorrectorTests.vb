@@ -126,8 +126,8 @@ End Class</code>.Value
     End [|Sub|]
 End Class</code>.Value.Replace(vbLf, vbCrLf)
 
-            Await VerifyBeginAsync(code, "Interface", "Sub")
-            Await VerifyEndAsync(code, "Interface", "Function")
+            VerifyBegin(code, "Interface", "Sub")
+            VerifyEnd(code, "Interface", "Function")
         End Function
 
         <WpfFact>
@@ -269,8 +269,8 @@ End Class</code>.Value
     End Sub
 End [|Class|]</code>.Value
 
-            Await VerifyBeginAsync(code, "Structure", "Class")
-            Await VerifyEndAsync(code, "Structure", "Class")
+            VerifyBegin(code, "Structure", "Class")
+            VerifyEnd(code, "Structure", "Class")
         End Function
 
         <WorkItem(539357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539357")>
@@ -393,7 +393,7 @@ End Class</code>.Value
             codeWithMarker = codeWithMarker.Replace(vbLf, vbCrLf)
 
             VerifyBegin(codeWithMarker, keyword)
-            Await VerifyEndAsync(codeWithMarker, keyword)
+            VerifyEnd(codeWithMarker, keyword)
         End Function
 
         Private Sub VerifyBegin(code As String, keyword As String, Optional expected As String = Nothing)

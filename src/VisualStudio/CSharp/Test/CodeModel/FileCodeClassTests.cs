@@ -35,16 +35,16 @@ public class Bar
         {
         }
 
-        private async Task<CodeClass> GetCodeClassAsync(params object[] path)
+        private CodeClass GetCodeClass(params object[] path)
         {
-            return (CodeClass)await GetCodeElementAsync(path);
+            return (CodeClass)GetCodeElement(path);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task IsAbstract()
         {
-            CodeClass cc = await GetCodeClassAsync("Foo");
+            CodeClass cc = GetCodeClass("Foo");
 
             Assert.True(cc.IsAbstract);
         }
@@ -53,7 +53,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Bases()
         {
-            CodeClass cc = await GetCodeClassAsync("Foo");
+            CodeClass cc = GetCodeClass("Foo");
 
             var bases = cc.Bases;
 
@@ -73,7 +73,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task ImplementedInterfaces()
         {
-            CodeClass cc = await GetCodeClassAsync("Foo");
+            CodeClass cc = GetCodeClass("Foo");
 
             var interfaces = cc.ImplementedInterfaces;
 
@@ -94,7 +94,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task KindTest()
         {
-            CodeClass cc = await GetCodeClassAsync("Foo");
+            CodeClass cc = GetCodeClass("Foo");
 
             Assert.Equal(vsCMElement.vsCMElementClass, cc.Kind);
         }
@@ -103,7 +103,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Attributes()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
@@ -111,7 +111,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_AttributesWithDelimiter()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter);
 
@@ -123,7 +123,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Body()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartBody);
 
@@ -135,7 +135,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_BodyWithDelimiter()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
@@ -143,7 +143,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Header()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartHeader);
 
@@ -155,7 +155,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_HeaderWithAttributes()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
@@ -163,7 +163,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Name()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
@@ -171,7 +171,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Navigate()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
@@ -183,7 +183,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Whole()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
@@ -191,7 +191,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_WholeWithAttributes()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -203,7 +203,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Attributes()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
@@ -211,7 +211,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_AttributesWithDelimiter()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter);
 
@@ -223,7 +223,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Body()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -235,7 +235,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_BodyWithDelimiter()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
@@ -243,7 +243,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Header()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
 
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
@@ -252,7 +252,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_HeaderWithAttributes()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
@@ -260,7 +260,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Name()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
@@ -268,7 +268,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Navigate()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartNavigate);
 
@@ -280,7 +280,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Whole()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
@@ -288,7 +288,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_WholeWithAttributes()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -300,7 +300,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task StartPoint()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
 
             TextPoint startPoint = testObject.StartPoint;
 
@@ -312,7 +312,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task EndPoint()
         {
-            CodeClass testObject = await GetCodeClassAsync("Bar");
+            CodeClass testObject = GetCodeClass("Bar");
 
             TextPoint endPoint = testObject.EndPoint;
 

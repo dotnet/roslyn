@@ -19,16 +19,16 @@ using Foo = System.Data;")
         {
         }
 
-        private async Task<CodeImport> GetCodeImportAsync(object path)
+        private CodeImport GetCodeImport(object path)
         {
-            return (CodeImport)await GetCodeElementAsync(path);
+            return (CodeImport)GetCodeElement(path);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Name()
         {
-            CodeImport import = await GetCodeImportAsync(1);
+            CodeImport import = GetCodeImport(1);
             Assert.Throws<COMException>(() => { var value = import.Name; });
         }
 
@@ -36,7 +36,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task FullName()
         {
-            CodeImport import = await GetCodeImportAsync(1);
+            CodeImport import = GetCodeImport(1);
             Assert.Throws<COMException>(() => { var value = import.FullName; });
         }
 
@@ -44,7 +44,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Kind()
         {
-            CodeImport import = await GetCodeImportAsync(1);
+            CodeImport import = GetCodeImport(1);
 
             Assert.Equal(vsCMElement.vsCMElementImportStmt, import.Kind);
         }
@@ -53,7 +53,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Namespace()
         {
-            CodeImport import = await GetCodeImportAsync(1);
+            CodeImport import = GetCodeImport(1);
 
             Assert.Equal("System", import.Namespace);
         }
@@ -62,7 +62,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Alias()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
 
             Assert.Equal("Foo", import.Alias);
         }
@@ -71,7 +71,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Attributes()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
@@ -79,7 +79,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_AttributesWithDelimiter()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<COMException>(() => import.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
@@ -87,7 +87,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Body()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<COMException>(() => import.GetStartPoint(vsCMPart.vsCMPartBody));
         }
 
@@ -95,7 +95,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_BodyWithDelimiter()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
@@ -103,7 +103,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Header()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartHeader));
         }
 
@@ -111,7 +111,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_HeaderWithAttributes()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
@@ -119,7 +119,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Name()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
@@ -127,7 +127,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Navigate()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             TextPoint startPoint = import.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
             Assert.Equal(2, startPoint.Line);
@@ -138,7 +138,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_Whole()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
@@ -146,7 +146,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetStartPoint_WholeWithAttributes()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             TextPoint startPoint = import.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
             Assert.Equal(2, startPoint.Line);
@@ -157,7 +157,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Attributes()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
@@ -165,7 +165,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_AttributesWithDelimiter()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<COMException>(() => import.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
@@ -173,7 +173,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Body()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<COMException>(() => import.GetEndPoint(vsCMPart.vsCMPartBody));
         }
 
@@ -181,7 +181,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_BodyWithDelimiter()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
@@ -189,7 +189,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Header()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
@@ -197,7 +197,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_HeaderWithAttributes()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
@@ -205,7 +205,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Name()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
@@ -213,7 +213,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Navigate()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
 
             TextPoint endPoint = import.GetEndPoint(vsCMPart.vsCMPartNavigate);
 
@@ -225,7 +225,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_Whole()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
@@ -233,7 +233,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task GetEndPoint_WholeWithAttributes()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
 
             TextPoint endPoint = import.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -245,7 +245,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task StartPoint()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
 
             TextPoint startPoint = import.StartPoint;
 
@@ -257,7 +257,7 @@ using Foo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task EndPoint()
         {
-            CodeImport import = await GetCodeImportAsync(2);
+            CodeImport import = GetCodeImport(2);
 
             TextPoint endPoint = import.EndPoint;
 
