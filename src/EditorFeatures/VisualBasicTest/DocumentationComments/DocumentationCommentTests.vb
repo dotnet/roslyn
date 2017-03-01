@@ -827,7 +827,7 @@ End Class
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_Class() As Task
+        Public Sub TestCommand_Class()
             Const code = "
 Class C
     $$
@@ -842,11 +842,11 @@ Class C
 End Class
 "
             VerifyInsertCommentCommand(code, expected)
-        End Function
+        End Sub
 
         <WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_Class_AutoGenerateXmlDocCommentsOff() As Task
+        Public Sub TestCommand_Class_AutoGenerateXmlDocCommentsOff()
             Const code = "
 Class C
     $$
@@ -861,10 +861,10 @@ Class C
 End Class
 "
             VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments:=False)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_Class_NotIfCommentExists() As Task
+        Public Sub TestCommand_Class_NotIfCommentExists()
             Const code = "
 ''' <summary></summary>
 Class C
@@ -878,11 +878,11 @@ Class C
 End Class
 "
             VerifyInsertCommentCommand(code, expected)
-        End Function
+        End Sub
 
         <WorkItem(538715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_Method1() As Task
+        Public Sub TestCommand_Method1()
             Const code = "
 Class C
     Function F()$$
@@ -900,10 +900,10 @@ Class C
 End Class
 "
             VerifyInsertCommentCommand(code, expected)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_Method2() As Task
+        Public Sub TestCommand_Method2()
             Const code = "
 Class C
     Function M(Of T)(foo As Integer) As Integer
@@ -925,10 +925,10 @@ Class C
 End Class
 "
             VerifyInsertCommentCommand(code, expected)
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_Method_NotIfCommentExists() As Task
+        Public Sub TestCommand_Method_NotIfCommentExists()
             Const code = "
 Class C
     ''' <summary></summary>
@@ -946,11 +946,11 @@ Class C
 End Class
 "
             VerifyInsertCommentCommand(code, expected)
-        End Function
+        End Sub
 
         <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_FirstModuleOnLine() As Task
+        Public Sub TestCommand_FirstModuleOnLine()
             Const code = "
 $$Module M : End Module : Module N : End Module
 "
@@ -962,20 +962,20 @@ $$Module M : End Module : Module N : End Module
 Module M : End Module : Module N : End Module
 "
             VerifyInsertCommentCommand(code, expected)
-        End Function
+        End Sub
 
         <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_NotOnSecondModuleOnLine() As Task
+        Public Sub TestCommand_NotOnSecondModuleOnLine()
             Const code = "Module M : End Module : $$Module N : End Module"
             Const expected = "Module M : End Module : $$Module N : End Module"
 
             VerifyInsertCommentCommand(code, expected)
-        End Function
+        End Sub
 
         <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_FirstPropertyOnLine() As Task
+        Public Sub TestCommand_FirstPropertyOnLine()
             Const code = "
 Module M
     Property $$i As Integer : Property j As Integer
@@ -991,11 +991,11 @@ Module M
 End Module
 "
             VerifyInsertCommentCommand(code, expected)
-        End Function
+        End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestOpenLineAbove1() As Task
+        Public Sub TestOpenLineAbove1()
             Const code = "
 Class C
     ''' <summary>
@@ -1016,7 +1016,7 @@ Class C
 End Class
 "
             VerifyOpenLineAbove(code, expected)
-        End Function
+        End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
