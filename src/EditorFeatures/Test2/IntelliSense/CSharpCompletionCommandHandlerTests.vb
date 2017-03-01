@@ -588,7 +588,7 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars("i")
-                Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="in", isHardSelected:=True)
                 state.SendTypeChars(":")
                 Assert.Contains("(i:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -608,9 +608,9 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars("i")
-                Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="in", isHardSelected:=True)
                 state.SendTypeChars(" ")
-                Assert.Contains("(int ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(in ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
