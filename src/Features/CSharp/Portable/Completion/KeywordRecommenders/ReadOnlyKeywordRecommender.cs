@@ -27,17 +27,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            var previousToken = context.LeftToken.GetPreviousTokenIfTouchingWord(position);
-
             return
                 context.IsGlobalStatementContext ||
-                (previousToken.IsKind(SyntaxKind.RefKeyword) && previousToken.Parent.IsKind(SyntaxKind.Parameter, SyntaxKind.RefType)) ||
+                IsRefReadOnlyContext(position, context) ||
                 context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: s_validMemberModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
+        }
+
+        private bool IsRefReadOnlyContext(int position, CSharpSyntaxContext context)
+        {
+            var previousToken = context.LeftToken.GetPreviousTokenIfTouchingWord(position);
+
+            return
+                previousToken.IsKind(SyntaxKind.RefKeyword) &&
+                previousToken.Parent.IsKind(SyntaxKind.Parameter, SyntaxKind.RefType);
         }
     }
 }

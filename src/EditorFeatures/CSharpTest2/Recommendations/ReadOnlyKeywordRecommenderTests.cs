@@ -416,5 +416,126 @@ $$");
    void Foo() {
      $$");
         }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_Methods()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static void Test(ref $$ p) { }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_SecondParameter()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static void Test(int p1, ref $$ p2) { }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_Delegates()
+        {
+            await VerifyKeywordAsync(@"
+public delegate int Delegate(ref $$ int p);");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_LocalFunctions()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static void Test()
+    {
+        void localFunc(ref $$ int p) { }
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_LambdaExpressions()
+        {
+            await VerifyKeywordAsync(@"
+public delegate int Delegate(ref readonly int p);
+
+class Program
+{
+    public static void Test()
+    {
+        Delegate lambda = (ref $$ int p) => p;
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_AnonymousMethods()
+        {
+            await VerifyKeywordAsync(@"
+public delegate int Delegate(ref readonly int p);
+
+class Program
+{
+    public static void Test()
+    {
+        Delegate anonymousDelegate = delegate (ref $$ int p) { return p; };
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RefReadOnlyWillPopUpInMethodReturnTypes()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public ref $$ int Test()
+    {
+        return ref x;
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RefReadOnlyWillPopUpInGlobalMemberDeclaration()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"
+public ref $$ ");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RefReadOnlyWillPopUpInDelegateReturnType()
+        {
+            await VerifyKeywordAsync(@"
+public delegate ref $$ int Delegate();
+
+class Program
+{
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RefReadOnlyWillPopUpInMemberDeclaration()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public ref $$ int Test { get; set; }
+}");
+        }
     }
 }

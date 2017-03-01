@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
     internal static class SyntaxNodeExtensions
     {
-        public static bool IsDelegateOrConstructorOrMethodParameterList(this SyntaxNode node)
+        public static bool IsDelegateOrConstructorOrLocalFunctionOrMethodParameterList(this SyntaxNode node)
         {
             if (!node.IsKind(SyntaxKind.ParameterList))
             {

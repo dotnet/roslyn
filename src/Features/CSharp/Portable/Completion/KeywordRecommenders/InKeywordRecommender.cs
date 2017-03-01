@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsMemberDeclarationContext(
                     validModifiers: InMemberModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
-                    canBePartial: true,
+                    canBePartial: false,
                     cancellationToken: cancellationToken);
         }
 

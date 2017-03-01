@@ -1502,15 +1502,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return defines.AsEnumerable();
         }
 
-        public static bool TryParseLanguageVersion(string str, out LanguageVersion version)
+        public static bool TryParseLanguageVersion(string value, out LanguageVersion version)
         {
-            if (str == null)
+            if (value == null)
             {
                 version = LanguageVersion.Default;
                 return true;
             }
 
-            switch (str.ToLowerInvariant())
+            switch (value.ToLowerInvariant())
             {
                 case "iso-1":
                     version = LanguageVersion.CSharp1;
@@ -1529,7 +1529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 default:
-                    if (float.TryParse(str, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out float versionNumber))
+                    if (float.TryParse(value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out float versionNumber))
                     {
                         if ((int)versionNumber == versionNumber && 1 <= versionNumber && versionNumber <= 7)
                         {

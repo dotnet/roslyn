@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             token = token.GetPreviousTokenIfTouchingWord(position);
 
             if (token.IsKind(SyntaxKind.OpenParenToken) &&
-                token.Parent.IsDelegateOrConstructorOrMethodParameterList())
+                token.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodParameterList())
             {
                 if (allowableIndex.HasValue)
                 {
@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             if (token.IsKind(SyntaxKind.CommaToken) &&
-                token.Parent.IsDelegateOrConstructorOrMethodParameterList())
+                token.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodParameterList())
             {
                 if (allowableIndex.HasValue)
                 {
@@ -1022,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.CloseBracketToken) &&
                 token.Parent.IsKind(SyntaxKind.AttributeList) &&
                 token.Parent.IsParentKind(SyntaxKind.Parameter) &&
-                token.Parent.GetParent().GetParent().IsDelegateOrConstructorOrMethodParameterList())
+                token.Parent.GetParent().GetParent().IsDelegateOrConstructorOrLocalFunctionOrMethodParameterList())
             {
                 if (allowableIndex.HasValue)
                 {

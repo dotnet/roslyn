@@ -301,5 +301,126 @@ class C {
     {
         var q = from Int32 $$");
         }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpAsParameterModifier_Methods()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static void Test($$ p) { }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpAsParameterModifier_SecondParameter()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static void Test(int p1, $$ p2) { }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpAsParameterModifier_Delegates()
+        {
+            await VerifyKeywordAsync(@"
+public delegate int Delegate($$ int p);");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpAsParameterModifier_LocalFunctions()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static void Test()
+    {
+        void localFunc($$ int p) { }
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpAsParameterModifier_LambdaExpressions()
+        {
+            await VerifyKeywordAsync(@"
+public delegate int Delegate(ref readonly int p);
+
+class Program
+{
+    public static void Test()
+    {
+        Delegate lambda = ($$ int p) => p;
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpAsParameterModifier_AnonymousMethods()
+        {
+            await VerifyKeywordAsync(@"
+public delegate int Delegate(ref readonly int p);
+
+class Program
+{
+    public static void Test()
+    {
+        Delegate anonymousDelegate = delegate ($$ int p) { return p; };
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpInMethodReturnTypes()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public $$ int Test()
+    {
+        return ref x;
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpInGlobalMemberDeclaration()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"
+public $$ ");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpInDelegateReturnType()
+        {
+            await VerifyKeywordAsync(@"
+public delegate $$ int Delegate();
+
+class Program
+{
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InWillPopUpInMemberDeclaration()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public $$ int Test { get; set; }
+}");
+        }
     }
 }
