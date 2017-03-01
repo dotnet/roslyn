@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         public string ErrorMessage { get; private set; }
         public NotificationSeverity ErrorSeverity { get; private set; }
 
-        public static async Task<ExtractInterfaceTestState> CreateAsync(string markup, string languageName, CompilationOptions compilationOptions)
+        public static ExtractInterfaceTestState Create(string markup, string languageName, CompilationOptions compilationOptions)
         {
             var workspace = languageName == LanguageNames.CSharp
                 ? TestWorkspace.CreateCSharp(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)

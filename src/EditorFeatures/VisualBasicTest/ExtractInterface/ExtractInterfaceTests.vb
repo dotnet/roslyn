@@ -1295,7 +1295,7 @@ End Namespace
         End Sub
 
         Private Shared Async Function TestTypeDiscoveryAsync(markup As String, typeDiscoveryRule As TypeDiscoveryRule, expectedExtractable As Boolean) As System.Threading.Tasks.Task
-            Using testState = Await ExtractInterfaceTestState.CreateAsync(markup, LanguageNames.VisualBasic, compilationOptions:=Nothing)
+            Using testState = ExtractInterfaceTestState.Create(markup, LanguageNames.VisualBasic, compilationOptions:=Nothing)
                 Dim result = Await testState.GetTypeAnalysisResultAsync(typeDiscoveryRule)
                 Assert.Equal(expectedExtractable, result.CanExtractInterface)
             End Using

@@ -1008,7 +1008,7 @@ class Program $$: ISomeInterface<object>
             TypeDiscoveryRule typeDiscoveryRule,
             bool expectedExtractable)
         {
-            using (var testState = await ExtractInterfaceTestState.CreateAsync(markup, LanguageNames.CSharp, compilationOptions: null))
+            using (var testState = ExtractInterfaceTestState.Create(markup, LanguageNames.CSharp, compilationOptions: null))
             {
                 var result = await testState.GetTypeAnalysisResultAsync(typeDiscoveryRule);
                 Assert.Equal(expectedExtractable, result.CanExtractInterface);
