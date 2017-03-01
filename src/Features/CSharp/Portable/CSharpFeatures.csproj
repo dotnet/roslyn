@@ -72,6 +72,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpFeaturesResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="DesignerAttributes\CSharpDesignerAttributeService.cs" />
     <Compile Include="ImplementAbstractClass\CSharpImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="ImplementInterface\CSharpImplementInterfaceCodeFixProvider.cs" />
     <Compile Include="Structure\Providers\ArrowExpressionClauseStructureProvider.cs" />

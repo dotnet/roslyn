@@ -94,6 +94,7 @@
     <Compile Include="ConvertIfToSwitch\VisualBasicConvertIfToSwitchCodeRefactoringProvider.vb" />
     <Compile Include="ConvertNumericLiteral\VisualBasicConvertNumericLiteralCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\UseNamedArguments\VisualBasicUseNamedArgumentsCodeRefactoringProvider.vb" />
+    <Compile Include="DesignerAttributes\BasicDesignerAttributeService.vb" />
     <Compile Include="ImplementAbstractClass\VisualBasicImplementAbstractClassCodeFixProvider.vb" />
     <Compile Include="CodeFixes\IncorrectExitContinue\IncorrectExitContinueCodeFixProvider.AddKeywordCodeAction.vb" />
     <Compile Include="CodeFixes\IncorrectExitContinue\IncorrectExitContinueCodeFixProvider.ReplaceKeywordCodeAction.vb" />

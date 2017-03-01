@@ -105,7 +105,6 @@
     <Compile Include="Debugging\ProximityExpressionsGetter.Worker.vb" />
     <Compile Include="Debugging\VisualBasicBreakpointService.vb" />
     <Compile Include="Debugging\VisualBasicLanguageDebugInfoService.vb" />
-    <Compile Include="DesignerAttribute\BasicDesignerAttributeIncrementalAnalyzerProvider.vb" />
     <Compile Include="Help\HelpKeywords.vb" />
     <Compile Include="Help\VisualBasicHelpContextService.vb" />
     <Compile Include="Help\VisualBasicHelpContextService.Visitor.vb" />

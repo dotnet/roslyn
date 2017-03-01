@@ -2,13 +2,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -20,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
-    internal abstract partial class AbstractDesignerAttributeIncrementalAnalyzer : ForegroundThreadAffinitizedObject
+    internal partial class DesignerAttributeIncrementalAnalyzer : ForegroundThreadAffinitizedObject, IIncrementalAnalyzer
     {
         private readonly IForegroundNotificationService _notificationService;
 
@@ -35,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// </summary>
         private IVSMDDesignerService _dotNotAccessDirectlyDesigner;
 
-        public AbstractDesignerAttributeIncrementalAnalyzer(
+        public DesignerAttributeIncrementalAnalyzer(
             IServiceProvider serviceProvider,
             IForegroundNotificationService notificationService,
             IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
@@ -49,11 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             _state = new DesignerAttributeState();
         }
 
-        protected abstract bool ProcessOnlyFirstTypeDefined();
-        protected abstract IEnumerable<SyntaxNode> GetAllTopLevelTypeDefined(SyntaxNode root);
-        protected abstract bool HasAttributesOrBaseTypeOrIsPartial(SyntaxNode typeNode);
-
-        public System.Threading.Tasks.Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
+        public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
             _state.Remove(document.Id);
             return _state.PersistAsync(document, new Data(VersionStamp.Default, VersionStamp.Default, designerAttributeArgument: null), cancellationToken);
@@ -64,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return false;
         }
 
-        public async System.Threading.Tasks.Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+        public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(document.IsFromPrimaryBranch());
 
@@ -91,85 +89,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 }
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-
-            // Delay getting any of these until we need them, but hold on to them once we have them.
-            string designerAttributeArgument = null;
-            Compilation compilation = null;
-            INamedTypeSymbol designerAttribute = null;
-            SemanticModel model = null;
-
-            var documentHasError = false;
-
-            // get type defined in current tree
-            foreach (var typeNode in GetAllTopLevelTypeDefined(root))
+            var result = await ScanDesignerAttributesOnRemoteHostIfPossibleAsync(document, cancellationToken).ConfigureAwait(false);
+            if (result.NotApplicable)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (HasAttributesOrBaseTypeOrIsPartial(typeNode))
-                {
-                    if (designerAttribute == null)
-                    {
-                        if (compilation == null)
-                        {
-                            compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                        }
-
-                        designerAttribute = compilation.DesignerCategoryAttributeType();
-                        if (designerAttribute == null)
-                        {
-                            // The DesignerCategoryAttribute doesn't exist.
-                            // no idea on design attribute status, just leave things as it is.
-                            _state.Remove(document.Id);
-                            return;
-                        }
-                    }
-
-                    if (model == null)
-                    {
-                        model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-                    }
-
-                    var definedType = model.GetDeclaredSymbol(typeNode, cancellationToken) as INamedTypeSymbol;
-                    if (definedType == null)
-                    {
-                        continue;
-                    }
-
-                    // walk up type chain
-                    foreach (var type in definedType.GetBaseTypesAndThis())
-                    {
-                        if (type.IsErrorType())
-                        {
-                            documentHasError = true;
-                            continue;
-                        }
-
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        // if it has designer attribute, set it
-                        var attribute = type.GetAttributes().Where(d => designerAttribute.Equals(d.AttributeClass)).FirstOrDefault();
-                        if (attribute != null && attribute.ConstructorArguments.Length == 1)
-                        {
-                            designerAttributeArgument = GetArgumentString(attribute.ConstructorArguments[0]);
-                            await RegisterDesignerAttributeAndSaveStateAsync(document, textVersion, semanticVersion, designerAttributeArgument, cancellationToken).ConfigureAwait(false);
-
-                            return;
-                        }
-                    }
-                }
-
-                // check only first type
-                if (ProcessOnlyFirstTypeDefined())
-                {
-                    break;
-                }
+                _state.Remove(document.Id);
+                return;
             }
 
             // we checked all types in the document, but couldn't find designer attribute, but we can't say this document doesn't have designer attribute
             // if the document also contains some errors.
-            var designerAttributeArgumentOpt = documentHasError ? new Optional<string>() : new Optional<string>(designerAttributeArgument);
+            var designerAttributeArgumentOpt = result.ContainsErrors ? new Optional<string>() : new Optional<string>(result.DesignerAttributeArgument);
             await RegisterDesignerAttributeAndSaveStateAsync(document, textVersion, semanticVersion, designerAttributeArgumentOpt, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<DesignerAttributeResult> ScanDesignerAttributesOnRemoteHostIfPossibleAsync(Document document, CancellationToken cancellationToken)
+        {
+            var workspace = document.Project.Solution.Workspace;
+
+            var client = await workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (client != null && !document.IsOpen())
+            {
+                // run designer attributes scanner on remote host
+                return await client.RunCodeAnalysisServiceOnRemoteHostAsync<DesignerAttributeResult>(
+                    document.Project.Solution, nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
+                    document.Id, cancellationToken).ConfigureAwait(false);
+            }
+
+            // No remote host support, use inproc service
+            var service = document.GetLanguageService<IDesignerAttributeService>();
+            if (service == null)
+            {
+                return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: true, notApplicable: true);
+            }
+
+            return await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
         private bool CheckVersions(
@@ -181,19 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                    document.Project.CanReusePersistedDependentSemanticVersion(dependentProjectVersion, dependentSemanticVersion, existingData.SemanticVersion);
         }
 
-        private static string GetArgumentString(TypedConstant argument)
-        {
-            if (argument.Type == null ||
-                argument.Type.SpecialType != SpecialType.System_String ||
-                argument.IsNull)
-            {
-                return null;
-            }
-
-            return ((string)argument.Value).Trim();
-        }
-
-        private async System.Threading.Tasks.Task RegisterDesignerAttributeAndSaveStateAsync(
+        private async Task RegisterDesignerAttributeAndSaveStateAsync(
             Document document, VersionStamp textVersion, VersionStamp semanticVersion, Optional<string> designerAttributeArgumentOpt, CancellationToken cancellationToken)
         {
             if (!designerAttributeArgumentOpt.HasValue)
@@ -295,27 +236,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         }
 
         #region unused
-        public System.Threading.Tasks.Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
+        public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }
 
-        public System.Threading.Tasks.Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
+        public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }
 
-        public System.Threading.Tasks.Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+        public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }
 
-        public System.Threading.Tasks.Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
+        public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }
 
-        public System.Threading.Tasks.Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
+        public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }
