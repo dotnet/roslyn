@@ -184,6 +184,7 @@ abstract Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.ForEa
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.InKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.OpenParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.Statement.get -> Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax
+override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetRequiredLanguageVersion(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> string
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.Language.get -> string
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Language.get -> string
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitCasePatternSwitchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.CasePatternSwitchLabelSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -261,8 +262,9 @@ static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(this Mic
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax declarationSyntax, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.ISymbol
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax declaratorSyntax, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetForEachStatementInfo(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax forEachStatement) -> Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo
+static Microsoft.CodeAnalysis.CSharp.LanguageVersionExtensions.MapSpecifiedToEffectiveVersion(this Microsoft.CodeAnalysis.CSharp.LanguageVersion version) -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 static Microsoft.CodeAnalysis.CSharp.LanguageVersionExtensions.ToDisplayString(this Microsoft.CodeAnalysis.CSharp.LanguageVersion version) -> string
-static Microsoft.CodeAnalysis.CSharp.LanguageVersionExtensions.WithLanguageVersion(this Microsoft.CodeAnalysis.CSharp.LanguageVersion defaultVersion, string newVersion) -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
+static Microsoft.CodeAnalysis.CSharp.LanguageVersionExtensions.TryParseDisplayString(this Microsoft.CodeAnalysis.CSharp.LanguageVersion _, string newVersion, out Microsoft.CodeAnalysis.CSharp.LanguageVersion result) -> bool
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AccessorDeclaration(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AccessorDeclaration(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax body) -> Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AccessorDeclaration(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind, Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax

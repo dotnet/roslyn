@@ -60,6 +60,7 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax.Accept(Of TR
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax.Accept(Of TResult)(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult)) -> TResult
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.GetRequiredLanguageVersion(diagnostic As Microsoft.CodeAnalysis.Diagnostic) -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Language() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Language() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitNamedTupleElement(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax) -> Microsoft.CodeAnalysis.SyntaxNode

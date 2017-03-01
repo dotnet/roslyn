@@ -2918,6 +2918,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return options?.IsFeatureEnabled(MessageID.IDS_FeatureIOperation) ?? false;
         }
 
+        public override string GetRequiredLanguageVersion(Diagnostic diagnostic)
+        {
+            if (diagnostic == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostic));
+            }
+
+            bool found = false;
+            var foundVersion = LanguageVersion.Default;
+            foreach (var argument in diagnostic.Arguments)
+            {
+                if (argument is RequiredLanguageVersion versionDiagnostic)
+                {
+                    Debug.Assert(!found); // only one required language version in a given diagnostic
+                    found = true;
+                    foundVersion = versionDiagnostic.Version;
+                }
+            }
+
+            return found ? foundVersion.ToDisplayString() : null;
+        }
+
         private class SymbolSearcher
         {
             private readonly Dictionary<Declaration, NamespaceOrTypeSymbol> _cache;

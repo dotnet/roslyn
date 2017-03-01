@@ -1329,9 +1329,10 @@ d.cs
         /// - update the command-line error for bad /langver flag (<see cref="ErrorCode.ERR_BadCompatMode"/>)
         /// - update the "UpgradeProject" codefixer
         /// - update the IDE drop-down for selecting Language Version
+        /// - update the tests that include this canary
         /// </summary>
         [Fact]
-        public void LangVersionDisplay()
+        public void LanguageVersionChanged_Canary()
         {
             AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7", "latest" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
@@ -1344,6 +1345,61 @@ d.cs
             // When new language versions are added, this test will fail. Remember to update the diagnostics message (ERR_BadCompatMode).
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
+
+            LanguageVersionChanged_Canary();
+        }
+
+        [Fact]
+        public void LanguageVersion_MapSpecifiedToEffectiveVersion()
+        {
+            Assert.Equal(LanguageVersion.CSharp1, LanguageVersion.CSharp1.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp2, LanguageVersion.CSharp2.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp3, LanguageVersion.CSharp3.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp4, LanguageVersion.CSharp4.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp5, LanguageVersion.CSharp5.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp6, LanguageVersion.CSharp6.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.CSharp7.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
+
+            LanguageVersionChanged_Canary();
+        }
+
+        [Fact]
+        public void LanguageVersion_TryParseDisplayString()
+        {
+            LanguageVersion version;
+            Assert.True(LanguageVersion.Default.TryParseDisplayString("1", out version));
+            Assert.Equal(LanguageVersion.CSharp1, version);
+
+            Assert.True(LanguageVersion.Default.TryParseDisplayString("2", out version));
+            Assert.Equal(LanguageVersion.CSharp2, version);
+
+            Assert.True(LanguageVersion.Default.TryParseDisplayString("3", out version));
+            Assert.Equal(LanguageVersion.CSharp3, version);
+
+            Assert.True(LanguageVersion.Default.TryParseDisplayString("4", out version));
+            Assert.Equal(LanguageVersion.CSharp4, version);
+
+            Assert.True(LanguageVersion.Default.TryParseDisplayString("5", out version));
+            Assert.Equal(LanguageVersion.CSharp5, version);
+
+            Assert.True(LanguageVersion.Default.TryParseDisplayString("6", out version));
+            Assert.Equal(LanguageVersion.CSharp6, version);
+
+            Assert.True(LanguageVersion.Default.TryParseDisplayString("7", out version));
+            Assert.Equal(LanguageVersion.CSharp7, version);
+
+            Assert.True(LanguageVersion.Default.TryParseDisplayString("default", out version));
+            Assert.Equal(LanguageVersion.Default, version);
+
+            Assert.True(LanguageVersion.Default.TryParseDisplayString("latest", out version));
+            Assert.Equal(LanguageVersion.Latest, version);
+
+            Assert.False(LanguageVersion.Default.TryParseDisplayString("bad", out version));
+            Assert.Equal(LanguageVersion.Default, version);
+
+            LanguageVersionChanged_Canary();
         }
 
         [Fact]

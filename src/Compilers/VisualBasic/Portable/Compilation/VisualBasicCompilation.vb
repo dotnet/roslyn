@@ -2731,6 +2731,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
+        Public Overrides Function GetRequiredLanguageVersion(diagnostic As Diagnostic) As String
+            ' Upgrading project based on language versions reported in diagnostics isn't supported in VB at this point
+            ' See https://github.com/dotnet/roslyn/issues/17173
+            Return Nothing
+        End Function
+
 #End Region
 
         Private Class SymbolSearcher

@@ -9219,6 +9219,10 @@ CS0151ERR_IntegralTypeValueExpected}
                 // CS0151ERR_IntegralTypeValueExpected}
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 36)
                 );
+
+            Assert.Equal("7", comp.GetRequiredLanguageVersion(comp.GetDiagnostics()[0]));
+            Assert.Null(comp.GetRequiredLanguageVersion(comp.GetDiagnostics()[2]));
+            Assert.Throws<ArgumentNullException>(() => comp.GetRequiredLanguageVersion(null));
         }
 
         [Fact]

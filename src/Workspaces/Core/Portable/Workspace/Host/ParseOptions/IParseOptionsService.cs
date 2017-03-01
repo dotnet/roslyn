@@ -6,5 +6,6 @@ namespace Microsoft.CodeAnalysis.Host
     {
         string GetLanguageVersion(ParseOptions options);
         ParseOptions WithLanguageVersion(ParseOptions old, string version);
+        bool NewerThan(string newVersion, string oldVersion);
     }
 }

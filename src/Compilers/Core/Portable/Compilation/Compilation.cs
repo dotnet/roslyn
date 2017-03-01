@@ -2803,5 +2803,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal abstract bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code);
+
+        /// <summary>
+        /// Returns the required language version found in a <see cref="Diagnostic"/>, if any is found.
+        /// Returns null if none is found.
+        /// </summary>
+        public abstract string GetRequiredLanguageVersion(Diagnostic diagnostic);
     }
 }

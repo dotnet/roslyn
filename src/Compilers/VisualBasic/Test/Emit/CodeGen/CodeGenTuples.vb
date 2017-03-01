@@ -13604,6 +13604,7 @@ BC36716: Visual Basic 14.0 does not support tuples.
                                       ~~~~~~
 </errors>)
 
+            Assert.Null(comp.GetRequiredLanguageVersion(comp.GetDiagnostics()(0)))
         End Sub
 
         <Fact>

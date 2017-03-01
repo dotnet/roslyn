@@ -26,27 +26,33 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         {
             var project = context.Document.Project;
             var solution = project.Solution;
-            var newVersion = SuggestedVersion(context.Diagnostics);
+            var newVersions = SuggestedVersions(context.Diagnostics);
+            var result = new List<CodeAction>();
 
-            var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, newVersion);
-
-            CodeAction fixOneProject = new ParseOptionsChangeAction(fixOneProjectTitle,
-                ct => Task.FromResult(UpgradeProject(solution, project.Id, newVersion)));
-
-            if (solution.Projects.Where(CouldBeUpgradedToo).Count() <= 1)
+            foreach (var newVersion in newVersions)
             {
-                return ImmutableArray.Create(fixOneProject);
+                var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, newVersion);
+
+                CodeAction fixOneProject = new ParseOptionsChangeAction(fixOneProjectTitle,
+                    ct => Task.FromResult(UpgradeProject(solution, project.Id, newVersion)));
+
+                result.Add(fixOneProject);
+
+                if (solution.Projects.Where(CouldBeUpgradedToo).Count() > 1)
+                {
+                    var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, newVersion);
+
+                    CodeAction fixAllProjects = new ParseOptionsChangeAction(fixAllProjectsTitle,
+                        ct => Task.FromResult(UpgradeAllProjects(solution, newVersion)));
+
+                    result.Add(fixAllProjects);
+                }
             }
 
-            var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, newVersion);
-
-            CodeAction fixAllProjects = new ParseOptionsChangeAction(fixAllProjectsTitle,
-                ct => Task.FromResult(UpgradeAllProjects(solution, newVersion)));
-
-            return ImmutableArray.Create(fixOneProject, fixAllProjects);
+            return result.AsImmutable();
         }
 
-        public abstract string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics);
+        public abstract IEnumerable<string> SuggestedVersions(ImmutableArray<Diagnostic> diagnostics);
         public abstract bool CouldBeUpgradedToo(Project project);
 
         public abstract string UpgradeThisProjectResource { get; }

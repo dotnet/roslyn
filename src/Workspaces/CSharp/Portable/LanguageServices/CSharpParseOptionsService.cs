@@ -9,13 +9,26 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ExportLanguageService(typeof(IParseOptionsService), LanguageNames.CSharp), Shared]
     internal class CSharpParseOptionsService : IParseOptionsService
     {
-        public string GetLanguageVersion(ParseOptions options) =>  ((CSharpParseOptions)options).LanguageVersion.ToDisplayString();
+        public string GetLanguageVersion(ParseOptions options) =>
+            ((CSharpParseOptions)options).SpecifiedLanguageVersion.ToDisplayString();
 
         public ParseOptions WithLanguageVersion(ParseOptions options, string version)
         {
             var csharpOptions = (CSharpParseOptions)options;
-            var newVersion = LanguageVersion.Default.WithLanguageVersion(version);
+            LanguageVersion.Default.TryParseDisplayString(version, out var newVersion);
+
             return csharpOptions.WithLanguageVersion(newVersion);
+        }
+
+        public bool NewerThan(string newVersion, string oldVersion)
+        {
+            LanguageVersion.Default.TryParseDisplayString(newVersion, out var newLangVersion);
+            LanguageVersion.Default.TryParseDisplayString(oldVersion, out var oldLangVersion);
+
+            newLangVersion = newLangVersion.MapSpecifiedToEffectiveVersion();
+            oldLangVersion = oldLangVersion.MapSpecifiedToEffectiveVersion();
+
+            return newLangVersion > oldLangVersion;
         }
     }
 }

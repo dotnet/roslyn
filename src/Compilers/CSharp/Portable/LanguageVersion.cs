@@ -76,26 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class LanguageVersionExtensionsInternal
     {
-        internal static LanguageVersion MapSpecifiedToEffectiveVersion(this LanguageVersion version)
-        {
-            switch (version)
-            {
-                case LanguageVersion.Latest:
-                case LanguageVersion.Default:
-                    return LanguageVersion.CSharp7;
-                default:
-                    return version;
-            }
-        }
-
         internal static bool IsValid(this LanguageVersion value)
         {
             return value >= LanguageVersion.CSharp1 && value <= LanguageVersion.CSharp7;
-        }
-
-        internal static object Localize(this LanguageVersion value)
-        {
-            return (int)value;
         }
 
         internal static ErrorCode GetErrorCode(this LanguageVersion version)
@@ -119,6 +102,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
+        }
+    }
+
+    /// <summary>
+    /// This type is attached to diagnostics for required language version and should only be used
+    /// on such diagnostics, as they are scrapped out by <see cref="CSharpCompilation.GetRequiredLanguageVersion"/>.
+    /// </summary>
+    internal class RequiredLanguageVersion : IMessageSerializable
+    {
+        internal LanguageVersion Version { get; }
+
+        internal RequiredLanguageVersion(LanguageVersion version)
+        {
+            Version = version;
+        }
+
+        public override string ToString()
+        {
+            return Version.ToDisplayString();
         }
     }
 
@@ -155,30 +157,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static LanguageVersion WithLanguageVersion(this LanguageVersion defaultVersion, string newVersion)
+        public static bool TryParseDisplayString(this LanguageVersion _, string newVersion, out LanguageVersion result)
         {
             switch (newVersion)
             {
                 case "1":
-                    return LanguageVersion.CSharp1;
+                    result = LanguageVersion.CSharp1;
+                    break;
                 case "2":
-                    return LanguageVersion.CSharp2;
+                    result = LanguageVersion.CSharp2;
+                    break;
                 case "3":
-                    return LanguageVersion.CSharp3;
+                    result = LanguageVersion.CSharp3;
+                    break;
                 case "4":
-                    return LanguageVersion.CSharp4;
+                    result = LanguageVersion.CSharp4;
+                    break;
                 case "5":
-                    return LanguageVersion.CSharp5;
+                    result = LanguageVersion.CSharp5;
+                    break;
                 case "6":
-                    return LanguageVersion.CSharp6;
+                    result = LanguageVersion.CSharp6;
+                    break;
                 case "7":
-                    return LanguageVersion.CSharp7;
+                    result = LanguageVersion.CSharp7;
+                    break;
                 case "default":
-                    return LanguageVersion.Default;
+                    result = LanguageVersion.Default;
+                    break;
                 case "latest":
-                    return LanguageVersion.Latest;
+                    result = LanguageVersion.Latest;
+                    break;
                 default:
-                    return defaultVersion;
+                    result = LanguageVersion.Default;
+                    return false;
+            }
+            return true;
+        }
+
+        public static LanguageVersion MapSpecifiedToEffectiveVersion(this LanguageVersion version)
+        {
+            switch (version)
+            {
+                case LanguageVersion.Latest:
+                case LanguageVersion.Default:
+                    return LanguageVersion.CSharp7;
+                default:
+                    return version;
             }
         }
     }
