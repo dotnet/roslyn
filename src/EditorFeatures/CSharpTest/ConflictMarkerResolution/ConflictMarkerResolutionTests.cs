@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeTop1()
         {
-            await TestAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -57,13 +57,13 @@ namespace N
             Console.WriteLine(""My section"");
         }
     }
-}", index: 0, compareTokens: false);
+}", index: 0, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeBottom1()
         {
-            await TestAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -102,13 +102,13 @@ namespace N
             Console.WriteLine(""Their section"");
         }
     }
-}", index: 1, compareTokens: false);
+}", index: 1, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeBoth1()
         {
-            await TestAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -155,7 +155,7 @@ namespace N
             Console.WriteLine(""Their section"");
         }
     }
-}", index: 2, compareTokens: false);
+}", index: 2, ignoreTrivia: false);
         }
     }
 }

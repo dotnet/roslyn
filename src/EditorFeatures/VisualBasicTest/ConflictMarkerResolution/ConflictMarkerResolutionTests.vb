@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConflictMarkerReso
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
         Public Async Function TestTakeTop1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScript1Async(
 "
 imports System
 
@@ -46,12 +46,12 @@ namespace N
             Console.WriteLine(""My section"")
         end sub
     end class
-end namespace", index:=0, compareTokens:=False)
+end namespace", index:=0, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
         Public Async Function TestTakeBottom1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScript1Async(
 "
 imports System
 
@@ -82,12 +82,12 @@ namespace N
             Console.WriteLine(""Their section"")
         end sub
     end class
-end namespace", index:=1, compareTokens:=False)
+end namespace", index:=1, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
         Public Async Function TestTakeBoth1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScript1Async(
 "
 imports System
 
@@ -124,7 +124,7 @@ namespace N
             Console.WriteLine(""Their section"")
         end sub
     end class
-end namespace", index:=2, compareTokens:=False)
+end namespace", index:=2, ignoreTrivia:=False)
         End Function
     End Class
 End Namespace
