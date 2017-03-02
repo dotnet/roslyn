@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var changesToApply = totalChangesIntervalTree.Distinct().OrderBy(tc => tc.Span.Start);
 
             var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newText = oldText.WithChanges(totalChangesIntervalTree.OrderBy(tc => tc.Span.Start));
+            var newText = oldText.WithChanges(changesToApply);
 
             documentIdToFinalText.TryAdd(oldDocument.Id, newText);
         }
@@ -390,8 +390,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var currentChanges = await differenceService.GetTextChangesAsync(
                 oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
-
-            var treeChanges = await oldDocument.GetTextChangesAsync(newDocument, cancellationToken).ConfigureAwait(false);
 
             if (AllChangesCanBeApplied(cumulativeChanges, currentChanges))
             {
@@ -497,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                        otherChange.Span.End == change.Span.Start;
             }
 
-            // We're intersecting multiple changes.  That's never ok.
+            // We're intersecting multiple changes.  That's never OK.
             return false;
         }
 
@@ -526,6 +524,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // The change we want to make overlapped an existing change we're making.  Only allow
             // this if there was a single overlap and we are exactly the same change as it.
+            // Otherwise, this is a conflict.
             return overlappingSpans.Count > 1 || overlappingSpans[0] != change;
         }
 
@@ -547,6 +546,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 if (otherSpan.Span.IsEmpty)
                 {
+                    // If the other span is empty, then we definitely conflict with it.
                     return true;
                 }
             }
