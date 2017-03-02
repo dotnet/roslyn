@@ -12,22 +12,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub InvalidUserDefinedOperators()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Public Class B2
+            Dim source = Unit.Make.With_c_vb(
+"Public Class B2
     Public Shared Operator +(x As B2, y As B2) As B2 
-        System.Console.WriteLine("+")
+        System.Console.WriteLine(""+"")
         Return x
     End Operator
 
     Public Shared Operator -(x As B2) As B2 
-        System.Console.WriteLine("-")
+        System.Console.WriteLine(""-"")
         Return x
     End Operator
 
     Public Shared Operator -(x As B2) As B2 
-        System.Console.WriteLine("-")
+        System.Console.WriteLine(""-"")
         Return x
     End Operator
 End Class
@@ -40,9 +38,7 @@ Module Module1
         x = -x
     End Sub
 End Module
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             Dim tree = comp.SyntaxTrees.Single()
@@ -138,12 +134,10 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid)
 
         <Fact>
         Public Sub SimpleCompoundAssignment()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Public Class B2
+            Dim source = Unit.Make.With_c_vb(
+"Public Class B2
     Public Shared Operator +(x As B2, y As B2) As B2 
-        System.Console.WriteLine("+")
+        System.Console.WriteLine(""+"")
         Return x
     End Operator
 End Class
@@ -156,9 +150,7 @@ Module Module1
         a += b
     End Sub
 End Module
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             Dim tree = comp.SyntaxTrees.Single()
@@ -220,19 +212,15 @@ IExpressionStatement (OperationKind.ExpressionStatement)
 
         <Fact>
         Public Sub VerifyOperationTree_IfStatement()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make.With_c_vb(
+"Class C
     Sub Foo(x as Integer)
         If x <> 0
           System.Console.Write(x)
         End If
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature) _
                 .VerifyOperationTree("Foo", "
@@ -252,19 +240,15 @@ Sub C.Foo(x As System.Int32)
         <Fact>
         Public Sub VerifyOperationTree_ForStatement()
 
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source =Unit.Make.With_c_vb(
+"Class C
     Sub Foo()
         For i = 0 To 10
             System.Console.Write(i)
         Next
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature) _
                 .VerifyOperationTree("Foo", "
@@ -293,10 +277,8 @@ Sub C.Foo()
         <Fact>
         <WorkItem(382240, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=382240")>
         Public Sub NothingOrAddressOfInPlaceOfParamArray()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Module Module1
+            Dim source = Unit.Make.With_c_vb(
+"Module Module1
     Sub Main() 
         Test1(Nothing)
         Test2(new System.Guid(), Nothing)
@@ -310,16 +292,13 @@ Module Module1
     Sub Test2(y As Integer, ParamArray x as Integer())
     End Sub
 End Module
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             Dim tree = comp.SyntaxTrees.Single()
 
             comp.AssertTheseDiagnostics(
-<expected>
-BC30311: Value of type 'Guid' cannot be converted to 'Integer'.
+"BC30311: Value of type 'Guid' cannot be converted to 'Integer'.
         Test2(new System.Guid(), Nothing)
               ~~~~~~~~~~~~~~~~~
 BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
@@ -330,8 +309,7 @@ BC30311: Value of type 'Guid' cannot be converted to 'Integer'.
               ~~~~~~~~~~~~~~~~~
 BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
         Test2(new System.Guid(), AddressOf Main)
-                                 ~~~~~~~~~~~~~~
-</expected>)
+                                 ~~~~~~~~~~~~~~")
 
             Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().ToArray()
 
