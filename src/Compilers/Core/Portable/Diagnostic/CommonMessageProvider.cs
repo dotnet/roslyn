@@ -2,6 +2,7 @@
 
 using System;
 using System.Globalization;
+using System.IO;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -216,6 +217,18 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_ModuleEmitFailure { get; }
         public abstract int ERR_EncUpdateFailedMissingAttribute { get; }
 
+        /// <summary>
+        /// Takes an exception produced while writing to a file stream and produces a diagnostic.
+        /// </summary>
+        public void ReportStreamWriteException(Exception e, string filePath, TextWriter consoleOutput)
+        {
+            if (consoleOutput != null)
+            {
+                var diagnostic = new DiagnosticInfo(this, ERR_OutputWriteFailed, filePath, e.Message);
+                consoleOutput.WriteLine(diagnostic.ToString(consoleOutput.FormatProvider));
+            }
+        }
+
         public abstract void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute);
         public abstract void ReportInvalidNamedArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex, ITypeSymbol attributeClass, string parameterName);
         public abstract void ReportParameterNotValidForType(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex);
@@ -225,5 +238,7 @@ namespace Microsoft.CodeAnalysis
 
         public abstract void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName);
         public abstract void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName1, string parameterName2);
+
+        public abstract int ERR_BadAssemblyName { get; }
     }
 }

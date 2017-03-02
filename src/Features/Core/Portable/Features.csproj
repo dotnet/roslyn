@@ -59,6 +59,10 @@
     <InternalsVisibleToMonodevelop Include="MonoDevelop.Refactoring" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.Ide.Tests" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.Refactoring.Tests" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding.Tests" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding.Tests" />
     <InternalsVisibleToTest Include="Roslyn.DebuggerVisualizers" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
@@ -96,17 +100,24 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddImport\SymbolReferenceFinder_PackageAssemblySearch.cs" />
     <Compile Include="AddPackage\AbstractAddPackageCodeFixProvider.cs" />
     <Compile Include="AddPackage\AbstractAddSpecificPackageCodeFixProvider.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeActionOperation.cs" />
     <Compile Include="AddPackage\InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageParentCodeAction.cs" />
+    <Compile Include="CodeFixes\RemoveUnusedVariable\AbstractRemoveUnusedVariableCodeFixProvider.cs" />
+    <Compile Include="ConvertIfToSwitch\AbstractConvertIfToSwitchCodeRefactoringProvider.cs" />
+    <Compile Include="ConvertNumericLiteral\AbstractConvertNumericLiteralCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\UseNamedArguments\AbstractUseNamedArgumentsCodeRefactoringProvider.cs" />
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
+    <Compile Include="Completion\Providers\AbstractCrefCompletionProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyleDiagnosticAnalyzerBase.cs" />
+    <Compile Include="Diagnostics\DiagnosticArguments.cs" />
+    <Compile Include="Diagnostics\DiagnosticResultSerializer.cs" />
     <Compile Include="Diagnostics\SymbolAnalysisContextExtensions.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldRefactoringProvider.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
@@ -117,6 +128,13 @@
     </Compile>
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
+    <Compile Include="AddConstructorParametersFromMembers\State.cs" />
+    <Compile Include="GenerateConstructorFromMembers\GenerateConstructorWithDialogCodeAction.cs" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\FormatLargeBinaryExpressionRule.cs" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndHashWithDialogCodeAction.cs" />
+    <Compile Include="PickMembers\IPickMembersService.cs" />
+    <Compile Include="PickMembers\PickMembersResult.cs" />
+    <Compile Include="GenerateFromMembers\SelectedMemberInfo.cs" />
     <Compile Include="ImplementType\ImplementTypeOptions.cs" />
     <Compile Include="ImplementType\ImplementTypeOptionsProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
@@ -239,9 +257,9 @@
     <Compile Include="ConvertToInterpolatedString\AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractMethod\AbstractExtractMethodCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\GenerateDefaultConstructors\GenerateDefaultConstructorsCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeCodeRefactoringProvider.cs" />
+    <Compile Include="AddConstructorParametersFromMembers\AddConstructorParametersFromMembersCodeRefactoringProvider.cs" />
+    <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersCodeRefactoringProvider.cs" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ICodeRefactoringHelpersService.cs" />
     <Compile Include="CodeRefactorings\ICodeRefactoringService.cs" />
     <Compile Include="CodeRefactorings\IntroduceVariable\IntroduceVariableCodeRefactoringProvider.cs" />
@@ -268,7 +286,6 @@
     <Compile Include="Completion\CommonCompletionService.cs" />
     <Compile Include="Completion\CommonCompletionUtilities.cs" />
     <Compile Include="Completion\CompletionDescription.cs" />
-    <Compile Include="Completion\CompletionFilterReason.cs" />
     <Compile Include="Completion\CompletionHelper.cs" />
     <Compile Include="Completion\CompletionItem.cs" />
     <Compile Include="Completion\CompletionItemFilter.cs" />
@@ -321,7 +338,7 @@
     <Compile Include="FindUsages\DefinitionsAndReferences.cs" />
     <Compile Include="FindUsages\IDefinitionsAndReferencesFactory.cs" />
     <Compile Include="FindUsages\SourceReferenceItem.cs" />
-    <Compile Include="Diagnostics\EngineV2\InProcCodeAnalysisDiagnosticAnalyzerExecutor.cs" />
+    <Compile Include="Diagnostics\EngineV2\DiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Diagnostics\EngineV2\ICodeAnalysisDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="MakeMethodAsynchronous\AbstractMakeMethodAsynchronousCodeFixProvider.cs" />
     <Compile Include="ReplacePropertyWithMethods\AbstractReplacePropertyWithMethodsService.cs" />
@@ -363,7 +380,6 @@
     <Compile Include="Diagnostics\BuildToolId.cs" />
     <Compile Include="Diagnostics\HostAnalyzerManager.cs" />
     <Compile Include="Diagnostics\Analyzers\IDEDiagnosticIds.cs" />
-    <Compile Include="Diagnostics\BaseDiagnosticIncrementalAnalyzer.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.cs" />
     <Compile Include="Diagnostics\Log\DiagnosticAnalyzerLogger.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.cs" />
@@ -502,18 +518,11 @@
     <Compile Include="ExtractMethod\UniqueNameGenerator.cs" />
     <Compile Include="ExtractMethod\VariableStyle.cs" />
     <Compile Include="GenerateFromMembers\AbstractGenerateFromMembersService.cs" />
-    <Compile Include="GenerateFromMembers\AddConstructorParameters\AbstractAddConstructorParametersService.CodeAction.cs" />
-    <Compile Include="GenerateFromMembers\AddConstructorParameters\AbstractAddConstructorParametersService.cs" />
-    <Compile Include="GenerateFromMembers\AddConstructorParameters\AbstractAddConstructorParametersService.State.cs" />
-    <Compile Include="GenerateFromMembers\AddConstructorParameters\IAddConstructorParametersService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\AbstractGenerateConstructorFromMembersService.ConstructorDelegatingCodeAction.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\AbstractGenerateConstructorFromMembersService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\AbstractGenerateConstructorFromMembersService.FieldDelegatingCodeAction.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\AbstractGenerateConstructorFromMembersService.State.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\IGenerateConstructorFromMembersService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\AbstractGenerateEqualsAndGetHashCodeService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeCodeRefactoringProvider.CodeAction.cs" />
-    <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\IGenerateEqualsAndGetHashCodeService.cs" />
+    <Compile Include="AddConstructorParametersFromMembers\AddConstructorParametersCodeAction.cs" />
+    <Compile Include="GenerateConstructorFromMembers\ConstructorDelegatingCodeAction.cs" />
+    <Compile Include="GenerateConstructorFromMembers\FieldDelegatingCodeAction.cs" />
+    <Compile Include="GenerateConstructorFromMembers\State.cs" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeAction.cs" />
     <Compile Include="GenerateMember\AbstractGenerateMemberService.cs" />
     <Compile Include="GenerateMember\GenerateConstructor\AbstractGenerateConstructorService.CodeAction.cs" />
     <Compile Include="GenerateMember\GenerateConstructor\AbstractGenerateConstructorService.cs" />

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         public override void Dispose()
         {
-            this.workspaceFixture.CloseTextViewAsync().Wait();
+            this.workspaceFixture.CloseTextView();
             base.Dispose();
         }
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             var parseOptions = CreateExperimentalParseOptions();
 
             // regular
-            var document1 = await workspaceFixture.UpdateDocumentAsync(code, sourceCodeKind);
+            var document1 = workspaceFixture.UpdateDocument(code, sourceCodeKind);
             if (experimental)
             {
                 document1 = document1.Project.WithParseOptions(parseOptions).GetDocument(document1.Id);
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             // speculative semantic model
             if (await CanUseSpeculativeSemanticModelAsync(document1, cursorPosition))
             {
-                var document2 = await workspaceFixture.UpdateDocumentAsync(code, sourceCodeKind, cleanBeforeUpdate: false);
+                var document2 = workspaceFixture.UpdateDocument(code, sourceCodeKind, cleanBeforeUpdate: false);
                 if (experimental)
                 {
                     document2 = document2.Project.WithParseOptions(parseOptions).GetDocument(document2.Id);
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             int cursorPosition;
             MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out code, out cursorPosition);
 
-            var document = await workspaceFixture.UpdateDocumentAsync(code, sourceCodeKind);
+            var document = workspaceFixture.UpdateDocument(code, sourceCodeKind);
 
             var signatureHelpProvider = CreateSignatureHelpProvider();
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         protected async Task VerifyItemWithReferenceWorkerAsync(string xmlString, IEnumerable<SignatureHelpTestItem> expectedOrderedItems, bool hideAdvancedMembers)
         {
-            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
+            using (var testWorkspace = TestWorkspace.Create(xmlString))
             {
                 var cursorPosition = testWorkspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = testWorkspace.Documents.First(d => d.Name == "SourceDocument").Id;
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
     </Project>
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup));
 
-            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
+            using (var testWorkspace = TestWorkspace.Create(xmlString))
             {
                 var cursorPosition = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = testWorkspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// <summary>
             /// Given a document and a type contained in it, moves the type
             /// out to its own document. The new document's name typically
-            /// is the type name, or is atleast based on the type name.
+            /// is the type name, or is at least based on the type name.
             /// </summary>
             /// <remarks>
             /// The algorithm for this, is as follows:
@@ -95,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 }
 
                 var modifiedRoot = documentEditor.GetChangedRoot();
+                modifiedRoot = await AddFinalNewLineIfDesired(document, modifiedRoot).ConfigureAwait(false);
 
                 // add an empty document to solution, so that we'll have options from the right context.
                 var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(
@@ -110,6 +112,33 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 newDocument = await service.RemoveUnnecessaryImportsAsync(newDocument, CancellationToken).ConfigureAwait(false);
 
                 return newDocument;
+            }
+
+            /// <summary>
+            /// Add a trailing newline if we don't already have one if that's what the user's 
+            /// preference is.
+            /// </summary>
+            private async Task<SyntaxNode> AddFinalNewLineIfDesired(Document document, SyntaxNode modifiedRoot)
+            {
+                var options = await document.GetOptionsAsync(CancellationToken).ConfigureAwait(false);
+                var insertFinalNewLine = options.GetOption(FormattingOptions.InsertFinalNewLine);
+                if (insertFinalNewLine)
+                {
+                    var endOfFileToken = ((ICompilationUnitSyntax)modifiedRoot).EndOfFileToken;
+                    var previousToken = endOfFileToken.GetPreviousToken(includeZeroWidth: true, includeSkipped: true);
+
+                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                    if (endOfFileToken.LeadingTrivia.IsEmpty() &&
+                        !previousToken.TrailingTrivia.Any(syntaxFacts.IsEndOfLineTrivia))
+                    {
+                        var generator = SyntaxGenerator.GetGenerator(document);
+                        var endOfLine = generator.EndOfLine(options.GetOption(FormattingOptions.NewLine));
+                        return modifiedRoot.ReplaceToken(
+                            previousToken, previousToken.WithAppendedTrailingTrivia(endOfLine));
+                    }
+                }
+
+                return modifiedRoot;
             }
 
             /// <summary>
@@ -227,6 +256,30 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                         documentEditor.RemoveAllComments(node);
                     }
                 }
+
+                documentEditor.ReplaceNode(State.TypeNode,
+                    (currentNode, generator) =>
+                    {
+                        var currentTypeNode = (TTypeDeclarationSyntax)currentNode;
+
+                        // Trim leading whitespace from the type so we don't have excessive
+                        // leading blank lines.
+                        return RemoveLeadingWhitespace(currentTypeNode);
+                    });
+            }
+
+            private TTypeDeclarationSyntax RemoveLeadingWhitespace(
+                TTypeDeclarationSyntax currentTypeNode)
+            {
+                var syntaxFacts = State.SemanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                var leadingTrivia = currentTypeNode.GetLeadingTrivia();
+                var afterWhitespace = leadingTrivia.SkipWhile(
+                    t => syntaxFacts.IsWhitespaceTrivia(t) || syntaxFacts.IsEndOfLineTrivia(t));
+
+                var withoutLeadingWhitespace = currentTypeNode.WithLeadingTrivia(afterWhitespace);
+                return withoutLeadingWhitespace.ReplaceToken(
+                    withoutLeadingWhitespace.GetFirstToken(),
+                    withoutLeadingWhitespace.GetFirstToken().WithAdditionalAnnotations(Formatter.Annotation));
             }
         }
     }

@@ -54,7 +54,16 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             bool logAnalyzerExecutionTime,
             CancellationToken cancellationToken)
         {
+            // flag that controls concurrency
+            var useConcurrent = true;
+
+            // get original compilation
             var compilation = await _project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            // fork compilation with concurrent build. this is okay since WithAnalyzers will fork compilation
+            // anyway to attach event queue. this should make compiling compilation concurrent and make things
+            // faster
+            compilation = compilation.WithOptions(compilation.Options.WithConcurrentBuild(useConcurrent));
 
             // TODO: can we support analyzerExceptionFilter in remote host? 
             //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
@@ -62,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution.Workspace),
                     onAnalyzerException: OnAnalyzerException,
                     analyzerExceptionFilter: null,
-                    concurrentAnalysis: true,
+                    concurrentAnalysis: useConcurrent,
                     logAnalyzerExecutionTime: logAnalyzerExecutionTime,
                     reportSuppressedDiagnostics: reportSuppressedDiagnostics);
 

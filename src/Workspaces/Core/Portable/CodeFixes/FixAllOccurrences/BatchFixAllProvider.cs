@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Helper class for "Fix all occurrences" code fix providers.
     /// </summary>
-    internal partial class BatchFixAllProvider : FixAllProvider
+    internal partial class BatchFixAllProvider : FixAllProvider, IIntervalIntrospector<TextChange>
     {
         public static readonly FixAllProvider Instance = new BatchFixAllProvider();
 
@@ -46,34 +47,54 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
-            if (documentsAndDiagnosticsToFixMap != null && documentsAndDiagnosticsToFixMap.Any())
+            if (documentsAndDiagnosticsToFixMap?.Any() == true)
             {
                 FixAllLogger.LogDiagnosticsStats(documentsAndDiagnosticsToFixMap);
 
-                var fixesBag = new ConcurrentBag<(Diagnostic diagnostic, CodeAction action)>();
+                var diagnosticsAndCodeActions = await GetDiagnosticsAndCodeActions(
+                    documentsAndDiagnosticsToFixMap, fixAllState, cancellationToken).ConfigureAwait(false);
 
-                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Fixes, cancellationToken))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var documents = documentsAndDiagnosticsToFixMap.Keys;
-                    var tasks = documents.Select(d => AddDocumentFixesAsync(
-                        d, documentsAndDiagnosticsToFixMap[d], fixesBag, fixAllState, cancellationToken)).ToArray();
-                    await Task.WhenAll(tasks).ConfigureAwait(false);
-                }
-
-                if (fixesBag.Count > 0)
+                if (diagnosticsAndCodeActions.Length > 0)
                 {
                     using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Merge, cancellationToken))
                     {
-                        FixAllLogger.LogFixesToMergeStats(fixesBag.Count);
+                        FixAllLogger.LogFixesToMergeStats(diagnosticsAndCodeActions.Length);
                         return await TryGetMergedFixAsync(
-                            fixesBag.ToImmutableArray(), fixAllState, cancellationToken).ConfigureAwait(false);
+                            diagnosticsAndCodeActions, fixAllState, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
 
             return null;
+        }
+
+        private async Task<ImmutableArray<(Diagnostic diagnostic, CodeAction action)>> GetDiagnosticsAndCodeActions(
+            ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
+            FixAllState fixAllState, CancellationToken cancellationToken)
+        {
+            var fixesBag = new ConcurrentBag<(Diagnostic diagnostic, CodeAction action)>();
+            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Fixes, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var tasks = new List<Task>();
+
+                foreach (var kvp in documentsAndDiagnosticsToFixMap)
+                {
+                    var document = kvp.Key;
+                    var diagnosticsToFix = kvp.Value;
+                    Debug.Assert(!diagnosticsToFix.IsDefaultOrEmpty);
+                    if (!diagnosticsToFix.IsDefaultOrEmpty)
+                    {
+                        tasks.Add(AddDocumentFixesAsync(
+                            document, diagnosticsToFix, fixesBag, fixAllState, cancellationToken));
+                    }
+                }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
+
+            return fixesBag.ToImmutableArray();
         }
 
         protected async virtual Task AddDocumentFixesAsync(
@@ -291,31 +312,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // More complex case.  We have multiple changes to the document.  Apply them in order
             // to get the final document.
-            var firstChangedDocument = orderedDocuments[0].document;
-            var documentId = firstChangedDocument.Id;
 
-            var oldDocument = oldSolution.GetDocument(documentId);
-            var appliedChanges = (await firstChangedDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false)).ToList();
+            var totalChangesIntervalTree = SimpleIntervalTree.Create(this);
 
-            for (var i = 1; i < orderedDocuments.Length; i++)
+            var oldDocument = oldSolution.GetDocument(orderedDocuments[0].document.Id);
+
+            foreach (var (_, currentDocument) in orderedDocuments)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                Debug.Assert(currentDocument.Id == oldDocument.Id);
 
-                var currentDocument = orderedDocuments[i].document;
-                Debug.Assert(currentDocument.Id == documentId);
-
-                appliedChanges = await TryAddDocumentMergeChangesAsync(
+                await TryAddDocumentMergeChangesAsync(
                     oldDocument,
                     currentDocument,
-                    appliedChanges,
+                    totalChangesIntervalTree,
                     cancellationToken).ConfigureAwait(false);
             }
 
             var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newText = oldText.WithChanges(appliedChanges);
+            var newText = oldText.WithChanges(totalChangesIntervalTree.OrderBy(tc => tc.Span.Start));
 
-            documentIdToFinalText.TryAdd(documentId, newText);
+            documentIdToFinalText.TryAdd(oldDocument.Id, newText);
         }
+
+        int IIntervalIntrospector<TextChange>.GetStart(TextChange value) => value.Span.Start;
+        int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
 
         private static Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue = 
             _ => new ConcurrentBag<(CodeAction, Document)>();
@@ -358,67 +379,72 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <param name="newDocument">New document with a code fix that is being merged.</param>
         /// <param name="cumulativeChanges">Existing merged changes from other batch fixes into which newDocument changes are being merged.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        private static async Task<List<TextChange>> TryAddDocumentMergeChangesAsync(
+        private static async Task TryAddDocumentMergeChangesAsync(
             Document oldDocument,
             Document newDocument,
-            List<TextChange> cumulativeChanges,
+            SimpleIntervalTree<TextChange> cumulativeChanges,
             CancellationToken cancellationToken)
         {
-            var successfullyMergedChanges = new List<TextChange>();
+            var changesToAdd = new List<TextChange>();
 
-            int cumulativeChangeIndex = 0;
-            foreach (var change in await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false))
+            var currentChangesStream = await newDocument.GetTextChangesAsync(
+                oldDocument, cancellationToken).ConfigureAwait(false);
+            var currentChanges = (currentChangesStream as IList<TextChange>) ?? currentChangesStream.ToList();
+
+            if (AllChangesCanBeApplied(cumulativeChanges, currentChanges))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                while (cumulativeChangeIndex < cumulativeChanges.Count && cumulativeChanges[cumulativeChangeIndex].Span.End < change.Span.Start)
+                foreach  (var change in currentChanges)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    // Existing change that does not overlap with the current change in consideration
-                    successfullyMergedChanges.Add(cumulativeChanges[cumulativeChangeIndex]);
-                    cumulativeChangeIndex++;
+                    // Don't bother adding the change if we already have it.
+                    if (!cumulativeChanges.HasIntervalThatOverlapsWith(change.Span.Start, change.Span.Length))
+                    {
+                        cumulativeChanges.AddIntervalInPlace(change);
+                    }
                 }
+            }
+        }
 
-                if (cumulativeChangeIndex < cumulativeChanges.Count)
+        private static bool AllChangesCanBeApplied(
+            SimpleIntervalTree<TextChange> cumulativeChanges, IList<TextChange> currentChanges)
+        {
+            var overlappingSpans = ArrayBuilder<TextChange>.GetInstance();
+
+            foreach (var change in currentChanges)
+            {
+                overlappingSpans.Clear();
+
+                cumulativeChanges.FillWithIntervalsThatOverlapWith(
+                    change.Span.Start, change.Span.Length, overlappingSpans);
+
+                if (overlappingSpans.Count == 0)
                 {
-                    var cumulativeChange = cumulativeChanges[cumulativeChangeIndex];
-                    if (!cumulativeChange.Span.IntersectsWith(change.Span))
+                    // No conflicts
+                    continue;
+                }
+                else if (overlappingSpans.Count == 1)
+                {
+                    // The change we want to make overlapped an existing change we're making.
+                    // Allow this if the two changes are the same.
+                    if (overlappingSpans[0] == change)
                     {
-                        // The current change in consideration does not intersect with any existing change
-                        successfullyMergedChanges.Add(change);
+                        continue;
                     }
-                    else
-                    {
-                        if (change.Span != cumulativeChange.Span || change.NewText != cumulativeChange.NewText)
-                        {
-                            // The current change in consideration overlaps an existing change but
-                            // the changes are not identical. 
-                            // Bail out merge efforts and return the original 'cumulativeChanges'.
-                            return cumulativeChanges;
-                        }
-                        else
-                        {
-                            // The current change in consideration is identical to an existing change
-                            successfullyMergedChanges.Add(change);
-                            cumulativeChangeIndex++;
-                        }
-                    }
+
+                    // Changes weren't the same.  Can't merge this in.
+                    return false;
                 }
                 else
                 {
-                    // The current change in consideration does not intersect with any existing change
-                    successfullyMergedChanges.Add(change);
+                    // The change we want to make overlapped with several existing text changes
+                    // Can't merge this in.
+                    return false;
                 }
             }
 
-            while (cumulativeChangeIndex < cumulativeChanges.Count)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                // Existing change that does not overlap with the current change in consideration
-                successfullyMergedChanges.Add(cumulativeChanges[cumulativeChangeIndex]);
-                cumulativeChangeIndex++;
-            }
+            overlappingSpans.Free();
 
-            return successfullyMergedChanges;
+            // All the changes would merge in fine.  We can absorb this.
+            return true;
         }
     }
 }

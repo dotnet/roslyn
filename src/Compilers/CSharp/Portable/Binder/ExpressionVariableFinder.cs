@@ -56,6 +56,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variablesBuilder = save;
         }
 
+        public override void Visit(SyntaxNode node)
+        {
+            if (node != null)
+            {
+                // no stackguard
+                ((CSharpSyntaxNode)node).Accept(this);
+            }
+        }
+
         public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
         {
             if (node.ArgumentList != null)
@@ -447,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             nodeBinder: _enclosingBinder,
                             typeSyntax: node.Type,
                             identifierToken: designation.Identifier,
-                            kind: LocalDeclarationKind.RegularVariable,
+                            kind: node.IsOutVarDeclaration() ? LocalDeclarationKind.OutVariable : LocalDeclarationKind.DeclarationExpressionVariable,
                             nodeToBind: nodeToBind,
                             forbiddenZone: argumentListSyntax);
         }
@@ -472,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                       nodeBinder: _enclosingBinder,
                                       closestTypeSyntax: closestTypeSyntax,
                                       identifierToken: designation.Identifier,
-                                      kind: LocalDeclarationKind.RegularVariable,
+                                      kind: LocalDeclarationKind.DeconstructionVariable,
                                       deconstruction: deconstruction);
         }
 

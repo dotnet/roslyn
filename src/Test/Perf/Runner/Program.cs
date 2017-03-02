@@ -24,6 +24,7 @@ namespace Runner
             string submissionType = null;
             string traceDestination = @"\\mlangfs1\public\basoundr\PerfTraces";
             string branch = null;
+            string searchDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
             var parameterOptions = new OptionSet()
             {
@@ -33,8 +34,10 @@ namespace Runner
                 {"branch=", "name of the branch you are measuring on", name => { branch = name; } },
                 {"ci-test", "mention that we are running in the continuous integration lab", _ => isCiTest = true},
                 {"no-trace-upload", "disable the uploading of traces", _ => shouldUploadTrace = false},
-                {"trace-upload_destination", "set the trace uploading destination", loc => { traceDestination = loc; }}
+                {"trace-upload_destination=", "set the trace uploading destination", loc => { traceDestination = loc; } },
+                {"search-directory=", "the directory to recursively search for tests", dir => { searchDirectory = dir; } }
             };
+
             parameterOptions.Parse(args);
 
             if (shouldReportBenchview)
@@ -48,7 +51,7 @@ namespace Runner
             }
 
             Cleanup();
-            AsyncMain(isCiTest).GetAwaiter().GetResult();
+            AsyncMain(isCiTest, searchDirectory).GetAwaiter().GetResult();
 
             if (isCiTest)
             {
@@ -139,32 +142,33 @@ namespace Runner
             }
         }
 
-        private static async Task AsyncMain(bool isRunningUnderCI)
+        private static async Task AsyncMain(bool isRunningUnderCI, string searchDirectory)
         {
             RuntimeSettings.IsRunnerAttached = true;
 
-            var testDirectory = AppDomain.CurrentDomain.BaseDirectory;
-
             // Print message at startup
             Log("Starting Performance Test Run");
-            Log("hash: " + FirstLine(StdoutFromOrDefault("git", "show --format=\"%h\" HEAD --", "git missing")));
+            Log("hash: " + FirstLine(StdoutFromOrDefault("git.exe", args: "show --format=\"%h\" HEAD --", workingDirectory: Environment.CurrentDirectory, defaultText: "git missing")));
             Log("time: " + DateTime.Now.ToString());
 
             var testInstances = new List<PerfTest>();
 
             // Find all the tests from inside of the csx files.
-            foreach (var script in GetAllCsxRecursive(testDirectory))
+            foreach (var script in GetAllCsxRecursive(searchDirectory))
             {
                 var scriptName = Path.GetFileNameWithoutExtension(script);
                 Log($"Collecting tests from {scriptName}");
-                var state = await RunFile(script).ConfigureAwait(false);
+                var state = await RunFileInItsDirectory(script).ConfigureAwait(false);
                 var tests = RuntimeSettings.ResultTests;
                 RuntimeSettings.ResultTests = null;
-                foreach (var test in tests)
+                if (tests != null)
                 {
-                    test.SetWorkingDirectory(Path.GetDirectoryName(script));
+                    foreach (var test in tests)
+                    {
+                        test.SetWorkingDirectory(Path.GetDirectoryName(script));
+                    }
+                    testInstances.AddRange(tests);
                 }
-                testInstances.AddRange(tests);
             }
 
 
@@ -232,7 +236,6 @@ namespace Runner
                 catch (Exception)
                 {
                     traceManager.Stop();
-                    throw;
                 }
                 finally
                 {

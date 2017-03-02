@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public async Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string streamName)
         {
-            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectIdDebugName, CancellationToken))
+            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, CancellationToken))
             {
                 try
                 {
-                    var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.GetOptionSetChecksum(), CancellationToken).ConfigureAwait(false);
+                    var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.OptionSetChecksum, CancellationToken).ConfigureAwait(false);
 
                     // entry point for diagnostic service
                     var solution = await GetSolutionWithSpecificOptionsAsync(optionSet).ConfigureAwait(false);
 
-                    var projectId = arguments.GetProjectId();
-                    var analyzers = await GetHostAnalyzerReferences(arguments.GetHostAnalyzerChecksums()).ConfigureAwait(false);
+                    var projectId = arguments.ProjectId;
+                    var analyzers = await GetHostAnalyzerReferences(arguments.HostAnalyzerChecksums).ConfigureAwait(false);
 
                     var result = await (new DiagnosticComputer(solution.GetProject(projectId))).GetDiagnosticsAsync(
                         analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, CancellationToken).ConfigureAwait(false);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_SerializeDiagnosticResultAsync, GetResultLogInfo, result, CancellationToken))
             using (var stream = await DirectStream.GetAsync(streamName, CancellationToken).ConfigureAwait(false))
             {
-                using (var writer = new StreamObjectWriter(stream))
+                using (var writer = new ObjectWriter(stream))
                 {
                     DiagnosticResultSerializer.Serialize(writer, result, CancellationToken);
                 }

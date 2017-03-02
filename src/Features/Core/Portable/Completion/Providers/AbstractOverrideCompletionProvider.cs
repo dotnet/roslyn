@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 case SymbolKind.Property:
                     return ((IPropertySymbol)symbol).Type;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
         }
     }

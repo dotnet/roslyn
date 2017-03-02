@@ -6,10 +6,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Storage;
+using Microsoft.CodeAnalysis.Remote.Telemetry;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.VisualStudio.Telemetry;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -25,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private const string LoggingFunctionIdTextFileName = "ServiceHubFunctionIds.txt";
 
         private string _host;
+        private int _primaryInstance;
 
         static RemoteHostService()
         {
@@ -39,27 +43,33 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public RemoteHostService(Stream stream, IServiceProvider serviceProvider) :
-            base(stream, serviceProvider)
+            base(serviceProvider, stream)
         {
             // this service provide a way for client to make sure remote host is alive
+            Rpc.StartListening();
         }
 
-        public string Connect(string host)
+        public string Connect(string host, string serializedSession)
         {
+            _primaryInstance = InstanceId;
+
             var existing = Interlocked.CompareExchange(ref _host, host, null);
+
+            SetGlobalContext(serializedSession);
 
             if (existing != null && existing != host)
             {
                 LogError($"{host} is given for {existing}");
             }
 
+            // log telemetry that service hub started
+            RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(SetSessionInfo));
+
             return _host;
         }
 
-        public async Task SynchronizePrimaryWorkspaceAsync(byte[] solutionChecksum)
+        public async Task SynchronizePrimaryWorkspaceAsync(Checksum checksum)
         {
-            var checksum = new Checksum(solutionChecksum);
-
             using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_Synchronize, c => c.ToString(), checksum, CancellationToken))
             {
                 try
@@ -120,12 +130,45 @@ namespace Microsoft.CodeAnalysis.Remote
             return _ => false;
         }
 
+        private void SetSessionInfo(Dictionary<string, object> m)
+        {
+            m["Host"] = _host;
+            m["InstanceId"] = _primaryInstance;
+        }
+
+        private static void SetGlobalContext(string serializedSession)
+        {
+            // set global telemetry session
+            var session = GetTelemetrySession(serializedSession);
+            if (session == null)
+            {
+                return;
+            }
+
+            // set roslyn loggers
+            VSTelemetryLogger.SetTelemetrySession(session);
+
+            RoslynLogger.SetLogger(AggregateLogger.Create(new VSTelemetryLogger(session), RoslynLogger.GetLogger()));
+
+            // set both handler as NFW
+            FatalError.Handler = WatsonReporter.Report;
+            FatalError.NonFatalHandler = WatsonReporter.Report;
+        }
+
+        private static TelemetrySession GetTelemetrySession(string serializedSession)
+        {
+            var session = serializedSession != null ? new TelemetrySession(serializedSession) : null;
+
+            // actually starting the session
+            session?.Start();
+
+            return session;
+        }
+
         #region PersistentStorageService messages
 
-        public void PersistentStorageService_RegisterPrimarySolutionId(byte[] solutionIdGuidBytes, string solutionIdDebugName)
+        public void PersistentStorageService_RegisterPrimarySolutionId(SolutionId solutionId)
         {
-            var solutionId = CreateSolutionId(solutionIdGuidBytes, solutionIdDebugName);
-
             var persistentStorageService = GetPersistentStorageService();
             persistentStorageService?.RegisterPrimarySolution(solutionId);
         }
@@ -140,22 +183,15 @@ namespace Microsoft.CodeAnalysis.Remote
             return persistentStorageService;
         }
 
-        public void PersistentStorageService_UnregisterPrimarySolutionId(byte[] solutionIdGuidBytes, string solutionIdDebugName, bool synchronousShutdown)
+        public void PersistentStorageService_UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown)
         {
-            var solutionId = CreateSolutionId(solutionIdGuidBytes, solutionIdDebugName);
             var persistentStorageService = GetPersistentStorageService();
             persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
         }
 
-        public void PersistentStorageService_UpdateSolutionIdStorageLocation(byte[] solutionIdGuidBytes, string solutionIdDebugName, string storageLocation)
+        public void PersistentStorageService_UpdateSolutionIdStorageLocation(SolutionId solutionId, string storageLocation)
         {
-            var solutionId = CreateSolutionId(solutionIdGuidBytes, solutionIdDebugName);
             RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
-        }
-
-        private static SolutionId CreateSolutionId(byte[] solutionIdGuidBytes, string solutionIdDebugName)
-        {
-            return SolutionId.CreateFromSerialized(new Guid(solutionIdGuidBytes), solutionIdDebugName);
         }
 
         #endregion

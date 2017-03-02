@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             var viewModel = new NamingStyleViewModel(style, canBeDeleted: true, notificationService: _notificationService);
             var dialog = new NamingStyleDialog(viewModel);
 
-            if (dialog.ShowDialog().Value == true)
+            if (dialog.ShowModal().Value == true)
             {
                 Items.Add(viewModel);
             }
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             var viewModel = new NamingStyleViewModel(style, context.CanBeDeleted, notificationService: _notificationService);
             var dialog = new NamingStyleDialog(viewModel);
 
-            if (dialog.ShowDialog().Value == true)
+            if (dialog.ShowModal().Value == true)
             {
                 context.ItemName = viewModel.ItemName;
                 context.RequiredPrefix = viewModel.RequiredPrefix;

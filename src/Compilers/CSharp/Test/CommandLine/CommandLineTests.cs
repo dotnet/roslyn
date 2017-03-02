@@ -1323,6 +1323,14 @@ d.cs
         }
 
         [Fact]
+        public void RememberToUpdateDiagnosticsWhenUpdatingLangVersion()
+        {
+            // When new language versions are added, this test will fail. Remember to update the diagnostics message (ERR_BadCompatMode).
+            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
+        }
+
+        [Fact]
         [WorkItem(546961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546961")]
         public void Define()
         {
@@ -6949,7 +6957,7 @@ class Program3
         /// On Linux/Mac <see cref="FileShare.Delete"/> on its own doesn't do anything. 
         /// We need to create the actual memory map. This works on Windows as well.
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem(8896, "https://github.com/dotnet/roslyn/issues/8896")]
+        [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal)), WorkItem(8896, "https://github.com/dotnet/roslyn/issues/8896")]
         public void FileShareDeleteCompatibility_Xplat()
         {
             var bytes = TestResources.MetadataTests.InterfaceAndClass.CSClasses01;
@@ -7070,6 +7078,101 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
         }
 
         [Fact]
+        public void IOFailure_DisposeOutputFile()
+        {
+            var srcPath = MakeTrivialExe(Temp.CreateDirectory().Path);
+            var exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe");
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", $"/out:{exePath}", srcPath });
+            csc.FileOpen = (file, mode, access, share) =>
+            {
+                if (file == exePath)
+                {
+                    return new TestStream(backingStream: new MemoryStream(),
+                        dispose: () => { throw new IOException("Fake IOException"); });
+                }
+
+                return File.Open(file, mode, access, share);
+            };
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            Assert.Equal(1, csc.Run(outWriter));
+            Assert.Contains($"error CS0016: Could not write to output file '{exePath}' -- 'Fake IOException'{Environment.NewLine}", outWriter.ToString());
+        }
+
+        [Fact]
+        public void IOFailure_DisposePdbFile()
+        {
+            var srcPath = MakeTrivialExe(Temp.CreateDirectory().Path);
+            var exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe");
+            var pdbPath = Path.ChangeExtension(exePath, "pdb");
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/debug", $"/out:{exePath}", srcPath });
+            csc.FileOpen = (file, mode, access, share) =>
+            {
+                if (file == pdbPath)
+                {
+                    return new TestStream(backingStream: new MemoryStream(),
+                        dispose: () => { throw new IOException("Fake IOException"); });
+                }
+
+                return File.Open(file, mode, access, share);
+            };
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            Assert.Equal(1, csc.Run(outWriter));
+            Assert.Contains($"error CS0016: Could not write to output file '{pdbPath}' -- 'Fake IOException'{Environment.NewLine}", outWriter.ToString());
+        }
+
+        [Fact]
+        public void IOFailure_DisposeXmlFile()
+        {
+            var srcPath = MakeTrivialExe(Temp.CreateDirectory().Path);
+            var xmlPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.xml");
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", $"/doc:{xmlPath}", srcPath });
+            csc.FileOpen = (file, mode, access, share) =>
+            {
+                if (file == xmlPath)
+                {
+                    return new TestStream(backingStream: new MemoryStream(),
+                        dispose: () => { throw new IOException("Fake IOException"); });
+                }
+
+                return File.Open(file, mode, access, share);
+            };
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            Assert.Equal(1, csc.Run(outWriter));
+            Assert.Equal($"error CS0016: Could not write to output file '{xmlPath}' -- 'Fake IOException'{Environment.NewLine}", outWriter.ToString());
+        }
+
+        [Fact]
+        public void IOFailure_DisposeSourceLinkFile()
+        {
+            var srcPath = MakeTrivialExe(Temp.CreateDirectory().Path);
+            var sourceLinkPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.json");
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/debug:portable", $"/sourcelink:{sourceLinkPath}", srcPath });
+            csc.FileOpen = (file, mode, access, share) =>
+            {
+                if (file == sourceLinkPath)
+                {
+                    return new TestStream(backingStream: new MemoryStream(Encoding.UTF8.GetBytes(@"
+{
+  ""documents"": {
+     ""f:/build/*"" : ""https://raw.githubusercontent.com/my-org/my-project/1111111111111111111111111111111111111111/*""
+  }
+}
+")),
+                        dispose: () => { throw new IOException("Fake IOException"); });
+                }
+
+                return File.Open(file, mode, access, share);
+            };
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            Assert.Equal(1, csc.Run(outWriter));
+            Assert.Equal($"error CS0016: Could not write to output file '{sourceLinkPath}' -- 'Fake IOException'{Environment.NewLine}", outWriter.ToString());
+        }
+
+        [Fact]
         public void IOFailure_OpenOutputFile()
         {
             string sourcePath = MakeTrivialExe();
@@ -7151,9 +7254,9 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             CleanupAllGeneratedFiles(sourcePath);
         }
 
-        private string MakeTrivialExe()
+        private string MakeTrivialExe(string directory = null)
         {
-            return Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
+            return Temp.CreateFile(directory: directory, prefix: "", extension: ".cs").WriteAllText(@"
 class Program
 {
     public static void Main() { }

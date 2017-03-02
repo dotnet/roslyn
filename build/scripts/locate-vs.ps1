@@ -1,5 +1,5 @@
 Param(
-  [string] $locateVsApiVersion = "0.2.2-beta"
+  [string] $locateVsApiVersion = "0.2.4-beta"
 )
 
 set-strictmode -version 2.0
@@ -13,7 +13,7 @@ function Create-Directory([string[]] $path) {
 
 function Locate-LocateVsApi {
   $packagesPath = Locate-PackagesPath
-  $locateVsApi = Join-Path -path $packagesPath -ChildPath "RoslynTools.Microsoft.LocateVS\$locateVsApiVersion\lib\net46\LocateVS.dll"
+  $locateVsApi = Join-Path -path $packagesPath -ChildPath "RoslynTools.Microsoft.LocateVS\$locateVsApiVersion\tools\LocateVS.dll"
 
   if (!(Test-Path -path $locateVsApi)) {
     throw "The specified LocateVS API version ($locateVsApiVersion) could not be located."

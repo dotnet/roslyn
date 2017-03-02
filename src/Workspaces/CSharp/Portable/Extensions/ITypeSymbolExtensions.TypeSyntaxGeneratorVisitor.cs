@@ -100,6 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                 }
 
+                if (symbol.IsTupleType && symbol.TupleUnderlyingType != null && !symbol.Equals(symbol.TupleUnderlyingType))
+                {
+                    return CreateSimpleTypeSyntax(symbol.TupleUnderlyingType);
+                }
+
                 if (symbol.Name == string.Empty || symbol.IsAnonymousType)
                 {
                     return CreateSystemObject();
@@ -145,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
                 }
 
-                if (symbol.IsTupleType)
+                if (symbol.IsTupleType && symbol.TupleElements.Length >= 2)
                 {
                     return CreateTupleTypeSyntax(symbol);
                 }

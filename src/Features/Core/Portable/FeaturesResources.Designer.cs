@@ -579,6 +579,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changes to expression trees may result in behavior changes at runtime.
+        /// </summary>
+        internal static string Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime {
+            get {
+                return ResourceManager.GetString("Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing the constraint from &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing..
         /// </summary>
         internal static string Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing {
@@ -732,6 +741,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string constructor {
             get {
                 return ResourceManager.GetString("constructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to binary.
+        /// </summary>
+        internal static string Convert_to_binary {
+            get {
+                return ResourceManager.GetString("Convert_to_binary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to decimal.
+        /// </summary>
+        internal static string Convert_to_decimal {
+            get {
+                return ResourceManager.GetString("Convert_to_decimal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to hex.
+        /// </summary>
+        internal static string Convert_to_hex {
+            get {
+                return ResourceManager.GetString("Convert_to_hex", resourceCulture);
             }
         }
         
@@ -1158,6 +1194,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Generate_constant_1_0 {
             get {
                 return ResourceManager.GetString("Generate_constant_1_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate constructor....
+        /// </summary>
+        internal static string Generate_constructor {
+            get {
+                return ResourceManager.GetString("Generate_constructor", resourceCulture);
             }
         }
         
@@ -2113,6 +2158,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pick members to be used as constructor parameters.
+        /// </summary>
+        internal static string Pick_members_to_be_used_as_constructor_parameters {
+            get {
+                return ResourceManager.GetString("Pick_members_to_be_used_as_constructor_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pick members to be used in Equals/GetHashCode.
+        /// </summary>
+        internal static string Pick_members_to_be_used_in_Equals_GetHashCode {
+            get {
+                return ResourceManager.GetString("Pick_members_to_be_used_in_Equals_GetHashCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to  + additional {0} {1}.
         /// </summary>
         internal static string plus_additional_0_1 {
@@ -2239,6 +2302,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove separators.
+        /// </summary>
+        internal static string Remove_separators {
+            get {
+                return ResourceManager.GetString("Remove_separators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove Suppression.
         /// </summary>
         internal static string Remove_Suppression {
@@ -2271,6 +2343,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Remove_Unnecessary_Cast {
             get {
                 return ResourceManager.GetString("Remove_Unnecessary_Cast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused variable.
+        /// </summary>
+        internal static string Remove_unused_variable {
+            get {
+                return ResourceManager.GetString("Remove_unused_variable", resourceCulture);
             }
         }
         
@@ -2427,6 +2508,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string Searched_in_directory_colon {
             get {
                 return ResourceManager.GetString("Searched_in_directory_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Separate nibbles.
+        /// </summary>
+        internal static string Separate_nibbles {
+            get {
+                return ResourceManager.GetString("Separate_nibbles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Separate thousands.
+        /// </summary>
+        internal static string Separate_thousands {
+            get {
+                return ResourceManager.GetString("Separate_thousands", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Separate words.
+        /// </summary>
+        internal static string Separate_words {
+            get {
+                return ResourceManager.GetString("Separate_words", resourceCulture);
             }
         }
         

@@ -75,9 +75,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyWellKnownTypeMembers[(int)member];
         }
 
+        /// <summary>
+        /// This method handles duplicate types in a few different ways:
+        /// - for types before C# 7, the first candidate is returned with a warning
+        /// - for types after C# 7, the type is considered missing
+        /// - in both cases, when BinderFlags.IgnoreCorLibraryDuplicatedTypes is set, any duplicate coming from corlib will be ignored (ie not count as a duplicate)
+        /// </summary>
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
         {
             Debug.Assert(type.IsValid());
+
+            bool ignoreCorLibraryDuplicatedTypes = this.Options.TopLevelBinderFlags.Includes(BinderFlags.IgnoreCorLibraryDuplicatedTypes);
 
             int index = (int)type - (int)WellKnownType.First;
             if (_lazyWellKnownTypes == null || (object)_lazyWellKnownTypes[index] == null)
@@ -101,7 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     DiagnosticBag legacyWarnings = (type <= WellKnownType.CSharp7Sentinel) ? warnings : null;
 
                     result = this.Assembly.GetTypeByMetadataName(
-                        mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, warnings: legacyWarnings);
+                        mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true,
+                        warnings: legacyWarnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
                 }
 
                 if ((object)result == null)
@@ -306,10 +315,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If the well-known member does not exist in the compilation then no attribute
         /// will be synthesized.
         /// </param>
+        /// <param name="isOptionalUse">
+        /// Indicates if this particular attribute application should be considered optional.
+        /// </param>
         internal SynthesizedAttributeData TrySynthesizeAttribute(
             WellKnownMember constructor,
             ImmutableArray<TypedConstant> arguments = default(ImmutableArray<TypedConstant>),
-            ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments = default(ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>>))
+            ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments = default(ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>>),
+            bool isOptionalUse = false)
         {
             DiagnosticInfo diagnosticInfo;
             var ctorSymbol = (MethodSymbol)Binder.GetWellKnownTypeMember(this, constructor, out diagnosticInfo, isOptional: true);
@@ -317,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)ctorSymbol == null)
             {
                 // if this assert fails, UseSiteErrors for "member" have not been checked before emitting ...
-                Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(constructor));
+                Debug.Assert(isOptionalUse || WellKnownMembers.IsSynthesizedAttributeOptional(constructor));
                 return null;
             }
 

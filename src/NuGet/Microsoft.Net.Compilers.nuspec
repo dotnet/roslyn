@@ -61,7 +61,6 @@ Supported Platforms:
     <file src="Exes\Toolset\System.IO.FileSystem.Primitives.dll" target="tools" />
     <file src="Exes\Toolset\System.IO.Pipes.dll" target="tools" />
     <file src="Exes\Toolset\System.Reflection.Metadata.dll" target="tools" />
-    <file src="Exes\Toolset\System.Runtime.InteropServices.RuntimeInformation.dll" target="tools" />
     <file src="Exes\Toolset\System.Security.AccessControl.dll" target="tools" />
     <file src="Exes\Toolset\System.Security.Claims.dll" target="tools" />
     <file src="Exes\Toolset\System.Security.Cryptography.Algorithms.dll" target="tools" />

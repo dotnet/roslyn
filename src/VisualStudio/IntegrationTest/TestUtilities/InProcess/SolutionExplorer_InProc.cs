@@ -298,7 +298,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void OpenFile(string projectName, string relativeFilePath)
         {
-            var project = _solution.Projects.Item(projectName);
+            EnvDTE.Project project = null;
+            for (int i = 1; i <= _solution.Projects.Count; i++)
+            {
+                if (_solution.Projects.Item(i).Name == projectName)
+                {
+                    project = _solution.Projects.Item(i);
+                    break;
+                }
+            }
+
+            if (project == null)
+            {
+                throw new InvalidOperationException($"Could not find project '{projectName}'.");
+            }
+
             var projectPath = Path.GetDirectoryName(project.FullName);
 
             var filePath = Path.Combine(projectPath, relativeFilePath);

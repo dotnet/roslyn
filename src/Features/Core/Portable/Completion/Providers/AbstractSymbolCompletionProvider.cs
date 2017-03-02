@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     let texts = GetDisplayAndInsertionText(symbol, context)
                     group symbol by texts into g
                     select this.CreateItem(
-                        g.Key.displayText, g.Key.insertionText, g.ToList(), context, 
+                        g.Key.displayText, g.Key.insertionText, g.ToList(), context,
                         invalidProjectMap, totalProjects, preselect);
 
             return q.ToList();
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
-            return SymbolCompletionItem.Create(
+            return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
@@ -128,9 +129,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 matchPriority: preselect ? MatchPriority.Preselect : MatchPriority.Default,
                 rules: GetCompletionItemRules(symbols, context));
         }
-
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         protected virtual string GetFilterText(ISymbol symbol, string displayText, SyntaxContext context)
         {
@@ -147,6 +145,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
+
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -233,9 +234,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private Task<ImmutableArray<ISymbol>> GetSymbolsWorker(int position, bool preselect, SyntaxContext context, OptionSet options, CancellationToken cancellationToken)
         {
-            return preselect
-                ? GetPreselectedSymbolsWorker(context, position, options, cancellationToken)
-                : GetSymbolsWorker(context, position, options, cancellationToken);
+            try
+            {
+                return preselect
+                    ? GetPreselectedSymbolsWorker(context, position, options, cancellationToken)
+                    : GetSymbolsWorker(context, position, options, cancellationToken);
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private HashSet<ISymbol> UnionSymbols(List<Tuple<DocumentId, SyntaxContext, ImmutableArray<ISymbol>>> linkedContextSymbolLists, out Dictionary<ISymbol, SyntaxContext> originDictionary)
@@ -312,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <param name="linkedContextSymbolLists">The symbols recommended in linked documents</param>
         /// <returns>The list of projects each recommended symbol did NOT appear in.</returns>
         protected Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(
-            HashSet<ISymbol> expectedSymbols, 
+            HashSet<ISymbol> expectedSymbols,
             IEnumerable<Tuple<DocumentId, SyntaxContext, ImmutableArray<ISymbol>>> linkedContextSymbolLists)
         {
             var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);

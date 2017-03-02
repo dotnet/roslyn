@@ -177,9 +177,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed) &&
                 LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
             {
-                var completed = state.NotePartComplete(CompletionPart.Attributes);
-                Debug.Assert(completed);
                 DeclaringCompilation.SymbolDeclaredEvent(this);
+                var wasCompletedThisThread = state.NotePartComplete(CompletionPart.Attributes);
+                Debug.Assert(wasCompletedThisThread);
             }
 
             return _lazyCustomAttributesBag;

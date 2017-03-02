@@ -20,13 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
                 return GetCastNode(root, model, diagnostic.Location.SourceSpan, cancellationToken);
             }
 
-            protected override bool NeedsParentFixup
-            {
-                get
-                {
-                    return true;
-                }
-            }
+            protected override bool NeedsParentFixup => true;
 
             protected override async Task<Document> AddSimplifyAnnotationsAsync(Document document, SyntaxNode nodeToSimplify, CancellationToken cancellationToken)
             {
