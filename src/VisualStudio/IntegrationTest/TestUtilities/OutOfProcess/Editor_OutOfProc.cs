@@ -74,8 +74,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _inProc.GetCurrentSignature();
         }
 
-        
-
         public void ShowLightBulb()
             => _inProc.ShowLightBulb();
 

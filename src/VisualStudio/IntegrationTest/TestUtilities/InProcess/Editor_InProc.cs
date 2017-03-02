@@ -122,8 +122,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return text.Substring(0, bufferPosition.Position - line.Start);
             });
 
-
-
         public string GetLineTextAfterCaret()
             => ExecuteOnActiveView(view =>
             {
