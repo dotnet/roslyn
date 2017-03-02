@@ -141,5 +141,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void DialogSendKeys(string dialogAutomationName, string keys)
             => _inProc.DialogSendKeys(dialogAutomationName, keys);
+
+        public void Undo()
+            => _inProc.Undo();
     }
 }

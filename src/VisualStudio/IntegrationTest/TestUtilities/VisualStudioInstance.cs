@@ -25,6 +25,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public SendKeys SendKeys { get; }
 
+        public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
+
         public CSharpInteractiveWindow_OutOfProc CSharpInteractiveWindow { get; }
 
         public Editor_OutOfProc Editor { get; }
@@ -62,6 +64,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // we start executing any actual code.
             _inProc.WaitForSystemIdle();
 
+            ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             CSharpInteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
