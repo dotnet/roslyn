@@ -44,11 +44,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetFileContents(string projectName, string fileName)
             => _inProc.GetFileContents(projectName, fileName);
 
-        public void BuildSolution(bool waitForBuildToFinish = false)
+        public void BuildSolution(bool waitForBuildToFinish)
             => _inProc.BuildSolution(waitForBuildToFinish);
+
+        public void OpenFileWithDesigner(string projectName, string fileName)
+            => _inProc.OpenFileWithDesigner(projectName, fileName);
 
         public void OpenFile(string projectName, string fileName)
             => _inProc.OpenFile(projectName, fileName);
+
+        public void CloseFile(string projectName, string fileName, bool saveFile)
+            => _inProc.CloseFile(projectName, fileName, saveFile);
+
+        public void SaveFile(string projectName, string fileName)
+            => _inProc.SaveFile(projectName, fileName);
 
         public void ReloadProject(string projectName)
             => _inProc.ReloadProject(projectName);
