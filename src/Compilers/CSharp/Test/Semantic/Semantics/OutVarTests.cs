@@ -1015,12 +1015,19 @@ public class Cls
 
             var typeInfo = model.GetTypeInfo(decl);
             Assert.Equal(expectedType, typeInfo.Type);
-            if (decl.IsOutDeclaration())
-            {
-                Assert.Equal(expectedType, typeInfo.ConvertedType);
-            }
+
+            // Note: the following assertion is not, in general, correct for declaration expressions,
+            // even though this helper is used to handle declaration expressions.
+            // However, the tests that use this helper have been carefully crafted to avoid
+            // triggering failure of the assertion. See also https://github.com/dotnet/roslyn/issues/17463
+            Assert.Equal(expectedType, typeInfo.ConvertedType);
 
             Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl));
+
+            // Note: the following assertion is not, in general, correct for declaration expressions,
+            // even though this helper is used to handle declaration expressions.
+            // However, the tests that use this helper have been carefully crafted to avoid
+            // triggering failure of the assertion. See also https://github.com/dotnet/roslyn/issues/17463
             Assert.True(model.GetConversion(decl).IsIdentity);
 
             var typeSyntax = decl.Type;
@@ -30298,7 +30305,7 @@ class H
             var node0 = SyntaxFactory.ParseCompilationUnit(source);
             var one = node0.DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
             var decl = SyntaxFactory.DeclarationExpression(
-                type: SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("var")),
+                type: SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("var").WithTrailingTrivia(SyntaxFactory.Space)),
                 designation: SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier("x1")));
             var node1 = node0.ReplaceNode(one, decl);
             var tree = node1.SyntaxTree;
@@ -30306,14 +30313,12 @@ class H
             var compilation = CreateCompilationWithMscorlib(new[] { tree });
             compilation.VerifyDiagnostics(
                 // (4,20): error CS8185: A declaration is not allowed in this context.
-                //     object M1() => varx1;
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "varx1").WithLocation(4, 20)
+                //     object M1() => var x1;
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x1").WithLocation(4, 20)
                 );
 
-            var model = compilation.GetSemanticModel(tree);
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
-                    .Where(p => p.Identifier().ValueText == "x1").Single();
-            VerifyModelForDeclarationVarWithoutDataFlow(model, x1Decl);
+            // We do not currently have test helpers that support declaration expressions subject to a conversion.
+            // See also https://github.com/dotnet/roslyn/issues/17463
         }
 
         [Fact]
