@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UpgradeProject;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
 {
@@ -25,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = s_diagnostics;
 
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;
-        public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_projects_to_csharp_language_version_0;
+        public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0;
 
-        public override IEnumerable<string> SuggestedVersions(ImmutableArray<Diagnostic> diagnostics)
+        public override ImmutableArray<string> SuggestedVersions(ImmutableArray<Diagnostic> diagnostics)
         {
             var required = RequiredVersion(diagnostics);
 
@@ -45,13 +47,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             return builder.ToImmutableAndFree();
         }
 
-        private LanguageVersion RequiredVersion(ImmutableArray<Diagnostic> diagnostics)
+        private static LanguageVersion RequiredVersion(ImmutableArray<Diagnostic> diagnostics)
         {
             LanguageVersion max = 0;
             foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic.Properties.TryGetValue(DiagnosticPropertyConstants.RequiredLanguageVersion, out string requiredVersion) &&
-                    LanguageVersion.Default.TryParseDisplayString(requiredVersion, out var required))
+                    CSharpParseOptions.TryParseLanguageVersion(requiredVersion, out var required))
                 {
                     max = max > required ? max : required;
                 }
@@ -60,32 +62,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             return max;
         }
 
-        public override Solution UpgradeProject(Solution solution, ProjectId projectId, string version)
+        public override Solution UpgradeProject(Project project, string version)
         {
-            var project = solution.GetProject(projectId);
             var parseOptions = (CSharpParseOptions)project.ParseOptions;
-            LanguageVersion.Default.TryParseDisplayString(version, out var newVersion);
+            Contract.ThrowIfFalse(CSharpParseOptions.TryParseLanguageVersion(version, out var newVersion));
 
-            return solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(newVersion));
-        }
-
-        public override Solution UpgradeAllProjects(Solution solution, string version)
-        {
-            var currentSolution = solution;
-            foreach (var project in solution.Projects)
+            if (parseOptions.LanguageVersion.ToDisplayString() != version &&
+                newVersion.MapSpecifiedToEffectiveVersion() >= parseOptions.LanguageVersion)
             {
-                if (project.Language == LanguageNames.CSharp)
-                {
-                    currentSolution = UpgradeProject(currentSolution, project.Id, version);
-                }
+                return project.Solution.WithProjectParseOptions(project.Id, parseOptions.WithLanguageVersion(newVersion));
             }
-
-            return currentSolution;
-        }
-
-        public override bool CouldBeUpgradedToo(Project project)
-        {
-            return project.Language == LanguageNames.CSharp;
+            else
+            {
+                return project.Solution;
+            }
         }
     }
 }

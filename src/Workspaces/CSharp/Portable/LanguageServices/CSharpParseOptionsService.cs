@@ -3,6 +3,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -15,20 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ParseOptions WithLanguageVersion(ParseOptions options, string version)
         {
             var csharpOptions = (CSharpParseOptions)options;
-            LanguageVersion.Default.TryParseDisplayString(version, out var newVersion);
+            Contract.ThrowIfFalse(CSharpParseOptions.TryParseLanguageVersion(version, out var newVersion));
 
             return csharpOptions.WithLanguageVersion(newVersion);
-        }
-
-        public bool NewerThan(string newVersion, string oldVersion)
-        {
-            LanguageVersion.Default.TryParseDisplayString(newVersion, out var newLangVersion);
-            LanguageVersion.Default.TryParseDisplayString(oldVersion, out var oldLangVersion);
-
-            newLangVersion = newLangVersion.MapSpecifiedToEffectiveVersion();
-            oldLangVersion = oldLangVersion.MapSpecifiedToEffectiveVersion();
-
-            return newLangVersion > oldLangVersion;
         }
     }
 }

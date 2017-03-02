@@ -237,5 +237,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Hash.Combine(base.GetHashCodeHelper(),
                 Hash.Combine((int)this.SpecifiedLanguageVersion, 0));
         }
+
+        public static bool TryParseLanguageVersion(string version, out LanguageVersion result)
+        {
+            switch (version)
+            {
+                case "1":
+                    result = LanguageVersion.CSharp1;
+                    break;
+                case "2":
+                    result = LanguageVersion.CSharp2;
+                    break;
+                case "3":
+                    result = LanguageVersion.CSharp3;
+                    break;
+                case "4":
+                    result = LanguageVersion.CSharp4;
+                    break;
+                case "5":
+                    result = LanguageVersion.CSharp5;
+                    break;
+                case "6":
+                    result = LanguageVersion.CSharp6;
+                    break;
+                case "7":
+                    result = LanguageVersion.CSharp7;
+                    break;
+                case "default":
+                    result = LanguageVersion.Default;
+                    break;
+                case "latest":
+                    result = LanguageVersion.Latest;
+                    break;
+                default:
+                    result = LanguageVersion.Default;
+                    return false;
+            }
+            return true;
+        }
     }
 }

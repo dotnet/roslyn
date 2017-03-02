@@ -2732,9 +2732,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function GetRequiredLanguageVersion(diagnostic As Diagnostic) As String
-            ' Upgrading project based on language versions reported in diagnostics isn't supported in VB at this point
+            ' The driving scenario for this API (upgrading project based on language versions reported in diagnostics)
+            ' is not supported in VB at this point
             ' See https://github.com/dotnet/roslyn/issues/17173
-            Return Nothing
+            Throw New NotSupportedException()
         End Function
 
 #End Region

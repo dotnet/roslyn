@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Latest = int.MaxValue,
     }
 
-    internal static partial class LanguageVersionExtensionsInternal
+    internal static class LanguageVersionExtensionsInternal
     {
         internal static bool IsValid(this LanguageVersion value)
         {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     /// <summary>
     /// This type is attached to diagnostics for required language version and should only be used
-    /// on such diagnostics, as they are scrapped out by <see cref="CSharpCompilation.GetRequiredLanguageVersion"/>.
+    /// on such diagnostics, as they are recognized by <see cref="CSharpCompilation.GetRequiredLanguageVersion"/>.
     /// </summary>
     internal class RequiredLanguageVersion : IMessageSerializable
     {
@@ -157,44 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static bool TryParseDisplayString(this LanguageVersion _, string newVersion, out LanguageVersion result)
-        {
-            switch (newVersion)
-            {
-                case "1":
-                    result = LanguageVersion.CSharp1;
-                    break;
-                case "2":
-                    result = LanguageVersion.CSharp2;
-                    break;
-                case "3":
-                    result = LanguageVersion.CSharp3;
-                    break;
-                case "4":
-                    result = LanguageVersion.CSharp4;
-                    break;
-                case "5":
-                    result = LanguageVersion.CSharp5;
-                    break;
-                case "6":
-                    result = LanguageVersion.CSharp6;
-                    break;
-                case "7":
-                    result = LanguageVersion.CSharp7;
-                    break;
-                case "default":
-                    result = LanguageVersion.Default;
-                    break;
-                case "latest":
-                    result = LanguageVersion.Latest;
-                    break;
-                default:
-                    result = LanguageVersion.Default;
-                    return false;
-            }
-            return true;
-        }
-
+        /// <summary>
+        /// Map a language version (such as Default, Latest, or CSharpN) to a specific version (CSharpM).
+        /// </summary>
         public static LanguageVersion MapSpecifiedToEffectiveVersion(this LanguageVersion version)
         {
             switch (version)

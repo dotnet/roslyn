@@ -301,7 +301,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)project.ConfigurationManager
                             .ConfigurationRow(configurationName).Item(1).Object;
 
-                        if (parseOptionsService.NewerThan(newVersion, csharpProperties.LanguageVersion))
+                        if (newVersion != csharpProperties.LanguageVersion)
                         {
                             csharpProperties.LanguageVersion = newVersion;
                         }

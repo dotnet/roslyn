@@ -1199,7 +1199,7 @@ namespace Microsoft.CodeAnalysis
             var newLanguageVersion = parseOptionsService.GetLanguageVersion(newOptions);
             var updated = parseOptionsService.WithLanguageVersion(oldOptions, newLanguageVersion);
 
-            return newOptions == updated; // is LanguageVersion the only difference between old and @new?
+            return newOptions == updated; // is LanguageVersion the only difference between oldOptions and newOptions?
         }
 
         /// <summary>
