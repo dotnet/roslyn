@@ -518,11 +518,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void DialogSendKeys(string dialogAutomationName, string keys)
         {
-            var dialogAutomationElement = DialogHelpers.FindDialog(GetDTE().MainWindow.HWnd, dialogAutomationName, isOpen: true);
-            if (dialogAutomationElement == null)
-            {
-                throw new InvalidOperationException($"Expected the {dialogAutomationName} dialog to be open, but it is not.");
-            }
+            var dialogAutomationElement = DialogHelpers.GetOpenDialog(GetDTE().MainWindow.HWnd, dialogAutomationName);
 
             dialogAutomationElement.SetFocus();
             SendKeys.SendWait(keys);
@@ -530,29 +526,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
-            var dialogAutomationElement = DialogHelpers.FindDialog(GetDTE().MainWindow.HWnd, dialogAutomationName, isOpen: true);
-            if (dialogAutomationElement == null)
-            {
-                throw new InvalidOperationException($"Expected the {dialogAutomationName} dialog to be open, but it is not.");
-            }
-
-            Condition condition = new PropertyCondition(AutomationElement.AutomationIdProperty, buttonAutomationName);
-
-            var buttonAutomationElement = dialogAutomationElement.FindFirst(TreeScope.Descendants, condition);
-
-            if (buttonAutomationElement == null)
-            {
-                throw new InvalidOperationException($"Could not find the {buttonAutomationName} button in the {dialogAutomationName} dialog");
-            }
-
-            if (buttonAutomationElement.TryGetCurrentPattern(InvokePattern.Pattern, out var invokePattern))
-            {
-                (invokePattern as InvokePattern).Invoke();
-            }
-            else
-            {
-                throw new InvalidOperationException($"The element {buttonAutomationName} does not have an InvokePattern. Please make sure that it is the correct control");
-            }
+            DialogHelpers.PressButton(GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
         }
 
         private AutomationElement FindDialog(string dialogAutomationName, bool isOpen)

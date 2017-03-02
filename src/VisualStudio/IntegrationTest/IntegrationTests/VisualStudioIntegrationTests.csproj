@@ -22,6 +22,7 @@
     <Compile Include="AbstractIntegrationTest.cs" />
     <Compile Include="AbstractInteractiveWindowTest.cs" />
     <Compile Include="CSharp\CSharpFindReferences.cs" />
+    <Compile Include="CSharp\CSharpGenerateTypeDialog.cs" />
     <Compile Include="CSharp\CSharpInteractiveAsyncOutput.cs" />
     <Compile Include="CSharp\CSharpAutomaticBraceCompletion.cs" />
     <Compile Include="CSharp\CSharpBuild.cs" />
@@ -38,6 +39,7 @@
     <Compile Include="VisualBasic\BasicGenerateConstructorDialog.cs" />
     <Compile Include="VisualBasic\BasicChangeSignatureDialog.cs" />
     <Compile Include="VisualBasic\BasicFindReferences.cs" />
+    <Compile Include="VisualBasic\BasicGenerateTypeDialog.cs" />
     <Compile Include="VisualBasic\BasicIntelliSense.cs" />
     <Compile Include="VisualBasic\BasicSignatureHelp.cs" />
   </ItemGroup>

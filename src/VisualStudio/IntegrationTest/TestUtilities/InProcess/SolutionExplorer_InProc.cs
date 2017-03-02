@@ -195,6 +195,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             var projectDirectory = Path.GetDirectoryName(project.FullName);
             var filePath = Path.Combine(projectDirectory, fileName);
+            var directoryPath = Path.GetDirectoryName(filePath);
+            Directory.CreateDirectory(directoryPath);
 
             if (contents != null)
             {
