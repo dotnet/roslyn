@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ImmutableArray<Cci.LocalScope> _localScopes;
         private readonly Cci.IImportScope _importScopeOpt;
         private readonly string _stateMachineTypeNameOpt;
-        private readonly ImmutableArray<Cci.StateMachineHoistedLocalScope> _stateMachineHoistedLocalScopes;
+        private readonly ImmutableArray<StateMachineHoistedLocalScope> _stateMachineHoistedLocalScopes;
         private readonly bool _hasDynamicLocalVariables;
         private readonly Cci.AsyncMethodBodyDebugInfo _asyncMethodDebugInfo;
 
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
             ImmutableArray<ClosureDebugInfo> closureDebugInfo,
             string stateMachineTypeNameOpt,
-            ImmutableArray<Cci.StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes,
+            ImmutableArray<StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes,
             ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlots,
             ImmutableArray<Cci.ITypeReference> stateMachineAwaiterSlots,
             Cci.AsyncMethodBodyDebugInfo asyncMethodDebugInfo,
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         string Cci.IMethodBody.StateMachineTypeName => _stateMachineTypeNameOpt;
 
-        ImmutableArray<Cci.StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes
+        ImmutableArray<StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes
             => _stateMachineHoistedLocalScopes;
 
         ImmutableArray<EncHoistedLocalInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots
