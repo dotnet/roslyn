@@ -2,6 +2,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
@@ -19,8 +20,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
         
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17393"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCodeRefactoringOffered()
         {
             SetUpEditor(@"
@@ -29,6 +29,7 @@ Class C
     End Sub
 End Class");
 
+            WaitForAsyncOperations(FeatureAttribute.LightBulb);
             InvokeCodeActionList();
             VerifyCodeAction("Change signature...", applyFix: false);
         }
