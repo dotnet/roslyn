@@ -123,24 +123,21 @@ End Class
 
         <Fact, WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")>
         Public Sub TestCompilationEventQueueWithSemanticModelGetDiagnostics()
-            Dim source1 = <file>
-Namespace N1
+            Dim source1 =
+"Namespace N1
     Partial Class C
         Private Sub NonPartialMethod1()
         End Sub
     End Class
-End Namespace
-</file>.Value
+End Namespace"
 
             Dim source2 =
-               <file>
-Namespace N1
+"Namespace N1
     Partial Class C
         Private Sub NonPartialMethod2()
         End Sub
     End Class
-End Namespace
-</file>.Value
+End Namespace"
 
             Dim tree1 = VisualBasicSyntaxTree.ParseText(source1, path:="file1")
             Dim tree2 = VisualBasicSyntaxTree.ParseText(source2, path:="file2")
@@ -169,8 +166,8 @@ End Namespace
 
         <Fact, WorkItem(7477, "https://github.com/dotnet/roslyn/issues/7477")>
         Public Sub TestCompilationEventsForPartialMethod()
-            Dim source1 = <file>
-Namespace N1
+            Dim source1 =
+"Namespace N1
     Partial Class C
         Private Sub NonPartialMethod1()
         End Sub
@@ -181,12 +178,10 @@ Namespace N1
         Private Partial Sub ImpartialMethod() ' Declaration
         End Sub
     End Class
-End Namespace
-</file>.Value
+End Namespace"
 
             Dim source2 =
-               <file>
-Namespace N1
+"Namespace N1
     Partial Class C
         Private Sub NonPartialMethod2()
         End Sub
@@ -194,8 +189,7 @@ Namespace N1
         Private Sub PartialMethod() ' Implementation
         End Sub
     End Class
-End Namespace
-</file>.Value
+End Namespace"
 
             Dim tree1 = VisualBasicSyntaxTree.ParseText(source1, path:="file1")
             Dim tree2 = VisualBasicSyntaxTree.ParseText(source2, path:="file2")

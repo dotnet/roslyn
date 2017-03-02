@@ -14,10 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub EmptyArrayVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Sub M1()
         Dim arr1 As Integer() = New Integer(-1) { }               ' yes
         Dim arr2 As Byte() = { }                                  ' yes
@@ -34,10 +32,7 @@ Class C
         Dim arr13 as Integer() = New Integer(0) { }               ' no
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
-
+")
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New EmptyArrayAnalyzer}, Nothing, Nothing, False,
@@ -51,10 +46,8 @@ End Class
 
         <Fact>
         Public Sub BoxingVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Function M1(p1 As Object, p2 As Object, p3 As Object) As Object
          Dim v1 As New S
          Dim v2 As S = v1
@@ -85,9 +78,7 @@ Structure S
         Return p1
     End Function
 End Structure
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -103,10 +94,8 @@ End Structure
 
         <Fact>
         Public Sub BadStuffVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Sub M1(z as Integer)
         Framitz()
         Dim x As Integer = Bexley()
@@ -116,9 +105,7 @@ Class C
         Goto
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyAnalyzerDiagnostics({New BadStuffTestAnalyzer}, Nothing, Nothing, False,
@@ -134,10 +121,8 @@ End Class
 
         <Fact>
         Public Sub BigForVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Sub M1()
         Dim x as Integer
         For x = 1 To 200000 : Next
@@ -146,9 +131,7 @@ Class C
         For x = 3000000 To 0 Step -2 : Next
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -159,10 +142,8 @@ End Class
 
         <Fact>
         Public Sub SwitchVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Sub M1(x As Integer)
         Select Case x
             Case 1, 2
@@ -240,9 +221,7 @@ Class C
         End Select  
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(60, 17),
@@ -261,10 +240,8 @@ End Class
 
         <Fact>
         Public Sub InvocationVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Sub M0(a As Integer, ParamArray b As Integer())
     End Sub
 
@@ -293,9 +270,7 @@ Class C
         M3(,)
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -311,10 +286,8 @@ End Class
 
         <Fact>
         Public Sub FieldCouldBeReadOnlyVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public F1 As Integer
     Public Const F2 As Integer = 2
     Public ReadOnly F3 As Integer
@@ -363,9 +336,7 @@ Class C
         Public B As Integer
     End Class
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -377,10 +348,8 @@ End Class
 
         <Fact>
         Public Sub StaticFieldCouldBeReadOnlyVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Shared F1 As Integer
     Public Shared ReadOnly F2 As Integer = 2
     Public Shared Readonly F3 As Integer
@@ -429,9 +398,7 @@ Class C
         Public B As Integer
     End Class
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -443,10 +410,8 @@ End Class
 
         <Fact>
         Public Sub LocalCouldBeConstVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Sub M0(p as Integer)
         Dim x As Integer = p
         Dim y As Integer = x
@@ -456,7 +421,7 @@ Class C
         Dim c As Integer = 4
         Dim d As Integer = 5
         Dim e As Integer = 6
-        Dim s As String = "ZZZ"
+        Dim s As String = ""ZZZ""
         b = 3
         c -= 12
         d += e + b
@@ -483,9 +448,7 @@ Class C1
     Public A As Integer
     Public B As Integer
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -496,10 +459,8 @@ End Class
 
         <Fact>
         Public Sub SymbolCouldHaveMoreSpecificTypeVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Sub M0()
         Dim a As Object = New Middle()
         Dim b As Object = New Value(10)
@@ -648,9 +609,7 @@ Interface IDerived
     Inherits IMiddle
     Inherits IBase2
 End Interface
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -689,10 +648,8 @@ End Interface
 
         <Fact>
         Public Sub ValueContextsVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Sub M0(Optional a As Integer = 16, Optional b As Integer = 17, Optional c As Integer = 18)
     End Sub
 
@@ -726,9 +683,7 @@ Class C1
     Public F6 As Integer() = New Integer(16) {}
     Public F7 As Integer() = New Integer(17) {}
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -745,10 +700,8 @@ End Class
 
         <Fact>
         Public Sub NullArgumentVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class Foo
+            Dim source = Unit.Make().With_c_vb(
+"Class Foo
     Public Sub New(X As String)
 
     End Sub
@@ -770,15 +723,13 @@ Class C
         Dim f2 = New Foo(Nothing)
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New NullArgumentTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(13, 12),
-                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(14, 18),
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(14, 16),
                                            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(15, 12),
                                            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(15, 21),
                                            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(20, 26))
@@ -786,10 +737,8 @@ End Class
 
         <Fact>
         Public Sub MemberInitializerVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class Bar
+            Dim source = Unit.Make().With_c_vb(
+"Class Bar
     Public Field As Boolean
 End Class
 
@@ -811,9 +760,7 @@ Class C
         Dim e2 = New Foo With {10}
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedQualifiedNameInInit, "").WithLocation(20, 32))
@@ -829,10 +776,8 @@ End Class
 
         <Fact>
         Public Sub AssignmentVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class Bar
+            Dim source = Unit.Make().With_c_vb(
+"Class Bar
     Public Field As Boolean
 End Class
 
@@ -860,9 +805,7 @@ Class C
         f2.Field = True
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -874,10 +817,8 @@ End Class
 
         <Fact>
         Public Sub ArrayInitializerVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Sub M1()
         Dim arr1 = New Integer() {}
         Dim arr2 As Object = {}
@@ -903,9 +844,7 @@ Class C
         Dim arr15 = {({({1, 2, 3, 4, 5, 6})})}              ' LargeList
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -923,10 +862,8 @@ End Class
 
         <Fact>
         Public Sub VariableDeclarationVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
 #Disable Warning BC42024
     Dim field1, field2, field3, field4 As Integer
     Public Sub M1()
@@ -948,9 +885,7 @@ Class Foo
     Public Sub New(X As Integer)
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics(
@@ -986,10 +921,8 @@ End Class
         End Sub
         <Fact>
         Public Sub CaseVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Sub M1(x As Integer)
         Select Case x
             Case 1, 2
@@ -1067,9 +1000,7 @@ Class C
         End Select  
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(60, 17),

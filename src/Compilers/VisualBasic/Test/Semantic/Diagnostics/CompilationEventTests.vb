@@ -60,10 +60,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub TestQueuedSymbols()
-            Dim source =
-    <compilation>
-        <file name="TestQueuedSymbols.vb"><![CDATA[
-Namespace N
+            Dim source = Unit.Make().WithFile("TestQueuedSymbols.vb",
+"Namespace N
     Partial Class C(Of T1)
         Partial Private Sub M(x1 As Integer)
         End Sub
@@ -88,9 +86,7 @@ Namespace N
         Blue
     End Enum
 End Namespace
-]]>
-        </file>
-    </compilation>
+")
             Dim q = New AsyncQueue(Of CompilationEvent)()
             CreateCompilationWithMscorlibAndVBRuntime(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).WithEventQueue(q).VerifyDiagnostics().VerifyDiagnostics()
             VerifyEvents(q,
@@ -121,17 +117,13 @@ End Namespace
         <Fact>
         <WorkItem(1958, "https://github.com/dotnet/roslyn/issues/1958")>
         Public Sub TestMyEvents()
-            Dim source =
-    <compilation>
-        <file name="TestMyEvents.vb"><![CDATA[
+            Dim source = Unit.Make().WithFile("TestMyEvents.vb",
+"
 Module Module1
     Sub Main()
         System.Console.WriteLine(My.Computer.Clock.LocalTime)
     End Sub
-End Module
-]]>
-        </file>
-    </compilation>
+End Module")
             Dim q = New AsyncQueue(Of CompilationEvent)()
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
             defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
@@ -142,12 +134,12 @@ End Module
             Dim model = compilation.GetSemanticModel(tree)
             compilation.VerifyDiagnostics()
             VerifyEvents(q,
-                "CompilationStartedEvent",
-                "SymbolDeclaredCompilationEvent(<empty>  @ TestMyEvents.vb: (0,0)-(5,0))",
-                "SymbolDeclaredCompilationEvent(Module1 Module1 @ TestMyEvents.vb: (0,0)-(4,10))",
-                "SymbolDeclaredCompilationEvent(Main Sub Module1.Main() @ TestMyEvents.vb: (1,4)-(1,14))",
-                "CompilationUnitCompletedEvent(TestMyEvents.vb)",
-                "CompilationCompletedEvent")
+                         "CompilationStartedEvent",
+                         "SymbolDeclaredCompilationEvent(<empty>  @ TestMyEvents.vb: (1,0)-(5,10))",
+                         "SymbolDeclaredCompilationEvent(Module1 Module1 @ TestMyEvents.vb: (1,0)-(5,10))",
+                         "SymbolDeclaredCompilationEvent(Main Sub Module1.Main() @ TestMyEvents.vb: (2,4)-(2,14))",
+                         "CompilationUnitCompletedEvent(TestMyEvents.vb)",
+                         "CompilationCompletedEvent")
             Assert.True(q.IsCompleted)
         End Sub
     End Class
