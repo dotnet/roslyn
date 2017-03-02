@@ -304,7 +304,7 @@ class C {
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InWillPopUpAsParameterModifier_Methods()
+        public async Task TestInAsParameterModifierInMethods()
         {
             await VerifyKeywordAsync(@"
 class Program
@@ -315,7 +315,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InWillPopUpAsParameterModifier_SecondParameter()
+        public async Task TestInAsParameterModifierInSecondParameter()
         {
             await VerifyKeywordAsync(@"
 class Program
@@ -326,7 +326,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InWillPopUpAsParameterModifier_Delegates()
+        public async Task TestInAsParameterModifierInDelegates()
         {
             await VerifyKeywordAsync(@"
 public delegate int Delegate($$ int p);");
@@ -334,7 +334,7 @@ public delegate int Delegate($$ int p);");
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InWillPopUpAsParameterModifier_LocalFunctions()
+        public async Task TestInAsParameterModifierInLocalFunctions()
         {
             await VerifyKeywordAsync(@"
 class Program
@@ -348,7 +348,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InWillPopUpAsParameterModifier_LambdaExpressions()
+        public async Task TestInAsParameterModifierInLambdaExpressions()
         {
             await VerifyKeywordAsync(@"
 public delegate int Delegate(ref readonly int p);
@@ -364,7 +364,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InWillPopUpAsParameterModifier_AnonymousMethods()
+        public async Task TestInAsParameterModifierInAnonymousMethods()
         {
             await VerifyKeywordAsync(@"
 public delegate int Delegate(ref readonly int p);
@@ -380,7 +380,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InWillPopUpInMethodReturnTypes()
+        public async Task TestInAsModifierInMethodReturnTypes()
         {
             await VerifyKeywordAsync(@"
 class Program
@@ -394,7 +394,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InWillPopUpInGlobalMemberDeclaration()
+        public async Task TestInAsModifierInGlobalMemberDeclaration()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script, @"
 public $$ ");
@@ -402,7 +402,7 @@ public $$ ");
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InWillPopUpInDelegateReturnType()
+        public async Task TestInAsModifierInDelegateReturnType()
         {
             await VerifyKeywordAsync(@"
 public delegate $$ int Delegate();
@@ -414,7 +414,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InWillPopUpInMemberDeclaration()
+        public async Task TestInAsModifierInMemberDeclaration()
         {
             await VerifyKeywordAsync(@"
 class Program

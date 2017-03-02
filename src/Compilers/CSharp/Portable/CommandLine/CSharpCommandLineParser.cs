@@ -1528,17 +1528,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     version = LanguageVersion.Latest;
                     return true;
 
+                case "7.1":
+                    version = LanguageVersion.CSharp7_1;
+                    return true;
+
                 default:
-                    if (float.TryParse(value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out float versionNumber))
+                    if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out int versionNumber))
                     {
-                        if ((int)versionNumber == versionNumber && 1 <= versionNumber && versionNumber <= 7)
+                        version = (LanguageVersion)versionNumber;
+                        if (version.IsValid())
                         {
-                            version = (LanguageVersion)versionNumber;
-                            return true;
-                        }
-                        else if (versionNumber == 7.1f)
-                        {
-                            version = LanguageVersion.CSharp7_1;
                             return true;
                         }
                     }

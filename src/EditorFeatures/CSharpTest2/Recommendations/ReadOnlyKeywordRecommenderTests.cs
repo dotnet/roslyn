@@ -419,7 +419,7 @@ $$");
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_Methods()
+        public async Task TestRefReadonlyAsParameterModifierInMethods()
         {
             await VerifyKeywordAsync(@"
 class Program
@@ -430,7 +430,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_SecondParameter()
+        public async Task TestRefReadonlyAsParameterModifierInSecondParameter()
         {
             await VerifyKeywordAsync(@"
 class Program
@@ -441,7 +441,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_Delegates()
+        public async Task TestRefReadonlyAsParameterModifierInDelegates()
         {
             await VerifyKeywordAsync(@"
 public delegate int Delegate(ref $$ int p);");
@@ -449,7 +449,7 @@ public delegate int Delegate(ref $$ int p);");
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_LocalFunctions()
+        public async Task TestRefReadonlyAsParameterModifierInLocalFunctions()
         {
             await VerifyKeywordAsync(@"
 class Program
@@ -463,7 +463,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_LambdaExpressions()
+        public async Task TestRefReadonlyAsParameterModifierInLambdaExpressions()
         {
             await VerifyKeywordAsync(@"
 public delegate int Delegate(ref readonly int p);
@@ -479,7 +479,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task ReadOnlyWillPopUpAfterRefInMethodParameterModifiers_AnonymousMethods()
+        public async Task TestRefReadonlyAsParameterModifierInAnonymousMethods()
         {
             await VerifyKeywordAsync(@"
 public delegate int Delegate(ref readonly int p);
@@ -495,7 +495,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task RefReadOnlyWillPopUpInMethodReturnTypes()
+        public async Task TestRefReadonlyAsModifierInMethodReturnTypes()
         {
             await VerifyKeywordAsync(@"
 class Program
@@ -509,7 +509,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task RefReadOnlyWillPopUpInGlobalMemberDeclaration()
+        public async Task TestRefReadonlyAsModifierInGlobalMemberDeclaration()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script, @"
 public ref $$ ");
@@ -517,7 +517,7 @@ public ref $$ ");
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task RefReadOnlyWillPopUpInDelegateReturnType()
+        public async Task TestRefReadonlyAsModifierInDelegateReturnType()
         {
             await VerifyKeywordAsync(@"
 public delegate ref $$ int Delegate();
@@ -529,7 +529,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task RefReadOnlyWillPopUpInMemberDeclaration()
+        public async Task TestRefReadonlyAsModifierInMemberDeclaration()
         {
             await VerifyKeywordAsync(@"
 class Program
