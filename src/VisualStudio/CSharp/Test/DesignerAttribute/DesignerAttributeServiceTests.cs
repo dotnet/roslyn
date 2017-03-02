@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.DesignerAttri
             var code = @"[System.ComponentModel.DesignerCategory(""Form"")]
                 class Test { }";
 
-            await TestAsync(code, designer: false);
+            await TestAsync(code, designer: true);
         }
 
         private static async Task TestAsync(string codeWithMarker, bool designer)

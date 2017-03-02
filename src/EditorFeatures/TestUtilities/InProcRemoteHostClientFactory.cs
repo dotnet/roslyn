@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
         public static readonly Option<bool> RemoteHostTest = new Option<bool>(nameof(RemoteHostOptions), nameof(RemoteHostTest), defaultValue: false);
     }
 
-    [ExportWorkspaceService(typeof(IRemoteHostClientFactory), layer: ServiceLayer.Host), Shared]
+    [ExportWorkspaceService(typeof(IRemoteHostClientFactory)), Shared]
     internal class InProcRemoteHostClientFactory : IRemoteHostClientFactory
     {
         public Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
