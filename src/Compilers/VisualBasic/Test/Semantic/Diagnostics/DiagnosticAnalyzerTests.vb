@@ -276,15 +276,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         <Fact>
         Public Sub TestModuleStatementSyntaxAnalyzer()
             Dim analyzer = New ModuleStatementAnalyzer()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Public Module ThisModule
+            Dim source = Unit.Make.With_c_vb(
+"Public Module ThisModule
 End Module
-]]>
-                             </file>
-                         </compilation>
-
+")
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
@@ -316,14 +311,10 @@ End Module
         <Fact>
         Public Sub TestSymbolAnalyzerNotInvokedForMyTemplateSymbols()
             Dim analyzer = New MockSymbolAnalyzer()
-            Dim sources = <compilation>
-                              <file name="c.vb">
-                                  <![CDATA[
-Public Class C
+            Dim sources = Unit.Make.With_c_vb(
+"Public Class C
 End Class
-]]>
-                              </file>
-                          </compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                 references:={SystemCoreRef, MsvbRef},
@@ -367,16 +358,12 @@ End Class
         <Fact>
         Public Sub TestSyntaxAnalyzerInvokedForNamespaceBlockAndClassBlock()
             Dim analyzer = New NamespaceAndTypeNodeAnalyzer()
-            Dim sources = <compilation>
-                              <file name="c.vb">
-                                  <![CDATA[
-Namespace N
+            Dim sources = Unit.Make.With_c_vb(
+"Namespace N
     Public Class C
     End Class
 End Namespace
-]]>
-                              </file>
-                          </compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                 references:={SystemCoreRef, MsvbRef},
@@ -408,20 +395,16 @@ End Namespace
             End Sub
         End Class
 
-        <Fact, WorkItem(1008059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")>
+        <Fact, WorkItem(1008059, "http:   //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")>
         Public Sub TestCodeBlockAnalyzersForNoExecutableCode()
             Dim analyzer = New CodeBlockAnalyzer()
-            Dim sources = <compilation>
-                              <file name="c.vb">
-                                  <![CDATA[
-Public MustInherit Class C
+            Dim sources = Unit.Make.With_c_vb(
+"Public MustInherit Class C
     Public Property P() As Integer
     Public field As Integer
     Public MustOverride Sub Method()
 End Class
-]]>
-                              </file>
-                          </compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                 references:={SystemCoreRef, MsvbRef},
@@ -431,19 +414,15 @@ End Class
             compilation.VerifyAnalyzerDiagnostics({analyzer})
         End Sub
 
-        <Fact, WorkItem(1008059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")>
+        <Fact, WorkItem(1008059, "http:  //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")>
         Public Sub TestCodeBlockAnalyzersForEmptyMethodBody()
             Dim analyzer = New CodeBlockAnalyzer()
-            Dim sources = <compilation>
-                              <file name="c.vb">
-                                  <![CDATA[
-Public Class C
+            Dim sources = Unit.Make.With_c_vb(
+"Public Class C
     Public Sub Method()
     End Sub
 End Class
-]]>
-                              </file>
-                          </compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                 references:={SystemCoreRef, MsvbRef},
@@ -510,16 +489,11 @@ End Class
         <Fact, WorkItem(1109126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109126")>
         Public Sub TestFieldSymbolAnalyzer_EnumField()
             Dim analyzer = New FieldSymbolAnalyzer()
-            Dim sources = <compilation>
-                              <file name="c.vb">
-                                  <![CDATA[
-Public Enum E
+            Dim sources = Unit.Make.With_c_vb(
+"Public Enum E
     X = 0
 End Enum
-]]>
-                              </file>
-                          </compilation>
-
+")
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
                     options:=TestOptions.ReleaseDll)
@@ -529,18 +503,14 @@ End Enum
                     Diagnostic("FieldSymbolDiagnostic", <![CDATA[X]]>))
         End Sub
 
-        <Fact, WorkItem(1111667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111667")>
+        <Fact, WorkItem(1111667, "http:  //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111667")>
         Public Sub TestFieldSymbolAnalyzer_FieldWithoutInitializer()
             Dim analyzer = New FieldSymbolAnalyzer()
-            Dim sources = <compilation>
-                              <file name="c.vb">
-                                  <![CDATA[
-Public Class TestClass
+            Dim sources = Unit.Make.With_c_vb(
+"Public Class TestClass
     Public Field As System.IntPtr
 End Class
-]]>
-                              </file>
-                          </compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
@@ -575,18 +545,14 @@ End Class
         <Fact, WorkItem(565, "https://github.com/dotnet/roslyn/issues/565")>
         Public Sub TestFieldDeclarationAnalyzer()
             Dim analyzer = New FieldDeclarationAnalyzer()
-            Dim sources = <compilation>
-                              <file name="c.vb">
-                                  <![CDATA[
-Public Class C
+            Dim sources = Unit.Make.With_c_vb(
+"Public Class C
     Dim x, y As Integer
     Dim z As Integer
     Dim x2 = 0, y2 = 0
     Dim z2 = 0
 End Class
-]]>
-                              </file>
-                          </compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
@@ -600,17 +566,13 @@ End Class
                     Diagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z2 = 0]]>))
         End Sub
 
-        <Fact, WorkItem(4745, "https://github.com/dotnet/roslyn/issues/4745")>
+        <Fact, WorkItem(4745, "https:  //github.com/dotnet/roslyn/issues/4745")>
         Public Sub TestNamespaceDeclarationAnalyzer()
             Dim analyzer = New VisualBasicNamespaceDeclarationAnalyzer()
-            Dim sources = <compilation>
-                              <file name="c.vb">
-                                  <![CDATA[
-Namespace Foo.Bar.FooBar
+            Dim sources = Unit.Make.With_c_vb(
+"Namespace Foo.Bar.FooBar
 End Namespace
-]]>
-                              </file>
-                          </compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
@@ -621,13 +583,11 @@ End Namespace
                     Diagnostic(VisualBasicNamespaceDeclarationAnalyzer.DiagnosticId, <![CDATA[Namespace Foo.Bar.FooBar]]>))
         End Sub
 
-        <Fact, WorkItem(5463, "https://github.com/dotnet/roslyn/issues/5463")>
+        <Fact, WorkItem(5463, "https:  //github.com/dotnet/roslyn/issues/5463")>
         Public Sub TestObjectCreationInCodeBlockAnalyzer()
             Dim analyzer = New VisualBasicCodeBlockObjectCreationAnalyzer()
-            Dim sources = <compilation>
-                              <file name="c.vb">
-                                  <![CDATA[
-Public Class C1
+            Dim sources = Unit.Make.With_c_vb(
+"Public Class C1
 End Class
 
 Public Class C2
@@ -641,9 +601,7 @@ Public Class D
     Dim y As New C2()
     Public ReadOnly Property Z As New C3()
 End Class
-]]>
-                              </file>
-                          </compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
@@ -656,14 +614,10 @@ End Class
                     Diagnostic(VisualBasicCodeBlockObjectCreationAnalyzer.DiagnosticDescriptor.Id, <![CDATA[New C3()]]>))
         End Sub
 
-        <Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")>
+        <Fact, WorkItem(1473, "https:  //github.com/dotnet/roslyn/issues/1473")>
         Public Sub TestReportingNotConfigurableDiagnostic()
             Dim analyzer = New NotConfigurableDiagnosticAnalyzer()
-            Dim sources = <compilation>
-                              <file name="c.vb">
-                                  <![CDATA[]]>
-                              </file>
-                          </compilation>
+            Dim sources = Unit.Make.With_c_vb("")
 
             ' Verify, not configurable enabled diagnostic is always reported and disabled diagnostic is never reported..
             Dim options = TestOptions.ReleaseDll
@@ -703,19 +657,15 @@ End Class
                     Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
         End Sub
 
-        <Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
+        <Fact, WorkItem(1709, "https: //github.com/dotnet/roslyn/issues/1709")>
         Public Sub TestCodeBlockAction()
             Dim analyzer = New CodeBlockActionAnalyzer()
-            Dim sources = <compilation>
-                              <file name="c.vb">
-                                  <![CDATA[
-Class C 
+            Dim sources = Unit.Make.With_c_vb(
+"Class C 
     Public Sub M()
     End Sub
 End Class
-]]>
-                              </file>
-                          </compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources, references:={SystemCoreRef, MsvbRef})
 
@@ -725,19 +675,15 @@ End Class
                     Diagnostic(CodeBlockActionAnalyzer.CodeBlockPerCompilationRule.Id, <![CDATA[M]]>).WithArguments("M"))
         End Sub
 
-        <Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
+        <Fact, WorkItem(1709, "https:  //github.com/dotnet/roslyn/issues/1709")>
         Public Sub TestCodeBlockAction_OnlyStatelessAction()
             Dim analyzer = New CodeBlockActionAnalyzer(onlyStatelessAction:=True)
-            Dim sources = <compilation>
-                              <file name="c.vb">
-                                  <![CDATA[
-Class C 
+            Dim sources = Unit.Make.With_c_vb(
+"Class C 
     Public Sub M()
     End Sub
 End Class
-]]>
-                              </file>
-                          </compilation>
+")
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(sources, references:={SystemCoreRef, MsvbRef})
 
@@ -757,7 +703,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
+        <WorkItem(1107500, "http:  //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
         <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
         Public Sub EffectiveSeverity_DiagnosticDefault1()
             TestEffectiveSeverity(DiagnosticSeverity.Warning, ReportDiagnostic.Warn)
@@ -816,19 +762,20 @@ End Class
 
         <Fact, WorkItem(6998, "https://github.com/dotnet/roslyn/issues/6998")>
         Public Sub TestGeneratedCodeAnalyzer()
-            Dim source = <![CDATA[
-<System.CodeDom.Compiler.GeneratedCodeAttribute("tool", "version")> _
+            Dim source =
+"
+<System.CodeDom.Compiler.GeneratedCodeAttribute(""tool"", ""version"")> _
 Class GeneratedCode{0}
 	Private Class Nested{0}
 	End Class
 End Class
 
 Class NonGeneratedCode{0}
-	<System.CodeDom.Compiler.GeneratedCodeAttribute("tool", "version")> _
+	<System.CodeDom.Compiler.GeneratedCodeAttribute(""tool"", ""version"")> _
 	Private Class NestedGeneratedCode{0}
 	End Class
 End Class
-]]>.Value
+"
 
             Dim generatedFileNames =
                 {"TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92.vb", "Test.designer.vb", "Test.Designer.vb", "Test.generated.vb", "Test.g.vb", "Test.g.i.vb"}
@@ -952,10 +899,8 @@ End Class
 
         <Fact>
         Public Sub OwningSymbolVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make.With_c_vb(
+"Class C
     Public Sub UnFunkyMethod()
         Dim x As Integer = 0
         Dim y As Integer = x
@@ -969,9 +914,7 @@ Class C
     Public FunkyField As Integer = 12
     Public UnFunkyField As Integer = 12
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
@@ -983,16 +926,12 @@ End Class
 
         <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
         Public Sub TestParametersAnalyzer_InRegularMethods()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make.With_c_vb(
+"Class C
     Public Sub M(a As Integer, b As String)
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
@@ -1003,16 +942,12 @@ End Class
 
         <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
         Public Sub TestParametersAnalyzer_InConstructors()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make.With_c_vb(
+"Class C
     Public Sub New(a As Integer, b As String)
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
@@ -1023,10 +958,8 @@ End Class
 
         <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
         Public Sub TestParametersAnalyzer_InIndexers()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make.With_c_vb(
+"Class C
     Default Public Property Item(a As Integer, b As Integer) As Integer
         Get
             Return 0
@@ -1035,9 +968,7 @@ Class C
         End Set
     End Property
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
@@ -1049,15 +980,11 @@ End Class
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/14062"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
         Public Sub TestParametersAnalyzer_InDelegateTypes()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make.With_c_vb(
+"Class C
     Delegate Sub DelegateType(a As Integer, b As String)
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
@@ -1068,17 +995,13 @@ End Class
 
         <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
         Public Sub TestParametersAnalyzer_InOperators()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make.With_c_vb(
+"Class C
     Public Shared Operator +(ByVal h1 As C, ByVal h2 As C)
         Return New C()
     End Operator
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
@@ -1089,10 +1012,8 @@ End Class
 
         <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
         Public Sub TestParametersAnalyzer_InInterfaceImplementations()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Interface I
+            Dim source = Unit.Make.With_c_vb(
+"Interface I
     Sub M(a As Integer, b As String)
 End Interface
 
@@ -1101,9 +1022,7 @@ Class C
     Public Sub M(a As Integer, b As String) Implements I.M
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
@@ -1116,19 +1035,14 @@ End Class
 
         <Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")>
         Public Sub TestParametersAnalyzer_InParameterizedProperties()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make.With_c_vb(
+"Class C
     Public ReadOnly Property Test(a As Integer, b As String) As Integer
         Get
             Return 1
         End Get
     End Property
-End Class
-]]>
-                             </file>
-                         </compilation>
+End Class")
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
