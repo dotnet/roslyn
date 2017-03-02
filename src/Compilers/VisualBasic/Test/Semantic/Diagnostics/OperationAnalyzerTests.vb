@@ -1025,10 +1025,8 @@ End Class
 
         <Fact>
         Public Sub ExplicitVsImplicitInstancesVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Overridable Sub M1()
         Me.M1()
         M1()
@@ -1045,9 +1043,7 @@ Class D
         M2()
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -1061,10 +1057,8 @@ End Class
 
         <Fact>
         Public Sub EventAndMethodReferencesVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Delegate Sub MumbleEventHandler(sender As Object, args As System.EventArgs)
+            Dim source = Unit.Make().With_c_vb(
+"Delegate Sub MumbleEventHandler(sender As Object, args As System.EventArgs)
 
 Class C
     Public Event Mumble As MumbleEventHandler
@@ -1085,16 +1079,15 @@ Class C
     Private Sub Mumbler(sender As Object, args As System.EventArgs) 
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New MemberReferenceAnalyzer}, Nothing, Nothing, False,
                  Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),  ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
                  Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(7, 51),
-                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(Sub(s As Object, a As System.EventArgs)
+                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id,
+"AddHandler Mumble, New MumbleEventHandler(Sub(s As Object, a As System.EventArgs)
                                                   End Sub)").WithLocation(8, 9),                                                                                    ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
                  Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, Sub(s As Object, a As System.EventArgs)
                            End Sub").WithLocation(10, 9),                                                                                                           ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
@@ -1106,10 +1099,8 @@ End Class
 
         <Fact>
         Public Sub ParamArraysVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Sub M0(a As Integer, ParamArray b As Integer())
     End Sub
 
@@ -1133,10 +1124,7 @@ Class D
     Public Sub New(a As Integer, ParamArray b As Integer())
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
-
+")
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New ParamsArrayTestAnalyzer}, Nothing, Nothing, False,
@@ -1154,12 +1142,10 @@ End Class
 
         <Fact>
         Public Sub FieldInitializersVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public F1 As Integer = 44
-    Public F2 As String = "Hello"
+    Public F2 As String = ""Hello""
     Public F3 As Integer = Foo()
 
     Public Shared Function Foo()
@@ -1170,9 +1156,7 @@ Class C
         Return P1 + F2
     End Function
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -1185,10 +1169,8 @@ End Class
 
         <Fact>
         Public Sub OwningSymbolVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Sub UnFunkyMethod()
         Dim x As Integer = 0
         Dim y As Integer = x
@@ -1202,9 +1184,7 @@ Class C
     Public FunkyField As Integer = 12
     Public UnFunkyField As Integer = 12
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -1217,10 +1197,8 @@ End Class
         <Fact>
         Public Sub NoneOperationVisualBasic()
             ' BoundCaseStatement is OperationKind.None
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Sub M1(x as Integer)
         Select Case x
             Case 1, 2
@@ -1245,9 +1223,7 @@ Class C
         Resume  
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -1257,10 +1233,8 @@ End Class
 
         <Fact>
         Public Sub LambdaExpressionVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Imports System
+            Dim source = Unit.Make.With_c_vb(
+"Imports System
 
 Class B
     Public Sub M1(x As Integer)
@@ -1295,9 +1269,7 @@ Class C
         RaiseEvent Mumble(Me, args)
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -1338,10 +1310,8 @@ End Class
         <WorkItem(8385, "https://github.com/dotnet/roslyn/issues/8385")>
         <Fact>
         Public Sub StaticMemberReferenceVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class D
+            Dim source = Unit.Make().With_c_vb(
+"Class D
     Public Shared Event E()
 
     Public Shared Field As Integer
@@ -1370,9 +1340,7 @@ Class C
         D.Method()
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -1381,7 +1349,8 @@ End Class
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "AddressOf D.Method").WithLocation(19, 25),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "E").WithLocation(20, 20),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.Bar()").WithLocation(21, 9),
-                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "AddHandler D.E, Sub()
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id,
+"AddHandler D.E, Sub()
                         End Sub").WithLocation(23, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Field").WithLocation(25, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.P").WithLocation(26, 17),
@@ -1390,10 +1359,8 @@ End Class
 
         <Fact>
         Public Sub LabelOperatorsVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Public Class A
+            Dim source = Unit.Make().With_c_vb(
+"Public Class A
     Public Sub Fred()
         Wilma:
         GoTo Betty
@@ -1401,9 +1368,7 @@ Public Class A
         GoTo Wilma
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -1416,10 +1381,8 @@ End Class
 
         <Fact>
         Public Sub UnaryBinaryOperatorsVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Public Class A
+            Dim source = Unit.Make().With_c_vb(
+"Public Class A
 
     Private ReadOnly _value As Integer
 
@@ -1457,10 +1420,7 @@ Class C
         a1 = -a2
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
-
+")
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New UnaryAndBinaryOperationsTestAnalyzer}, Nothing, Nothing, False,
@@ -1472,108 +1432,106 @@ End Class
 
         <Fact>
         Public Sub BinaryOperatorsVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Public Class B2
+            Dim source = Unit.Make().With_c_vb(
+"Public Class B2
 
     Public Shared Operator +(x As B2, y As B2) As B2 
-        System.Console.WriteLine("+")
+        System.Console.WriteLine("" + "")
         Return x
     End Operator
 
     Public Shared Operator -(x As B2, y As B2) As B2 
-        System.Console.WriteLine("-")
+        System.Console.WriteLine("" - "")
         Return x
     End Operator
 
     Public Shared Operator *(x As B2, y As B2) As B2 
-        System.Console.WriteLine("*")
+        System.Console.WriteLine("" * "")
         Return x
     End Operator
 
     Public Shared Operator /(x As B2, y As B2) As B2 
-        System.Console.WriteLine("/")
+        System.Console.WriteLine("" / "")
         Return x
     End Operator
 
     Public Shared Operator \(x As B2, y As B2) As B2 
-        System.Console.WriteLine("\")
-        Return x
+        System.Console.WriteLine("" \ "")
+            Return x
     End Operator
 
     Public Shared Operator Mod(x As B2, y As B2) As B2 
-        System.Console.WriteLine("Mod")
+        System.Console.WriteLine("" Mod "")
         Return x
     End Operator
 
     Public Shared Operator ^(x As B2, y As B2) As B2 
-        System.Console.WriteLine("^")
+        System.Console.WriteLine("" ^ "")
         Return x
     End Operator
 
     Public Shared Operator =(x As B2, y As B2) As B2 
-        System.Console.WriteLine("=")
+        System.Console.WriteLine("" = "")
         Return x
     End Operator
 
     Public Shared Operator <>(x As B2, y As B2) As B2
-        System.Console.WriteLine("<>")
+        System.Console.WriteLine("" <> "")
         Return x
     End Operator
 
     Public Shared Operator <(x As B2, y As B2) As B2 
-        System.Console.WriteLine("<")
+        System.Console.WriteLine("" < "")
         Return x
     End Operator
 
     Public Shared Operator >(x As B2, y As B2) As B2 
-        System.Console.WriteLine(">")
+        System.Console.WriteLine("" > "")
         Return x
     End Operator
 
     Public Shared Operator <=(x As B2, y As B2) As B2
-        System.Console.WriteLine("<=")
+        System.Console.WriteLine("" <= "")
         Return x
     End Operator
 
     Public Shared Operator >=(x As B2, y As B2) As B2
-        System.Console.WriteLine(">=")
+        System.Console.WriteLine("" >= "")
         Return x
     End Operator
 
     Public Shared Operator Like(x As B2, y As B2) As B2
-        System.Console.WriteLine("Like")
+        System.Console.WriteLine("" Like "")
         Return x
     End Operator
 
     Public Shared Operator &(x As B2, y As B2) As B2 
-        System.Console.WriteLine("&")
+        System.Console.WriteLine("" & "")
         Return x
     End Operator
 
     Public Shared Operator And(x As B2, y As B2) As B2
-        System.Console.WriteLine("And")
+        System.Console.WriteLine("" And "")
         Return x
     End Operator
 
     Public Shared Operator Or(x As B2, y As B2) As B2 
-        System.Console.WriteLine("Or")
+        System.Console.WriteLine("" Or "")
         Return x
     End Operator
 
     Public Shared Operator Xor(x As B2, y As B2) As B2
-        System.Console.WriteLine("Xor")
+        System.Console.WriteLine("" Xor "")
         Return x
     End Operator
 
     Public Shared Operator <<(x As B2, y As Integer) As B2
-        System.Console.WriteLine("<<")
+        System.Console.WriteLine("" << "")
         Return x
     End Operator
 
     Public Shared Operator >>(x As B2, y As Integer) As B2
-        System.Console.WriteLine(">>")
+        System.Console.WriteLine("" >> "")
         Return x
     End Operator
 End Class
@@ -1605,9 +1563,7 @@ Module Module1
         r = x >> 3       
     End Sub
 End Module
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -1634,23 +1590,21 @@ End Module
 
         <Fact>
         Public Sub InvalidOperatorsVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Public Class B2
+            Dim source = Unit.Make().With_c_vb(
+"Public Class B2
 
-    Public Shared Operator +(x As B2, y As B2) As B2 
-        System.Console.WriteLine("+")
+    Public Shared Operator +(x As B2, y As B2) As B2
+        System.Console.WriteLine("" + "")
         Return x
     End Operator
 
-    Public Shared Operator -(x As B2) As B2 
-        System.Console.WriteLine("-")
+    Public Shared Operator -(x As B2) As B2
+        System.Console.WriteLine("" - "")
         Return x
     End Operator
 
-    Public Shared Operator -(x As B2) As B2 
-        System.Console.WriteLine("-")
+    Public Shared Operator -(x As B2) As B2
+        System.Console.WriteLine("" - "")
         Return x
     End Operator
 End Class
@@ -1664,14 +1618,14 @@ Module Module1
         x = -x
     End Sub
 End Module
-]]>
-                             </file>
-                         </compilation>
+")
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
-            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_DuplicateProcDef1, "-", New Object() {"Public Shared Operator -(x As B2) As B2"}).WithLocation(8, 28),
-                                   Diagnostic(ERRID.ERR_TypeMismatch2, "10", New Object() {"Integer", "B2"}).WithLocation(23, 17),
-                                   Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "-x", New Object() {"-", vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific." & vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific."}).WithLocation(25, 13))
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source,
+                                                                     parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_DuplicateProcDef1, "-").WithArguments("Public Shared Operator -(x As B2) As B2").WithLocation(8, 28),
+                                   Diagnostic(ERRID.ERR_TypeMismatch2, "10").WithArguments("Integer", "B2").WithLocation(23, 17),
+                                   Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "-x").WithArguments("-", vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific." &
+                                                                                                          vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific.").WithLocation(25, 13))
             comp.VerifyAnalyzerDiagnostics({New OperatorPropertyPullerTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x + 10").WithArguments("OperatorMethodAdd").WithLocation(23, 13),
                                            Diagnostic(OperatorPropertyPullerTestAnalyzer.UnaryOperatorDescriptor.Id, "-x").WithArguments("OperatorMethodMinus").WithLocation(25, 13))
@@ -1679,10 +1633,8 @@ End Module
 
         <Fact>
         Public Sub NullOperationSyntaxVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Sub M0(ParamArray b As Integer())
     End Sub
 
@@ -1695,9 +1647,7 @@ Class C
         M0(New Integer() { 1, 2 })
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             ' TODO: array should not be treated as ParamArray argument
             ' https://github.com/dotnet/roslyn/issues/8570
@@ -1715,10 +1665,8 @@ End Class
         <WorkItem(8114, "https://github.com/dotnet/roslyn/issues/8114")>
         <Fact>
         Public Sub InvalidOperatorVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Function M1(a As Double, b as C) as Double
         Return b + c
     End Sub
@@ -1727,9 +1675,7 @@ Class C
         Return -s
     End Function
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics(
@@ -1746,10 +1692,8 @@ End Class
         <WorkItem(9014, "https://github.com/dotnet/roslyn/issues/9014")>
         <Fact>
         Public Sub InvalidConstructorVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Protected Structure S
     End Structure
 End Class
@@ -1758,16 +1702,13 @@ Class D
         M(New C.S())
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
-            comp.AssertTheseDiagnostics(<errors><![CDATA[
-BC30389: 'C.S' is not accessible in this context because it is 'Protected'.
+            comp.AssertTheseDiagnostics(
+"BC30389: 'C.S' is not accessible in this context because it is 'Protected'.
         M(New C.S())
-              ~~~
-]]></errors>)
+              ~~~")
             ' Reuse ParamsArrayTestAnalyzer for this test.
             comp.VerifyAnalyzerDiagnostics({New ParamsArrayTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(ParamsArrayTestAnalyzer.InvalidConstructorDescriptor.Id, "New C.S()").WithLocation(7, 11))
@@ -1775,10 +1716,8 @@ BC30389: 'C.S' is not accessible in this context because it is 'Protected'.
 
         <Fact>
         Public Sub ConditionalAccessOperationsVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Public Property Prop As Integer
         Get
             Return 0
@@ -1812,9 +1751,7 @@ Class C
         Field1?.M0(Nothing)
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -1840,10 +1777,8 @@ End Class
         <WorkItem(8955, "https://github.com/dotnet/roslyn/issues/8955")>
         <Fact>
         Public Sub ForToLoopConditionCrashVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Imports System   
+            Dim source = Unit.Make().With_c_vb(
+"Imports System   
 
 Module M1
     Class C1(Of t)
@@ -1887,9 +1822,7 @@ Module M2
         Next
     End Sub
 End Module
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics(
@@ -1910,10 +1843,8 @@ End Module
         <WorkItem(9012, "https://github.com/dotnet/roslyn/issues/9012")>
         <Fact>
         Public Sub InvalidEventInstanceVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Imports System
+            Dim source = Unit.Make().With_c_vb(
+"Imports System
 Imports System.Collections.Generic
 
 Module Program
@@ -1952,11 +1883,10 @@ Module Module1
         Yield
     End Function
 End Module
-]]>
-                             </file>
-                         </compilation>
+")
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source,
+                                                                     parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ExpectedComma, "").WithLocation(6, 39),
                 Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(6, 39),
@@ -1989,23 +1919,21 @@ End Module
         <Fact, WorkItem(9127, "https://github.com/dotnet/roslyn/issues/9127")>
         Public Sub UnaryTrueFalseOperationVisualBasic()
             ' BoundCaseStatement is OperationKind.None
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Module Module1
+            Dim source = Unit.Make().With_c_vb(
+"Module Module1
     Structure S8
         Public Shared Narrowing Operator CType(x As S8) As Boolean
-            System.Console.WriteLine("Narrowing Operator CType(x As S8) As Boolean")
+            System.Console.WriteLine(""Narrowing Operator CType(x As S8) As Boolean"")
             Return Nothing
         End Operator
 
         Public Shared Operator IsTrue(x As S8) As Boolean
-            System.Console.WriteLine("IsTrue(x As S8) As Boolean")
+            System.Console.WriteLine(""IsTrue(x As S8) As Boolean"")
             Return False
         End Operator
 
         Public Shared Operator IsFalse(x As S8) As Boolean
-            System.Console.WriteLine("IsFalse(x As S8) As Boolean")
+            System.Console.WriteLine(""IsFalse(x As S8) As Boolean"")
             Return False
         End Operator
 
@@ -2018,20 +1946,18 @@ Module Module1
         Dim x As New S8
         Dim y As New S8
 
-        If x Then 'BIND1:"x"
-            System.Console.WriteLine("If")
-        Else
-            System.Console.WriteLine("Else")
-        End If
+        If x Then 'BIND1:""x""
+            System.Console.WriteLine(""If"")
+            Else
+            System.Console.WriteLine(""Else"")
+            End If
 
         If x AndAlso y Then
 
         End If
     End Sub
 End Module
-]]>
-                             </file>
-                         </compilation>
+")
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
@@ -2040,20 +1966,16 @@ End Module
                 Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x AndAlso y").WithLocation(33, 12))
         End Sub
 
-        <WorkItem(9202, "https://github.com/dotnet/roslyn/issues/9202")>
+        <WorkItem(9202, "https:  //github.com/dotnet/roslyn/issues/9202")>
         <Fact>
         Public Sub IOperationFeatureFlagVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
+            Dim source = Unit.Make().With_c_vb(
+"Class C
     Sub M()
         Dim a = 1
     End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+")
 
             ' with IOperation disabled (by default), public methods
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
