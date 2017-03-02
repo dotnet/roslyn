@@ -9,10 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConflictMarkerResolution
     Friend Class VisualBasicResolveConflictMarkerCodeFixProvider
         Inherits AbstractResolveConflictMarkerCodeFixProvider
 
-        Private Const BC37282 As String = NameOf(BC37282)
+        Private Const BC37284 As String = NameOf(BC37284)
 
         Public Sub New()
-            MyBase.New(BC37282)
+            MyBase.New(BC37284)
         End Sub
 
         Protected Overrides Function IsConflictMarker(trivia As SyntaxTrivia) As Boolean
