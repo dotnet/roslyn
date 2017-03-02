@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess
 
         private Task TestAsyncWithOptionAndNotificationOption(string code, string expected, PerLanguageOption<CodeStyleOption<bool>> option, NotificationOption notification)
         {
-            return TestAsync(code, expected, options: Option(option, true, notification));
+            return TestInRegularAndScriptAsync(code, expected, options: Option(option, true, notification));
         }
 
         private Task TestMissingAsyncWithOption(string code, PerLanguageOption<CodeStyleOption<bool>> option)
@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess
         }
 
         private Task TestMissingAsyncWithOptionAndNotificationOption(string code, PerLanguageOption<CodeStyleOption<bool>> option, NotificationOption notification)
-        {
-            return TestMissingInRegularAndScriptAsync(code, options: Option(option, true, notification));
-        }
+            => TestMissingInRegularAndScriptAsync(code, new TestParameters(options: Option(option, true, notification)));
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]

@@ -231,9 +231,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsUsingStatement(SyntaxNode node)
-        {
-            return node is UsingStatementSyntax;
-        }
+            => node.Kind() == SyntaxKind.UsingStatement;
+
+        public bool IsReturnStatement(SyntaxNode node)
+            => node.Kind() == SyntaxKind.ReturnStatement;
+
+        public SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node)
+            => (node as ReturnStatementSyntax)?.Expression;
 
         public bool IsThisConstructorInitializer(SyntaxToken token)
         {
@@ -1811,6 +1815,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode WalkDownParentheses(SyntaxNode node)
             => (node as ExpressionSyntax)?.WalkDownParentheses() ?? node;
+
+        public bool IsLogicalAndExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.LogicalAndExpression;
 
         public bool IsLogicalNotExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalNotExpression;

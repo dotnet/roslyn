@@ -23,6 +23,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AutomationElementExtensions.cs" />
     <Compile Include="CaptureTestNameAttribute.cs" />
     <Compile Include="Common\Comparison.cs" />
     <Compile Include="Common\Parameter.cs" />
@@ -31,6 +32,7 @@
     <Compile Include="Helper.cs" />
     <Compile Include="HostWaitHelper.cs" />
     <Compile Include="InProcess\CSharpInteractiveWindow_InProc.cs" />
+    <Compile Include="InProcess\DialogHelpers.cs" />
     <Compile Include="InProcess\FindReferencesWindow_InProc.cs" />
     <Compile Include="InProcess\InProcComponent.cs" />
     <Compile Include="InProcess\Shell_InProc.cs" />

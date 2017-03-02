@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Dim list As IList(Of TextSpan) = Nothing
             MarkupTestFile.GetSpans(codeWithMarker.NormalizedValue, code, list)
 
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
+            Using workspace = TestWorkspace.CreateVisualBasic(code, openDocuments:=False)
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, remote)
 
                 Dim commentTokens = New TodoCommentTokens()

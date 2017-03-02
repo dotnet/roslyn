@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
 
+        bool IsLogicalAndExpression(SyntaxNode node);
         bool IsLogicalNotExpression(SyntaxNode node);
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
 
@@ -166,6 +167,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsForEachStatement(SyntaxNode node);
         bool IsLockStatement(SyntaxNode node);
         bool IsUsingStatement(SyntaxNode node);
+
+        bool IsReturnStatement(SyntaxNode node);
+        SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
 
         bool IsLocalDeclarationStatement(SyntaxNode node);
         bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declator, SyntaxNode localDeclarationStatement);

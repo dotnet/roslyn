@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertToInterpola
     Public Class ConvertConcatenationToInterpolatedStringTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, fixProviderData As Object) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicConvertConcatenationToInterpolatedStringRefactoringProvider()
         End Function
 
@@ -25,7 +25,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithStringOnLeft() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Public Class C
     Sub M()
@@ -42,7 +42,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestRightSideOfString() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Public Class C
     Sub M()
@@ -59,7 +59,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithStringOnRight() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Public Class C
     Sub M()
@@ -76,7 +76,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithComplexExpressionOnLeft() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Public Class C
     Sub M()
@@ -93,7 +93,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithTrivia1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Public Class C
     Sub M()
@@ -105,12 +105,12 @@ Public Class C
     Sub M()
         dim v = $""{1 + 2}string"" ' trailing trivia
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithComplexExpressions() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Public Class C
     Sub M()
@@ -127,7 +127,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithEscapes1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Public Class C
     Sub M()
@@ -144,7 +144,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithEscapes2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Public Class C
     Sub M()
@@ -161,7 +161,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithOverloadedOperator() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 public class D
     public shared operator&(D d, string s) as boolean
@@ -214,7 +214,7 @@ End Class")
         <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithMultipleStringConcatinations() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Public Class C
     Sub M()
@@ -233,7 +233,7 @@ End Class")
         <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithMultipleStringConcatinations2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Public Class C
     Sub M()
@@ -252,7 +252,7 @@ End Class")
         <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithMultipleStringConcatinations3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Public Class C
     Sub M()

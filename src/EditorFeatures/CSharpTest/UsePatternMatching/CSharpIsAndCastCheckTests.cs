@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task InlineTypeCheck1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             [|var|] v = (string)x;
         }
     }
-}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+}", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task InlineTypeCheckComplexExpression1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestInlineTypeCheckWithElse()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestComments1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -217,13 +217,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
         }
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestComments2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -243,13 +243,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
         }
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestComments3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -271,14 +271,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
         }
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [WorkItem(17126, "https://github.com/dotnet/roslyn/issues/17126")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestComments4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 namespace N {
     class Program {
@@ -310,13 +310,13 @@ namespace N {
             }
         }
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task InlineTypeCheckParenthesized1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -341,7 +341,7 @@ namespace N {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task InlineTypeCheckParenthesized2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -366,7 +366,7 @@ namespace N {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task InlineTypeCheckParenthesized3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -453,7 +453,7 @@ namespace N {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task InlineTypeCheckScopeNonConflict1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()

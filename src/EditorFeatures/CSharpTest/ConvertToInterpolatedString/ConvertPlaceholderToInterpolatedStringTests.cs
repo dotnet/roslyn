@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 {
     public class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestSingleItemSubstitution()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class T
@@ -41,7 +41,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestItemOrdering()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class T
@@ -65,7 +65,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestItemOrdering2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class T
@@ -89,7 +89,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestItemOrdering3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class T
@@ -113,7 +113,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestItemOutsideRange()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class T
@@ -137,7 +137,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestItemDoNotHaveCast()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class T
@@ -161,7 +161,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestItemWithSyntaxErrorDoesHaveCast()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class T
@@ -185,7 +185,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestItemWithoutSyntaxErrorDoesNotHaveCast()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class T
@@ -209,7 +209,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestParenthesisAddedForTernaryExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class T
@@ -233,7 +233,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestDoesNotAddDoubleParenthesisForTernaryExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class T
@@ -257,7 +257,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMultiLineExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class T
@@ -283,7 +283,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestFormatSpecifiers()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class T
@@ -310,7 +310,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestFormatSpecifiers2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class T
@@ -334,7 +334,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestFormatSpecifiers3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 class T
 {
@@ -365,7 +365,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestFormatSpecifiers4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class T
@@ -389,7 +389,7 @@ class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestFormatSpecifiers5()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 public class T
@@ -443,7 +443,7 @@ public class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestFormatSpecifiers6()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 public class T
@@ -487,7 +487,7 @@ public class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestVerbatimStringLiteral()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 public class T
@@ -545,7 +545,7 @@ public class T
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestInvalidInteger()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 public class T

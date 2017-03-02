@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
 
         private static async Task TestAsync(string codeWithMarker, bool remote)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(codeWithMarker, openDocuments: false))
+            using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker, openDocuments: false))
             {
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, remote);
 

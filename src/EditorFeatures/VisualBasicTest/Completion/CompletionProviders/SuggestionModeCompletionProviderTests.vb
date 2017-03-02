@@ -376,14 +376,14 @@ End Class</a>
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
                 Dim options = If(useDebuggerOptions,
-                                 (Await workspaceFixture.GetWorkspaceAsync()).Options.WithDebuggerCompletionOptions(),
-                                 (Await workspaceFixture.GetWorkspaceAsync()).Options)
+                                 (workspaceFixture.GetWorkspace()).Options.WithDebuggerCompletionOptions(),
+                                 (workspaceFixture.GetWorkspace()).Options)
 
-                Dim document1 = Await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular)
+                Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
                 Await CheckResultsAsync(document1, position, isBuilder, triggerInfo, options)
 
                 If Await CanUseSpeculativeSemanticModelAsync(document1, position) Then
-                    Dim document2 = Await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
+                    Dim document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
                     Await CheckResultsAsync(document2, position, isBuilder, triggerInfo, options)
                 End If
             End Using

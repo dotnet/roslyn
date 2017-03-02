@@ -142,6 +142,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 view.Caret.MoveTo(point);
             });
 
+        /// <remarks>
+        /// This method does not wait for async operations before 
+        /// querying the editor
+        /// </remarks>
         public string[] GetCompletionItems()
             => ExecuteOnActiveView(view =>
             {
@@ -158,6 +162,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return selectedCompletionSet.Completions.Select(c => c.DisplayText).ToArray();
             });
 
+        /// <remarks>
+        /// This method does not wait for async operations before 
+        /// querying the editor
+        /// </remarks>
         public string GetCurrentCompletionItem()
             => ExecuteOnActiveView(view =>
             {
@@ -173,6 +181,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return selectedCompletionSet.SelectionStatus.Completion.DisplayText;
             });
 
+        /// <remarks>
+        /// This method does not wait for async operations before 
+        /// querying the editor
+        /// </remarks>
         public bool IsCompletionActive()
             => ExecuteOnActiveView(view =>
             {
@@ -180,12 +192,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return broker.IsCompletionActive(view);
             });
 
+        /// <remarks>
+        /// This method does not wait for async operations before 
+        /// querying the editor
+        /// </remarks>
+        public bool IsSignatureHelpActive()
+            => ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModelService<ISignatureHelpBroker>();
+                return broker.IsSignatureHelpActive(view);
+            });
+
+        /// <remarks>
+        /// This method does not wait for async operations before 
+        /// querying the editor
+        /// </remarks>
         public Signature[] GetSignatures()
             => ExecuteOnActiveView(view =>
             {
-                var broken = GetComponentModelService<ISignatureHelpBroker>();
+                var broker = GetComponentModelService<ISignatureHelpBroker>();
 
-                var sessions = broken.GetSessions(view);
+                var sessions = broker.GetSessions(view);
                 if (sessions.Count != 1)
                 {
                     throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
@@ -194,6 +221,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return sessions[0].Signatures.Select(s => new Signature(s)).ToArray();
             });
 
+        /// <remarks>
+        /// This method does not wait for async operations before 
+        /// querying the editor
+        /// </remarks>
         public Signature GetCurrentSignature()
             => ExecuteOnActiveView(view =>
             {
@@ -409,7 +440,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void VerifyDialog(string dialogAutomationId, bool isOpen)
         {
-            var dialogAutomationElement = FindDialog(dialogAutomationId, isOpen);
+            var dialogAutomationElement = DialogHelpers.FindDialog(GetDTE().MainWindow.HWnd, dialogAutomationId, isOpen);
 
             if ((isOpen && dialogAutomationElement == null) ||
                 (!isOpen && dialogAutomationElement != null))
@@ -420,7 +451,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void DialogSendKeys(string dialogAutomationName, string keys)
         {
-            var dialogAutomationElement = FindDialog(dialogAutomationName, isOpen: true);
+            var dialogAutomationElement = DialogHelpers.FindDialog(GetDTE().MainWindow.HWnd, dialogAutomationName, isOpen: true);
             if (dialogAutomationElement == null)
             {
                 throw new InvalidOperationException($"Expected the {dialogAutomationName} dialog to be open, but it is not.");
@@ -432,7 +463,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
-            var dialogAutomationElement = FindDialog(dialogAutomationName, isOpen: true);
+            var dialogAutomationElement = DialogHelpers.FindDialog(GetDTE().MainWindow.HWnd, dialogAutomationName, isOpen: true);
             if (dialogAutomationElement == null)
             {
                 throw new InvalidOperationException($"Expected the {dialogAutomationName} dialog to be open, but it is not.");
@@ -455,56 +486,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 throw new InvalidOperationException($"The element {buttonAutomationName} does not have an InvokePattern. Please make sure that it is the correct control");
             }
-        }
-
-        private AutomationElement FindDialog(string dialogAutomationName, bool isOpen)
-        {
-            return Retry(
-                () => FindDialogWorker(dialogAutomationName),
-                stoppingCondition: automationElement => isOpen ? automationElement != null : automationElement == null,
-                delay: TimeSpan.FromMilliseconds(250));
-        }
-
-        private static AutomationElement FindDialogWorker(string dialogAutomationName)
-        {
-            var vsAutomationElement = AutomationElement.FromHandle(new IntPtr(GetDTE().MainWindow.HWnd));
-
-            Condition elementCondition = new AndCondition(
-                new PropertyCondition(AutomationElement.AutomationIdProperty, dialogAutomationName),
-                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
-
-            return vsAutomationElement.FindFirst(TreeScope.Descendants, elementCondition);
-        }
-
-        private T Retry<T>(Func<T> action, Func<T, bool> stoppingCondition, TimeSpan delay)
-        {
-            DateTime beginTime = DateTime.UtcNow;
-            T retval = default(T);
-
-            do
-            {
-                try
-                {
-                    retval = action();
-                }
-                catch (COMException)
-                {
-                    // Devenv can throw COMExceptions if it's busy when we make DTE calls.
-
-                    Thread.Sleep(delay);
-                    continue;
-                }
-
-                if (stoppingCondition(retval))
-                {
-                    return retval;
-                }
-                else
-                {
-                    Thread.Sleep(delay);
-                }
-            }
-            while (true);
         }
     }
 }

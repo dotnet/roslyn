@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 
         internal Task TestAllOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, bool compareTokens = true,
+            int index = 0, bool ignoreTrivia = true,
             IDictionary<OptionKey, object> options = null)
         {
             options = options ?? new Dictionary<OptionKey, object>();
@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 options.Add(kvp);
             }
 
-            return TestAsync(initialMarkup, expectedMarkup, index, compareTokens, options);
+            return TestInRegularAndScriptAsync(
+                initialMarkup, expectedMarkup,
+                index: index, ignoreTrivia: ignoreTrivia, options: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -730,7 +732,7 @@ partial class Program
     }
 }
 ",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -770,7 +772,7 @@ partial class Program : Foo
 #line hidden
 }
 #line default",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(545585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545585")]
@@ -989,7 +991,7 @@ class D : C
         }
     }
 }
-", compareTokens: false);
+", ignoreTrivia: false);
         }
 
         [WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")]
@@ -1160,7 +1162,7 @@ partial class A : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Method1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract void M(int x);
@@ -1184,7 +1186,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Property1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int M { get; }
@@ -1208,7 +1210,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Property3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int M { set; }
@@ -1240,7 +1242,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Property4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int M { get; set; }
@@ -1277,7 +1279,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Indexers1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int this[int i] { get; }
@@ -1301,7 +1303,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Indexer3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int this[int i] { set; }
@@ -1333,7 +1335,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Indexer4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int this[int i] { get; set; }
@@ -1370,7 +1372,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Accessor1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int M { get; }
@@ -1399,7 +1401,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Accessor3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int M { set; }
@@ -1426,7 +1428,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Accessor4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int M { get; set; }
@@ -1454,7 +1456,7 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestWithGroupingOff1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class Base
 {
     public abstract int Prop { get; }
@@ -1481,7 +1483,7 @@ class Derived : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestAddedUsingWithBanner1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"// Copyright ...
 
 using Microsoft.Win32;
@@ -1516,7 +1518,7 @@ namespace My
             throw new System.NotImplementedException();
         }
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
                 
 #if false

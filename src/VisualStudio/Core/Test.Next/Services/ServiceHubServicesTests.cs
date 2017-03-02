@@ -46,7 +46,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
 
@@ -66,7 +66,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"// TODO: Test";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
 
@@ -86,7 +86,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var code = @"[System.ComponentModel.DesignerCategory(""Form"")]
                 class Test { }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
 
@@ -119,7 +119,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestRemoteHostSynchronizeIncrementalUpdate()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(Array.Empty<string>(), metadataReferences: null))
+            using (var workspace = TestWorkspace.CreateCSharp(Array.Empty<string>(), metadataReferences: null))
             {
                 var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
 

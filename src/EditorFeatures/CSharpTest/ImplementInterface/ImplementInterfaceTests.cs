@@ -57,32 +57,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 
         internal async Task TestWithAllCodeStyleOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, bool compareTokens = true,
-            ParseOptions parseOptions = null,
-            bool withScriptOption = false)
+            int index = 0, bool ignoreTrivia = true,
+            ParseOptions parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, compareTokens, options: s_allOptionsOff, withScriptOption: withScriptOption);
+                index, ignoreTrivia, options: s_allOptionsOff);
         }
 
         internal async Task TestWithAllCodeStyleOptionsOnAsync(
             string initialMarkup, string expectedMarkup,
             int index = 0, bool compareTokens = true,
-            ParseOptions parseOptions = null,
-            bool withScriptOption = false)
+            ParseOptions parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, compareTokens, options: s_allOptionsOn, withScriptOption: withScriptOption);
+                index, compareTokens, options: s_allOptionsOn);
         }
 
         internal async Task TestWithAccessorCodeStyleOptionsOnAsync(
             string initialMarkup, string expectedMarkup,
             int index = 0, bool compareTokens = true,
-            ParseOptions parseOptions = null,
-            bool withScriptOption = false)
+            ParseOptions parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, compareTokens, options: s_accessorOptionsOn, withScriptOption: withScriptOption);
+                index, compareTokens, options: s_accessorOptionsOn);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -1196,7 +1193,7 @@ public class A : DD
         }
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -1554,7 +1551,7 @@ public class A : DD
         throw new System.NotImplementedException();
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(539991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539991")]
@@ -1573,7 +1570,7 @@ class C : IServiceProvider
     }
 }
 ",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(540318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
@@ -2424,7 +2421,7 @@ count: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementEventThroughMember()
         {
-            await TestAsync(@"
+            await TestInRegularAndScriptAsync(@"
 interface IFoo
 {
     event System.EventHandler E;
@@ -2472,7 +2469,7 @@ class HasCanFoo : IFoo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementEventThroughExplicitMember()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"interface IFoo { event System . EventHandler E ; } class CanFoo : IFoo { event IFoo.EventHandler E; } class HasCanFoo : [|IFoo|] { CanFoo canFoo; } ",
 @"using System ; interface IFoo { event System . EventHandler E ; } class CanFoo : IFoo { event IFoo.EventHandler E; } class HasCanFoo : IFoo { CanFoo canFoo; public event EventHandler E { add { ((IFoo)canFoo).E += value; } remove { ((IFoo)canFoo).E -= value; } } } ",
 index: 1);
@@ -3702,7 +3699,7 @@ partial class Program : IComparable
     }
 }
 #line default",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -3735,7 +3732,7 @@ partial class Program
         throw new NotImplementedException();
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(545334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545334")]
@@ -4253,7 +4250,7 @@ class C : I
         throw new System.NotImplementedException();
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -4317,7 +4314,7 @@ class C : I
         throw new NotImplementedException();
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -4418,7 +4415,7 @@ class C : I
         throw new NotImplementedException();
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(545695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545695")]
@@ -4597,7 +4594,7 @@ class C : I
     }
 }";
 
-            await TestWithAllCodeStyleOptionsOffAsync(code, expected, compareTokens: false);
+            await TestWithAllCodeStyleOptionsOffAsync(code, expected, ignoreTrivia: false);
         }
 
         [WorkItem(545737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545737")]
@@ -4763,7 +4760,7 @@ class C : I
     }
 }
 ",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(545897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545897")]
@@ -4958,7 +4955,7 @@ class C : IServiceProvider /*
         throw new NotImplementedException();
     }
 }
-", compareTokens: false);
+", ignoreTrivia: false);
         }
 
         [WorkItem(529920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529920")]
@@ -4983,7 +4980,7 @@ class C : IServiceProvider
     }
 }
 #pragma warning disable
-", compareTokens: false);
+", ignoreTrivia: false);
         }
 
         [WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")]
@@ -5004,7 +5001,7 @@ class C : IServiceProvider // Implement interface
         throw new NotImplementedException();
     }
 }
-", compareTokens: false);
+", ignoreTrivia: false);
         }
 
         [WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")]
@@ -5027,7 +5024,7 @@ class C : IServiceProvider
     }
 }
 // Implement interface
-", compareTokens: false);
+", ignoreTrivia: false);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5046,7 +5043,7 @@ class C : IDisposable
         throw new NotImplementedException();
     }
 }
-", index: 0, compareTokens: false);
+", index: 0, ignoreTrivia: false);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5062,7 +5059,7 @@ class C : IDisposable
 {{
 {DisposePattern("protected virtual ", "C", "public void ")}
 }}
-", index: 1, compareTokens: false);
+", index: 1, ignoreTrivia: false);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5081,7 +5078,7 @@ class C : IDisposable
         throw new NotImplementedException();
     }
 }
-", index: 2, compareTokens: false);
+", index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5105,7 +5102,7 @@ class C : System.IDisposable
     }}
 
 {DisposePattern("protected virtual ", "C", "void System.IDisposable.")}
-}}", index: 3, compareTokens: false);
+}}", index: 3, ignoreTrivia: false);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5121,7 +5118,7 @@ abstract class C : IDisposable
 {
     public abstract void Dispose();
 }
-", index: 2, compareTokens: false);
+", index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5144,7 +5141,7 @@ class C : IDisposable
     {
         foo.Dispose();
     }
-}", index: 2, compareTokens: false);
+}", index: 2, ignoreTrivia: false);
         }
 
         [WorkItem(941469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
@@ -5157,7 +5154,7 @@ $@"class C : System.IDisposable
 {{
 {DisposePattern("protected virtual ", "C", "void System.IDisposable.")}
 }}
-", index: 3, compareTokens: false);
+", index: 3, ignoreTrivia: false);
         }
 
         [WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
@@ -5189,7 +5186,7 @@ class C : I
     {
         throw new NotImplementedException();
     }
-}", index: 0, compareTokens: false);
+}", index: 0, ignoreTrivia: false);
         }
 
         [WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
@@ -5218,7 +5215,7 @@ class C : I
     }}
 
 {DisposePattern("protected virtual ", "C", "public void ")}
-}}", index: 1, compareTokens: false);
+}}", index: 1, ignoreTrivia: false);
         }
 
         [WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
@@ -5247,7 +5244,7 @@ class C : I
     }}
 
 {DisposePattern("protected virtual ", "C", "void IDisposable.")}
-}}", index: 3, compareTokens: false);
+}}", index: 3, ignoreTrivia: false);
         }
 
         [WorkItem(941469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
@@ -5278,7 +5275,7 @@ class C : I
             throw new NotImplementedException();
         }
     }
-}", index: 1, compareTokens: false);
+}", index: 1, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -5295,7 +5292,7 @@ struct S : IDisposable
         throw new NotImplementedException();
     }
 }
-", compareTokens: false);
+", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -5312,7 +5309,7 @@ struct S : IDisposable
         throw new NotImplementedException();
     }
 }
-", index: 1, compareTokens: false);
+", index: 1, ignoreTrivia: false);
         }
 
         [WorkItem(545924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545924")]
@@ -6250,7 +6247,7 @@ partial class C : I<System.Exception, System.AggregateException>, System.IDispos
     }}
 
 {DisposePattern("protected virtual ", "C", "public void ")}
-}}", index: 1, compareTokens: false);
+}}", index: 1, ignoreTrivia: false);
         }
 
         [WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")]
@@ -6302,7 +6299,7 @@ partial class C : I<System.Exception, System.AggregateException>, System.IDispos
 
 partial class C
 {{
-}}", index: 3, compareTokens: false);
+}}", index: 3, ignoreTrivia: false);
         }
 
         private static string DisposePattern(string disposeVisibility, string className, string implementationVisibility)
@@ -6520,8 +6517,7 @@ class Class : IInterface
     {
         throw new System.NotImplementedException();
     }
-}",
-parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -6550,8 +6546,7 @@ class Class : IInterface
     {
         throw new System.NotImplementedException();
     }
-}",
-parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -6580,8 +6575,7 @@ class Class : IInterface<(int, string), int>
     {
         throw new System.NotImplementedException();
     }
-}",
-parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -6610,15 +6604,14 @@ class Class : IInterface<(int, string), int>
     {
         throw new System.NotImplementedException();
     }
-}",
-parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestWithGroupingOff1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"interface IInterface
 {
     int Prop { get; }
@@ -6646,7 +6639,7 @@ class Class : IInterface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDoNotReorderComImportMembers()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System.Runtime.InteropServices;
 
@@ -6685,7 +6678,7 @@ class Class : IComInterface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRefReturns()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 

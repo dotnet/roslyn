@@ -205,7 +205,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsUsingStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingStatement
-            Return TypeOf node Is UsingStatementSyntax
+            Return node.Kind() = SyntaxKind.UsingStatement
+        End Function
+
+        Public Function IsReturnStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsReturnStatement
+            Return node.Kind() = SyntaxKind.ReturnStatement
+        End Function
+
+        Public Function GetExpressionOfReturnStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfReturnStatement
+            Return TryCast(node, ReturnStatementSyntax)?.Expression
         End Function
 
         Public Function IsThisConstructorInitializer(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsThisConstructorInitializer
@@ -1615,6 +1623,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function WalkDownParentheses(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.WalkDownParentheses
             Return If(TryCast(node, ExpressionSyntax)?.WalkDownParentheses(), node)
+        End Function
+
+        Public Function IsLogicalAndExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalAndExpression
+            Return node.IsKind(SyntaxKind.AndAlsoExpression)
         End Function
 
         Public Function IsLogicalNotExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalNotExpression

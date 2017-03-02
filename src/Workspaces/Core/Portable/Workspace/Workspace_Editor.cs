@@ -329,14 +329,7 @@ namespace Microsoft.CodeAnalysis
 
             if (container != null)
             {
-                if (_isProjectUnloading.Value)
-                {
-                    OnDocumentContextUpdated_NoSerializationLock(documentId, container);
-                }
-                else
-                {
-                    OnDocumentContextUpdated(documentId, container);
-                }
+                OnDocumentContextUpdated(documentId, container);
             }
         }
 
@@ -345,9 +338,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal void OnDocumentContextUpdated(DocumentId documentId, SourceTextContainer container)
         {
-            using (_serializationLock.DisposableWait())
+            if (_isProjectUnloading.Value)
             {
+                // When the project is unloading, the serialization lock is already taken, so there
+                // is no need for us to take the lock since everything is already serialized.
                 OnDocumentContextUpdated_NoSerializationLock(documentId, container);
+            }
+            else
+            {
+                using (_serializationLock.DisposableWait())
+                {
+                    OnDocumentContextUpdated_NoSerializationLock(documentId, container);
+                }
             }
         }
 

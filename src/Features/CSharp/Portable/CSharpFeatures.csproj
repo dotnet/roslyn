@@ -66,6 +66,7 @@
     <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.Pattern.cs" />
     <Compile Include="ConvertNumericLiteral\CSharpConvertNumericLiteralCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\UseNamedArguments\CSharpUseNamedArgumentsCodeRefactoringProvider.cs" />
+    <Compile Include="ConflictMarkerResolution\CSharpResolveConflictMarkerCodeFixProvider.cs" />
     <Compile Include="Completion\CompletionProviders\TupleNameCompletionProvider.cs" />
     <Compile Include="CSharpFeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>

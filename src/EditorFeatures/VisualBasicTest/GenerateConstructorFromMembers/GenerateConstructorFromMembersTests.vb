@@ -9,13 +9,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructo
     Public Class GenerateConstructorFromMembersTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, fixProviderData As Object) As CodeRefactoringProvider
-            Return New GenerateConstructorFromMembersCodeRefactoringProvider(DirectCast(fixProviderData, IPickMembersService))
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+            Return New GenerateConstructorFromMembersCodeRefactoringProvider(DirectCast(parameters.fixProviderData, IPickMembersService))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSingleField() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     [|Private i As Integer|]
 End Class",
@@ -24,13 +24,12 @@ End Class",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMultipleFields() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     [|Private i As Integer
     Private b As String|]
@@ -42,13 +41,12 @@ End Class",
         Me.i = i
         Me.b = b
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSecondField() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     Private i As Integer
     [|Private b As String|]
@@ -65,13 +63,12 @@ End Class",
     Public Sub New(b As String)
         Me.b = b
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestFieldAssigningConstructor() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     [|Private i As Integer
     Private b As String|]
@@ -89,8 +86,7 @@ End Class",
         Me.i = i
         Me.b = b
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
@@ -111,7 +107,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestStruct() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Structure S
     [|Private i As Integer|]
 End Structure",
@@ -120,13 +116,12 @@ End Structure",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
-End Structure",
-index:=0)
+End Structure")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestGenericType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program(Of T)
     [|Private i As Integer|]
 End Class",
@@ -135,14 +130,13 @@ End Class",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(541995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541995")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSimpleDelegatingConstructor() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     [|Private i As Integer
     Private b As String|]
@@ -167,7 +161,7 @@ index:=1)
         <WorkItem(542008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542008")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestGenerateFromNormalProperties() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Z
     [|Public Property A As Integer
     Public Property B As String|]
@@ -179,14 +173,13 @@ End Class",
     End Sub
     Public Property A As Integer
     Public Property B As String
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestGetter_Only_Auto_Props() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Contribution
   [|ReadOnly Property Title As String
     ReadOnly Property Number As Integer|]
@@ -199,8 +192,7 @@ End Class",
 
     ReadOnly Property Title As String
     ReadOnly Property Number As Integer
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")>
@@ -215,7 +207,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestWithDialog1() As Task
-            Await TestWithGenerateConstructorDialogAsync(
+            Await TestWithPickMembersDialogAsync(
 "Class Program
     Private i As Integer
     [||]
@@ -230,7 +222,7 @@ End Class", chosenSymbols:={"i"})
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestWithDialog2() As Task
-            Await TestWithGenerateConstructorDialogAsync(
+            Await TestWithPickMembersDialogAsync(
 "Class Program
     Private i As Integer
     [||]
@@ -244,7 +236,7 @@ End Class", chosenSymbols:={})
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestWithDialog3() As Task
-            Await TestWithGenerateConstructorDialogAsync(
+            Await TestWithPickMembersDialogAsync(
 "Class Program
     Private i As Integer
     Private j As String
@@ -262,7 +254,7 @@ End Class", chosenSymbols:={"j", "i"})
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestWithDialog4() As Task
-            Await TestWithGenerateConstructorDialogAsync(
+            Await TestWithPickMembersDialogAsync(
 "Class [||]Program
     Private i As Integer
 End Class",

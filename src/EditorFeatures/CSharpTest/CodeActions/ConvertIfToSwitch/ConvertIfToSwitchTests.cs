@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     public class ConvertIfToSwitchTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertIfToSwitchCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestUnreachableEndPoint()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int i)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestReachableEndPoint()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int i)
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestMultipleCases_01()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int i)
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestMultipleCases_02()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(object o)
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestExpressionOrder()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int i)
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestConstantExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int i)
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestSingleCase()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int i)
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestIsExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(object o)
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestIsPatternExpression_01()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(object o)
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestIsPatternExpression_02()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(object o)
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestIsPatternExpression_03()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(object o)
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestIsPatternExpression_04()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(object o)
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestPreserveTrivia()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(object o)
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestKeepBlockIfThereIsVariableDeclaration()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int i)
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestNestedBreak()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(int i)
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestSubsequentIfStatements_01()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int? i)
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestSubsequentIfStatements_02()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int? i)
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestSubsequentIfStatements_03()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int? i)
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestSubsequentIfStatements_04()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     string M(object i)
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestSubsequentIfStatements_05()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int i)
@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestSubsequentIfStatements_06()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int i)
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestSubsequentIfStatements_07()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int i)

@@ -48,7 +48,7 @@ class Program
         return await Test();
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -91,7 +91,7 @@ class Program
         await Test();
     }
 }";
-            await TestAsync(initial, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -124,7 +124,7 @@ class Program
         return await (true ? Test() /* true */ : Test() /* false */);
     }
 }";
-            await TestAsync(initial, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -161,7 +161,7 @@ class Program
                     ;
     }
 }";
-            await TestAsync(initial, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -194,7 +194,7 @@ class Program
         return await (null /* 0 */ ?? Test() /* 1 */);
     }
 }";
-            await TestAsync(initial, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -231,7 +231,7 @@ class Program
             ;
     }
 }";
-            await TestAsync(initial, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -260,7 +260,7 @@ class Program
         return await (null /* 0 */ as Task<int> /* 1 */);
     }
 }";
-            await TestAsync(initial, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -297,7 +297,7 @@ class Program
             ;
     }
 }";
-            await TestAsync(initial, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -324,7 +324,7 @@ class Program
         await Task.Delay(3);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -355,7 +355,7 @@ class Program
         await Task.Delay(3);
     }
 }";
-            await TestAsync(initial, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -392,7 +392,7 @@ class Program
         await AwaitableFunction();
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -433,7 +433,7 @@ class Program
         await AwaitableFunction();
     }
 }";
-            await TestAsync(initial, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -474,13 +474,13 @@ class Program
         await AwaitableFunction();
     }
 }";
-            await TestAsync(initial, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Threading.Tasks;
 
 class TestClass
@@ -514,7 +514,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpressionWithConversion()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Threading.Tasks;
 
 class TestClass
@@ -568,7 +568,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpressionWithConversionInAsyncFunction()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Threading.Tasks;
 
 class TestClass
@@ -602,7 +602,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -642,7 +642,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -728,7 +728,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression5()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -768,7 +768,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression6()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -854,7 +854,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestTernaryOperator()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -880,7 +880,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestNullCoalescingOperator()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -904,7 +904,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAsExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 

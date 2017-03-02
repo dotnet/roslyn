@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
 {
     public class AddConstructorParametersFromMembersTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new AddConstructorParametersFromMembersCodeRefactoringProvider();
 
         [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAdd1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -43,14 +43,13 @@ class Program
         this.i = i;
         this.s = s;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddOptional1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -82,7 +81,7 @@ index: 1);
         [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddToConstructorWithMostMatchingParameters1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -119,14 +118,13 @@ class Program
         this.s = s;
         this.b = b;
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddOptionalToConstructorWithMostMatchingParameters1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -183,8 +181,7 @@ class Program
         this.b = b;
     }
 }",
-string.Format(FeaturesResources.Add_parameters_to_0_1, "Program", "bool"),
-index: 0);
+string.Format(FeaturesResources.Add_parameters_to_0_1, "Program", "bool"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -210,7 +207,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTuple()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(int, string) i;
@@ -231,14 +228,13 @@ index: 1);
         this.i = i;
         this.s = s;
     }
-}",
-index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleWithNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(int a, string b) i;
@@ -259,8 +255,7 @@ index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         this.i = i;
         this.s = s;
     }
-}",
-index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -282,7 +277,7 @@ index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleOptional()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(int, string) i;
@@ -304,13 +299,13 @@ index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         this.s = s;
     }
 }",
-index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleOptionalWithNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(int a, string b) i;
@@ -332,7 +327,7 @@ index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         this.s = s;
     }
 }",
-index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -354,7 +349,7 @@ index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleWithNullable()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(int?, bool?) i;
@@ -375,14 +370,13 @@ index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         this.i = i;
         this.s = s;
     }
-}",
-index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleWithGenericss()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(List<int>, List<bool>) i;
@@ -403,8 +397,7 @@ index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
         this.i = i;
         this.s = s;
     }
-}",
-index: 0, parseOptions: TestOptions.Regular, withScriptOption: true);
+}");
         }
     }
 }

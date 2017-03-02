@@ -40,7 +40,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected, index: 1);
+            await TestInRegularAndScriptAsync(initial, expected, index: 1);
         }
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AwaitInVoidMethodWithModifiers2()
@@ -68,7 +68,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -97,7 +97,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -126,7 +126,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -157,7 +157,7 @@ class Program
         Func<Task> b = async () => await Task.Run(a);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -186,7 +186,7 @@ class Program
         Action a = async () => await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -211,7 +211,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected, index: 1);
+            await TestInRegularAndScriptAsync(initial, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -236,7 +236,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -261,7 +261,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -286,7 +286,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -309,7 +309,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected, index: 1);
+            await TestInRegularAndScriptAsync(initial, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -332,7 +332,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -355,7 +355,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -378,7 +378,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -401,7 +401,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -424,7 +424,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -443,7 +443,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AddAsyncInDelegate()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -475,7 +475,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AddAsyncInDelegate2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -507,7 +507,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AddAsyncInDelegate3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 

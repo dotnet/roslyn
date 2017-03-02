@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNullPropagation
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestLeft_Equals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -52,13 +52,13 @@ class C
     {
         var v = [||]o == null ? null : o.ToString();
     }
-}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+}", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestRight_Equals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -82,7 +82,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestLeft_NotEquals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -106,7 +106,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestRight_NotEquals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -130,7 +130,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestIndexer()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -154,7 +154,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestConditionalAccess()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -178,7 +178,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestMemberAccess()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -217,7 +217,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestParenthesizedCondition()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -241,7 +241,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestFixAll1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -267,7 +267,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestFixAll2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C

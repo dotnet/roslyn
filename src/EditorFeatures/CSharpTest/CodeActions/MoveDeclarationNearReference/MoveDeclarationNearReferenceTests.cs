@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.MoveDe
 {
     public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new MoveDeclarationNearReferenceCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMove1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -37,14 +37,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.MoveDe
             Console.WriteLine(x);
         }
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMove2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -62,14 +61,13 @@ index: 0);
         int x;
         Console.WriteLine(x);
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMove3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -97,14 +95,13 @@ index: 0);
         {
             Console.WriteLine(x);
         }
-    }",
-index: 0);
+    }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMove4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -124,14 +121,13 @@ index: 0);
             int x;
             Console.WriteLine(x);
         }
-    }",
-index: 0);
+    }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestAssign1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -152,14 +148,13 @@ index: 0);
             Console.WriteLine(x);
         }
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestAssign2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -180,14 +175,13 @@ index: 0);
             Console.WriteLine(x);
         }
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestAssign3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -209,8 +203,7 @@ index: 0);
             Console.WriteLine(x);
         }
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -278,7 +271,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestFormatting()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -295,8 +288,7 @@ index: 0);
         int i = 5; Console.Write(i);
     }
 }",
-index: 0,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -337,7 +329,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestAvailableInNonHiddenBlock1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"#line default
 class Program
 {
@@ -362,13 +354,13 @@ class Program
     }
 #line default
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestAvailableInNonHiddenBlock2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void Main()
@@ -395,14 +387,14 @@ compareTokens: false);
         Bar(x);
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestWarnOnChangingScopes1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Linq;
 
 class Program
@@ -437,7 +429,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestWarnOnChangingScopes2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Linq;
 
@@ -474,7 +466,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task InsertCastIfNecessary1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 static class C
@@ -514,14 +506,14 @@ static class C
         }
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(545835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545835")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task InsertCastIfNecessary2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class X
@@ -557,7 +549,7 @@ class X
         }
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(546267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546267")]
@@ -590,7 +582,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task Tuple()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -610,16 +602,13 @@ class Program
             Console.WriteLine(x);
         }
     }
-}",
-index: 0,
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TupleWithNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -639,10 +628,7 @@ withScriptOption: true);
             Console.WriteLine(x);
         }
     }
-}",
-index: 0,
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
     }
 }

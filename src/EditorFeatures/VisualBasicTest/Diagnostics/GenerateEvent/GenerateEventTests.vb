@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventIntoInterface1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface MyInterface
 End Interface
 Class C
@@ -56,7 +56,7 @@ End Class")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventWithParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Interface MyInterface
 End Interface
 Class C
@@ -74,7 +74,7 @@ End Class")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestHandlesClause() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class D
 End Class
 Class C
@@ -108,7 +108,7 @@ End Class")
         <WorkItem(531210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531210")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestMyBase() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class BaseClass
     ' Place methods and properties here. 
 End Class
@@ -135,7 +135,7 @@ End Class")
         <WorkItem(531210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531210")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestMe() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class C
     Sub EventHandler(ByVal x As Integer) Handles [|Me.MyEvent|]
         ' Place code to handle events from BaseClass here. 
@@ -152,7 +152,7 @@ End Class")
         <WorkItem(531210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531210")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestMyClass() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class C
     Sub EventHandler(ByVal x As Integer) Handles [|MyClass.MyEvent|]
         ' Place code to handle events from BaseClass here. 
@@ -182,7 +182,7 @@ End Class")
         <WorkItem(531267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531267")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestMakeParamsNotOptional() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class B
     Dim WithEvents x As B
     Private Sub Test(Optional x As String = Nothing) Handles [|x.E1|] 'mark 1 
@@ -203,7 +203,7 @@ End Class")
         <WorkItem(531267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531267")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestMakeParamsNotParamArray() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class B
     Dim WithEvents x As B
     Private Sub Test(Optional x As String = Nothing) Handles x.E1 'mark 1 
@@ -224,7 +224,7 @@ End Class")
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForAddEventStaticClass() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class EventClass
     Public Event ZEvent()
 End Class
@@ -253,7 +253,7 @@ End Class")
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForRemoveEventStaticClass() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class EventClass
     Public Event ZEvent()
 End Class
@@ -282,7 +282,7 @@ End Class")
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForAddEventVariable() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class EventClass
     Public Event ZEvent()
 End Class
@@ -311,7 +311,7 @@ End Class")
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForRemoveEventVariable() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class EventClass
     Public Event ZEvent()
 End Class
@@ -340,7 +340,7 @@ End Class")
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForAddEvent() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class Test
     WithEvents EClass As New EventClass
     Public Sub New()
@@ -363,7 +363,7 @@ End Class")
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForRemoveEvent() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class Test
     WithEvents EClass As New EventClass
     Public Sub New()
@@ -386,7 +386,7 @@ End Class")
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForAddEventMe() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class Test
     WithEvents EClass As New EventClass
     Public Sub New()
@@ -409,7 +409,7 @@ End Class")
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForRemoveEventMe() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class Test
     WithEvents EClass As New EventClass
     Public Sub New()
@@ -432,7 +432,7 @@ End Class")
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForAddEventMyClass() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class Test
     WithEvents EClass As New EventClass
     Public Sub New()
@@ -455,7 +455,7 @@ End Class")
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForRemoveEventMyClass() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class Test
     WithEvents EClass As New EventClass
     Public Sub New()
@@ -478,7 +478,7 @@ End Class")
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForAddEventMyBase() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class EventClass
 End Class
 Public Class Test
@@ -505,7 +505,7 @@ End Class")
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForRemoveEventMyBase() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Public Class EventClass
 End Class
 Public Class Test
@@ -532,7 +532,7 @@ End Class")
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForAddEventDelegate() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Public Class EventClass
 End Class
@@ -561,7 +561,7 @@ End Class")
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForRemoveEventDelegate() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Public Class EventClass
 End Class
@@ -622,7 +622,7 @@ public class EventClass
 
 public delegate void XEventHandler(string argument);
 </Text>.NormalizedValue
-            Await TestAsync(initialMarkup, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -660,7 +660,7 @@ public class EventClass
 
 public delegate void XEventHandler(string argument);
 </Text>.NormalizedValue
-            Await TestAsync(initialMarkup, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -702,7 +702,7 @@ public class EventClass
 
 public delegate void XEventHandler(object sender, EventArgs e);
 </Text>.NormalizedValue
-            Await TestAsync(initialMarkup, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -744,7 +744,7 @@ public class EventClass
 
 public delegate void XEventHandler(object sender, EventArgs e);
 </Text>.NormalizedValue
-            Await TestAsync(initialMarkup, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -785,7 +785,7 @@ public class EventClass
 
 public delegate void XEventHandler(object a, EventArgs b);
 </Text>.NormalizedValue
-            Await TestAsync(initialMarkup, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -826,15 +826,15 @@ public class EventClass
 
 public delegate void XEventHandler(object a, EventArgs b);
 </Text>.NormalizedValue
-            Await TestAsync(initialMarkup, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForAddEventMyBaseIntoCSharpGenericExistingDelegate() As Task
             Dim initialMarkup =
-                <Workspace>
-                    <Project Language="Visual Basic" CommonReferences="true">
+                "<Workspace>
+                    <Project Language=""Visual Basic"" CommonReferences=""true"">
                         <ProjectReference>CSAssembly1</ProjectReference>
                         <Document>
 Imports System
@@ -849,7 +849,7 @@ Public Class Test
 End Class
 </Document>
                     </Project>
-                    <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
                         <Document>
 using System;
 
@@ -861,16 +861,16 @@ public class EventClass
 public delegate void XEventHandler(object sender, EventArgs e);
 </Document>
                     </Project>
-                </Workspace>
-            Await TestMissingWithWorkspaceXmlAsync(initialMarkup)
+                </Workspace>"
+            Await TestMissingInRegularAndScriptAsync(initialMarkup)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventForRemoveEventMyBaseIntoCSharpGenericExistingDelegate() As Task
             Dim initialMarkup =
-                <Workspace>
-                    <Project Language="Visual Basic" CommonReferences="true">
+                "<Workspace>
+                    <Project Language=""Visual Basic"" CommonReferences=""True"">
                         <ProjectReference>CSAssembly1</ProjectReference>
                         <Document>
 Imports System
@@ -885,7 +885,7 @@ Public Class Test
 End Class
 </Document>
                     </Project>
-                    <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""True"">
                         <Document>
 using System;
 
@@ -897,9 +897,9 @@ public class EventClass
 public delegate void XEventHandler(object sender, EventArgs e);
 </Document>
                     </Project>
-                </Workspace>
+                </Workspace>"
 
-            Await TestMissingWithWorkspaceXmlAsync(initialMarkup)
+            Await TestMissingInRegularAndScriptAsync(initialMarkup)
         End Function
     End Class
 End Namespace

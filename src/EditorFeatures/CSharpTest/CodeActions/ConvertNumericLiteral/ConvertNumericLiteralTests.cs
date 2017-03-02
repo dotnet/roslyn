@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
 {
     public class ConvertNumericLiteralTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertNumericLiteralCodeRefactoringProvider();
 
         private enum Refactoring { ChangeBase1, ChangeBase2, AddOrRemoveDigitSeparators }
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
 
         private async Task TestFixOneAsync(string initial, string expected, Refactoring refactoring)
         {
-            await TestAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), index: (int)refactoring);
+            await TestInRegularAndScriptAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), index: (int)refactoring);
         }
 
         private string CreateTreeText(string initial)

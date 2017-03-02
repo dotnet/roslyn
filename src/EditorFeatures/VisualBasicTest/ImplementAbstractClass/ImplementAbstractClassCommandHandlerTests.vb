@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractC
 
         <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
-        Public Async Function TestSimpleCases() As Task
+        Public Sub TestSimpleCases()
             Dim code = <text>
 Imports System
 
@@ -35,15 +35,15 @@ End Class</text>
         Throw New NotImplementedException()
     End Function</text>
 
-            Await TestAsync(code,
+            Test(code,
              expectedText,
              Sub() Throw New Exception("The operation should have been handled."),
              Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
-        End Function
+        End Sub
 
         <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
-        Public Async Function TestInvocationAfterWhitespaceTrivia() As Task
+        Public Sub TestInvocationAfterWhitespaceTrivia()
             Dim code = <text>
 Imports System
 
@@ -60,14 +60,14 @@ End Class
         Throw New NotImplementedException()
     End Sub</text>
 
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub() Throw New Exception("The operation should have been handled."),
                  Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
-        Public Async Function TestInvocationAfterCommentTrivia() As Task
+        Public Sub TestInvocationAfterCommentTrivia()
             Dim code = <text>
 Imports System
 
@@ -84,14 +84,14 @@ End Class
         Throw New NotImplementedException()
     End Sub</text>
 
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub() Throw New Exception("The operation should have been handled."),
                  Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
-        Public Async Function TestNoMembersToImplement() As Task
+        Public Sub TestNoMembersToImplement()
             Dim code = <text>
 Imports System
 
@@ -111,18 +111,18 @@ Public Class Bar
 
 End Class</text>
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(workspace.Documents.Single.GetTextView())
                 Test(workspace,
                  expectedText,
                  Sub() editorOperations.InsertNewLine(),
                  Sub(x, y) Assert.Equal(x.Trim(), y.Trim()))
             End Using
-        End Function
+        End Sub
 
         <WorkItem(544412, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544412")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
-        Public Async Function TestEnterNotOnSameLine() As Task
+        Public Sub TestEnterNotOnSameLine()
             Dim code = <text>
 MustInherit Class Base
     MustOverride Sub foo()
@@ -145,17 +145,17 @@ Class SomeClass
 
 End Class</text>
 
-            Using workspace = Await GetWorkspaceAsync(code)
+            Using workspace = GetWorkspace(code)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(workspace.Documents.Single.GetTextView())
                 Test(workspace,
                  expectedText,
                  Sub() editorOperations.InsertNewLine(),
                  Sub(x, y) Assert.Equal(x.Trim(), y.Trim()))
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
-        Public Async Function TestWithEndBlockMissing() As Task
+        Public Sub TestWithEndBlockMissing()
             Dim code = <text>
 Imports System
 
@@ -180,17 +180,17 @@ Public Class Bar
     End Sub
 End Class</text>
 
-            Await TestAsync(code,
+            Test(code,
                  expectedText,
                  Sub() Throw New Exception("The operation should have been handled."),
                  Sub(x, y) AssertEx.AssertEqualToleratingWhitespaceDifferences(x, y))
-        End Function
+        End Sub
 
-        Private Async Function TestAsync(code As XElement, expectedText As XElement, nextHandler As Action, assertion As Action(Of String, String)) As Task
-            Using workspace = Await GetWorkspaceAsync(code)
+        Private Sub Test(code As XElement, expectedText As XElement, nextHandler As Action, assertion As Action(Of String, String))
+            Using workspace = GetWorkspace(code)
                 Test(workspace, expectedText, nextHandler, assertion)
             End Using
-        End Function
+        End Sub
 
         Private Sub Test(workspace As TestWorkspace, expectedText As XElement, nextHandler As Action, assertion As Action(Of String, String))
             Dim document = workspace.Documents.Single()
@@ -209,15 +209,15 @@ End Class</text>
             assertion(expectedText.NormalizedValue, text)
         End Sub
 
-        Private Function GetWorkspaceAsync(code As XElement) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateAsync(
-                <Workspace>
-                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
-                        <Document>
-                            <%= code.Value %>
-                        </Document>
-                    </Project>
-                </Workspace>)
+        Private Function GetWorkspace(code As XElement) As TestWorkspace
+            Return TestWorkspace.Create(
+<Workspace>
+    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
+        <Document>
+            <%= code.Value %>
+        </Document>
+    </Project>
+</Workspace>)
         End Function
     End Class
 End Namespace

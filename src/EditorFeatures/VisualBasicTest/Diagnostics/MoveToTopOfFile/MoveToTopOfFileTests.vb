@@ -30,7 +30,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestImportsInsideDeclaration() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     [|Imports System|]
     Sub Main(args As String())
@@ -45,7 +45,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestImportsAfterDeclarations() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
     End Sub
@@ -79,7 +79,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -104,7 +104,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -129,7 +129,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -154,7 +154,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(601222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601222")>
@@ -183,7 +183,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsInsideDeclaration() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     [|Option Explicit Off|]
     Sub Main(args As String())
@@ -198,7 +198,7 @@ End Module")
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsAfterDeclarations() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
     End Sub
@@ -233,7 +233,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -258,7 +258,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -283,7 +283,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
@@ -309,7 +309,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
@@ -337,7 +337,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
@@ -365,7 +365,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
@@ -391,7 +391,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
@@ -423,7 +423,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
 #End Region
@@ -477,7 +477,7 @@ Module Program
     End Sub
 End Module
 </File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -498,7 +498,7 @@ Module Program
     End Sub
 End Module
 </File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -521,7 +521,7 @@ Module Program
     End Sub
 End Module
 </File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
@@ -550,7 +550,7 @@ Module Program
     End Sub
 End Module
 </File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(600949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/600949")>
@@ -566,7 +566,7 @@ End Class
 Class C
 End Class
 </File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=1)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=1)
         End Function
 
         <WorkItem(606857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606857")>
@@ -579,7 +579,7 @@ End Class
             Dim expected = <File>
 [|Imports System|]
 &lt;Assembly:CLSCompliant(True)&gt;</File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(606877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606877")>
@@ -593,7 +593,7 @@ End Class
 Imports System
 &lt;Assembly:CLSCompliant(True)&gt;
 </File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(606851, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606851")>
@@ -608,7 +608,7 @@ Imports System
 Imports System
  
 </File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 #End Region
 

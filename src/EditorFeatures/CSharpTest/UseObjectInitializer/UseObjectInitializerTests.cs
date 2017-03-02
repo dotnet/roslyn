@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestOnVariableDeclarator()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue1Async()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue3Async()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestOnAssignmentExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestStopOnDuplicateMember()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestComplexInitializer()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestNotOnCompoundAssignment()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
@@ -296,13 +296,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         var c = [||]new C();
         c.j = 1;
     }
-}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
+}", new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestFixAllInDocument1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestFixAllInDocument2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestFixAllInDocument3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestTrivia1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -447,7 +447,7 @@ class C
         };
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(15459, "https://github.com/dotnet/roslyn/issues/15459")]

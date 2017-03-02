@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleGetterFromField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -76,14 +76,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
             return i;
         }
     }
-}",
-            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+}", new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestInitializer()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i = 1|];
@@ -117,14 +116,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
             return i;
         }
     }
-}",
-            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+}", new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleGetterFromProperty()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     int i;
@@ -164,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestGetterAndSetter()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -191,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleGetterWithThis()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -231,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestGetterAndSetterWithThis()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -467,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFieldWithMultipleDeclarators1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     int [|i|], j, k;
@@ -491,7 +489,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFieldWithMultipleDeclarators2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     int i, [|j|], k;
@@ -515,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFieldWithMultipleDeclarators3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     int i, j, [|k|];
@@ -539,7 +537,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFieldAndPropertyInDifferentParts()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"partial class Class
 {
     [|int i|];
@@ -587,7 +585,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestUpdateReferences()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -619,7 +617,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestUpdateReferencesConflictResolution()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -651,7 +649,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInConstructor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -683,7 +681,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInNotInConstructor1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -715,7 +713,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInNotInConstructor2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -767,7 +765,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleLine1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -776,13 +774,13 @@ partial class Class
 @"class Class
 {
     int P { get; }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleLine2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -794,13 +792,13 @@ partial class Class
 @"class Class
 {
     int P { get; }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleLine3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|int i|];
@@ -813,13 +811,13 @@ partial class Class
 @"class Class
 {
     int P { get; set; }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task Tuple_SingleGetterFromField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|(int, string) i|];
@@ -835,15 +833,13 @@ partial class Class
 @"class Class
 {
     (int, string) P { get; }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TupleWithNames_SingleGetterFromField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|(int a, string b) i|];
@@ -859,9 +855,7 @@ withScriptOption: true);
 @"class Class
 {
     (int a, string b) P { get; }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
@@ -885,7 +879,7 @@ withScriptOption: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TupleWithOneName_SingleGetterFromField()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|(int a, string) i|];
@@ -901,15 +895,13 @@ withScriptOption: true);
 @"class Class
 {
     (int a, string) P { get; }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task Tuple_Initializer()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|(int, string) i = (1, ""hello"")|];
@@ -925,15 +917,13 @@ withScriptOption: true);
 @"class Class
 {
     (int, string) P { get; } = (1, ""hello"");
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task Tuple_GetterAndSetter()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|(int, string) i|];
@@ -954,9 +944,7 @@ withScriptOption: true);
 @"class Class
 {
     (int, string) P { get; set; }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
     }
 }

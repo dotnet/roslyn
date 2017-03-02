@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
         Public Async Function TestConvertToIteratorFunction() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 
@@ -46,7 +46,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToIterator)>
         Public Async Function TestConvertToIteratorFunctionLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 
@@ -120,7 +120,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
         Public Async Function TestChangeToYieldCodeFixProviderFunction() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Module1
     Iterator Function M() As IEnumerable(Of Integer)
         [|Return|] 1
@@ -135,7 +135,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
         Public Async Function TestChangeToYieldCodeFixProviderSub() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Module1
     Iterator Sub M()
         [|Return|] 1
@@ -150,7 +150,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
         Public Async Function TestChangeToYieldCodeFixProviderFunctionLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Module1
     Sub M()
         Dim a = Iterator Function()
@@ -169,7 +169,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
         Public Async Function TestChangeToYieldCodeFixProviderSubLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Module1
     Sub M()
         Dim a = Iterator Sub()
@@ -197,7 +197,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
         Public Async Function TestChangeToYieldCodeFixProviderSingleLineSubLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Module1
     Sub M()
         Dim a = Iterator Sub() [|Return|] 0

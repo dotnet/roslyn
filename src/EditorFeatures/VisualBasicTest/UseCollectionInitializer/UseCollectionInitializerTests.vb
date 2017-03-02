@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseCol
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestOnVariableDeclarator() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -33,12 +33,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestDoNotRemoveNonEmptyArgumentList() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -56,12 +56,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestOnVariableDeclarator2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -79,12 +79,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestOnAssignmentExpression() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -104,7 +104,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -161,7 +161,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestComplexInitializer() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -185,12 +185,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestMultipleArgs() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -208,7 +208,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
@@ -228,7 +228,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestFixAllInDocument() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -261,12 +261,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestTrivia1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -286,13 +286,13 @@ Class C
             }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(15528, "https://github.com/dotnet/roslyn/pull/15528")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestTrivia2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -316,7 +316,7 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
     End Class
 End Namespace
