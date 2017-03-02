@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         protected async virtual Task AddDocumentFixesAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes, 
+            ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
             Debug.Assert(!diagnostics.IsDefault);
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 cancellationToken.ThrowIfCancellationRequested();
                 fixerTasks.Add(Task.Run(() =>
                 {
-                   var context = new CodeFixContext(document, diagnostic, registerCodeFix, cancellationToken);
+                    var context = new CodeFixContext(document, diagnostic, registerCodeFix, cancellationToken);
 
                     // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
                     // a buggy extension that throws can't bring down the host?
@@ -170,8 +170,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
 
         protected virtual Task AddProjectFixesAsync(
-            Project project, ImmutableArray<Diagnostic> diagnostics, 
-            ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes, 
+            Project project, ImmutableArray<Diagnostic> diagnostics,
+            ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
             Debug.Assert(!diagnostics.IsDefault);
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         public virtual async Task<Solution> TryMergeFixesAsync(
-            Solution oldSolution, 
+            Solution oldSolution,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -237,8 +237,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private async Task<IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>> GetDocumentIdToChangedDocuments(
-            Solution oldSolution, 
-            ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions, 
+            Solution oldSolution,
+            ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
             CancellationToken cancellationToken)
         {
             var documentIdToChangedDocuments = new ConcurrentDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>();
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private async Task<IReadOnlyDictionary<DocumentId, SourceText>> GetDocumentIdToFinalTextAsync(
-            Solution oldSolution, 
+            Solution oldSolution,
             IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>> documentIdToChangedDocuments,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
             CancellationToken cancellationToken)
@@ -285,10 +285,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private async Task GetFinalDocumentTextAsync(
-            Solution oldSolution, 
+            Solution oldSolution,
             Dictionary<CodeAction, int> codeActionToDiagnosticLocation,
             ConcurrentDictionary<DocumentId, SourceText> documentIdToFinalText,
-            IEnumerable<(CodeAction action, Document document)> changedDocuments, 
+            IEnumerable<(CodeAction action, Document document)> changedDocuments,
             CancellationToken cancellationToken)
         {
             // Merges all the text changes made to a single document by many code actions
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         int IIntervalIntrospector<TextChange>.GetStart(TextChange value) => value.Span.Start;
         int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
 
-        private static Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue = 
+        private static Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
             _ => new ConcurrentBag<(CodeAction, Document)>();
 
         private async Task GetChangedDocumentsAsync(
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (AllChangesCanBeApplied(cumulativeChanges, currentChanges))
             {
-                foreach  (var change in currentChanges)
+                foreach (var change in currentChanges)
                 {
                     // Don't bother adding the change if we already have it.
                     if (change.Span.IsEmpty)
@@ -419,50 +419,142 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             SimpleIntervalTree<TextChange> cumulativeChanges, ImmutableArray<TextChange> currentChanges)
         {
             var overlappingSpans = ArrayBuilder<TextChange>.GetInstance();
+            var intersectingSpans = ArrayBuilder<TextChange>.GetInstance();
 
+            var result = AllChangesCanBeApplied(cumulativeChanges, currentChanges, overlappingSpans, intersectingSpans);
+
+            overlappingSpans.Free();
+            intersectingSpans.Free();
+
+            return result;
+        }
+
+        private static bool AllChangesCanBeApplied(
+            SimpleIntervalTree<TextChange> cumulativeChanges, ImmutableArray<TextChange> currentChanges,
+            ArrayBuilder<TextChange> overlappingSpans, ArrayBuilder<TextChange> intersectingSpans)
+        {
             foreach (var change in currentChanges)
             {
                 overlappingSpans.Clear();
+                intersectingSpans.Clear();
 
-                if (change.Span.IsEmpty)
-                {
-                    cumulativeChanges.FillWithIntervalsThatOverlapWith(
-                        change.Span.Start, change.Span.Length, overlappingSpans);
-                }
-                else
-                {
-                    cumulativeChanges.FillWithIntervalsThatIntersectWith(
-                        change.Span.Start, change.Span.Length, overlappingSpans);
-                }
+                cumulativeChanges.FillWithIntervalsThatIntersectWith(
+                   change.Span.Start, change.Span.Length, intersectingSpans);
 
-                if (overlappingSpans.Count == 0)
-                {
-                    // No conflicts
-                    continue;
-                }
-                else if (overlappingSpans.Count == 1)
-                {
-                    // The change we want to make overlapped an existing change we're making.
-                    // Allow this if the two changes are the same.
-                    if (overlappingSpans[0] == change)
-                    {
-                        continue;
-                    }
+                cumulativeChanges.FillWithIntervalsThatOverlapWith(
+                    change.Span.Start, change.Span.Length, overlappingSpans);
 
-                    // Changes weren't the same.  Can't merge this in.
-                    return false;
-                }
-                else
+                var value = ChangeCanBeApplied(change, overlappingSpans, intersectingSpans);
+                if (!value)
                 {
-                    // The change we want to make overlapped with several existing text changes
-                    // Can't merge this in.
                     return false;
                 }
             }
 
-            overlappingSpans.Free();
-
             // All the changes would merge in fine.  We can absorb this.
+            return true;
+        }
+
+        private static bool ChangeCanBeApplied(
+            TextChange change,
+            ArrayBuilder<TextChange> overlappingSpans,
+            ArrayBuilder<TextChange> intersectingSpans)
+        {
+            // Pure insertions (i.e. changes with empty spans) are complex to evaluate.  
+            // We have to make sure that 
+            return change.Span.IsEmpty
+                ? InsertionChangeCanBeApplied(change, overlappingSpans, intersectingSpans)
+                : OverwriteChangeCanBeApplied(change, overlappingSpans, intersectingSpans);
+        }
+
+        private static bool InsertionChangeCanBeApplied(
+            TextChange change,
+            ArrayBuilder<TextChange> overlappingSpans,
+            ArrayBuilder<TextChange> intersectingSpans)
+        {
+            // Empty spans can't ever overlap anything.
+            Debug.Assert(change.Span.IsEmpty);
+            Debug.Assert(overlappingSpans.Count == 0);
+            if (intersectingSpans.Count == 0)
+            {
+                // Our insertion didn't hit any other changes.  This is safe to apply.
+                return true;
+            }
+
+            if (intersectingSpans.Count == 1)
+            {
+                // Our insertion hit another change.  Thats safe when:
+                //  1) if both changes are the same.
+                //  2) the change we're hitting is not empty and we're at the end of the other change.
+
+                // Specifically, it is not safe for us to insert somewhere in start-to-middle of an 
+                // existing non-empty change.  And if we have another *empty* change, then it's 
+                // not safe for both of us to be inserting at the same point (except when the 
+                // change is identical).
+                var otherChange = intersectingSpans[0];
+                if (otherChange == change)
+                {
+                    // We're both inserting the same text at the same position.  This is safe.
+                    return true;
+                }
+
+                return !intersectingSpans[0].Span.IsEmpty &&
+                       intersectingSpans[0].Span.End == change.Span.Start;
+            }
+
+            // We're intersecting multiple changes.  That's never ok.
+            return false;
+        }
+
+        private static bool OverwriteChangeCanBeApplied(
+            TextChange change,
+            ArrayBuilder<TextChange> overlappingSpans,
+            ArrayBuilder<TextChange> intersectingSpans)
+        {
+            Debug.Assert(!change.Span.IsEmpty);
+
+            return !OverwriteChangeConflictsWithOverlappingSpans(change, overlappingSpans) &&
+                   !OverwriteChangeConflictsWithIntersectingSpans(change, intersectingSpans);
+        }
+
+        private static bool OverwriteChangeConflictsWithOverlappingSpans(
+            TextChange change,
+            ArrayBuilder<TextChange> overlappingSpans)
+        {
+            Debug.Assert(!change.Span.IsEmpty);
+
+            if (overlappingSpans.Count == 0)
+            {
+                // This change didn't overlap with any other changes.  This change is safe to make.
+                return true;
+            }
+
+            // The change we want to make overlapped an existing change we're making.  Only allow
+            // this if there was a single overlap and we are exactly the same change as it.
+            return overlappingSpans.Count == 1 && overlappingSpans[0] == change;
+        }
+
+        private static bool OverwriteChangeConflictsWithIntersectingSpans(
+            TextChange change,
+            ArrayBuilder<TextChange> intersectingSpans)
+        {
+            Debug.Assert(!change.Span.IsEmpty);
+
+            // We care about our intersections with *empty-span* changes.  Non-empty changes that
+            // we overlap are already handled in InsertionChangeConflictsWithOverlappingSpans.
+            // And non-empty spans that we abut are totally safe for both to be applied.
+            //
+            // Empty-span changes are extremely ambiguous, and it is not possible to tell which
+            // change should be applied first.  So if we get any empty spans we have to bail
+            // on applying this span.
+            foreach (var otherSpan in intersectingSpans)
+            {
+                if (otherSpan.Span.IsEmpty)
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
     }
