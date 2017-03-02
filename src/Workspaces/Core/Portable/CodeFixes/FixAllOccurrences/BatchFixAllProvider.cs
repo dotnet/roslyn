@@ -493,8 +493,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     return true;
                 }
 
-                return !intersectingSpans[0].Span.IsEmpty &&
-                       intersectingSpans[0].Span.End == change.Span.Start;
+                return !otherChange.Span.IsEmpty &&
+                       otherChange.Span.End == change.Span.Start;
             }
 
             // We're intersecting multiple changes.  That's never ok.
