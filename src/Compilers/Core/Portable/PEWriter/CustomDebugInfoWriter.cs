@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
@@ -64,7 +65,7 @@ namespace Microsoft.Cci
             // CONSIDER: this may not be the same "first" method as in Dev10, but
             // it shouldn't matter since all methods will still forward to a method
             // containing the appropriate information.
-            if (_methodBodyWithModuleInfo == null) //UNDONE: || edit-and-continue
+            if (_methodBodyWithModuleInfo == null)
             {
                 // This module level information could go on every method (and does in
                 // the edit-and-continue case), but - as an optimization - we'll just

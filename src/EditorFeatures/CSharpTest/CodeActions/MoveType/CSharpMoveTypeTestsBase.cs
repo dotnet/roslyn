@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 
         protected override string GetLanguage() => LanguageNames.CSharp;
 
-        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters)
+        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
         {
             return TestWorkspace.IsWorkspaceElement(initialMarkup)
-                ? TestWorkspace.CreateAsync(initialMarkup)
-                : TestWorkspace.CreateCSharpAsync(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
+                ? TestWorkspace.Create(initialMarkup)
+                : TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
         }
     }
 }

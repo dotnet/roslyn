@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
+            using (var workspace = TestWorkspace.Create(workspaceXml))
             {
                 var spans = (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
@@ -100,7 +100,7 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
+            using (var workspace = TestWorkspace.Create(workspaceXml))
             {
                 var options = new Dictionary<OptionKey, object>();
                 var language = workspace.Projects.Single().Language;
@@ -169,7 +169,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterDocumentRemoved()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync("class"))
+            using (var workspace = TestWorkspace.CreateCSharp("class"))
             using (var wrapper = new DiagnosticTaggerWrapper<IErrorTag>(workspace))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -199,7 +199,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterProjectRemoved()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync("class"))
+            using (var workspace = TestWorkspace.CreateCSharp("class"))
             using (var wrapper = new DiagnosticTaggerWrapper<IErrorTag>(workspace))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -241,7 +241,7 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
+            using (var workspace = TestWorkspace.Create(workspaceXml))
             {
                 var document = workspace.Documents.First();
 
@@ -274,7 +274,7 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
+            using (var workspace = TestWorkspace.Create(workspaceXml))
             {
                 var document = workspace.Documents.First();
 
@@ -304,7 +304,7 @@ class Program
 
         private async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(content))
+            using (var workspace = TestWorkspace.CreateCSharp(content))
             {
                 return (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
             }

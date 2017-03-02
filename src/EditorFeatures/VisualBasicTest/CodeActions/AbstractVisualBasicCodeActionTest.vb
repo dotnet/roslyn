@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             Return TestOptions.Script
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFileAsync(initialMarkup As String, parameters As TestParameters) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(
+        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(
                 initialMarkup,
                 parameters.parseOptions,
                 If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))

@@ -57,19 +57,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected abstract string GetLanguage();
         protected abstract ParseOptions GetScriptOptions();
 
-        protected async Task<TestWorkspace> CreateWorkspaceFromOptionsAsync(
+        protected TestWorkspace CreateWorkspaceFromOptions(
             string initialMarkup, TestParameters parameters)
         {
             var workspace = TestWorkspace.IsWorkspaceElement(initialMarkup)
-                 ? await TestWorkspace.CreateAsync(initialMarkup)
-                 : await CreateWorkspaceFromFileAsync(initialMarkup, parameters);
+                 ? TestWorkspace.Create(initialMarkup)
+                 : CreateWorkspaceFromFile(initialMarkup, parameters);
 
             workspace.ApplyOptions(parameters.options);
 
             return workspace;
         }
 
-        protected abstract Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters);
+        protected abstract TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters);
 
         protected async Task TestMissingInRegularAndScriptAsync(
             string initialMarkup,
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup,
             TestParameters parameters = default(TestParameters))
         {
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var actions = await GetCodeActionsAsync(workspace, parameters);
                 Assert.True(actions == null || actions.Count == 0);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             int index = 0,
             TestParameters parameters = default(TestParameters))
         {
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var actions = await GetCodeActionsAsync(workspace, parameters);
                 Assert.Equal(displayText, actions.ElementAt(index).Title);
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IEnumerable<string> expectedActionSet,
             TestParameters parameters = default(TestParameters))
         {
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var actions = await GetCodeActionsAsync(workspace, parameters);
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             int count,
             TestParameters parameters = default(TestParameters))
         {
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var actions = await GetCodeActionsAsync(workspace, parameters);
 
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             bool ignoreTrivia = true,
             TestParameters parameters = default(TestParameters))
         {
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var codeActions = await GetCodeActionsAsync(workspace, parameters);
                 await TestAddDocument(
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var renameSpans = spanMap.GetOrAdd("Rename", _ => new List<TextSpan>());
             var warningSpans = spanMap.GetOrAdd("Warning", _ => new List<TextSpan>());
 
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var actions = await GetCodeActionsAsync(workspace, parameters);
                 await TestActionsAsync(
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution)
         {
-            using (var expectedWorkspace = await TestWorkspace.CreateAsync(expectedText))
+            using (var expectedWorkspace = TestWorkspace.Create(expectedText))
             {
                 var expectedSolution = expectedWorkspace.CurrentSolution;
                 Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());

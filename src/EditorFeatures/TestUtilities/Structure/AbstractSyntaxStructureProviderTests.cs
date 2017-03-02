@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
         protected async Task VerifyBlockSpansAsync(string markupCode, params Tuple<string, string, string, bool, bool>[] expectedRegionData)
         {
-            using (var workspace = await TestWorkspace.CreateAsync(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
+            using (var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
             {
                 var hostDocument = workspace.Documents.Single();
                 Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
         protected async Task VerifyNoBlockSpansAsync(string markupCode)
         {
-            using (var workspace = await TestWorkspace.CreateAsync(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
+            using (var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
             {
                 var hostDocument = workspace.Documents.Single();
                 Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");

@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
             private static readonly ImmutableArray<PackageSource> NugetPackageSources =
                 ImmutableArray.Create(new PackageSource(NugetOrgSource, "http://nuget.org/"));
 
-            protected override async Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters)
+            protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
             {
-                var workspace = await base.CreateWorkspaceFromFileAsync(initialMarkup, parameters);
+                var workspace = base.CreateWorkspaceFromFile(initialMarkup, parameters);
                 workspace.Options = workspace.Options
                     .WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp, true)
                     .WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true);

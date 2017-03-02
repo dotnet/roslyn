@@ -12,17 +12,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "Comment tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment1() As Task
+        Public Sub TestComment1()
             Dim code =
 <Code>
 namespace $$N { }
 </Code>
 
-            Await TestComment(code, String.Empty)
-        End Function
+            TestComment(code, String.Empty)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment2() As Task
+        Public Sub TestComment2()
             Dim code =
 <Code>
 // Foo
@@ -30,11 +30,11 @@ namespace $$N { }
 namespace $$N { }
 </Code>
 
-            Await TestComment(code, "Foo" & vbCrLf & "Bar" & vbCrLf)
-        End Function
+            TestComment(code, "Foo" & vbCrLf & "Bar" & vbCrLf)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment3() As Task
+        Public Sub TestComment3()
             Dim code =
 <Code>
 namespace N1 { } // Foo
@@ -42,11 +42,11 @@ namespace N1 { } // Foo
 namespace $$N2 { }
 </Code>
 
-            Await TestComment(code, "Bar" & vbCrLf)
-        End Function
+            TestComment(code, "Bar" & vbCrLf)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment4() As Task
+        Public Sub TestComment4()
             Dim code =
 <Code>
 namespace N1 { } // Foo
@@ -54,11 +54,11 @@ namespace N1 { } // Foo
 namespace $$N2 { }
 </Code>
 
-            Await TestComment(code, "Bar" & vbCrLf)
-        End Function
+            TestComment(code, "Bar" & vbCrLf)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment5() As Task
+        Public Sub TestComment5()
             Dim code =
 <Code>
 namespace N1 { } // Foo
@@ -68,11 +68,11 @@ namespace N1 { } // Foo
 namespace $$N2 { }
 </Code>
 
-            Await TestComment(code, "Bar" & vbCrLf)
-        End Function
+            TestComment(code, "Bar" & vbCrLf)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment6() As Task
+        Public Sub TestComment6()
             Dim code =
 <Code>
 namespace N1 { } // Foo
@@ -83,11 +83,11 @@ namespace N1 { } // Foo
 namespace $$N2 { }
 </Code>
 
-            Await TestComment(code, "Hello" & vbCrLf & "World!" & vbCrLf)
-        End Function
+            TestComment(code, "Hello" & vbCrLf & "World!" & vbCrLf)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment7() As Task
+        Public Sub TestComment7()
             Dim code =
 <Code>
 namespace N1 { } // Foo
@@ -99,11 +99,11 @@ namespace N1 { } // Foo
 namespace $$N2 { }
 </Code>
 
-            Await TestComment(code, "Hello" & vbCrLf & vbCrLf & "World!" & vbCrLf)
-        End Function
+            TestComment(code, "Hello" & vbCrLf & vbCrLf & "World!" & vbCrLf)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment8() As Task
+        Public Sub TestComment8()
             Dim code =
 <Code>
 /* This
@@ -115,11 +115,11 @@ namespace $$N2 { }
 namespace $$N { }
 </Code>
 
-            Await TestComment(code, "This" & vbCrLf & "is" & vbCrLf & "a" & vbCrLf & "multi-line" & vbCrLf & "comment!" & vbCrLf)
-        End Function
+            TestComment(code, "This" & vbCrLf & "is" & vbCrLf & "a" & vbCrLf & "multi-line" & vbCrLf & "comment!" & vbCrLf)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment9() As Task
+        Public Sub TestComment9()
             Dim code =
 <Code>
 // Foo
@@ -127,26 +127,26 @@ namespace $$N { }
 namespace $$N { }
 </Code>
 
-            Await TestComment(code, String.Empty)
-        End Function
+            TestComment(code, String.Empty)
+        End Sub
 
 #End Region
 
 #Region "DocComment tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment1() As Task
+        Public Sub TestDocComment1()
             Dim code =
 <Code>
 /// &lt;summary&gt;Hello World&lt;/summary&gt;
 namespace $$N { }
 </Code>
 
-            Await TestDocComment(code, "<doc>" & vbCrLf & "<summary>Hello World</summary>" & vbCrLf & "</doc>")
-        End Function
+            TestDocComment(code, "<doc>" & vbCrLf & "<summary>Hello World</summary>" & vbCrLf & "</doc>")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment2() As Task
+        Public Sub TestDocComment2()
             Dim code =
 <Code>
 /// &lt;summary&gt;
@@ -155,11 +155,11 @@ namespace $$N { }
 namespace $$N { }
 </Code>
 
-            Await TestDocComment(code, "<doc>" & vbCrLf & "<summary>" & vbCrLf & "Hello World" & vbCrLf & "</summary>" & vbCrLf & "</doc>")
-        End Function
+            TestDocComment(code, "<doc>" & vbCrLf & "<summary>" & vbCrLf & "Hello World" & vbCrLf & "</summary>" & vbCrLf & "</doc>")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment3() As Task
+        Public Sub TestDocComment3()
             Dim code =
 <Code>
 ///    &lt;summary&gt;
@@ -168,11 +168,11 @@ namespace $$N { }
 namespace $$N { }
 </Code>
 
-            Await TestDocComment(code, "<doc>" & vbCrLf & "    <summary>" & vbCrLf & " Hello World" & vbCrLf & "</summary>" & vbCrLf & "</doc>")
-        End Function
+            TestDocComment(code, "<doc>" & vbCrLf & "    <summary>" & vbCrLf & " Hello World" & vbCrLf & "</summary>" & vbCrLf & "</doc>")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment4() As Task
+        Public Sub TestDocComment4()
             Dim code =
 <Code>
 /// &lt;summary&gt;
@@ -182,8 +182,8 @@ namespace $$N { }
 namespace $$N { }
 </Code>
 
-            Await TestDocComment(code, "<doc>" & vbCrLf & "<summary>" & vbCrLf & "Summary" & vbCrLf & "</summary>" & vbCrLf & "<remarks>Remarks</remarks>" & vbCrLf & "</doc>")
-        End Function
+            TestDocComment(code, "<doc>" & vbCrLf & "<summary>" & vbCrLf & "Summary" & vbCrLf & "</summary>" & vbCrLf & "<remarks>Remarks</remarks>" & vbCrLf & "</doc>")
+        End Sub
 
 #End Region
 
@@ -417,7 +417,7 @@ namespace Foo
 
         <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestChildren1() As Task
+        Public Sub TestChildren1()
             Dim code =
 <Code>
 namespace N$$
@@ -428,15 +428,15 @@ namespace N$$
 }
 </Code>
 
-            Await TestChildren(code,
+            TestChildren(code,
                 IsElement("C1", EnvDTE.vsCMElement.vsCMElementClass),
                 IsElement("C2", EnvDTE.vsCMElement.vsCMElementClass),
                 IsElement("C3", EnvDTE.vsCMElement.vsCMElementClass))
-        End Function
+        End Sub
 
         <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function NoChildrenForInvalidMembers() As Task
+        Public Sub NoChildrenForInvalidMembers()
             Dim code =
 <Code>
 namespace N$$
@@ -447,11 +447,11 @@ namespace N$$
 }
 </Code>
 
-            Await TestChildren(code, NoElements)
-        End Function
+            TestChildren(code, NoElements)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestTypeDescriptor_GetProperties() As Task
+        Public Sub TestTypeDescriptor_GetProperties()
             Dim code =
 <Code>
 namespace $$N
@@ -464,8 +464,8 @@ namespace $$N
                  "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
                  "ExtenderCATID", "Parent", "Members", "DocComment", "Comment"}
 
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
-        End Function
+            TestPropertyDescriptors(code, expectedPropertyNames)
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get
