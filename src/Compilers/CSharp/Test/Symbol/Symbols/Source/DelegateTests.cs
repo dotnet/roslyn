@@ -775,7 +775,7 @@ class C
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void ReadonlyRefsInlambda()
+        public void RefReadonlysInlambda()
         {
             var source = @"
 class C
@@ -811,7 +811,7 @@ class C
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void ReadonlyRefsInlambda1()
+        public void RefReadonlysInlambda1()
         {
             var source = @"
 class C

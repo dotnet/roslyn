@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CodeGenInParametersTests : CompilingTestBase
     {
         [Fact]
-        public void RefReturnArrayAccess()
+        public void RefReturnParamAccess()
         {
             var text = @"
 class Program
@@ -40,7 +40,7 @@ class Program
         }
 
         [Fact]
-        public void RefReturnArrayAccess1()
+        public void RefReturnParamAccess1()
         {
             var text = @"
 class Program
