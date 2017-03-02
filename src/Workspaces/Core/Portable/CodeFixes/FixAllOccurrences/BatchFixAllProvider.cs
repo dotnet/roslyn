@@ -331,6 +331,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     cancellationToken).ConfigureAwait(false);
             }
 
+            // WithChanges requires a ordered list of TextChanges without any overlap.
+            var changesToApply = totalChangesIntervalTree.Distinct().OrderBy(tc => tc.Span.Start);
+
             var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = oldText.WithChanges(totalChangesIntervalTree.OrderBy(tc => tc.Span.Start));
 
@@ -385,8 +388,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             SimpleIntervalTree<TextChange> cumulativeChanges,
             CancellationToken cancellationToken)
         {
-            var changesToAdd = new List<TextChange>();
-
             var currentChanges = await differenceService.GetTextChangesAsync(
                 oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
 
@@ -396,32 +397,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 foreach (var change in currentChanges)
                 {
-                    // Don't bother adding the change if we already have it.
-                    if (change.Span.IsEmpty)
-                    {
-                        if (!cumulativeChanges.HasIntervalThatIntersectsWith(change.Span.Start, change.Span.Length))
-                        {
-                            cumulativeChanges.AddIntervalInPlace(change);
-                        }
-                    }
-                    else
-                    {
-                        if (!cumulativeChanges.HasIntervalThatOverlapsWith(change.Span.Start, change.Span.Length))
-                        {
-                            cumulativeChanges.AddIntervalInPlace(change);
-                        }
-                    }
+                    cumulativeChanges.AddIntervalInPlace(change);
                 }
             }
         }
 
         private static bool AllChangesCanBeApplied(
-            SimpleIntervalTree<TextChange> cumulativeChanges, ImmutableArray<TextChange> currentChanges)
+            SimpleIntervalTree<TextChange> cumulativeChanges,
+            ImmutableArray<TextChange> currentChanges)
         {
             var overlappingSpans = ArrayBuilder<TextChange>.GetInstance();
             var intersectingSpans = ArrayBuilder<TextChange>.GetInstance();
 
-            var result = AllChangesCanBeApplied(cumulativeChanges, currentChanges, overlappingSpans, intersectingSpans);
+            var result = AllChangesCanBeApplied(
+                cumulativeChanges, currentChanges,
+                overlappingSpans: overlappingSpans,
+                intersectingSpans: intersectingSpans);
 
             overlappingSpans.Free();
             intersectingSpans.Free();
@@ -430,21 +421,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static bool AllChangesCanBeApplied(
-            SimpleIntervalTree<TextChange> cumulativeChanges, ImmutableArray<TextChange> currentChanges,
-            ArrayBuilder<TextChange> overlappingSpans, ArrayBuilder<TextChange> intersectingSpans)
+            SimpleIntervalTree<TextChange> cumulativeChanges,
+            ImmutableArray<TextChange> currentChanges,
+            ArrayBuilder<TextChange> overlappingSpans,
+            ArrayBuilder<TextChange> intersectingSpans)
         {
             foreach (var change in currentChanges)
             {
                 overlappingSpans.Clear();
                 intersectingSpans.Clear();
 
-                cumulativeChanges.FillWithIntervalsThatIntersectWith(
-                   change.Span.Start, change.Span.Length, intersectingSpans);
-
                 cumulativeChanges.FillWithIntervalsThatOverlapWith(
                     change.Span.Start, change.Span.Length, overlappingSpans);
 
-                var value = ChangeCanBeApplied(change, overlappingSpans, intersectingSpans);
+                cumulativeChanges.FillWithIntervalsThatIntersectWith(
+                   change.Span.Start, change.Span.Length, intersectingSpans);
+
+                var value = ChangeCanBeApplied(change,
+                    overlappingSpans: overlappingSpans,
+                    intersectingSpans: intersectingSpans);
                 if (!value)
                 {
                     return false;
