@@ -536,10 +536,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Debug.Assert(!change.Span.IsEmpty);
 
             // We care about our intersections with *empty-span* changes.  Non-empty changes that
-            // we overlap are already handled in InsertionChangeConflictsWithOverlappingSpans.
-            // And non-empty spans that we abut are totally safe for both to be applied.
+            // we overlap are already handled in OverwriteChangeConflictsWithOverlappingSpans.
+            // And non-empty spans that we abut (i.e. which we're adjacent to) are totally safe 
+            // for both to be applied.
             //
-            // Empty-span changes are extremely ambiguous, and it is not possible to tell which
+            // However, empty-span changes are extremely ambiguous. It is not possible to tell which
             // change should be applied first.  So if we get any empty spans we have to bail
             // on applying this span.
             foreach (var otherSpan in intersectingSpans)
