@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Automation;
 
-namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class DialogHelpers
     {
