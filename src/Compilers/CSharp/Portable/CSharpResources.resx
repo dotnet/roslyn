@@ -2285,6 +2285,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_OpenEndedComment" xml:space="preserve">
     <value>End-of-file found, '*/' expected</value>
   </data>
+  <data name="ERR_Merge_conflict_marker_encountered" xml:space="preserve">
+    <value>Merge conflict marker encountered</value>
+  </data>
   <data name="ERR_OvlOperatorExpected" xml:space="preserve">
     <value>Overloadable operator expected</value>
   </data>

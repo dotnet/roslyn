@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -2269,6 +2270,81 @@ class Program
                 Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
                 Assert.Equal("String", typeInfo.Type.Name);
                 Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
+        }
+
+        // See MaxParameterListsForErrorRecovery.
+        [Fact]
+        public void BuildArgumentsForErrorRecovery_ManyOverloads()
+        {
+            BuildArgumentsForErrorRecovery_ManyOverloads_Internal(Binder.MaxParameterListsForErrorRecovery - 1, tooMany: false);
+            BuildArgumentsForErrorRecovery_ManyOverloads_Internal(Binder.MaxParameterListsForErrorRecovery, tooMany: true);
+        }
+
+        private void BuildArgumentsForErrorRecovery_ManyOverloads_Internal(int n, bool tooMany)
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine("using System;");
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($"class C{i} {{ }}");
+            }
+            builder.Append(
+@"class A { }
+class B { }
+class C
+{
+    void M()
+    {
+        F(1, (t, a, b, c) => { });
+        var o = this[(a, b, c) => { }];
+    }
+");
+            // Too few parameters.
+            AppendLines(builder, n, i => $"    void F<T>(T t, Action<T, A, C{i}> a) {{ }}");
+            AppendLines(builder, n, i => $"    object this[Action<A, C{i}> a] => {i}");
+            // Type inference failure.
+            AppendLines(builder, n, i => $"    void F<T, U>(T t, Action<T, U, C{i}> a) where U : T {{ }}");
+            // Too many parameters.
+            AppendLines(builder, n, i => $"    void F<T>(T t, Action<T, A, B, C, C{i}> a) {{ }}");
+            AppendLines(builder, n, i => $"    object this[Action<A, B, C, C{i}> a] => {i}");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToArray();
+
+            // F(1, (t, a, b, c) => { });
+            var lambda = lambdas[0];
+            var parameters = lambda.ParameterList.Parameters;
+            var parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
+            Assert.False(parameter.Type.IsErrorType());
+            Assert.Equal("System.Int32 t", parameter.ToTestDisplayString());
+            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[1]);
+            Assert.False(parameter.Type.IsErrorType());
+            Assert.Equal("A a", parameter.ToTestDisplayString());
+            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[3]);
+            Assert.Equal(tooMany, parameter.Type.IsErrorType());
+            Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
+
+            // var o = this[(a, b, c) => { }];
+            lambda = lambdas[1];
+            parameters = lambda.ParameterList.Parameters;
+            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
+            Assert.False(parameter.Type.IsErrorType());
+            Assert.Equal("A a", parameter.ToTestDisplayString());
+            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[2]);
+            Assert.Equal(tooMany, parameter.Type.IsErrorType());
+            Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
+        }
+
+        private static void AppendLines(StringBuilder builder, int n, Func<int, string> getLine)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine(getLine(i));
             }
         }
 

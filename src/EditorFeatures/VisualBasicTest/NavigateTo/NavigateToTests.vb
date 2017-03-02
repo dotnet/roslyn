@@ -12,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
 
         Protected Overrides ReadOnly Property Language As String = "vb"
 
-        Protected Overrides Function CreateWorkspace(content As String, exportProvider As ExportProvider) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(content, exportProvider:=exportProvider)
+        Protected Overrides Function CreateWorkspace(content As String, exportProvider As ExportProvider) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(content, exportProvider:=exportProvider)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
@@ -768,7 +768,7 @@ End Class", Async Function(w)
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestDescriptionItemsFilePath() As Task
-            Using workspace = Await SetupWorkspaceAsync(
+            Using workspace = SetupWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document FilePath="foo\Test1.vb">

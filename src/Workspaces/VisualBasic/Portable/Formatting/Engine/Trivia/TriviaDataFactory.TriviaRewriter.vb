@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
                 _cancellationToken.ThrowIfCancellationRequested()
 
-                If node Is Nothing OrElse Not Me._spans.IntersectsWith(node.FullSpan) Then
+                If node Is Nothing OrElse Not Me._spans.HasIntervalThatIntersectsWith(node.FullSpan) Then
                     Return node
                 End If
 
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
                 _cancellationToken.ThrowIfCancellationRequested()
 
-                If Not Me._spans.IntersectsWith(token.FullSpan) Then
+                If Not Me._spans.HasIntervalThatIntersectsWith(token.FullSpan) Then
                     Return token
                 End If
 

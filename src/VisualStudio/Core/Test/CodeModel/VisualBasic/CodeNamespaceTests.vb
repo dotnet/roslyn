@@ -12,13 +12,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "GetStartPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint1() As Task
+        Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
 Namespace $$N : End Namespace
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -39,17 +39,17 @@ Namespace $$N : End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=27)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=27)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint2() As Task
+        Public Sub TestGetStartPoint2()
             Dim code =
 <Code>
 Namespace $$N :
 End Namespace
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -70,17 +70,17 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=13)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=13)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint3() As Task
+        Public Sub TestGetStartPoint3()
             Dim code =
 <Code>
 Namespace $$N ' N
 End Namespace
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -101,17 +101,17 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=15)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=15)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint4() As Task
+        Public Sub TestGetStartPoint4()
             Dim code =
 <Code>
 Namespace $$N
 End Namespace
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -132,10 +132,10 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=11)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=11)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint5() As Task
+        Public Sub TestGetStartPoint5()
             Dim code =
 <Code>
 Namespace $$N
@@ -145,7 +145,7 @@ End Namespace
 
             ' Note: TextPoint.AbsoluteCharOffset throws in VS 2012 for vsCMPartNavigate
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -166,10 +166,10 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=11)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=11)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint6() As Task
+        Public Sub TestGetStartPoint6()
             Dim code =
 <Code>
 Namespace $$N
@@ -178,7 +178,7 @@ Namespace $$N
 End Namespace
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -199,10 +199,10 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=11)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=11)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint7() As Task
+        Public Sub TestGetStartPoint7()
             Dim code =
 <Code>
 Namespace $$N
@@ -215,7 +215,7 @@ End Namespace
 
             ' Note: TextPoint.AbsoluteCharOffset throws in VS 2012 for vsCMPartNavigate
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -236,20 +236,20 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=11)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=11)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "GetEndPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint1() As Task
+        Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
 Namespace $$N : End Namespace
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -270,17 +270,17 @@ Namespace $$N : End Namespace
                      TextPoint(line:=1, lineOffset:=28, absoluteOffset:=28, lineLength:=27)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=28, absoluteOffset:=28, lineLength:=27)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint2() As Task
+        Public Sub TestGetEndPoint2()
             Dim code =
 <Code>
 Namespace $$N
 End Namespace
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -301,10 +301,10 @@ End Namespace
                      TextPoint(line:=2, lineOffset:=14, absoluteOffset:=26, lineLength:=13)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=14, absoluteOffset:=26, lineLength:=13)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint3() As Task
+        Public Sub TestGetEndPoint3()
             Dim code =
 <Code>
 Namespace $$N
@@ -312,7 +312,7 @@ Namespace $$N
 End Namespace
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -333,10 +333,10 @@ End Namespace
                      TextPoint(line:=3, lineOffset:=14, absoluteOffset:=27, lineLength:=13)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=14, absoluteOffset:=27, lineLength:=13)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint4() As Task
+        Public Sub TestGetEndPoint4()
             Dim code =
 <Code>
 Namespace $$N
@@ -345,7 +345,7 @@ Namespace $$N
 End Namespace
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -366,10 +366,10 @@ End Namespace
                      TextPoint(line:=4, lineOffset:=14, absoluteOffset:=52, lineLength:=13)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=4, lineOffset:=14, absoluteOffset:=52, lineLength:=13)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint5() As Task
+        Public Sub TestGetEndPoint5()
             Dim code =
 <Code>
 Namespace $$N
@@ -380,7 +380,7 @@ Namespace $$N
 End Namespace
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -401,14 +401,14 @@ End Namespace
                      TextPoint(line:=6, lineOffset:=14, absoluteOffset:=54, lineLength:=13)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=6, lineOffset:=14, absoluteOffset:=54, lineLength:=13)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Comment tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment1() As Task
+        Public Sub TestComment1()
             Dim code =
 <Code>
 ' Foo
@@ -418,11 +418,11 @@ End Namespace
 
             Dim result = " Foo"
 
-            Await TestComment(code, result)
-        End Function
+            TestComment(code, result)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment2() As Task
+        Public Sub TestComment2()
             Dim code =
 <Code>
 ' Foo
@@ -434,11 +434,11 @@ End Namespace
             Dim result = " Foo" & vbCrLf &
                          " Bar"
 
-            Await TestComment(code, result)
-        End Function
+            TestComment(code, result)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment3() As Task
+        Public Sub TestComment3()
             Dim code =
 <Code>
 ' Foo
@@ -450,11 +450,11 @@ End Namespace
 
             Dim result = " Bar"
 
-            Await TestComment(code, result)
-        End Function
+            TestComment(code, result)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment4() As Task
+        Public Sub TestComment4()
             Dim code =
 <Code>
 Namespace N1
@@ -467,11 +467,11 @@ End Namespace
 
             Dim result = " Bar"
 
-            Await TestComment(code, result)
-        End Function
+            TestComment(code, result)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestComment5() As Task
+        Public Sub TestComment5()
             Dim code =
 <Code>
 ' Foo
@@ -482,15 +482,15 @@ End Namespace
 
             Dim result = ""
 
-            Await TestComment(code, result)
-        End Function
+            TestComment(code, result)
+        End Sub
 
 #End Region
 
 #Region "DocComment tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment1() As Task
+        Public Sub TestDocComment1()
             Dim code =
 <Code>
 ''' &lt;summary&gt;
@@ -507,11 +507,11 @@ End Namespace
 " </summary>" & vbCrLf &
 " <remarks></remarks>"
 
-            Await TestDocComment(code, result)
-        End Function
+            TestDocComment(code, result)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment2() As Task
+        Public Sub TestDocComment2()
             Dim code =
 <Code>
 '''     &lt;summary&gt;
@@ -526,11 +526,11 @@ End Namespace
 " Hello World" & vbCrLf &
 " </summary>"
 
-            Await TestDocComment(code, result)
-        End Function
+            TestDocComment(code, result)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment3() As Task
+        Public Sub TestDocComment3()
             Dim code =
 <Code>
 ''' &lt;summary&gt;
@@ -545,11 +545,11 @@ End Namespace
             Dim result =
 " <remarks></remarks>"
 
-            Await TestDocComment(code, result)
-        End Function
+            TestDocComment(code, result)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment4() As Task
+        Public Sub TestDocComment4()
             Dim code =
 <Code>
 Namespace N1
@@ -568,8 +568,8 @@ End Namespace
 " </summary>" & vbCrLf &
 " <remarks></remarks>"
 
-            Await TestDocComment(code, result)
-        End Function
+            TestDocComment(code, result)
+        End Sub
 
 #End Region
 
@@ -846,7 +846,7 @@ End Namespace
 
         <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestChildren1() As Task
+        Public Sub TestChildren1()
             Dim code =
 <Code>
 Namespace N$$
@@ -861,15 +861,15 @@ Namespace N$$
 End Namespace
 </Code>
 
-            Await TestChildren(code,
+            TestChildren(code,
                          IsElement("C1", EnvDTE.vsCMElement.vsCMElementClass),
                          IsElement("C2", EnvDTE.vsCMElement.vsCMElementClass),
                          IsElement("C3", EnvDTE.vsCMElement.vsCMElementClass))
-        End Function
+        End Sub
 
         <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function NoChildrenForInvalidMembers() As Task
+        Public Sub NoChildrenForInvalidMembers()
             Dim code =
 <Code>
 Namespace N$$
@@ -882,8 +882,8 @@ Namespace N$$
 End Sub
 </Code>
 
-            Await TestChildren(code, NoElements)
-        End Function
+            TestChildren(code, NoElements)
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

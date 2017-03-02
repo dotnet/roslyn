@@ -1496,7 +1496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SymbolKind.Alias:
                     {
-                        var alias = symbol as AliasSymbol;
+                        var alias = (AliasSymbol)symbol;
                         symbol = alias.Target;
                         switch (symbol.Kind)
                         {
@@ -1511,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case SymbolKind.RangeVariable:
-                    return BindRangeVariable(node, symbol as RangeVariableSymbol, diagnostics);
+                    return BindRangeVariable(node, (RangeVariableSymbol)symbol, diagnostics);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);

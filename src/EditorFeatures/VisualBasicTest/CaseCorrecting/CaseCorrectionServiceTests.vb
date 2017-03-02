@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
         End Function
 
         Private Async Function TestAsync(input As String, expected As String) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(input)
+            Using workspace = TestWorkspace.CreateVisualBasic(input)
                 Await TestAsync(expected, workspace)
             End Using
         End Function
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
         End Function
 
         Private Async Function TestAsync(input As XElement, expected As String) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(input)
+            Using workspace = TestWorkspace.Create(input)
                 Await TestAsync(expected, workspace)
             End Using
         End Function

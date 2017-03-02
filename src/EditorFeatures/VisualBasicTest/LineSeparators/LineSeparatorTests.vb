@@ -284,7 +284,7 @@ End Class")
         End Function
 
         Private Async Function GetSpansForAsync(content As String) As Tasks.Task(Of IEnumerable(Of TextSpan))
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
+            Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Dim spans = Await New VisualBasicLineSeparatorService().GetLineSeparatorsAsync(document,
                     (Await document.GetSyntaxRootAsync()).FullSpan)

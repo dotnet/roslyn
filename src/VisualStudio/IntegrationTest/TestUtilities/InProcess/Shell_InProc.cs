@@ -16,5 +16,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public string GetActiveWindowCaption()
             => InvokeOnUIThread(() => GetDTE().ActiveWindow.Caption);
+
+        public int GetHWnd()
+            => GetDTE().MainWindow.HWnd;
     }
 }

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     {
         internal override async Task<IEnumerable<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, options))
+            using (var workspace = TestWorkspace.CreateCSharp(code, options))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
@@ -2127,7 +2127,7 @@ struct Type<T>
         public async Task TestCreateWithBufferNotInWorkspace()
         {
             // don't crash
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(""))
+            using (var workspace = TestWorkspace.CreateCSharp(""))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
@@ -2165,7 +2165,7 @@ struct Type<T>
         public async Task TestGetTagsOnBufferTagger()
         {
             // don't crash
-            using (var workspace = await TestWorkspace.CreateCSharpAsync("class C { C c; }"))
+            using (var workspace = TestWorkspace.CreateCSharp("class C { C c; }"))
             {
                 var document = workspace.Documents.First();
 

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Gets all scopes that contain variables.
         /// </summary>
-        internal ImmutableArray<Cci.StateMachineHoistedLocalScope> GetHoistedLocalScopes()
+        internal ImmutableArray<StateMachineHoistedLocalScope> GetHoistedLocalScopes()
         {
             // The hoisted local scopes are enumerated and returned here, sorted by variable "index",
             // which is a number appearing after the "__" at the end of the field's name.  The index should

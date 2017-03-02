@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             var testOptions = new TestParameters(
                 fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, 
                 fixProviderData: fixProviderData);
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(originalCode, testOptions))
+            using (var workspace = CreateWorkspaceFromOptions(originalCode, testOptions))
             {
                 if (expectedCodeAction)
                 {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
         {
             var testOptions = new TestParameters(
                 fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(originalCode, testOptions))
+            using (var workspace = CreateWorkspaceFromOptions(originalCode, testOptions))
             {
                 if (expectedCodeAction)
                 {
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             var testOptions = new TestParameters();
             if (expectedCodeAction)
             {
-                using (var workspace = await CreateWorkspaceFromFileAsync(originalCode, testOptions))
+                using (var workspace = CreateWorkspaceFromFile(originalCode, testOptions))
                 {
                     onAfterWorkspaceCreated?.Invoke(workspace);
 
