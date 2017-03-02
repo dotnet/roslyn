@@ -521,12 +521,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (overlappingSpans.Count == 0)
             {
                 // This change didn't overlap with any other changes.  This change is safe to make.
-                return true;
+                return false;
             }
 
             // The change we want to make overlapped an existing change we're making.  Only allow
             // this if there was a single overlap and we are exactly the same change as it.
-            return overlappingSpans.Count == 1 && overlappingSpans[0] == change;
+            return overlappingSpans.Count > 1 || overlappingSpans[0] != change;
         }
 
         private static bool OverwriteChangeConflictsWithIntersectingSpans(
@@ -547,11 +547,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 if (otherSpan.Span.IsEmpty)
                 {
-                    return false;
+                    return true;
                 }
             }
 
-            return true;
+            return false;
         }
     }
 }
