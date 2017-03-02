@@ -34,7 +34,6 @@
     <Compile Include="InProcess\CSharpInteractiveWindow_InProc.cs" />
     <Compile Include="InProcess\DialogHelpers.cs" />
     <Compile Include="InProcess\FindReferencesWindow_InProc.cs" />
-    <Compile Include="InProcess\GenerateTypeDialog_InProc.cs" />
     <Compile Include="InProcess\InProcComponent.cs" />
     <Compile Include="InProcess\Shell_InProc.cs" />
     <Compile Include="InProcess\SolutionExplorer_InProc.cs" />

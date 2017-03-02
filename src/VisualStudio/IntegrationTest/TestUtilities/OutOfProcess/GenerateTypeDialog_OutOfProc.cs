@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
+using System.Windows.Automation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
@@ -7,41 +10,66 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
     public class GenerateTypeDialog_OutOfProc : OutOfProcComponent
     {
-        private readonly GenerateTypeDialog_InProc _inProc;
+        private const string GenerateTypeDialogID = "GenerateTypeDialog";
 
         public GenerateTypeDialog_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            _inProc = CreateInProcComponent<GenerateTypeDialog_InProc>(visualStudioInstance);
         }
 
         public void VerifyOpen()
-            => _inProc.VerifyOpen();
+        {
+            var dialog = DialogHelpers.FindDialog(GetMainWindowHWnd(), GenerateTypeDialogID, isOpen: true);
+
+            if (dialog == null)
+            {
+                throw new InvalidOperationException($"Expected the '{GenerateTypeDialogID}' dialog to be open but it is not.");
+            }
+        }
 
         public void VerifyClosed()
-            => _inProc.VerifyClosed();
+        {
+            var dialog = DialogHelpers.FindDialog(GetMainWindowHWnd(), GenerateTypeDialogID, isOpen: false);
+
+            if (dialog != null)
+            {
+                throw new InvalidOperationException($"Expected the '{GenerateTypeDialogID}' dialog to be closed but it is not.");
+            }
+        }
 
         public void SetAccessibility(string accessibility)
-            => _inProc.SetAccessibility(accessibility);
+        {
+            DialogHelpers.SelectComboBoxItem(GetMainWindowHWnd(), GenerateTypeDialogID, "AccessList", accessibility);
+        }
 
         public void SetKind(string kind)
-            => _inProc.SetKind(kind);
+        {
+            DialogHelpers.SelectComboBoxItem(GetMainWindowHWnd(), GenerateTypeDialogID, "KindList", kind);
+        }
 
         public void SetTargetProject(string projectName)
-            => _inProc.SetTargetProject(projectName);
+        {
+            DialogHelpers.SelectComboBoxItem(GetMainWindowHWnd(), GenerateTypeDialogID, "ProjectList", projectName);
+        }
 
         public void SetTargetFileToNewName(string newFileName)
-            => _inProc.SetTargetFileToNewName(newFileName);
+        {
+            DialogHelpers.SelectRadioButton(GetMainWindowHWnd(), GenerateTypeDialogID, "CreateNewFileRadioButton");
+            DialogHelpers.SetElementValue(GetMainWindowHWnd(), GenerateTypeDialogID, "CreateNewFileComboBox", newFileName);
+        }
 
         public void SetTargetFileToExisting(string existingFileName)
-            => _inProc.SetTargetFileToExisting(existingFileName);
+        {
+            DialogHelpers.SelectRadioButton(GetMainWindowHWnd(), GenerateTypeDialogID, "AddToExistingFileRadioButton");
+            DialogHelpers.SetElementValue(GetMainWindowHWnd(), GenerateTypeDialogID, "AddToExistingFileComboBox", existingFileName);
+        }
 
         /// <summary>
         /// Clicks the "OK" button and waits for the related Code Action to complete.
         /// </summary>
         public void ClickOK()
         {
-            _inProc.ClickOK();
+            DialogHelpers.PressButtonWithName(GetMainWindowHWnd(), GenerateTypeDialogID, "OK");
             VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
@@ -50,11 +78,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// </summary>
         public void ClickCancel()
         {
-            _inProc.ClickCancel();
+            DialogHelpers.PressButtonWithName(GetMainWindowHWnd(), GenerateTypeDialogID, "Cancel");
             VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
         public string[] GetNewFileComboBoxItems()
-            => _inProc.GetNewFileComboBoxItems();
+        {
+            var dialog = DialogHelpers.GetOpenDialog(GetMainWindowHWnd(), GenerateTypeDialogID);
+            var createNewFileComboBox = dialog.FindDescendantByAutomationId("CreateNewFileComboBox");
+            createNewFileComboBox.Expand();
+
+            var children = createNewFileComboBox.FindDescendantsByClass("ListBoxItem");
+
+            createNewFileComboBox.Collapse();
+
+            return children.Cast<AutomationElement>().Select(element => element.Current.Name).ToArray();
+        }
+
+        private int GetMainWindowHWnd()
+        {
+            return VisualStudioInstance.Shell.GetHWnd();
+        }
     }
 }
