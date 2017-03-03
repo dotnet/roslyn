@@ -755,7 +755,27 @@ class C
         }
 
         [Fact]
-        public void ReadonlyRefsInlambda()
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void RefReadonlyReturningDelegate1()
+        {
+            var source = @"delegate ref readonly int D(ref readonly int arg);";
+
+            var comp = CreateCompilationWithMscorlib45(source);
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var d = global.GetMembers("D")[0] as NamedTypeSymbol;
+            Assert.False(d.DelegateInvokeMethod.ReturnsByRef);
+            Assert.True(d.DelegateInvokeMethod.ReturnsByRefReadonly);
+            Assert.Equal(RefKind.RefReadOnly, d.DelegateInvokeMethod.RefKind);
+            Assert.Equal(RefKind.RefReadOnly, ((MethodSymbol)d.GetMembers("EndInvoke").Single()).RefKind);
+
+            Assert.Equal(RefKind.RefReadOnly, d.DelegateInvokeMethod.Parameters[0].RefKind);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void RefReadonlysInlambda()
         {
             var source = @"
 class C
@@ -767,6 +787,42 @@ class C
         DD<int> d1 = (in int a) => ref a;
 
         DD<int> d2 = delegate(in int a){return ref a;};
+    }
+}";
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }).VerifyDiagnostics();
+
+            var model = compilation.GetSemanticModel(tree);
+
+            ExpressionSyntax lambdaSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            var lambda = (LambdaSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
+
+            Assert.False(lambda.ReturnsByRef);
+            Assert.True(lambda.ReturnsByRefReadonly);
+            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.RefReadOnly);
+
+            lambdaSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
+            lambda = (LambdaSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
+
+            Assert.False(lambda.ReturnsByRef);
+            Assert.True(lambda.ReturnsByRefReadonly);
+            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.RefReadOnly);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void RefReadonlysInlambda1()
+        {
+            var source = @"
+class C
+{
+    public delegate ref readonly T DD<T>(ref readonly T arg);
+
+    public static void Main()
+    {
+        DD<int> d1 = (ref readonly int a) => ref a;
+
+        DD<int> d2 = delegate(ref readonly int a){return ref a;};
     }
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);

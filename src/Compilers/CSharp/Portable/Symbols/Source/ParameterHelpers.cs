@@ -31,18 +31,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var parameterSyntax in syntax.Parameters)
             {
-                SyntaxToken argPassingKeyword;
+                SyntaxToken refOrOutKeyword;
                 SyntaxToken paramsKeyword;
                 SyntaxToken thisKeyword;
-                var refKind = GetModifiers(parameterSyntax.Modifiers, out argPassingKeyword, out paramsKeyword, out thisKeyword);
+                var refKind = GetModifiers(parameterSyntax.Modifiers, out refOrOutKeyword, out paramsKeyword, out thisKeyword);
 
                 if (parameterSyntax.IsArgList)
                 {
                     arglistToken = parameterSyntax.Identifier;
                     // The native compiler produces "Expected type" here, in the parser. Roslyn produces
                     // the somewhat more informative "arglist not valid" error.
-                    if (paramsKeyword.Kind() != SyntaxKind.None || 
-                        argPassingKeyword.Kind() != SyntaxKind.None || 
+                    if (paramsKeyword.Kind() != SyntaxKind.None ||
+                        refKind != RefKind.None || 
                         thisKeyword.Kind() != SyntaxKind.None)
                     {
                         // CS1669: __arglist is not valid in this context
@@ -61,10 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!allowRefOrOut && (refKind == RefKind.Ref || refKind == RefKind.Out))
                 {
-                    Debug.Assert(argPassingKeyword.Kind() != SyntaxKind.None);
+                    Debug.Assert(refOrOutKeyword.Kind() != SyntaxKind.None);
 
                     // error CS0631: ref and out are not valid in this context
-                    diagnostics.Add(ErrorCode.ERR_IllegalRefParam, argPassingKeyword.GetLocation());
+                    diagnostics.Add(ErrorCode.ERR_IllegalRefParam, refOrOutKeyword.GetLocation());
                 }
 
                 var parameter = SourceParameterSymbol.Create(
@@ -337,11 +337,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        private static RefKind GetModifiers(SyntaxTokenList modifiers, out SyntaxToken argPassingKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword)
+        private static RefKind GetModifiers(SyntaxTokenList modifiers, out SyntaxToken refOrOutKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword)
         {
             var refKind = RefKind.None;
 
-            argPassingKeyword = default(SyntaxToken);
+            refOrOutKeyword = default(SyntaxToken);
             paramsKeyword = default(SyntaxToken);
             thisKeyword = default(SyntaxToken);
 
@@ -350,23 +350,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (modifier.Kind())
                 {
                     case SyntaxKind.OutKeyword:
-                        argPassingKeyword = modifier;
+                        refOrOutKeyword = modifier;
                         if (refKind == RefKind.None)
                         {
                             refKind = RefKind.Out;
                         }
                         break;
                     case SyntaxKind.RefKeyword:
-                        argPassingKeyword = modifier;
+                        refOrOutKeyword = modifier;
                         if (refKind == RefKind.None)
                         {
                             refKind = RefKind.Ref;
                         }
                         break;
                     case SyntaxKind.InKeyword:
-                        argPassingKeyword = modifier;
                         if (refKind == RefKind.None)
                         {
+                            refKind = RefKind.RefReadOnly;
+                        }
+                        break;
+                    case SyntaxKind.ReadOnlyKeyword:
+                        if (refKind == RefKind.Ref)
+                        {
+                            // this is not a ref or out
+                            refOrOutKeyword = default(SyntaxToken);
                             refKind = RefKind.RefReadOnly;
                         }
                         break;
