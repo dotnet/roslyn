@@ -39,6 +39,7 @@
     <Compile Include="Binder\AliasAndExternAliasDirective.cs" />
     <Compile Include="Binder\AliasAndUsingDirective.cs" />
     <Compile Include="Binder\Binder.cs" />
+    <Compile Include="Binder\Binder.ValueChecks.cs" />
     <Compile Include="Binder\Binder.OverflowChecks.cs" />
     <Compile Include="Binder\Binder.QueryTranslationState.cs" />
     <Compile Include="Binder\Binder.QueryUnboundLambdaState.cs" />

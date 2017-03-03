@@ -1462,6 +1462,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_Merge_conflict_marker_encountered = 8300,
 
+        ERR_RefReadonlyParam = 8206,
+        ERR_RefReadonlyParam2 = 8207,
+        ERR_AssignReadonlyParam = 8208,
+        ERR_AssignReadonlyParam2 = 8209,
+        ERR_RefReturnReadonlyParam = 8210,
+        ERR_RefReturnReadonlyParam2 = 8211,
+
         //PROTOTYPE(ReadonlyRefs): make err IDs contiguous before merging to master. 
         //                         For now it is more convenient to have a gap to avoid conflicts with other added errors
         ERR_RefConditionalAndAwait = 8401,

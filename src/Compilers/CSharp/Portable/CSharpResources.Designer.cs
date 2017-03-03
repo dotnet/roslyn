@@ -647,6 +647,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A readonly parameter cannot be assigned to.
+        /// </summary>
+        internal static string ERR_AssignReadonlyParam {
+            get {
+                return ResourceManager.GetString("ERR_AssignReadonlyParam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Members of readonly parameter &apos;{0}&apos; cannot be assigned to.
+        /// </summary>
+        internal static string ERR_AssignReadonlyParam2 {
+            get {
+                return ResourceManager.GetString("ERR_AssignReadonlyParam2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type parameter &apos;{0}&apos; cannot be used with the &apos;as&apos; operator because it does not have a class type constraint nor a &apos;class&apos; constraint.
         /// </summary>
         internal static string ERR_AsWithTypeVar {
@@ -8063,6 +8081,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A readonly parameter cannot be used as a ref or out value.
+        /// </summary>
+        internal static string ERR_RefReadonlyParam {
+            get {
+                return ResourceManager.GetString("ERR_RefReadonlyParam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Members of readonly parameter &apos;{0}&apos; cannot be used as a ref or out value.
+        /// </summary>
+        internal static string ERR_RefReadonlyParam2 {
+            get {
+                return ResourceManager.GetString("ERR_RefReadonlyParam2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A static readonly field cannot be used as a ref or out value (except in a static constructor).
         /// </summary>
         internal static string ERR_RefReadonlyStatic {
@@ -8180,7 +8216,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return or a member of parameter &apos;{0}&apos; by reference because it is not a ref or out parameter.
+        ///   Looks up a localized string similar to Cannot return by reference a member of parameter &apos;{0}&apos; by reference because it is not a ref or out parameter.
         /// </summary>
         internal static string ERR_RefReturnParameter2 {
             get {
@@ -8239,6 +8275,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RefReturnReadonlyLocalCause {
             get {
                 return ResourceManager.GetString("ERR_RefReturnReadonlyLocalCause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A readonly parameter cannot be returned by reference.
+        /// </summary>
+        internal static string ERR_RefReturnReadonlyParam {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnReadonlyParam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Members of readonly parameter &apos;{0}&apos; cannot be returned by reference.
+        /// </summary>
+        internal static string ERR_RefReturnReadonlyParam2 {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnReadonlyParam2", resourceCulture);
             }
         }
         
