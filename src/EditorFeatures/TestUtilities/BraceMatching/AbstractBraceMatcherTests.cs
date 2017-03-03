@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceMatching
             return workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
         }
 
-        protected abstract Task<TestWorkspace> CreateWorkspaceFromCodeAsync(string code, ParseOptions options);
+        protected abstract TestWorkspace CreateWorkspaceFromCode(string code, ParseOptions options);
 
         protected async Task TestAsync(string markup, string expectedCode, ParseOptions options = null)
         {
-            using (var workspace = await CreateWorkspaceFromCodeAsync(markup, options))
+            using (var workspace = CreateWorkspaceFromCode(markup, options))
             {
                 var position = workspace.Documents.Single().CursorPosition.Value;
                 var document = GetDocument(workspace);

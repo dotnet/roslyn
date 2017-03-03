@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseExplicitTupleNa
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestNamedTuple1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -35,7 +35,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestInArgument() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -60,7 +60,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestNamedTuple2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -79,7 +79,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestMissingOnMatchingName1() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -91,7 +91,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestMissingOnMatchingName2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -103,7 +103,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestWrongCasing() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -115,7 +115,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestFixAll1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -136,7 +136,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestFixAll2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()

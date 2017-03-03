@@ -22,189 +22,51 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 this.DocCommentFormattingService = docCommentFormattingService;
             }
 
-            public bool CanBeReferencedByName
-            {
-                get
-                {
-                    return _symbol.CanBeReferencedByName;
-                }
-            }
+            public bool CanBeReferencedByName => _symbol.CanBeReferencedByName;
 
-            public IAssemblySymbol ContainingAssembly
-            {
-                get
-                {
-                    return _symbol.ContainingAssembly;
-                }
-            }
+            public IAssemblySymbol ContainingAssembly => _symbol.ContainingAssembly;
 
-            public IModuleSymbol ContainingModule
-            {
-                get
-                {
-                    return _symbol.ContainingModule;
-                }
-            }
+            public IModuleSymbol ContainingModule => _symbol.ContainingModule;
 
-            public INamespaceSymbol ContainingNamespace
-            {
-                get
-                {
-                    return _symbol.ContainingNamespace;
-                }
-            }
+            public INamespaceSymbol ContainingNamespace => _symbol.ContainingNamespace;
 
-            public ISymbol ContainingSymbol
-            {
-                get
-                {
-                    return _symbol.ContainingSymbol;
-                }
-            }
+            public ISymbol ContainingSymbol => _symbol.ContainingSymbol;
 
-            public INamedTypeSymbol ContainingType
-            {
-                get
-                {
-                    return _symbol.ContainingType;
-                }
-            }
+            public INamedTypeSymbol ContainingType => _symbol.ContainingType;
 
-            public Accessibility DeclaredAccessibility
-            {
-                get
-                {
-                    return _symbol.DeclaredAccessibility;
-                }
-            }
+            public Accessibility DeclaredAccessibility => _symbol.DeclaredAccessibility;
 
-            public ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-            {
-                get
-                {
-                    return _symbol.DeclaringSyntaxReferences;
-                }
-            }
+            public ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => _symbol.DeclaringSyntaxReferences;
 
-            public bool IsAbstract
-            {
-                get
-                {
-                    return _symbol.IsAbstract;
-                }
-            }
+            public bool IsAbstract => _symbol.IsAbstract;
 
-            public bool IsDefinition
-            {
-                get
-                {
-                    return _symbol.IsDefinition;
-                }
-            }
+            public bool IsDefinition => _symbol.IsDefinition;
 
-            public bool IsExtern
-            {
-                get
-                {
-                    return _symbol.IsExtern;
-                }
-            }
+            public bool IsExtern => _symbol.IsExtern;
 
-            public bool IsImplicitlyDeclared
-            {
-                get
-                {
-                    return _symbol.IsImplicitlyDeclared;
-                }
-            }
+            public bool IsImplicitlyDeclared => _symbol.IsImplicitlyDeclared;
 
-            public bool IsOverride
-            {
-                get
-                {
-                    return _symbol.IsOverride;
-                }
-            }
+            public bool IsOverride => _symbol.IsOverride;
 
-            public bool IsSealed
-            {
-                get
-                {
-                    return _symbol.IsSealed;
-                }
-            }
+            public bool IsSealed => _symbol.IsSealed;
 
-            public bool IsStatic
-            {
-                get
-                {
-                    return _symbol.IsStatic;
-                }
-            }
+            public bool IsStatic => _symbol.IsStatic;
 
-            public bool IsVirtual
-            {
-                get
-                {
-                    return _symbol.IsVirtual;
-                }
-            }
+            public bool IsVirtual => _symbol.IsVirtual;
 
-            public SymbolKind Kind
-            {
-                get
-                {
-                    return _symbol.Kind;
-                }
-            }
+            public SymbolKind Kind => _symbol.Kind;
 
-            public string Language
-            {
-                get
-                {
-                    return _symbol.Language;
-                }
-            }
+            public string Language => _symbol.Language;
 
-            public ImmutableArray<Location> Locations
-            {
-                get
-                {
-                    return _symbol.Locations;
-                }
-            }
+            public ImmutableArray<Location> Locations => _symbol.Locations;
 
-            public string MetadataName
-            {
-                get
-                {
-                    return _symbol.MetadataName;
-                }
-            }
+            public string MetadataName => _symbol.MetadataName;
 
-            public string Name
-            {
-                get
-                {
-                    return _symbol.Name;
-                }
-            }
+            public string Name => _symbol.Name;
 
-            public ISymbol OriginalDefinition
-            {
-                get
-                {
-                    return _symbol.OriginalDefinition;
-                }
-            }
+            public ISymbol OriginalDefinition => _symbol.OriginalDefinition;
 
-            public bool HasUnsupportedMetadata
-            {
-                get
-                {
-                    return _symbol.HasUnsupportedMetadata;
-                }
-            }
+            public bool HasUnsupportedMetadata => _symbol.HasUnsupportedMetadata;
 
             public void Accept(SymbolVisitor visitor)
             {

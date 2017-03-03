@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public int SlotIndex => _slot;
 
-        public Cci.IMetadataConstant CompileTimeValue
+        public MetadataConstant CompileTimeValue
         {
             get { throw ExceptionUtilities.Unreachable; }
         }

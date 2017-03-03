@@ -557,37 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitMethodGroup(BoundMethodGroup node)
             {
-                // We only get here in error cases, as normally the enclosing node is a method group conversion
-                // whose visit (below) doesn't call this.  So we don't know which method is to be selected, and
-                // therefore don't know if the receiver is used. Assume if the receiver was provided, it is used.
-                var receiverOpt = node.ReceiverOpt;
-                if (receiverOpt != null)
-                {
-                    return VisitSyntaxWithReceiver(node.Syntax, receiverOpt);
-                }
-                return null;
-            }
-
-            public override BoundNode VisitConversion(BoundConversion node)
-            {
-                if (node.ConversionKind == ConversionKind.MethodGroup)
-                {
-                    if (node.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
-                    {
-                        // Use OriginalDefinition to strip generic type parameters
-                        ReferenceVariable(node.Syntax, node.SymbolOpt.OriginalDefinition);
-                        MethodsConvertedToDelegates.Add(node.SymbolOpt.OriginalDefinition);
-                    }
-                    if (node.IsExtensionMethod || ((object)node.SymbolOpt != null && !node.SymbolOpt.IsStatic))
-                    {
-                        return VisitSyntaxWithReceiver(node.Syntax, ((BoundMethodGroup)node.Operand).ReceiverOpt);
-                    }
-                    return null;
-                }
-                else
-                {
-                    return base.VisitConversion(node);
-                }
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)

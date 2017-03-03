@@ -61,6 +61,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _inProc.IsCompletionActive();
         }
 
+        public bool IsSignatureHelpActive()
+        {
+            WaitForSignatureHelp();
+            return _inProc.IsSignatureHelpActive();
+        }
+
         public Signature[] GetSignatures()
         {
             WaitForSignatureHelp();
@@ -88,8 +94,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string[] GetLightBulbActions()
             => _inProc.GetLightBulbActions();
 
-        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope)
-            => _inProc.ApplyLightBulbAction(action, fixAllScope);
+        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope, bool blockUntilComplete = true)
+            => _inProc.ApplyLightBulbAction(action, fixAllScope, blockUntilComplete);
 
         public bool IsCaretOnScreen()
             => _inProc.IsCaretOnScreen();
@@ -107,5 +113,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void MessageBox(string message)
             => _inProc.MessageBox(message);
+
+        public void VerifyDialog(string dialogName, bool isOpen)
+            => _inProc.VerifyDialog(dialogName, isOpen);
+
+        public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
+            => _inProc.PressDialogButton(dialogAutomationName, buttonAutomationName);
+
+        public void DialogSendKeys(string dialogAutomationName, string keys)
+            => _inProc.DialogSendKeys(dialogAutomationName, keys);
     }
 }

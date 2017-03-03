@@ -21,6 +21,7 @@
   <ItemGroup>
     <Compile Include="AbstractIntegrationTest.cs" />
     <Compile Include="AbstractInteractiveWindowTest.cs" />
+    <Compile Include="CSharp\CSharpFindReferences.cs" />
     <Compile Include="CSharp\CSharpInteractiveAsyncOutput.cs" />
     <Compile Include="CSharp\CSharpAutomaticBraceCompletion.cs" />
     <Compile Include="CSharp\CSharpBuild.cs" />
@@ -28,10 +29,16 @@
     <Compile Include="CSharp\CSharpIntelliSense.cs" />
     <Compile Include="CSharp\CSharpInteractive.cs" />
     <Compile Include="AbstractEditorTest.cs" />
+    <Compile Include="CSharp\CSharpSignatureHelp.cs" />
     <Compile Include="SharedIntegrationHostFixture.cs" />
     <Compile Include="VisualBasic\BasicAutomaticBraceCompletion.cs" />
     <Compile Include="VisualBasic\BasicBuild.cs" />
+    <Compile Include="VisualBasic\BasicGenerateEqualsAndGetHashCodeDialog.cs" />
+    <Compile Include="VisualBasic\BasicGenerateConstructorDialog.cs" />
+    <Compile Include="VisualBasic\BasicChangeSignatureDialog.cs" />
+    <Compile Include="VisualBasic\BasicFindReferences.cs" />
     <Compile Include="VisualBasic\BasicIntelliSense.cs" />
+    <Compile Include="VisualBasic\BasicSignatureHelp.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -181,6 +188,10 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="UIAutomationClient" />
+    <Reference Include="UIAutomationTypes" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

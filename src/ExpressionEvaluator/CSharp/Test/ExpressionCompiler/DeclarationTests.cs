@@ -2025,14 +2025,15 @@ class C
                 context.CompileAssignment("x", "Test(x is int i)", out error, testData);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
-  // Code size       64 (0x40)
+  // Code size       67 (0x43)
   .maxstack  4
   .locals init (object V_0, //y
                 bool V_1,
                 int? V_2,
                 int V_3,
                 object V_4,
-                System.Guid V_5)
+                System.Guid V_5,
+                int? V_6)
   IL_0000:  ldtoken    ""int""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""i""
@@ -2041,16 +2042,18 @@ class C
   IL_0017:  ldloc.s    V_5
   IL_0019:  ldnull
   IL_001a:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
-  IL_001f:  ldstr      ""i""
-  IL_0024:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_0029:  ldarga.s   V_0
-  IL_002b:  call       ""int int?.GetValueOrDefault()""
-  IL_0030:  stind.i4
-  IL_0031:  ldarga.s   V_0
-  IL_0033:  call       ""bool int?.HasValue.get""
-  IL_0038:  call       ""int? C.Test(bool)""
-  IL_003d:  starg.s    V_0
-  IL_003f:  ret
+  IL_001f:  ldarg.0
+  IL_0020:  stloc.s    V_6
+  IL_0022:  ldstr      ""i""
+  IL_0027:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_002c:  ldloca.s   V_6
+  IL_002e:  call       ""int int?.GetValueOrDefault()""
+  IL_0033:  stind.i4
+  IL_0034:  ldloca.s   V_6
+  IL_0036:  call       ""bool int?.HasValue.get""
+  IL_003b:  call       ""int? C.Test(bool)""
+  IL_0040:  starg.s    V_0
+  IL_0042:  ret
 }");
             });
         }

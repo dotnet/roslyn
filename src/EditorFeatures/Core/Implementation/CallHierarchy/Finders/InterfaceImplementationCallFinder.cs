@@ -21,21 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
             _text = string.Format(EditorFeaturesResources.Calls_To_Interface_Implementation_0, symbol.ToDisplayString());
         }
 
-        public override string DisplayName
-        {
-            get
-            {
-                return _text;
-            }
-        }
+        public override string DisplayName => _text;
 
-        public override string SearchCategory
-        {
-            get
-            {
-                return CallHierarchyPredefinedSearchCategoryNames.InterfaceImplementations;
-            }
-        }
+        public override string SearchCategory => CallHierarchyPredefinedSearchCategoryNames.InterfaceImplementations;
 
         protected override async Task<IEnumerable<SymbolCallerInfo>> GetCallers(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {

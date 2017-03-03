@@ -81,10 +81,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Original expression to be replaced.
         /// </summary>
-        public TExpressionSyntax OriginalExpression
-        {
-            get { return _expression; }
-        }
+        public TExpressionSyntax OriginalExpression => _expression;
 
         /// <summary>
         /// First ancestor of <see cref="OriginalExpression"/> which is either a statement, attribute, constructor initializer,
@@ -108,10 +105,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Semantic model for the syntax tree corresponding to <see cref="OriginalExpression"/>
         /// </summary>
-        public TSemanticModel OriginalSemanticModel
-        {
-            get { return _semanticModel; }
-        }
+        public TSemanticModel OriginalSemanticModel => _semanticModel;
 
         /// <summary>
         /// Node which replaces the <see cref="OriginalExpression"/>.
@@ -153,13 +147,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        public CancellationToken CancellationToken
-        {
-            get
-            {
-                return _cancellationToken;
-            }
-        }
+        public CancellationToken CancellationToken => _cancellationToken;
 
         protected abstract TSyntaxNode GetSemanticRootForSpeculation(TExpressionSyntax expression);
 

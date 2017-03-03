@@ -2285,6 +2285,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_OpenEndedComment" xml:space="preserve">
     <value>End-of-file found, '*/' expected</value>
   </data>
+  <data name="ERR_Merge_conflict_marker_encountered" xml:space="preserve">
+    <value>Merge conflict marker encountered</value>
+  </data>
   <data name="ERR_OvlOperatorExpected" xml:space="preserve">
     <value>Overloadable operator expected</value>
   </data>
@@ -2687,7 +2690,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>This warning occurs if the assembly attributes AssemblyKeyFileAttribute or AssemblyKeyNameAttribute found in source conflict with the /keyfile or /keycontainer command line option or key file name or key container specified in the Project Properties.</value>
   </data>
   <data name="ERR_BadCompatMode" xml:space="preserve">
-    <value>Invalid option '{0}' for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 6.</value>
+    <value>Invalid option '{0}' for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 7.</value>
   </data>
   <data name="ERR_DelegateOnConditional" xml:space="preserve">
     <value>Cannot create delegate with '{0}' because it or a method it overrides has a Conditional attribute</value>

@@ -477,7 +477,6 @@ expected: @"namespace A.B
     {
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
@@ -512,7 +511,6 @@ expected: @"namespace outer.inner
     {
     }
 }",
-isLine: false,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
 using outer.inner;
@@ -558,7 +556,6 @@ expected: @"namespace ConsoleApplication
     {
     }
 }",
-isLine: false,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
@@ -605,7 +602,6 @@ expected: @"namespace ConsoleApplication.outer.inner
     {
     }
 }",
-isLine: false,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
@@ -656,7 +652,6 @@ expected: @"namespace A.B
     {
     }
 }",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
@@ -694,7 +689,6 @@ expected: @"namespace A.B
     {
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
@@ -734,7 +728,6 @@ expected: @"namespace outer.inner
     {
     }
 }",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
@@ -779,7 +772,6 @@ class Program
         Foo f;
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
@@ -816,7 +808,6 @@ expected: @"namespace A.B
     {
     }
 }",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
@@ -862,7 +853,6 @@ class Program
         Foo f;
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
@@ -911,7 +901,6 @@ namespace ConsoleApplication.outer
         }
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
@@ -962,7 +951,6 @@ class Program
 namespace A.B
 {
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
@@ -1002,7 +990,6 @@ expected: @"namespace ConsoleApplication
     {
     }
 }",
-isLine: false,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
 using ConsoleApplication;
@@ -1065,7 +1052,6 @@ expected: @"namespace A.B
     {
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
@@ -1115,7 +1101,6 @@ namespace A
         }
     }
 }",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
@@ -1166,7 +1151,6 @@ namespace outer.inner
     {
     }
 }",
-isLine: false,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
 using outer.inner;
@@ -1217,7 +1201,6 @@ expected: @"namespace A.B
     {
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
@@ -1264,7 +1247,6 @@ class Program
         Foo f;
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
@@ -1304,7 +1286,6 @@ expected: @"namespace A.B
     {
     }
 }",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
@@ -1353,7 +1334,6 @@ class Program
         Foo f;
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
@@ -1393,7 +1373,6 @@ expected: @"namespace A.B
     {
     }
 }",
-isLine: false,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
@@ -1435,7 +1414,6 @@ expected: @"Namespace Global.A.B
     End Class
 End Namespace
 ",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
@@ -1470,7 +1448,6 @@ expected: @"Namespace outer.inner
     End Class
 End Namespace
 ",
-isLine: false,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
 using outer.inner;
@@ -1520,7 +1497,6 @@ expected: @"Namespace Global.A.B
     End Class
 End Namespace
 ",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
@@ -1557,7 +1533,6 @@ expected: @"Namespace outer.inner
     End Class
 End Namespace
 ",
-isLine: false,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
 using BarBaz.outer.inner;
@@ -1608,7 +1583,6 @@ expected: @"Namespace Global.A.B
     End Class
 End Namespace
 ",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
@@ -1654,7 +1628,6 @@ expected: @"Namespace A.B
     End Class
 End Namespace
 ",
-isLine: false,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
@@ -1695,7 +1668,6 @@ expected: @"Namespace Global.A.B
     End Class
 End Namespace
 ",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
@@ -1736,7 +1708,6 @@ expected: @"Namespace Global.A.B
     End Class
 End Namespace
 ",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
@@ -1773,7 +1744,6 @@ expected: @"Namespace outer.inner
     End Class
 End Namespace
 ",
-isLine: false,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
 using outer.inner;
@@ -1829,7 +1799,6 @@ Namespace Global.A.B
     End Class
 End Namespace
 ",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
@@ -1881,7 +1850,6 @@ Namespace Global
         End Namespace
     End Namespace
 End Namespace",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
@@ -1920,7 +1888,6 @@ expected: @"Namespace Global.A
     End Module
 End Namespace
 ",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Module,
 isNewFile: true,
@@ -2948,7 +2915,6 @@ expected: @"Namespace Global.A.B
     Public Delegate Sub Foo()
 End Namespace
 ",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: true,
