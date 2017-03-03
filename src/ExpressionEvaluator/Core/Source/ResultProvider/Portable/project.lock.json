@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "targets": {
+    ".NETPortable,Version=v4.5,Profile=Profile7": {
+      "Microsoft.VisualStudio.Debugger.Engine/15.0.26201-alpha": {
+        "type": "package",
+        "compile": {
+          "lib/portable-net45+win8/Microsoft.VisualStudio.Debugger.Engine.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8/Microsoft.VisualStudio.Debugger.Engine.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.Debugger.Metadata/15.0.26201-alpha": {
+        "type": "package",
+        "compile": {
+          "lib/portable-net45+win8/Microsoft.VisualStudio.Debugger.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8/Microsoft.VisualStudio.Debugger.Metadata.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Microsoft.VisualStudio.Debugger.Engine/15.0.26201-alpha": {
+      "sha512": "KzkOeQOtACelEXPPjzZuLMCRIyiHshjp+DLq2kVJ8PTo3Y+u+DAAQogMRIUOeuVtSV48rEfiTjb3RCvim9B4tw==",
+      "type": "package",
+      "path": "microsoft.visualstudio.debugger.engine/15.0.26201-alpha",
+      "files": [
+        "lib/net20/Microsoft.VisualStudio.Debugger.Engine.dll",
+        "lib/net45/Microsoft.VisualStudio.Debugger.Engine.dll",
+        "lib/portable-net45+win8/Microsoft.VisualStudio.Debugger.Engine.dll",
+        "microsoft.visualstudio.debugger.engine.15.0.26201-alpha.nupkg.sha512",
+        "microsoft.visualstudio.debugger.engine.nuspec"
+      ]
+    },
+    "Microsoft.VisualStudio.Debugger.Metadata/15.0.26201-alpha": {
+      "sha512": "WtQIw6kJIf+URSM2ZkXLfV19Z6E9pgjhbmO8jvT60NALqt4/Wmt24q1h4gJYOgXOgbZGVQfIpa8Q1QSeGH+tNg==",
+      "type": "package",
+      "path": "microsoft.visualstudio.debugger.metadata/15.0.26201-alpha",
+      "files": [
+        "lib/net20/Microsoft.VisualStudio.Debugger.Metadata.dll",
+        "lib/portable-net45+win8/Microsoft.VisualStudio.Debugger.Metadata.dll",
+        "microsoft.visualstudio.debugger.metadata.15.0.26201-alpha.nupkg.sha512",
+        "microsoft.visualstudio.debugger.metadata.nuspec"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "": [
+      "Microsoft.VisualStudio.Debugger.Engine >= 15.0.26201-alpha",
+      "Microsoft.VisualStudio.Debugger.Metadata >= 15.0.26201-alpha"
+    ],
+    ".NETPortable,Version=v4.5,Profile=Profile7": []
+  },
+  "tools": {},
+  "projectFileToolGroups": {},
+  "packageFolders": {
+    "C:\\Users\\Adam\\.nuget\\packages\\": {}
+  }
+}
