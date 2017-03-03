@@ -51,5 +51,27 @@ End Class");
     Sub M()
 End Interface");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public void CheckFileName()
+        {
+            SetUpEditor(@"Class C2$$
+    Public Sub M()
+    End Sub
+End Class");
+
+            InvokeCodeActionList();
+            VerifyCodeAction("Extract Interface...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            ExtractInterfaceDialog.VerifyOpen();
+
+            var fileName = ExtractInterfaceDialog.GetTargetFileName();
+
+            Assert.Equal(expected: "IC2.vb", actual: fileName);
+
+            ExtractInterfaceDialog.ClickCancel();
+        }
     }
 }

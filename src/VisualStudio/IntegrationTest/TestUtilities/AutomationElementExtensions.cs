@@ -137,6 +137,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>
+        /// Gets the value of the given <see cref="AutomationElement"/>.
+        /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
+        /// support the <see cref="ValuePattern"/>.
+        /// </summary>
+        public static string GetValue(this AutomationElement element)
+        {
+            if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var valuePattern))
+            {
+                return (valuePattern as ValuePattern).Current.Value;
+            }
+            else
+            {
+                throw new InvalidOperationException($"The element '{element.GetNameForExceptionMessage()}' does not support the ValuePattern.");
+            }
+        }
+
+        /// <summary>
         /// Sets the value of the given <see cref="AutomationElement"/>.
         /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
         /// support the <see cref="ValuePattern"/>.

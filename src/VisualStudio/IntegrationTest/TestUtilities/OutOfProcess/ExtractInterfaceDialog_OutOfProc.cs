@@ -40,6 +40,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
+        public void ClickCancel()
+        {
+            DialogHelpers.PressButton(GetMainWindowHWnd(), ExtractInterfaceDialogID, "CancelButton");
+            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+        }
+
+        public string GetTargetFileName()
+        {
+            var dialog = DialogHelpers.GetOpenDialog(GetMainWindowHWnd(), ExtractInterfaceDialogID);
+
+            var fileNameTextBox = dialog.FindDescendantByAutomationId("FileNameTextBox");
+
+            return fileNameTextBox.GetValue();
+        }
+
         private int GetMainWindowHWnd()
         {
             return VisualStudioInstance.Shell.GetHWnd();
