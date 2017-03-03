@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDiscard = containingDeconstruction != null || IsOutVarDiscardIdentifier(node);
             if (isDiscard)
             {
-                CheckFeatureAvailability(node.Location, MessageID.IDS_FeatureTuples, diagnostics);
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureTuples, diagnostics);
             }
 
             return isDiscard;
