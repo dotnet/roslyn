@@ -32,6 +32,7 @@
     <Compile Include="CSharp\CSharpErrorListCommon.cs" />
     <Compile Include="CSharp\CSharpErrorListDesktop.cs" />
     <Compile Include="CSharp\CSharpErrorListNetCore.cs" />
+    <Compile Include="CSharp\CSharpExtractInterfaceDialog.cs" />
     <Compile Include="CSharp\CSharpFindReferences.cs" />
     <Compile Include="CSharp\CSharpGoToImplementation.cs" />
     <Compile Include="CSharp\CSharpGenerateTypeDialog.cs" />
