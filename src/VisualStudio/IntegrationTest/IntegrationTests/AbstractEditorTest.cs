@@ -24,6 +24,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected readonly string ProjectName = "TestProj";
 
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
+        {
+            VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
+            Editor = VisualStudio.Instance.Editor;
+        }
+
         protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
             : this(instanceFactory, solutionName, WellKnownProjectTemplates.ClassLibrary)
         {
@@ -106,6 +113,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
             VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
         }
+
+        protected void PlaceCaret(string text, int charsOffset)
+            => VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: charsOffset, occurrence: 0, extendSelection: false, selectBlock: false);
 
         protected void BuildSolution(bool waitForBuildToFinish)
             => VisualStudio.Instance.SolutionExplorer.BuildSolution(waitForBuildToFinish);
@@ -308,7 +318,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void VerifyParameters(params (string name, string documentation)[] parameters)
         {
             var currentParameters = Editor.GetCurrentSignature().Parameters;
-            for (int i = 0; i < parameters.Length; i++)
+            for (var i = 0; i < parameters.Length; i++)
             {
                 var (expectedName, expectedDocumentation) = parameters[i];
                 Assert.Equal(expectedName, currentParameters[i].Name);
@@ -418,6 +428,19 @@ namespace Roslyn.VisualStudio.IntegrationTests
             var dialog = DialogHelpers.FindDialog(VisualStudio.Instance.Shell.GetHWnd(), dialogAutomationId, isOpen: true);
             Assert.NotNull(dialog);
             return dialog;
+        }
+
+        public void VerifyAssemblyReferencePresent(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken)
+        {
+            var assemblyReferences = VisualStudio.Instance.SolutionExplorer.GetAssemblyReferences(projectName);
+            var expectedAssemblyReference = assemblyName + "," + assemblyVersion + "," + assemblyPublicKeyToken.ToUpper();
+            Assert.Contains(expectedAssemblyReference, assemblyReferences);
+        }
+
+        public void VerifyProjectReferencePresent(string projectName, string referencedProjectName)
+        {
+            var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
+            Assert.Contains(referencedProjectName, projectReferences);
         }
     }
 }
