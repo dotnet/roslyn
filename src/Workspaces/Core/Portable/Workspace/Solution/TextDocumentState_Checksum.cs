@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         {
             using (Logger.LogBlock(FunctionId.DocumentState_ComputeChecksumsAsync, FilePath, cancellationToken))
             {
-                var textAndVersionTask = GetTextAndVersoinAsync(cancellationToken);
+                var textAndVersionTask = GetTextAndVersionAsync(cancellationToken);
 
                 var serializer = new Serializer(solutionServices.Workspace);
 

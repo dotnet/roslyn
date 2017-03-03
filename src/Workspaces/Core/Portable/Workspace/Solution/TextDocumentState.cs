@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis
                 return text;
             }
 
-            var textAndVersion = await GetTextAndVersoinAsync(cancellationToken).ConfigureAwait(false);
+            var textAndVersion = await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
             return textAndVersion.Text;
         }
 
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis
                 return version;
             }
 
-            var textAndVersion = await GetTextAndVersoinAsync(cancellationToken).ConfigureAwait(false);
+            var textAndVersion = await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
             return textAndVersion.Version;
         }
 
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis
                 lazyChecksums: null);
         }
 
-        private async Task<TextAndVersion> GetTextAndVersoinAsync(CancellationToken cancellationToken)
+        private async Task<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
         {
             if (this.textAndVersionSource.TryGetValue(out var textAndVersion))
             {
