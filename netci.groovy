@@ -80,7 +80,7 @@ set TMP=%TEMP%
 
 // Ubuntu 14.04
 commitPullList.each { isPr -> 
-  def jobName = Utilities.getFullJobName(projectName, "linux_debug", isPr)
+  def jobName = Utilities.getFullJobName(projectName, "ubuntu_14_debug", isPr)
   def myJob = job(jobName) {
     description("Ubuntu 14.04 tests")
                   steps {
@@ -97,7 +97,7 @@ commitPullList.each { isPr ->
 
 // Ubuntu 16.04
 commitPullList.each { isPr -> 
-  def jobName = Utilities.getFullJobName(projectName, "linux_debug", isPr)
+  def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_debug", isPr)
   def myJob = job(jobName) {
     description("Ubuntu 16.04 tests")
                   steps {
