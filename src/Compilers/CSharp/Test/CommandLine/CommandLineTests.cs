@@ -1362,13 +1362,18 @@ d.cs
         }
 
         [Theory,
+            InlineData("iso-1", true, LanguageVersion.CSharp1),
+            InlineData("ISO-1", true, LanguageVersion.CSharp1),
+            InlineData("iso-2", true, LanguageVersion.CSharp2),
             InlineData("1", true, LanguageVersion.CSharp1),
             InlineData("2", true, LanguageVersion.CSharp2),
             InlineData("3", true, LanguageVersion.CSharp3),
             InlineData("4", true, LanguageVersion.CSharp4),
             InlineData("5", true, LanguageVersion.CSharp5),
+            InlineData("05", true, LanguageVersion.CSharp5),
             InlineData("6", true, LanguageVersion.CSharp6),
             InlineData("7", true, LanguageVersion.CSharp7),
+            InlineData("07", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
             InlineData("latest", true, LanguageVersion.Latest),
             InlineData(null, true, LanguageVersion.Default),

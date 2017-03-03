@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -238,42 +239,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Hash.Combine((int)this.SpecifiedLanguageVersion, 0));
         }
 
+        /// <summary>
+        /// Parse a LanguageVersion from a string input, as the command-line compiler does.
+        /// </summary>
         public static bool TryParseLanguageVersion(string version, out LanguageVersion result)
         {
-            switch (version)
+            if (version == null)
             {
-                case "1":
+                result = LanguageVersion.Default;
+                return true;
+            }
+
+            switch (version.ToLowerInvariant())
+            {
+                case "iso-1":
                     result = LanguageVersion.CSharp1;
-                    break;
-                case "2":
+                    return true;
+
+                case "iso-2":
                     result = LanguageVersion.CSharp2;
-                    break;
-                case "3":
-                    result = LanguageVersion.CSharp3;
-                    break;
-                case "4":
-                    result = LanguageVersion.CSharp4;
-                    break;
-                case "5":
-                    result = LanguageVersion.CSharp5;
-                    break;
-                case "6":
-                    result = LanguageVersion.CSharp6;
-                    break;
+                    return true;
+
                 case "7":
                     result = LanguageVersion.CSharp7;
-                    break;
+                    return true;
+
                 case "default":
                     result = LanguageVersion.Default;
-                    break;
+                    return true;
+
                 case "latest":
                     result = LanguageVersion.Latest;
-                    break;
+                    return true;
+
                 default:
+                    // We are likely to introduce minor version numbers after C# 7, thus breaking the
+                    // one-to-one correspondence between the integers and the corresponding
+                    // LanguageVersion enum values. But for compatibility we continue to accept any
+                    // integral value parsed by int.TryParse for its corresponding LanguageVersion enum
+                    // value for language version C# 6 and earlier (e.g. leading zeros are allowed)
+                    int versionNumber;
+                    if (int.TryParse(version, NumberStyles.None, CultureInfo.InvariantCulture, out versionNumber) &&
+                        versionNumber <= 6 &&
+                        ((LanguageVersion)versionNumber).IsValid())
+                    {
+                        result = (LanguageVersion)versionNumber;
+                        return true;
+                    }
+
                     result = LanguageVersion.Default;
                     return false;
             }
-            return true;
         }
     }
 }
