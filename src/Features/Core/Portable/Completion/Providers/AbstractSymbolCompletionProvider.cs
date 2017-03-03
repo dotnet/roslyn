@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context);
         protected abstract CompletionItemRules GetCompletionItemRules(IReadOnlyList<(ISymbol symbol, CompletionItemRules rules)> symbols, SyntaxContext context);
 
+        protected virtual CompletionItemRules GetCompletionItemRules(ISymbol symbol, SyntaxContext context)
+        {
+            return CompletionItemRules.Default;
+        }
+
         /// <summary>
         /// Given a list of symbols, creates the list of completion items for them.
         /// </summary>

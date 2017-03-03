@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cancellationToken).ConfigureAwait(false);
 
             // Don't preselect intrinsic type symbols so we can preselect their keywords instead.
-            return symbols.Where(s => inferredTypes.Contains(GetSymbolType(s)) && !IsInstrinsic(s)).Select(s => (s, CompletionItemRules.Default)).ToImmutableArray();
+            return symbols.Where(s => inferredTypes.Contains(GetSymbolType(s)) && !IsInstrinsic(s)).Select(s => (s, GetCompletionItemRules(s, context))).ToImmutableArray();
         }
 
         private ITypeSymbol GetSymbolType(ISymbol symbol)

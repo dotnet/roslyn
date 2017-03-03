@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                                 .Where(Function(m) m.MatchesKind(SymbolKind.Field, SymbolKind.Property) AndAlso
                                                                     m.IsStatic AndAlso
                                                                     m.IsAccessibleWithin(within) AndAlso
-                                                                    m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)).Select(Function(s) (s, CompletionItemRules.Default)).ToImmutableArray())
+                                                                    m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)).Select(Function(s) (s, GetCompletionItemRules(s, context))).ToImmutableArray())
         End Function
 
         Protected Overrides Function GetSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))

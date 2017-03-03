@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return SpecializedTasks.EmptyImmutableArray<(ISymbol, CompletionItemRules)>();
             }
 
-            return Task.FromResult(ImmutableArray.Create(((ISymbol)type, CompletionItemRules.Default)));
+            return Task.FromResult(ImmutableArray.Create(((ISymbol)type, GetCompletionItemRules(type, context))));
         }
 
         protected override(string displayText, string insertionText) GetDisplayAndInsertionText(

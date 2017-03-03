@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return m.Kind = SymbolKind.Field AndAlso
                         DirectCast(m, IFieldSymbol).IsConst AndAlso
                         m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)
-                End Function).Select(Function(s) (s, CompletionItemRules.Default)).ToImmutableArray()
+                End Function).Select(Function(s) (s, GetCompletionItemRules(s, context))).ToImmutableArray()
 
             Return Task.FromResult(result)
         End Function
@@ -143,6 +143,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
 
         Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of (symbol As ISymbol, rules as CompletionItemRules)), context As SyntaxContext) As CompletionItemRules
+            Return s_rules
+        End Function
+
+        Protected Overrides Function GetCompletionItemRules(symbol As ISymbol, context As SyntaxContext) As CompletionItemRules
             Return s_rules
         End Function
 

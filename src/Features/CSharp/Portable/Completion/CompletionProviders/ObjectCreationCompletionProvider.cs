@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var alias = await type.FindApplicableAlias(position, context.SemanticModel, cancellationToken).ConfigureAwait(false);
                 if (alias != null)
                 {
-                    return ImmutableArray.Create((alias, CompletionItemRules.Default));
+                    return ImmutableArray.Create((alias, result.Single().rules));
                 }
             }
 
@@ -100,6 +100,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // The user would get 'new object {' rather than 'new {'. Since object doesn't have any
             // properties, the user never really wants to commit 'new object {' anyway.
             var namedTypeSymbol = items.Count > 0 ? items[0].symbol as INamedTypeSymbol : null;
+            if (namedTypeSymbol?.SpecialType == SpecialType.System_Object)
+            {
+                return s_objectRules;
+            }
+
+            return s_defaultRules;
+        }
+
+        protected override CompletionItemRules GetCompletionItemRules(ISymbol symbol, SyntaxContext context)
+        {
+            // SPECIAL: If the preselected symbol is System.Object, don't commit on '{'.
+            // Otherwise, it is cumbersome to type an anonymous object when the target type is object.
+            // The user would get 'new object {' rather than 'new {'. Since object doesn't have any
+            // properties, the user never really wants to commit 'new object {' anyway.
+            var namedTypeSymbol = symbol as INamedTypeSymbol;
+
             if (namedTypeSymbol?.SpecialType == SpecialType.System_Object)
             {
                 return s_objectRules;
