@@ -63,6 +63,7 @@
     <Compile Include="OutOfProcess\TextViewWindow_OutOfProc.Verifier.cs" />
     <Compile Include="OutOfProcess\EncapsulateField_OutOfProc.cs" />
     <Compile Include="OutOfProcess\ErrorList_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\ExtractInterfaceDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\FindReferencesWindow_OutOfProc.cs" />
     <Compile Include="OutOfProcess\GenerateTypeDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\OutOfProcComponent.cs" />

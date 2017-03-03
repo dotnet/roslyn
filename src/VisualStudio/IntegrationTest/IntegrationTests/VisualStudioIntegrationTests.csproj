@@ -90,6 +90,7 @@
     <Compile Include="VisualBasic\BasicClassification.cs" />
     <Compile Include="VisualBasic\BasicFormatting.cs" />
     <Compile Include="VisualBasic\BasicCodeActions.cs" />
+    <Compile Include="VisualBasic\BasicExtractInterfaceDialog.cs" />
     <Compile Include="VisualBasic\BasicGenerateEqualsAndGetHashCodeDialog.cs" />
     <Compile Include="VisualBasic\BasicGenerateConstructorDialog.cs" />
     <Compile Include="VisualBasic\BasicChangeSignatureDialog.cs" />
