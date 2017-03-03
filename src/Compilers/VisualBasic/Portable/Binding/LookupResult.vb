@@ -876,7 +876,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SymbolLocation.FromSourceModule
             End If
 
-            If (options And LookupOptions.IgnoreCorLibraryDuplicatedTypes) <> 0 Then
+            If sourceModule.DeclaringCompilation.Options.IgnoreCorLibraryDuplicatedTypes Then
                 ' Ignore duplicate types from the cor library if necessary.
                 ' (Specifically the framework assemblies loaded at runtime in
                 ' the EE may contain types also available from mscorlib.dll.)

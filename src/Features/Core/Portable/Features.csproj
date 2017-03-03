@@ -100,6 +100,7 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddImport\SymbolReferenceFinder_PackageAssemblySearch.cs" />
     <Compile Include="AddPackage\AbstractAddPackageCodeFixProvider.cs" />
     <Compile Include="AddPackage\AbstractAddSpecificPackageCodeFixProvider.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeActionOperation.cs" />
@@ -128,6 +129,12 @@
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
     <Compile Include="AddConstructorParametersFromMembers\State.cs" />
+    <Compile Include="GenerateConstructorFromMembers\GenerateConstructorWithDialogCodeAction.cs" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\FormatLargeBinaryExpressionRule.cs" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndHashWithDialogCodeAction.cs" />
+    <Compile Include="PickMembers\IPickMembersService.cs" />
+    <Compile Include="PickMembers\PickMembersResult.cs" />
+    <Compile Include="GenerateFromMembers\SelectedMemberInfo.cs" />
     <Compile Include="ImplementType\ImplementTypeOptions.cs" />
     <Compile Include="ImplementType\ImplementTypeOptionsProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
@@ -515,7 +522,7 @@
     <Compile Include="GenerateConstructorFromMembers\ConstructorDelegatingCodeAction.cs" />
     <Compile Include="GenerateConstructorFromMembers\FieldDelegatingCodeAction.cs" />
     <Compile Include="GenerateConstructorFromMembers\State.cs" />
-    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndHashCodeAction.cs" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeAction.cs" />
     <Compile Include="GenerateMember\AbstractGenerateMemberService.cs" />
     <Compile Include="GenerateMember\GenerateConstructor\AbstractGenerateConstructorService.CodeAction.cs" />
     <Compile Include="GenerateMember\GenerateConstructor\AbstractGenerateConstructorService.cs" />

@@ -15,13 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         {
             private const string FormatVersion = "1";
 
-            protected override string StateName
-            {
-                get
-                {
-                    return "<TodoComments>";
-                }
-            }
+            protected override string StateName => "<TodoComments>";
 
             protected override int GetCount(Data data)
             {

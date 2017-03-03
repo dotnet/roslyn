@@ -24,18 +24,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if this workspace supports manually opening and closing documents.
         /// </summary>
-        public virtual bool CanOpenDocuments
-        {
-            get { return false; }
-        }
+        public virtual bool CanOpenDocuments => false;
 
         /// <summary>
         /// True if this workspace supports manually changing the active context document of a text buffer.
         /// </summary>
-        internal virtual bool CanChangeActiveContextDocument
-        {
-            get { return false; }
-        }
+        internal virtual bool CanChangeActiveContextDocument => false;
 
         private static void RemoveIfEmpty<TKey, TValue>(IDictionary<TKey, ISet<TValue>> dictionary, TKey key)
         {
@@ -335,14 +329,7 @@ namespace Microsoft.CodeAnalysis
 
             if (container != null)
             {
-                if (_isProjectUnloading.Value)
-                {
-                    OnDocumentContextUpdated_NoSerializationLock(documentId, container);
-                }
-                else
-                {
-                    OnDocumentContextUpdated(documentId, container);
-                }
+                OnDocumentContextUpdated(documentId, container);
             }
         }
 
@@ -351,9 +338,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal void OnDocumentContextUpdated(DocumentId documentId, SourceTextContainer container)
         {
-            using (_serializationLock.DisposableWait())
+            if (_isProjectUnloading.Value)
             {
+                // When the project is unloading, the serialization lock is already taken, so there
+                // is no need for us to take the lock since everything is already serialized.
                 OnDocumentContextUpdated_NoSerializationLock(documentId, container);
+            }
+            else
+            {
+                using (_serializationLock.DisposableWait())
+                {
+                    OnDocumentContextUpdated_NoSerializationLock(documentId, container);
+                }
             }
         }
 

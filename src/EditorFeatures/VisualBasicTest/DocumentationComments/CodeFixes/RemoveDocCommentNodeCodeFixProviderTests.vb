@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
 
         Private Overloads Async Function TestAsync(ByVal initial As String, ByVal expected As String) As Task
             Dim parseOptions = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
-            Await TestAsync(initial, expected, parseOptions:=parseOptions, compareTokens:=False)
+            Await TestAsync(initial, expected, parseOptions:=parseOptions, ignoreTrivia:=False)
         End Function
         
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>

@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertToInterpola
     Public Class ConvertPlaceholderToInterpolatedStringTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider()
         End Function
 
@@ -32,7 +32,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -53,7 +53,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -74,7 +74,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -95,7 +95,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -116,7 +116,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -137,7 +137,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -158,7 +158,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -179,7 +179,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -204,7 +204,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -228,7 +228,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -249,7 +249,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -281,7 +281,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -302,7 +302,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -349,7 +349,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -376,7 +376,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -408,7 +408,7 @@ And {value2,10} ({value2,8:X8})
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
@@ -420,7 +420,7 @@ Module T
         Dim s = [|String.Format("{0}", args)|]
     End Sub
 End Module</File>.ConvertTestSourceTag()
-            Await TestMissingAsync(text)
+            Await TestMissingInRegularAndScriptAsync(text)
         End Function
 
         <WorkItem(13605, "https://github.com/dotnet/roslyn/issues/13605")>
@@ -432,7 +432,7 @@ End Module</File>.ConvertTestSourceTag()
         [|TaskAwaiter|]
     End Sub
 End Module"
-            Await TestMissingAsync(text)
+            Await TestMissingInRegularAndScriptAsync(text)
         End Function
     End Class
 End Namespace

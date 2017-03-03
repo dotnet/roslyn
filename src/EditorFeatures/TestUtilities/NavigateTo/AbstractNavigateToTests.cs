@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         protected INavigateToItemProvider _provider;
         protected NavigateToTestAggregator _aggregator;
 
-        protected abstract Task<TestWorkspace> CreateWorkspace(string content, ExportProvider exportProvider);
+        protected abstract TestWorkspace CreateWorkspace(string content, ExportProvider exportProvider);
         protected abstract string Language { get; }
 
         protected async Task TestAsync(string content, Func<TestWorkspace, Task> body)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         private async Task TestAsync(string content, Func<TestWorkspace, Task> body, bool outOfProcess)
         {
-            using (var workspace = await SetupWorkspaceAsync(content))
+            using (var workspace = SetupWorkspace(content))
             {
                 workspace.Options = workspace.Options.WithChangedOption(
                     NavigateToOptions.OutOfProcessAllowed, outOfProcess);
@@ -53,16 +53,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             }
         }
 
-        protected async Task<TestWorkspace> SetupWorkspaceAsync(XElement workspaceElement)
+        protected TestWorkspace SetupWorkspace(XElement workspaceElement)
         {
-            var workspace = await TestWorkspace.CreateAsync(workspaceElement, exportProvider: s_exportProvider);
+            var workspace = TestWorkspace.Create(workspaceElement, exportProvider: s_exportProvider);
             InitializeWorkspace(workspace);
             return workspace;
         }
 
-        protected async Task<TestWorkspace> SetupWorkspaceAsync(string content)
+        protected TestWorkspace SetupWorkspace(string content)
         {
-            var workspace = await CreateWorkspace(content, s_exportProvider);
+            var workspace = CreateWorkspace(content, s_exportProvider);
             InitializeWorkspace(workspace);
             return workspace;
         }

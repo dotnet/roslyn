@@ -420,7 +420,7 @@ class C
 class C
 {
 }";
-            using (var workspace = await TestWorkspace.CreateAsync(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }))
+            using (var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }))
             {
                 var called = false;
                 var provider = new CrefCompletionProvider(testSpeculativeNodeCallbackOpt: n =>

@@ -288,6 +288,16 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
+        /// <summary>
+        /// True if the content (text/tree) has changed.
+        /// </summary>
+        public bool HasContentChanged(DocumentState oldState)
+        {
+            return oldState._treeSource != this._treeSource
+                || oldState.sourceTextOpt != this.sourceTextOpt
+                || oldState.textAndVersionSource != this.textAndVersionSource;
+        }
+
         public DocumentState UpdateParseOptions(ParseOptions options)
         {
             var originalSourceKind = this.SourceCodeKind;
@@ -337,12 +347,38 @@ namespace Microsoft.CodeAnalysis
             return this.SetParseOptions(this.ParseOptions.WithKind(kind));
         }
 
+        public DocumentState UpdateName(string name)
+        {
+            return new DocumentState(
+                _languageServices,
+                this.solutionServices,
+                this.info.WithName(name),
+                _options,
+                this.sourceTextOpt,
+                this.textAndVersionSource,
+                _treeSource,
+                lazyChecksums: null);
+        }
+
         public DocumentState UpdateFolders(IList<string> folders)
         {
             return new DocumentState(
                 _languageServices,
                 this.solutionServices,
                 this.info.WithFolders(folders),
+                _options,
+                this.sourceTextOpt,
+                this.textAndVersionSource,
+                _treeSource,
+                lazyChecksums: null);
+        }
+
+        public DocumentState UpdateFilePath(string filePath)
+        {
+            return new DocumentState(
+                _languageServices,
+                this.solutionServices,
+                this.info.WithFilePath(filePath),
                 _options,
                 this.sourceTextOpt,
                 this.textAndVersionSource,

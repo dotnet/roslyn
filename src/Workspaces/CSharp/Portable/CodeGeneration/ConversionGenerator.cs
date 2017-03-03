@@ -85,12 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
                 if (preferExpressionBody)
                 {
-                    var expressionBody = declaration.Body.TryConvertToExpressionBody(options);
-                    if (expressionBody != null)
+                    if (declaration.Body.TryConvertToExpressionBody(
+                            options, out var expressionBody, out var semicolonToken))
                     {
                         return declaration.WithBody(null)
                                           .WithExpressionBody(expressionBody)
-                                          .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                                          .WithSemicolonToken(semicolonToken);
                     }
                 }
             }
