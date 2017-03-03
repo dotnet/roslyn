@@ -399,6 +399,7 @@
     <Compile Include="NamingStyles\Serialization\NamingStylePreferences.cs" />
     <Compile Include="NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
+    <Compile Include="Shared\Utilities\TextReaderWithLength.cs" />
     <Compile Include="Simplification\DoNotAddImportsAnnotation.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactory.WorkspaceTaskScheduler.cs" />
