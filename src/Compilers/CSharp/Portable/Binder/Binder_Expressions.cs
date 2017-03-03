@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundExpression BindDefaultLiteral(DefaultLiteralSyntax node)
         {
-            return new BoundDefaultLiteral(node, ConstantValue.DefaultLiteral, type: null);
+            return new BoundDefaultLiteral(node, constantValueOpt: null, type: null);
         }
 
         private BoundExpression BindTupleExpression(TupleExpressionSyntax node, DiagnosticBag diagnostics)

@@ -2672,7 +2672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            if (operand.ConstantValue == ConstantValue.DefaultLiteral)
+            if (operand.Kind == BoundKind.DefaultLiteral && operand.ConstantValue == null)
             {
                 Error(diagnostics, ErrorCode.ERR_DefaultNotValid, node, targetType);
                 return new BoundIsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
@@ -2980,7 +2980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.IntegerToPointer:
                 case ConversionKind.NullToPointer:
                 case ConversionKind.AnonymousFunction:
-                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultOrNullLiteral:
                 case ConversionKind.MethodGroup:
                     // We've either replaced Dynamic with Object, or already bailed out with an error.
                     throw ExceptionUtilities.UnexpectedValue(conversionKind);
@@ -3066,7 +3066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We do not want to warn for the case "null as TYPE" where the null
                 // is a literal, because the user might be saying it to cause overload resolution
                 // to pick a particular method
-                return new BoundAsOperator(node, operand, typeExpression, Conversion.NullLiteral, resultType);
+                return new BoundAsOperator(node, operand, typeExpression, Conversion.DefaultOrNullLiteral, resultType);
             }
 
             if (operand.Kind == BoundKind.MethodGroup)

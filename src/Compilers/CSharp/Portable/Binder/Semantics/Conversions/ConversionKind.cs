@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExplicitTupleLiteral,
         ExplicitTuple,
         ImplicitNullable,
-        NullLiteral,
+        DefaultOrNullLiteral,
         ImplicitReference,
         Boxing,
         PointerToVoid,
@@ -43,6 +43,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         IntPtr,
         InterpolatedString, // a conversion from an interpolated string to IFormattable or FormattableString
         Deconstruction, // The Deconstruction conversion is not part of the language, it is an implementation detail 
-        DefaultLiteral,
     }
 }

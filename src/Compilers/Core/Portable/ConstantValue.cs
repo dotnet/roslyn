@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis
         String,
         Decimal,
         DateTime,
-        DefaultLiteral,
     }
 
     internal abstract partial class ConstantValue : IEquatable<ConstantValue>
@@ -80,7 +79,6 @@ namespace Microsoft.CodeAnalysis
 
         public static ConstantValue Bad { get { return ConstantValueBad.Instance; } }
         public static ConstantValue Null { get { return ConstantValueNull.Instance; } }
-        public static ConstantValue DefaultLiteral { get { return ConstantValueDefault.DefaultLiteralConstant; } }
         public static ConstantValue Nothing { get { return Null; } }
         // Null, Nothing and Unset are all ConstantValueNull. Null and Nothing are equivalent and represent the null and
         // nothing constants in C# and VB.  Unset indicates an uninitialized ConstantValue.
@@ -654,14 +652,6 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 return ReferenceEquals(this, Null);
-            }
-        }
-
-        public bool IsDefaultLiteral
-        {
-            get
-            {
-                return ReferenceEquals(this, DefaultLiteral);
             }
         }
 

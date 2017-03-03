@@ -802,19 +802,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.DefaultLiteral:
+                    var defaultExpression = (BoundDefaultLiteral)sourceExpression;
+                    if ((object)defaultExpression.Type == null)
+                    {
+                        return Conversion.DefaultOrNullLiteral;
+                    }
+                    break;
+
                 case BoundKind.TupleLiteral:
                     var tupleConversion = ClassifyImplicitTupleLiteralConversion((BoundTupleLiteral)sourceExpression, destination, ref useSiteDiagnostics);
                     if (tupleConversion.Exists)
                     {
                         return tupleConversion;
-                    }
-                    break;
-
-                case BoundKind.DefaultLiteral:
-                    var defaultExpression = (BoundDefaultLiteral)sourceExpression;
-                    if ((object)defaultExpression.Type == null)
-                    {
-                        return Conversion.DefaultLiteral;
                     }
                     break;
 
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // The spec defines a "null literal conversion" specifically as a conversion from
                 // null to nullable type.
-                return Conversion.NullLiteral;
+                return Conversion.DefaultOrNullLiteral;
             }
 
             // SPEC: An implicit conversion exists from the null literal to any reference type. 
