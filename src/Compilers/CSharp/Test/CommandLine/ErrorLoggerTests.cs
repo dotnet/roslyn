@@ -61,6 +61,13 @@ class C
         }
 
         [Fact]
+        public void GetAssemblyFileVersionOnDevBuild()
+        {
+            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en" });
+            Assert.Equal("42.42.42.42424 (<developer build>)", cmd.GetAssemblyFileVersion());
+        }
+
+        [Fact]
         public void SimpleCompilerDiagnostics()
         {
             var source = @"

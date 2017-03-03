@@ -132,9 +132,30 @@ namespace Microsoft.CodeAnalysis
             {
                 var name = $"{Type.GetTypeInfo().Assembly.GetName().Name}.dll";
                 var filePath = Path.Combine(_clientDirectory, name);
-                return FileVersionInfo.GetVersionInfo(filePath).FileVersion;
+                var fileVersionInfo = FileVersionInfo.GetVersionInfo(filePath);
+
+                return $"{fileVersionInfo.FileVersion} ({ExtractShortSHA(fileVersionInfo.ProductVersion)})";
             }
 
+            return "";
+        }
+
+        private string ExtractShortSHA(string productVersion)
+        {
+            string marker = "Commit Hash: "; // format used from AssemblyVersionAttribute
+            int found = productVersion.IndexOf(marker, StringComparison.CurrentCultureIgnoreCase);
+            if (found > 0)
+            {
+                int start = found + marker.Length;
+                if (productVersion[start] == '<') // <developer build>
+                {
+                    return productVersion.Substring(start, productVersion.Length - start);
+                }
+                else if (productVersion.Length > start + 8)
+                {
+                    return productVersion.Substring(start, 8);
+                }
+            }
             return "";
         }
 
