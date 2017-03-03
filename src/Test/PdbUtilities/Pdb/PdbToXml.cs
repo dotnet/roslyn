@@ -278,19 +278,19 @@ namespace Roslyn.Test.PdbUtilities
                 {
                     switch (record.Kind)
                     {
-                        case CustomDebugInfoKind.UsingInfo:
+                        case CustomDebugInfoKind.UsingGroups:
                             WriteUsingCustomDebugInfo(record);
                             break;
-                        case CustomDebugInfoKind.ForwardInfo:
+                        case CustomDebugInfoKind.ForwardMethodInfo:
                             WriteForwardCustomDebugInfo(record);
                             break;
-                        case CustomDebugInfoKind.ForwardToModuleInfo:
+                        case CustomDebugInfoKind.ForwardModuleInfo:
                             WriteForwardToModuleCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.StateMachineHoistedLocalScopes:
                             WriteStateMachineHoistedLocalScopesCustomDebugInfo(record);
                             break;
-                        case CustomDebugInfoKind.ForwardIterator:
+                        case CustomDebugInfoKind.ForwardIteratorInfo:
                             WriteForwardIteratorCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.DynamicLocals:
@@ -347,7 +347,7 @@ namespace Roslyn.Test.PdbUtilities
         /// </remarks>
         private void WriteUsingCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(record.Kind == CustomDebugInfoKind.UsingInfo);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.UsingGroups);
 
             _writer.WriteStartElement("using");
 
@@ -372,7 +372,7 @@ namespace Roslyn.Test.PdbUtilities
         /// </remarks>
         private void WriteForwardCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardInfo);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardMethodInfo);
 
             _writer.WriteStartElement("forward");
 
@@ -392,7 +392,7 @@ namespace Roslyn.Test.PdbUtilities
         /// </remarks>
         private void WriteForwardToModuleCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardToModuleInfo);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardModuleInfo);
 
             _writer.WriteStartElement("forwardToModule");
 
@@ -443,7 +443,7 @@ namespace Roslyn.Test.PdbUtilities
         /// </remarks>
         private void WriteForwardIteratorCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardIterator);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardIteratorInfo);
 
             _writer.WriteStartElement("forwardIterator");
 

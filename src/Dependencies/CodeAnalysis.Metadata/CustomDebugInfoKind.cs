@@ -7,11 +7,11 @@
     /// </summary>
     internal enum CustomDebugInfoKind : byte
     {
-        UsingInfo = 0,
-        ForwardInfo = 1,
-        ForwardToModuleInfo = 2,
+        UsingGroups = 0,
+        ForwardMethodInfo = 1,
+        ForwardModuleInfo = 2,
         StateMachineHoistedLocalScopes = 3,
-        ForwardIterator = 4,
+        ForwardIteratorInfo = 4,
         DynamicLocals = 5,
         EditAndContinueLocalSlotMap = 6,
         EditAndContinueLambdaMap = 7,
