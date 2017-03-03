@@ -1502,6 +1502,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             return defines.AsEnumerable();
         }
 
+        public static bool TryParseLanguageVersion(string value, out LanguageVersion version)
+        {
+            if (value == null)
+            {
+                version = LanguageVersion.Default;
+                return true;
+            }
+
+            switch (value.ToLowerInvariant())
+            {
+                case "iso-1":
+                    version = LanguageVersion.CSharp1;
+                    return true;
+
+                case "iso-2":
+                    version = LanguageVersion.CSharp2;
+                    return true;
+
+                case "default":
+                    version = LanguageVersion.Default;
+                    return true;
+
+                case "latest":
+                    version = LanguageVersion.Latest;
+                    return true;
+
+                case "7.1":
+                    version = LanguageVersion.CSharp7_1;
+                    return true;
+
+                default:
+                    if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out int versionNumber))
+                    {
+                        version = (LanguageVersion)versionNumber;
+                        if (version.IsValid())
+                        {
+                            return true;
+                        }
+                    }
+
+                    version = LanguageVersion.Default;
+                    return false;
+            }
+        }
+
         private static Platform ParsePlatform(string value, IList<Diagnostic> diagnostics)
         {
             switch (value.ToLowerInvariant())
@@ -1759,52 +1804,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                                             };
             return new ResourceDescription(resourceName, fileName, dataProvider, isPublic, embedded, checkArgs: false);
-        }
-
-        private static bool TryParseLanguageVersion(string str, out LanguageVersion version)
-        {
-            if (str == null)
-            {
-                version = LanguageVersion.Default;
-                return true;
-            }
-
-            switch (str.ToLowerInvariant())
-            {
-                case "iso-1":
-                    version = LanguageVersion.CSharp1;
-                    return true;
-
-                case "iso-2":
-                    version = LanguageVersion.CSharp2;
-                    return true;
-
-                case "default":
-                    version = LanguageVersion.Default;
-                    return true;
-
-                case "latest":
-                    version = LanguageVersion.Latest;
-                    return true;
-
-                default:
-                    if (float.TryParse(str, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out float versionNumber))
-                    {
-                        if ((int)versionNumber == versionNumber && 1 <= versionNumber && versionNumber <= 7)
-                        {
-                            version = (LanguageVersion)versionNumber;
-                            return true;
-                        }
-                        else if (versionNumber == 7.1f)
-                        {
-                            version = LanguageVersion.CSharp7_1;
-                            return true;
-                        }
-                    }
-
-                    version = LanguageVersion.Default;
-                    return false;
-            }
         }
 
         private static IEnumerable<string> ParseWarnings(string value)

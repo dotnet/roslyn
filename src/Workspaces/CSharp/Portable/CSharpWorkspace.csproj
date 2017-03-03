@@ -223,7 +223,6 @@
     <Compile Include="Simplification\CSharpSimplificationService.cs" />
     <Compile Include="Simplification\CSharpSimplificationService.Expander.cs" />
     <Compile Include="Simplification\CSharpSimplificationService.NodesAndTokensToReduceComputer.cs" />
-    <Compile Include="Utilities\CompilationOptionsConversion.cs" />
     <Compile Include="Utilities\FormattingRangeHelper.cs" />
     <Compile Include="Utilities\NameSyntaxComparer.cs" />
     <Compile Include="Utilities\NameSyntaxIterator.cs" />
