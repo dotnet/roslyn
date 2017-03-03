@@ -196,6 +196,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 text.Lines.IndexOf(token1.Span.End) == text.Lines.IndexOf(token2.SpanStart);
         }
 
+        // 32KB. comes from SourceText char buffer size and less than large object size
+        internal const int SourceTextLengthThreshold = 32 * 1024 / sizeof(char);
+
         public static void WriteTo(this SourceText sourceText, ObjectWriter writer, CancellationToken cancellationToken)
         {
             // Source length
@@ -203,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             writer.WriteInt32(length);
 
             // if source is small, no point on optimizing. just write out string
-            if (length < SharedPools.ByteBufferSize)
+            if (length < SourceTextLengthThreshold)
             {
                 writer.WriteString(sourceText.ToString());
             }
@@ -277,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             public static TextReader Create(ObjectReader reader)
             {
                 var length = reader.ReadInt32();
-                if (length < SharedPools.ByteBufferSize)
+                if (length < SourceTextLengthThreshold)
                 {
                     // small size, read as string
                     return new StringReader(reader.ReadString());

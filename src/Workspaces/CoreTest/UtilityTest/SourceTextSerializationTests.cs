@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var textService = new DesktopTextFactoryService();
 
-            var maxSize = SharedPools.ByteBufferSize * 3;
+            var maxSize = SourceTextExtensions.SourceTextLengthThreshold * 3;
             var sb = new StringBuilder(0, maxSize);
 
             for (var i = 0; i < maxSize; i++)
