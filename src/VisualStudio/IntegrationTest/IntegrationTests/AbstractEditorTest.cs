@@ -271,6 +271,15 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
+        protected void VerifyCompletionItemDoesNotExist(params string[] expectedItems)
+        {
+            var completionItems = Editor.GetCompletionItems();
+            foreach (var expectedItem in expectedItems)
+            {
+                Assert.DoesNotContain(expectedItem, completionItems);
+            }
+        }
+
         protected void VerifyCurrentCompletionItem(string expectedItem)
         {
             var currentItem = Editor.GetCurrentCompletionItem();
