@@ -106,7 +106,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                    End Sub
         End Function
 
-        Protected MustOverride Function TestChildren(code As XElement, ParamArray expectedChildren() As Action(Of Object)) As Task
+        Protected MustOverride Sub TestChildren(code As XElement, ParamArray expectedChildren() As Action(Of Object))
 
         Protected Function IsElement(name As String, Optional kind? As EnvDTE.vsCMElement = Nothing) As Action(Of Object)
             Return _

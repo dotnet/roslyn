@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
 End Class
 "
 
-            Await TestMissingAsync(code)
+            Await TestMissingInRegularAndScriptAsync(code)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
@@ -25,7 +25,7 @@ Class Outer
 End Class
 "
 
-            Await TestMissingAsync(code)
+            Await TestMissingInRegularAndScriptAsync(code)
     End Function
 
     <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
@@ -136,7 +136,7 @@ End Class
 "
             Await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                index:=1, compareTokens:=False)
+                index:=1, ignoreTrivia:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>

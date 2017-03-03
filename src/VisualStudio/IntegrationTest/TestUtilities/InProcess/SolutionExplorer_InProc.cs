@@ -4,10 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
+using VSLangProj;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -28,7 +33,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var localeID = GetDTE().LocaleID;
 
-            return new Dictionary<string, string> {
+            return new Dictionary<string, string>
+            {
                 [WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip",
                 [WellKnownProjectTemplates.ConsoleApplication] = "Microsoft.CSharp.ConsoleApplication",
                 [WellKnownProjectTemplates.Website] = "EmptyWeb.zip",
@@ -42,7 +48,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var localeID = GetDTE().LocaleID;
 
-            return new Dictionary<string, string> {
+            return new Dictionary<string, string>
+            {
                 [WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip",
                 [WellKnownProjectTemplates.ConsoleApplication] = "Microsoft.VisualBasic.Windows.ConsoleApplication",
                 [WellKnownProjectTemplates.Website] = "EmptyWeb.zip",
@@ -86,8 +93,82 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             dte.Solution.Create(solutionPath, solutionName);
 
-            _solution = (EnvDTE80.Solution2)dte.Solution;
+            _solution = (Solution2)dte.Solution;
             _fileName = Path.Combine(solutionPath, $"{solutionName}.sln");
+        }
+
+        public string[] GetAssemblyReferences(string projectName)
+        {
+            var project = GetProject(projectName);
+            var references = ((VSProject)project.Object).References.Cast<Reference>()
+                .Where(x => x.SourceProject == null)
+                .Select(x => x.Name + "," + x.Version + "," + x.PublicKeyToken).ToArray();
+            return references;
+        }
+
+        public string[] GetProjectReferences(string projectName)
+        {
+            var project = GetProject(projectName);
+            var references = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.SourceProject != null).Select(x => x.Name).ToArray();
+            return references;
+        }
+
+        public void CreateSolution(string solutionName, string solutionElementString)
+        {
+            var solutionElement = XElement.Parse(solutionElementString);
+            if (solutionElement.Name != "Solution")
+            {
+                throw new ArgumentException(nameof(solutionElementString));
+            }
+            CreateSolution(solutionName);
+
+            foreach (var projectElement in solutionElement.Elements("Project"))
+            {
+                CreateProject(projectElement);
+            }
+
+            foreach (var projectElement in solutionElement.Elements("Project"))
+            {
+                var projectReferences = projectElement.Attribute("ProjectReferences")?.Value;
+                if (projectReferences != null)
+                {
+                    var projectName = projectElement.Attribute("ProjectName").Value;
+                    foreach (var projectReference in projectReferences.Split(';'))
+                    {
+                        AddProjectReference(projectName, projectReference);
+                    }
+                }
+            }
+        }
+
+        private void CreateProject(XElement projectElement)
+        {
+            const string language = "Language";
+            const string name = "ProjectName";
+            const string template = "ProjectTemplate";
+            var languageName = projectElement.Attribute(language)?.Value
+                ?? throw new ArgumentException($"You must specify an attribute called '{language}' on a project element.");
+            var projectName = projectElement.Attribute(name)?.Value
+                ?? throw new ArgumentException($"You must specify an attribute called '{name}' on a project element.");
+            var projectTemplate = projectElement.Attribute(template)?.Value
+                ?? throw new ArgumentException($"You must specify an attribute called '{template}' on a project element.");
+
+            var projectPath = Path.Combine(DirectoryName, projectName);
+            var projectTemplatePath = GetProjectTemplatePath(projectTemplate, ConvertLanguageName(languageName));
+
+            _solution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
+            foreach (var documentElement in projectElement.Elements("Document"))
+            {
+                var fileName = documentElement.Attribute("FileName").Value;
+                UpdateOrAddFile(projectName, fileName, contents: documentElement.Value);
+            }
+        }
+
+        private void AddProjectReference(string projectName, string projectToReferenceName)
+        {
+            var project = GetProject(projectName);
+            var projectToReference = GetProject(projectToReferenceName);
+            ((VSProject)project.Object).References.AddProject(projectToReference);
         }
 
         public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
@@ -157,7 +238,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 var directoriesToDelete = new List<string>();
 
-                // Save the full path to each project in the solution. This is so we can 
+                // Save the full path to each project in the solution. This is so we can
                 // cleanup any folders after the solution is closed.
                 foreach (EnvDTE.Project project in dte.Solution.Projects)
                 {
@@ -184,15 +265,85 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private EnvDTE.Project GetProject(string nameOrFileName)
             => _solution.Projects.OfType<EnvDTE.Project>().First(p
-                => string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0 
+                => string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
                 || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
 
+        /// <summary>
+        /// Update the given file if it already exists in the project, otherwise add a new file to the project.
+        /// </summary>
+        /// <param name="projectName">The project that contains the file.</param>
+        /// <param name="fileName">The name of the file to update or add.</param>
+        /// <param name="contents">The contents of the file to overwrite if the file already exists or set if the file it created. Empty string is used if null is passed.</param>
+        /// <param name="open">Whether to open the file after it has been updated/created.</param>
+        public void UpdateOrAddFile(string projectName, string fileName, string contents = null, bool open = false)
+        {
+            var project = GetProject(projectName);
+            if (project.ProjectItems.Cast<EnvDTE.ProjectItem>().Any(x => x.Name == fileName))
+            {
+                UpdateFile(projectName, fileName, contents, open);
+            }
+            else
+            {
+                AddFile(projectName, fileName, contents, open);
+            }
+        }
+
+        /// <summary>
+        /// Update the given file to have the contents given.
+        /// </summary>
+        /// <param name="projectName">The project that contains the file.</param>
+        /// <param name="fileName">The name of the file to update or add.</param>
+        /// <param name="contents">The contents of the file to overwrite. Empty string is used if null is passed.</param>
+        /// <param name="open">Whether to open the file after it has been updated.</param>
+        public void UpdateFile(string projectName, string fileName, string contents = null, bool open = false)
+        {
+            void SetText(string text)
+            {
+                InvokeOnUIThread(() =>
+                {
+                    // The active text view might not have finished composing yet, waiting for the application to 'idle'
+                    // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
+                    WaitForApplicationIdle();
+
+                    var vsTextManager = GetGlobalService<SVsTextManager, IVsTextManager>();
+                    var hresult = vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView);
+                    Marshal.ThrowExceptionForHR(hresult);
+                    var activeVsTextView = (IVsUserData)vsTextView;
+
+                    var editorGuid = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
+                    hresult = activeVsTextView.GetData(editorGuid, out var wpfTextViewHost);
+                    Marshal.ThrowExceptionForHR(hresult);
+
+                    var view = ((IWpfTextViewHost)wpfTextViewHost).TextView;
+                    var textSnapshot = view.TextSnapshot;
+                    var replacementSpan = new Text.SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
+                    view.TextBuffer.Replace(replacementSpan, text);
+                });
+            }
+
+            OpenFile(projectName, fileName);
+            SetText(contents ?? string.Empty);
+            CloseFile(projectName, fileName, saveFile: true);
+            if (open)
+            {
+                OpenFile(projectName, fileName);
+            }
+        }
+
+        /// <summary>
+        /// Add new file to project.
+        /// </summary>
+        /// <param name="projectName">The project that contains the file.</param>
+        /// <param name="fileName">The name of the file to add.</param>
+        /// <param name="contents">The contents of the file to overwrite. An empty file is create if null is passed.</param>
+        /// <param name="open">Whether to open the file after it has been updated.</param>
         public void AddFile(string projectName, string fileName, string contents = null, bool open = false)
         {
             var project = GetProject(projectName);
-
             var projectDirectory = Path.GetDirectoryName(project.FullName);
             var filePath = Path.Combine(projectDirectory, fileName);
+            var directoryPath = Path.GetDirectoryName(filePath);
+            Directory.CreateDirectory(directoryPath);
 
             if (contents != null)
             {
@@ -296,21 +447,89 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return errorCount;
         }
 
-        public void OpenFile(string projectName, string relativeFilePath)
+        public void OpenFileWithDesigner(string projectName, string relativeFilePath)
         {
-            var project = _solution.Projects.Item(projectName);
-            var projectPath = Path.GetDirectoryName(project.FullName);
-
-            var filePath = Path.Combine(projectPath, relativeFilePath);
-            ExecuteCommand("File.OpenFile", filePath);
+            var filePath = GetFilePath(projectName, relativeFilePath);
+            var fileName = Path.GetFileName(filePath);
+            var project = _solution.Projects.Cast<EnvDTE.Project>().First(x => x.Name == projectName);
+            var window = project.ProjectItems.Item(fileName).Open(EnvDTE.Constants.vsViewKindDesigner);
+            window.Activate();
 
             var dte = GetDTE();
-            var fileName = Path.GetFileName(filePath);
-
             while (!dte.ActiveWindow.Caption.Contains(fileName))
             {
                 Thread.Yield();
             }
+        }
+
+        public void OpenFile(string projectName, string relativeFilePath)
+        {
+            var filePath = GetFilePath(projectName, relativeFilePath);
+            var fileName = Path.GetFileName(filePath);
+
+            ExecuteCommand("File.OpenFile", filePath);
+
+            var dte = GetDTE();
+            while (!dte.ActiveWindow.Caption.Contains(fileName))
+            {
+                Thread.Yield();
+            }
+        }
+
+        public void CloseFile(string projectName, string relativeFilePath, bool saveFile)
+        {
+            var filePath = GetFilePath(projectName, relativeFilePath);
+            var fileName = Path.GetFileName(filePath);
+
+            var dte = GetDTE();
+            var documents = dte.Documents.Cast<EnvDTE.Document>();
+            var fileToClose = documents.FirstOrDefault(document => document.Name.Equals(fileName));
+            if (fileToClose == null)
+            {
+                throw new InvalidOperationException($"File '{fileName}' not closed because it couldn't be found.  Available files: {string.Join(", ", documents.Select(x => x.Name))}.");
+            }
+            if (saveFile)
+            {
+                SaveFile(fileName);
+                fileToClose.Close(EnvDTE.vsSaveChanges.vsSaveChangesYes);
+            }
+            else
+            {
+                fileToClose.Close(EnvDTE.vsSaveChanges.vsSaveChangesNo);
+            }
+        }
+
+        public void SaveFile(string projectName, string relativeFilePath)
+        {
+            var filePath = GetFilePath(projectName, relativeFilePath);
+            var fileName = Path.GetFileName(filePath);
+            SaveFile(fileName);
+        }
+
+        private static void SaveFile(string fileName)
+        {
+            var dte = GetDTE();
+            var fileToSave = dte.Documents.Cast<EnvDTE.Document>().FirstOrDefault(document => document.Name.Equals(fileName));
+            if (fileToSave == null)
+            {
+                var fileNames = dte.Documents.Cast<EnvDTE.Document>().Select(d => d.Name);
+                throw new InvalidOperationException($"File '{fileName}' not saved because it couldn't be found.  Available files: {string.Join(", ", fileNames)}.");
+            }
+            var textDocument = (EnvDTE.TextDocument)fileToSave.Object(nameof(EnvDTE.TextDocument));
+            var currentTextInDocument = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
+            var fullPath = fileToSave.FullName;
+            fileToSave.Save();
+            if (File.ReadAllText(fullPath) != currentTextInDocument)
+            {
+                throw new InvalidOperationException("The text that we thought we were saving isn't what we saved!");
+            }
+        }
+
+        private string GetFilePath(string projectName, string relativeFilePath)
+        {
+            var project = _solution.Projects.Cast<EnvDTE.Project>().First(x => x.Name == projectName);
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            return Path.Combine(projectPath, relativeFilePath);
         }
 
         public void ReloadProject(string projectName)

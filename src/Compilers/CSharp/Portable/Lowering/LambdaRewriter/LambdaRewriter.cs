@@ -1174,6 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConversion(BoundConversion conversion)
         {
+            Debug.Assert(conversion.ConversionKind != ConversionKind.MethodGroup);
             if (conversion.ConversionKind == ConversionKind.AnonymousFunction)
             {
                 var result = (BoundExpression)RewriteLambdaConversion((BoundLambda)conversion.Operand);
@@ -1194,20 +1195,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            if (conversion.ConversionKind == ConversionKind.MethodGroup &&
-                conversion.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
-            {
-                var rewritten = conversion.Update(
-                    conversion.Operand,
-                    conversion.Conversion,
-                    conversion.IsBaseConversion,
-                    conversion.Checked,
-                    conversion.ExplicitCastInCode,
-                    conversion.ConstantValueOpt,
-                    this.VisitType(conversion.Type));
-
-                return PartiallyLowerLocalFunctionReference(rewritten);
-            }
             return base.VisitConversion(conversion);
         }
 

@@ -1129,6 +1129,48 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
+        [Fact]
+        [WorkItem(16801, "https://github.com/dotnet/roslyn/issues/16801")]
+        public void TestLocalFunctionParameterAndTypeParameterScope()
+        {
+            var text = @"
+class C
+`{
+    void Test()
+    `{
+        `void `M`<T>(int x) `{ `}
+    `}
+`}
+";
+
+            var expectedNames = MakeExpectedSymbols(
+                Add( //Global
+                    "C",
+                    "System",
+                    "Microsoft"),
+                Add( //C
+                    "void C.Test()",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "void System.Object.Finalize()",
+                    "System.String System.Object.ToString()",
+                    "System.Type System.Object.GetType()"),
+                Add("void M<T>(System.Int32 x)"), // Test body
+                Add("T"), //M<T>(int) return type
+                s_pop, //M<T>(int) name
+                Add("T"), //M<T>(int) between name and body
+                Add("System.Int32 x"), //M<T>(int) body
+                Combine(s_pop, s_pop), //M<T>(int) after body
+                s_pop, // Test body
+                s_pop //C
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
         [WorkItem(529406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529406")]
         [Fact]
         public void TestLeftToRightDeclarators()

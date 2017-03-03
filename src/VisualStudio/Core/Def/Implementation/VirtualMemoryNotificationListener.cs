@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                                 // make sure we show info bar only once for the same solution.
                                 _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysisInfoBarShown, true);
 
-                                _workspace.Services.GetService<IErrorReportingService>().ShowErrorInfo(ServicesVSResources.Visual_Studio_has_suspended_some_advanced_features_to_improve_performance,
+                                _workspace.Services.GetService<IErrorReportingService>().ShowGlobalErrorInfo(ServicesVSResources.Visual_Studio_has_suspended_some_advanced_features_to_improve_performance,
                                     new ErrorReportingUI(ServicesVSResources.Re_enable, ErrorReportingUI.UIKind.Button, () =>
                                         _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, true)),
                                     new ErrorReportingUI(ServicesVSResources.Learn_more, ErrorReportingUI.UIKind.HyperLink, () =>

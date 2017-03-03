@@ -1073,12 +1073,12 @@ interface I
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Organizing)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public async Task OrganizingCommandsDisabledInSubmission()
+        public void OrganizingCommandsDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(@"
+            using (var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C

@@ -8,14 +8,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddConstructorPara
     Public Class AddConstructorParameterFromMembersTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New AddConstructorParametersFromMembersCodeRefactoringProvider()
         End Function
 
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         Public Async Function TestAdd1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     [|Private i As Integer
     Private s As String|]
@@ -36,7 +36,7 @@ End Class")
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         Public Async Function TestAddOptional1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     [|Private i As Integer
     Private s As String|]
@@ -58,7 +58,7 @@ index:=1)
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         Public Async Function TestAddToConstructorWithMostMatchingParameters1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     [|Private i As Integer
     Private s As String
@@ -89,7 +89,7 @@ End Class")
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         Public Async Function TestAddOptionalToConstructorWithMostMatchingParameters1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     [|Private i As Integer
     Private s As String

@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If instrument Then
-                    rewrittenStatement = _instrumenter.InstrumentFieldOrPropertyInitializer(node, rewrittenStatement, symbolIndex, createTemporary)
+                    rewrittenStatement = _instrumenterOpt.InstrumentFieldOrPropertyInitializer(node, rewrittenStatement, symbolIndex, createTemporary)
                 End If
 
                 rewrittenStatements.Add(rewrittenStatement)

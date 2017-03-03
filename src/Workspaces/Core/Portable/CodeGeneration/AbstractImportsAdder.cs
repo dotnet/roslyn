@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                if (annotatedNode.GetAnnotations(DoNotAddImportsAnnotation.Kind).Any())
+                {
+                    continue;
+                }
+
                 SyntaxNode namespaceScope = null;
                 var annotations = annotatedNode.GetAnnotations(SymbolAnnotation.Kind);
                 foreach (var annotation in annotations)

@@ -129,9 +129,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
                     project.Id, optionAsset.Checksum, hostChecksums, analyzerMap.Keys.ToArray());
 
-                // TODO: send telemetry on session
-                using (var session = await client.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
+                using (var session = await client.TryCreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
                 {
+                    if (session == null)
+                    {
+                        // session is not available
+                        return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
+                    }
+
                     session.AddAdditionalAssets(optionAsset);
 
                     var result = await session.InvokeAsync(
