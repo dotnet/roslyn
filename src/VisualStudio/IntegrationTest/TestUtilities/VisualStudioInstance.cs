@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public FindReferencesWindow_OutOfProc FindReferencesWindow { get; }
 
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
-        
+
         public Shell_OutOfProc Shell { get; }
 
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
@@ -101,8 +101,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public void WaitForApplicationIdle()
             => _inProc.WaitForApplicationIdle();
 
-        public void ExecuteCommand(string commandName)
-            => _inProc.ExecuteCommand(commandName);
+        public void ExecuteCommand(string commandName, string argument = "")
+            => _inProc.ExecuteCommand(commandName, argument);
 
         public bool IsRunning => !_hostProcess.HasExited;
 

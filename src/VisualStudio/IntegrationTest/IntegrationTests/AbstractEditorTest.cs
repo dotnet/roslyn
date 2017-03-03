@@ -84,6 +84,21 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
+        protected void SetEditorText(string contents)
+        {
+            var originalValue = VisualStudioWorkspaceOutOfProc.IsPrettyListingOn(LanguageName);
+
+            VisualStudioWorkspaceOutOfProc.SetPrettyListing(LanguageName, false);
+            try
+            {
+                Editor.SetText(contents);
+            }
+            finally
+            {
+                VisualStudioWorkspaceOutOfProc.SetPrettyListing(LanguageName, originalValue);
+            }
+        }
+
         protected void AddFile(string fileName, string contents = null, bool open = false)
             => VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, fileName, contents, open);
 
@@ -120,7 +135,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
         }
 
-        protected void PlaceCaret(string text, int charsOffset)
+        protected void DeleteText(string text)
+        {
+            Editor.MoveCaret(0);
+            SelectTextInCurrentDocument(text);
+            SendKeys(VirtualKey.Delete);
+        }
+
+        protected void PlaceCaret(string text, int charsOffset = 0)
             => VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: charsOffset, occurrence: 0, extendSelection: false, selectBlock: false);
 
         protected void BuildSolution(bool waitForBuildToFinish)
@@ -169,8 +191,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
             WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
-        protected void ExecuteCommand(string commandName)
-            => VisualStudio.Instance.ExecuteCommand(commandName);
+        protected void ExecuteCommand(string commandName, string argument = "")
+            => VisualStudio.Instance.ExecuteCommand(commandName, argument);
 
         private void VerifyCurrentLineTextAndAssertCaretPosition(string expectedText, bool trimWhitespace)
         {
@@ -447,6 +469,15 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
             Assert.Contains(referencedProjectName, projectReferences);
+        }
+
+        public void VerifyTokenType(string tokenType)
+        {
+            WaitForAsyncOperations(FeatureAttribute.SolutionCrawler + FeatureAttribute.DiagnosticService + FeatureAttribute.Classification);
+            var actualTokenTypes = Editor.GetCurrentClassifications();
+            Assert.Equal(actualTokenTypes.Length, 1);
+            Assert.Contains(tokenType, actualTokenTypes[0]);
+            Assert.NotEqual("text", tokenType);
         }
     }
 }
