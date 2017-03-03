@@ -7369,6 +7369,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Multiple &apos;Me&apos; parameter specifiers..
+        '''</summary>
+        Friend ReadOnly Property ERR_MultipleMeParameterSpecifiers() As String
+            Get
+                Return ResourceManager.GetString("ERR_MultipleMeParameterSpecifiers", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;New&apos; constraint cannot be specified multiple times for the same type parameter..
         '''</summary>
         Friend ReadOnly Property ERR_MultipleNewConstraints() As String
