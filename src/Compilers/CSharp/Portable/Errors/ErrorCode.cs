@@ -1457,6 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AttributesInLocalFuncDecl = 8205,
         ERR_TypeForwardedToMultipleAssemblies = 8206,
         ERR_ExpressionTreeContainsDiscard = 8207,
+        WRN_StaticMemberAccessThroughDerivedType = 8208,
         #endregion more stragglers for C# 7
 
         ERR_Merge_conflict_marker_encountered = 8300,

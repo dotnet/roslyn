@@ -995,6 +995,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                              receiver,
                                              diagnostics);
                 }
+                else
+                {
+                    if ((object)receiver != null && method.ContainingType != receiver.Type)
+                    {
+                        Error(diagnostics, ErrorCode.WRN_StaticMemberAccessThroughDerivedType, node, method, receiver.Type);
+                    }
+                }
 
                 return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: false,
                             expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,

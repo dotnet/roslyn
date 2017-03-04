@@ -5977,6 +5977,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultKind = LookupResultKind.StaticInstanceMismatch;
                     return true;
                 }
+
+                if (receiver != null && symbol.ContainingType != receiver.Type)
+                {
+                    Error(diagnostics, ErrorCode.WRN_StaticMemberAccessThroughDerivedType, node, symbol, receiver.Type);
+                }
             }
             else
             {
