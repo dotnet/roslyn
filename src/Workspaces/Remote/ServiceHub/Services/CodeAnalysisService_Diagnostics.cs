@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
@@ -36,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var solution = await GetSolutionWithSpecificOptionsAsync(optionSet).ConfigureAwait(false);
 
                     var projectId = arguments.ProjectId;
-                    var analyzers = await GetHostAnalyzerReferences(arguments.HostAnalyzerChecksums).ConfigureAwait(false);
+                    var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(CancellationToken);
 
                     var result = await (new DiagnosticComputer(solution.GetProject(projectId))).GetDiagnosticsAsync(
                         analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, CancellationToken).ConfigureAwait(false);
@@ -55,15 +52,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     // operation
                 }
             }
-        }
-
-        private async Task<IEnumerable<AnalyzerReference>> GetHostAnalyzerReferences(IEnumerable<Checksum> checksums)
-        {
-            // get all (checksum, asset) list
-            var assets = await RoslynServices.AssetService.GetAssetsAsync<AnalyzerReference>(checksums, CancellationToken).ConfigureAwait(false);
-
-            // return just asset part
-            return assets.Select(t => t.Item2);
         }
 
         private async Task SerializeDiagnosticResultAsync(string streamName, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result)

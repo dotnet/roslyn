@@ -117,6 +117,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
       <Link>InternalUtilities\ExceptionUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\OneOrMany.cs">
+      <Link>InternalUtilities\OneOrMany.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs">
       <Link>InternalUtilities\PlatformInformation.cs</Link>
     </Compile>
@@ -390,6 +393,7 @@
     <Compile Include="PatternMatching\PatternMatcher.TextChunk.cs" />
     <Compile Include="PatternMatching\PatternMatches.cs" />
     <Compile Include="PatternMatching\PatternMatchKind.cs" />
+    <Compile Include="Remote\IRemoteHostService.cs" />
     <Compile Include="Remote\RemoteSupportedLanguages.cs" />
     <Compile Include="NamingStyles\Capitalization.cs" />
     <Compile Include="NamingStyles\NamingRule.cs" />

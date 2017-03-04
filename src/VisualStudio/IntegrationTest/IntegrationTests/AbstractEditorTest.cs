@@ -24,18 +24,32 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected readonly string ProjectName = "TestProj";
 
-        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
+            VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
+            Editor = VisualStudio.Instance.Editor;
+        }
+
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
+            : this(instanceFactory, solutionName, WellKnownProjectTemplates.ClassLibrary)
+        {
+        }
+
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName, string projectTemplate, bool clearEditor = true)
+           : base(instanceFactory)
+        {
             VisualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
-            VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, WellKnownProjectTemplates.ClassLibrary, LanguageName);
+            VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, projectTemplate, LanguageName);
 
             VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
             VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
 
             Editor = VisualStudio.Instance.Editor;
-
-            ClearEditor();
+            if (clearEditor)
+            {
+                ClearEditor();
+            }
         }
 
         protected abstract string LanguageName { get; }
@@ -66,6 +80,48 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void AddFile(string fileName, string contents = null, bool open = false)
             => VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, fileName, contents, open);
+
+        protected void OpenFile(string projectName, string fileName)
+            => VisualStudio.Instance.SolutionExplorer.OpenFile(projectName, fileName);
+
+        protected void OpenFileWithDesigner(string projectName, string fileName)
+            => VisualStudio.Instance.SolutionExplorer.OpenFileWithDesigner(projectName, fileName);
+
+        protected void CloseFile(string projectName, string fileName, bool saveFile = true)
+            => VisualStudio.Instance.SolutionExplorer.CloseFile(projectName, fileName, saveFile);
+
+        protected void SaveFile(string projectName, string fileName)
+            => VisualStudio.Instance.SolutionExplorer.SaveFile(projectName, fileName);
+
+        protected void AddWinFormButton(string buttonName)
+            => VisualStudio.Instance.Editor.AddWinFormButton(buttonName);
+
+        protected void DeleteWinFormButton(string buttonName)
+            => VisualStudio.Instance.Editor.DeleteWinFormButton(buttonName);
+
+        protected void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string propertyTypeName = null)
+            => VisualStudio.Instance.Editor.EditWinFormButtonProperty(buttonName, propertyName, propertyValue, propertyTypeName);
+
+        protected void EditWinFormsButtonEvent(string buttonName, string eventName, string eventHandlerName)
+            => VisualStudio.Instance.Editor.EditWinFormButtonEvent(buttonName, eventName, eventHandlerName);
+
+        protected string GetWinFormButtonPropertyValue(string buttonName, string propertyName)
+            => VisualStudio.Instance.Editor.GetWinFormButtonPropertyValue(buttonName, propertyName);
+
+        protected void SelectTextInCurrentDocument(string text)
+        {
+            VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
+            VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
+        }
+
+        protected void PlaceCaret(string text, int charsOffset)
+            => VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: charsOffset, occurrence: 0, extendSelection: false, selectBlock: false);
+
+        protected void BuildSolution(bool waitForBuildToFinish)
+            => VisualStudio.Instance.SolutionExplorer.BuildSolution(waitForBuildToFinish);
+
+        protected int GetErrorListErrorCount()
+            => VisualStudio.Instance.SolutionExplorer.ErrorListErrorCount;
 
         protected void SendKeys(params object[] keys)
             => Editor.SendKeys(keys);
@@ -210,12 +266,27 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
+        protected void VerifyTextDoesNotContain(string expectedText)
+        {
+            var editorText = Editor.GetText();
+            Assert.DoesNotContain(expectedText, editorText);
+        }
+
         protected void VerifyCompletionItemExists(params string[] expectedItems)
         {
             var completionItems = Editor.GetCompletionItems();
             foreach (var expectedItem in expectedItems)
             {
                 Assert.Contains(expectedItem, completionItems);
+            }
+        }
+
+        protected void VerifyCompletionItemDoesNotExist(params string[] expectedItems)
+        {
+            var completionItems = Editor.GetCompletionItems();
+            foreach (var expectedItem in expectedItems)
+            {
+                Assert.DoesNotContain(expectedItem, completionItems);
             }
         }
 
@@ -247,7 +318,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void VerifyParameters(params (string name, string documentation)[] parameters)
         {
             var currentParameters = Editor.GetCurrentSignature().Parameters;
-            for (int i = 0; i < parameters.Length; i++)
+            for (var i = 0; i < parameters.Length; i++)
             {
                 var (expectedName, expectedDocumentation) = parameters[i];
                 Assert.Equal(expectedName, currentParameters[i].Name);
@@ -273,6 +344,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
             {
                 throw new InvalidOperationException("Expected no light bulb session, but one was found.");
             }
+        }
+
+        public void VerifyNoBuildErrors()
+        {
+            BuildSolution(waitForBuildToFinish: true);
+            Assert.Equal(0, GetErrorListErrorCount());
         }
 
         public void VerifyCodeAction(
@@ -351,6 +428,19 @@ namespace Roslyn.VisualStudio.IntegrationTests
             var dialog = DialogHelpers.FindDialog(VisualStudio.Instance.Shell.GetHWnd(), dialogAutomationId, isOpen: true);
             Assert.NotNull(dialog);
             return dialog;
+        }
+
+        public void VerifyAssemblyReferencePresent(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken)
+        {
+            var assemblyReferences = VisualStudio.Instance.SolutionExplorer.GetAssemblyReferences(projectName);
+            var expectedAssemblyReference = assemblyName + "," + assemblyVersion + "," + assemblyPublicKeyToken.ToUpper();
+            Assert.Contains(expectedAssemblyReference, assemblyReferences);
+        }
+
+        public void VerifyProjectReferencePresent(string projectName, string referencedProjectName)
+        {
+            var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
+            Assert.Contains(referencedProjectName, projectReferences);
         }
     }
 }
