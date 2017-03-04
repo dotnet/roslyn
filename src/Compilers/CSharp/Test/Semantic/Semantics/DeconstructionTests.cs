@@ -2481,8 +2481,9 @@ class C
         public void DeconstructionLocalsDeclaredNotUsed()
         {
             // Check that there are no *use sites* within this code for local variables.
-            // They are declared herein, but nowhere used. So they should not be returned
-            // by SemanticModel.GetSymbolInfo.
+            // They are not declared. So they should not be returned
+            // by SemanticModel.GetSymbolInfo. Similarly, check that all designation syntax
+            // forms declare deconstruction locals.
             string source = @"
 class Program
 {
@@ -2511,15 +2512,31 @@ class Program
             {
                 var si = model.GetSymbolInfo(node);
                 var symbol = si.Symbol;
-                if (symbol == null) continue;
-
-                if (node is DeclarationExpressionSyntax)
+                if ((object)symbol != null)
                 {
-                    Assert.Equal(SymbolKind.Local, symbol.Kind);
+                    if (node is DeclarationExpressionSyntax)
+                    {
+                        Assert.Equal(SymbolKind.Local, symbol.Kind);
+                        Assert.Equal(LocalDeclarationKind.DeconstructionVariable, ((LocalSymbol)symbol).DeclarationKind);
+                    }
+                    else
+                    {
+                        Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+                    }
                 }
-                else
+
+                symbol = model.GetDeclaredSymbol(node);
+                if ((object)symbol != null)
                 {
-                    Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+                    if (node is SingleVariableDesignationSyntax)
+                    {
+                        Assert.Equal(SymbolKind.Local, symbol.Kind);
+                        Assert.Equal(LocalDeclarationKind.DeconstructionVariable, ((LocalSymbol)symbol).DeclarationKind);
+                    }
+                    else
+                    {
+                        Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+                    }
                 }
             }
         }

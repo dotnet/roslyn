@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public CodeGenerationFieldSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility accessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol type,
@@ -43,21 +43,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public IFieldSymbol CorrespondingTupleField
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public IFieldSymbol CorrespondingTupleField => null;
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Field;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Field;
 
         public override void Accept(SymbolVisitor visitor)
         {
@@ -85,13 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public bool IsVolatile
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsVolatile => false;
 
         public ImmutableArray<CustomModifier> CustomModifiers
         {
@@ -101,12 +83,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public ISymbol AssociatedSymbol
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public ISymbol AssociatedSymbol => null;
     }
 }

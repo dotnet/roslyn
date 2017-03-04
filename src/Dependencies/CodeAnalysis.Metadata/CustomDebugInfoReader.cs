@@ -178,6 +178,16 @@ namespace Microsoft.CodeAnalysis.Debugging
                 int startOffset = ReadInt32(bytes, ref offset);
                 int endOffset = ReadInt32(bytes, ref offset);
 
+                // The range is stored as end-inclusive.
+                // The case [0,0] is ambiguous in Windows PDBs.
+                // It means either a user defined local with range [0, 1) or a synthesized local.
+                // It is unlikely that a user local scope spans just 1B from the start of the method. 
+                // Assume therefore that [0,0] means a synthesized local.
+                if (startOffset != 0 || endOffset != 0)
+                {
+                    endOffset++;
+                }
+
                 builder.Add(new StateMachineHoistedLocalScope(startOffset, endOffset));
             }
 

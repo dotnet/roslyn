@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Moq;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.Remote;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
@@ -73,6 +74,24 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task SynchronizeGlobalAssets()
+        {
+            var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
+
+            var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
+            var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference));
+
+            service.Enable();
+
+            // make sure client is ready
+            var client = await service.GetRemoteHostClientAsync(CancellationToken.None) as InProcRemoteHostClient;
+
+            Assert.Equal(1, client.AssetStorage.GetGlobalAssetsOfType<AnalyzerReference>(CancellationToken.None).Count());
+
+            service.Disable();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task UpdaterService()
         {
             var exportProvider = TestHostServices.CreateMinimalExportProvider();
@@ -116,7 +135,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var mock = new MockLogService();
             var client = await service.GetRemoteHostClientAsync(CancellationToken.None);
-            using (var session = await client.CreateServiceSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, mock, CancellationToken.None))
+            using (var session = await client.TryCreateServiceSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, mock, CancellationToken.None))
             {
                 await session.InvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), "emptySource", Path.GetTempPath());
             }

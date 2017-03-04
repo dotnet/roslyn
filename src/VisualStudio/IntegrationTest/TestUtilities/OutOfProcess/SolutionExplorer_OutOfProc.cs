@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Xml.Linq;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -23,6 +25,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void CreateSolution(string solutionName, bool saveExistingSolutionIfExists = false)
             => _inProc.CreateSolution(solutionName, saveExistingSolutionIfExists);
 
+        public void CreateSolution(string solutionName, XElement solutionElement)
+            => _inProc.CreateSolution(solutionName, solutionElement.ToString());
+
         public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
             => _inProc.OpenSolution(path, saveExistingSolutionIfExists);
 
@@ -44,11 +49,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetFileContents(string projectName, string fileName)
             => _inProc.GetFileContents(projectName, fileName);
 
-        public void BuildSolution(bool waitForBuildToFinish = false)
+        public void BuildSolution(bool waitForBuildToFinish)
             => _inProc.BuildSolution(waitForBuildToFinish);
+
+        public void OpenFileWithDesigner(string projectName, string fileName)
+            => _inProc.OpenFileWithDesigner(projectName, fileName);
 
         public void OpenFile(string projectName, string fileName)
             => _inProc.OpenFile(projectName, fileName);
+
+        public void CloseFile(string projectName, string fileName, bool saveFile)
+            => _inProc.CloseFile(projectName, fileName, saveFile);
+
+        public void SaveFile(string projectName, string fileName)
+            => _inProc.SaveFile(projectName, fileName);
 
         public void ReloadProject(string projectName)
             => _inProc.ReloadProject(projectName);
@@ -70,5 +84,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void WaitForNoErrorsInErrorList()
             => _inProc.WaitForNoErrorsInErrorList();
+
+        public string[] GetProjectReferences(string projectName)
+            => _inProc.GetProjectReferences(projectName);
+
+        public string[] GetAssemblyReferences(string projectName)
+            => _inProc.GetAssemblyReferences(projectName);
     }
 }

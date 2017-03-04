@@ -17,6 +17,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // The probability of getting a false positive when calling ContainsIdentifier.
         private const double FalsePositiveProbability = 0.0001;
 
+        public static readonly ObjectPool<HashSet<string>> StringLiteralHashSetPool =
+            new ObjectPool<HashSet<string>>(() => new HashSet<string>(), 20);
+
+        public static readonly ObjectPool<HashSet<long>> LongLiteralHashSetPool =
+            new ObjectPool<HashSet<long>>(() => new HashSet<long>(), 20);
+
         private static async Task<SyntaxTreeIndex> CreateInfoAsync(Document document, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -24,6 +30,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var isCaseSensitive = !ignoreCase;
 
             GetIdentifierSet(ignoreCase, out var identifiers, out var escapedIdentifiers);
+
+            var stringLiterals = StringLiteralHashSetPool.Allocate();
+            var longLiterals = LongLiteralHashSetPool.Allocate();
 
             try
             {
@@ -90,7 +99,8 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsThisConstructorInitializer = containsThisConstructorInitializer || syntaxFacts.IsThisConstructorInitializer(token);
                             containsBaseConstructorInitializer = containsBaseConstructorInitializer || syntaxFacts.IsBaseConstructorInitializer(token);
 
-                            if (syntaxFacts.IsIdentifier(token) || syntaxFacts.IsGlobalNamespaceKeyword(token))
+                            if (syntaxFacts.IsIdentifier(token) ||
+                                syntaxFacts.IsGlobalNamespaceKeyword(token))
                             {
                                 var valueText = token.ValueText;
 
@@ -110,6 +120,36 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             {
                                 predefinedOperators |= (int)predefinedOperator;
                             }
+
+                            if (syntaxFacts.IsStringLiteral(token))
+                            {
+                                stringLiterals.Add(token.ValueText);
+                            }
+
+                            if (syntaxFacts.IsCharacterLiteral(token))
+                            {
+                                longLiterals.Add((char)token.Value);
+                            }
+
+                            if (syntaxFacts.IsNumericLiteral(token))
+                            {
+                                var value = token.Value;
+                                switch (value)
+                                {
+                                    case decimal d:
+                                        // not supported for now.
+                                        break;
+                                    case double d:
+                                        longLiterals.Add(BitConverter.DoubleToInt64Bits(d));
+                                        break;
+                                    case float f:
+                                        longLiterals.Add(BitConverter.DoubleToInt64Bits(f));
+                                        break;
+                                    default:
+                                        longLiterals.Add(IntegerUtilities.ToInt64(token.Value));
+                                        break;
+                                }
+                            }
                         }
                     }
                 }
@@ -118,6 +158,8 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
 
                 return new SyntaxTreeIndex(
                     version,
+                    new LiteralInfo(
+                        new BloomFilter(FalsePositiveProbability, stringLiterals, longLiterals)),
                     new IdentifierInfo(
                         new BloomFilter(FalsePositiveProbability, isCaseSensitive, identifiers),
                         new BloomFilter(FalsePositiveProbability, isCaseSensitive, escapedIdentifiers)),
@@ -138,6 +180,8 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
             finally
             {
                 Free(ignoreCase, identifiers, escapedIdentifiers);
+                StringLiteralHashSetPool.ClearAndFree(stringLiterals);
+                LongLiteralHashSetPool.ClearAndFree(longLiterals);
             }
         }
 

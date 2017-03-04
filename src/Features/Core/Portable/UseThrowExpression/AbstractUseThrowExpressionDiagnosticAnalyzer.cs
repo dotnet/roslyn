@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     /// x = a ?? throw SomeException();
     /// </code>
     /// 
-    /// Note: this analyzer can be udpated to run on VB once VB supports 'throw' 
+    /// Note: this analyzer can be updated to run on VB once VB supports 'throw' 
     /// expressions as well.
     /// </summary>
     internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             var compilation = context.Compilation;
             var semanticModel = compilation.GetSemanticModel(throwStatement.SyntaxTree);
-
-            if (IsInExpressionTree(throwStatement, semanticModel, expressionTypeOpt, cancellationToken))
+            var semanticFacts = GetSemanticFactsService();
+            if (semanticFacts.IsInExpressionTree(semanticModel, throwStatement, expressionTypeOpt, cancellationToken))
             {
                 return;
             }
@@ -183,11 +183,8 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
         }
 
-        protected abstract bool IsInExpressionTree(
-            SyntaxNode node, SemanticModel semanticModel,
-            INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken);
-
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISemanticFactsService GetSemanticFactsService();
 
         private bool TryFindAssignmentExpression(
             IBlockStatement containingBlock, IIfStatement ifOperation, ISymbol localOrParameter,
@@ -304,7 +301,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             if (containingOperation?.Kind == OperationKind.BlockStatement)
             {
                 // C# may have an intermediary block between the throw-statement
-                // and the if-statement.  Walk up one operation higher in htat case.
+                // and the if-statement.  Walk up one operation higher in that case.
                 containingOperation = GetOperation(
                     semanticModel, throwStatement.Parent.Parent, cancellationToken);
             }

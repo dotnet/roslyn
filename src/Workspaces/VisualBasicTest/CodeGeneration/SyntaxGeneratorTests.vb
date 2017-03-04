@@ -601,6 +601,15 @@ End Using</x>.Value)
         End Sub
 
         <Fact>
+        Public Sub TestLockStatements()
+            VerifySyntax(Of SyncLockBlockSyntax)(
+                _g.LockStatement(_g.IdentifierName("x"), {_g.IdentifierName("y")}),
+<x>SyncLock x
+    y
+End SyncLock</x>.Value)
+        End Sub
+
+        <Fact>
         Public Sub TestTryCatchStatements()
 
             VerifySyntax(Of TryBlockSyntax)(

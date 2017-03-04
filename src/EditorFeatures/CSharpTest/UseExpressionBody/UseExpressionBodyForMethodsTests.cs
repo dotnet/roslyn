@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Foo()
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int Foo()
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int Foo()
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int Foo()
@@ -96,13 +96,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     int Foo() => throw new NotImplementedException(); // comment
-}", compareTokens: false, options: UseExpressionBody);
+}", ignoreTrivia: false, options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Foo() [|=>|] Bar();
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int Foo() [|=>|] Bar();
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int Foo() [|=>|] throw new NotImplementedException();
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int Foo() [|=>|] throw new NotImplementedException(); // comment
@@ -164,13 +164,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         throw new NotImplementedException(); // comment
     }
-}", compareTokens: false, options: UseBlockBody);
+}", ignoreTrivia: false, options: UseBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestComments1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Foo()
@@ -184,13 +184,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     void Foo() =>
         // Comment
         Bar();
-}", options: UseExpressionBody, compareTokens: false);
+}", options: UseExpressionBody, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestComments2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Foo()
@@ -204,13 +204,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     void Foo() =>
         // Comment
         Bar();
-}", options: UseExpressionBody, compareTokens: false);
+}", options: UseExpressionBody, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestComments3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Foo()
@@ -224,13 +224,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     void Foo() =>
         // Comment
         throw Bar();
-}", options: UseExpressionBody, compareTokens: false);
+}", options: UseExpressionBody, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestComments4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Foo()
@@ -241,13 +241,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     void Foo() => Bar(); // Comment
-}", options: UseExpressionBody, compareTokens: false);
+}", options: UseExpressionBody, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestComments5()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Foo()
@@ -258,13 +258,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     void Foo() => Bar(); // Comment
-}", options: UseExpressionBody, compareTokens: false);
+}", options: UseExpressionBody, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestComments6()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void Foo()
@@ -275,7 +275,75 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     void Foo() => throw Bar(); // Comment
-}", options: UseExpressionBody, compareTokens: false);
+}", options: UseExpressionBody, ignoreTrivia: false);
+        }
+
+        [WorkItem(17120, "https://github.com/dotnet/roslyn/issues/17120")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestDirectives1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#define DEBUG
+using System;
+
+class Program
+{
+    void Method()
+    {
+#if DEBUG
+        [|Console|].WriteLine();
+#endif
+    }
+}",
+@"
+#define DEBUG
+using System;
+
+class Program
+{
+    void Method() =>
+#if DEBUG
+        Console.WriteLine();
+#endif
+
+}", options: UseExpressionBody, ignoreTrivia: false);
+        }
+
+        [WorkItem(17120, "https://github.com/dotnet/roslyn/issues/17120")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestDirectives2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#define DEBUG
+using System;
+
+class Program
+{
+    void Method()
+    {
+#if DEBUG
+        [|Console|].WriteLine(a);
+#else
+        Console.WriteLine(b);
+#endif
+    }
+}",
+@"
+#define DEBUG
+using System;
+
+class Program
+{
+    void Method() =>
+#if DEBUG
+        Console.WriteLine(a);
+#else
+        Console.WriteLine(b);
+#endif
+
+}", options: UseExpressionBody, ignoreTrivia: false);
         }
     }
 }

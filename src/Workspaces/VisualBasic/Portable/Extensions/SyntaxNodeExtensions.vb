@@ -3,7 +3,6 @@
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -227,11 +226,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Friend Function IsMultiLineLambda(lambda As LambdaExpressionSyntax) As Boolean
-            Return lambda.Kind = SyntaxKind.MultiLineSubLambdaExpression OrElse
-                   lambda.Kind = SyntaxKind.MultiLineFunctionLambdaExpression
+        Friend Function IsMultiLineLambda(node As SyntaxNode) As Boolean
+            Return SyntaxFacts.IsMultiLineLambdaExpression(node.Kind())
         End Function
-
 
         <Extension()>
         Friend Function GetTypeCharacterString(type As TypeCharacter) As String
@@ -1086,6 +1083,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End While
 
             Return Nothing
+        End Function
+
+        <Extension>
+        Public Function IsInExpressionTree(node As SyntaxNode,
+                                           semanticModel As SemanticModel,
+                                           expressionTypeOpt As INamedTypeSymbol,
+                                           cancellationToken As CancellationToken) As Boolean
+
+            If expressionTypeOpt IsNot Nothing Then
+                Dim current = node
+                While current IsNot Nothing
+                    If SyntaxFacts.IsSingleLineLambdaExpression(current.Kind) OrElse
+                       SyntaxFacts.IsMultiLineLambdaExpression(current.Kind) Then
+                        Dim TypeInfo = semanticModel.GetTypeInfo(current, cancellationToken)
+                        If expressionTypeOpt.Equals(TypeInfo.ConvertedType?.OriginalDefinition) Then
+                            Return True
+                        End If
+                    End If
+
+                    current = current.Parent
+                End While
+            End If
+
+            Return False
         End Function
     End Module
 End Namespace

@@ -294,6 +294,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public SyntaxToken NameToken => _syntax.Identifier;
 
+        public Binder SignatureBinder => _binder;
+
         internal override bool HasSpecialName => false;
 
         public override bool HidesBaseMethodsByName => false;

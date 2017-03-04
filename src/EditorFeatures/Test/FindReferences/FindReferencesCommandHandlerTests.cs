@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     public class FindReferencesCommandHandlerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
-        public async Task TestFindReferencesSynchronousCall()
+        public void TestFindReferencesSynchronousCall()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync("class C { C() { new C(); } }"))
+            using (var workspace = TestWorkspace.CreateCSharp("class C { C() { new C(); } }"))
             {
                 var findReferencesPresenter = new MockDefinitionsAndReferencesPresenter();
 

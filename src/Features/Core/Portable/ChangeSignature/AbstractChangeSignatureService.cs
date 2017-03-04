@@ -84,9 +84,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
         }
 
-        private async Task<ChangeSignatureAnalyzedContext> GetContextAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
+        private async Task<ChangeSignatureAnalyzedContext> GetContextAsync(
+            Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
-            var symbol = await GetInvocationSymbolAsync(document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
+            var symbol = await GetInvocationSymbolAsync(
+                document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
 
             // Cross-lang symbols will show as metadata, so map it to source if possible.
             symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false) ?? symbol;
