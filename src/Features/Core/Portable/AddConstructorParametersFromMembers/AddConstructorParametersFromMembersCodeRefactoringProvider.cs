@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 if (info != null)
                 {
                     var state = State.Generate(this, document, textSpan, info.SelectedMembers, cancellationToken);
-                    if (state != null)
+                    if (state != null && state.MatchingConstructor == null)
                     {
                         return CreateCodeActions(document, state).AsImmutableOrNull();
                     }
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
 
             var parameters = state.Parameters.Select(p => CodeGenerationSymbolFactory.CreateParameterSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 refKind: p.RefKind,
                 isParams: p.IsParams,
                 type: p.Type,

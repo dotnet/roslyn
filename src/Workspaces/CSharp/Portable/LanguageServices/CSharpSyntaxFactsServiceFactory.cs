@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal class CSharpSyntaxFactsServiceFactory : ILanguageServiceFactory
     {
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return CSharpSyntaxFactsService.Instance;
-        }
+            => CSharpSyntaxFactsService.Instance;
     }
 }

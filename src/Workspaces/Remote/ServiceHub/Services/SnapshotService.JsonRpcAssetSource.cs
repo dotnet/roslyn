@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
@@ -70,7 +69,7 @@ This data should always be correct as we're never persisting the data between se
 
                     for (var i = 0; i < count; i++)
                     {
-                        var responseChecksum = new Checksum(reader.ReadArray<byte>());
+                        var responseChecksum = Checksum.ReadFrom(reader);
                         Contract.ThrowIfFalse(checksums.Contains(responseChecksum));
 
                         var kind = reader.ReadString();

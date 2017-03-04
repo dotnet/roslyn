@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return
                 syntaxTree.IsEntirelyWithinNonUserCodeComment(position, cancellationToken) ||
+                syntaxTree.IsEntirelyWithinConflictMarker(position, cancellationToken) ||
                 syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken) ||
                 syntaxTree.IsInInactiveRegion(position, cancellationToken);
         }
@@ -300,6 +301,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        public static bool IsEntirelyWithinConflictMarker(
+            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(position, cancellationToken);
+
+            if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+            {
+                // Check if we're on the newline right at the end of a comment
+                trivia = trivia.GetPreviousTrivia(syntaxTree, cancellationToken);
+            }
+
+            return trivia.Kind() == SyntaxKind.ConflictMarkerTrivia;
         }
 
         public static bool IsEntirelyWithinTopLevelSingleLineComment(
@@ -501,16 +516,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
-            this SyntaxTree syntaxTree,
-            TextSpan textSpan,
-            CancellationToken cancellationToken)
+            this SyntaxNode root, TextSpan textSpan)
         {
-            var token = syntaxTree.GetRoot(cancellationToken).FindToken(textSpan.Start);
+            var token = root.FindToken(textSpan.Start);
             var firstMember = token.GetAncestors<MemberDeclarationSyntax>().FirstOrDefault();
             if (firstMember != null)
             {
-                var containingType = firstMember.Parent as TypeDeclarationSyntax;
-                if (containingType != null)
+                if (firstMember.Parent is TypeDeclarationSyntax containingType)
                 {
                     return GetMembersInSpan(textSpan, containingType, firstMember);
                 }

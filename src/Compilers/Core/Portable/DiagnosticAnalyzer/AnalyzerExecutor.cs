@@ -1135,6 +1135,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             try
             {
+                _cancellationToken.ThrowIfCancellationRequested();
+
                 Stopwatch timer = null;
                 if (_analyzerExecutionTimeMapOpt != null)
                 {

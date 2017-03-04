@@ -419,14 +419,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(node);
             var model = this.GetMemberModel(node);
-            return (model == null) ? default(SymbolInfo) : model.GetSymbolInfo(node, cancellationToken);
+            return (model == null) ? SymbolInfo.None : model.GetSymbolInfo(node, cancellationToken);
         }
 
         public override TypeInfo GetTypeInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(node);
             var model = this.GetMemberModel(node);
-            return (model == null) ? default(TypeInfo) : model.GetTypeInfo(node, cancellationToken);
+            return (model == null) ? CSharpTypeInfo.None : model.GetTypeInfo(node, cancellationToken);
         }
 
         public override IPropertySymbol GetDeclaredSymbol(AnonymousObjectMemberDeclaratorSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(node);
             var model = this.GetMemberModel(node);
-            return (model == null) ? default(SymbolInfo) : model.GetSymbolInfo(node, cancellationToken);
+            return (model == null) ? SymbolInfo.None : model.GetSymbolInfo(node, cancellationToken);
         }
 
         private ConsList<Symbol> GetBasesBeingResolved(TypeSyntax expression)

@@ -70,27 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
         {
-            if ((node.Flags & BoundMethodGroupFlags.HasImplicitReceiver) == BoundMethodGroupFlags.HasImplicitReceiver &&
-                (object)_targetMethodThisParameter == null)
-            {
-                // This can happen in static contexts.
-                // NOTE: LocalRewriter has already been run, so the receiver has already been replaced with an
-                // appropriate type expression, if this is a static context.
-                // NOTE: Don't go through VisitThisReference, because it'll produce a diagnostic.
-                return node.Update(
-                    node.TypeArgumentsOpt,
-                    node.Name,
-                    node.Methods,
-                    node.LookupSymbolOpt,
-                    node.LookupError,
-                    node.Flags,
-                    receiverOpt: null,
-                    resultKind: node.ResultKind);
-            }
-            else
-            {
-                return base.VisitMethodGroup(node);
-            }
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override BoundNode VisitThisReference(BoundThisReference node)

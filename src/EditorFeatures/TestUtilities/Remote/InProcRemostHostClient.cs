@@ -32,7 +32,7 @@ namespace Roslyn.Test.Utilities.Remote
             // make sure connection is done right
             var current = $"VS ({Process.GetCurrentProcess().Id})";
             var telemetrySession = default(string);
-            var host = await instance._rpc.InvokeAsync<string>(WellKnownRemoteHostServices.RemoteHostService_Connect, current, telemetrySession).ConfigureAwait(false);
+            var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, telemetrySession).ConfigureAwait(false);
 
             // TODO: change this to non fatal watson and make VS to use inproc implementation
             Contract.ThrowIfFalse(host == current.ToString());
@@ -59,7 +59,7 @@ namespace Roslyn.Test.Utilities.Remote
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
 
-        protected override async Task<Session> CreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
+        protected override async Task<Session> TryCreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate snapshot/asset related information
             // this is the back channel the system uses to move data between VS and remote host

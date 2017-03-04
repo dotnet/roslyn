@@ -421,8 +421,13 @@ namespace Roslyn.Test.PdbUtilities
             foreach (StateMachineHoistedLocalScope scope in scopes)
             {
                 _writer.WriteStartElement("slot");
-                _writer.WriteAttributeString("startOffset", AsILOffset(scope.StartOffset));
-                _writer.WriteAttributeString("endOffset", AsILOffset(scope.EndOffset));
+
+                if (!scope.IsDefault)
+                {
+                    _writer.WriteAttributeString("startOffset", AsILOffset(scope.StartOffset));
+                    _writer.WriteAttributeString("endOffset", AsILOffset(scope.EndOffset));
+                }
+
                 _writer.WriteEndElement(); //slot
             }
 

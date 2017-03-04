@@ -86,6 +86,11 @@
     <Compile Include="Implementation\AnalyzerDependency\MissingAnalyzerDependency.cs" />
     <Compile Include="Implementation\Options\LocalUserRegistryOptionPersister.cs" />
     <Compile Include="Implementation\Options\RoamingVisualStudioProfileOptionPersister.cs" />
+    <Compile Include="Implementation\PickMembers\PickMembersDialog.xaml.cs">
+      <DependentUpon>PickMembersDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Implementation\PickMembers\PickMembersDialogViewModel.cs" />
+    <Compile Include="Implementation\PickMembers\VisualStudioPickMembersService.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
@@ -347,7 +352,7 @@
     <Compile Include="Implementation\Debugging\CachedProximityExpressionsGetter.cs" />
     <Compile Include="Implementation\Debugging\DebugMode.cs" />
     <Compile Include="Implementation\Debugging\IProximityExpressionsService.cs" />
-    <Compile Include="Implementation\DesignerAttribute\AbstractDesignerAttributeIncrementalAnalyzer.cs" />
+    <Compile Include="Implementation\DesignerAttribute\DesignerAttributeIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\DesignerAttribute\DesignerAttributeIncrementalAnalyzerProvider.cs" />
     <Compile Include="Implementation\DesignerAttribute\DesignerAttributeState.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.cs" />
@@ -654,6 +659,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Implementation\PickMembers\PickMembersDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Implementation\PreviewPane\PreviewPane.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -695,6 +704,7 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

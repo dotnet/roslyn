@@ -3,11 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Automation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
@@ -22,23 +24,37 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected readonly string ProjectName = "TestProj";
 
-        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
+            VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
+            Editor = VisualStudio.Instance.Editor;
+        }
+
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
+            : this(instanceFactory, solutionName, WellKnownProjectTemplates.ClassLibrary)
+        {
+        }
+
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName, string projectTemplate, bool clearEditor = true)
+           : base(instanceFactory)
+        {
             VisualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
-            VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, WellKnownProjectTemplates.ClassLibrary, LanguageName);
+            VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, projectTemplate, LanguageName);
 
             VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
             VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
 
             Editor = VisualStudio.Instance.Editor;
-
-            ClearEditor();
+            if (clearEditor)
+            {
+                ClearEditor();
+            }
         }
 
         protected abstract string LanguageName { get; }
 
-        private void WaitForAsyncOperations(string featuresToWaitFor)
+        protected void WaitForAsyncOperations(string featuresToWaitFor)
             => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(featuresToWaitFor);
 
         protected void ClearEditor()
@@ -65,6 +81,48 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void AddFile(string fileName, string contents = null, bool open = false)
             => VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, fileName, contents, open);
 
+        protected void OpenFile(string projectName, string fileName)
+            => VisualStudio.Instance.SolutionExplorer.OpenFile(projectName, fileName);
+
+        protected void OpenFileWithDesigner(string projectName, string fileName)
+            => VisualStudio.Instance.SolutionExplorer.OpenFileWithDesigner(projectName, fileName);
+
+        protected void CloseFile(string projectName, string fileName, bool saveFile = true)
+            => VisualStudio.Instance.SolutionExplorer.CloseFile(projectName, fileName, saveFile);
+
+        protected void SaveFile(string projectName, string fileName)
+            => VisualStudio.Instance.SolutionExplorer.SaveFile(projectName, fileName);
+
+        protected void AddWinFormButton(string buttonName)
+            => VisualStudio.Instance.Editor.AddWinFormButton(buttonName);
+
+        protected void DeleteWinFormButton(string buttonName)
+            => VisualStudio.Instance.Editor.DeleteWinFormButton(buttonName);
+
+        protected void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string propertyTypeName = null)
+            => VisualStudio.Instance.Editor.EditWinFormButtonProperty(buttonName, propertyName, propertyValue, propertyTypeName);
+
+        protected void EditWinFormsButtonEvent(string buttonName, string eventName, string eventHandlerName)
+            => VisualStudio.Instance.Editor.EditWinFormButtonEvent(buttonName, eventName, eventHandlerName);
+
+        protected string GetWinFormButtonPropertyValue(string buttonName, string propertyName)
+            => VisualStudio.Instance.Editor.GetWinFormButtonPropertyValue(buttonName, propertyName);
+
+        protected void SelectTextInCurrentDocument(string text)
+        {
+            VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
+            VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
+        }
+
+        protected void PlaceCaret(string text, int charsOffset)
+            => VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: charsOffset, occurrence: 0, extendSelection: false, selectBlock: false);
+
+        protected void BuildSolution(bool waitForBuildToFinish)
+            => VisualStudio.Instance.SolutionExplorer.BuildSolution(waitForBuildToFinish);
+
+        protected int GetErrorListErrorCount()
+            => VisualStudio.Instance.SolutionExplorer.ErrorListErrorCount;
+
         protected void SendKeys(params object[] keys)
             => Editor.SendKeys(keys);
 
@@ -87,6 +145,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
             WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+        }
+
+        protected void InvokeSignatureHelp()
+        {
+            ExecuteCommand(WellKnownCommandNames.Edit_ParameterInfo);
+            WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
         }
 
         protected void InvokeCodeActionList()
@@ -202,12 +266,27 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
+        protected void VerifyTextDoesNotContain(string expectedText)
+        {
+            var editorText = Editor.GetText();
+            Assert.DoesNotContain(expectedText, editorText);
+        }
+
         protected void VerifyCompletionItemExists(params string[] expectedItems)
         {
             var completionItems = Editor.GetCompletionItems();
             foreach (var expectedItem in expectedItems)
             {
                 Assert.Contains(expectedItem, completionItems);
+            }
+        }
+
+        protected void VerifyCompletionItemDoesNotExist(params string[] expectedItems)
+        {
+            var completionItems = Editor.GetCompletionItems();
+            foreach (var expectedItem in expectedItems)
+            {
+                Assert.DoesNotContain(expectedItem, completionItems);
             }
         }
 
@@ -221,6 +300,30 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             var currentSignature = Editor.GetCurrentSignature();
             Assert.Equal(expectedSignature, currentSignature);
+        }
+
+        protected void VerifyCurrentSignature(string content)
+        {
+            var currentSignature = Editor.GetCurrentSignature();
+            Assert.Equal(content, currentSignature.Content);
+        }
+
+        protected void VerifyCurrentParameter(string name, string documentation)
+        {
+            var currentParameter = Editor.GetCurrentSignature().CurrentParameter;
+            Assert.Equal(name, currentParameter.Name);
+            Assert.Equal(documentation, currentParameter.Documentation);
+        }
+
+        protected void VerifyParameters(params (string name, string documentation)[] parameters)
+        {
+            var currentParameters = Editor.GetCurrentSignature().Parameters;
+            for (var i = 0; i < parameters.Length; i++)
+            {
+                var (expectedName, expectedDocumentation) = parameters[i];
+                Assert.Equal(expectedName, currentParameters[i].Name);
+                Assert.Equal(expectedDocumentation, currentParameters[i].Documentation);
+            }
         }
 
         protected void VerifyCaretIsOnScreen()
@@ -238,28 +341,38 @@ namespace Roslyn.VisualStudio.IntegrationTests
         public void VerifyCodeActionsNotShowing()
         {
             if (Editor.IsLightBulbSessionExpanded())
-            { 
+            {
                 throw new InvalidOperationException("Expected no light bulb session, but one was found.");
             }
         }
 
+        public void VerifyNoBuildErrors()
+        {
+            BuildSolution(waitForBuildToFinish: true);
+            Assert.Equal(0, GetErrorListErrorCount());
+        }
+
         public void VerifyCodeAction(
             string expectedItem,
-            bool applyFix = false, 
-            bool verifyNotShowing = false, 
-            bool ensureExpectedItemsAreOrdered = false, 
-            FixAllScope? fixAllScope = null)
+            bool applyFix = false,
+            bool verifyNotShowing = false,
+            bool ensureExpectedItemsAreOrdered = false,
+            FixAllScope? fixAllScope = null,
+            bool blockUntilComplete = true)
         {
             var expectedItems = new[] { expectedItem };
-            VerifyCodeActions(expectedItems, expectedItem, verifyNotShowing, ensureExpectedItemsAreOrdered, fixAllScope);
+            VerifyCodeActions(
+                expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
+                ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete);
         }
 
         public void VerifyCodeActions(
-            IEnumerable<string> expectedItems, 
-            string applyFix = null, 
-            bool verifyNotShowing = false, 
-            bool ensureExpectedItemsAreOrdered = false, 
-            FixAllScope? fixAllScope = null)
+            IEnumerable<string> expectedItems,
+            string applyFix = null,
+            bool verifyNotShowing = false,
+            bool ensureExpectedItemsAreOrdered = false,
+            FixAllScope? fixAllScope = null,
+            bool blockUntilComplete = true)
         {
             Editor.ShowLightBulb();
             Editor.WaitForLightBulbSession();
@@ -290,11 +403,44 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
             if (!string.IsNullOrEmpty(applyFix) || fixAllScope.HasValue)
             {
-                Editor.ApplyLightBulbAction(applyFix, fixAllScope);
+                Editor.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
 
-                // wait for action to complete
-                WaitForAsyncOperations(FeatureAttribute.LightBulb);
+                if (blockUntilComplete)
+                {
+                    // wait for action to complete
+                    WaitForAsyncOperations(FeatureAttribute.LightBulb);
+                }
             }
+        }
+
+        public void VerifyDialog(string dialogName, bool isOpen)
+        {
+            Editor.VerifyDialog(dialogName, isOpen);
+        }
+
+        public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
+        {
+            Editor.PressDialogButton(dialogAutomationName, buttonAutomationName);
+        }
+
+        public AutomationElement GetDialog(string dialogAutomationId)
+        {
+            var dialog = DialogHelpers.FindDialog(VisualStudio.Instance.Shell.GetHWnd(), dialogAutomationId, isOpen: true);
+            Assert.NotNull(dialog);
+            return dialog;
+        }
+
+        public void VerifyAssemblyReferencePresent(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken)
+        {
+            var assemblyReferences = VisualStudio.Instance.SolutionExplorer.GetAssemblyReferences(projectName);
+            var expectedAssemblyReference = assemblyName + "," + assemblyVersion + "," + assemblyPublicKeyToken.ToUpper();
+            Assert.Contains(expectedAssemblyReference, assemblyReferences);
+        }
+
+        public void VerifyProjectReferencePresent(string projectName, string referencedProjectName)
+        {
+            var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
+            Assert.Contains(referencedProjectName, projectReferences);
         }
     }
 }

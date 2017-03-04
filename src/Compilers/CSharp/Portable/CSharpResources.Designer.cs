@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 6..
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 7..
         /// </summary>
         internal static string ERR_BadCompatMode {
             get {
@@ -5989,6 +5989,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_MemGroupInExpressionTree {
             get {
                 return ResourceManager.GetString("ERR_MemGroupInExpressionTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge conflict marker encountered.
+        /// </summary>
+        internal static string ERR_Merge_conflict_marker_encountered {
+            get {
+                return ResourceManager.GetString("ERR_Merge_conflict_marker_encountered", resourceCulture);
             }
         }
         

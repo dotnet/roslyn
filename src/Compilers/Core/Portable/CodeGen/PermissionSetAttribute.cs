@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(context.Module.IsPlatformType(fileArg.Type, Cci.PlatformType.SystemString));
 
             // Named argument value must be a non-empty string
-            Debug.Assert(fileArg.ArgumentValue is Cci.IMetadataConstant);
-            var fileName = (string)((Cci.IMetadataConstant)fileArg.ArgumentValue).Value;
+            Debug.Assert(fileArg.ArgumentValue is MetadataConstant);
+            var fileName = (string)((MetadataConstant)fileArg.ArgumentValue).Value;
             Debug.Assert(!String.IsNullOrEmpty(fileName));
 
             // PermissionSetAttribute type must have a writable public string type property member 'Hex'

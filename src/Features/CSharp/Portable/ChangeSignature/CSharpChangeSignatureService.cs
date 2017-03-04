@@ -22,25 +22,69 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
     [ExportLanguageService(typeof(AbstractChangeSignatureService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureService
     {
+        private static readonly ImmutableArray<SyntaxKind> _invokableAncestorKinds = ImmutableArray.Create(
+                SyntaxKind.MethodDeclaration,
+                SyntaxKind.ConstructorDeclaration,
+                SyntaxKind.IndexerDeclaration,
+                SyntaxKind.InvocationExpression,
+                SyntaxKind.ElementAccessExpression,
+                SyntaxKind.ThisConstructorInitializer,
+                SyntaxKind.BaseConstructorInitializer,
+                SyntaxKind.ObjectCreationExpression,
+                SyntaxKind.Attribute,
+                SyntaxKind.NameMemberCref,
+                SyntaxKind.SimpleLambdaExpression,
+                SyntaxKind.ParenthesizedLambdaExpression,
+                SyntaxKind.DelegateDeclaration);
+
+        private static readonly ImmutableArray<SyntaxKind> _invokableAncestorInDeclarationKinds =
+            _invokableAncestorKinds.AddRange(
+                ImmutableArray.Create(SyntaxKind.Block, SyntaxKind.ArrowExpressionClause));
+
         public override async Task<ISymbol> GetInvocationSymbolAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.GetRoot(cancellationToken).FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var ancestorDeclarationKinds = restrictToDeclarations ? _invokableAncestorKinds.Add(SyntaxKind.Block) : _invokableAncestorKinds;
-            SyntaxNode matchingNode = token.Parent.AncestorsAndSelf().FirstOrDefault(n => ancestorDeclarationKinds.Contains(n.Kind()));
-            if (matchingNode == null || matchingNode.IsKind(SyntaxKind.Block))
+            var token = root.FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
+
+            // Allow the user to invoke Change-Sig if they've written:   Foo(a, b, c);$$ 
+            if (token.Kind() == SyntaxKind.SemicolonToken && token.Parent is StatementSyntax)
+            {
+                token = token.GetPreviousToken();
+                position = token.Span.End;
+            }
+
+            var ancestorDeclarationKinds = restrictToDeclarations 
+                ? _invokableAncestorInDeclarationKinds
+                : _invokableAncestorKinds;
+
+            var matchingNode = token.Parent.AncestorsAndSelf().FirstOrDefault(n => ancestorDeclarationKinds.Contains(n.Kind()));
+
+            // If we walked up and we hit a block/expression-body, then we didn't find anything
+            // viable to reorder.  Just bail here.  This helps prevent Change-sig from appearing
+            // too aggressively inside method bodies.
+            if (matchingNode == null ||
+                matchingNode.IsKind(SyntaxKind.Block) ||
+                matchingNode.IsKind(SyntaxKind.ArrowExpressionClause))
             {
                 return null;
             }
 
-            ISymbol symbol;
-            var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            symbol = semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken);
+            // Don't show change-signature in the random whitespace/trivia for code.
+            if (!matchingNode.Span.IntersectsWith(position))
+            {
+                return null;
+            }
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var symbol = semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken);
             if (symbol != null)
             {
-                return symbol;
+                // If we're actually on the declaration of some symbol, ensure that we're
+                // in a good location for that symbol (i.e. not in the attributes/constraints).
+                return restrictToDeclarations && !InSymbolHeader(matchingNode, position) ? null : symbol;
             }
 
             if (matchingNode.IsKind(SyntaxKind.ObjectCreationExpression))
@@ -61,22 +105,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault();
         }
 
-        private ImmutableArray<SyntaxKind> _invokableAncestorKinds = new[]
+        private bool InSymbolHeader(SyntaxNode matchingNode, int position)
+        {
+            // Caret has to be after the attributes if the symbol has any.
+            var lastAttributes = matchingNode.ChildNodes().LastOrDefault(n => n is AttributeListSyntax);
+            var start = lastAttributes?.GetLastToken().GetNextToken().SpanStart ??
+                        matchingNode.SpanStart;
+
+            if (position < start)
             {
-                SyntaxKind.MethodDeclaration,
-                SyntaxKind.ConstructorDeclaration,
-                SyntaxKind.IndexerDeclaration,
-                SyntaxKind.InvocationExpression,
-                SyntaxKind.ElementAccessExpression,
-                SyntaxKind.ThisConstructorInitializer,
-                SyntaxKind.BaseConstructorInitializer,
-                SyntaxKind.ObjectCreationExpression,
-                SyntaxKind.Attribute,
-                SyntaxKind.NameMemberCref,
-                SyntaxKind.SimpleLambdaExpression,
-                SyntaxKind.ParenthesizedLambdaExpression,
-                SyntaxKind.DelegateDeclaration
-            }.ToImmutableArray();
+                return false;
+            }
+
+            // If the symbol has a parameter list, then the caret shouldn't be past the end of it.
+            var parameterList = matchingNode.ChildNodes().LastOrDefault(n => n is ParameterListSyntax);
+            if (parameterList != null)
+            {
+                return position <= parameterList.FullSpan.End;
+            }
+
+            // Case we haven't handled yet.  Just assume we're in the header.
+            return true;
+        }
 
         private ImmutableArray<SyntaxKind> _updatableAncestorKinds = new[]
             {

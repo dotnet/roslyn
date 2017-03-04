@@ -20,7 +20,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Get
         End Property
 
+        Friend Overrides Function EndOfLine(text As String) As SyntaxTrivia
+            Return SyntaxFactory.EndOfLine(text)
+        End Function
+
 #Region "Expressions and Statements"
+
+        Public Overrides Function AddEventHandler([event] As SyntaxNode, handler As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.AddHandlerStatement(CType([event], ExpressionSyntax), CType(handler, ExpressionSyntax))
+        End Function
+
+        Public Overrides Function RemoveEventHandler([event] As SyntaxNode, handler As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.RemoveHandlerStatement(CType([event], ExpressionSyntax), CType(handler, ExpressionSyntax))
+        End Function
 
         Public Overrides Function AwaitExpression(expression As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.AwaitExpression(DirectCast(expression, ExpressionSyntax))
@@ -380,6 +392,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 SyntaxFactory.UsingStatement(
                     expression:=DirectCast(expression, ExpressionSyntax),
                     variables:=Nothing),
+                GetStatementList(statements))
+        End Function
+
+        Public Overrides Function LockStatement(expression As SyntaxNode, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return SyntaxFactory.SyncLockBlock(
+                SyntaxFactory.SyncLockStatement(
+                    expression:=DirectCast(expression, ExpressionSyntax)),
                 GetStatementList(statements))
         End Function
 
@@ -3425,16 +3444,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function CustomEventDeclaration(
-            name As String,
-            type As SyntaxNode,
+            name As String, type As SyntaxNode,
             Optional accessibility As Accessibility = Accessibility.NotApplicable,
             Optional modifiers As DeclarationModifiers = Nothing,
             Optional parameters As IEnumerable(Of SyntaxNode) = Nothing,
             Optional addAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
             Optional removeAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
+            Return CustomEventDeclarationWithRaise(name, type, accessibility, modifiers, parameters, addAccessorStatements, removeAccessorStatements)
+        End Function
+
+        Public Function CustomEventDeclarationWithRaise(
+            name As String,
+            type As SyntaxNode,
+            Optional accessibility As Accessibility = Accessibility.NotApplicable,
+            Optional modifiers As DeclarationModifiers = Nothing,
+            Optional parameters As IEnumerable(Of SyntaxNode) = Nothing,
+            Optional addAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
+            Optional removeAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
+            Optional raiseAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+
             Dim accessors = New List(Of AccessorBlockSyntax)()
-            Dim raiseAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing
 
             If modifiers.IsAbstract Then
                 addAccessorStatements = Nothing

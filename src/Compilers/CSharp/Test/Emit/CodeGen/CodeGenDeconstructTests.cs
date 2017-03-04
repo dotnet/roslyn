@@ -2395,7 +2395,7 @@ Deconstructing (1, hello)
 
         private static void VerifyModelForDeconstructionLocal(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.RegularVariable, references);
+            VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.DeconstructionVariable, references);
         }
 
         private static void VerifyModelForLocal(SemanticModel model, SingleVariableDesignationSyntax decl, LocalDeclarationKind kind, params IdentifierNameSyntax[] references)
@@ -4549,6 +4549,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
             // extra check on var
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
+            Assert.Null(model.GetTypeInfo(x123Var.Type).Type); 
             Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
         }
 
@@ -4590,6 +4591,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
             // extra check on var
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
+            Assert.Null(model.GetTypeInfo(x123Var.Type).Type);
             Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
         }
 
@@ -5850,7 +5852,7 @@ class Program
             var x2Ref = GetReference(tree, "x2");
             Assert.Equal("string[]", model.GetTypeInfo(x2Ref).Type.ToDisplayString());
 
-            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref);
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.OutVariable, x1Ref);
             VerifyModelForLocal(model, x2, LocalDeclarationKind.PatternVariable, x2Ref);
         }
 
@@ -5884,7 +5886,7 @@ class Program
             var x1Ref = GetReference(tree, "x1");
             Assert.Equal("int", model.GetTypeInfo(x1Ref).Type.ToDisplayString());
 
-            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref);
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.OutVariable, x1Ref);
         }
 
         [Fact]
@@ -5925,7 +5927,7 @@ class Program
             var x2Ref = GetReferences(tree, "x2");
             Assert.Equal("string[]", model.GetTypeInfo(x2Ref.First()).Type.ToDisplayString());
 
-            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref.ToArray());
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.OutVariable, x1Ref.ToArray());
             VerifyModelForLocal(model, x2, LocalDeclarationKind.PatternVariable, x2Ref.ToArray());
         }
 
@@ -5974,8 +5976,8 @@ class C
             var x2Ref = GetReference(tree, "x2");
             Assert.Equal("string", model.GetTypeInfo(x2Ref).Type.ToDisplayString());
 
-            VerifyModelForDeconstructionLocal(model, x1, x1Ref);
-            VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+            VerifyModelForDeconstruction(model, x1, LocalDeclarationKind.DeclarationExpressionVariable, x1Ref);
+            VerifyModelForDeconstruction(model, x2, LocalDeclarationKind.DeclarationExpressionVariable, x2Ref);
         }
 
         [Fact]

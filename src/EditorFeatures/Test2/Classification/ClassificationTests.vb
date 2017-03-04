@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic().WithParts(
                     GetType(NoCompilationEditorClassificationService)))
 
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition, exportProvider:=exportProvider)
+            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=exportProvider)
                 Dim waiter = New AsynchronousOperationListener()
                 Dim provider = New SemanticClassificationViewTaggerProvider(
                     workspace.GetService(Of IForegroundNotificationService),

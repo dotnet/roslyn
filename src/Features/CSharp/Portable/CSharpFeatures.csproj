@@ -66,12 +66,14 @@
     <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.Pattern.cs" />
     <Compile Include="ConvertNumericLiteral\CSharpConvertNumericLiteralCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\UseNamedArguments\CSharpUseNamedArgumentsCodeRefactoringProvider.cs" />
+    <Compile Include="ConflictMarkerResolution\CSharpResolveConflictMarkerCodeFixProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\TupleNameCompletionProvider.cs" />
     <Compile Include="CSharpFeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpFeaturesResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="GenerateFromMembers\GenerateFromMembersHelpers.cs" />
+    <Compile Include="DesignerAttributes\CSharpDesignerAttributeService.cs" />
     <Compile Include="ImplementAbstractClass\CSharpImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="ImplementInterface\CSharpImplementInterfaceCodeFixProvider.cs" />
     <Compile Include="Structure\Providers\ArrowExpressionClauseStructureProvider.cs" />
@@ -79,6 +81,7 @@
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpUnnecessaryImportsService.cs" />
     <Compile Include="Structure\Providers\InitializerExpressionStructureProvider.cs" />
+    <Compile Include="TodoComments\CSharpTodoCommentIncrementalAnalyzerProvider.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="UseExpressionBody\Accessors\UseExpressionBodyForAccessorsCodeFixProvider.cs" />

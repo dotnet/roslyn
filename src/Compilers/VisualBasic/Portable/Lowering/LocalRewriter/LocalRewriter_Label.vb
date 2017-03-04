@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' only labels from the source get their sequence points here
             ' synthetic labels are the responsibility of whoever created them
             If node.Label.IsFromCompilation(_compilationState.Compilation) AndAlso Instrument(node, statement) Then
-                statement = _instrumenter.InstrumentLabelStatement(node, statement)
+                statement = _instrumenterOpt.InstrumentLabelStatement(node, statement)
             End If
 
             Return statement

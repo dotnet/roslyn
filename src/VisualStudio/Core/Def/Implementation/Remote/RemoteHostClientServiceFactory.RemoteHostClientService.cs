@@ -158,8 +158,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private async Task<RemoteHostClient> EnableAsync(CancellationToken cancellationToken)
             {
-                AddGlobalAssets(cancellationToken);
-
                 // if we reached here, IRemoteHostClientFactory must exist.
                 // this will make VS.Next dll to be loaded
                 var instance = await _workspace.Services.GetRequiredService<IRemoteHostClientFactory>().CreateAsync(_workspace, cancellationToken).ConfigureAwait(false);
@@ -170,11 +168,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 instance.ConnectionChanged += OnConnectionChanged;
 
+                // set global assets on remote host
+                var checksums = AddGlobalAssets(cancellationToken);
+
+                // send over global asset
+                await instance.RunOnRemoteHostAsync(
+                    WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
+                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
+                    (object)checksums, cancellationToken).ConfigureAwait(false);
+
                 return instance;
             }
 
-            private void AddGlobalAssets(CancellationToken cancellationToken)
+            private Checksum[] AddGlobalAssets(CancellationToken cancellationToken)
             {
+                var builder = ArrayBuilder<Checksum>.GetInstance();
+
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
                 {
                     var snapshotService = _workspace.Services.GetService<ISolutionSynchronizationService>();
@@ -183,9 +192,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                     {
                         var asset = assetBuilder.Build(reference, cancellationToken);
+
+                        builder.Add(asset.Checksum);
                         snapshotService.AddGlobalAsset(reference, asset, cancellationToken);
                     }
                 }
+
+                return builder.ToArrayAndFree();
             }
 
             private void RemoveGlobalAssets()

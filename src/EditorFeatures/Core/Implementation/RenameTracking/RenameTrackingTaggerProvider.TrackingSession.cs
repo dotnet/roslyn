@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private Task<bool> _newIdentifierBindsTask = SpecializedTasks.False;
 
             private readonly string _originalName;
-            public string OriginalName { get { return _originalName; } }
+            public string OriginalName => _originalName;
 
             private readonly ITrackingSpan _trackingSpan;
-            public ITrackingSpan TrackingSpan { get { return _trackingSpan; } }
+            public ITrackingSpan TrackingSpan => _trackingSpan;
 
             private bool _forceRenameOverloads;
-            public bool ForceRenameOverloads { get { return _forceRenameOverloads; } }
+            public bool ForceRenameOverloads => _forceRenameOverloads;
 
             public TrackingSession(StateMachine stateMachine, SnapshotSpan snapshotSpan, IAsynchronousOperationListener asyncListener)
             {
