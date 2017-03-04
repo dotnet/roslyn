@@ -81,6 +81,7 @@
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.TextMerging.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.Features.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.cs" />
+    <Compile Include="UtilityTest\SourceTextSerializationTests.cs" />
     <Compile Include="UtilityTest\StringEscapingTests.cs" />
     <Compile Include="SymbolKeyTests.cs" />
     <Compile Include="ServicesTestBase.cs" />
