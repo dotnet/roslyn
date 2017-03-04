@@ -339,7 +339,7 @@ namespace Microsoft.Cci
             }
 
             DefineLocalScopes(localScopes, localSignatureHandleOpt);
-            ArrayBuilder<Cci.SequencePoint> sequencePoints = ArrayBuilder<Cci.SequencePoint>.GetInstance();
+            ArrayBuilder<SequencePoint> sequencePoints = ArrayBuilder<SequencePoint>.GetInstance();
             methodBody.GetSequencePoints(sequencePoints);
             EmitSequencePoints(sequencePoints);
             sequencePoints.Free();

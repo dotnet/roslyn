@@ -22,11 +22,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function IsTextualTriggerCharacterTest() As Task
-            Await TestCommonIsTextualTriggerCharacterAsync()
+        Public Sub IsTextualTriggerCharacterTest()
+            TestCommonIsTextualTriggerCharacter()
 
-            Await VerifyTextualTriggerCharacterAsync("foo$$(", shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
-        End Function
+            VerifyTextualTriggerCharacter("foo$$(", shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function SendEnterThroughToEditorTest() As Task

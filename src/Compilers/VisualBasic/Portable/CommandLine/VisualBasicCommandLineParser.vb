@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim concurrentBuild As Boolean = True
             Dim deterministic As Boolean = False
             Dim emitPdb As Boolean
-            Dim debugInformationFormat As DebugInformationFormat = DebugInformationFormat.Pdb
+            Dim debugInformationFormat As DebugInformationFormat = If(PathUtilities.IsUnixLikePlatform, DebugInformationFormat.PortablePdb, DebugInformationFormat.Pdb)
             Dim noStdLib As Boolean = False
             Dim utf8output As Boolean = False
             Dim outputFileName As String = Nothing

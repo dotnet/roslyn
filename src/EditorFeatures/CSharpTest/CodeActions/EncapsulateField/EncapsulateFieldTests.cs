@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
 {
     public class EncapsulateFieldTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new EncapsulateFieldRefactoringProvider();
 
         private static readonly Dictionary<OptionKey, object> AllOptionsOff =
@@ -30,9 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
-            int index = 0, bool compareTokens = true,
-            IDictionary<OptionKey, object> options = null,
-            bool withScriptOption = false)
+            int index = 0, bool ignoreTrivia = true,
+            IDictionary<OptionKey, object> options = null)
         {
             options = options ?? new Dictionary<OptionKey, object>();
             foreach (var kvp in AllOptionsOff)
@@ -41,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             }
 
             return TestAsync(initialMarkup, expectedMarkup,
-                parseOptions, compilationOptions, index, compareTokens, options, 
-                withScriptOption: withScriptOption);
+                parseOptions, compilationOptions, index, ignoreTrivia, options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -84,7 +82,7 @@ class foo
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 1);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -126,7 +124,7 @@ class foo
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -168,7 +166,7 @@ class foo
     }
 }
 ";
-            await TestAsync(text, expected, 
+            await TestInRegularAndScriptAsync(text, expected, 
                 options: OptionsSet(
                     SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
                     SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
@@ -207,7 +205,7 @@ class foo
     }
 }
 ";
-            await TestAsync(text, expected,
+            await TestInRegularAndScriptAsync(text, expected,
                 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
@@ -250,7 +248,7 @@ class foo
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 1);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -292,7 +290,7 @@ class foo
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -320,7 +318,7 @@ class foo
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -352,7 +350,7 @@ class Program
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -382,7 +380,7 @@ class C<T>
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -414,7 +412,7 @@ class foo
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -439,7 +437,7 @@ class foo
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -483,7 +481,7 @@ class d : c
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -538,7 +536,7 @@ class foo
         Y = 2;
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -595,7 +593,7 @@ class foo
         Y = 2;
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -638,7 +636,7 @@ class foo
         y = 2;
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [WorkItem(694057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694057")]
@@ -666,7 +664,7 @@ class Program
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276")]
@@ -694,7 +692,7 @@ class Program
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276")]
@@ -727,7 +725,7 @@ class Program
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046")]
@@ -769,7 +767,7 @@ class Program
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -837,7 +835,7 @@ public class D
         </Document>
     </Project>
 </Workspace>";
-            await TestAllOptionsOffAsync(text, expected, new CodeAnalysis.CSharp.CSharpParseOptions(), TestOptions.ReleaseExe, compareTokens: false);
+            await TestAllOptionsOffAsync(text, expected, new CodeAnalysis.CSharp.CSharpParseOptions(), TestOptions.ReleaseExe, ignoreTrivia: false);
         }
 
         [WorkItem(713269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713269")]
@@ -870,7 +868,7 @@ class C
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [WorkItem(713240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713240")]
@@ -913,7 +911,7 @@ internal enum State
     WA
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191")]
@@ -949,7 +947,7 @@ class Program
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191")]
@@ -985,7 +983,7 @@ class Program
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
         }
 
         [WorkItem(765959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765959")]
@@ -1030,11 +1028,7 @@ partial class Program {
     a b c [|b|]
 }";
 
-            using (var workspace = await CreateWorkspaceFromFileAsync(text, null, null))
-            {
-                var result = await GetCodeRefactoringAsync(workspace, fixProviderData: null);
-                Assert.NotNull(result);
-            }
+            await TestActionCountAsync(text, count: 2);
         }
 
         [WorkItem(834072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834072")]
@@ -1046,14 +1040,10 @@ class Program
 {
     public const string [|s|] = ""S"";
     public const string s = ""S"";
-    }
+}
 ";
 
-            using (var workspace = await CreateWorkspaceFromFileAsync(text, null, null))
-            {
-                var result = await GetCodeRefactoringAsync(workspace, fixProviderData: null);
-                Assert.NotNull(result);
-            }
+            await TestActionCountAsync(text, count: 2);
         }
 
         [WorkItem(862517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862517")]
@@ -1101,16 +1091,16 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task DoNotEncapsulateOutsideTypeDeclaration()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"var [|x|] = 1;");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"namespace N
 {
     var [|x|] = 1;
 }");
 
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"enum E
 {
     [|x|] = 1;
@@ -1298,7 +1288,7 @@ class C
         }
     }
 }
-", compareTokens: false);
+", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -1327,7 +1317,7 @@ class C
         }
     }
 }
-", compareTokens: false, options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+", ignoreTrivia: false, options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
         }
 
         [WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090")]
@@ -1397,7 +1387,8 @@ class C
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestAllOptionsOffAsync(
+                text, expected, ignoreTrivia: false, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1439,7 +1430,8 @@ class C
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
+            await TestAllOptionsOffAsync(
+                text, expected, ignoreTrivia: false, index: 1);
         }
     }
 }

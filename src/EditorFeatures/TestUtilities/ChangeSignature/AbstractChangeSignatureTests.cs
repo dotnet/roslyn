@@ -30,20 +30,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
             if (expectedCodeAction)
             {
-                using (var workspace = await CreateWorkspaceFromFileAsync(markup, parseOptions: null, compilationOptions: null))
+                var testOptions = new TestParameters();
+                using (var workspace = CreateWorkspaceFromOptions(markup, testOptions))
                 {
                     var optionsService = workspace.Services.GetService<IChangeSignatureOptionsService>() as TestChangeSignatureOptionsService;
                     optionsService.IsCancelled = isCancelled;
                     optionsService.UpdatedSignature = updatedSignature;
 
-                    var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, fixProviderData: null);
+                    var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, testOptions);
                     await TestActionsAsync(workspace, expectedCode, index, codeIssueOrRefactoring.Actions.ToList(),
-                        conflictSpans: null, renameSpans: null, warningSpans: null, compareTokens: true);
+                        conflictSpans: null, renameSpans: null, warningSpans: null, ignoreTrivia: true);
                 }
             }
             else
             {
-                await TestMissingAsync(markup, parseOptions: null);
+                await TestMissingAsync(markup);
             }
         }
 
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             bool verifyNoDiagnostics = false,
             ParseOptions parseOptions = null)
         {
-            using (var testState = await ChangeSignatureTestState.CreateAsync(markup, languageName, parseOptions))
+            using (var testState = ChangeSignatureTestState.Create(markup, languageName, parseOptions))
             {
                 testState.TestChangeSignatureOptionsService.IsCancelled = false;
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;

@@ -49,7 +49,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 logAnalyzerExecutionTime: false,
                 projectId: ProjectId.CreateNewId("project"),
                 optionSetChecksum: Checksum.Null,
-                hostAnalyzerChecksums: ImmutableArray.CreateRange(new[] { new Checksum(Guid.NewGuid().ToByteArray()), new Checksum(Guid.NewGuid().ToByteArray()) }),
                 analyzerIds: new[] { "analyzer1", "analyzer2" });
 
             VerifyJsonSerialization(arguments, (x, y) =>
@@ -58,8 +57,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     x.LogAnalyzerExecutionTime == y.LogAnalyzerExecutionTime &&
                     x.ProjectId == y.ProjectId &&
                     x.OptionSetChecksum == y.OptionSetChecksum &&
-                    x.HostAnalyzerChecksums.Length == y.HostAnalyzerChecksums.Length &&
-                    x.HostAnalyzerChecksums.Except(y.HostAnalyzerChecksums).Count() == 0 &&
                     x.AnalyzerIds.Length == y.AnalyzerIds.Length &&
                     x.AnalyzerIds.Except(y.AnalyzerIds).Count() == 0)
                 {
@@ -74,6 +71,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public void TestTextSpan()
         {
             VerifyJsonSerialization(new TextSpan(10, 5));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestSymbolKey()
+        {
+            VerifyJsonSerialization(new SymbolKey("TEST"));
         }
 
         private static void VerifyJsonSerialization<T>(T value, Comparison<T> equality = null)

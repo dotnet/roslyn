@@ -145,6 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(root.Contains(node));
 
             ExpressionSyntax typeOfArgument = null;
+            LocalFunctionStatementSyntax ownerOfTypeParametersInScope = null;
+
             Binder binder = null;
 
             for (var current = node; binder == null; current = current.ParentOrStructuredTriviaParent)
@@ -163,6 +165,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (binder != null)
                         {
                             binder = AdjustBinderForPositionWithinStatement(position, binder, stmt);
+                        }
+                        else if (kind == SyntaxKind.LocalFunctionStatement)
+                        {
+                            Debug.Assert(ownerOfTypeParametersInScope == null);
+                            var localFunction = (LocalFunctionStatementSyntax)stmt;
+                            if (localFunction.TypeParameterList != null &&
+                                !LookupPosition.IsBetweenTokens(position, localFunction.Identifier, localFunction.TypeParameterList.LessThanToken)) // Scope does not include method name.
+                            {
+                                ownerOfTypeParametersInScope = localFunction;
+                            }
                         }
                     }
                 }
@@ -244,6 +256,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             binder = binder ?? rootBinder.GetBinder(root) ?? rootBinder;
             Debug.Assert(binder != null);
+
+            if (ownerOfTypeParametersInScope != null)
+            {
+                LocalFunctionSymbol function = GetDeclaredLocalFunction(binder, ownerOfTypeParametersInScope.Identifier);
+                if ((object)function != null)
+                {
+                    binder = function.SignatureBinder;
+                }
+            }
 
             if (typeOfArgument != null)
             {
@@ -483,8 +504,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var boundLocalFunction = GetLowerBoundNode(declarationSyntax) as BoundLocalFunctionStatement;
-            return boundLocalFunction?.Symbol;
+            CheckSyntaxNode(declarationSyntax);
+            return GetDeclaredLocalFunction(declarationSyntax, declarationSyntax.Identifier);
         }
 
         public override ISymbol GetDeclaredSymbol(MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -556,6 +577,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (local.IdentifierToken == declaredIdentifier)
                     {
                         return local;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private LocalFunctionSymbol GetDeclaredLocalFunction(LocalFunctionStatementSyntax declarationSyntax, SyntaxToken declaredIdentifier)
+        {
+            return GetDeclaredLocalFunction(this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax)), declaredIdentifier);
+        }
+
+        private static LocalFunctionSymbol GetDeclaredLocalFunction(Binder enclosingBinder, SyntaxToken declaredIdentifier)
+        {
+            for (var binder = enclosingBinder ; binder != null; binder = binder.Next)
+            {
+                foreach (var localFunction in binder.LocalFunctions)
+                {
+                    if (localFunction.NameToken == declaredIdentifier)
+                    {
+                        return localFunction;
                     }
                 }
             }

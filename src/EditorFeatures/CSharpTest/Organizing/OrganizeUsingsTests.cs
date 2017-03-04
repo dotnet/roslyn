@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
     {
         protected async Task CheckAsync(string initial, string final, bool placeSystemNamespaceFirst = false, CSharpParseOptions options = null)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(initial))
+            using (var workspace = TestWorkspace.CreateCSharp(initial))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
                 workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst);

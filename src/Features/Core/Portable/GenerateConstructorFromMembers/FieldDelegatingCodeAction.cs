@@ -55,13 +55,21 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     parameterToNewFieldMap: null,
                     cancellationToken: cancellationToken);
 
+                // If the user has selected a set of members (i.e. TextSpan is not empty), then we will
+                // choose the right location (i.e. null) to insert the constructor.  However, if they're 
+                // just invoking the feature manually at a specific location, then we'll insert the 
+                // members at that specific place in the class/struct.
+                var afterThisLocation = _state.TextSpan.IsEmpty
+                    ? syntaxTree.GetLocation(_state.TextSpan)
+                    : null;
+
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
                     _document.Project.Solution,
                     _state.ContainingType,
                     members,
                     new CodeGenerationOptions(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),
-                        afterThisLocation: _state.TextSpan.IsEmpty ? syntaxTree.GetLocation(_state.TextSpan) : null),
+                        afterThisLocation: afterThisLocation),
                     cancellationToken).ConfigureAwait(false);
 
                 return result;

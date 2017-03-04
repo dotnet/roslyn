@@ -43,7 +43,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
 
@@ -55,6 +55,26 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.Equal(
                     await solution.State.GetChecksumAsync(CancellationToken.None),
                     await PrimaryWorkspace.Workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestRemoteHostSynchronizeGlobalAssets()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            {
+                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
+
+                await client.RunOnRemoteHostAsync(
+                    WellKnownRemoteHostServices.RemoteHostService,
+                    workspace.CurrentSolution,
+                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
+                    new object[] { new Checksum[0] { } }, CancellationToken.None);
+
+                var storage = client.AssetStorage;
+                Assert.Equal(0, storage.GetGlobalAssetsOfType<object>(CancellationToken.None).Count());
             }
         }
 
@@ -77,7 +97,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestRemoteHostSynchronizeIncrementalUpdate()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(Array.Empty<string>(), metadataReferences: null))
+            using (var workspace = TestWorkspace.CreateCSharp(Array.Empty<string>(), metadataReferences: null))
             {
                 var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
 
@@ -219,7 +239,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             await client.RunOnRemoteHostAsync(
                 WellKnownRemoteHostServices.RemoteHostService, solution,
-                WellKnownRemoteHostServices.RemoteHostService_SynchronizePrimaryWorkspaceAsync,
+                nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
         }
 
