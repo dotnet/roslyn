@@ -900,10 +900,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 flag = flag And (Not SourceParameterFlags.Optional)
             End If
 
-            'If (flag And SourceParameterFlags.Me) <> 0 Then
-            '    diagnostics.Add(ERRID.ERR_MeIllegal1, token.GetLocation(), container.GetKindText())
-            '    flag = flag And (Not SourceParameterFlags.Me)
-            'End If
+            If (flag And SourceParameterFlags.Me) <> 0 Then
+                diagnostics.Add(ERRID.ERR_MeIllegal1, token.GetLocation(), container.GetKindText())
+                flag = flag And (Not SourceParameterFlags.Me)
+            End If
 
             Return flag
         End Function
@@ -1035,19 +1035,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     End If
                 End If
-                If (flagsOfPreviousParameters And SourceParameterFlags.Me) <> 0 AndAlso i > 0 AndAlso
-                    Not reportedError Then
-
-                    ReportDiagnostic(diagBag, paramSyntax, ERRID.ERR_MeParamMustBeFirst)
-                    reportedError = True
-
+                ' Check validity of 'Me' Parameter usage.
+                '    (Me arg0 As T) Valid
+                '    (arg0 As T, Me arg1 As T)  Error
+                '    (Me arg0 As T, Me arg1 as T)  Error
+                If (flags And SourceParameterFlags.Me) <> 0 Then
+                    If i > 0 AndAlso Not reportedError Then
+                        ReportDiagnostic(diagBag, paramSyntax, ERRID.ERR_MeParamMustBeFirst)
+                        reportedError = True
+                    ElseIf container.ContainingType.IsInterface AndAlso Not reportedError Then
+                        ReportDiagnostic(diagBag, paramSyntax, ERRID.ERR_MeIllegal1)
+                        reportedError = True
+                    End If
+                ElseIf (flagsOfPreviousParameters And SourceParameterFlags.Me) <> 0 Then
+                    If (flags And SourceParameterFlags.Me) = SourceParameterFlags.Me AndAlso
+                        Not reportedError Then
+                        ReportDiagnostic(diagBag, paramSyntax, ERRID.ERR_MeIllegal1)
+                        reportedError = True
+                    End If
                 End If
+
                 If (flagsOfPreviousParameters And SourceParameterFlags.ParamArray) <> 0 AndAlso
-                    Not reportedError Then
+                     Not reportedError Then
 
                     ReportDiagnostic(diagBag, paramSyntax, ERRID.ERR_ParamArrayMustBeLast)
                     reportedError = True
-
                 End If
 
                 Dim newParam As ParameterSymbol

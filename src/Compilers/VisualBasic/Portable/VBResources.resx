@@ -5473,4 +5473,7 @@
   <data name="ERR_MeIllegal1" xml:space="preserve">
     <value>'Me' not valid here.</value>
   </data>
+  <data name="ERR_MeParamMustBeFirst" xml:space="preserve">
+    <value>'Me' Parameter must be first.</value>
+  </data>
 </root>

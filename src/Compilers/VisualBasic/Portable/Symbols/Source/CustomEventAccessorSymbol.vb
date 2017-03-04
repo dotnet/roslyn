@@ -275,7 +275,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 diagnostics.Add(ERRID.ERR_EventAddRemoveByrefParamIllegal, location, token.ToString())
                 flag = flag And (Not SourceParameterFlags.ByRef)
             End If
-
+            If (flag And SourceParameterFlags.Me) <> 0 Then
+                Dim location = token.GetLocation()
+                diagnostics.Add(ERRID.ERR_MeIllegal1, location, token.ToString())
+                flag = flag And (Not SourceParameterFlags.Me)
+            End If
             Return CheckEventMethodParameterModifier(container, token, flag, diagnostics)
         End Function
     End Class

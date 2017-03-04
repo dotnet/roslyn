@@ -6910,6 +6910,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &apos;Me&apos; Parameter must be first..
+        '''</summary>
+        Friend ReadOnly Property ERR_MeParamMustBeFirst() As String
+            Get
+                Return ResourceManager.GetString("ERR_MeParamMustBeFirst", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Merge conflict marker encountered.
         '''</summary>
         Friend ReadOnly Property ERR_Merge_conflict_marker_encountered() As String
