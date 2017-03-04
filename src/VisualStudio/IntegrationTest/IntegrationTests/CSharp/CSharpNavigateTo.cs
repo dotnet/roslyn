@@ -9,7 +9,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpNavigateTo: AbstractEditorTest
+    public class CSharpNavigateTo : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
@@ -19,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void NavigateTo1()
+        public void NavigateTo()
         {
             AddFile("test1.cs", open:false, contents: @"
 class FirstClass
@@ -31,17 +31,18 @@ class FirstClass
             AddFile("test2.cs", open: true, contents: @"
 ");
 
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
-            InvokeNavigateTo("FirstClass");
+            InvokeNavigateToAndPressEnter("FirstClass");
+            Editor.WaitForActiveView("test1.cs");
             Assert.Equal("FirstClass", Editor.GetSelectedText());
-            InvokeNavigateTo("FirstMethod");
+            InvokeNavigateToAndPressEnter("FirstMethod");
+            Editor.WaitForActiveView("test1.cs");
             Assert.Equal("FirstMethod", Editor.GetSelectedText());
 
             VisualStudio.Instance.SolutionExplorer.AddProject("VBProject", WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
             VisualStudio.Instance.SolutionExplorer.AddFile("VBProject", "vbfile.vb", open: true);
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
 
-            InvokeNavigateTo("FirstClass");
+            InvokeNavigateToAndPressEnter("FirstClass");
+            Editor.WaitForActiveView("test1.cs");
             Assert.Equal("FirstClass", Editor.GetSelectedText());
         }
     }

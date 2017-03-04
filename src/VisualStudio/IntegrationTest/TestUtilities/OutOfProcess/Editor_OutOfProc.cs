@@ -157,7 +157,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void Undo()
             => _inProc.Undo();
         public void NavigateToSendKeys(string keys)
-            => _inProc.NavigateToSendKeys(keys);
+            => _inProc.SendKeysToNavigateTo(keys);
+
+        public void WaitForActiveView(string viewName)
+        {
+            while (true)
+            {
+                System.Threading.Thread.Sleep(100);
+                var bufferName = _inProc.GetActiveBufferName();
+                if (bufferName == viewName)
+                {
+                    break;
+                }
+            }
+        }
 
     }
 }

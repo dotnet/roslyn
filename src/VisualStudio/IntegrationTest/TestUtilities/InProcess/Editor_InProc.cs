@@ -112,6 +112,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return action(view);
             });
 
+        public string GetActiveBufferName()
+        {
+            return GetDTE().ActiveDocument.Name;
+        }
+
         public void Activate()
             => GetDTE().ActiveDocument.Activate();
 
@@ -578,7 +583,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             SendKeys.SendWait(keys);
         }
 
-        public void NavigateToSendKeys(string keys)
+        public void SendKeysToNavigateTo(string keys)
         {
             var dialogAutomationElement = FindNavigateTo();
             if (dialogAutomationElement == null)
@@ -617,8 +622,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private static AutomationElement FindNavigateTo()
         {
             var vsAutomationElement = AutomationElement.FromHandle(new IntPtr(GetDTE().MainWindow.HWnd));
-            Condition elementCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, "PART_SearchBox");
-            return vsAutomationElement.FindFirst(TreeScope.Descendants, elementCondition);
+            return vsAutomationElement.FindDescendantByAutomationId("PART_SearchBox");
         }
 
         private T Retry<T>(Func<T> action, Func<T, bool> stoppingCondition, TimeSpan delay)

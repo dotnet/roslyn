@@ -6,10 +6,10 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.IntegrationTests.CSharp
+namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicNavigateTo: AbstractEditorTest
+    public class BasicNavigateTo : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
@@ -19,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void NavigateTo1()
+        public void NavigateTo()
         {
             AddFile("test1.vb", open:false, contents: @"
 Class FirstClass
@@ -28,20 +28,21 @@ Class FirstClass
 End Class");
 
 
-            AddFile("test2.cs", open: true, contents: @"
+            AddFile("test2.vb", open: true, contents: @"
 ");
 
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
-            InvokeNavigateTo("FirstClass");
+            InvokeNavigateToAndPressEnter("FirstClass");
+            Editor.WaitForActiveView("test1.vb");
             Assert.Equal("FirstClass", Editor.GetSelectedText());
-            InvokeNavigateTo("FirstMethod");
+            InvokeNavigateToAndPressEnter("FirstMethod");
+            Editor.WaitForActiveView("test1.vb");
             Assert.Equal("FirstMethod", Editor.GetSelectedText());
 
             VisualStudio.Instance.SolutionExplorer.AddProject("CSProject", WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
             VisualStudio.Instance.SolutionExplorer.AddFile("CSProject", "csfile.cs", open: true);
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
 
-            InvokeNavigateTo("FirstClass");
+            InvokeNavigateToAndPressEnter("FirstClass");
+            Editor.WaitForActiveView("test1.vb");
             Assert.Equal("FirstClass", Editor.GetSelectedText());
         }
     }

@@ -448,13 +448,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
             Assert.Contains(referencedProjectName, projectReferences);
 
         }
-        protected void InvokeNavigateTo(string text)
+        protected void InvokeNavigateToAndPressEnter(string text)
         {
             ExecuteCommand(WellKnownCommandNames.Edit_GoToAll);
             Editor.NavigateToSendKeys(text);
             WaitForAsyncOperations(FeatureAttribute.NavigateTo);
             Editor.NavigateToSendKeys("{ENTER}");
-            WaitForAsyncOperations(FeatureAttribute.NavigateTo);
         }
 
         public void VerifyCurrentTokenType(string tokenType)
