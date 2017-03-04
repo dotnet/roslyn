@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     setMethod,
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     accessibility: accessibility,
                     explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property.SetMethod : null,
                     statements: GetSetAccessorStatements(compilation, property, generateAbstractly, cancellationToken));
@@ -112,13 +113,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     getMethod,
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     accessibility: accessibility,
                     explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property.GetMethod : null,
                     statements: GetGetAccessorStatements(compilation, property, generateAbstractly, cancellationToken));
             }
 
-            private IList<SyntaxNode> GetSetAccessorStatements(
+            private ImmutableArray<SyntaxNode> GetSetAccessorStatements(
                 Compilation compilation,
                 IPropertySymbol property,
                 bool generateAbstractly,
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 if (generateAbstractly)
                 {
-                    return null;
+                    return default(ImmutableArray<SyntaxNode>);
                 }
 
                 var factory = this.Document.GetLanguageService<SyntaxGenerator>();
@@ -153,13 +154,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                     expression = factory.AssignmentStatement(expression, factory.IdentifierName("value"));
 
-                    return new[] { factory.ExpressionStatement(expression) };
+                    return ImmutableArray.Create(factory.ExpressionStatement(expression));
                 }
 
                 return factory.CreateThrowNotImplementedStatementBlock(compilation);
             }
 
-            private IList<SyntaxNode> GetGetAccessorStatements(
+            private ImmutableArray<SyntaxNode> GetGetAccessorStatements(
                 Compilation compilation,
                 IPropertySymbol property,
                 bool generateAbstractly,
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 if (generateAbstractly)
                 {
-                    return null;
+                    return default(ImmutableArray<SyntaxNode>);
                 }
 
                 var factory = this.Document.GetLanguageService<SyntaxGenerator>();
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                         expression = factory.ElementAccessExpression(expression, arguments);
                     }
 
-                    return new[] { factory.ReturnStatement(expression) };
+                    return ImmutableArray.Create(factory.ReturnStatement(expression));
                 }
 
                 return factory.CreateThrowNotImplementedStatementBlock(compilation);

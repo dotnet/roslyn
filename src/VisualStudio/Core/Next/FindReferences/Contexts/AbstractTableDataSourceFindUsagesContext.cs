@@ -270,10 +270,27 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private async Task<ClassifiedSpansAndHighlightSpan> GetTaggedTextForDocumentRegionAsync(
                 Document document, TextSpan narrowSpan, TextSpan widenedSpan)
             {
+                var highlightSpan = new TextSpan(
+                    start: narrowSpan.Start - widenedSpan.Start,
+                    length: narrowSpan.Length);
+
+                var classifiedSpans = await GetClassifiedSpansAsync(document, narrowSpan, widenedSpan).ConfigureAwait(false);
+                return new ClassifiedSpansAndHighlightSpan(classifiedSpans, highlightSpan);
+            }
+
+            private async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
+                Document document, TextSpan narrowSpan, TextSpan widenedSpan)
+            {
                 var classificationService = document.GetLanguageService<IEditorClassificationService>();
                 if (classificationService == null)
                 {
-                    return new ClassifiedSpansAndHighlightSpan(ImmutableArray<ClassifiedSpan>.Empty, new TextSpan());
+                    // For languages that don't expose a classification service, we show the entire
+                    // item as plain text. Break the text into three spans so that we can properly
+                    // highlight the 'narrow-span' later on when we display the item.
+                    return ImmutableArray.Create(
+                        new ClassifiedSpan(ClassificationTypeNames.Text, TextSpan.FromBounds(widenedSpan.Start, narrowSpan.Start)),
+                        new ClassifiedSpan(ClassificationTypeNames.Text, narrowSpan),
+                        new ClassifiedSpan(ClassificationTypeNames.Text, TextSpan.FromBounds(narrowSpan.End, widenedSpan.End)));
                 }
 
                 // Call out to the individual language to classify the chunk of text around the
@@ -296,12 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                     var classifiedSpans = MergeClassifiedSpans(
                         syntaxSpans, semanticSpans, widenedSpan, sourceText);
-
-                    var highlightSpan = new TextSpan(
-                        start: narrowSpan.Start - widenedSpan.Start,
-                        length: narrowSpan.Length);
-
-                    return new ClassifiedSpansAndHighlightSpan(classifiedSpans, highlightSpan);
+                    return classifiedSpans;
                 }
                 finally
                 {

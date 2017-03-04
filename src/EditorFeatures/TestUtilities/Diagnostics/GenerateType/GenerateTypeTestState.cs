@@ -37,15 +37,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
 
         public static async Task<GenerateTypeTestState> CreateAsync(
             string initial,
-            bool isLine,
             string projectToBeModified,
             string typeName,
             string existingFileName,
             string languageName)
         {
-            var workspace = languageName == LanguageNames.CSharp
-                  ? isLine ? await TestWorkspace.CreateCSharpAsync(initial, exportProvider: s_exportProvider) : await TestWorkspace.CreateAsync(initial, exportProvider: s_exportProvider)
-                  : isLine ? await TestWorkspace.CreateVisualBasicAsync(initial, exportProvider: s_exportProvider) : await TestWorkspace.CreateAsync(initial, exportProvider: s_exportProvider);
+            var workspace = TestWorkspace.IsWorkspaceElement(initial)
+                ? await TestWorkspace.CreateAsync(initial, exportProvider: s_exportProvider)
+                : languageName == LanguageNames.CSharp
+                  ? await TestWorkspace.CreateCSharpAsync(initial, exportProvider: s_exportProvider)
+                  : await TestWorkspace.CreateVisualBasicAsync(initial, exportProvider: s_exportProvider);
 
             return new GenerateTypeTestState(projectToBeModified, typeName, existingFileName, workspace);
         }

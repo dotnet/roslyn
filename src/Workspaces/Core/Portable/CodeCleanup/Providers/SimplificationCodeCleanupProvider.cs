@@ -10,10 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 {
     internal class SimplificationCodeCleanupProvider : ICodeCleanupProvider
     {
-        public string Name
-        {
-            get { return PredefinedCodeCleanupProviderNames.Simplification; }
-        }
+        public string Name => PredefinedCodeCleanupProviderNames.Simplification;
 
         public Task<Document> CleanupAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
         {

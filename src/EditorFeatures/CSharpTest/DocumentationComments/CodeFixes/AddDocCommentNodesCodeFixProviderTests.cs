@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
         private async Task TestAsync(string initial, string expected)
         {
             var parseOptions = Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose);
-            await TestAsync(initial, expected, parseOptions: parseOptions, compareTokens: false);
+            await TestAsync(initial, expected, parseOptions: parseOptions, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]

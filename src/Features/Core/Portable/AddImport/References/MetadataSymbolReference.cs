@@ -18,26 +18,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             public MetadataSymbolReference(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
-                SymbolResult<INamespaceOrTypeSymbol> symbolResult, PortableExecutableReference reference)
+                SymbolResult<INamespaceOrTypeSymbol> symbolResult,
+                PortableExecutableReference reference)
                 : base(provider, symbolResult)
             {
                 _reference = reference;
             }
 
-            protected override string TryGetDescription(
-                Document document, SyntaxNode node, 
+            /// <summary>
+            /// If we're adding a metadata-reference, then we always offer to do the add,
+            /// even if there's an existing source-import in the file.
+            /// </summary>
+            protected override bool ShouldAddWithExistingImport(Document document) => true;
+
+            protected override (string description, bool hasExistingImport) GetDescription(
+                Document document, SyntaxNode node,
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                // If 'TryGetDescription' returns 'null' then that means that we don't actually want to add a reference
-                // in this case.  As such, just continue to return the 'null' outwards.
-                var description = base.TryGetDescription(document, node, semanticModel, cancellationToken);
+                var (description, hasExistingImport) = base.GetDescription(document, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
-                    return null;
+                    return (null, false);
                 }
 
-                return string.Format(FeaturesResources.Add_reference_to_0, 
-                    Path.GetFileName(_reference.FilePath));
+                return (string.Format(FeaturesResources.Add_reference_to_0, Path.GetFileName(_reference.FilePath)),
+                        hasExistingImport);
             }
 
             protected override Solution GetUpdatedSolution(Document newDocument)
@@ -47,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override CodeActionPriority GetPriority(Document document)
                 => CodeActionPriority.Low;
 
-            protected override ImmutableArray<string> GetTags(Document document) => WellKnownTagArrays.AddReference;
+            protected override ImmutableArray<string> GetTags(Document document) 
+                => WellKnownTagArrays.AddReference;
 
             public override bool Equals(object obj)
             {
@@ -57,11 +63,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             public override int GetHashCode()
-            {
-                return Hash.Combine(base.GetHashCode(), StringComparer.OrdinalIgnoreCase.GetHashCode(_reference.FilePath));
-            }
-
-            protected override bool CheckForExistingImport(Project project) => false;
+                => Hash.Combine(
+                    base.GetHashCode(),
+                    StringComparer.OrdinalIgnoreCase.GetHashCode(_reference.FilePath));
         }
     }
 }

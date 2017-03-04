@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
                 var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
-                for (int i = 0; i < _state.Parameters.Count; i++)
+                for (int i = 0; i < _state.Parameters.Length; i++)
                 {
                     parameterToExistingFieldMap[_state.Parameters[i].Name] = _state.SelectedMembers[i];
                 }
@@ -55,13 +55,22 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     parameterToNewFieldMap: null,
                     cancellationToken: cancellationToken);
 
+                // If the user has selected a set of members (i.e. TextSpan is not empty), then we will
+                // choose the right location (i.e. null) to insert the constructor.  However, if they're 
+                // just invoking the feature manually at a specific location, then we'll insert the 
+                // members at that specific place in the class/struct.
+                var afterThisLocation = _state.TextSpan.IsEmpty
+                    ? syntaxTree.GetLocation(_state.TextSpan)
+                    : null;
+
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
                     _document.Project.Solution,
                     _state.ContainingType,
                     members,
-                    new CodeGenerationOptions(contextLocation: syntaxTree.GetLocation(_state.TextSpan)),
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                    new CodeGenerationOptions(
+                        contextLocation: syntaxTree.GetLocation(_state.TextSpan),
+                        afterThisLocation: afterThisLocation),
+                    cancellationToken).ConfigureAwait(false);
 
                 return result;
             }

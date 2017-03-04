@@ -107,36 +107,24 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Services provider by the host for implementing workspace features.
         /// </summary>
-        public HostWorkspaceServices Services
-        {
-            get { return _services; }
-        }
+        public HostWorkspaceServices Services => _services;
 
         /// <summary>
         /// primary branch id that current solution has
         /// </summary>
-        internal BranchId PrimaryBranchId
-        {
-            get { return _primaryBranchId; }
-        }
+        internal BranchId PrimaryBranchId => _primaryBranchId;
 
         /// <summary>
         /// Override this property if the workspace supports partial semantics for documents.
         /// </summary>
-        protected internal virtual bool PartialSemanticsEnabled
-        {
-            get { return false; }
-        }
+        protected internal virtual bool PartialSemanticsEnabled => false;
 
         /// <summary>
         /// The kind of the workspace. 
         /// This is generally <see cref="WorkspaceKind.Host"/> if originating from the host environment, but may be 
         /// any other name used for a specific kind of workspace.
         /// </summary>
-        public string Kind
-        {
-            get { return _workspaceKind; }
-        }
+        public string Kind => _workspaceKind;
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace.

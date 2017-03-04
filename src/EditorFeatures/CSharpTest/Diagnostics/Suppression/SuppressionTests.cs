@@ -26,20 +26,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 {
     public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest
     {
-        protected override ParseOptions GetScriptOptions()
-        {
-            return Options.Script;
-        }
+        protected override ParseOptions GetScriptOptions() => Options.Script;
 
-        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
-        {
-            return TestWorkspace.CreateCSharpAsync(definition, (CSharpParseOptions)parseOptions, (CSharpCompilationOptions)compilationOptions);
-        }
+        protected override string GetLanguage() => LanguageNames.CSharp;
 
-        protected override string GetLanguage()
-        {
-            return LanguageNames.CSharp;
-        }
+        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string initialMarkup, TestParameters parameters)
+            => TestWorkspace.CreateCSharpAsync(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
         #region "Pragma disable tests"
 
@@ -172,7 +164,8 @@ class Class
         [|int x = 0, y = 0; string s;|]
     }
 }";
-                    using (var workspace = await CreateWorkspaceFromFileAsync(source, parseOptions: null, compilationOptions: null))
+                    var parameters = new TestParameters();
+                    using (var workspace = await CreateWorkspaceFromOptionsAsync(source, parameters))
                     {
                         var diagnosticService = new TestDiagnosticAnalyzerService(LanguageNames.CSharp, new CSharpCompilerDiagnosticAnalyzer());
                         var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);
@@ -825,7 +818,7 @@ using System;
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionOnNamespace()
                 {
-                    await TestAsync(
+                    await TestInRegularAndScriptAsync(
             @"
 using System;
 

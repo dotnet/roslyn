@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
+    [CaptureTestName]
     public abstract class AbstractIntegrationTest : IDisposable
     {
         protected readonly VisualStudioInstanceContext VisualStudio;

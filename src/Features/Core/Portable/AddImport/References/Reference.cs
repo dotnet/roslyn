@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected readonly AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider;
             public readonly SearchResult SearchResult;
 
-            protected Reference(AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider, SearchResult searchResult)
+            protected Reference(
+                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                SearchResult searchResult)
             {
                 this.provider = provider;
                 this.SearchResult = searchResult;

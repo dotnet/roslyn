@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnos
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(source))
             {
-                var actualDiagnostics = await this.GetDiagnosticsAsync(workspace);
+                var actualDiagnostics = await this.GetDiagnosticsAsync(workspace, new TestParameters());
                 actualDiagnostics.Verify(expectedDiagnostics);
             }
         }

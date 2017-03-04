@@ -5592,5 +5592,32 @@ namespace System
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int _").WithLocation(19, 18)
                 );
         }
+
+        [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
+        public void DoubleEvaluation01()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        if (TryGet() is int index)
+        {
+            Console.WriteLine(index);
+        }
+    }
+
+    public static int? TryGet()
+    {
+        Console.WriteLine(""eval"");
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"eval";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }
