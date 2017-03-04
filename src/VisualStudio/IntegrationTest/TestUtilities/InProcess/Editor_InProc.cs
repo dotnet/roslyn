@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -142,8 +144,74 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 view.Caret.MoveTo(point);
             });
 
+        public void PlaceCaret(string marker, int charsOffset, int occurrence, bool extendSelection, bool selectBlock)
+            => ExecuteOnActiveView(view =>
+            {
+                var dte = GetDTE();
+                dte.Find.FindWhat = marker;
+                dte.Find.MatchCase = true;
+                dte.Find.MatchInHiddenText = true;
+                dte.Find.Target = EnvDTE.vsFindTarget.vsFindTargetCurrentDocument;
+                dte.Find.Action = EnvDTE.vsFindAction.vsFindActionFind;
+
+                var originalPosition = GetCaretPosition();
+                view.Caret.MoveTo(new Microsoft.VisualStudio.Text.SnapshotPoint(view.GetBufferContainingCaret().CurrentSnapshot, 0));
+
+                if (occurrence > 0)
+                {
+                    var result = EnvDTE.vsFindResult.vsFindResultNotFound;
+                    for (var i = 0; i < occurrence; i++)
+                    {
+                        result = dte.Find.Execute();
+                    }
+
+                    if (result != EnvDTE.vsFindResult.vsFindResultFound)
+                    {
+                        throw new Exception("Occurrence " + occurrence + " of marker '" + marker + "' not found in text: " + view.TextSnapshot.GetText());
+                    }
+                }
+                else
+                {
+                    var result = dte.Find.Execute();
+                    if (result != EnvDTE.vsFindResult.vsFindResultFound)
+                    {
+                        throw new Exception("Marker '" + marker + "' not found in text: " + view.TextSnapshot.GetText());
+                    }
+                }
+
+                if (charsOffset > 0)
+                {
+                    for (var i = 0; i < charsOffset - 1; i++)
+                    {
+                        view.Caret.MoveToNextCaretPosition();
+                    }
+
+                    view.Selection.Clear();
+                }
+
+                if (charsOffset < 0)
+                {
+                    // On the first negative charsOffset, move to anchor-point position, as if the user hit the LEFT key
+                    view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, view.Selection.AnchorPoint.Position.Position));
+
+                    for (var i = 0; i < -charsOffset - 1; i++)
+                    {
+                        view.Caret.MoveToPreviousCaretPosition();
+                    }
+
+                    view.Selection.Clear();
+                }
+
+                if (extendSelection)
+                {
+                    var newPosition = view.Selection.ActivePoint.Position.Position;
+                    view.Selection.Select(new VirtualSnapshotPoint(view.TextSnapshot, originalPosition), new VirtualSnapshotPoint(view.TextSnapshot, newPosition));
+                    view.Selection.Mode = selectBlock ? TextSelectionMode.Box : TextSelectionMode.Stream;
+                }
+            });
+
         /// <remarks>
-        /// This method does not wait for async operations before 
+        /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
         public string[] GetCompletionItems()
@@ -163,7 +231,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         /// <remarks>
-        /// This method does not wait for async operations before 
+        /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
         public string GetCurrentCompletionItem()
@@ -182,7 +250,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         /// <remarks>
-        /// This method does not wait for async operations before 
+        /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
         public bool IsCompletionActive()
@@ -193,7 +261,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         /// <remarks>
-        /// This method does not wait for async operations before 
+        /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
         public bool IsSignatureHelpActive()
@@ -204,7 +272,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         /// <remarks>
-        /// This method does not wait for async operations before 
+        /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
         public Signature[] GetSignatures()
@@ -222,7 +290,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         /// <remarks>
-        /// This method does not wait for async operations before 
+        /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
         public Signature GetCurrentSignature()
@@ -410,8 +478,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 foreach (var action in actionSet.Actions)
                 {
-                    var fixAllSuggestedAction = action as FixAllSuggestedAction;
-                    if (fixAllSuggestedAction != null)
+                    if (action is FixAllSuggestedAction fixAllSuggestedAction)
                     {
                         var fixAllCodeAction = fixAllSuggestedAction.CodeAction as FixSomeCodeAction;
                         if (fixAllCodeAction?.FixAllState?.Scope == fixAllScope)
@@ -451,11 +518,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void DialogSendKeys(string dialogAutomationName, string keys)
         {
-            var dialogAutomationElement = DialogHelpers.FindDialog(GetDTE().MainWindow.HWnd, dialogAutomationName, isOpen: true);
-            if (dialogAutomationElement == null)
-            {
-                throw new InvalidOperationException($"Expected the {dialogAutomationName} dialog to be open, but it is not.");
-            }
+            var dialogAutomationElement = DialogHelpers.GetOpenDialog(GetDTE().MainWindow.HWnd, dialogAutomationName);
 
             dialogAutomationElement.SetFocus();
             SendKeys.SendWait(keys);
@@ -463,29 +526,229 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
-            var dialogAutomationElement = DialogHelpers.FindDialog(GetDTE().MainWindow.HWnd, dialogAutomationName, isOpen: true);
-            if (dialogAutomationElement == null)
-            {
-                throw new InvalidOperationException($"Expected the {dialogAutomationName} dialog to be open, but it is not.");
-            }
+            DialogHelpers.PressButton(GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
+        }
 
-            Condition condition = new PropertyCondition(AutomationElement.AutomationIdProperty, buttonAutomationName);
+        private AutomationElement FindDialog(string dialogAutomationName, bool isOpen)
+        {
+            return Retry(
+                () => FindDialogWorker(dialogAutomationName),
+                stoppingCondition: automationElement => isOpen ? automationElement != null : automationElement == null,
+                delay: TimeSpan.FromMilliseconds(250));
+        }
 
-            var buttonAutomationElement = dialogAutomationElement.FindFirst(TreeScope.Descendants, condition);
+        private static AutomationElement FindDialogWorker(string dialogAutomationName)
+        {
+            var vsAutomationElement = AutomationElement.FromHandle(new IntPtr(GetDTE().MainWindow.HWnd));
 
-            if (buttonAutomationElement == null)
-            {
-                throw new InvalidOperationException($"Could not find the {buttonAutomationName} button in the {dialogAutomationName} dialog");
-            }
+            Condition elementCondition = new AndCondition(
+                new PropertyCondition(AutomationElement.AutomationIdProperty, dialogAutomationName),
+                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
 
-            if (buttonAutomationElement.TryGetCurrentPattern(InvokePattern.Pattern, out var invokePattern))
+            return vsAutomationElement.FindFirst(TreeScope.Descendants, elementCondition);
+        }
+
+        private T Retry<T>(Func<T> action, Func<T, bool> stoppingCondition, TimeSpan delay)
+        {
+            var beginTime = DateTime.UtcNow;
+            var retval = default(T);
+
+            do
             {
-                (invokePattern as InvokePattern).Invoke();
+                try
+                {
+                    retval = action();
+                }
+                catch (COMException)
+                {
+                    // Devenv can throw COMExceptions if it's busy when we make DTE calls.
+
+                    Thread.Sleep(delay);
+                    continue;
+                }
+
+                if (stoppingCondition(retval))
+                {
+                    return retval;
+                }
+                else
+                {
+                    Thread.Sleep(delay);
+                }
             }
-            else
+            while (true);
+        }
+
+        public void AddWinFormButton(string buttonName)
+        {
+            using (var waitHandle = new ManualResetEvent(false))
             {
-                throw new InvalidOperationException($"The element {buttonAutomationName} does not have an InvokePattern. Please make sure that it is the correct control");
+                var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
+                var componentChangeService = (IComponentChangeService)designerHost;
+                void ComponentAdded(object sender, ComponentEventArgs e)
+                {
+                    var control = e.Component as Control;
+                    if (control.Name == buttonName)
+                    {
+                        waitHandle.Set();
+                    }
+                }
+
+                componentChangeService.ComponentAdded += ComponentAdded;
+
+                try
+                {
+                    var mainForm = (Form)designerHost.RootComponent;
+                    InvokeOnUIThread(() =>
+                    {
+                        var newControl = (Button)designerHost.CreateComponent(typeof(Button), buttonName);
+                        newControl.Parent = mainForm;
+                    });
+                    waitHandle.WaitOne();
+                }
+                finally
+                {
+                    componentChangeService.ComponentAdded -= ComponentAdded;
+                }
             }
+        }
+
+        public void DeleteWinFormButton(string buttonName)
+        {
+            using (var waitHandle = new ManualResetEvent(false))
+            {
+                var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
+                var componentChangeService = (IComponentChangeService)designerHost;
+                void ComponentRemoved(object sender, ComponentEventArgs e)
+                {
+                    var control = e.Component as Control;
+                    if (control.Name == buttonName)
+                    {
+                        waitHandle.Set();
+                    }
+                }
+
+                componentChangeService.ComponentRemoved += ComponentRemoved;
+
+                try
+                {
+                    InvokeOnUIThread(() =>
+                    {
+                        designerHost.DestroyComponent(designerHost.Container.Components[buttonName]);
+                    });
+                    waitHandle.WaitOne();
+                }
+                finally
+                {
+                    componentChangeService.ComponentRemoved -= ComponentRemoved;
+                }
+            }
+        }
+
+        public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string propertyTypeName = null)
+        {
+            using (var waitHandle = new ManualResetEvent(false))
+            {
+                var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
+                var componentChangeService = (IComponentChangeService)designerHost;
+
+                object GetEnumPropertyValue(string typeName, string value)
+                {
+                    var type = Type.GetType(typeName);
+                    var converter = new EnumConverter(type);
+                    return converter.ConvertFromInvariantString(value);
+                }
+
+                bool EqualToPropertyValue(object newValue)
+                {
+                    if (propertyTypeName == null)
+                    {
+                        return (newValue as string)?.Equals(propertyValue) == true;
+                    }
+                    else
+                    {
+                        var enumPropertyValue = GetEnumPropertyValue(propertyTypeName, propertyValue);
+                        return newValue?.Equals(enumPropertyValue) == true;
+                    }
+                }
+
+                void ComponentChanged(object sender, ComponentChangedEventArgs e)
+                {
+                    if (e.Member.Name == propertyName && EqualToPropertyValue(e.NewValue))
+                    {
+                        waitHandle.Set();
+                    }
+                }
+
+                componentChangeService.ComponentChanged += ComponentChanged;
+
+                try
+                {
+                    InvokeOnUIThread(() =>
+                    {
+                        var button = designerHost.Container.Components[buttonName];
+                        var properties = TypeDescriptor.GetProperties(button);
+                        var property = properties[propertyName];
+                        if (propertyTypeName == null)
+                        {
+                            property.SetValue(button, propertyValue);
+                        }
+                        else
+                        {
+                            var enumPropertyValue = GetEnumPropertyValue(propertyTypeName, propertyValue);
+                            property.SetValue(button, enumPropertyValue);
+                        }
+                    });
+                    waitHandle.WaitOne();
+                }
+                finally
+                {
+                    componentChangeService.ComponentChanged -= ComponentChanged;
+                }
+            }
+        }
+
+        public void EditWinFormButtonEvent(string buttonName, string eventName, string eventHandlerName)
+        {
+            using (var waitHandle = new ManualResetEvent(false))
+            {
+                var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
+                var componentChangeService = (IComponentChangeService)designerHost;
+                void ComponentChanged(object sender, ComponentChangedEventArgs e)
+                {
+                    if (e.Member.Name == eventName)
+                    {
+                        waitHandle.Set();
+                    }
+                }
+
+                componentChangeService.ComponentChanged += ComponentChanged;
+
+                try
+                {
+                    InvokeOnUIThread(() =>
+                    {
+                        var button = designerHost.Container.Components[buttonName];
+                        var eventBindingService = (IEventBindingService)button.Site.GetService(typeof(IEventBindingService));
+                        var events = TypeDescriptor.GetEvents(button);
+                        var eventProperty = eventBindingService.GetEventProperty(events.Find(eventName, ignoreCase: true));
+                        eventProperty.SetValue(button, eventHandlerName);
+                    });
+                    waitHandle.WaitOne();
+                }
+                finally
+                {
+                    componentChangeService.ComponentChanged -= ComponentChanged;
+                }
+            }
+        }
+
+        public string GetWinFormButtonPropertyValue(string buttonName, string propertyName)
+        {
+            var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
+            var button = designerHost.Container.Components[buttonName];
+            var properties = TypeDescriptor.GetProperties(button);
+            return properties[propertyName].GetValue(button) as string;
         }
     }
 }

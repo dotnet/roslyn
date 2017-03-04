@@ -31,6 +31,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public FindReferencesWindow_OutOfProc FindReferencesWindow { get; }
 
+        public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
+        
         public Shell_OutOfProc Shell { get; }
 
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
@@ -63,6 +65,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             CSharpInteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
+            GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             VisualStudioWorkspace = new VisualStudioWorkspace_OutOfProc(this);
