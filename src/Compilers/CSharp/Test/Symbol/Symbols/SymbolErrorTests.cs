@@ -11348,12 +11348,12 @@ public class A4 : Attribute
             var comp = CreateCompilationWithMscorlib(text);
 
             comp.VerifyDiagnostics(
-                // (7,14): error CS0663: 'NS.IFoo<T>' cannot define overloaded methods that differ only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOut, "M").WithArguments("NS.IFoo<T>"),
-                // (24,20): error CS0663: 'NS.CFoo' cannot define overloaded methods that differ only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOut, "RetInt").WithArguments("NS.CFoo"),
-                // (16,18): error CS0663: 'NS.CFoo.SFoo' cannot define overloaded methods that differ only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOut, "M").WithArguments("NS.CFoo.SFoo"),
+                // (7,14): error CS0663: 'NS.IFoo<T>' cannot define overloaded methods that differ only on parameter reference kind.
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("NS.IFoo<T>"),
+                // (24,20): error CS0663: 'NS.CFoo' cannot define overloaded methods that differ only on parameter reference kind.
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "RetInt").WithArguments("NS.CFoo"),
+                // (16,18): error CS0663: 'NS.CFoo.SFoo' cannot define overloaded methods that differ only on parameter reference kind.
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("NS.CFoo.SFoo"),
 
                 // Dev10 stops after reporting the overload problems.  However, it produces the errors below once those problems are fixed.
 
@@ -13805,8 +13805,8 @@ namespace TestNamespace
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (8,17): error CS0851: Cannot define overloaded constructor 'TestNamespace.MyClass' because it differs from another constructor only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOutCtor, "MyClass").WithArguments("TestNamespace.MyClass"));
+                // (8,17): error CS0851: Cannot define overloaded constructor 'TestNamespace.MyClass' because it differs from another constructor only on parameter reference kind
+                Diagnostic(ErrorCode.ERR_OverloadRefKindCtor, "MyClass").WithArguments("TestNamespace.MyClass"));
         }
 
         [Fact]

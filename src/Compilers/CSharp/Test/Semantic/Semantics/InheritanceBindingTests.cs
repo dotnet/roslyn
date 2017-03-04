@@ -5453,8 +5453,8 @@ class Derived2 : Base2
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (14,26): error CS0663: 'Derived2' cannot define overloaded methods that differ only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOut, "Method").WithArguments("Derived2"));
+                // (14,26): error CS0663: 'Derived2' cannot define overloaded methods that differ only on parameter reference kind.
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("Derived2"));
         }
 
         [Fact]

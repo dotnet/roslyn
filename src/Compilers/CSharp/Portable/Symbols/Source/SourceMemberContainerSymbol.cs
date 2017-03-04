@@ -1540,10 +1540,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (DifferByOutOrRef(method1, method2))
             {
-                // '{0}' cannot define overloaded methods that differ only on ref and out
+                // '{0}' cannot define overloaded methods that differ only on parameter reference kind
                 ErrorCode errorCode = method1.MethodKind == MethodKind.Constructor ?
-                    ErrorCode.ERR_OverloadRefOutCtor :
-                    ErrorCode.ERR_OverloadRefOut;
+                    ErrorCode.ERR_OverloadRefKindCtor :
+                    ErrorCode.ERR_OverloadRefKind;
                 diagnostics.Add(errorCode, method1.Locations[0], this);
             }
             else

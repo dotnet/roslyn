@@ -7100,20 +7100,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot define overloaded methods that differ only on ref and out.
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot define overloaded methods that differ only on parameter reference kind.
         /// </summary>
-        internal static string ERR_OverloadRefOut {
+        internal static string ERR_OverloadRefKind {
             get {
-                return ResourceManager.GetString("ERR_OverloadRefOut", resourceCulture);
+                return ResourceManager.GetString("ERR_OverloadRefKind", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot define overloaded constructor &apos;{0}&apos; because it differs from another constructor only on ref and out.
+        ///   Looks up a localized string similar to Cannot define overloaded constructor &apos;{0}&apos; because it differs from another constructor only on parameter reference kind.
         /// </summary>
-        internal static string ERR_OverloadRefOutCtor {
+        internal static string ERR_OverloadRefKindCtor {
             get {
-                return ResourceManager.GetString("ERR_OverloadRefOutCtor", resourceCulture);
+                return ResourceManager.GetString("ERR_OverloadRefKindCtor", resourceCulture);
             }
         }
         
