@@ -30292,35 +30292,6 @@ class H
             VerifyModelForDeclarationVarWithoutDataFlow(model, x1Decl, x1Ref);
         }
 
-        [Fact, WorkItem(17321, "https://github.com/dotnet/roslyn/issues/17321")]
-        public void InferenceFailure_02()
-        {
-            string source =
-@"
-class H
-{
-    object M1() => 1;
-}
-";
-            var node0 = SyntaxFactory.ParseCompilationUnit(source);
-            var one = node0.DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
-            var decl = SyntaxFactory.DeclarationExpression(
-                type: SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("var").WithTrailingTrivia(SyntaxFactory.Space)),
-                designation: SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier("x1")));
-            var node1 = node0.ReplaceNode(one, decl);
-            var tree = node1.SyntaxTree;
-            Assert.NotNull(tree);
-            var compilation = CreateCompilationWithMscorlib(new[] { tree });
-            compilation.VerifyDiagnostics(
-                // (4,20): error CS8185: A declaration is not allowed in this context.
-                //     object M1() => var x1;
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x1").WithLocation(4, 20)
-                );
-
-            // We do not currently have test helpers that support declaration expressions subject to a conversion.
-            // See also https://github.com/dotnet/roslyn/issues/17463
-        }
-
         [Fact]
         public void GlobalCode_AliasInfo_01()
         {
