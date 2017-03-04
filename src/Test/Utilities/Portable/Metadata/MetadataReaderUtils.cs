@@ -265,8 +265,100 @@ namespace Roslyn.Test.Utilities
             {
                 case HandleKind.AssemblyReference:
                     return "AssemblyRef:" + reader.GetString(reader.GetAssemblyReference((AssemblyReferenceHandle)handle).Name);
+                case HandleKind.TypeDefinition:
+                    return "TypeDef:" + reader.GetString(reader.GetTypeDefinition((TypeDefinitionHandle)handle).Name);
+                case HandleKind.MethodDefinition:
+                    var method = reader.GetMethodDefinition((MethodDefinitionHandle)handle);
+                    var blob = reader.GetBlobReader(method.Signature);
+                    var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
+                    var signature =  decoder.DecodeMethodSignature(ref blob);
+                    var parameters = signature.ParameterTypes.Join(", ");
+                    return $"MethodDef: {signature.ReturnType} {reader.GetString(method.Name)}({parameters})";
                 default:
                     return handle.Kind.ToString();
+            }
+        }
+
+        // PROTOTYPE it would be better to shared the implementation with PdbToXml
+        private sealed class ConstantSignatureVisualizer : ISignatureTypeProvider<string, object>
+        {
+            public static readonly ConstantSignatureVisualizer Instance = new ConstantSignatureVisualizer();
+
+            public string GetArrayType(string elementType, ArrayShape shape)
+            {
+                return elementType + "[" + new string(',', shape.Rank) + "]";
+            }
+
+            public string GetByReferenceType(string elementType)
+            {
+                return elementType + "&";
+            }
+
+            public string GetFunctionPointerType(MethodSignature<string> signature)
+            {
+                // TODO:
+                return "method-ptr";
+            }
+
+            public string GetGenericInstantiation(string genericType, ImmutableArray<string> typeArguments)
+            {
+                // using {} since the result is embedded in XML
+                return genericType + "{" + string.Join(", ", typeArguments) + "}";
+            }
+
+            public string GetGenericMethodParameter(object genericContext, int index)
+            {
+                return "!!" + index;
+            }
+
+            public string GetGenericTypeParameter(object genericContext, int index)
+            {
+                return "!" + index;
+            }
+
+            public string GetModifiedType(string modifier, string unmodifiedType, bool isRequired)
+            {
+                return (isRequired ? "modreq" : "modopt") + "(" + modifier + ") " + unmodifiedType;
+            }
+
+            public string GetPinnedType(string elementType)
+            {
+                return "pinned " + elementType;
+            }
+
+            public string GetPointerType(string elementType)
+            {
+                return elementType + "*";
+            }
+
+            public string GetPrimitiveType(PrimitiveTypeCode typeCode)
+            {
+                return typeCode.ToString();
+            }
+
+            public string GetSZArrayType(string elementType)
+            {
+                return elementType + "[]";
+            }
+
+            public string GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind)
+            {
+                var typeDef = reader.GetTypeDefinition(handle);
+                var name = reader.GetString(typeDef.Name);
+                return typeDef.Namespace.IsNil ? name : reader.GetString(typeDef.Namespace) + "." + name;
+            }
+
+            public string GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind)
+            {
+                var typeRef = reader.GetTypeReference(handle);
+                var name = reader.GetString(typeRef.Name);
+                return typeRef.Namespace.IsNil ? name : reader.GetString(typeRef.Namespace) + "." + name;
+            }
+
+            public string GetTypeFromSpecification(MetadataReader reader, object genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
+            {
+                var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
+                return new SignatureDecoder<string, object>(Instance, reader, genericContext).DecodeType(ref sigReader);
             }
         }
     }

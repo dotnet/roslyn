@@ -210,7 +210,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static bool SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null)
+        public static bool SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null)
         {
             var enumerator1 = expected.GetEnumerator();
             var enumerator2 = actual.GetEnumerator();

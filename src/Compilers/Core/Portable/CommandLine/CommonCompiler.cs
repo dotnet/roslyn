@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis
             // size, FileStream.Read still allocates the internal buffer.
             return new FileStream(
                 filePath,
-                FileMode.Open, 
+                FileMode.Open,
                 FileAccess.Read,
                 FileShare.ReadWrite,
                 bufferSize: 1,
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return Failed;
             }
-            
+
             bool reportAnalyzer = false;
             CancellationTokenSource analyzerCts = null;
             AnalyzerManager analyzerManager = null;
@@ -625,6 +625,16 @@ namespace Microsoft.CodeAnalysis
                                 Arguments.SourceLink,
                                 consoleOutput,
                                 MessageProvider);
+                        }
+                    }
+
+                    string finalRefPeFilePath = Arguments.OutputRefFilePath;
+                    if (finalRefPeFilePath != null)
+                    {
+                        if (!CompileAndEmitRefAssembly(compilation, emitOptions.WithEmitMetadataOnly(true),
+                            finalRefPeFilePath, touchedFilesLogger, diagnosticBag, cancellationToken))
+                        {
+                            return Failed;
                         }
                     }
 
@@ -803,48 +813,9 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
-
-                if (Arguments.TouchedFilesPath != null)
+                if (!WriteTouchedFiles(consoleOutput, touchedFilesLogger, finalXmlFilePath))
                 {
-                    Debug.Assert(touchedFilesLogger != null);
-
-                    if (finalXmlFilePath != null)
-                    {
-                        touchedFilesLogger.AddWritten(finalXmlFilePath);
-                    }
-
-                    string readFilesPath = Arguments.TouchedFilesPath + ".read";
-                    string writtenFilesPath = Arguments.TouchedFilesPath + ".write";
-
-                    var readStream = OpenFile(readFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
-                    var writtenStream = OpenFile(writtenFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
-
-                    if (readStream == null || writtenStream == null)
-                    {
-                        return Failed;
-                    }
-
-                    string filePath = null;
-                    try
-                    {
-                        filePath = readFilesPath;
-                        using (var writer = new StreamWriter(readStream))
-                        {
-                            touchedFilesLogger.WriteReadPaths(writer);
-                        }
-
-                        filePath = writtenFilesPath;
-                        using (var writer = new StreamWriter(writtenStream))
-                        {
-                            touchedFilesLogger.WriteWrittenPaths(writer);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.Assert(filePath != null);
-                        MessageProvider.ReportStreamWriteException(e, filePath, consoleOutput);
-                        return Failed;
-                    }
+                    return Failed;
                 }
             }
             finally
@@ -871,6 +842,113 @@ namespace Microsoft.CodeAnalysis
             }
 
             return Succeeded;
+        }
+
+        private bool CompileAndEmitRefAssembly(Compilation compilation, EmitOptions refEmitOptions, string finalRefPeFilePath,
+            TouchedFileLogger touchedFilesLogger, DiagnosticBag diagnosticBag, CancellationToken cancellationToken)
+        {
+            var refModuleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
+                diagnosticBag,
+                Arguments.ManifestResources,
+                refEmitOptions,
+                debugEntryPoint: null,
+                sourceLinkStream: null,
+                embeddedTexts: null,
+                testData: null,
+                cancellationToken: cancellationToken);
+
+            bool success = true;
+            if (refModuleBeingBuilt != null)
+            {
+                try
+                {
+                    success = compilation.CompileMethods(
+                        refModuleBeingBuilt,
+                        emittingPdb: false,
+                        diagnostics: diagnosticBag,
+                        filterOpt: null,
+                        cancellationToken: cancellationToken);
+                }
+                finally
+                {
+                    refModuleBeingBuilt.CompilationFinished();
+                }
+
+                if (success)
+                {
+                    var refPeStreamProvider = new CompilerEmitStreamProvider(this, finalRefPeFilePath);
+
+                    try
+                    {
+                        success = compilation.SerializeToPeStream(
+                            refModuleBeingBuilt,
+                            refPeStreamProvider,
+                            pdbStreamProvider: null,
+                            testSymWriterFactory: null,
+                            diagnostics: diagnosticBag,
+                            metadataOnly: true,
+                            cancellationToken: cancellationToken);
+                    }
+                    finally
+                    {
+                        refPeStreamProvider.Close(diagnosticBag);
+                    }
+
+                    if (success && touchedFilesLogger != null)
+                    {
+                        touchedFilesLogger.AddWritten(finalRefPeFilePath);
+                    }
+                }
+            }
+            return success;
+        }
+
+        private bool WriteTouchedFiles(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, string finalXmlFilePath)
+        {
+            if (Arguments.TouchedFilesPath != null)
+            {
+                Debug.Assert(touchedFilesLogger != null);
+
+                if (finalXmlFilePath != null)
+                {
+                    touchedFilesLogger.AddWritten(finalXmlFilePath);
+                }
+
+                string readFilesPath = Arguments.TouchedFilesPath + ".read";
+                string writtenFilesPath = Arguments.TouchedFilesPath + ".write";
+
+                var readStream = OpenFile(readFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
+                var writtenStream = OpenFile(writtenFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
+
+                if (readStream == null || writtenStream == null)
+                {
+                    return false;
+                }
+
+                string filePath = null;
+                try
+                {
+                    filePath = readFilesPath;
+                    using (var writer = new StreamWriter(readStream))
+                    {
+                        touchedFilesLogger.WriteReadPaths(writer);
+                    }
+
+                    filePath = writtenFilesPath;
+                    using (var writer = new StreamWriter(writtenStream))
+                    {
+                        touchedFilesLogger.WriteWrittenPaths(writer);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.Assert(filePath != null);
+                    MessageProvider.ReportStreamWriteException(e, filePath, consoleOutput);
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         protected virtual ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFilesLogger)

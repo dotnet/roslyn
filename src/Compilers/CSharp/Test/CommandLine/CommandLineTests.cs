@@ -2784,6 +2784,16 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 // error CS2005: Missing file specification for '/out:' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("/out:"));
 
+            parsedArgs = DefaultParse(new[] { @"/refout:", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2005: Missing file specification for '/refout:' option
+                Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("/refout:"));
+
+            parsedArgs = DefaultParse(new[] { @"/refout:ref.dll", "/refonly", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8301: Do not use refout when using refonly.
+                Diagnostic(ErrorCode.ERR_NoRefOutWhenRefOnly).WithLocation(1, 1));
+
             // Dev11 reports CS2007: Unrecognized option: '/out'
             parsedArgs = DefaultParse(new[] { @"/out", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
@@ -8843,6 +8853,104 @@ class C {
                 var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, args, startFolder: folderName);
                 Assert.Equal(expected, output.Trim());
             }
+        }
+
+        [Fact]
+        public void RefOut()
+        {
+            var dir = Temp.CreateDirectory();
+            dir.CreateDirectory("ref");
+
+            var src = dir.CreateFile("a.cs");
+            src.WriteAllText(@"class C { public static void Main() { } }");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "a.cs" });
+
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+
+            var refDll = Path.Combine(dir.Path, "ref\\a.dll");
+            Assert.True(File.Exists(refDll));
+            var refPeStream = File.OpenRead(refDll);
+
+            using (var refPeReader = new PEReader(refPeStream))
+            {
+                var metadataReader = refPeReader.GetMetadataReader();
+
+                // The types and members that are included needs further refinement.
+                // See issue https://github.com/dotnet/roslyn/issues/17612
+                AssertEx.SetEqual(metadataReader.TypeDefinitions.Select(t => metadataReader.Dump(t)),
+                    new[] { "TypeDef:<Module>", "TypeDef:C" });
+
+                AssertEx.SetEqual(metadataReader.MethodDefinitions.Select(t => metadataReader.Dump(t)),
+                    new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" });
+
+                // ReferenceAssemblyAttribute is missing.
+                // See issue https://github.com/dotnet/roslyn/issues/17612
+                AssertEx.SetEqual(
+                    metadataReader.CustomAttributes.Select(a => metadataReader.GetCustomAttribute(a).Constructor)
+                        .Select(c => metadataReader.GetMemberReference((MemberReferenceHandle)c).Parent)
+                        .Select(p => metadataReader.GetTypeReference((TypeReferenceHandle)p).Name)
+                        .Select(n => metadataReader.GetString(n)),
+                    new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" });
+
+                // no method implementations
+                foreach (var typeDef in metadataReader.TypeDefinitions)
+                {
+                    Assert.Equal(0, metadataReader.GetTypeDefinition(typeDef).GetMethodImplementations().Count());
+                }
+            }
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(dir.Path);
+        }
+
+        [Fact]
+        public void RefOutWithError()
+        {
+            var dir = Temp.CreateDirectory();
+            dir.CreateDirectory("ref");
+
+            var src = dir.CreateFile("a.cs");
+            src.WriteAllText(@"class C { public static void Main() { error(); } }");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "a.cs" });
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(1, exitCode);
+
+            var dll = Path.Combine(dir.Path, "a.dll");
+            Assert.False(File.Exists(dll));
+
+            var refDll = Path.Combine(dir.Path, "ref\\a.dll");
+            Assert.True(File.Exists(refDll));
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(dir.Path);
+        }
+
+        [Fact]
+        public void RefOnly()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var src = dir.CreateFile("a.cs");
+            src.WriteAllText(@"class C { public static void Main() { error(); } }"); // semantic error in method body
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "a.cs" });
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+
+            var refDll = Path.Combine(dir.Path, "a.dll");
+            Assert.True(File.Exists(refDll));
+
+            var pdb = Path.Combine(dir.Path, "a.pdb");
+            Assert.False(File.Exists(pdb));
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(dir.Path);
         }
 
         public class QuotedArgumentTests

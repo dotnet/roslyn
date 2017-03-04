@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(false));
 
-            var resultDeterministic = compilationDeterministic.Emit(Stream.Null, Stream.Null);
-            var resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, Stream.Null);
+            var resultDeterministic = compilationDeterministic.Emit(Stream.Null, pdbStream: Stream.Null);
+            var resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, pdbStream: Stream.Null);
 
             Assert.False(resultDeterministic.Success);
             Assert.True(resultNonDeterministic.Success);

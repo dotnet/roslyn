@@ -227,6 +227,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (ITaskItem)_store[nameof(OutputAssembly)]; }
         }
 
+        [Output]
+        public ITaskItem OutputRefAssembly
+        {
+            set { _store[nameof(OutputRefAssembly)] = value; }
+            get { return (ITaskItem)_store[nameof(OutputRefAssembly)]; }
+        }
+
         public string Platform
         {
             set { _store[nameof(Platform)] = value; }
@@ -249,6 +256,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(References)] = value; }
             get { return (ITaskItem[])_store[nameof(References)]; }
+        }
+
+        public bool RefOnly
+        {
+            set { _store[nameof(RefOnly)] = value; }
+            get { return _store.GetOrDefault(nameof(RefOnly), false); }
         }
 
         public bool ReportAnalyzer
@@ -705,6 +718,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/optimize", _store, nameof(Optimize));
             commandLine.AppendSwitchIfNotNull("/pathmap:", PathMap);
             commandLine.AppendSwitchIfNotNull("/out:", OutputAssembly);
+            commandLine.AppendSwitchIfNotNull("/outref:", OutputRefAssembly);
+            commandLine.AppendWhenTrue("/refonly", _store, nameof(RefOnly));
             commandLine.AppendSwitchIfNotNull("/ruleset:", CodeAnalysisRuleSet);
             commandLine.AppendSwitchIfNotNull("/errorlog:", ErrorLog);
             commandLine.AppendSwitchIfNotNull("/subsystemversion:", SubsystemVersion);

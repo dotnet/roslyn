@@ -40,7 +40,7 @@ class X
             EmitResult emitResult;
             using (var output = new MemoryStream())
             {
-                emitResult = compilation.Emit(output, null, null, null);
+                emitResult = compilation.Emit(output, pdbStream: null, xmlDocumentationStream: null, win32Resources: null);
             }
 
             emitResult.Diagnostics.Verify(
@@ -148,7 +148,7 @@ namespace N.Foo;
             EmitResult emitResult;
             using (var output = new MemoryStream())
             {
-                emitResult = comp.Emit(output, null, null, null);
+                emitResult = comp.Emit(output, pdbStream: null, xmlDocumentationStream: null, win32Resources: null);
             }
 
             Assert.False(emitResult.Success);
@@ -233,6 +233,84 @@ class Test2
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
                 Assert.True(output.ToArray().Length > 0, "no metadata emitted");
+            }
+        }
+
+        [Theory,
+            InlineData("public int M() { return 1; }", "public int M() { return 2; }", true),
+            InlineData("public int M() { return 1; }", "public int M() { error(); }", true),
+            InlineData("", "private void M() { }", false), // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+            InlineData("internal void M() { }", "", false),
+            InlineData("public struct S { private int i; }", "public struct S { }", false)]
+        public void RefAssemblyChanges(string change1, string change2, bool expectMatch)
+        {
+            string sourceTemplate = @"
+public class C
+{
+    CHANGE
+}
+";
+            string name = GetUniqueName();
+            string source1 = sourceTemplate.Replace("CHANGE", change1);
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib(Parse(source1),
+                options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+
+            byte[] image1;
+
+            using (var output = new MemoryStream())
+            using (var pdbOutput = new MemoryStream())
+            {
+                var emitResult = comp1.Emit(output, pdbOutput, options: EmitOptions.Default.WithEmitMetadataOnly(true));
+                Assert.True(emitResult.Success);
+                emitResult.Diagnostics.Verify();
+                image1 = output.ToArray();
+            }
+
+            var source2 = sourceTemplate.Replace("CHANGE", change2);
+            Compilation comp2 = CreateCompilationWithMscorlib(Parse(source2),
+                options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+
+            byte[] image2;
+
+            using (var output = new MemoryStream())
+            using (var pdbOutput = new MemoryStream())
+            {
+                var emitResult = comp2.Emit(output, pdbOutput, options: EmitOptions.Default.WithEmitMetadataOnly(true));
+                Assert.True(emitResult.Success);
+                emitResult.Diagnostics.Verify();
+                image2 = output.ToArray();
+            }
+
+            Assert.True(AssertEx.SequenceEqual(image1, image2) == expectMatch);
+        }
+
+        [Theory,
+            InlineData("public int M() { error(); }", true),
+            InlineData("public int M() { error() }", false), // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+            InlineData("public Error M() { return null; }", false), // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+            ]
+        public void RefAssemblyDiagnostics(string change, bool expectSuccess)
+        {
+            string sourceTemplate = @"
+public class C
+{
+    CHANGE
+}
+";
+            string source = sourceTemplate.Replace("CHANGE", change);
+            string name = GetUniqueName();
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib(Parse(source),
+                options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+
+            byte[] image;
+
+            using (var output = new MemoryStream())
+            using (var pdbOutput = new MemoryStream())
+            {
+                var emitResult = comp1.Emit(output, pdbOutput, options: EmitOptions.Default.WithEmitMetadataOnly(true));
+                Assert.Equal(expectSuccess, emitResult.Success);
+                Assert.Equal(!expectSuccess, emitResult.Diagnostics.Any());
+                image = output.ToArray();
             }
         }
 
@@ -939,7 +1017,7 @@ public class Test
             EmitResult emitResult;
             using (var output = new MemoryStream())
             {
-                emitResult = compilation.Emit(output, null, null, null);
+                emitResult = compilation.Emit(output, pdbStream: null, xmlDocumentationStream: null, win32Resources: null);
             }
 
             Assert.False(emitResult.Success);
@@ -972,7 +1050,7 @@ class C
             EmitResult emitResult;
             using (var output = new MemoryStream())
             {
-                emitResult = compilation.Emit(output, null, null, null);
+                emitResult = compilation.Emit(output, pdbStream: null, xmlDocumentationStream: null, win32Resources: null);
             }
 
             Assert.True(emitResult.Success);
@@ -1010,7 +1088,7 @@ class C
             EmitResult emitResult;
             using (var output = new MemoryStream())
             {
-                emitResult = compilation.Emit(output, null, null, null);
+                emitResult = compilation.Emit(output, pdbStream: null, xmlDocumentationStream: null, win32Resources: null);
             }
 
             Assert.True(emitResult.Success);
@@ -2726,7 +2804,7 @@ class C
             var output = new MemoryStream();
             var pdb = new BrokenStream();
             pdb.BreakHow = BrokenStream.BreakHowType.ThrowOnSetLength;
-            var result = compilation.Emit(output, pdb);
+            var result = compilation.Emit(output, pdbStream: pdb);
 
             // error CS0041: Unexpected error writing debug information -- 'Exception from HRESULT: 0x806D0004'
             var err = result.Diagnostics.Single();
@@ -2737,7 +2815,7 @@ class C
             Assert.Equal(ioExceptionMessage, (string)err.Arguments[0]);
 
             pdb.Dispose();
-            result = compilation.Emit(output, pdb);
+            result = compilation.Emit(output, pdbStream: pdb);
 
             // error CS0041: Unexpected error writing debug information -- 'Exception from HRESULT: 0x806D0004'
             err = result.Diagnostics.Single();

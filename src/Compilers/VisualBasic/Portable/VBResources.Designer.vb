@@ -8143,6 +8143,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Do not use refout when using refonly..
+        '''</summary>
+        Friend ReadOnly Property ERR_NoRefOutWhenRefOnly() As String
+            Get
+                Return ResourceManager.GetString("ERR_NoRefOutWhenRefOnly", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to unable to open response file &apos;{0}&apos;.
         '''</summary>
         Friend ReadOnly Property ERR_NoResponseFile() As String
