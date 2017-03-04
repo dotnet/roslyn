@@ -6883,7 +6883,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos;Me&apos; not valid here..
+        '''  Looks up a localized string similar to {0} parameters cannot be declared &apos;Me&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_MeIllegal1() As String
             Get
