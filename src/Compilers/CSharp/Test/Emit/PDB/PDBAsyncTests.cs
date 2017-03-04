@@ -264,8 +264,8 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
       <customDebugInfo>
         <forward declaringType=""TestCase"" methodName="".cctor"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x12c"" />
-          <slot startOffset=""0x0"" endOffset=""0x12c"" />
+          <slot startOffset=""0x0"" endOffset=""0x12d"" />
+          <slot startOffset=""0x0"" endOffset=""0x12d"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -461,11 +461,11 @@ namespace ConsoleApplication1
       <customDebugInfo>
         <forward declaringType=""ConsoleApplication1.Program"" methodName=""Main"" parameterNames=""args"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x14e"" />
-          <slot startOffset=""0x0"" endOffset=""0x0"" />
-          <slot startOffset=""0x0"" endOffset=""0x0"" />
-          <slot startOffset=""0x41"" endOffset=""0xed"" />
-          <slot startOffset=""0x54"" endOffset=""0xed"" />
+          <slot startOffset=""0x0"" endOffset=""0x14f"" />
+          <slot />
+          <slot />
+          <slot startOffset=""0x41"" endOffset=""0xee"" />
+          <slot startOffset=""0x54"" endOffset=""0xee"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -545,7 +545,7 @@ class TestCase
           <namespace usingCount=""0"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x261"" />
+          <slot startOffset=""0x0"" endOffset=""0x262"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -839,7 +839,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x10d"" />
+          <slot startOffset=""0x0"" endOffset=""0x10e"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -935,7 +935,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0xeb"" />
+          <slot startOffset=""0x0"" endOffset=""0xec"" />
         </hoistedLocalScopes>
       </customDebugInfo>
       <sequencePoints>
@@ -1018,7 +1018,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0xfc"" />
+          <slot startOffset=""0x0"" endOffset=""0xfd"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1112,7 +1112,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x109"" />
+          <slot startOffset=""0x0"" endOffset=""0x10a"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1281,7 +1281,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x109"" />
+          <slot startOffset=""0x0"" endOffset=""0x10a"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1580,8 +1580,8 @@ class C
           <namespace usingCount=""2"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x11d"" />
-          <slot startOffset=""0x29"" endOffset=""0x32"" />
+          <slot startOffset=""0x0"" endOffset=""0x11e"" />
+          <slot startOffset=""0x29"" endOffset=""0x33"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />

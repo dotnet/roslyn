@@ -163,8 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             miscellaneousFilesWorkspace.RegisterLanguage(
                 Guids.CSharpLanguageServiceId,
                 LanguageNames.CSharp,
-                ".csx",
-                CSharpParseOptions.Default);
+                ".csx");
         }
 
         protected override string RoslynLanguageName

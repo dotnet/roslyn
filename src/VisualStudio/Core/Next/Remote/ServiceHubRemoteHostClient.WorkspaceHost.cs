@@ -57,15 +57,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _currentSolutionId = _workspace.CurrentSolution.Id;
                 var solutionId = _currentSolutionId;
 
-                using (var session = await _client.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
+                using (var session = await _client.TryCreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
                 {
-                    await session.InvokeAsync(
-                        WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_RegisterPrimarySolutionId,
-                        solutionId).ConfigureAwait(false);
+                    if (session == null)
+                    {
+                        // failed to create session. remote host might not responding or gone. 
+                        return;
+                    }
+
+                    await session.InvokeAsync(nameof(IRemoteHostService.RegisterPrimarySolutionId), solutionId).ConfigureAwait(false);
 
                     await session.InvokeAsync(
-                        WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_UpdateSolutionIdStorageLocation,
-                        solutionId,
+                        nameof(IRemoteHostService.UpdateSolutionIdStorageLocation), solutionId,
                         _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
                 }
             }
@@ -95,14 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private async Task UnregisterPrimarySolutionAsync(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                using (var session = await _client.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
-                {
-                    // ask remote host to sync initial asset
-                    await session.InvokeAsync(
-                        WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_UnregisterPrimarySolutionId,
-                        solutionId,
-                        synchronousShutdown).ConfigureAwait(false);
-                }
+                await _client.RunOnRemoteHostAsync(
+                    WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
+                    nameof(IRemoteHostService.UnregisterPrimarySolutionId), new object[] { solutionId, synchronousShutdown },
+                    CancellationToken.None).ConfigureAwait(false);
             }
 
             public void ClearSolution() { }

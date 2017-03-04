@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function PasteCommandWithInteractiveFormat() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub PasteCommandWithInteractiveFormat()
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -53,12 +53,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 Assert.Equal("a" & vbCrLf & "bc123", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function PasteCommandWithOutInteractiveFormat() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub PasteCommandWithOutInteractiveFormat()
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -87,12 +87,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 Assert.Equal("p", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function PasteCommandWithInteractiveFormatAsLineCopy() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub PasteCommandWithInteractiveFormatAsLineCopy()
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -125,12 +125,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 Assert.Equal("line1" & vbCrLf & "InsertedLine" & vbCrLf & "    line2", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function PasteCommandWithInteractiveFormatAsBoxCopy() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub PasteCommandWithInteractiveFormatAsBoxCopy()
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -168,12 +168,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 Assert.Equal("lineBoxLine11" & vbCrLf & "    BoxLine2line2", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function PasteCommandWithInteractiveFormatAsBoxCopyOnBlankLine() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub PasteCommandWithInteractiveFormatAsBoxCopyOnBlankLine()
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 Assert.Equal("BoxLine1" & vbCrLf & "BoxLine2" & vbCrLf & "line1" & vbCrLf & "    line2", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
 
         Private Sub CopyToClipboard(clipboard As MockClipboard, text As String, json As String, includeRepl As Boolean, isLineCopy As Boolean, isBoxCopy As Boolean)
             clipboard.Clear()

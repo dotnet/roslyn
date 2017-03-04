@@ -166,6 +166,7 @@
     <Compile Include="BraceMatching\BraceHighlightingTests.vb" />
     <Compile Include="BraceMatching\VisualBasicBraceMatcherTests.vb" />
     <Compile Include="CaseCorrecting\CaseCorrectionServiceTests.vb" />
+    <Compile Include="ChangeSignature\ChangeSignatureTests.vb" />
     <Compile Include="ChangeSignature\ChangeSignature_CheckAllSignatureChanges.vb" />
     <Compile Include="ChangeSignature\ChangeSignature_Delegates.vb" />
     <Compile Include="ChangeSignature\ChangeSignature_Formatting.vb" />
@@ -691,6 +692,7 @@
       <SubType>Designer</SubType>
     </None>
     <Compile Include="ConvertToInterpolatedString\ConvertConcatenationToInterpolatedStringTests.vb" />
+    <Compile Include="ConflictMarkerResolution\ConflictMarkerResolutionTests.vb" />
     <Content Include="PerfTests\Sources\BasicPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

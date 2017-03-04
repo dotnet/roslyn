@@ -6,36 +6,46 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     {
         public static CodeStyleOption<bool> ParseEditorConfigCodeStyleOption(string arg)
         {
+            TryParseEditorConfigCodeStyleOption(arg, out var option);
+            return option;
+        }
+
+        public static bool TryParseEditorConfigCodeStyleOption(string arg, out CodeStyleOption<bool> option)
+        {
             var args = arg.Split(':');
-            bool isEnabled = false;
+            var isEnabled = false;
             if (args.Length != 2)
             {
                 if (args.Length == 1)
                 {
                     if (bool.TryParse(args[0].Trim(), out isEnabled) && !isEnabled)
                     {
-                        return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.None);
+                        option = new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.None);
+                        return true;
                     }
                     else
                     {
-                        return CodeStyleOption<bool>.Default;
+                        option = CodeStyleOption<bool>.Default;
+                        return false;
                     }
                 }
-                return CodeStyleOption<bool>.Default;
+                option = CodeStyleOption<bool>.Default;
+                return false;
             }
 
             if (!bool.TryParse(args[0].Trim(), out isEnabled))
             {
-                return CodeStyleOption<bool>.Default;
+                option = CodeStyleOption<bool>.Default;
+                return false;
             }
 
             switch (args[1].Trim())
             {
-                case EditorConfigSeverityStrings.Silent: return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.None);
-                case EditorConfigSeverityStrings.Suggestion: return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Suggestion);
-                case EditorConfigSeverityStrings.Warning: return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Warning);
-                case EditorConfigSeverityStrings.Error: return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Error);
-                default: return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.None);
+                case EditorConfigSeverityStrings.Silent: option = new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.None); return true;
+                case EditorConfigSeverityStrings.Suggestion: option = new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Suggestion); return true;
+                case EditorConfigSeverityStrings.Warning: option = new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Warning); return true;
+                case EditorConfigSeverityStrings.Error: option = new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Error); return true;
+                default: option = new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.None); return false;
             }
         }
     }

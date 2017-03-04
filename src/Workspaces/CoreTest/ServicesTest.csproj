@@ -68,10 +68,10 @@
   <ItemGroup>
     <Compile Include="CodeStyle\EditorConfigCodeStyleParserTests.cs" />
     <Compile Include="DependentTypeFinderTests.cs" />
-    <Compile Include="EditorConfigStorageLocation\EditorConfigStorageLocationTests.cs" />
     <Compile Include="Differencing\LongestCommonSubsequenceTests.cs" />
     <Compile Include="Editting\SyntaxEditorTests.cs" />
     <Compile Include="Execution\Extensions.cs" />
+    <Compile Include="EditorConfigStorageLocation\EditorConfigStorageLocationTests.cs" />
     <Compile Include="Execution\SnapshotSerializationTestBase.cs" />
     <Compile Include="Execution\SnapshotSerializationTests.cs" />
     <Compile Include="ExtensionOrdererTests.cs" />
@@ -81,6 +81,7 @@
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.TextMerging.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.Features.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.cs" />
+    <Compile Include="UtilityTest\SourceTextSerializationTests.cs" />
     <Compile Include="UtilityTest\StringEscapingTests.cs" />
     <Compile Include="SymbolKeyTests.cs" />
     <Compile Include="ServicesTestBase.cs" />
@@ -128,6 +129,7 @@
     <Compile Include="WorkspaceServiceTests\OptionServiceTests.cs" />
     <Compile Include="Host\WorkspaceServices\TestPersistenceService.cs" />
     <Compile Include="Host\TestHost.cs" />
+    <Compile Include="WorkspaceTests\GeneralWorkspaceTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />

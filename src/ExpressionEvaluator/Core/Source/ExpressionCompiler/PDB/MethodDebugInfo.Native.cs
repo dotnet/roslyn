@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         if (!customDebugInfoRecord.IsDefault)
                         {
                             hoistedLocalScopeRecords = CustomDebugInfoReader.DecodeStateMachineHoistedLocalScopesRecord(customDebugInfoRecord)
-                                .SelectAsArray(s => new HoistedLocalScopeRecord(s.StartOffset, s.EndOffset - s.StartOffset + 1));
+                                .SelectAsArray(s => new HoistedLocalScopeRecord(s.StartOffset, s.Length));
                         }
 
                         GetCSharpDynamicLocalInfo(

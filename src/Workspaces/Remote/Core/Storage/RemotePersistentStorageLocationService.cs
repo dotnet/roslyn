@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Remote.Storage
 {
-    [ExportWorkspaceService(typeof(IPersistentStorageLocationService), layer: RemoteWorkspace.WorkspaceKind_RemoteWorkspace), Shared]
+    [ExportWorkspaceService(typeof(IPersistentStorageLocationService), layer: WorkspaceKind.RemoteWorkspace), Shared]
     internal class RemotePersistentStorageLocationService : IPersistentStorageLocationService
     {
         private static readonly object _gate = new object();

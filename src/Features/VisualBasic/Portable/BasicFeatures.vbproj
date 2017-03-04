@@ -94,6 +94,8 @@
     <Compile Include="ConvertIfToSwitch\VisualBasicConvertIfToSwitchCodeRefactoringProvider.vb" />
     <Compile Include="ConvertNumericLiteral\VisualBasicConvertNumericLiteralCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\UseNamedArguments\VisualBasicUseNamedArgumentsCodeRefactoringProvider.vb" />
+    <Compile Include="DesignerAttributes\BasicDesignerAttributeService.vb" />
+    <Compile Include="ConflictMarkerResolution\VisualBasicResolveConflictMarkerCodeFixProvider.vb" />
     <Compile Include="ImplementAbstractClass\VisualBasicImplementAbstractClassCodeFixProvider.vb" />
     <Compile Include="CodeFixes\IncorrectExitContinue\IncorrectExitContinueCodeFixProvider.AddKeywordCodeAction.vb" />
     <Compile Include="CodeFixes\IncorrectExitContinue\IncorrectExitContinueCodeFixProvider.ReplaceKeywordCodeAction.vb" />
@@ -321,7 +323,6 @@
     <Compile Include="ExtractMethod\VisualBasicSyntaxTriviaServiceFactory.vb" />
     <Compile Include="Structure\Providers\ForBlockStructureProvider.vb" />
     <Compile Include="Structure\Providers\ForEachBlockStructureProvider.vb" />
-    <Compile Include="GenerateFromMembers\GenerateFromMembersHelpers.vb" />
     <Compile Include="GenerateMember\GenerateConstructor\VisualBasicGenerateConstructorService.vb" />
     <Compile Include="GenerateMember\GenerateDefaultConstructors\VisualBasicGenerateDefaultConstructorsService.vb" />
     <Compile Include="GenerateMember\GenerateEnumMember\VisualBasicGenerateEnumMemberService.vb" />
@@ -419,6 +420,7 @@
     <Compile Include="SolutionCrawler\VisualBasicDocumentDifferenceService.vb" />
     <Compile Include="Structure\Providers\SyncLockBlockStructureProvider.vb" />
     <Compile Include="Structure\Providers\TryBlockStructureProvider.vb" />
+    <Compile Include="TodoComments\BasicTodoCommentIncrementalAnalyzerProvider.vb" />
     <Compile Include="UseCollectionInitializer\VisualBasicUseCollectionInitializerCodeFixProvider.vb" />
     <Compile Include="UseCollectionInitializer\VisualBasicUseCollectionInitializerDiagnosticAnalyzer.vb" />
     <Compile Include="UseCoalesceExpression\VisualBasicUseCoalesceExpressionForNullableDiagnosticAnalyzer.vb" />

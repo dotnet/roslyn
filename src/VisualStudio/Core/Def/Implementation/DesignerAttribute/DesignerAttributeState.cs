@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
-    internal abstract partial class AbstractDesignerAttributeIncrementalAnalyzer : IIncrementalAnalyzer
+    internal partial class DesignerAttributeIncrementalAnalyzer : IIncrementalAnalyzer
     {
         private class DesignerAttributeState : AbstractDocumentAnalyzerState<Data>
         {

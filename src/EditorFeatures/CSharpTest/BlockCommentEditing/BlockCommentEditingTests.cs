@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
     {
         [WorkItem(11057, "https://github.com/dotnet/roslyn/issues/11057")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task EdgeCase0()
+        public void EdgeCase0()
         {
             var code = @"
 $$/**/
@@ -24,12 +24,12 @@ $$/**/
 
 $$/**/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WorkItem(11057, "https://github.com/dotnet/roslyn/issues/11057")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task EdgeCase1()
+        public void EdgeCase1()
         {
             var code = @"
 /**/$$
@@ -38,12 +38,12 @@ $$/**/
 /**/
 $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WorkItem(11056, "https://github.com/dotnet/roslyn/issues/11056")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task EdgeCase2()
+        public void EdgeCase2()
         {
             var code = @"
 $$/* */
@@ -52,12 +52,12 @@ $$/* */
 
 $$/* */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WorkItem(11056, "https://github.com/dotnet/roslyn/issues/11056")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task EdgeCase3()
+        public void EdgeCase3()
         {
             var code = @"
 /* */$$
@@ -66,47 +66,47 @@ $$/* */
 /* */
 $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task EofCase0()
+        public void EofCase0()
         {
             var code = @"
 /* */$$";
             var expected = @"
 /* */
 $$";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task EofCase1()
+        public void EofCase1()
         {
             var code = @"
     /*$$";
             var expected = @"
     /*
      * $$";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task EofCase2()
+        public void EofCase2()
         {
             var code = @"
     /***$$";
             var expected = @"
     /***
      * $$";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnStartLine0()
+        public void InsertOnStartLine0()
         {
             var code = @"
     /*$$
@@ -115,11 +115,11 @@ $$";
     /*
      * $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnStartLine1()
+        public void InsertOnStartLine1()
         {
             var code = @"
     /*$$*/
@@ -128,11 +128,11 @@ $$";
     /*
      $$*/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnStartLine2()
+        public void InsertOnStartLine2()
         {
             var code = @"
     /*$$ */
@@ -141,11 +141,11 @@ $$";
     /*
      *$$*/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnStartLine3()
+        public void InsertOnStartLine3()
         {
             var code = @"
     /* $$ 1.
@@ -156,11 +156,11 @@ $$";
      * $$1.
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnStartLine4()
+        public void InsertOnStartLine4()
         {
             var code = @"
     /*  1.$$
@@ -171,11 +171,11 @@ $$";
      *  $$
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnStartLine5()
+        public void InsertOnStartLine5()
         {
             var code = @"
     /********$$
@@ -184,11 +184,11 @@ $$";
     /********
      * $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnStartLine6()
+        public void InsertOnStartLine6()
         {
             var code = @"
     /**$$
@@ -197,11 +197,11 @@ $$";
     /**
      * $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnStartLine7()
+        public void InsertOnStartLine7()
         {
             var code = @"
     /*   $$
@@ -210,11 +210,11 @@ $$";
     /*   
      *   $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task NotInsertOnStartLine0()
+        public void NotInsertOnStartLine0()
         {
             var code = @"
     /$$*
@@ -225,11 +225,11 @@ $$";
 $$*
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnMiddleLine0()
+        public void InsertOnMiddleLine0()
         {
             var code = @"
     /*
@@ -240,11 +240,11 @@ $$*
      *
      * $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnMiddleLine1()
+        public void InsertOnMiddleLine1()
         {
             var code = @"
     /*
@@ -255,11 +255,11 @@ $$*
      *
      $$*/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnMiddleLine2()
+        public void InsertOnMiddleLine2()
         {
             var code = @"
     /*
@@ -270,11 +270,11 @@ $$*
      *
      *$$*/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnMiddleLine3()
+        public void InsertOnMiddleLine3()
         {
             var code = @"
     /*
@@ -287,11 +287,11 @@ $$*
      * $$1.
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnMiddleLine4()
+        public void InsertOnMiddleLine4()
         {
             var code = @"
     /*
@@ -304,11 +304,11 @@ $$*
      *  $$
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnMiddleLine5()
+        public void InsertOnMiddleLine5()
         {
             var code = @"
     /*
@@ -323,11 +323,11 @@ $$*
      *   $$
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnMiddleLine6()
+        public void InsertOnMiddleLine6()
         {
             var code = @"
     /*
@@ -340,11 +340,11 @@ $$*
      * $$*
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnMiddleLine7()
+        public void InsertOnMiddleLine7()
         {
             var code = @"
     /*
@@ -357,11 +357,11 @@ $$*
      * $$
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnMiddleLine8()
+        public void InsertOnMiddleLine8()
         {
             var code = @"
     /**
@@ -374,11 +374,11 @@ $$*
      * $$
      */
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnMiddleLine9()
+        public void InsertOnMiddleLine9()
         {
             var code = @"
     /**
@@ -389,11 +389,11 @@ $$*
       *
       * $$
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnEndLine0()
+        public void InsertOnEndLine0()
         {
             var code = @"
     /*
@@ -404,11 +404,11 @@ $$*
      *
      *$$/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnEndLine1()
+        public void InsertOnEndLine1()
         {
             var code = @"
     /**
@@ -419,11 +419,11 @@ $$*
      *
      *$$/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnEndLine2()
+        public void InsertOnEndLine2()
         {
             var code = @"
     /**
@@ -436,11 +436,11 @@ $$*
       *
       *$$/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnEndLine3()
+        public void InsertOnEndLine3()
         {
             var code = @"
     /*
@@ -451,11 +451,11 @@ $$*
   
      * $$*/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnEndLine4()
+        public void InsertOnEndLine4()
         {
             var code = @"
     /*
@@ -466,11 +466,11 @@ $$*
      
      $$*/
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task NotInsertInVerbatimString0()
+        public void NotInsertInVerbatimString0()
         {
             var code = @"
 var code = @""
@@ -483,11 +483,11 @@ var code = @""
 $$
 "";
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task NotInsertInVerbatimString1()
+        public void NotInsertInVerbatimString1()
         {
             var code = @"
 var code = @""
@@ -502,33 +502,33 @@ var code = @""
 $$
 "";
 ";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task BoundCheckInsertOnStartLine0()
+        public void BoundCheckInsertOnStartLine0()
         {
             var code = @"
     /$$*";
             var expected = @"
     /
 $$*";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task BoundCheckInsertOnStartLine1()
+        public void BoundCheckInsertOnStartLine1()
         {
             var code = @"
     /*$$ ";
             var expected = @"
     /*
      *$$";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task BoundCheckInsertOnMiddleLine()
+        public void BoundCheckInsertOnMiddleLine()
         {
             var code = @"
     /*
@@ -537,11 +537,11 @@ $$*";
     /*
      *
      *$$";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task BoundCheckInsertOnEndLine()
+        public void BoundCheckInsertOnEndLine()
         {
             var code = @"
     /*
@@ -550,11 +550,11 @@ $$*";
     /*
      *
      *$$/";
-            await VerifyAsync(code, expected);
+            Verify(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnStartLine2_Tab()
+        public void InsertOnStartLine2_Tab()
         {
             var code = @"
     /*$$<tab>*/
@@ -563,11 +563,11 @@ $$*";
     /*
      *$$*/
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnStartLine3_Tab()
+        public void InsertOnStartLine3_Tab()
         {
             var code = @"
     /*<tab>$$<tab>1.
@@ -578,11 +578,11 @@ $$*";
      *<tab>$$1.
      */
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnStartLine4_Tab()
+        public void InsertOnStartLine4_Tab()
         {
             var code = @"
     /* <tab>1.$$
@@ -593,11 +593,11 @@ $$*";
      * <tab>$$
      */
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnStartLine6_Tab()
+        public void InsertOnStartLine6_Tab()
         {
             var code = @"
     /*<tab>$$
@@ -606,11 +606,11 @@ $$*";
     /*<tab>
      *<tab>$$
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnMiddleLine2_Tab()
+        public void InsertOnMiddleLine2_Tab()
         {
             var code = @"
     /*
@@ -621,11 +621,11 @@ $$*";
      *
      *$$*/
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnMiddleLine3_Tab()
+        public void InsertOnMiddleLine3_Tab()
         {
             var code = @"
     /*
@@ -638,11 +638,11 @@ $$*";
      * $$1.
      */
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnMiddleLine4_Tab()
+        public void InsertOnMiddleLine4_Tab()
         {
             var code = @"
     /*
@@ -655,11 +655,11 @@ $$*";
      * <tab>$$
      */
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnMiddleLine5_Tab()
+        public void InsertOnMiddleLine5_Tab()
         {
             var code = @"
     /*
@@ -674,10 +674,11 @@ $$*";
      *<tab> $$
      */
 ";
-            await VerifyTabsAsync(code, expected);
+            VerifyTabs(code, expected);
         }
 
-        protected override Task<TestWorkspace> CreateTestWorkspaceAsync(string initialMarkup) => TestWorkspace.CreateCSharpAsync(initialMarkup);
+        protected override TestWorkspace CreateTestWorkspace(string initialMarkup)
+            => TestWorkspace.CreateCSharp(initialMarkup);
 
         internal override ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService)
             => new BlockCommentEditingCommandHandler(undoHistoryRegistry, editorOperationsFactoryService);

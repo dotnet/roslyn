@@ -42,9 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         }
 
         // For Testing.
-        internal Glyph Glyph
-        {
-            get { return _glyph; }
-        }
+        internal Glyph Glyph => _glyph;
     }
 }
