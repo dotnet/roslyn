@@ -1015,8 +1015,19 @@ public class Cls
 
             var typeInfo = model.GetTypeInfo(decl);
             Assert.Equal(expectedType, typeInfo.Type);
+
+            // Note: the following assertion is not, in general, correct for declaration expressions,
+            // even though this helper is used to handle declaration expressions.
+            // However, the tests that use this helper have been carefully crafted to avoid
+            // triggering failure of the assertion. See also https://github.com/dotnet/roslyn/issues/17463
             Assert.Equal(expectedType, typeInfo.ConvertedType);
+
             Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl));
+
+            // Note: the following assertion is not, in general, correct for declaration expressions,
+            // even though this helper is used to handle declaration expressions.
+            // However, the tests that use this helper have been carefully crafted to avoid
+            // triggering failure of the assertion. See also https://github.com/dotnet/roslyn/issues/17463
             Assert.True(model.GetConversion(decl).IsIdentity);
 
             var typeSyntax = decl.Type;
@@ -30195,6 +30206,90 @@ class H
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
             Assert.True(x1.Type.IsErrorType());
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17377")]
+        public void GlobalCode_InferenceFailure_07()
+        {
+            string source =
+@"
+H.M((var x1, int x2));
+H.M(x1);
+
+class H
+{
+    public static void M(object a) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            compilation.VerifyDiagnostics(
+                // (2,10): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // H.M((var x1, int x2));
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(2, 10),
+                // (2,6): error CS8185: A declaration is not allowed in this context.
+                // H.M((var x1, int x2));
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x1").WithLocation(2, 6),
+                // (2,14): error CS8185: A declaration is not allowed in this context.
+                // H.M((var x1, int x2));
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x2").WithLocation(2, 14),
+                // (2,5): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // H.M((var x1, int x2));
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(var x1, int x2)").WithArguments("System.ValueTuple`2").WithLocation(2, 5),
+                // (2,5): error CS1503: Argument 1: cannot convert from '(var, int)' to 'object'
+                // H.M((var x1, int x2));
+                Diagnostic(ErrorCode.ERR_BadArgType, "(var x1, int x2)").WithArguments("1", "(var, int)", "object").WithLocation(2, 5)
+                );
+            compilation.GetDeclarationDiagnostics().Verify(
+                // (2,10): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // H.M((var x1, int x2));
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(2, 10)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
+                    .Where(p => p.Identifier().ValueText == "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForOutField(model, x1Decl, x1Ref);
+            var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
+            Assert.Equal("var", x1.Type.ToTestDisplayString());
+            Assert.True(x1.Type.IsErrorType());
+        }
+
+        [Fact, WorkItem(17321, "https://github.com/dotnet/roslyn/issues/17321")]
+        public void InferenceFailure_01()
+        {
+            string source =
+@"
+class H
+{
+    object M1() => M(M(1), x1);
+    static object M(object o1) => o1;
+    static void M(object o1, object o2) {}
+}
+";
+            var node0 = SyntaxFactory.ParseCompilationUnit(source);
+            var one = node0.DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            var decl = SyntaxFactory.DeclarationExpression(
+                type: SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("var")),
+                designation: SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier("x1")));
+            var node1 = node0.ReplaceNode(one, decl);
+            var tree = node1.SyntaxTree;
+            Assert.NotNull(tree);
+            var compilation = CreateCompilationWithMscorlib(new[] { tree });
+            compilation.VerifyDiagnostics(
+                // (4,24): error CS8185: A declaration is not allowed in this context.
+                //     object M1() => M(M(varx1), x1);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "varx1").WithLocation(4, 24)
+                );
+
+            var model = compilation.GetSemanticModel(tree);
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
+                    .Where(p => p.Identifier().ValueText == "x1").Single();
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForDeclarationVarWithoutDataFlow(model, x1Decl, x1Ref);
         }
 
         [Fact]

@@ -2159,13 +2159,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (argumentSyntax.Expression.Kind() == SyntaxKind.DeclarationExpression)
             {
-                return BindOutVariableArgument((DeclarationExpressionSyntax)argumentSyntax.Expression, diagnostics);
+                var declarationExpression = (DeclarationExpressionSyntax)argumentSyntax.Expression;
+                if (declarationExpression.IsOutDeclaration())
+                {
+                    return BindOutDeclarationArgument(declarationExpression, diagnostics);
+                }
             }
 
             return BindArgumentExpression(diagnostics, argumentSyntax.Expression, refKind, allowArglist);
         }
 
-        private BoundExpression BindOutVariableArgument(DeclarationExpressionSyntax declarationExpression, DiagnosticBag diagnostics)
+        private BoundExpression BindOutDeclarationArgument(DeclarationExpressionSyntax declarationExpression, DiagnosticBag diagnostics)
         {
             TypeSyntax typeSyntax = declarationExpression.Type;
             VariableDesignationSyntax designation = declarationExpression.Designation;
@@ -2192,6 +2196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
              DeclarationExpressionSyntax declarationExpression,
              DiagnosticBag diagnostics)
         {
+            Debug.Assert(declarationExpression.IsOutVarDeclaration());
             bool isVar;
             var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
             TypeSyntax typeSyntax = declarationExpression.Type;
@@ -2200,6 +2205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
             if ((object)localSymbol != null)
             {
+                Debug.Assert(localSymbol.DeclarationKind == LocalDeclarationKind.OutVariable);
                 if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                 {
                     Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, declarationExpression);
