@@ -5619,5 +5619,60 @@ public class C
             var expectedOutput = @"eval";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        [WorkItem(17089, "https://github.com/dotnet/roslyn/issues/17089")]
+        public void Dynamic_01()
+        {
+            var source =
+@"using System;
+public class X
+{
+    static void M1(dynamic d)
+    {
+        if (d is 1)
+        {
+            Console.Write('r');
+        }
+        else if (d is int i)
+        {
+            Console.Write('o');
+        }
+        else if (d is var z)
+        {
+            long l = z;
+            Console.Write('s');
+        }
+    }
+    static void M2(dynamic d)
+    {
+        switch (d)
+        {
+            case 1:
+                Console.Write('l');
+                break;
+            case int i:
+                Console.Write('y');
+                break;
+            case var z:
+                long l = z;
+                Console.Write('n');
+                break;
+        }
+    }
+    public static void Main(string[] args)
+    {
+        M1(1);
+        M1(2);
+        M1(3L);
+        M2(1);
+        M2(2);
+        M2(3L);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var comp = CompileAndVerify(compilation, expectedOutput: "roslyn");
+        }
     }
 }

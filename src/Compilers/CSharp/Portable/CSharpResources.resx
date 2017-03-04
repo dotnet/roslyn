@@ -5017,4 +5017,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TypeForwardedToMultipleAssemblies" xml:space="preserve">
     <value>Module '{0}' in assembly '{1}' is forwarding the type '{2}' to multiple assemblies: '{3}' and '{4}'.</value>
   </data>
+  <data name="ERR_PatternDynamicType" xml:space="preserve">
+    <value>It is not legal to use the type 'dynamic' in a pattern.</value>
+  </data>
 </root>
