@@ -62,6 +62,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If origParameter.IsOptional Then
                 flags = flags Or SourceParameterFlags.Optional
             End If
+            If origParameter.IsMe Then
+                flags = flags Or SourceParameterFlags.Me
+            End If
 
             Return SourceComplexParameterSymbol.Create(
                     newContainer,

@@ -1726,7 +1726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_Merge_conflict_marker_encountered = 37284
         ERR_MultipleMeParameterSpecifiers = 37285
-
+        ERR_MeIllegal1 = 37286
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -2001,5 +2001,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_BinaryLiterals
         FEATURE_Tuples
         FEATURE_IOperation
+        ERR_MeParamMustBeFirst
     End Enum
 End Namespace

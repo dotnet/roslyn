@@ -260,7 +260,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 diagnostics.Add(ERRID.ERR_EventMethodOptionalParamIllegal1, location, token.ToString())
                 flag = flag And (Not SourceParameterFlags.ParamArray)
             End If
-
+            If (flag And SourceParameterFlags.Me) <> 0 Then
+                Dim location = token.GetLocation()
+                diagnostics.Add(ERRID.ERR_MeIllegal1, location, token.ToString())
+                flag = flag And (Not SourceParameterFlags.Me)
+            End If
             Return flag
         End Function
 

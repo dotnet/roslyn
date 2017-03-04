@@ -73,7 +73,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' 'Lambda' parameters cannot be declared 'Optional'.
                 Binder.ReportDiagnostic(diagBag, GetModifierToken(syntax.Modifiers, SyntaxKind.OptionalKeyword), ERRID.ERR_OptionalIllegal1, StringConstants.Lambda)
             End If
-
+            If (flags And SourceParameterFlags.Me) <> 0 Then
+                ' 'Lambda' parameters cannot be declared 'Me'.
+                Binder.ReportDiagnostic(diagBag, GetModifierToken(syntax.Modifiers, SyntaxKind.MeKeyword), ERRID.ERR_MeIllegal1, StringConstants.Lambda)
+            End If
             If syntax.AttributeLists.Node IsNot Nothing Then
                 Binder.ReportDiagnostic(diagBag, syntax.AttributeLists.Node, ERRID.ERR_LambdasCannotHaveAttributes)
             End If
