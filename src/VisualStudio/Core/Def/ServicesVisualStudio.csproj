@@ -352,7 +352,7 @@
     <Compile Include="Implementation\Debugging\CachedProximityExpressionsGetter.cs" />
     <Compile Include="Implementation\Debugging\DebugMode.cs" />
     <Compile Include="Implementation\Debugging\IProximityExpressionsService.cs" />
-    <Compile Include="Implementation\DesignerAttribute\AbstractDesignerAttributeIncrementalAnalyzer.cs" />
+    <Compile Include="Implementation\DesignerAttribute\DesignerAttributeIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\DesignerAttribute\DesignerAttributeIncrementalAnalyzerProvider.cs" />
     <Compile Include="Implementation\DesignerAttribute\DesignerAttributeState.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.cs" />

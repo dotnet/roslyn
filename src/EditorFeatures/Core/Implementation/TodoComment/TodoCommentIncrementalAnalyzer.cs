@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
 
@@ -70,14 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 }
             }
 
-            var service = document.GetLanguageService<ITodoCommentService>();
-            if (service == null)
-            {
-                return;
-            }
-
             var tokens = _todoCommentTokens.GetTokens(document, cancellationToken);
-            var comments = await service.GetTodoCommentsAsync(document, tokens, cancellationToken).ConfigureAwait(false);
+            var comments = await GetTodoCommentsAsync(document, tokens, cancellationToken).ConfigureAwait(false);
             var items = await CreateItemsAsync(document, comments, cancellationToken).ConfigureAwait(false);
 
             var data = new Data(textVersion, syntaxVersion, items);
@@ -91,9 +87,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             }
         }
 
+        private async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
+        {
+            var service = document.GetLanguageService<ITodoCommentService>();
+            if (service == null)
+            {
+                // no inproc support
+                return SpecializedCollections.EmptyList<TodoComment>();
+            }
+
+            return await service.GetTodoCommentsAsync(document, tokens, cancellationToken).ConfigureAwait(false);
+        }
+
         private async Task<ImmutableArray<TodoItem>> CreateItemsAsync(Document document, IList<TodoComment> comments, CancellationToken cancellationToken)
         {
-            var items = ArrayBuilder<TodoItem>.GetInstance();
+            var items = ImmutableArray.CreateBuilder<TodoItem>();
             if (comments != null)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -105,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 }
             }
 
-            return items.ToImmutableAndFree();
+            return items.ToImmutable();
         }
 
         private TodoItem CreateItem(Document document, SourceText text, SyntaxTree tree, TodoComment comment)

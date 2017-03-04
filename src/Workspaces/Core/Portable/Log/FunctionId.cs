@@ -365,5 +365,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         FileTextLoader_FileLengthThresholdExceeded,
         RemoteHost_Connect,
         RemoteHost_Disconnect,
+        CodeAnalysisService_GetTodoCommentsAsync,
     }
 }

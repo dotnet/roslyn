@@ -79,6 +79,9 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.cs">
       <Link>Shared\RoslynJsonConverter.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.RoslynOnly.cs">
+      <Link>Shared\RoslynJsonConverter.RoslynOnly.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.SolutionIdConverters.cs">
       <Link>Shared\RoslynJsonConverter.SolutionIdConverters.cs</Link>
     </Compile>
