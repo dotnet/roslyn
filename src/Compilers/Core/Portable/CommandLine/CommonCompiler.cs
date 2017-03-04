@@ -140,22 +140,26 @@ namespace Microsoft.CodeAnalysis
             return "";
         }
 
-        private string ExtractShortSHA(string productVersion)
+        internal static string ExtractShortSHA(string productVersion)
         {
-            string marker = "Commit Hash: "; // format used from AssemblyVersionAttribute
-            int found = productVersion.IndexOf(marker, StringComparison.CurrentCultureIgnoreCase);
-            if (found > 0)
+            if (productVersion != null)
             {
-                int start = found + marker.Length;
-                if (productVersion[start] == '<') // <developer build>
+                string marker = "Commit Hash: "; // format used from AssemblyVersionAttribute
+                int found = productVersion.IndexOf(marker, StringComparison.CurrentCulture);
+                if (found > 0)
                 {
-                    return productVersion.Substring(start, productVersion.Length - start);
-                }
-                else if (productVersion.Length > start + 8)
-                {
-                    return productVersion.Substring(start, 8);
+                    int start = found + marker.Length;
+                    if (productVersion[start] == '<') // <developer build>
+                    {
+                        return productVersion.Substring(start, productVersion.Length - start);
+                    }
+                    else if (productVersion.Length > start + 8)
+                    {
+                        return productVersion.Substring(start, 8);
+                    }
                 }
             }
+
             return "";
         }
 

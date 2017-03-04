@@ -229,7 +229,7 @@ End Class
 
             Assert.Equal(0, exitCode)
             Assert.Equal(<text>
-Microsoft (R) Visual Basic Compiler version A.B.C.D
+Microsoft (R) Visual Basic Compiler version A.B.C.D (&lt;developer build&gt;)
 Copyright (C) Microsoft Corporation. All rights reserved.
 </text>.Value.Replace(vbLf, vbCrLf).Trim,
                 Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D"))
@@ -254,7 +254,7 @@ End Class
 
             Assert.Equal(0, exitCode)
             Assert.Equal(<text>
-Microsoft (R) Visual Basic Compiler version A.B.C.D
+Microsoft (R) Visual Basic Compiler version A.B.C.D (&lt;developer build&gt;)
 Copyright (C) Microsoft Corporation. All rights reserved.
 </text>.Value.Replace(vbLf, vbCrLf).Trim,
                 Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D"))
@@ -4831,7 +4831,7 @@ End Module
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (&lt;developer build&gt;)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(5) : warning BC42024: Unused local variable: 'x'.
@@ -4898,7 +4898,7 @@ End Module
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (&lt;developer build&gt;)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(9) : error BC36640: Instance of restricted type 'ArgIterator' cannot be used in a lambda expression.
@@ -4932,7 +4932,7 @@ PATH(9) : error BC36640: Instance of restricted type 'ArgIterator' cannot be use
                          "  End Sub" + vbCrLf +
                          "End Module" + vbCrLf
 
-            Dim result = <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+            Dim result = <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (&lt;developer build&gt;)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(3) : error BC30201: Expression expected.
@@ -4983,7 +4983,7 @@ End Module
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (&lt;developer build&gt;)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(5) : error BC36593: Expression of type 'Integer()' is not queryable. Make sure you are not missing an assembly reference and/or namespace import for the LINQ provider.
@@ -5030,7 +5030,7 @@ Module _
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (&lt;developer build&gt;)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(3) : error BC30625: 'Module' statement must end with a matching 'End Module'.
@@ -5081,7 +5081,7 @@ End Module
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (&lt;developer build&gt;)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(7) : error BC37220: Name 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeEventHandler' exceeds the maximum length allowed in metadata.
@@ -5124,7 +5124,7 @@ End Class]]>
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (&lt;developer build&gt;)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(4) : error BC30625: 'Module' statement must end with a matching 'End Module'.
@@ -5171,7 +5171,7 @@ End Module
                 </compilation>
 
             Dim result =
-    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (&lt;developer build&gt;)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(6) : error BC30203: Identifier expected.
@@ -7959,7 +7959,7 @@ End Class
         <Fact()>
         Public Sub Version()
             Dim folderName = Temp.CreateDirectory().ToString()
-            Dim expected As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
+            Dim expected As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion + " (<developer build>)"
 
             Dim argss = {
                 "/version",

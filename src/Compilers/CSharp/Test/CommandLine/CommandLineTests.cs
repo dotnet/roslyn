@@ -5278,7 +5278,7 @@ class C
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal(@"
-Microsoft (R) Visual C# Compiler version A.B.C.D
+Microsoft (R) Visual C# Compiler version A.B.C.D (<developer build>)
 Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
                 Regex.Replace(outWriter.ToString().Trim(), "version \\d+\\.\\d+\\.\\d+(\\.\\d+)?", "version A.B.C.D"));
             // Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
@@ -6980,7 +6980,7 @@ class Program3
 
             var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/target:library /debug:portable {libSrc.Path}", startFolder: dir.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Microsoft (R) Visual C# Compiler version {s_compilerVersion}
+Microsoft (R) Visual C# Compiler version {s_compilerVersion} (<developer build>)
 Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             // reading original content from the memory map: 
@@ -8829,7 +8829,7 @@ class C {
         public void Version()
         {
             var folderName = Temp.CreateDirectory().ToString();
-            var expected = FileVersionInfo.GetVersionInfo(typeof(CSharpCompiler).Assembly.Location).FileVersion;
+            var expected = FileVersionInfo.GetVersionInfo(typeof(CSharpCompiler).Assembly.Location).FileVersion + " (<developer build>)";
             var argss = new[]
             {
                 "/version",
