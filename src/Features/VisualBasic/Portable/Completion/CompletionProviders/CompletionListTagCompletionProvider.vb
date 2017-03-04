@@ -41,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                                                     m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)).Select(Function(s) (s, GetCompletionItemRules(s, context))).ToImmutableArray())
         End Function
 
-        Protected Overrides Function GetSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
-            Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+        Protected Overrides Function GetItemsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, rules As CompletionItemRules)))
+            Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol, CompletionItemRules))()
         End Function
 
         Private Function GetCompletionListType(inferredType As ITypeSymbol, within As INamedTypeSymbol, compilation As Compilation) As ITypeSymbol

@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 : symbol.Name;
         }
 
-        protected abstract Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetItemsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken);
 
         protected virtual Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetPreselectedItemsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
@@ -251,8 +251,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return (await GetPreselectedItemsWorker(context, position, options, cancellationToken).ConfigureAwait(false));
                 }
 
-                return (await GetSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false))
-                        .Select(s => (s, CompletionItemRules.Default)).ToImmutableArray();
+                return await GetItemsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {

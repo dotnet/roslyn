@@ -24,15 +24,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return True
         End Function
 
-        Protected Overrides Function GetSymbolsWorker(
-                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+        Protected Overrides Function GetItemsWorker(
+                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol , rules As CompletionItemRules)))
             If context.TargetToken.Kind = SyntaxKind.None Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol , CompletionItemRules))()
             End If
 
             If context.SyntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
                 context.SyntaxTree.IsInSkippedText(position, cancellationToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol , CompletionItemRules))()
             End If
 
             ' We only care about Methods, Properties, and Events
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             ' We couldn't find a declaration. Bail.
             If memberKindKeyword = Nothing Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol , CompletionItemRules))()
             End If
 
             Dim result = ImmutableArray(Of ISymbol).Empty
@@ -71,10 +71,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             If result.Length > 0 Then
-                Return Task.FromResult(result.WhereAsArray(Function(s) MatchesMemberKind(s, memberKindKeyword)))
+                ' TODO: Remove .Select(Function(s) (s, GetCompletionItemRules(s, context))).ToImmutableArray()
+                Return Task.FromResult(result.WhereAsArray(Function(s) MatchesMemberKind(s, memberKindKeyword)).Select(Function(s) (s, GetCompletionItemRules(s, context))).ToImmutableArray())
             End If
 
-            Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+            Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol , CompletionItemRules))()
         End Function
 
         Private Function MatchesMemberKind(symbol As ISymbol, memberKindKeyword As SyntaxKind) As Boolean

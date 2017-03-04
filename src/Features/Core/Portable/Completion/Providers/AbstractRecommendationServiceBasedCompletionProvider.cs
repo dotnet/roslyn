@@ -17,10 +17,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractRecommendationServiceBasedCompletionProvider : AbstractSymbolCompletionProvider
     {
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetItemsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
-            return recommender.GetRecommendedSymbolsAtPositionAsync(context.Workspace, context.SemanticModel, position, options, cancellationToken);
+
+            var recommendedSymbols = await recommender
+                                        .GetRecommendedSymbolsAtPositionAsync(context.Workspace, context.SemanticModel, position, options, cancellationToken)
+                                        .ConfigureAwait(false);
+
+            // TODO: Remove .Select(s => (s, GetCompletionItemRules(s, context))).ToImmutableArray()
+            return recommendedSymbols.Select(s => (s, GetCompletionItemRules(s, context))).ToImmutableArray();
         }
 
         protected override async Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetPreselectedItemsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
@@ -44,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cancellationToken).ConfigureAwait(false);
 
             // Don't preselect intrinsic type symbols so we can preselect their keywords instead.
+            // TODO: Remove .Select(s => (s, GetCompletionItemRules(s, context))).ToImmutableArray()
             return symbols.Where(s => inferredTypes.Contains(GetSymbolType(s)) && !IsInstrinsic(s)).Select(s => (s, GetCompletionItemRules(s, context))).ToImmutableArray();
         }
 

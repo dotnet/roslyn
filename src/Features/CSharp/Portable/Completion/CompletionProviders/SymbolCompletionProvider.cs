@@ -21,10 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetItemsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            return Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
-                context.SemanticModel, position, context.Workspace, options, cancellationToken);
+            var recommendedSymbols = await Recommender
+                                        .GetImmutableRecommendedSymbolsAtPositionAsync(context.SemanticModel, position, context.Workspace, options, cancellationToken)
+                                        .ConfigureAwait(false);
+
+            // TODO: Remove .Select(s => (s, GetCompletionItemRules(s, context))).ToImmutableArray()
+            return recommendedSymbols.Select(s => (s, GetCompletionItemRules(s, context))).ToImmutableArray();
         }
 
         protected override bool IsInstrinsic(ISymbol s)
