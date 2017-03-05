@@ -115,7 +115,7 @@
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioFrameworkAssemblyPathResolverFactory.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionWorkingFoldersEvents.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl_IVsSolutionWorkingFoldersEvents.cs" />
     <Compile Include="Implementation\Extensions\VisualStudioWorkspaceImplExtensions.cs" />
     <Compile Include="Implementation\Options\LanguageSettingsPersister.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\IVsUndoState.cs" />
@@ -550,7 +550,7 @@
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker.WorkspaceHostState.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl_IVsSolutionEvents.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionLoadEvents.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl_IVsSolutionLoadEvents.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspace.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.cs" />
     <Compile Include="Implementation\ProjectSystem\WorkspaceBackgroundWork.cs" />
